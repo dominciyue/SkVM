@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "skvm-optimized-skill-package/v2",
+  "identity": "source:20260913T133219213Z:round-1",
+  "exposure": "development",
+  "proposal": {
+    "dirName": "20260913T133219213Z",
+    "bestRound": 1,
+    "meta": {
+      "path": "meta.json",
+      "bytes": 549,
+      "sha256": "35527b303fdb849ea4bf08dd534d0aaa0da6eddc3f533d4540451de9be85cd33"
+    },
+    "submission": {
+      "path": "round-1-optimizer/submission.json",
+      "bytes": 10537,
+      "sha256": "4656057abb5dae366c3a9f830556d28d3e02c2cb5a6ec8231210e33cb71bd160"
+    }
+  },
+  "snapshots": {
+    "originalClosureSha256": "7d8ab2a927185c40c73d9fae376df557ace4420906352bad5845beb3b577e143",
+    "selectedClosureSha256": "e4fb8e1cf93cdd44457e023091a1b0311d8aaa5488ff88c982eedbaeafcd4082"
+  },
+  "actualDiff": {
+    "added": [
+      "scripts/check_json_locales.py"
+    ],
+    "modified": [
+      "SKILL.md"
+    ],
+    "deleted": [],
+    "moved": []
+  },
+  "files": [
+    {
+      "path": "LICENSE.upstream",
+      "bytes": 1069,
+      "sha256": "0137c0bf5ebe749bb97f8af36adbae05ed9bd19cc1f01ff30553173adb0544f7"
+    },
+    {
+      "path": "optimization-validation-report.json",
+      "bytes": 5990,
+      "sha256": "46d9b45a8bfe5a116dfff1da47453e9be5a5cdae9cfa1f8411e279f26c652f36"
+    },
+    {
+      "path": "scripts/check_json_locales.py",
+      "bytes": 4198,
+      "sha256": "bd09ef95fc5c09bef314882d69681f3caa42d5ed82c9b8401fbf0cfd4b447380"
+    },
+    {
+      "path": "SKILL.md",
+      "bytes": 2911,
+      "sha256": "67f7cd1a1566ddc7aea33e4cbaf0bb418f69e854723f9aa2f641ca80efd238a3"
+    }
+  ],
+  "implementations": [
+    {
+      "actionId": "check-json-locale-parity",
+      "kind": "generate-script",
+      "status": "selected",
+      "entry": "scripts/check_json_locales.py",
+      "runtime": "python",
+      "inputs": [
+        "one reference locale supplied as LOCALE=PATH",
+        "zero or more translated locales supplied as LOCALE=PATH"
+      ],
+      "outputs": [
+        "a JSON completion summary on stdout",
+        "exit code 0 for parity, 1 for detected differences, or 2 for invalid input"
+      ],
+      "preconditions": [
+        "Python 3 is available",
+        "locale files are nested JSON objects with string leaf values"
+      ],
+      "residualDuties": [
+        "select the reference locale",
+        "interpret framework-specific placeholders not covered by the common token patterns",
+        "verify source transformations, translation quality, report ABI, and filesystem delta separately"
+      ],
+      "verification": [
+        "run python scripts/check_json_locales.py --help",
+        "run the checker on all changed nested JSON locale files",
+        "treat ok=true only as locale key and placeholder parity, not as full task correctness"
+      ]
+    },
+    {
+      "actionId": "route-json-verification",
+      "kind": "restructure-docs",
+      "status": "selected",
+      "inputs": [
+        "the current project's locale format",
+        "any task-provided contract or allowed-file declaration"
+      ],
+      "outputs": [
+        "an explicit verification route for nested JSON locales",
+        "a final contract and filesystem-delta review"
+      ],
+      "preconditions": [
+        "the agent has inspected the project and current task constraints"
+      ],
+      "residualDuties": [
+        "fall back to framework-specific manual checks for non-JSON formats",
+        "apply closed schemas exactly without adding plausible fields"
+      ],
+      "verification": [
+        "confirm the documented command exposes --help",
+        "confirm the observed passing locale pair yields ok=true",
+        "review actual changed and created paths against the current task contract"
+      ]
+    }
+  ],
+  "runtime": {
+    "runtimes": [
+      "python"
+    ],
+    "dependencyFiles": []
+  },
+  "claimBoundary": "Development package export. Package file closure passed. Behavior status covers only the listed action-local program cases; whole-skill correctness, source-task replay, agent consumption and optimization effect require separate evidence.",
+  "validation": {
+    "status": "passed",
+    "scope": "package-file-closure",
+    "behaviorStatus": "passed",
+    "behaviorScope": "action-local-program-cases",
+    "deliveryStatus": "validated-recommendation",
+    "report": {
+      "path": "optimization-validation-report.json",
+      "bytes": 5990,
+      "sha256": "46d9b45a8bfe5a116dfff1da47453e9be5a5cdae9cfa1f8411e279f26c652f36"
+    },
+    "retainedActionIds": [
+      "check-json-locale-parity",
+      "route-json-verification"
+    ],
+    "unvalidatedActionIds": [],
+    "rejectedActionIds": [],
+    "programRuns": 1,
+    "caseRuns": 1,
+    "independentCaseRuns": 1
+  }
+}

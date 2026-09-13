@@ -1,0 +1,124 @@
+{
+  "_comment": "This file shows all three valid submission shapes. Pick ONE for submission.json — don't submit this file verbatim.",
+  "_shape_1_edit": {
+    "rootCause": "One paragraph diagnosing the underlying problem (not what you changed).",
+    "reasoning": "Full analysis, including the four answers from the Pre-Edit Checklist in step 4: generality test, rewrite-in-place test, budget, no-trade-off test.",
+    "confidence": 0.8,
+    "changedFiles": [
+      "SKILL.md"
+    ],
+    "changes": [
+      {
+        "file": "SKILL.md",
+        "section": "workflow",
+        "description": "Rewrite step 2 to make the ordering explicit.",
+        "generality": "Any task on this skill that exercises step 2 under time pressure benefits from the tightened ordering — e.g. the batch-import task under tasks/task-import/ and any similar bulk-operation task.",
+        "linesDelta": -1
+      }
+    ],
+    "opportunities": [
+      {
+        "category": "instruction-clarity",
+        "summary": "Evidence-backed opportunity this edit addresses.",
+        "evidenceIds": [
+          "0"
+        ],
+        "disposition": "implemented",
+        "residualDuty": "What the agent must still decide or execute at runtime."
+      }
+    ],
+    "actions": [
+      {
+        "id": "make-repeated-work-executable",
+        "kind": "reuse-script",
+        "evidenceIds": [
+          "0"
+        ],
+        "sourceRefs": [
+          "scripts/existing-tool.py"
+        ],
+        "dependsOn": [],
+        "inputs": [
+          "input path supplied by the user"
+        ],
+        "outputs": [
+          "output path returned to the user"
+        ],
+        "preconditions": [
+          "the bundled runtime dependency is available"
+        ],
+        "constraints": [
+          {
+            "description": "A permanent rule stated by the source skill.",
+            "scope": "skill",
+            "sourceRef": "SKILL.md#relevant-section"
+          },
+          {
+            "description": "A file or side-effect restriction from this evidence task only.",
+            "scope": "task",
+            "sourceRef": ".optimize/tasks/<safeTaskId>/run-N.json#taskPrompt"
+          }
+        ],
+        "validation": {
+          "help": {
+            "args": [
+              "--help"
+            ],
+            "stdoutIncludes": [
+              "Usage:"
+            ]
+          },
+          "cases": [
+            {
+              "id": "observed-task",
+              "evidenceId": "0",
+              "inputSource": "task-fixtures",
+              "inputFiles": [
+                "path/from/task-fixtures"
+              ],
+              "args": [
+                "--input",
+                "path/from/task-fixtures",
+                "--out",
+                "result.json"
+              ],
+              "expectedFiles": [
+                {
+                  "path": "result.json",
+                  "referencePath": "path/in/observed-workdir"
+                }
+              ],
+              "basis": "reference-output",
+              "sourceRefs": [
+                "evidence:0#criteria/<criterion-id>"
+              ]
+            }
+          ]
+        },
+        "changedPaths": [
+          "SKILL.md"
+        ],
+        "residualDuties": [
+          "the agent selects whether this action applies"
+        ],
+        "verification": [
+          "run the bundled tool on a changed input"
+        ]
+      }
+    ]
+  },
+  "_shape_2_no_changes": {
+    "noChanges": true,
+    "rootCause": "The failure is specific to the task fixture under tasks/task-foo/; the skill correctly instructs the agent and no generalizable fix exists.",
+    "opportunities": []
+  },
+  "_shape_3_infra_blocked": {
+    "infraBlocked": true,
+    "blockedEvidenceIds": [
+      "0",
+      "1"
+    ],
+    "blockedReason": "Both runs have runStatus=timeout with tokens=0 and durationMs matching task.timeoutMs — the agent subprocess was killed before producing any LLM output. The 'Evidence Index' column in PER_TASK_SUMMARY.md identifies these runs (0 and 1). No skill-level diagnosis is possible.",
+    "opportunities": []
+  }
+}

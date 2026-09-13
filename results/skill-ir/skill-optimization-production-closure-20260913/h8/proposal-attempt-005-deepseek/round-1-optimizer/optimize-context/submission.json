@@ -1,0 +1,65 @@
+{
+  "rootCause": "The skill describes a fully discretionary i18n workflow (scan all hardcoded strings, decide heuristically what to extract, output a Markdown report), but the task ecosystem uses a contract-driven paradigm where an i18n-contract.json declares exact boundaries (which files to modify/protect/create, which text is confirmed for extraction via data-i18n-key, and the exact JSON output ABI). The skill provides no guidance on recognizing or following a contract, so an agent might follow the skill's general-purpose heuristics instead of the contract's precise rules — producing wrong modifications, wrong output format, or both. The observed agent succeeded only because it ignored the skill's scanning flow and read the contract from the task prompt directly.",
+  "reasoning": "Evidence: the single UNASSESSED task (Evidence Index 0) shows an agent working with a contract-driven i18next task. The i18n-contract.json in the workdir specifies allowedModifiedFiles, requiredNewFiles, protectedFiles, confirmedTextRule (based on data-i18n-key), keyRule, interpolationRule, excludedTextClasses, and an exact outputAbi JSON schema. The agent succeeded — producing the correct files, correct report schema, and leaving protected files untouched — but did so by reading the contract from the task prompt, not from the skill. The skill's current scanning rules (step 2: search all strings, exclude heuristics like '日志调试信息') and output format (Markdown table) directly conflict with the contract's precise rules and JSON ABI.\n\nPre-edit checklist:\n\na) Generality test: Any future task on this skill that supplies an i18n-contract.json (which the schema version 'skill-ir-i18n-helper-public-contract/v3' suggests is a mature, recurring protocol) benefits from the contract-first section. This includes React i18next tasks, Vue-i18n contract tasks, and Angular i18n contract tasks — all would follow the same contract structure.\n\nb) Rewrite-in-place: The existing sections (steps 1-5) remain unchanged for non-contract use. The new step 0 is added before them as a gate — if a contract exists, skip the general flow. The output section is split into contract-mode and general-mode. No existing rule is contradicted.\n\nc) Coherent scope: A single new 'step 0' section plus an output-format split is the smallest change that makes the contract-driven workflow explicit without touching any of the existing general-purpose instructions.\n\nd) No-trade-off: There are 0 PASSING tasks and 0 MARGINAL/FAILING tasks. The single UNASSESSED task's agent already followed the contract pattern that the edit codifies, so this change only reinforces correct behavior. There is nothing to regress.",
+  "confidence": 0.85,
+  "changedFiles": [
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "workflow",
+      "description": "Added step 0 (Contract-First) that gates on i18n-contract.json existence and enumerates the contract fields and rules, preventing the agent from applying the general-purpose scanning heuristics when a contract is present.",
+      "generality": "Any future task that provides an i18n-contract.json — regardless of framework (React, Vue, Angular) or locale languages — benefits from the agent recognizing and following the contract's boundaries instead of the skill's default heuristics.",
+      "linesDelta": 23
+    },
+    {
+      "file": "SKILL.md",
+      "section": "output format",
+      "description": "Split the output section into contract-mode and general-mode, ensuring the agent uses the contract's outputAbi JSON schema instead of the Markdown template when a contract exists.",
+      "generality": "Any contract-driven task where the outputAbi differs from the default Markdown report (e.g., different required fields, locale keys, or schema versions) benefits from the agent knowing to defer to the contract for output format.",
+      "linesDelta": 5
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "The skill lacks any recognition of contract-driven i18n workflow. When a contract file is present, the skill's general-purpose scanning rules and Markdown output template conflict with the contract's precise boundaries and JSON ABI, potentially misleading the agent.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must still evaluate the contract's specific field values at runtime — which files are protected, which text rule applies, what the exact output schema requires. The skill now tells the agent to defer to the contract for these decisions but cannot pre-compute them."
+    },
+    {
+      "category": "verification",
+      "summary": "The skill's default output format (Markdown table) conflicts with the contract-defined JSON ABI. Agents need explicit instruction that contract-mode output must follow the JSON schema, not the Markdown template.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must still validate the generated report against the specific outputAbi's required fields, enum values, and structural constraints at runtime."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "Not applicable — the task prompt is the parameterization mechanism and the contract file is the input source.",
+      "evidenceIds": [],
+      "disposition": "not-applicable"
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "Not applicable with a single run; no repeated mechanical work is visible.",
+      "evidenceIds": [],
+      "disposition": "not-applicable"
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "Not applicable — no environment-specific failures observed.",
+      "evidenceIds": [],
+      "disposition": "not-applicable"
+    },
+    {
+      "category": "residual-duty",
+      "summary": "The agent retains responsibility for: reading the contract's specific field values at runtime, wiring the correct i18n framework initialization (i18n.ts), generating accurate locale translations, and handling edge cases not covered by the contract's rules.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "Runtime decisions about locale content, framework wiring, key naming, and translation accuracy remain with the agent. The contract defines boundaries but not translation values."
+    }
+  ]
+}

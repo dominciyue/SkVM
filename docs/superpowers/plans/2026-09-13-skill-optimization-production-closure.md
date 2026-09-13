@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 Pi/headless-agent/provider、proposal storage、已有领域 checker；复用原 skill 所需的 Python/Node 等运行时。只在现有模块不能清晰承担职责时增加小模块。
 
-**状态：** revision 1，`planned-not-started`，2026-09-13。本文只登记下一轮，不表示 H0 已启动，不创建运行结果或持续目标。G0–G14 已完成，历史效果维持 mixed。
+**状态：** revision 1，`active-H9`，2026-09-13。H0–H8 已完成；机器恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`。G0–G14 历史效果维持 mixed。
 
 **队列：** H0–H14 主队列；Y1–Y2 为主链达标后有条件执行的有限深化。按约 12–20 小时开发范围组织，不保证固定时长，不以等待、重复测试、审计或无限补样填满夜间。
 
@@ -99,9 +99,9 @@ export interface OptimizationActionAssessment {
 
 **文件：** current-status、本任务书、loop/index/CLI；本轮 status.json。
 
-- [ ] 检查分支、最近提交和 dirty 归属；读当前相关 spec 14.31、架构和将改动模块，不重查全部历史。
-- [ ] 从真实 log 分支定位 runOptimizer、snapshot、history、bestRound 和 package-out。记录验证应接入的实际位置，不能只接 real-task 分支。
-- [ ] 运行下列基线一次，将既有失败与本轮新故障分开；创建恢复状态，H1 标 active。
+- [x] 检查分支、最近提交和 dirty 归属；读当前相关 spec 14.31、架构和将改动模块，不重查全部历史。
+- [x] 从真实 log 分支定位 runOptimizer、snapshot、history、bestRound 和 package-out。记录验证应接入的实际位置，不能只接 real-task 分支。
+- [x] 运行下列基线一次，将既有失败与本轮新故障分开；创建恢复状态，H1 标 active。
 
 ```powershell
 bun test ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/package.test.ts ./test/cli/jit-optimize.test.ts
@@ -113,11 +113,11 @@ bun test ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/pack
 
 **材料：** 上轮 corpus/backlog、已有 development source 与真实 trace。只创建本轮 `case-notes.json`，不新增大篇研究报告。
 
-- [ ] 核对已有 30 条阅读记录中的结构与原文，优先选择：I18n 的 locale key/占位符比较等确定步骤、Law 的现成转换程序、Experimental 的程序加 references；选择依据为机械缺口和真实资源，不为预定正例。
-- [ ] 每项写清 source 路径、真实 trace 定位、机械职责、判断职责、适用输入、独立质量依据、当前共享缺口、下一条代码测试。无需重复读完整 30 份。
-- [ ] 优先为“已有脚本复用”“确有新程序价值”“任务条件改变”“多资源路径”建立少量诊断案例；一个 skill 可以覆盖多个问题。
-- [ ] 若既有材料不足，从已知公开仓库补取对应正文/依赖或运行原 skill 获取一条真实 trace。新材料为 development；不先凑数量，不读取 reserve。
-- [ ] 失败/no-change 仍保留。发现需要一个非 API 新机械例时定向补样并说明原因，不无限换样找成功。
+- [x] 核对已有 30 条阅读记录中的结构与原文，优先选择：I18n 的 locale key/占位符比较等确定步骤、Law 的现成转换程序、Experimental 的程序加 references；选择依据为机械缺口和真实资源，不为预定正例。
+- [x] 每项写清 source 路径、真实 trace 定位、机械职责、判断职责、适用输入、独立质量依据、当前共享缺口、下一条代码测试。无需重复读完整 30 份。
+- [x] 优先为“已有脚本复用”“确有新程序价值”“任务条件改变”“多资源路径”建立少量诊断案例；一个 skill 可以覆盖多个问题。
+- [x] 若既有材料不足，从已知公开仓库补取对应正文/依赖或运行原 skill 获取一条真实 trace。现有材料已足够，因此本项不适用且未新增来源、未读取 reserve。
+- [x] 失败/no-change 仍保留。I18n 是有公共合同和独立 evaluator 的非 API 新程序候选；Law/Experimental/Env 的历史 no-change、unstable 或 unassessed 状态不改写。
 
 **验收：** 调研能直接指向 H2–H10 的代码和行为；不是“读了多少篇”完成。
 
@@ -125,11 +125,11 @@ bun test ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/pack
 
 **修改：** types、workspace、optimizer；测试 workspace/optimizer-prompt，新增 constraint-scope 行为测试。
 
-- [ ] 写失败测试：某 trace 禁联网、路径固定、输出字段限定，但原 skill 没有这些永久规则；新动作只应附带本任务条件，不能缩减 skill 的一般用途。
-- [ ] 保留相反用例：原 skill 明确的永久限制不能因一次 trace 未触发而删除；workspace 的“未观察到不等于可删除”提示保留，它本身不是条件污染。
-- [ ] 为有依据的条件附来源与范围，未知范围不猜。兼容原 action/旧 proposal，无关字段缺失不拒绝整个 skill。
-- [ ] 在模型工作区明确固定规则、当前任务值、可变参数与环境事实；按需读相关原文，避免将整个历史和全部资源重复注入。
-- [ ] 写入输出入口时，有合同则遵合同，无合同按原 skill 流程；不能凭空要求每个用户提供闭合 JSON ABI 或额外确认。
+- [x] 写失败测试：某 trace 禁联网、路径固定、输出字段限定，但原 skill 没有这些永久规则；新动作只应附带本任务条件，不能缩减 skill 的一般用途。
+- [x] 保留相反用例：原 skill 明确的永久限制不能因一次 trace 未触发而删除；workspace 的“未观察到不等于可删除”提示保留，它本身不是条件污染。
+- [x] 为有依据的条件附来源与范围，未知范围不猜。兼容原 action/旧 proposal，无关字段缺失不拒绝整个 skill。
+- [x] 在模型工作区明确固定规则、当前任务值、可变参数与环境事实；按需读相关原文，避免将整个历史和全部资源重复注入。
+- [x] 写入输出入口时，有合同则遵合同，无合同按原 skill 流程；不能凭空要求每个用户提供闭合 JSON ABI 或额外确认。
 
 ```powershell
 bun test ./test/jit-optimize/constraint-scope.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/optimizer-prompt.test.ts
@@ -141,7 +141,7 @@ bun test ./test/jit-optimize/constraint-scope.test.ts ./test/jit-optimize/worksp
 
 **修改：** package-validation、action-plan、必要 types；不改变历史报告。
 
-- [ ] 在现有 action 测试 helper 下加入以下红例；当前实现会错误保留 B，应先确认失败。
+- [x] 在现有 action 测试 helper 下加入以下红例；当前实现会错误保留 B，应先确认失败。
 
 ```ts
 test("pending dependency prevents downstream validation promotion", () => {
@@ -158,10 +158,10 @@ test("pending dependency prevents downstream validation promotion", () => {
 })
 ```
 
-- [ ] 实现 A→B→C 的 pending 传递；未知不变失败。独立已通过动作仍保留，真实失败继续按依赖闭包传播。
-- [ ] 同文件动作不能假装可独立回退。未验证共享改动使相关组未验证，失败共享改动需整组修复或恢复；复用现有分组，不做危险的行级逆补丁。
-- [ ] 把 missing-input/runtime、not-applicable、program-error、result-mismatch、not-run 分开；用本节轻量状态映射保持旧结果可读。
-- [ ] 检查“无适用检查”“仅 help 成功”“执行零项”都不能提升为行为通过；合法空数据按原任务规则独立测试。
+- [x] 实现 A→B→C 的 pending 传递；未知不变失败。独立已通过动作仍保留，真实失败继续按依赖闭包传播。
+- [x] 同文件动作不能假装可独立回退。未验证共享改动使相关组未验证，失败共享改动需整组修复或恢复；复用现有分组，不做危险的行级逆补丁。
+- [x] 把 missing-input/runtime、not-applicable、program-error、result-mismatch、not-run 分开；用本节轻量状态映射保持旧结果可读。
+- [x] 检查“无适用检查”“仅 help 成功”“执行零项”都不能提升为行为通过；合法空数据按原任务规则独立测试。
 
 ```powershell
 bun test ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/action-plan.test.ts
@@ -173,12 +173,12 @@ bun test ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/acti
 
 **修改：** optimizer/types/implementations/package-validation；新增 validation-lifecycle 的计划转换部分。
 
-- [ ] 先写测试：选中程序的 entry、参数、工作目录和预期输出从动作与真实资源解析，改变输入路径后计划跟随变化；不要求用户人工编写内部验证 JSON。
-- [ ] 模型在已有 workspace 提交程序与可执行验证建议；框架校验路径、真实文件和必要参数，转换成已有 `ProgramValidationCase`，保留预期依据来源。
-- [ ] 复用原测试、真实输入输出、格式工具或明确任务规则进行检查。生成器自写的断言只能算自检，不能作为唯一任务正确性依据；没有外部依据时如实保留未评估。
-- [ ] 已有程序不强迫支持统一 `--help` 或统一 stdout JSON；记录其真实接口。新程序应有简洁参数说明、输出路径和成功/不适用/错误语义。
-- [ ] 不臆造输入文件、密钥或环境；缺某动作资源只标记该动作。非字符串和空对象是否有效由所选程序/任务决定。
-- [ ] 记录实际运行时与依赖，避免将 Bun 的 process.execPath 无条件称为 Node；仅在实际路径有误时修解析，不新建运行时探测平台。
+- [x] 先写测试：选中程序的 entry、参数、工作目录和预期输出从动作与真实资源解析，改变输入路径后计划跟随变化；不要求用户人工编写内部验证 JSON。
+- [x] 模型在已有 workspace 提交程序与可执行验证建议；框架校验路径、真实文件和必要参数，转换成已有 `ProgramValidationCase`，保留预期依据来源。
+- [x] 复用原测试、真实输入输出、格式工具或明确任务规则进行检查。生成器自写的断言只能算自检，不能作为唯一任务正确性依据；没有外部依据时如实保留未评估。
+- [x] 已有程序不强迫支持统一 `--help` 或统一 stdout JSON；记录其真实接口。新程序应有简洁参数说明、输出路径和成功/不适用/错误语义。
+- [x] 不臆造输入文件、密钥或环境；缺某动作资源只标记该动作。非字符串和空对象是否有效由所选程序/任务决定。
+- [x] 记录实际运行时与依赖，避免将 Bun 的 process.execPath 无条件称为 Node；仅在实际路径有误时修解析，不新建运行时探测平台。
 
 ```powershell
 bun test ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/package-validation.test.ts
@@ -190,11 +190,11 @@ bun test ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/im
 
 **修改：** validation-lifecycle、loop/index/types；测试新增 production-closure 与已有 loop。
 
-- [ ] 写集成红例：mock 仅替代付费 optimizer 响应，使用真实临时 skill、生成的 `.mjs`、实际程序运行、真实 proposal 与 package；一次 CLI/log 调用后，验证报告记录实际执行和产物检查。
-- [ ] 在实际修改产生后、该轮成为推荐 snapshot 前调用 implementation selection、program validator 和 action resolver；覆盖 log 的提前返回路径。
-- [ ] 旧 log 导入不重跑源 trace 的原任务；局部程序验证是显式的新执行，有独立记录，不能算成原 trace 的一部分。
-- [ ] no-change 不生成空包；仅文档动作可以正常处理，不能为它调用不存在的脚本。没有足够验证资源可导出明确 draft，不冒充已验证优化。
-- [ ] history/result 持久化实际验证。按 diff 选轮不叫效果最佳；有证据失败的轮次不能仅因最新或改动更多而成为推荐包。
+- [x] 写集成红例：mock 仅替代付费 optimizer 响应，使用真实临时 skill、生成的 `.mjs`、实际程序运行、真实 proposal 与 package；一次 CLI/log 调用后，验证报告记录实际执行和产物检查。
+- [x] 在实际修改产生后、该轮成为推荐 snapshot 前调用 implementation selection、program validator 和 action resolver；覆盖 log 的提前返回路径。
+- [x] 旧 log 导入不重跑源 trace 的原任务；局部程序验证是显式的新执行，有独立记录，不能算成原 trace 的一部分。
+- [x] no-change 不生成空包；仅文档动作可以正常处理，不能为它调用不存在的脚本。没有足够验证资源可导出明确 draft，不冒充已验证优化。
+- [x] history/result 持久化实际验证。按 diff 选轮不叫效果最佳；有证据失败的轮次不能仅因最新或改动更多而成为推荐包。
 
 ```powershell
 bun test ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/loop.test.ts ./test/jit-optimize/pick-best-round.test.ts ./test/cli/jit-optimize.test.ts
@@ -206,11 +206,11 @@ bun test ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/vali
 
 **修改：** validation-lifecycle、optimizer、loop、workspace/storage 的必要接口。
 
-- [ ] 写红例：两个独立动作，程序 A 输出不符、B 通过；一次反馈只给相关错误与文件，修复后重新执行 A 及受影响检查，最终包来自修复后的实际文件。
-- [ ] 写第二红例：修复仍失败；保留原始与修复尝试，恢复失败组，保留真正独立成功组。若共改 SKILL.md 无法安全拆分，整组恢复，不假装成功动作仍独立。
-- [ ] 使用已有 runOptimizer 及记录路径承载修复，不开第二套循环；自动修复默认一次，费用和调用单独计数。
-- [ ] 修复不能修改独立评价期望以迎合产物；若发现 checker 本身有错，作为工程缺陷另行修复并注明，不能混作优化成功。
-- [ ] 变更后使旧验证失效，只复验受影响部分；导出不得引用旧 snapshot 的 passed。完全回退后恢复 no-change，不输出空的“优化成功”。
+- [x] 写红例：两个独立动作，程序 A 输出不符、B 通过；一次反馈只给相关错误与文件，修复后重新执行 A 及受影响检查，最终包来自修复后的实际文件。
+- [x] 写第二红例：修复仍失败；保留原始与修复尝试，恢复失败组，保留真正独立成功组。若共改 SKILL.md 无法安全拆分，整组恢复，不假装成功动作仍独立。
+- [x] 使用已有 runOptimizer 及记录路径承载修复，不开第二套循环；自动修复默认一次，费用和调用单独计数。
+- [x] 修复不能修改独立评价期望以迎合产物；若发现 checker 本身有错，作为工程缺陷另行修复并注明，不能混作优化成功。
+- [x] 变更后使旧验证失效，只复验受影响部分；导出不得引用旧 snapshot 的 passed。完全回退后恢复 no-change，不输出空的“优化成功”。
 
 ```powershell
 bun test ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/workspace.test.ts ./test/proposals/storage.test.ts
@@ -222,11 +222,11 @@ bun test ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/pr
 
 **修改：** package、CLI、types、storage；更新现有 usage/component 段。
 
-- [ ] 红例覆盖旧 proposal 无验证字段、已通过局部程序、未运行、部分失败、no-change；旧包保持可读，旧 manifest 不回写。
-- [ ] 导出绑定最终 snapshot 的已有验证结果，避免再次执行等价检查。必要时升级新 manifest schema，向后兼容读取，不添加新签名/冻结协议。
-- [ ] CLI 展示实际修改类型、包路径、适用条件、已验证范围、残余职责和具体缺项；“program checks passed”不得写成整个 skill 正确。
-- [ ] 保留原 `--task-source=log`、`--logs`、`--log-records`、`--package-out`；只有无法从资源得到的必要参数才增加可选配置，不引入领域必填合同。
-- [ ] 未验证候选与推荐包区分；支持合理 no-change，不覆盖原 skill，不自动 accept。文档不应强迫 agent 每次读取完整 manifest、源码与原包。
+- [x] 红例覆盖旧 proposal 无验证字段、已通过局部程序、未运行、部分失败、no-change；旧包保持可读，旧 manifest 不回写。
+- [x] 导出绑定最终 snapshot 的已有验证结果，避免再次执行等价检查。必要时升级新 manifest schema，向后兼容读取，不添加新签名/冻结协议。
+- [x] CLI 展示实际修改类型、包路径、适用条件、已验证范围、残余职责和具体缺项；“program checks passed”不得写成整个 skill 正确。
+- [x] 保留原 `--task-source=log`、`--logs`、`--log-records`、`--package-out`；只有无法从资源得到的必要参数才增加可选配置，不引入领域必填合同。
+- [x] 未验证候选与推荐包区分；支持合理 no-change，不覆盖原 skill，不自动 accept。文档不应强迫 agent 每次读取完整 manifest、源码与原包。
 
 ```powershell
 bun test ./test/jit-optimize/package.test.ts ./test/cli/jit-optimize.test.ts ./test/jit-optimize/production-closure.test.ts
@@ -238,13 +238,15 @@ bun test ./test/jit-optimize/package.test.ts ./test/cli/jit-optimize.test.ts ./t
 
 **材料：** H1 已有机械缺口案例；优先 I18n 的 key/占位符比较或其他有明确输入输出规则的非 API 步骤。
 
-- [ ] 先确定原 skill 规则、真实输入、已完成的一次 trace 与评价依据，记录哪些信息进入优化器。若需要新 trace，先正常运行原 skill，不人为写“理想 trace”。
-- [ ] 从普通 CLI 让优化模型生成参数化程序并调用 H4–H7；主开发者不手写最终 helper/映射后冒充优化器输出。
-- [ ] 用原输入检查程序，再用重命名/内容变化的输入检查参数化；变化输入不先喂给优化器仍称单 trace。若因失败回灌，明确记录单 trace 初版与多证据修订版。
-- [ ] 让 agent 仅接收正常任务、资源和新包，实际调用新程序并完成剩余职责；检查来自 read/exec 与最终结果，不以口头声称调用为证。
-- [ ] 若生成失败或 no-change，定位是机会不足、证据缺失、提示偏置、接口错误还是实现问题。修共享代码后保留新尝试，不手工粉饰产物。
+- [x] 先确定原 skill 规则、真实输入、已完成的一次 trace 与评价依据，记录哪些信息进入优化器。若需要新 trace，先正常运行原 skill，不人为写“理想 trace”。
+- [x] 从普通 CLI 让优化模型生成参数化程序并调用 H4–H7；主开发者不手写最终 helper/映射后冒充优化器输出。
+- [x] 用原输入检查程序，再用重命名/内容变化的输入检查参数化；变化输入不先喂给优化器仍称单 trace。若因失败回灌，明确记录单 trace 初版与多证据修订版。
+- [x] 让 agent 仅接收正常任务、资源和新包，实际调用新程序并完成剩余职责；检查来自 read/exec 与最终结果，不以口头声称调用为证。
+- [x] 若生成失败或 no-change，定位是机会不足、证据缺失、提示偏置、接口错误还是实现问题。修共享代码后保留新尝试，不手工粉饰产物。
 
 **验收：** 至少一个真实非 API 新程序由正常优化链产生、验证、打包并自然消费；改变输入后结果符合原规则。此项不能由 SKILL.md 修改、手写示范程序或 source 旧脚本自测替代。
+
+**实际结果：** 第 8 次普通 CLI 优化生成 `scripts/check_json_locales.py`；修复通用 fixture 投影、workspace locator、外部 criterion 绑定与依赖文档状态后，未改动程序本身即通过 1 个原 trace 独立案例并导出 v2 `validated-recommendation`。未回灌的重命名/变化输入 4/4 通过，3/3 设计错误在预期层检出。普通 Pi agent 未获内部入口提示，实际 read/exec 程序并完成残余 `audit.json`；首份分析因未识别 `ok=true` 错判失败，保留原报告后由共享 analyzer 修复和同一原始事件确定性重分析为通过。完整尝试、费用未知和边界见 `results/skill-ir/skill-optimization-production-closure-20260913/h8/report.json`。
 
 ## H9 — 现成程序复用与另一种结构
 

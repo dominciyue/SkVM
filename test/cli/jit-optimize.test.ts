@@ -3,6 +3,7 @@ import {
   JIT_OPTIMIZE_FLAGS,
   runJitOptimize,
   buildTaskSource,
+  formatOptimizedSkillPackageSummary,
   validateFlagsForSource,
   type JitOptimizeConfig,
 } from "../../src/cli/jit-optimize.ts"
@@ -178,6 +179,78 @@ describe("JIT_OPTIMIZE_FLAGS.parse", () => {
 
   test("--help short-circuits", () => {
     expect(JIT_OPTIMIZE_FLAGS.parse(["--help"])).toEqual({ help: true })
+  })
+})
+
+describe("formatOptimizedSkillPackageSummary", () => {
+  test("separates action-local validation from whole-skill correctness and lists applicability and residual duties", () => {
+    const lines = formatOptimizedSkillPackageSummary({
+      schemaVersion: "skvm-optimized-skill-package/v2",
+      identity: "test:proposal:round-1",
+      exposure: "development",
+      proposal: {
+        dirName: "proposal",
+        bestRound: 1,
+        meta: { path: "meta.json", bytes: 2, sha256: "0".repeat(64) },
+      },
+      snapshots: { originalClosureSha256: "1".repeat(64), selectedClosureSha256: "2".repeat(64) },
+      actualDiff: { added: ["bin/check.mjs"], modified: ["SKILL.md"], deleted: [], moved: [] },
+      files: [],
+      implementations: [{
+        actionId: "check-keys",
+        kind: "generate-script",
+        status: "selected",
+        entry: "bin/check.mjs",
+        runtime: "node",
+        inputs: ["source locale JSON", "target locale JSON"],
+        outputs: ["key and placeholder comparison"],
+        preconditions: ["both inputs parse as JSON objects"],
+        residualDuties: ["review translation quality"],
+        verification: ["reference-output case"],
+      }],
+      runtime: { runtimes: ["node"], dependencyFiles: [] },
+      validation: {
+        status: "passed",
+        scope: "package-file-closure",
+        behaviorStatus: "partial",
+        behaviorScope: "action-local-program-cases",
+        deliveryStatus: "draft",
+        report: { path: "optimization-validation-report.json", bytes: 2, sha256: "3".repeat(64) },
+        retainedActionIds: ["check-keys"],
+        unvalidatedActionIds: ["docs-guidance"],
+        rejectedActionIds: [],
+        programRuns: 1,
+        caseRuns: 1,
+        independentCaseRuns: 1,
+      },
+      claimBoundary: "local only",
+    })
+
+    expect(lines).toContain("Package delivery status: draft")
+    expect(lines).toContain("Package modification types: generate-script")
+    expect(lines.join("\n")).toContain("check-keys: inputs=source locale JSON | target locale JSON; preconditions=both inputs parse as JSON objects")
+    expect(lines.join("\n")).toContain("review translation quality")
+    expect(lines.join("\n")).toContain("unvalidated=docs-guidance")
+    expect(lines.join("\n")).toContain("Action-local program checks do not establish whole-skill correctness")
+  })
+
+  test("labels legacy package behavior as unassessed without inventing missing validation", () => {
+    const lines = formatOptimizedSkillPackageSummary({
+      schemaVersion: "skvm-optimized-skill-package/v1",
+      identity: "legacy",
+      exposure: "development",
+      proposal: { dirName: "proposal", bestRound: 1, meta: { path: "meta.json", bytes: 2, sha256: "0".repeat(64) } },
+      snapshots: { originalClosureSha256: "1".repeat(64), selectedClosureSha256: "2".repeat(64) },
+      actualDiff: { added: [], modified: ["SKILL.md"], deleted: [], moved: [] },
+      files: [],
+      implementations: [],
+      runtime: { runtimes: [], dependencyFiles: [] },
+      validation: { status: "passed", scope: "package-file-closure", behaviorStatus: "not-run" },
+      claimBoundary: "legacy",
+    })
+
+    expect(lines).toContain("Package delivery status: draft (legacy manifest; behavior unassessed)")
+    expect(lines.join("\n")).toContain("Package validation gaps: behavior-validation=not-run")
   })
 })
 

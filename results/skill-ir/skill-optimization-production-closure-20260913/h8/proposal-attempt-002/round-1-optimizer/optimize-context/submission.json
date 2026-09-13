@@ -1,0 +1,61 @@
+{
+  "rootCause": "The skill describes generic i18n scanning and generation but does not tell the agent how to prioritize and enforce a project-supplied contract or output ABI. As a result, contract-defined confirmation rules, exact keys, interpolation handling, file boundaries, and closed report schemas are left to inference rather than treated as mechanically verifiable constraints.",
+  "reasoning": "Evidence 0 is a clean, runStatus=ok execution with no evaluator score, so it is UNASSESSED rather than a demonstrated failure. Its task prompt and workdir nevertheless expose a general workflow boundary: the public contract defines which JSX text is confirmed, exact data-i18n keys, interpolation behavior, allowed/protected paths, and an output ABI with locale-keyed missing-key arrays. The baseline agent reported success, but the skill itself does not instruct agents to read such contracts first or validate their closed schemas and file-set restrictions, leaving avoidable residual ambiguity on similar tasks. I implemented the smallest conditional clarification in the existing workflow rather than appending overlapping rules. The change is general: another project with a public extraction schema, file allowlist, or report ABI would benefit from the same precedence and validation instructions. The generality test is satisfied because the wording applies to any supported framework and any contract-backed i18n task, not the observed filenames or keys. The rewrite-in-place test is satisfied by tightening steps 1, 2, and 5 where project analysis, extraction, and checking already belong. The coherent-scope test is satisfied because no executable bundle is evidenced or needed; the source skill is documentation-only. There are no PASSING tasks in PER_TASK_SUMMARY.md, so no passing score can regress; the conditional wording also preserves the generic fallback for projects without contracts. Residual professional duties remain with the agent: interpret framework syntax, choose translations, determine appropriate named interpolation identifiers where syntax permits, and honestly report checks that could not run.",
+  "confidence": 0.82,
+  "changedFiles": [
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "工作流程 / 1. 项目分析、2. 硬编码文本扫描、5. 完整性检查",
+      "description": "Add conditional contract-first extraction, exact-key/interpolation guidance, ABI validation, and allowed/protected-file verification without changing the generic workflow for projects lacking a contract.",
+      "generality": "A different React, Vue, or gettext task that supplies a public schema, output ABI, or file allowlist would benefit from treating those artifacts as authoritative and validating the resulting closed output.",
+      "linesDelta": 9
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "The baseline skill lacks explicit precedence and ordering for public contracts and exact output schemas.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must still read and interpret the particular contract and apply its framework-specific syntax correctly."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "The observed task exposes contract parameters such as confirmed-text rules, exact key values, file boundaries, and ABI fields, but the skill did not direct the agent to parameterize its workflow from them.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must obtain parameters from the actual project artifacts and must not invent values absent from them."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "The run performed repeated extraction, locale generation, and source replacement, but the evidence does not provide a general executable transformation that can safely be bundled.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "The agent performs the framework-specific transformations and preserves semantics, interpolation identifiers, and exclusions."
+    },
+    {
+      "category": "verification",
+      "summary": "The run reported JSON and contract validation, while TypeScript compilation was unavailable; the skill needed a clearer distinction between required ABI/file checks and unavailable optional checks.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must run only available local checks, verify protected paths, and report unexecuted checks honestly."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "The clean task prohibited package installation and network access, and the run lacked a local TypeScript compiler; these are task/environment facts rather than permanent skill rules.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "The agent must inspect the current environment and task restrictions before selecting checks or dependencies."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Framework parsing, translation judgment, interpolation naming, and honest handling of unavailable tooling remain context-dependent responsibilities.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "Do not replace these judgments with unsupported fixed rules; the agent remains responsible for them."
+    }
+  ]
+}

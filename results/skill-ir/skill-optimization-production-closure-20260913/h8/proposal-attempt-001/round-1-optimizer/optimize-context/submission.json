@@ -1,0 +1,114 @@
+{
+  "rootCause": "The skill describes the generic i18n transformation but does not tell the agent how an authoritative task contract changes that workflow: file allowlists, confirmation/key rules, exact closed output schemas, locale completeness, and protected-file checks are left implicit, so correctness on contract-driven projects depends on ad hoc inference rather than a stable contract-first procedure.",
+  "reasoning": "Evidence 0 is a clean, unassessed run (runStatus=ok), so it supports workflow facts but not a quality claim. The observed task required the agent to derive its file scope, extraction semantics, exact report ABI, locale set, and side-effect restrictions from a public contract; the produced workdir visibly demonstrates each of those mechanical obligations. The baseline SKILL.md covered scanning, replacement, locale generation, and completeness, but its default report example and broad scan instructions did not establish contract precedence or closed-schema behavior. The edit therefore tightens the existing workflow sections in place rather than appending an overlapping tutorial. Generality test: the same contract-first rules benefit a Vue task with a manifest-defined file allowlist and YAML report schema, a gettext task with a POT/output manifest, or any i18n audit with protected files and declared locale outputs. Rewrite-in-place test: all changes refine steps 1-5 and the existing output-format introduction; no existing rule was deleted. Coherent-scope test: a concise documentation-only change is sufficient because framework-specific extraction, translation, and source editing still require project context, while no repeated standalone transformation is evidenced strongly enough to justify a bundled program. No-trade-off test: PER_TASK_SUMMARY.md contains no PASSING tasks, so there is no passing score that this change can regress; the conditional wording also preserves unconstrained tasks by retaining the existing default workflow and report. Professional translation choices, framework wiring, interpretation of user-visible text when no contract defines it, and selection of available validators remain residual agent duties.",
+  "confidence": 0.86,
+  "changedFiles": [
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "工作流程与输出格式",
+      "description": "Refine the existing workflow to make authoritative contracts control file scope, extraction/key semantics, locale completeness, exact output schemas, side effects, and final verification while preserving the default unconstrained workflow.",
+      "generality": "A different Vue or gettext localization task whose manifest declares editable files, protected files, locales, and an exact report schema would benefit from the same contract-first procedure.",
+      "linesDelta": 4
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "Clarify that supplied contracts take precedence over generic defaults and that exact field lists are closed sets.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must still interpret contract language and resolve conflicts with the user's explicit request."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "Treat declared files, locales, confirmation rules, keys, and output schemas as per-task inputs instead of fixed skill assumptions.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must read and apply the actual values supplied by each project rather than infer values from this evidence fixture."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "Extraction, replacement, locale synchronization, and report construction are visible transformations, but one React example does not establish a portable executable across the skill's many frameworks and formats.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "The agent performs framework- and syntax-aware edits and preserves interpolation semantics."
+    },
+    {
+      "category": "verification",
+      "summary": "Add explicit schema, locale-key parity, final file-set, protected-file, and available build/validator checks.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent chooses validators available without violating task restrictions and accurately reports checks that could not run."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "The observed lack of a local TypeScript compiler and prohibition on package installation are task/environment facts, not permanent skill requirements.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "The agent must inspect the current environment, avoid prohibited dependency or network actions, and report unavailable validation."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Translation quality, technical-term handling, framework integration, and context-dependent user-visible-text judgments cannot be replaced by the observed contract mechanics.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "The agent remains responsible for semantic translation quality, correct framework wiring, and context-sensitive decisions not made explicit by a contract."
+    }
+  ],
+  "actions": [
+    {
+      "id": "clarify-contract-first-workflow",
+      "kind": "restructure-docs",
+      "evidenceIds": ["0"],
+      "sourceRefs": [
+        "SKILL.md#工作流程",
+        ".optimize/tasks/i18n-helper-v3-skvm-windows-clean-i18n-helper-v3-react-basic-dev-001/run-0.md#Task",
+        ".optimize/tasks/i18n-helper-v3-skvm-windows-clean-i18n-helper-v3-react-basic-dev-001/run-0.md#Work-Directory"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "project source and configuration",
+        "optional task-provided contract, manifest, or output schema"
+      ],
+      "outputs": [
+        "contract-conformant source and locale changes",
+        "report in the declared schema or the skill's default report when no schema is supplied"
+      ],
+      "preconditions": [
+        "The agent can read the project and any task-provided contract before editing"
+      ],
+      "constraints": [
+        {
+          "description": "Preserve placeholders and use locale-aware formatting where applicable.",
+          "scope": "skill",
+          "sourceRef": "SKILL.md#注意事项"
+        },
+        {
+          "description": "The observed file allowlist, protected files, exact ABI, no-install, and no-network restrictions apply only to Evidence 0.",
+          "scope": "task",
+          "sourceRef": ".optimize/tasks/i18n-helper-v3-skvm-windows-clean-i18n-helper-v3-react-basic-dev-001/run-0.json#taskPrompt"
+        },
+        {
+          "description": "TypeScript was not locally available in the observed run.",
+          "scope": "environment",
+          "sourceRef": ".optimize/tasks/i18n-helper-v3-skvm-windows-clean-i18n-helper-v3-react-basic-dev-001/run-0.md#Conversation-Log"
+        }
+      ],
+      "changedPaths": [
+        "SKILL.md"
+      ],
+      "residualDuties": [
+        "Interpret project-specific syntax and contract semantics",
+        "Choose translations and framework integration details",
+        "Run only validators permitted and available in the current task"
+      ],
+      "verification": [
+        "Confirm the documented workflow explicitly covers contract precedence, closed schemas, key parity, file scope, protected files, and unavailable-check reporting",
+        "Confirm the original default report remains available when no exact schema is supplied"
+      ]
+    }
+  ]
+}

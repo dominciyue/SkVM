@@ -2324,9 +2324,13 @@ action-local validation、普通 source/优化包自然消费、Pi 分层计数�
 未打包该文件，随后提示合同通过 TDD 明确排除。既有 API solidifier 与 v2 artifact 回归通过；历史候选冻结的额外测试仍会在当前
 Windows LF 工作文件与 `core.autocrlf` filter 的 CRLF checkout bytes 不同时拒绝 `package.json`，本轮不修改旧冻结链或摘要。
 
-### 14.31 优化生产链闭合与可执行程序交付（2026-09-13，planned-not-started）
+### 14.31 优化生产链闭合与可执行程序交付（2026-09-13，active-H9）
 
-下一轮依据[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 1 的 H0–H14，主线达标后有条件执行 Y1–Y2。本次仅规划，未启动运行或新持续目标。14.30 历史交付和 mixed 结果保留。
+本轮依据[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 1 的 H0–H14，主线达标后有条件执行 Y1–Y2。H0 已完成实际调用链定位与单次基线，H1 已绑定四类真实用例，H2 已实现有来源的条件范围并保持旧 action 兼容；H3 已修复 pending 的依赖/共享文件传播和 help-only 误提升；H4 已把 action 建议转换为真实资源与参考摘要绑定的执行计划；H5 已接入正常 log loop 并持久化实际执行、检查和选轮状态；H6 复用同一 optimizer 完成最多一次的局部修复，只复验受影响动作，并在失败时按依赖/共享文件闭包恢复 baseline，同时保留独立已验证动作；H7 使 v2 包归档并重验最终选中 snapshot 的行为报告，以 draft/validated-recommendation 区分验证缺口，同时保持 v1 只读兼容；H8 从一条已暴露 I18n trace 由普通优化器生成 nested-JSON key/placeholder checker，经原 trace、未回灌变化输入和普通 agent 实际消费验证，当前 active-H9。恢复状态见 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`。14.30 历史交付和 mixed 结果保留。
+
+H8 的正向提升不依赖模型自写测试：task-contract case 只有在 exact sourceRef 指向已供应且 `passed=true` 的外部 criterion 时才算 independent；optimizer workspace 的投影路径必须可映射回同一 evidence 的声明 source，失败则 unresolved。独立说明改写仍未验证，只有选中且声明依赖的路由说明可随依赖闭包保留。最终程序在新的路径、键、值和 locale 标签上通过，缺键、占位符改名和非法叶三项故障均由预定结构字段及退出码检出。自然消费的原始事件证明 skill read、helper exec、残余报告和包/输入不变；共享 analyzer 对 exit-zero JSON `ok=true` 的漏判经红例修复，`ok=false` 仍不计成功。结果路径为 `results/skill-ir/skill-optimization-production-closure-20260913/h8/report.json`，效果未配对所以保持 unknown。
+
+一次宽搜索意外显示过 i18n heldout 文件中的匹配行；其内容未用于生成、变体或结论，也未选择/运行/修改，但该 heldout 对本线程不再可声称 pristine unseen。后续 H9–H14 不使用该来源，且任何未来 prospective 预登记必须排除或显式处理这次暴露。
 
 复核澄清：14.30 的 action-local validation 是已实现组件，不代表正常 CLI/loop 已接入程序验证、失败反馈和修复选轮；`validateOptimizationProgram` 与 `resolveActionValidation` 当前只有实现、导出和测试调用。四个已交付 G 包身份实际均只改 SKILL.md；30 个阅读条目中的 10 个为深读子集，实际优化运行覆盖 4 个 skill。此处澄清能力范围，不改写历史原始结果。
 

@@ -31,6 +31,7 @@ import type {
   JitOptimizeResult,
   TaskSource,
 } from "../jit-optimize/types.ts"
+import type { OptimizedSkillPackageManifest } from "../jit-optimize/package.ts"
 
 export const JIT_OPTIMIZE_FLAGS = defineFlags(
   "jit-optimize",
@@ -515,6 +516,45 @@ function printOptimizeResult(skillName: string, result: JitOptimizeResult): void
   }
 }
 
+export function formatOptimizedSkillPackageSummary(manifest: OptimizedSkillPackageManifest): string[] {
+  const selected = manifest.implementations.filter((item) => item.status === "selected")
+  const implementationGaps = manifest.implementations.filter((item) => item.status !== "selected")
+  const modificationTypes = [...new Set(selected.map((item) => item.kind))].sort()
+  const applicability = selected.map((item) => {
+    const inputs = item.inputs.length > 0 ? item.inputs.join(" | ") : "none declared"
+    const preconditions = item.preconditions.length > 0 ? item.preconditions.join(" | ") : "none declared"
+    return `${item.actionId}: inputs=${inputs}; preconditions=${preconditions}`
+  })
+  const residual = selected.flatMap((item) => item.residualDuties.map((duty) => `${item.actionId}: ${duty}`))
+  const lines = [
+    `Package modification types: ${modificationTypes.length > 0 ? modificationTypes.join(", ") : "unclassified"}`,
+    `Package applicability: ${applicability.length > 0 ? applicability.join("; ") : "none declared"}`,
+    `Package residual duties: ${residual.length > 0 ? residual.join("; ") : "none declared"}`,
+  ]
+  if (manifest.schemaVersion === "skvm-optimized-skill-package/v1") {
+    return [
+      "Package delivery status: draft (legacy manifest; behavior unassessed)",
+      ...lines,
+      `Package implementation gaps: ${implementationGaps.length === 0 ? "none declared" : implementationGaps.map((item) => `${item.actionId}:${item.status}${item.reason ? ` (${item.reason})` : ""}`).join("; ")}`,
+      "Package validation gaps: behavior-validation=not-run",
+      "Action-local program checks do not establish whole-skill correctness or real agent consumption.",
+    ]
+  }
+  const validationGaps = [
+    ...(manifest.validation.unvalidatedActionIds.length > 0 ? [`unvalidated=${manifest.validation.unvalidatedActionIds.join(",")}`] : []),
+    ...(manifest.validation.rejectedActionIds.length > 0 ? [`rejected=${manifest.validation.rejectedActionIds.join(",")}`] : []),
+    ...(manifest.validation.behaviorStatus === "not-run" ? ["behavior-validation=not-run"] : []),
+  ]
+  return [
+    `Package delivery status: ${manifest.validation.deliveryStatus}`,
+    ...lines,
+    `Package behavior validation: ${manifest.validation.behaviorStatus} (${manifest.validation.behaviorScope}; retained=${manifest.validation.retainedActionIds.length}; program-runs=${manifest.validation.programRuns}; cases=${manifest.validation.caseRuns}; independent-cases=${manifest.validation.independentCaseRuns})`,
+    `Package implementation gaps: ${implementationGaps.length === 0 ? "none declared" : implementationGaps.map((item) => `${item.actionId}:${item.status}${item.reason ? ` (${item.reason})` : ""}`).join("; ")}`,
+    `Package validation gaps: ${validationGaps.length > 0 ? validationGaps.join("; ") : "none within declared action-local cases"}`,
+    "Action-local program checks do not establish whole-skill correctness or real agent consumption.",
+  ]
+}
+
 async function printPackageExport(result: JitOptimizeResult, packageOut: string): Promise<void> {
   const { buildOptimizedSkillPackage, verifyOptimizedSkillPackage } = await import("../jit-optimize/package.ts")
   try {
@@ -526,12 +566,10 @@ async function printPackageExport(result: JitOptimizeResult, packageOut: string)
     }
     const verified = await verifyOptimizedSkillPackage(exported.packageDir!)
     const diff = verified.manifest.actualDiff
-    const gaps = verified.manifest.implementations.filter((item) => item.status !== "selected")
     console.log(`\nPackage: ${exported.packageDir}`)
     console.log(`Package changes: added=${diff.added.length} modified=${diff.modified.length} deleted=${diff.deleted.length} moved=${diff.moved.length}`)
     console.log(`Package validation: ${exported.validation} (package-file-closure)`)
-    console.log(`Package behavior validation: ${verified.manifest.validation.behaviorStatus}`)
-    console.log(`Package implementation gaps: ${gaps.length === 0 ? "none declared" : gaps.map((item) => `${item.actionId}:${item.status}${item.reason ? ` (${item.reason})` : ""}`).join("; ")}`)
+    for (const line of formatOptimizedSkillPackageSummary(verified.manifest)) console.log(line)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     if (message.startsWith("Infra-blocked proposals cannot be exported")) {

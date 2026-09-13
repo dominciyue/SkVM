@@ -62,6 +62,12 @@ export type {
   OptimizationAction,
   OptimizationActionKind,
   OptimizationActionDiagnostic,
+  OptimizationConstraint,
+  OptimizationConstraintScope,
+  OptimizationProgramValidationSuggestion,
+  OptimizationValidationCaseSuggestion,
+  OptimizationValidationBasis,
+  OptimizationRoundValidationSummary,
   OptimizeInput,
   OptimizeConfig,
   OptimizeResult,
@@ -116,15 +122,36 @@ export type {
   ResolveActionValidationOptions,
 } from "./package-validation.ts"
 export {
+  deriveProgramValidationPlan,
+  runOptimizationValidationLifecycle,
+  OPTIMIZATION_VALIDATION_REPORT_SCHEMA_VERSION,
+} from "./validation-lifecycle.ts"
+export type {
+  DerivedProgramValidationPlan,
+  DerivedProgramValidationPlanStatus,
+  DeriveProgramValidationPlanOptions,
+  ProgramValidationPlanDiagnostic,
+  ProgramValidationCaseEvidence,
+  OptimizationActionValidationRecord,
+  OptimizationValidationLifecycleReport,
+  RunOptimizationValidationLifecycleOptions,
+  RunOptimizationValidationLifecycleResult,
+} from "./validation-lifecycle.ts"
+export {
   buildOptimizedSkillPackage,
   verifyOptimizedSkillPackage,
   OptimizedSkillPackageManifestSchema,
+  CurrentOptimizedSkillPackageManifestSchema,
+  LegacyOptimizedSkillPackageManifestSchema,
   OPTIMIZED_SKILL_PACKAGE_SCHEMA_VERSION,
+  LEGACY_OPTIMIZED_SKILL_PACKAGE_SCHEMA_VERSION,
   OPTIMIZED_SKILL_PACKAGE_MANIFEST,
+  OPTIMIZED_SKILL_PACKAGE_VALIDATION_REPORT,
 } from "./package.ts"
 export type {
   BuildOptimizedSkillPackageOptions,
   BuildOptimizedSkillPackageResult,
+  CurrentOptimizedSkillPackageManifest,
   OptimizedSkillPackageManifest,
   VerifiedOptimizedSkillPackage,
 } from "./package.ts"

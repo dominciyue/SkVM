@@ -75,6 +75,7 @@ try {
 
     expect(result.status).toBe("passed")
     expect(result.help?.status).toBe("passed")
+    expect(result.help?.command[0]).toBe(Bun.which("node") ?? process.execPath)
     expect(result.cases.map((item) => item.status)).toEqual(["passed", "passed", "passed", "passed"])
     expect(await readFile(path.join(firstWorkDir, "out.json"), "utf8"))
       .not.toBe(await readFile(path.join(secondWorkDir, "out.json"), "utf8"))
@@ -134,6 +135,39 @@ console.log("completed without expected marker");
     })
     expect(missingParameter.failureKind).toBe("parameter-missing")
     expect(resultMismatch.failureKind).toBe("result-mismatch")
+  })
+
+  test("rejects output bytes that differ from an engine-derived reference digest", async () => {
+    const packageDir = await tempDir("package-validation-reference-")
+    const workDir = await tempDir("package-validation-reference-work-")
+    await mkdir(path.join(packageDir, "scripts"))
+    await writeFile(path.join(packageDir, "scripts", "wrong.mjs"), `
+import { mkdir, writeFile } from "node:fs/promises";
+await mkdir("out", { recursive: true });
+await writeFile("out/result.json", "wrong");
+`)
+    const result = await validateOptimizationProgram({
+      packageDir,
+      implementation: {
+        actionId: "reference",
+        kind: "generate-script",
+        status: "selected",
+        entry: "scripts/wrong.mjs",
+        runtime: "node",
+        inputs: [], outputs: [], preconditions: [], residualDuties: [], verification: [],
+      },
+      cases: [{
+        id: "reference",
+        cwd: workDir,
+        args: [],
+        expectedFiles: ["out/result.json"],
+        expectedFileSha256: { "out/result.json": new Bun.CryptoHasher("sha256").update("expected").digest("hex") },
+      }],
+    })
+
+    expect(result.status).toBe("failed")
+    expect(result.failureKind).toBe("result-mismatch")
+    expect(result.cases[0]?.diagnostics).toContainEqual(expect.stringContaining("digest mismatch"))
   })
 })
 
@@ -208,5 +242,88 @@ describe("resolveActionValidation", () => {
     expect(result.status).toBe("not-run")
     expect(result.retainedActionIds).toEqual([])
     expect(result.unvalidatedActionIds).toEqual(["unvalidated"])
+  })
+
+  test("pending dependency prevents downstream validation promotion", () => {
+    const result = resolveActionValidation({
+      actions: [action("A", ["scripts/a.mjs"]), action("B", ["docs/b.md"], ["A"])],
+      observations: [
+        { actionId: "A", status: "not-run", diagnostics: ["missing input"] },
+        { actionId: "B", status: "passed", diagnostics: [] },
+      ],
+    })
+    expect(result.retainedActionIds).toEqual([])
+    expect(result.unvalidatedActionIds).toEqual(["A", "B"])
+    expect(result.rejected).toEqual([])
+  })
+
+  test("pending state propagates through transitive dependencies without becoming a failure", () => {
+    const result = resolveActionValidation({
+      actions: [
+        action("A", ["scripts/a.mjs"]),
+        action("B", ["docs/b.md"], ["A"]),
+        action("C", ["docs/c.md"], ["B"]),
+        action("independent", ["docs/independent.md"]),
+      ],
+      observations: [
+        { actionId: "A", status: "not-run", diagnostics: ["runtime unavailable"] },
+        { actionId: "B", status: "passed", diagnostics: [] },
+        { actionId: "C", status: "passed", diagnostics: [] },
+        { actionId: "independent", status: "passed", diagnostics: [] },
+      ],
+    })
+
+    expect(result.retainedActionIds).toEqual(["independent"])
+    expect(result.unvalidatedActionIds).toEqual(["A", "B", "C"])
+    expect(result.rejected).toEqual([])
+    expect(result.status).toBe("partial")
+  })
+
+  test("pending shared-file change keeps the whole group unvalidated", () => {
+    const result = resolveActionValidation({
+      actions: [
+        action("shared-pending", ["SKILL.md", "scripts/a.mjs"]),
+        action("shared-observed", ["SKILL.md", "docs/b.md"]),
+        action("independent", ["references/keep.md"]),
+      ],
+      observations: [
+        { actionId: "shared-pending", status: "not-run", diagnostics: ["missing input"] },
+        { actionId: "shared-observed", status: "passed", diagnostics: [] },
+        { actionId: "independent", status: "passed", diagnostics: [] },
+      ],
+    })
+
+    expect(result.retainedActionIds).toEqual(["independent"])
+    expect(result.unvalidatedActionIds).toEqual(["shared-pending", "shared-observed"])
+    expect(result.rejected).toEqual([])
+    expect(result.rollbackGroups).toEqual([])
+  })
+})
+
+describe("validation promotion guards", () => {
+  test("help-only execution is not promoted to behavior passed", async () => {
+    const packageDir = await tempDir("package-validation-help-only-")
+    await mkdir(path.join(packageDir, "scripts"))
+    await writeFile(path.join(packageDir, "scripts", "help.mjs"), `
+if (process.argv.includes("--help")) { console.log("Usage: help"); process.exit(0); }
+`)
+
+    const result = await validateOptimizationProgram({
+      packageDir,
+      implementation: {
+        actionId: "help-only",
+        kind: "generate-script",
+        status: "selected",
+        entry: "scripts/help.mjs",
+        runtime: "node",
+        inputs: [], outputs: [], preconditions: [], residualDuties: [], verification: [],
+      },
+      help: { args: ["--help"], stdoutIncludes: ["Usage:"] },
+      cases: [],
+    })
+
+    expect(result.help?.status).toBe("passed")
+    expect(result.status).toBe("not-applicable")
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "validation-cases-missing" }))
   })
 })

@@ -105,6 +105,31 @@ describe("buildOptimizerPrompt", () => {
     expect(p).not.toContain("same criterion across multiple runs, that is a skill defect")
   })
 
+  test("does not let one selected edit hide other independently supported opportunities", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("implement every independent evidence-backed opportunity")
+    expect(p).toContain("does not need to cover every input format supported by the skill")
+    expect(p).toContain("bounded executable")
+  })
+
+  test("treats a bounded deterministic checker as a generated program opportunity", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("deterministic checker or normalizer")
+    expect(p).toContain("does not have to perform the whole transformation")
+    expect(p).toContain("source-established invariant")
+  })
+
+  test("does not require repeated traces or a pre-existing script for a source-established checker", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("does not require a repeated cross-task occurrence")
+    expect(p).toContain("does not require a pre-existing checker")
+    expect(p).toContain("source-established invariant")
+    expect(p).toContain("original pre-run inputs")
+    expect(p).toContain("observed post-run files")
+    expect(p).toContain("independent passing criterion")
+    expect(p).toContain("arbitrary declared input paths")
+  })
+
   test("keeps professional judgment as a residual duty instead of pretending to solidify it", () => {
     const p = buildOptimizerPrompt(1, 0)
     expect(p).toContain("professional judgment")
@@ -140,6 +165,18 @@ describe("buildOptimizerPrompt", () => {
     expect(p).toContain("`--help`")
     expect(p).toContain("structured completion summary")
     expect(p).toContain("must remain allowed")
+  })
+
+  test("asks the optimizer for evidence-bound executable validation suggestions", () => {
+    const p = buildOptimizerPrompt(2, 0)
+    expect(p).toContain("`validation`")
+    expect(p).toContain("`task-fixtures`")
+    expect(p).toContain("`workdir-snapshot`")
+    expect(p).toContain("`reference-output`")
+    expect(p).toContain("`self-check`")
+    expect(p).toContain("does not establish task correctness")
+    expect(p).toContain("run-N-task-fixtures")
+    expect(p).toContain("original pre-run inputs")
   })
 
   test("preserves closed-world artifact fields and inapplicable semantics", () => {

@@ -240,7 +240,9 @@ Log source does not rerun tasks, so `--rounds`, `--runs-per-task`, `--convergenc
 
 - `--no-keep-all-rounds` — keep only the best round's folder (default keeps all)
 - `--auto-apply` — after best-round selection, overwrite the original `--skill` directory, backing up overwritten files inside the proposal
-- `--package-out=<new-empty-directory>` — export the selected round as an independent optimized skill without modifying the source. The package manifest binds the proposal, actual filesystem diff, exact file closure, implementation actions, runtime/dependency files, and validation status. A genuine no-change leaves this directory absent.
+- `--package-out=<new-empty-directory>` — export the selected round as an independent optimized skill without modifying the source. The v2 package manifest binds the proposal, final-history actions, actual filesystem diff, exact file closure, runtime/dependency files, and any already-run action-local validation report; export does not rerun the checks. A genuine no-change leaves this directory absent. Legacy v1 packages remain readable.
+
+The command prints whether the result is a `draft` or `validated-recommendation`, the actual action kinds, applicable inputs and preconditions, residual duties, and concrete validation gaps. A recommendation requires a bound passed report with at least one independent case and no unvalidated or rejected action. This status is limited to those action-local cases and does not claim whole-skill correctness or real agent consumption.
 
 The following development command was run end-to-end against one exact record and exported a non-API package:
 

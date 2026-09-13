@@ -1,0 +1,67 @@
+{
+  "rootCause": "The skill describes a useful generic i18n workflow but does not tell the agent how to prioritize a task-specific contract or independently verify an exact output ABI and file-scope requirement. As a result, on contract-driven tasks the agent must infer whether the contract overrides defaults and whether its conversion is complete, despite the evidence showing that exact key extraction, interpolation preservation, locale completeness, and narrowly scoped outputs are the important success conditions.",
+  "reasoning": "Evidence 0 is a clean, passing run with a perfect score, so there is no demonstrated defect or failing task to repair. It does, however, expose a reusable contract-driven workflow: the task required exact framework/key/file/schema behavior, and the successful agent explicitly performed JSON and contract validation. I made a narrow, Pareto-safe clarification rather than changing the transformation rules: the new contract-first step makes externally supplied contracts authoritative only for the current task, while preserving the existing generic fallback workflow, and the existing completeness step now includes a concise independent review of calls, locale entries, interpolation identifiers, and contract-defined output/file constraints. Generality test: a different task requiring extraction under a Vue-i18n contract, a gettext schema, or a restricted report ABI would benefit from the same contract-priority and exact-verification guidance. Rewrite-in-place test: the completeness check was tightened in place, and the contract guidance was placed before project analysis because it determines the applicable parameters; no overlapping appendix was added. Coherent scope: only SKILL.md needed editing; no executable is justified because the sole passing evidence provides no stable cross-format checker inputs or bundled runtime. No-trade-off test: the only PASSING task is i18n-helper-v3:skvm:windows:clean:i18n-helper-v3-react-basic-dev-001. The clarification aligns directly with its already-passing behavior, preserves the generic workflow and existing exclusions, and does not require extra files, packages, network access, or a different output shape, so it should not lower that task's score.",
+  "confidence": 0.78,
+  "changedFiles": [
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "工作流程 / 合同优先",
+      "description": "Adds a concise contract-first rule so exact task-provided keys, schemas, paths, and side-effect limits govern the otherwise generic workflow.",
+      "generality": "A different task using a Vue-i18n contract or a gettext output ABI would likewise benefit from treating its declared contract as authoritative without narrowing the skill.",
+      "linesDelta": 5
+    },
+    {
+      "file": "SKILL.md",
+      "section": "工作流程 / 5. 完整性检查",
+      "description": "Extends the existing completeness step with an independent review of translation calls, locale entries, interpolation identifiers, and exact contract-defined outputs and file scope.",
+      "generality": "A different batch translation task with multiple locales and placeholder variables would benefit from the same final invariant checks.",
+      "linesDelta": 1
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "The generic workflow did not state how an exact external i18n contract should control the workflow or how to perform the final exactness review.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must read and interpret each supplied contract, identify confirmed text, choose appropriate translations, and decide how to handle facts the contract does not specify."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "The passing task demonstrates that framework, key, interpolation, file, and report behavior can be parameterized by a supplied contract rather than inferred from defaults.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must obtain the actual contract and apply only its declared values; absent contract values remain context-dependent."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "The run contains multiple confirmed text-to-translation transformations, but the skill has no bundled transformation utility and the evidence does not establish a safe cross-format executable.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "The agent performs the source replacement and locale generation while preserving syntax, semantics, and format-specific conventions."
+    },
+    {
+      "category": "verification",
+      "summary": "The successful run explicitly reports JSON and contract validation, and the skill now requires a final invariant review for the observable correctness conditions.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must run or perform available independent checks and report limitations when dependencies or tooling are unavailable."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "The evidence shows a clean successful run and no skill-level environment failure requiring a portable environment workaround.",
+      "evidenceIds": ["0"],
+      "disposition": "not-applicable"
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Translation quality, technical-term exclusions, locale-sensitive formatting, and interpretation of unspecified contract details remain judgment-dependent responsibilities.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "The agent remains responsible for professional translation choices, preserving placeholders, avoiding inappropriate translation of technical content, and respecting any task-specific restrictions."
+    }
+  ]
+}

@@ -369,6 +369,120 @@ describe("workdir snapshot placement", () => {
       await rm(dir, { recursive: true, force: true })
     }
   })
+
+  test("materializes trace-bound original task fixtures separately from the observed workdir", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "workspace-task-fixtures-"))
+    const optimizeDir = path.join(root, ".optimize")
+    const taskPath = path.join(root, "task.json")
+    await mkdir(optimizeDir)
+    await writeFile(taskPath, JSON.stringify({
+      id: "task-A",
+      prompt: "check source messages",
+      fixtures: {
+        "src/App.tsx": "export const label = 'Save'\n",
+        "locales/en.json": "{\"save\":\"Save\"}\n",
+      },
+      eval: [{
+        id: "hidden-evaluator-contract",
+        method: "llm-judge",
+        rubric: "must not be projected into optimizer fixture files",
+      }],
+    }))
+
+    const taskEv = ev("task-A", "check source messages", [crit({ score: 1 })])
+    taskEv.trace = {
+      format: "skvm-raw-runs-jsonl/v1",
+      representation: "conversation-trace",
+      sourcePath: path.join(root, "raw-runs.jsonl"),
+      inputSha256: "a".repeat(64),
+      recordLocator: "line:1",
+      taskIdSource: "source",
+      taskPath,
+      unknownFields: [],
+      diagnostics: [],
+    }
+
+    try {
+      await serializeContext(optimizeDir, [taskEv], [])
+      const fixtureDir = path.join(optimizeDir, "tasks", "task-A", "run-0-task-fixtures")
+      expect(await readFile(path.join(fixtureDir, "src", "App.tsx"), "utf8"))
+        .toBe("export const label = 'Save'\n")
+      expect(await readFile(path.join(fixtureDir, "locales", "en.json"), "utf8"))
+        .toBe("{\"save\":\"Save\"}\n")
+
+      const manifest = JSON.parse(await readFile(
+        path.join(optimizeDir, "tasks", "task-A", "run-0-task-fixtures-manifest.json"),
+        "utf8",
+      )) as {
+        schemaVersion: string
+        status: string
+        taskSha256: string
+        files: Array<{ path: string; bytes: number; sha256: string }>
+      }
+      expect(manifest.schemaVersion).toBe("jit-optimize-task-fixtures/v1")
+      expect(manifest.status).toBe("materialized")
+      expect(manifest.taskSha256).toHaveLength(64)
+      expect(manifest.files.map((file) => file.path)).toEqual([
+        "locales/en.json",
+        "src/App.tsx",
+      ])
+
+      const runMarkdown = await readFile(
+        path.join(optimizeDir, "tasks", "task-A", "run-0.md"),
+        "utf8",
+      )
+      const readme = await readFile(path.join(optimizeDir, "README.md"), "utf8")
+      expect(runMarkdown).toContain("run-0-task-fixtures/")
+      expect(runMarkdown).toContain("original pre-run inputs")
+      expect(readme).toContain("run-N-task-fixtures/")
+      expect(readme).toContain("not evaluator expectations")
+      expect(await pathExists(path.join(fixtureDir, "eval"))).toBe(false)
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  test("records an unresolved manifest and writes no fixture when a task fixture path escapes", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "workspace-unsafe-task-fixtures-"))
+    const optimizeDir = path.join(root, ".optimize")
+    const taskPath = path.join(root, "task.json")
+    await mkdir(optimizeDir)
+    await writeFile(taskPath, JSON.stringify({
+      id: "task-A",
+      prompt: "unsafe fixture",
+      fixtures: { "../escape.txt": "must not escape\n" },
+      eval: [],
+    }))
+
+    const taskEv = ev("task-A", "unsafe fixture", [])
+    taskEv.trace = {
+      format: "skvm-raw-runs-jsonl/v1",
+      representation: "conversation-trace",
+      sourcePath: path.join(root, "raw-runs.jsonl"),
+      inputSha256: "b".repeat(64),
+      recordLocator: "line:1",
+      taskIdSource: "source",
+      taskPath,
+      unknownFields: [],
+      diagnostics: [],
+    }
+
+    try {
+      await serializeContext(optimizeDir, [taskEv], [])
+      const taskDir = path.join(optimizeDir, "tasks", "task-A")
+      const manifest = JSON.parse(await readFile(
+        path.join(taskDir, "run-0-task-fixtures-manifest.json"),
+        "utf8",
+      )) as { status: string; diagnostic: { code: string; message: string } }
+      expect(manifest.status).toBe("unresolved")
+      expect(manifest.diagnostic.code).toBe("unsafe-fixture-path")
+      expect(manifest.diagnostic.message).toContain("../escape.txt")
+      expect(await pathExists(path.join(taskDir, "run-0-task-fixtures"))).toBe(false)
+      expect(await pathExists(path.join(root, "escape.txt"))).toBe(false)
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
 })
 
 describe("source skill resource navigation", () => {

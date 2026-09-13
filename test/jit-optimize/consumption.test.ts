@@ -78,6 +78,32 @@ describe("analyzeSkillConsumption", () => {
     expect(analysis).toMatchObject({ helperInvoked: true, helperSucceeded: false })
   })
 
+  test("recognizes an exit-zero structured ok result without accepting ok false", () => {
+    const analysis = analyzeSkillConsumption([{
+      role: "assistant",
+      timestamp: 1,
+      toolCalls: [{
+        id: "failed-ok",
+        name: "bash",
+        input: { command: "python skill/scripts/check_json_locales.py bad.json" },
+        output: "{\"ok\":false,\"missingKeys\":[\"title\"]}",
+        exitCode: 0,
+      }, {
+        id: "successful-ok",
+        name: "bash",
+        input: { command: "python skill/scripts/check_json_locales.py good.json" },
+        output: "{\"ok\":true,\"missingKeys\":[]}",
+        exitCode: 0,
+      }],
+    }], {
+      executableEntries: ["scripts/check_json_locales.py"],
+    })
+
+    expect(analysis.helperSuccessfulToolCallIds).toEqual(["successful-ok"])
+    expect(analysis.helperFailedToolCallIds).toEqual(["failed-ok"])
+    expect(analysis.helperSucceeded).toBe(true)
+  })
+
   test("uses arbitrary declared entrypoints and does not count help or failed calls as success", () => {
     const analysis = analyzeSkillConsumption([
       {

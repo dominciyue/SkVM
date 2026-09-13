@@ -350,6 +350,101 @@ export type OptimizationActionKind =
   | "generate-script"
   | "restructure-docs"
 
+export type OptimizationConstraintScope = "skill" | "task" | "environment" | "unknown"
+
+/** A condition with explicit provenance so one observed task cannot narrow the whole skill. */
+export interface OptimizationConstraint {
+  description: string
+  scope: OptimizationConstraintScope
+  sourceRef: string
+}
+
+export const OptimizationConstraintSchema = z.object({
+  description: z.string().min(1),
+  scope: z.enum(["skill", "task", "environment", "unknown"]),
+  sourceRef: z.string().min(1),
+})
+
+export type OptimizationValidationBasis = "reference-output" | "task-contract" | "self-check"
+
+export interface OptimizationValidationExpectationSuggestion {
+  args: string[]
+  expectedExitCode?: number
+  stdoutIncludes?: string[]
+  stderrIncludes?: string[]
+}
+
+export interface OptimizationValidationExpectedFileSuggestion {
+  path: string
+  /** Path in the selected evidence's observed workdir snapshot. */
+  referencePath?: string
+}
+
+export interface OptimizationValidationCaseSuggestion extends OptimizationValidationExpectationSuggestion {
+  id: string
+  /** Stringified optimizer evidence index, matching action.evidenceIds. */
+  evidenceId: string
+  inputSource: "task-fixtures" | "workdir-snapshot"
+  inputFiles: string[]
+  expectedFiles?: OptimizationValidationExpectedFileSuggestion[]
+  basis: OptimizationValidationBasis
+  sourceRefs: string[]
+}
+
+export interface OptimizationProgramValidationSuggestion {
+  help?: OptimizationValidationExpectationSuggestion
+  cases: OptimizationValidationCaseSuggestion[]
+}
+
+const OptimizationValidationExpectationSuggestionSchema = z.object({
+  args: z.array(z.string()),
+  expectedExitCode: z.number().int().optional(),
+  stdoutIncludes: z.array(z.string()).optional(),
+  stderrIncludes: z.array(z.string()).optional(),
+})
+
+const OptimizationValidationExpectedFileSuggestionSchema = z.object({
+  path: z.string().min(1),
+  referencePath: z.string().min(1).optional(),
+})
+
+export const OptimizationValidationCaseSuggestionSchema = OptimizationValidationExpectationSuggestionSchema.extend({
+  id: z.string().min(1),
+  evidenceId: z.string().min(1),
+  inputSource: z.enum(["task-fixtures", "workdir-snapshot"]),
+  inputFiles: z.array(z.string().min(1)),
+  expectedFiles: z.array(OptimizationValidationExpectedFileSuggestionSchema).optional(),
+  basis: z.enum(["reference-output", "task-contract", "self-check"]),
+  sourceRefs: z.array(z.string()),
+})
+
+export const OptimizationProgramValidationSuggestionSchema = z.object({
+  help: OptimizationValidationExpectationSuggestionSchema.optional(),
+  cases: z.array(OptimizationValidationCaseSuggestionSchema),
+})
+
+export interface OptimizationRoundValidationSummary {
+  status: "passed" | "partial" | "failed" | "not-run"
+  reportPath: string
+  retainedActionIds: string[]
+  unvalidatedActionIds: string[]
+  rejectedActionIds: string[]
+  programRuns: number
+  caseRuns: number
+  independentCaseRuns: number
+}
+
+export const OptimizationRoundValidationSummarySchema = z.object({
+  status: z.enum(["passed", "partial", "failed", "not-run"]),
+  reportPath: z.string(),
+  retainedActionIds: z.array(z.string()),
+  unvalidatedActionIds: z.array(z.string()),
+  rejectedActionIds: z.array(z.string()),
+  programRuns: z.number().int().nonnegative(),
+  caseRuns: z.number().int().nonnegative(),
+  independentCaseRuns: z.number().int().nonnegative(),
+})
+
 /** Evidence-backed, dependency-aware work the optimized skill will expose. */
 export interface OptimizationAction {
   id: string
@@ -360,6 +455,10 @@ export interface OptimizationAction {
   inputs: string[]
   outputs: string[]
   preconditions: string[]
+  /** Optional for backwards compatibility with actions created before scoped provenance. */
+  constraints?: OptimizationConstraint[]
+  /** Optional optimizer-authored execution suggestions; the engine resolves all resources and authority. */
+  validation?: OptimizationProgramValidationSuggestion
   changedPaths: string[]
   residualDuties: string[]
   verification: string[]
@@ -374,6 +473,8 @@ export const OptimizationActionSchema = z.object({
   inputs: z.array(z.string()),
   outputs: z.array(z.string()),
   preconditions: z.array(z.string()),
+  constraints: z.array(OptimizationConstraintSchema).optional(),
+  validation: OptimizationProgramValidationSuggestionSchema.optional(),
   changedPaths: z.array(z.string()),
   residualDuties: z.array(z.string()),
   verification: z.array(z.string()),
@@ -428,6 +529,8 @@ export interface HistoryEntry {
   actions?: OptimizationAction[]
   /** Rejected action diagnostics retained without invalidating sibling actions. */
   actionDiagnostics?: OptimizationActionDiagnostic[]
+  /** Actual program-validation outcome for this snapshot, when the loop ran it. */
+  validation?: OptimizationRoundValidationSummary
   /** Optimizer's self-reported confidence (0-1) */
   confidence: number
   /** Engine-internal score on the train set (what the optimizer saw); null if not evaluated */
@@ -453,6 +556,7 @@ export const HistoryEntrySchema = z.object({
   changedFiles: z.array(z.string()),
   actions: z.array(OptimizationActionSchema).optional(),
   actionDiagnostics: z.array(OptimizationActionDiagnosticSchema).optional(),
+  validation: OptimizationRoundValidationSummarySchema.optional(),
   confidence: z.number(),
   trainScore: z.number().nullable(),
   testScore: z.number().nullable(),
@@ -473,6 +577,20 @@ export interface OptimizeInput {
   evidences: Evidence[]
   /** Previous rounds' history, for context / anti-oscillation */
   history?: HistoryEntry[]
+  /** One bounded repair pass over a validation-failed candidate. */
+  repairFeedback?: OptimizationRepairFeedback
+}
+
+export interface OptimizationRepairFeedback {
+  attempt: 1
+  actionIds: string[]
+  feedback: Array<{
+    actionId: string
+    failureKind: string
+    diagnostics: string[]
+    relevantFiles: string[]
+  }>
+  rule: "repair-only-listed-files-and-preserve-validation-expectations"
 }
 
 export interface OptimizeConfig {
@@ -799,6 +917,8 @@ export interface JitOptimizeResult {
    * Grand total across setupCost + every round's targetAgent + evalJudge + optimizer.
    */
   totalCost: CostSlice
+  /** Present when an execution-log candidate went through local program validation. */
+  validation?: OptimizationRoundValidationSummary
 }
 
 export interface RoundResult {
@@ -849,6 +969,8 @@ export interface RoundResult {
   optimizer: CostSlice | null
   /** History entry for this round (null for baseline) */
   historyEntry: HistoryEntry | null
+  /** Actual local program-validation summary for this round, when available. */
+  validation?: OptimizationRoundValidationSummary
 }
 
 // ---------------------------------------------------------------------------
@@ -898,4 +1020,5 @@ export const RoundResultSchema = z.object({
   // runtime code never consumes `historyEntry` from a deserialized
   // history.json; it comes from `history.entries` by round number.
   historyEntry: z.any().nullable(),
+  validation: OptimizationRoundValidationSummarySchema.optional(),
 })

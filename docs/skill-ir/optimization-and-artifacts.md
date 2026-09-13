@@ -89,12 +89,19 @@ G4 的 optimizer 合同允许从一次成功但未评分的运行中提出有依
 避免由转换器自证。机器报告位于
 `results/skill-ir/general-skill-optimization-20260913/g6-program-validation/report.json`。
 
-### 3.0.2.1 下一轮接线边界（H0–H14，planned-not-started）
+### 3.0.2.1 生产链接线边界（H0–H14，active-H9）
 
-上述 program validator 和 action resolver 已有组件及测试；当前普通 loop/CLI 尚未调用它们完成程序验证与修复选轮。
-下一轮依据[生产链任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md)接入真实日志路径，补齐待验证依赖传播、条件适用范围及最终 snapshot/验证一致性。
+普通 execution-log loop 已调用 program validator 和 action resolver，在选轮前完成局部验证、最多一次定向修复与依赖/共享文件回退。
+本轮依据[生产链任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md)继续在真实日志路径核验程序生成、复用、条件变化及自然消费。
 四个 G 包身份实际只改 SKILL.md；生成非 API 新程序、自然消费与变化输入检查是新任务，不能当作既有能力。
-实现后在本节更新实际接口；本次不新增已经实现的声明或运行结果。
+H0 已确认正常 CLI 的 execution-log 分支在 `runLoop` 中提前进入 `runLogOnly`：它调用一次 `runOptimizer`、保存
+round-0/1。H2–H6 已把约束来源、pending 传播、真实验证计划、执行及一次 repair/rollback 接到 round-1 选择之前；
+H7 exporter 从 final history 读取存活 action，归档选中轮报告，避免旧 submission 或旧 snapshot 的 passed 漂移进包。
+H8 用同一普通入口从一条已暴露 I18n trace 生成参数化 nested-JSON key/placeholder checker。通用 lifecycle
+把 optimizer workspace locator 映射回声明的 snapshot 路径，只有实际通过的外部 criterion 才能把 task-contract case
+提升为 independent；文档路由仅随其声明依赖的验证闭包保留。原 trace 1/1、未回灌变化输入 4/4 与自然 Pi agent
+read/exec 均有摘要绑定证据。消费分析器接受 exit-zero `ok=true`，但明确拒绝 `ok=false`；原错判报告保留，未重跑模型。
+该结果只覆盖检查器的键和常见占位符规则，不覆盖翻译质量或整个 i18n 工作流。当前进入 H9 的已有程序复用。
 
 ### 3.0.3 通用包导出、自然消费与效果边界
 
@@ -103,6 +110,8 @@ G4 的 optimizer 合同允许从一次成功但未评分的运行中提出有依
 动作实现、runtime/dependency files 与 package/behavior validation；声明的 `changedPaths` 不替代文件系统事实。输出目录必须
 为空且不与 source/proposal 重叠，路径逃逸、symlink、缺失 license/resource 或 no-change 都 fail closed/no package。
 普通技能不会被注入 API binding/helper；原 API Tester solidifier 保留为独立兼容入口。
+
+新 writer 使用 `skvm-optimized-skill-package/v2`，并把最终选中轮的既有 `optimization-validation-report.json` 复制、摘要绑定和内容重验；不为导出重跑等价检查。无报告或带未验证/拒绝动作的包是 `draft`。只有 action-local 状态 passed、至少一个 independent case 且无缺口时才是 `validated-recommendation`，仍不代表整 skill、真实 agent 消费或效果通过。reader 继续接受 v1 且不回写旧 manifest。
 
 CLI 的 `--package-out` 在正常 proposal 结束后调用上述导出器；`--log-records` 为每个日志传入一组 `+` 分隔的精确 adapter
 locator，使一份多行真实日志无需复制即可只选择一条记录。包导出不等于行为通过：action-local 验证分别记录 execution-error、

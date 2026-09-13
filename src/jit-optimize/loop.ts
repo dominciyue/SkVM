@@ -15,7 +15,7 @@
  */
 
 import path from "node:path"
-import { mkdir, rm, copyFile, readdir, stat } from "node:fs/promises"
+import { mkdir, rm, copyFile, cp, readdir, stat } from "node:fs/promises"
 import type { EvaluatorConfig } from "../framework/evaluator.ts"
 import { evaluateAll } from "../framework/evaluator.ts"
 // Side-effect import: ensures every custom evaluator (python-grade, ...) is
@@ -49,7 +49,11 @@ import {
   readConversationLog,
   buildConversationLogFromSteps,
 } from "./evidence.ts"
-import { removeWorkspace } from "./workspace.ts"
+import { computeDiff, removeWorkspace } from "./workspace.ts"
+import {
+  runOptimizationValidationLifecycle,
+  type OptimizationValidationLifecycleReport,
+} from "./validation-lifecycle.ts"
 import { writeEvidenceSidecar, runRecordDir, recordConversationPath, resolveSafeTaskIds } from "./record.ts"
 
 import { loadSkill, copySkillBundle, buildSkillBundle, type ResolvedSkill } from "../core/skill-loader.ts"
@@ -1045,6 +1049,52 @@ export async function runLoop(
 // Execution-log branch (no train/test, no evaluation)
 // ---------------------------------------------------------------------------
 
+function containedChangedPath(root: string, relativePath: string): string | undefined {
+  const absoluteRoot = path.resolve(root)
+  const portable = relativePath.replaceAll("\\", "/")
+  if (path.posix.isAbsolute(portable) || portable === ".." || portable.startsWith("../")) return undefined
+  const absolute = path.resolve(absoluteRoot, ...portable.split("/"))
+  const fromRoot = path.relative(absoluteRoot, absolute)
+  if (fromRoot === "" || fromRoot === ".." || fromRoot.startsWith(`..${path.sep}`) || path.isAbsolute(fromRoot)) {
+    return undefined
+  }
+  return absolute
+}
+
+async function restoreChangedPaths(
+  baselineDir: string,
+  candidateDir: string,
+  changedPaths: readonly string[],
+): Promise<void> {
+  for (const relativePath of changedPaths) {
+    const baseline = containedChangedPath(baselineDir, relativePath)
+    const candidate = containedChangedPath(candidateDir, relativePath)
+    if (!baseline || !candidate) throw new Error(`Cannot safely restore changed path: ${relativePath}`)
+    let baselineStat: Awaited<ReturnType<typeof stat>> | undefined
+    try {
+      baselineStat = await stat(baseline)
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error
+    }
+    await rm(candidate, { recursive: true, force: true })
+    if (!baselineStat) continue
+    await mkdir(path.dirname(candidate), { recursive: true })
+    if (baselineStat.isDirectory()) await cp(baseline, candidate, { recursive: true })
+    else if (baselineStat.isFile()) await copyFile(baseline, candidate)
+  }
+}
+
+async function persistValidationReport(
+  proposalDir: string,
+  round: number,
+  report: OptimizationValidationLifecycleReport,
+): Promise<void> {
+  await Bun.write(
+    path.join(proposalDir, `round-${round}-validation`, "report.json"),
+    `${JSON.stringify(report, null, 2)}\n`,
+  )
+}
+
 async function runLogOnly(
   config: JitOptimizeConfig,
   proposal: { id: string; dir: string },
@@ -1077,40 +1127,192 @@ async function runLogOnly(
     throw err
   }
 
+  let candidateWorkspace = optimizeResult.workspaceDir
+  let candidateSubmission = optimizeResult.submission
+  let optimizerTokens = optimizeResult.tokens
+  let optimizerCost = optimizeResult.cost
+  const optimizerWorkspaces = new Set([optimizeResult.workspaceDir])
+  let validationLifecycle = optimizeResult.changed && !optimizeResult.submission.noChanges
+    ? await runOptimizationValidationLifecycle({
+        proposalDir: proposal.dir,
+        round: 1,
+        skillDir: candidateWorkspace,
+        actions: candidateSubmission.actions ?? [],
+        evidences: preEvidences,
+      })
+    : undefined
+
+  if (validationLifecycle && validationLifecycle.summary.rejectedActionIds.length > 0) {
+    const validationDir = path.join(proposal.dir, "round-1-validation")
+    await copyFile(path.join(validationDir, "report.json"), path.join(validationDir, "initial-report.json"))
+    const initialLifecycle = validationLifecycle
+    const repairFeedback = initialLifecycle.report.resolution.feedback.map((item) => ({
+      actionId: item.actionId,
+      failureKind: item.failureKind,
+      diagnostics: [...item.diagnostics],
+      relevantFiles: [...item.relevantFiles],
+    }))
+    const repairActionIds = repairFeedback.map((item) => item.actionId)
+    const allowedRepairPaths = new Set(repairFeedback.flatMap((item) => item.relevantFiles))
+    const repairRecordRelative = "round-1-repair-1-optimizer"
+    let repairOutcome: NonNullable<OptimizationValidationLifecycleReport["repair"]>["outcome"] = "optimizer-failed"
+    let repairFailure: string | undefined
+    let repairCostUsd: number | null = null
+    let repairTokens: TokenUsage | undefined
+    let repairResult: Awaited<ReturnType<typeof runOptimizer>> | undefined
+    try {
+      repairResult = await runOptimizer(
+        {
+          skillDir: candidateWorkspace,
+          evidences: preEvidences,
+          repairFeedback: {
+            attempt: 1,
+            actionIds: repairActionIds,
+            feedback: repairFeedback,
+            rule: "repair-only-listed-files-and-preserve-validation-expectations",
+          },
+        },
+        {
+          model: config.optimizer.model,
+          recordDir: path.join(proposal.dir, repairRecordRelative),
+          timeoutMs: resolveOptimizerTimeout({ cli: config.optimizerTimeoutMs }),
+        },
+      )
+      optimizerWorkspaces.add(repairResult.workspaceDir)
+      optimizerTokens = addTokenUsage(optimizerTokens, repairResult.tokens)
+      optimizerCost += repairResult.cost
+      repairCostUsd = repairResult.cost
+      repairTokens = repairResult.tokens
+      const unexpectedPaths = repairResult.actualChangedFiles.filter((item) => !allowedRepairPaths.has(item))
+      if (unexpectedPaths.length > 0) {
+        repairOutcome = "scope-violation"
+        repairFailure = `Repair changed files outside its feedback scope: ${unexpectedPaths.join(", ")}`
+      } else {
+        candidateWorkspace = repairResult.workspaceDir
+        validationLifecycle = await runOptimizationValidationLifecycle({
+          proposalDir: proposal.dir,
+          round: 1,
+          skillDir: candidateWorkspace,
+          actions: candidateSubmission.actions ?? [],
+          evidences: preEvidences,
+          executeActionIds: repairActionIds,
+          priorReport: initialLifecycle.report,
+        })
+        repairOutcome = validationLifecycle.summary.rejectedActionIds.length === 0 ? "passed" : "rolled-back"
+      }
+    } catch (error) {
+      repairFailure = error instanceof Error ? error.message : String(error)
+      repairOutcome = "optimizer-failed"
+    }
+
+    if (repairOutcome !== "passed") {
+      if (repairResult && candidateWorkspace !== repairResult.workspaceDir) {
+        await removeWorkspace(repairResult.workspaceDir)
+        optimizerWorkspaces.delete(repairResult.workspaceDir)
+      }
+      const failedLifecycle = validationLifecycle
+      const rollbackActionIds = failedLifecycle.summary.rejectedActionIds.length > 0
+        ? failedLifecycle.summary.rejectedActionIds
+        : initialLifecycle.summary.rejectedActionIds
+      const rollbackIdSet = new Set(rollbackActionIds)
+      const rollbackPaths = [...new Set((candidateSubmission.actions ?? [])
+        .filter((action) => rollbackIdSet.has(action.id))
+        .flatMap((action) => action.changedPaths))].sort()
+      await copyFile(path.join(validationDir, "report.json"), path.join(validationDir, "repair-report.json"))
+      await restoreChangedPaths(skillDir, candidateWorkspace, rollbackPaths)
+      const survivingActions = (candidateSubmission.actions ?? []).filter((action) => !rollbackIdSet.has(action.id))
+      validationLifecycle = await runOptimizationValidationLifecycle({
+        proposalDir: proposal.dir,
+        round: 1,
+        skillDir: candidateWorkspace,
+        actions: survivingActions,
+        evidences: preEvidences,
+        executeActionIds: [],
+        priorReport: failedLifecycle.report,
+      })
+      candidateSubmission = { ...candidateSubmission, actions: survivingActions }
+      validationLifecycle.report.rollback = {
+        actionIds: [...rollbackActionIds].sort(),
+        changedPaths: rollbackPaths,
+        reason: repairOutcome === "scope-violation"
+          ? "repair-scope-violation"
+          : repairOutcome === "optimizer-failed"
+            ? "repair-optimizer-failed"
+            : "repair-still-failed",
+      }
+    }
+    validationLifecycle.report.repair = {
+      attempted: true,
+      attemptCount: 1,
+      actionIds: repairActionIds,
+      feedback: repairFeedback,
+      optimizerRecordPath: repairRecordRelative,
+      initialReportPath: "round-1-validation/initial-report.json",
+      ...(repairOutcome === "rolled-back" ? { repairReportPath: "round-1-validation/repair-report.json" } : {}),
+      costUsd: repairCostUsd,
+      ...(repairTokens ? { tokens: repairTokens } : {}),
+      outcome: repairOutcome,
+      ...(repairFailure ? { failure: repairFailure } : {}),
+    }
+    await persistValidationReport(proposal.dir, 1, validationLifecycle.report)
+  }
+
+  const candidateDiff = await computeDiff(candidateWorkspace, skillDir)
+  const candidateActualChangedFiles = [...candidateDiff.added, ...candidateDiff.modified]
+  const candidateChanged = candidateActualChangedFiles.length > 0 || candidateDiff.removed.length > 0
+  candidateSubmission = {
+    ...candidateSubmission,
+    changedFiles: candidateActualChangedFiles,
+    changes: (candidateSubmission.changes ?? []).filter((change) => candidateActualChangedFiles.includes(change.file)),
+    ...(candidateChanged ? {} : { noChanges: true }),
+  }
+
   // Persist round 0 (original) and round 1 (optimized)
   await persistRound(proposal.dir, 0, skillDir)
-  await persistRound(proposal.dir, 1, optimizeResult.workspaceDir)
-  await removeWorkspace(optimizeResult.workspaceDir)
+  await persistRound(proposal.dir, 1, candidateWorkspace)
+  await Promise.all([...optimizerWorkspaces].map((workspace) => removeWorkspace(workspace)))
 
   const historyEntry: HistoryEntry = {
     timestamp: new Date().toISOString(),
     round: 1,
-    rootCause: optimizeResult.submission.rootCause,
-    reasoning: optimizeResult.submission.reasoning,
-    changes: optimizeResult.submission.changes ?? [],
-    changedFiles: optimizeResult.actualChangedFiles,
-    actions: optimizeResult.submission.actions ?? [],
-    actionDiagnostics: optimizeResult.submission.actionDiagnostics ?? [],
-    confidence: optimizeResult.submission.confidence,
+    rootCause: candidateSubmission.rootCause,
+    reasoning: candidateSubmission.reasoning,
+    changes: candidateSubmission.changes ?? [],
+    changedFiles: candidateActualChangedFiles,
+    actions: candidateSubmission.actions ?? [],
+    actionDiagnostics: candidateSubmission.actionDiagnostics ?? [],
+    ...(validationLifecycle ? { validation: validationLifecycle.summary } : {}),
+    confidence: candidateSubmission.confidence,
     trainScore: null,
     testScore: null,
     improved: null,
   }
 
   const optimizerSlice: CostSlice = {
-    tokens: optimizeResult.tokens,
-    costUsd: optimizeResult.cost,
+    tokens: optimizerTokens,
+    costUsd: optimizerCost,
   }
 
   const allRounds: RoundResult[] = [
     unscoredRound({ round: 0, isBaseline: true, optimizer: null, historyEntry: null }),
-    unscoredRound({ round: 1, isBaseline: false, optimizer: optimizerSlice, historyEntry }),
+    unscoredRound({
+      round: 1,
+      isBaseline: false,
+      optimizer: optimizerSlice,
+      historyEntry,
+      ...(validationLifecycle ? { validation: validationLifecycle.summary } : {}),
+    }),
   ]
 
-  const bestRound = optimizeResult.changed && !optimizeResult.submission.noChanges ? 1 : 0
+  const validationRejected = (validationLifecycle?.summary.rejectedActionIds.length ?? 0) > 0
+  const bestRound = candidateChanged && !candidateSubmission.noChanges && !validationRejected ? 1 : 0
   const reason = bestRound === 1
-    ? "optimized version (log-only source — no evaluation)"
-    : "no changes were made"
+    ? validationLifecycle?.summary.status === "passed"
+      ? "optimized version passed local program validation (log-only source; source task not replayed)"
+      : "optimized draft has no concrete local program failure but remains partially or wholly unvalidated"
+    : validationRejected
+      ? "optimized version rejected by local program validation; baseline retained"
+      : "no changes were made"
 
   if (!keepAllRounds && bestRound !== 0) {
     await rm(roundDirPath(proposal.dir, 0), { recursive: true, force: true })
@@ -1143,6 +1345,7 @@ async function runLogOnly(
     rounds: allRounds,
     setupCost,
     totalCost,
+    ...(validationLifecycle ? { validation: validationLifecycle.summary } : {}),
   }
 }
 
@@ -1546,6 +1749,7 @@ function unscoredRound(opts: {
   historyEntry: HistoryEntry | null
   targetAgent?: CostSlice & { runs: number; durationMs: number }
   evalJudge?: CostSlice & { calls: number }
+  validation?: import("./types.ts").OptimizationRoundValidationSummary
 }): RoundResult {
   return {
     round: opts.round,
@@ -1562,6 +1766,7 @@ function unscoredRound(opts: {
     evalJudge: opts.evalJudge ?? { ...emptyCostSlice(), calls: 0 },
     optimizer: opts.optimizer,
     historyEntry: opts.historyEntry,
+    ...(opts.validation ? { validation: opts.validation } : {}),
   }
 }
 

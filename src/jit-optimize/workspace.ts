@@ -6,7 +6,7 @@
  */
 
 import path from "node:path"
-import { mkdir, mkdtemp, readdir, rm, stat } from "node:fs/promises"
+import { mkdir, mkdtemp, readFile, readdir, rm, stat } from "node:fs/promises"
 import { copySkillDir } from "../core/fs-utils.ts"
 import { getTmpDir } from "../core/config.ts"
 import { scoreFromCriteria } from "./evidence.ts"
@@ -129,6 +129,42 @@ const RENDER_WORKDIR_MAX_TOTAL = 512 * 1024
 const RENDER_WORKDIR_MAX_FILE = 64 * 1024
 
 /**
+ * Original task fixtures are evidence inputs, not optimizer output. Keep their
+ * projection deliberately smaller than a general task workspace and fail the
+ * whole projection closed rather than silently presenting an incomplete input
+ * bundle as complete.
+ */
+const RENDER_TASK_FIXTURE_MAX_FILES = 64
+const RENDER_TASK_FIXTURE_MAX_TOTAL = 512 * 1024
+const RENDER_TASK_FIXTURE_MAX_FILE = 64 * 1024
+
+interface MaterializedTaskFixture {
+  path: string
+  bytes: number
+  sha256: string
+  source: "inline" | "fixtures-directory"
+  content: Uint8Array
+}
+
+interface TaskFixtureDiagnostic {
+  code: string
+  message: string
+}
+
+interface TaskFixtureProjection {
+  schemaVersion: "jit-optimize-task-fixtures/v1"
+  status: "materialized" | "empty" | "unresolved"
+  taskSha256: string | null
+  files: Array<Omit<MaterializedTaskFixture, "content">>
+  diagnostic?: TaskFixtureDiagnostic
+  limits: {
+    maxFiles: number
+    maxFileBytes: number
+    maxTotalBytes: number
+  }
+}
+
+/**
  * Grouped view of a single evidence for layout purposes. `globalIndex` is the
  * stable 0..N-1 integer the optimizer still uses in `blockedEvidenceIds` —
  * kept as the canonical audit reference even though the files themselves live
@@ -155,6 +191,273 @@ interface TaskGroup {
   worstCriterion: string | null
 }
 
+function sha256Bytes(bytes: Uint8Array): string {
+  return new Bun.CryptoHasher("sha256").update(bytes).digest("hex")
+}
+
+function fixtureLimits(): TaskFixtureProjection["limits"] {
+  return {
+    maxFiles: RENDER_TASK_FIXTURE_MAX_FILES,
+    maxFileBytes: RENDER_TASK_FIXTURE_MAX_FILE,
+    maxTotalBytes: RENDER_TASK_FIXTURE_MAX_TOTAL,
+  }
+}
+
+function unresolvedTaskFixtures(
+  taskSha256: string | null,
+  code: string,
+  message: string,
+): TaskFixtureProjection {
+  return {
+    schemaVersion: "jit-optimize-task-fixtures/v1",
+    status: "unresolved",
+    taskSha256,
+    files: [],
+    diagnostic: { code, message },
+    limits: fixtureLimits(),
+  }
+}
+
+/**
+ * Normalize to a portable relative path before joining it to a workspace.
+ * Task files are external evidence and must never be allowed to address a
+ * parent directory. Reject Windows-illegal names as well so an archive made on
+ * POSIX cannot become a different or partial projection on Windows.
+ */
+function normalizeTaskFixturePath(raw: string): string | TaskFixtureDiagnostic {
+  if (raw.length === 0 || raw.includes("\0")) {
+    return { code: "unsafe-fixture-path", message: `Unsafe empty or NUL-containing fixture path: ${JSON.stringify(raw)}` }
+  }
+  if (path.win32.isAbsolute(raw) || path.posix.isAbsolute(raw)) {
+    return { code: "unsafe-fixture-path", message: `Absolute fixture path is not allowed: ${raw}` }
+  }
+  const portable = raw.replaceAll("\\", "/")
+  const segments = portable.split("/")
+  if (segments.some((segment) => segment.length === 0 || segment === "." || segment === "..")) {
+    return { code: "unsafe-fixture-path", message: `Dot, empty, or parent path segment is not allowed: ${raw}` }
+  }
+  if (segments.some((segment) => /[<>:"|?*]/u.test(segment))) {
+    return { code: "unsafe-fixture-path", message: `Non-portable fixture path is not allowed: ${raw}` }
+  }
+  if (segments.some((segment) => /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/iu.test(segment))) {
+    return { code: "unsafe-fixture-path", message: `Reserved fixture path is not allowed: ${raw}` }
+  }
+  return segments.join("/")
+}
+
+async function readFixtureDirectory(
+  root: string,
+  current: string = root,
+): Promise<{ files: Array<{ path: string; content: Uint8Array }>; diagnostic?: TaskFixtureDiagnostic }> {
+  let entries: import("node:fs").Dirent[]
+  try {
+    entries = await readdir(current, { withFileTypes: true })
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT" && current === root) return { files: [] }
+    return {
+      files: [],
+      diagnostic: {
+        code: "fixture-directory-unreadable",
+        message: `Could not read task fixtures directory ${current}: ${String(error)}`,
+      },
+    }
+  }
+  entries.sort((left, right) => left.name.localeCompare(right.name, "en"))
+  const files: Array<{ path: string; content: Uint8Array }> = []
+  for (const entry of entries) {
+    const absolute = path.join(current, entry.name)
+    if (entry.isSymbolicLink()) {
+      return {
+        files: [],
+        diagnostic: {
+          code: "fixture-symlink-unsupported",
+          message: `Symbolic links are not projected from task fixtures: ${path.relative(root, absolute)}`,
+        },
+      }
+    }
+    if (entry.isDirectory()) {
+      const nested = await readFixtureDirectory(root, absolute)
+      if (nested.diagnostic) return nested
+      files.push(...nested.files)
+      continue
+    }
+    if (!entry.isFile()) {
+      return {
+        files: [],
+        diagnostic: {
+          code: "fixture-entry-unsupported",
+          message: `Only regular files are projected from task fixtures: ${path.relative(root, absolute)}`,
+        },
+      }
+    }
+    files.push({
+      path: path.relative(root, absolute).split(path.sep).join("/"),
+      content: new Uint8Array(await readFile(absolute)),
+    })
+  }
+  return { files }
+}
+
+async function collectTaskFixtures(taskPath: string): Promise<{
+  projection: TaskFixtureProjection
+  files: MaterializedTaskFixture[]
+}> {
+  let taskBytes: Uint8Array
+  try {
+    taskBytes = new Uint8Array(await readFile(taskPath))
+  } catch (error) {
+    return {
+      projection: unresolvedTaskFixtures(null, "task-file-unreadable", `Could not read bound task file ${taskPath}: ${String(error)}`),
+      files: [],
+    }
+  }
+  const taskSha256 = sha256Bytes(taskBytes)
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(taskBytes))
+  } catch (error) {
+    return {
+      projection: unresolvedTaskFixtures(taskSha256, "task-file-invalid", `Bound task file is not valid UTF-8 JSON: ${String(error)}`),
+      files: [],
+    }
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    return {
+      projection: unresolvedTaskFixtures(taskSha256, "task-file-invalid", "Bound task file must contain a JSON object."),
+      files: [],
+    }
+  }
+
+  const rawFixtures = (parsed as Record<string, unknown>).fixtures
+  if (rawFixtures !== undefined && (typeof rawFixtures !== "object" || rawFixtures === null || Array.isArray(rawFixtures))) {
+    return {
+      projection: unresolvedTaskFixtures(taskSha256, "task-fixtures-invalid", "The task fixtures field must be an object of string values."),
+      files: [],
+    }
+  }
+
+  const candidates: Array<{ path: string; content: Uint8Array; source: MaterializedTaskFixture["source"] }> = []
+  for (const [rawPath, value] of Object.entries((rawFixtures ?? {}) as Record<string, unknown>)) {
+    if (typeof value !== "string") {
+      return {
+        projection: unresolvedTaskFixtures(taskSha256, "task-fixtures-invalid", `Task fixture ${rawPath} is not a string.`),
+        files: [],
+      }
+    }
+    candidates.push({ path: rawPath, content: new TextEncoder().encode(value), source: "inline" })
+  }
+
+  const directory = await readFixtureDirectory(path.join(path.dirname(taskPath), "fixtures"))
+  if (directory.diagnostic) {
+    return {
+      projection: unresolvedTaskFixtures(taskSha256, directory.diagnostic.code, directory.diagnostic.message),
+      files: [],
+    }
+  }
+  for (const file of directory.files) {
+    candidates.push({ ...file, source: "fixtures-directory" })
+  }
+
+  // Match the runner's precedence: sibling fixtures/ files overwrite inline
+  // fixtures at the same exact path. Case-only or normalization collisions are
+  // rejected because they are not portable across supported hosts.
+  const byPortablePath = new Map<string, MaterializedTaskFixture>()
+  const spellingByFoldedPath = new Map<string, string>()
+  for (const candidate of candidates) {
+    const normalized = normalizeTaskFixturePath(candidate.path)
+    if (typeof normalized !== "string") {
+      return {
+        projection: unresolvedTaskFixtures(taskSha256, normalized.code, normalized.message),
+        files: [],
+      }
+    }
+    const folded = normalized.toLocaleLowerCase("en-US")
+    const priorSpelling = spellingByFoldedPath.get(folded)
+    if (priorSpelling && priorSpelling !== normalized) {
+      return {
+        projection: unresolvedTaskFixtures(
+          taskSha256,
+          "fixture-path-collision",
+          `Fixture paths differ only by case or normalization: ${priorSpelling} and ${normalized}`,
+        ),
+        files: [],
+      }
+    }
+    spellingByFoldedPath.set(folded, normalized)
+    byPortablePath.set(normalized, {
+      path: normalized,
+      bytes: candidate.content.byteLength,
+      sha256: sha256Bytes(candidate.content),
+      source: candidate.source,
+      content: candidate.content,
+    })
+  }
+
+  const files = [...byPortablePath.values()].sort((left, right) => left.path.localeCompare(right.path, "en"))
+  if (files.length > RENDER_TASK_FIXTURE_MAX_FILES) {
+    return {
+      projection: unresolvedTaskFixtures(taskSha256, "fixture-count-limit", `Task has ${files.length} fixture files; limit is ${RENDER_TASK_FIXTURE_MAX_FILES}.`),
+      files: [],
+    }
+  }
+  const oversized = files.find((file) => file.bytes > RENDER_TASK_FIXTURE_MAX_FILE)
+  if (oversized) {
+    return {
+      projection: unresolvedTaskFixtures(taskSha256, "fixture-file-size-limit", `Task fixture ${oversized.path} is ${oversized.bytes} bytes; limit is ${RENDER_TASK_FIXTURE_MAX_FILE}.`),
+      files: [],
+    }
+  }
+  const totalBytes = files.reduce((total, file) => total + file.bytes, 0)
+  if (totalBytes > RENDER_TASK_FIXTURE_MAX_TOTAL) {
+    return {
+      projection: unresolvedTaskFixtures(taskSha256, "fixture-total-size-limit", `Task fixtures total ${totalBytes} bytes; limit is ${RENDER_TASK_FIXTURE_MAX_TOTAL}.`),
+      files: [],
+    }
+  }
+
+  return {
+    projection: {
+      schemaVersion: "jit-optimize-task-fixtures/v1",
+      status: files.length > 0 ? "materialized" : "empty",
+      taskSha256,
+      files: files.map(({ content: _content, ...file }) => file),
+      limits: fixtureLimits(),
+    },
+    files,
+  }
+}
+
+async function materializeTaskFixtures(taskDir: string, localIndex: number, taskPath: string): Promise<void> {
+  const { projection, files } = await collectTaskFixtures(taskPath)
+  const fixtureDir = path.join(taskDir, `run-${localIndex}-task-fixtures`)
+  if (projection.status === "materialized") {
+    try {
+      for (const file of files) {
+        const destination = path.join(fixtureDir, ...file.path.split("/"))
+        await mkdir(path.dirname(destination), { recursive: true })
+        await Bun.write(destination, file.content)
+      }
+    } catch (error) {
+      await rm(fixtureDir, { recursive: true, force: true })
+      const failed = unresolvedTaskFixtures(
+        projection.taskSha256,
+        "fixture-projection-write-failed",
+        `Could not write the complete task fixture projection: ${String(error)}`,
+      )
+      await Bun.write(
+        path.join(taskDir, `run-${localIndex}-task-fixtures-manifest.json`),
+        JSON.stringify(failed, null, 2),
+      )
+      return
+    }
+  }
+  await Bun.write(
+    path.join(taskDir, `run-${localIndex}-task-fixtures-manifest.json`),
+    JSON.stringify(projection, null, 2),
+  )
+}
+
 /** Write evidence + history + a README into {workspace}/.optimize/ */
 export async function serializeContext(
   optimizeDir: string,
@@ -174,6 +477,11 @@ export async function serializeContext(
       await renderSkillResourceIndex(opts.skillDir, evidences),
     )
   }
+
+  await Bun.write(
+    path.join(optimizeDir, "CONSTRAINT_SOURCES.json"),
+    JSON.stringify(renderConstraintSources(evidences, hasSkillResourceIndex), null, 2),
+  )
 
   // README: navigation guide
   const readme = buildReadme(groups, history.length, hasSkillResourceIndex)
@@ -225,6 +533,33 @@ export async function serializeContext(
             inputs: ["input path supplied by the user"],
             outputs: ["output path returned to the user"],
             preconditions: ["the bundled runtime dependency is available"],
+            constraints: [
+              {
+                description: "A permanent rule stated by the source skill.",
+                scope: "skill",
+                sourceRef: "SKILL.md#relevant-section",
+              },
+              {
+                description: "A file or side-effect restriction from this evidence task only.",
+                scope: "task",
+                sourceRef: ".optimize/tasks/<safeTaskId>/run-N.json#taskPrompt",
+              },
+            ],
+            validation: {
+              help: { args: ["--help"], stdoutIncludes: ["Usage:"] },
+              cases: [
+                {
+                  id: "observed-task",
+                  evidenceId: "0",
+                  inputSource: "task-fixtures",
+                  inputFiles: ["path/from/task-fixtures"],
+                  args: ["--input", "path/from/task-fixtures", "--out", "result.json"],
+                  expectedFiles: [{ path: "result.json", referencePath: "path/in/observed-workdir" }],
+                  basis: "reference-output",
+                  sourceRefs: ["evidence:0#criteria/<criterion-id>"],
+                },
+              ],
+            },
             changedPaths: ["SKILL.md"],
             residualDuties: ["the agent selects whether this action applies"],
             verification: ["run the bundled tool on a changed input"],
@@ -266,6 +601,13 @@ export async function serializeContext(
         renderEvidenceMarkdown(group, run, { maxConvLog, maxFileInline }),
       )
 
+      if (run.evidence.trace?.taskPath) {
+        const boundTaskPath = path.isAbsolute(run.evidence.trace.taskPath)
+          ? run.evidence.trace.taskPath
+          : path.resolve(path.dirname(run.evidence.trace.sourcePath), run.evidence.trace.taskPath)
+        await materializeTaskFixtures(taskDir, run.localIndex, boundTaskPath)
+      }
+
       if (run.evidence.workDirSnapshot && run.evidence.workDirSnapshot.files.size > 0) {
         const snapDir = path.join(taskDir, `run-${run.localIndex}-workdir`)
         // mkdir once per unique parent directory instead of once per
@@ -304,6 +646,47 @@ export async function serializeContext(
       path.join(optimizeDir, "history.md"),
       renderHistoryMarkdown(history),
     )
+  }
+}
+
+function renderConstraintSources(evidences: Evidence[], hasSkillSource: boolean): object {
+  const sourceRef = (evidence: Evidence, suffix: string): string => {
+    const trace = evidence.trace
+    if (!trace) return `.optimize/tasks/${safeTaskSlug(evidence.taskId)}/run-0.json#${suffix}`
+    return `${trace.sourcePath}#${trace.recordLocator}#${suffix}`
+  }
+
+  return {
+    schemaVersion: "jit-optimize-constraint-sources/v1",
+    skill: {
+      sourceRef: hasSkillSource ? "SKILL.md" : null,
+      note: "Only rules stated by the source skill may be treated as permanent skill constraints. An unobserved rule is not removable.",
+    },
+    tasks: evidences.map((evidence, evidenceIndex) => ({
+      evidenceIndex,
+      taskId: evidence.taskId,
+      sourceRef: sourceRef(evidence, "taskPrompt"),
+      text: evidence.taskPrompt,
+      note: "Current task values and restrictions are task-scoped unless the source skill independently states them.",
+    })),
+    environments: evidences.map((evidence, evidenceIndex) => ({
+      evidenceIndex,
+      sourceRef: sourceRef(evidence, "environment"),
+      facts: {
+        ...(evidence.trace?.adapter ? { adapter: evidence.trace.adapter } : {}),
+        ...(evidence.trace?.model ? { model: evidence.trace.model } : {}),
+        ...(evidence.trace?.system ? { system: evidence.trace.system } : {}),
+        ...(evidence.trace?.workDirPath ? { workDirPath: evidence.trace.workDirPath } : {}),
+        ...(evidence.runMeta?.runStatus ? { runStatus: evidence.runMeta.runStatus } : {}),
+        ...(evidence.runMeta?.durationMs !== undefined
+          ? { durationMs: evidence.runMeta.durationMs }
+          : {}),
+      },
+      note: "Observed runtime facts describe this execution and are not portable skill requirements by default.",
+    })),
+    unknown: {
+      note: "If the available source cannot establish a constraint's scope, record scope=unknown; do not promote it to a permanent rule or discard it.",
+    },
   }
 }
 
@@ -713,6 +1096,18 @@ function renderEvidenceMarkdown(
     parts.push("")
   }
 
+  if (ev.trace?.taskPath) {
+    const fixturePath = `.optimize/tasks/${group.safeId}/run-${run.localIndex}-task-fixtures`
+    const manifestPath = `${fixturePath}-manifest.json`
+    parts.push(`## Original Task Fixtures`)
+    parts.push("")
+    parts.push(`- manifest: \`${manifestPath}\``)
+    parts.push(`- files, when manifest status is \`materialized\`: \`${fixturePath}/\``)
+    parts.push(`- meaning: original pre-run inputs bound by the trace taskPath; these are not evaluator expectations or files produced by the observed run.`)
+    parts.push(`- completeness: treat status \`unresolved\` as a hard evidence gap. Do not infer or recreate skipped inputs.`)
+    parts.push("")
+  }
+
   // Conversation — head + tail if over the limit
   parts.push(`## Conversation Log (${ev.conversationLog.length} entries)`)
   parts.push("")
@@ -817,6 +1212,12 @@ function renderHistoryMarkdown(history: HistoryEntry[]): string {
       for (const action of entry.actions ?? []) {
         parts.push(`- \`${action.id}\` (${action.kind}); depends on: ${action.dependsOn.join(", ") || "none"}`)
         parts.push(`  - residual duties: ${action.residualDuties.join("; ") || "none stated"}`)
+        for (const constraint of action.constraints ?? []) {
+          parts.push(`  - ${constraint.scope} constraint from \`${constraint.sourceRef}\`: ${constraint.description}`)
+        }
+        if (action.validation) {
+          parts.push(`  - validation cases: ${action.validation.cases.map((item) => item.id).join(", ") || "none"}`)
+        }
       }
       parts.push("")
     }
@@ -869,11 +1270,16 @@ of this skill.
     same directory, so you can tell "task A failed twice the same way"
     apart from "two different tasks failed once each".
   - \`run-N.json\` — the same evidence in structured form.
+  - \`run-N-task-fixtures/\` — original pre-run inputs from the trace-bound
+    task file (when present and safely materialized). The adjacent
+    \`run-N-task-fixtures-manifest.json\` binds their hashes and completeness;
+    these files are not evaluator expectations or observed outputs.
   - \`run-N-workdir/\` — files the agent left in its work directory (if recorded).
 
   Directories for this session:
 ${dirListing}
-${hasSkillResourceIndex ? "- `.optimize/SKILL_RESOURCE_INDEX.md` — complete configured skill-file navigation plus explicit trace-to-skill bindings. Read relevant resources before deciding an unobserved rule is removable.\n" : ""}${historyCount > 0 ? `- \`.optimize/history.md\` — **${historyCount} previous optimization round(s)** with their diagnoses, changes, and whether they improved the score. READ THIS before proposing changes — do not repeat diagnoses that did not work.\n` : ""}- \`.optimize/submission.template.json\` — the output format you must follow.
+${hasSkillResourceIndex ? "- `.optimize/SKILL_RESOURCE_INDEX.md` — complete configured skill-file navigation plus explicit trace-to-skill bindings. Read relevant resources before deciding an unobserved rule is removable.\n" : ""}- \`.optimize/CONSTRAINT_SOURCES.json\` — structured provenance buckets for permanent skill rules, current task conditions, observed environment facts, and unknown scope. Do not promote a task or environment value to a skill-wide rule.
+${historyCount > 0 ? `- \`.optimize/history.md\` — **${historyCount} previous optimization round(s)** with their diagnoses, changes, and whether they improved the score. READ THIS before proposing changes — do not repeat diagnoses that did not work.\n` : ""}- \`.optimize/submission.template.json\` — the output format you must follow.
 
 ## What to do
 

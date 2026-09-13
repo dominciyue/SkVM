@@ -21,6 +21,8 @@ export interface ProgramValidationCase extends ProgramValidationExpectation {
   id: string
   cwd: string
   expectedFiles?: string[]
+  /** Engine-derived reference digests; optimizer suggestions cannot supply these directly. */
+  expectedFileSha256?: Record<string, string>
 }
 
 export interface ProgramOutputFileEvidence {
@@ -112,7 +114,7 @@ async function regularFile(filePath: string): Promise<boolean> {
 
 function runtimeCommand(implementation: ImplementationSelection, entry: string): string[] | undefined {
   switch (implementation.runtime) {
-    case "node": return [process.execPath, entry]
+    case "node": return [Bun.which("node") ?? process.execPath, entry]
     case "python": return [process.env.PYTHON_EXECUTABLE ?? (process.platform === "win32" ? "python" : "python3"), entry]
     case "shell": return ["sh", entry]
     case "powershell": return ["pwsh", "-NoProfile", "-File", entry]
@@ -212,7 +214,16 @@ async function runValidation(
   const outputFiles: ProgramOutputFileEvidence[] = []
   for (const outputPath of expectation.expectedFiles ?? []) {
     const evidence = await digestFile(cwd, outputPath)
-    if (evidence) outputFiles.push(evidence)
+    if (evidence) {
+      outputFiles.push(evidence)
+      const expectedSha256 = "expectedFileSha256" in expectation
+        ? (expectation as ProgramValidationCase).expectedFileSha256?.[evidence.path]
+        : undefined
+      if (expectedSha256 && evidence.sha256 !== expectedSha256) {
+        diagnostics.push(`output file digest mismatch for ${evidence.path}: expected ${expectedSha256}, received ${evidence.sha256}`)
+        failureKind ??= "result-mismatch"
+      }
+    }
     else {
       diagnostics.push(`expected output file is missing or outside cwd: ${outputPath}`)
       failureKind ??= "result-mismatch"
@@ -286,6 +297,30 @@ export async function validateOptimizationProgram(
   for (const item of options.cases) {
     cases.push(await runValidation(item.id, commandBase, item.cwd, item, timeoutMs))
   }
+  if (cases.length === 0) {
+    if (help?.status === "failed") {
+      return {
+        status: "failed",
+        actionId: implementation.actionId,
+        entry: implementation.entry,
+        help,
+        cases,
+        diagnostics: [],
+        ...(help.failureKind ? { failureKind: help.failureKind } : {}),
+      }
+    }
+    return {
+      status: "not-applicable",
+      actionId: implementation.actionId,
+      entry: implementation.entry,
+      ...(help ? { help } : {}),
+      cases,
+      diagnostics: [{
+        code: "validation-cases-missing",
+        message: "No task-behavior validation case was available; help alone does not establish behavior.",
+      }],
+    }
+  }
   const passed = (help?.status ?? "passed") === "passed" && cases.every((item) => item.status === "passed")
   const failureKind = [help, ...cases].find((item) => item?.failureKind)?.failureKind
   return {
@@ -338,9 +373,9 @@ export function resolveActionValidation(options: ResolveActionValidationOptions)
   const observations = new Map(options.observations.map((item) => [item.actionId, item]))
   const rejectedIds = new Set<string>()
   const rejection = new Map<string, ActionValidationFeedback>()
-  const unvalidatedActionIds = actions
+  const unvalidatedIds = new Set(actions
     .filter((action) => !observations.has(action.id) || observations.get(action.id)!.status === "not-run")
-    .map((action) => action.id)
+    .map((action) => action.id))
 
   for (const action of actions) {
     const observed = observations.get(action.id)
@@ -355,6 +390,23 @@ export function resolveActionValidation(options: ResolveActionValidationOptions)
   }
 
   const components = sharedComponents(actions).filter((component) => component.length > 1)
+  let pendingChanged = true
+  while (pendingChanged) {
+    pendingChanged = false
+    for (const action of actions) {
+      if (unvalidatedIds.has(action.id) || !action.dependsOn.some((id) => unvalidatedIds.has(id))) continue
+      unvalidatedIds.add(action.id)
+      pendingChanged = true
+    }
+    for (const component of components) {
+      if (!component.some((action) => unvalidatedIds.has(action.id))) continue
+      for (const action of component) {
+        if (unvalidatedIds.has(action.id)) continue
+        unvalidatedIds.add(action.id)
+        pendingChanged = true
+      }
+    }
+  }
   let changed = true
   while (changed) {
     changed = false
@@ -393,17 +445,24 @@ export function resolveActionValidation(options: ResolveActionValidationOptions)
       reason: "shared-files-with-rejected-action" as const,
     }))
   const retainedActionIds = actions
-    .filter((action) => observations.get(action.id)?.status === "passed" && !rejectedIds.has(action.id))
+    .filter((action) => observations.get(action.id)?.status === "passed"
+      && !rejectedIds.has(action.id)
+      && !unvalidatedIds.has(action.id))
+    .map((action) => action.id)
+  const unvalidatedActionIds = actions
+    .filter((action) => unvalidatedIds.has(action.id) && !rejectedIds.has(action.id))
     .map((action) => action.id)
   const rejected = actions.flatMap((action) => {
     const item = rejection.get(action.id)
     return item ? [item] : []
   })
   const status: ActionValidationResolution["status"] = rejected.length > 0
-    ? (retainedActionIds.length > 0 ? "partial" : "failed")
-    : unvalidatedActionIds.length > 0 || actions.length === 0
-      ? "not-run"
-      : "passed"
+    ? (retainedActionIds.length > 0 || unvalidatedActionIds.length > 0 ? "partial" : "failed")
+    : unvalidatedActionIds.length > 0
+      ? (retainedActionIds.length > 0 ? "partial" : "not-run")
+      : actions.length === 0
+        ? "not-run"
+        : "passed"
   return {
     status,
     retainedActionIds,

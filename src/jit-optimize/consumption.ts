@@ -45,6 +45,7 @@ function helpInvocation(input: string): boolean {
 
 function outputProvesSuccess(output: string): boolean {
   return /"status"\s*:\s*"(?:passed|pass|success|approved)"/iu.test(output)
+    || /"ok"\s*:\s*true/iu.test(output)
     || /(?:^|\n)result:\s*approved(?:\r?\n|$)/iu.test(output)
 }
 

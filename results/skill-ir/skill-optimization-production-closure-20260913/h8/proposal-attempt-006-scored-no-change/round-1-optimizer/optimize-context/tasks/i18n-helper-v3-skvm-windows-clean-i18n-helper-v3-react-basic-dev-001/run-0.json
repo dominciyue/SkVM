@@ -1,0 +1,103 @@
+{
+  "taskId": "i18n-helper-v3:skvm:windows:clean:i18n-helper-v3-react-basic-dev-001",
+  "taskPrompt": "Context condition: clean\n\nRead the React project and public i18n-contract.json. Modify only the declared source file, create exactly the declared i18next files and report, and leave protected files unchanged. Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage, preserve interpolation identifiers, and keep both locale key sets complete. Do not install packages, run the network, or create other files. The JSON report must satisfy the public outputAbi exactly, including locale-keyed missing-key arrays.",
+  "criteria": [
+    {
+      "id": "i18n-v2-delta",
+      "name": "Only declared source modifications and outputs",
+      "method": "custom",
+      "description": "Only the public-contract allowed source files and required outputs change; protected files remain unchanged.",
+      "weight": 0.2,
+      "score": 1,
+      "passed": true,
+      "details": "Criterion passed"
+    },
+    {
+      "id": "i18n-v2-source-transform",
+      "name": "Confirmed hardcoded text is replaced by stable t() calls",
+      "method": "custom",
+      "description": "Confirmed text uses the contract's exact keys in stable translation calls.",
+      "weight": 0.2,
+      "score": 1,
+      "passed": true,
+      "details": "Criterion passed"
+    },
+    {
+      "id": "i18n-v2-locales",
+      "name": "Locale files contain the complete confirmed key set",
+      "method": "custom",
+      "description": "Every required locale file contains the complete confirmed key set.",
+      "weight": 0.2,
+      "score": 1,
+      "passed": true,
+      "details": "Criterion passed"
+    },
+    {
+      "id": "i18n-v2-interpolation",
+      "name": "Confirmed interpolation identifiers are preserved",
+      "method": "custom",
+      "description": "Named interpolation identifiers are preserved between source calls and locale values.",
+      "weight": 0.2,
+      "score": 1,
+      "passed": true,
+      "details": "Criterion passed"
+    },
+    {
+      "id": "i18n-v2-report",
+      "name": "Public i18n report matches observable facts",
+      "method": "custom",
+      "description": "The closed public report schema and its observable key and locale facts are exact.",
+      "weight": 0.2,
+      "score": 1,
+      "passed": true,
+      "details": "Criterion passed"
+    }
+  ],
+  "runMeta": null,
+  "trace": {
+    "format": "skill-ir-raw-run-jsonl/v1",
+    "representation": "run-summary",
+    "sourcePath": "D:\\skill优化\\SkVM\\results\\skill-ir\\i18n-helper-v3-execution-observable-calibration-v3\\run\\raw-runs.jsonl",
+    "inputSha256": "f6fe7771d5d3f32bc74d865b41297dd69134f6cdb96807cc6505613081e63f8b",
+    "recordLocator": "line:3",
+    "taskIdSource": "source",
+    "unknownFields": [
+      "conversation.turns",
+      "conversation.timestamps",
+      "usage.costUsd"
+    ],
+    "diagnostics": [],
+    "sourceAgent": "skvm",
+    "adapter": "pi",
+    "adapterVersion": "0.67.68",
+    "model": "xty/gpt-5.6-sol",
+    "system": "original",
+    "taskPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\i18n-helper-v3-execution-observable-calibration-v3\\run\\artifacts\\i18n-helper-v3__skvm__windows__clean__i18n-helper-v3-react-basic-dev-001\\original\\run-1\\task\\task.json",
+    "skillPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\i18n-helper-v3-execution-observable-calibration-v3\\run\\artifacts\\i18n-helper-v3__skvm__windows__clean__i18n-helper-v3-react-basic-dev-001\\original\\run-1\\skill\\SKILL.md",
+    "workDirPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\i18n-helper-v3-execution-observable-calibration-v3\\run\\artifacts\\i18n-helper-v3__skvm__windows__clean__i18n-helper-v3-react-basic-dev-001\\original\\run-1\\workdir",
+    "runIndex": 1,
+    "runStatus": "ok",
+    "durationMs": 112164,
+    "usage": {
+      "inputTokens": 38299,
+      "outputTokens": 2629,
+      "source": "stdout-marker"
+    }
+  },
+  "conversationLogEntries": 2,
+  "workDirFileCount": 9,
+  "conversationLog": [
+    {
+      "type": "request",
+      "ts": "unknown",
+      "text": "Context condition: clean\n\nRead the React project and public i18n-contract.json. Modify only the declared source file, create exactly the declared i18next files and report, and leave protected files unchanged. Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage, preserve interpolation identifiers, and keep both locale key sets complete. Do not install packages, run the network, or create other files. The JSON report must satisfy the public outputAbi exactly, including locale-keyed missing-key arrays.",
+      "sourceLocator": "line:3:taskPath"
+    },
+    {
+      "type": "response",
+      "ts": "unknown",
+      "text": "Implemented the React i18n conversion.\n\nChanged/created only the declared files:\n\n- `src/App.tsx`\n- `src/i18n.ts`\n- `src/locales/zh-CN.json`\n- `src/locales/en-US.json`\n- `i18n-report.json`\n\nResults:\n\n- Extracted `home.welcome` and `home.save`.\n- Replaced confirmed JSX text with `react-i18next` `t()` calls.\n- Added complete, matching `zh-CN` and `en-US` locale key sets.\n- Generated an ABI-compliant report with locale-keyed missing-key arrays.\n- Confirmed protected files are unchanged.\n- JSON and contract validation passed.\n\nTypeScript compilation was not run because TypeScript is not locally installed, and package installation was prohibited.",
+      "sourceLocator": "line:3:stdout"
+    }
+  ]
+}

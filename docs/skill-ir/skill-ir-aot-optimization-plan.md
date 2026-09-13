@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-13
 - 路线：H0–H14，单次 trace 驱动的 skill 优化生产链
-- 状态：`planned-not-started`；仅任务书登记，未启动 H0 或新持续目标
+- 状态：`active-H9`；H0–H8 已完成，恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 1
 - 方法依据：spec 14.31
@@ -19,16 +19,16 @@
 
 | 阶段 | 状态 | 交付与验收 |
 | --- | --- | --- |
-| H0 现场与基线 | pending | 实际 log/loop/export 调用链、归属和恢复记录 |
-| H1 定向语料用例 | pending | 原文/trace/机械职责/代码测试映射，无阅读数量门槛 |
-| H2 条件范围 | pending | 区分长期规则、任务约束、环境事实，保持原用途 |
-| H3 局部状态 | pending | not-run 依赖传递；未知不冒充通过或失败 |
-| H4 验证计划 | pending | 程序参数、资源和有依据检查由正常优化流程产生 |
-| H5 循环接通 | pending | 正常 CLI/log 真实调用程序验证、持久化并影响推荐轮次 |
-| H6 修复与回退 | pending | 一次自动局部修复，失败组安全恢复，最终 snapshot 一致 |
-| H7 包与入口 | pending | 兼容旧 proposal；准确描述局部检查与整个任务状态 |
-| H8 新程序实用 | pending | 非 API 参数化程序由优化器产生、验证并自然消费 |
-| H9 现成程序复用 | pending | 另一资源结构的真实程序执行与同流程尝试 |
+| H0 现场与基线 | completed | log 入口在 `runLogOnly` 提前返回；39/39 tests、106 assertions；恢复记录已建立 |
+| H1 定向语料用例 | completed | `case-notes.json` 绑定 I18n/Law/Experimental/Env 的真实 trace、职责、质量依据和代码测试 |
+| H2 条件范围 | completed | action 可携带有来源的 skill/task/environment/unknown 约束；workspace 单列来源，旧 action 兼容；聚焦测试 38/38 |
+| H3 局部状态 | completed | pending 沿依赖与共享文件组传播；独立通过保留，help-only 不提升；18/18 tests + typecheck |
+| H4 验证计划 | completed | action 建议解析真实 task/workdir 资源，参考输出摘要由引擎派生；自检不冒充独立依据；19/19 tests |
+| H5 循环接通 | completed | log 正常路径真实执行 selection/plan/program/check/resolution，写 proposal 并影响选轮；84/84 tests |
+| H6 修复与回退 | completed | 一次自动局部修复只复验受影响动作；失败的依赖/共享文件组回退，独立通过保留；39/39 tests |
+| H7 包与入口 | completed | v2 包归档最终验证报告并区分 draft/recommendation；v1 只读兼容；CLI 精确披露；41/41 tests |
+| H8 新程序实用 | completed | I18n 普通优化链生成 Python checker；原 trace 1/1、未回灌变化输入 4/4；普通 agent 实际调用并完成残余报告 |
+| H9 现成程序复用 | active | 另一资源结构的真实程序执行与同流程尝试 |
 | H10 条件变化与降级 | pending | 合法空/可选缺失可处理，必需缺失只影响相关步骤 |
 | H11 实际使用开销 | pending | 针对 trace 修生成/交接策略，质量与全部指标并列 |
 | H12 过程复用 | pending | 后加入 development 结构实际尝试，无名称特判 |

@@ -1,0 +1,210 @@
+{
+  "rootCause": "The skill requires locale completeness and placeholder preservation but leaves both checks as manual judgment, so agents must repeatedly flatten nested locale data, compare key sets, and inspect interpolation tokens without an independently runnable guardrail; it also does not explicitly connect task-provided closed contracts to final filesystem and report verification.",
+  "reasoning": "Evidence 0 is a clean passing run, so it does not establish a failure. It does, however, independently show a mechanical and verifiable workflow: nested JSON locale files had matching complete key sets, interpolation preservation was an explicit criterion, and exact contract/file-delta compliance was checked. The existing skill already instructs key comparison and placeholder preservation, but provides no deterministic method. Generality test: the same checker benefits a Vue/i18next task with nested JSON locales, a React task with three locales and interpolation, or any completeness-audit task, not only the observed fixture. Rewrite-in-place test: the existing '完整性检查' section was tightened rather than duplicating it elsewhere, and the executable is referenced there. Coherent scope: the script only validates arbitrary nested JSON locale paths and common placeholder forms; YAML, PO, Properties, framework semantics, translation quality, source extraction, and contract interpretation remain agent duties. No-trade-off test: the only PASSING task is i18n-helper-v3:skvm:windows:clean:i18n-helper-v3-react-basic-dev-001. The change cannot plausibly lower it because the checker accepts its locale files unchanged and returns ok=true, while the added contract rule reinforces the exact ABI and protected-file behavior that already earned full credit. Validation ran both --help and Evidence 0's observed locale outputs, plus a negative placeholder-mismatch case. No task-specific paths, keys, locales, ABI fields, or framework values were embedded in the skill bundle.",
+  "confidence": 0.88,
+  "changedFiles": [
+    "SKILL.md",
+    "scripts/check_json_locales.py"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "工作流程 / 5. 完整性检查",
+      "description": "Tighten the existing verification step to require placeholder parity, route nested JSON checks through the bundled checker, and prioritize task-provided closed contracts and file-delta restrictions.",
+      "generality": "A future Vue or React task with multiple nested JSON locale files and a declared output contract benefits from the same explicit verification order.",
+      "linesDelta": 2
+    },
+    {
+      "file": "scripts/check_json_locales.py",
+      "description": "Add a parameterized standard-library CLI that flattens nested JSON locales and reports missing keys, extra keys, and placeholder mismatches with meaningful exit codes.",
+      "generality": "Any JSON-based i18next, react-intl, or vue-i18n completeness task can pass its own locale labels and paths to this checker.",
+      "linesDelta": 129
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "Make completeness verification include placeholder parity and make task-provided exact contracts authoritative rather than merely producing a generic report.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must interpret the current task's contract, source-selection rules, and framework-specific semantics without inventing fields or paths."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "Accept arbitrary locale labels and JSON paths instead of relying on fixed language names or project locations.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent selects the authoritative reference locale and supplies every applicable translated locale."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "Automate flattening nested JSON objects and comparing locale key and placeholder multisets.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent still extracts confirmed source text, chooses keys, translates values, and edits framework code."
+    },
+    {
+      "category": "verification",
+      "summary": "Provide an independent checker for the locale completeness and placeholder invariants exposed by the passing criteria.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must additionally run available project checks and verify the actual file delta and any task-specific report ABI."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "The observed task prohibited installs and lacked local TypeScript, so the checker uses only the Python standard library and does not require network access.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must confirm Python is available; otherwise it must perform equivalent checks with available local tools."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Translation quality, plural/gender rules, framework integration, confirmed-text classification, and exact contract interpretation are context-dependent professional judgments.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent remains responsible for these judgments and for not treating an empty missing-key list as proof of translation quality."
+    }
+  ],
+  "actions": [
+    {
+      "id": "check-json-locale-parity",
+      "kind": "generate-script",
+      "evidenceIds": [
+        "0"
+      ],
+      "sourceRefs": [
+        "SKILL.md#5-完整性检查",
+        "SKILL.md#注意事项",
+        ".optimize/tasks/i18n-helper-v3-skvm-windows-clean-i18n-helper-v3-react-basic-dev-001/run-0.md#evaluation-criteria"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "one reference locale supplied as LOCALE=PATH",
+        "zero or more translated locales supplied as LOCALE=PATH"
+      ],
+      "outputs": [
+        "a JSON completion summary on stdout",
+        "exit code 0 for parity, 1 for detected differences, or 2 for invalid input"
+      ],
+      "preconditions": [
+        "Python 3 is available",
+        "locale files are nested JSON objects with string leaf values"
+      ],
+      "constraints": [
+        {
+          "description": "Compare primary and translated locale keys and preserve variable placeholders.",
+          "scope": "skill",
+          "sourceRef": "SKILL.md#5-完整性检查"
+        },
+        {
+          "description": "The observed task required exact contract-declared files and a closed report ABI.",
+          "scope": "task",
+          "sourceRef": ".optimize/tasks/i18n-helper-v3-skvm-windows-clean-i18n-helper-v3-react-basic-dev-001/run-0.md#task"
+        },
+        {
+          "description": "Package installation and network access were prohibited in the observed run.",
+          "scope": "task",
+          "sourceRef": ".optimize/tasks/i18n-helper-v3-skvm-windows-clean-i18n-helper-v3-react-basic-dev-001/run-0.md#task"
+        }
+      ],
+      "validation": {
+        "help": {
+          "args": [
+            "--help"
+          ],
+          "stdoutIncludes": [
+            "--reference",
+            "--locale"
+          ]
+        },
+        "cases": [
+          {
+            "args": [
+              "--reference",
+              "zh-CN=.optimize/tasks/i18n-helper-v3-skvm-windows-clean-i18n-helper-v3-react-basic-dev-001/run-0-workdir/src/locales/zh-CN.json",
+              "--locale",
+              "en-US=.optimize/tasks/i18n-helper-v3-skvm-windows-clean-i18n-helper-v3-react-basic-dev-001/run-0-workdir/src/locales/en-US.json"
+            ],
+            "id": "observed-complete-locales",
+            "evidenceId": "0",
+            "inputSource": "workdir-snapshot",
+            "inputFiles": [
+              ".optimize/tasks/i18n-helper-v3-skvm-windows-clean-i18n-helper-v3-react-basic-dev-001/run-0-workdir/src/locales/zh-CN.json",
+              ".optimize/tasks/i18n-helper-v3-skvm-windows-clean-i18n-helper-v3-react-basic-dev-001/run-0-workdir/src/locales/en-US.json"
+            ],
+            "expectedFiles": [],
+            "basis": "task-contract",
+            "sourceRefs": [
+              "evidence:0#criteria/i18n-v2-locales",
+              "evidence:0#criteria/i18n-v2-interpolation"
+            ]
+          }
+        ]
+      },
+      "changedPaths": [
+        "scripts/check_json_locales.py"
+      ],
+      "residualDuties": [
+        "select the reference locale",
+        "interpret framework-specific placeholders not covered by the common token patterns",
+        "verify source transformations, translation quality, report ABI, and filesystem delta separately"
+      ],
+      "verification": [
+        "run python scripts/check_json_locales.py --help",
+        "run the checker on all changed nested JSON locale files",
+        "treat ok=true only as locale key and placeholder parity, not as full task correctness"
+      ]
+    },
+    {
+      "id": "route-json-verification",
+      "kind": "restructure-docs",
+      "evidenceIds": [
+        "0"
+      ],
+      "sourceRefs": [
+        "SKILL.md#5-完整性检查",
+        ".optimize/tasks/i18n-helper-v3-skvm-windows-clean-i18n-helper-v3-react-basic-dev-001/run-0.md#evaluation-criteria"
+      ],
+      "dependsOn": [
+        "check-json-locale-parity"
+      ],
+      "inputs": [
+        "the current project's locale format",
+        "any task-provided contract or allowed-file declaration"
+      ],
+      "outputs": [
+        "an explicit verification route for nested JSON locales",
+        "a final contract and filesystem-delta review"
+      ],
+      "preconditions": [
+        "the agent has inspected the project and current task constraints"
+      ],
+      "changedPaths": [
+        "SKILL.md"
+      ],
+      "residualDuties": [
+        "fall back to framework-specific manual checks for non-JSON formats",
+        "apply closed schemas exactly without adding plausible fields"
+      ],
+      "verification": [
+        "confirm the documented command exposes --help",
+        "confirm the observed passing locale pair yields ok=true",
+        "review actual changed and created paths against the current task contract"
+      ]
+    }
+  ],
+  "actionDiagnostics": [],
+  "noChanges": false
+}

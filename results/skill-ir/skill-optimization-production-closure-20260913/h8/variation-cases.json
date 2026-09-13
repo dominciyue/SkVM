@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "skill-optimization-h8-variation-cases/v1",
+  "exposure": "development",
+  "parent": {
+    "sourceSkill": {
+      "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+      "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729"
+    },
+    "trace": {
+      "path": "results/skill-ir/i18n-helper-v3-execution-observable-calibration-v3/run/raw-runs.jsonl",
+      "sha256": "f6fe7771d5d3f32bc74d865b41297dd69134f6cdb96807cc6505613081e63f8b",
+      "recordLocator": "line:3"
+    },
+    "packageIdentity": "source:20260913T133219213Z:round-1",
+    "packageManifestSha256": "8f0bde50f0fadb2b6cf00219fa48ad1ee0e68e8d3eb2506699c33d7dfb582da9"
+  },
+  "derivation": "Fresh synthetic development cases preserve only the source skill's nested-JSON key-parity and placeholder-parity rules. Paths, key names, values and locale label differ from the optimizer trace and were not fed back to the optimizer.",
+  "cases": [
+    {
+      "id": "renamed-paths-and-keys-pass",
+      "locale": "pt-BR",
+      "file": "equivalent.json",
+      "expectedExitCode": 0,
+      "expected": {
+        "ok": true,
+        "referenceLocale": "base",
+        "keyCount": 4,
+        "missingKeys": { "base": [], "pt-BR": [] },
+        "extraKeys": { "base": [], "pt-BR": [] },
+        "placeholderMismatches": []
+      }
+    },
+    {
+      "id": "missing-key-detected",
+      "locale": "pt-BR",
+      "file": "missing-key.json",
+      "expectedExitCode": 1,
+      "expected": {
+        "ok": false,
+        "missingKeys": { "base": [], "pt-BR": ["account.summary"] },
+        "extraKeys": { "base": [], "pt-BR": [] },
+        "placeholderMismatches": []
+      }
+    },
+    {
+      "id": "placeholder-mismatch-detected",
+      "locale": "pt-BR",
+      "file": "placeholder-mismatch.json",
+      "expectedExitCode": 1,
+      "expected": {
+        "ok": false,
+        "missingKeys": { "base": [], "pt-BR": [] },
+        "extraKeys": { "base": [], "pt-BR": [] },
+        "placeholderMismatches": [
+          {
+            "locale": "pt-BR",
+            "key": "account.greeting",
+            "referencePlaceholders": ["{{user}}"],
+            "actualPlaceholders": ["{{member}}"]
+          },
+          {
+            "locale": "pt-BR",
+            "key": "account.summary",
+            "referencePlaceholders": ["{count}"],
+            "actualPlaceholders": ["{total}"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "invalid-leaf-rejected",
+      "locale": "pt-BR",
+      "file": "invalid-leaf.json",
+      "expectedExitCode": 2,
+      "expected": {
+        "ok": false,
+        "errorIncludes": "must be a string"
+      }
+    }
+  ],
+  "claimBoundary": "The four cases validate this generated program against a deliberately enumerated error set. They are not independent real samples, translation-quality checks, held-out evidence or a broad reliability rate."
+}

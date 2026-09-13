@@ -3,7 +3,7 @@
 - 更新日期：2026-09-13
 - 工作分支：`skill-ir-aot`
 - 当前路线：H0–H14，“单次真实 trace → 程序实施与验证 → 局部修复/回退 → 新 skill 包 → 自然消费”
-- 执行状态：`planned-not-started`（新任务仅登记；G0–G14 completed，历史整体效果仍为 mixed）
+- 执行状态：`active-H9`（H0–H8 已完成；G0–G14 历史整体效果仍为 mixed）
 
 本页是 Skill IR 唯一实时状态入口。日期化任务书、历史计划和结果报告都不是“当前状态”。
 
@@ -59,7 +59,19 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 
 复核补充：已有程序验证与动作解析组件尚未接入正常优化循环；当前四个 G 包身份的实际改动均集中在 SKILL.md。
 30 个阅读条目中的 10 个为深读子集，不能表述为 40 个独立 skill。新计划要求真实程序链，不能用文档重组替代。
-H0 启动时才创建 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`，本次未启动执行。
+H0 已创建 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`。普通日志入口的实际缺口已定位在
+`runLogOnly`：它会调用 optimizer、保存 round-0/1 并仅按是否改文件选择 round-1，尚未在推荐 snapshot 前调用程序验证、
+动作依赖解析或局部修复/回退。H0 规定基线一次通过 39/39 tests、106 assertions；当前进入 H1 定向工程用例。
+H1 的 `case-notes.json` 已把 I18n 新程序、Law 现成程序、Experimental 多资源和 Env 第三结构逐项绑定到真实 `line:3`
+trace、原文摘要、独立评价依据及下一条测试；现有暴露材料足够，未新增获取。当前进入 H2 条件范围 TDD。
+H2 已让 action 兼容地携带有来源的 skill/task/environment/unknown 约束，并由 workspace 写出独立
+`CONSTRAINT_SOURCES.json`；optimizer 明确禁止把一次任务的路径、网络或输出条件提升为长期规则。聚焦验证 38/38 通过，当前进入 H3 待验证依赖传播 TDD。
+H3 已修复 pending 传播：直接/传递依赖与共享文件动作都不能在上游未知时提升为通过，独立已通过动作保留，具体失败仍触发既有依赖/共享组回退；仅 help 或零行为 case 返回 not-applicable。聚焦验证 18/18 与 typecheck 通过，当前进入 H4 验证计划转换。
+H4 已让 optimizer action 可提交可执行验证建议；框架只解析 action 声明的真实 task fixtures/workdir snapshot，物化相对路径输入，并从观察到的参考输出派生摘要检查。缺资源为 action-local unresolved，自检不算独立正确性依据；实际 JS 命令记录解析到的 Node 路径。精确套件 19/19 通过，当前进入 H5 loop 接线。
+H5 已把上述组件接入 `runLogOnly`：真实程序在候选选轮前运行，报告位于 `round-1-validation/report.json`，history/result 携带摘要；具体失败保留 baseline，缺依据的候选只标 draft，源 trace 原任务不重跑。集成与 loop/CLI 套件 84/84 通过。
+H6 在该正常路径上增加一次局部 repair：只把失败动作、相关文件和不可改评价依据传回既有 optimizer，修复后只重跑受影响检查并复用独立通过观察。修复仍失败、越界或调用失败时，依赖/共享文件组从 baseline 安全恢复，独立通过动作保留；原始与修复报告分别归档，完全回退恢复 no-change。精确套件 39/39、128 assertions 与 typecheck 通过，当前进入 H7 最终 snapshot 验证绑定和包/CLI 状态表达。
+H7 将新包 manifest 升级为向后兼容的 v2：exporter 从最终 history 而非修复前 submission 读取动作，把选中轮的既有验证报告连同摘要归档进包并在 verify 时重验；无报告、部分通过或失败只标 draft，只有带独立案例且无缺口的 action-local passed 才标 validated-recommendation。旧 v1 包仍只读可核验。CLI 同时显示改动类型、适用输入/前置条件、残余职责和具体验证缺口，并明确局部程序检查不是整 skill 正确性。精确套件 41/41、127 assertions 与 typecheck 通过。
+H8 已由普通 CLI 的第 8 次真实尝试生成 I18n nested-JSON checker；前 7 次和第 9 次的文档/no-change/基础设施结果均保留。修复通用 fixture 投影、locator、外部 criterion 绑定、依赖文档状态及 `ok=true` 消费判定后，原 trace 1/1、未回灌变化输入 4/4（含 3/3 故障检出）和同一普通 agent 事件的自然 read/exec/残余任务均通过。最终包为 v2 `validated-recommendation`；效果未配对，保持 unknown。一次宽搜索意外显示 i18n heldout 匹配行，未使用也未执行，但该 heldout 对本线程不再声称 pristine。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/h8/report.json`，当前进入 H9 现成程序复用。
 
 任务摘要见[当前计划](skill-ir-aot-optimization-plan.md)。G0–G14 历史结果继续保留在
 `results/skill-ir/general-skill-optimization-20260913/final-report.json` 与同目录 `g14-verification.json`；旧结果不回写。

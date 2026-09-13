@@ -1,0 +1,61 @@
+{
+  "rootCause": "The skill describes generic i18n outputs but does not tell the agent how to prioritize and enforce a task-provided machine-readable contract when that contract defines an exact file boundary or closed output schema, leaving the agent to infer whether the illustrative markdown report and extra fields are acceptable.",
+  "reasoning": "Evidence 0 is a clean, passing run (score 1.00) and therefore provides regression-sensitive evidence rather than a demonstrated failure. Its task explicitly supplied an exact contract: only declared files could change, the report ABI disallowed additional properties, and missingKeys had locale-keyed arrays. The agent succeeded, but the source skill itself only presents a markdown report example and generic completeness checks; the reusable opportunity is to make contract precedence explicit so future contract-driven i18n tasks do not guess. I rewrote the existing completeness/output guidance in place rather than appending an overlapping rule. Generality test: a different task that provides a Vue-i18n schema, gettext manifest, or exact report ABI would benefit from the same contract-first behavior. Coherent scope: one concise instruction is sufficient; no executable bundle is needed because the evidence exposes no stable reusable script or reference checker. No-trade-off test: the only PASSING task is i18n-helper-v3:skvm:windows:clean:i18n-helper-v3-react-basic-dev-001; this clarification reinforces exactly the contract compliance that task already achieved and does not alter framework detection, extraction, translation, or fallback behavior. Residual judgment remains with the agent to read the supplied contract, determine applicability, perform the transformation, and validate the concrete files and values.",
+  "confidence": 0.82,
+  "changedFiles": [
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "5. 完整性检查 / 输出格式",
+      "description": "Add contract-first guidance requiring exact compliance with supplied schemas or output ABIs and prevent the illustrative report format from overriding them.",
+      "generality": "A separate task with a Vue, gettext, or other i18n contract that enumerates exact files and report fields would benefit from the same explicit precedence rule.",
+      "linesDelta": 2
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "Clarify that a project-provided contract or ABI takes precedence over generic examples and defines a closed output shape when stated.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must read the supplied contract and apply its exact, task-specific rules."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "The source already directs the agent to detect project type, framework, and source structure; no evidence supports adding a generic parameter interface.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "The agent must derive paths, locales, keys, and interpolation identifiers from the actual project and any supplied contract."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "The run shows a successful one-off source extraction and locale generation, but no bundled transformation is independently established by the evidence.",
+      "evidenceIds": ["0"],
+      "disposition": "not-applicable",
+      "residualDuty": "The agent performs the context-sensitive code transformation and translation decisions."
+    },
+    {
+      "category": "verification",
+      "summary": "The skill has completeness checks, and the edit adds explicit pre-delivery checking against any supplied contract or ABI.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must actually compare generated files, key sets, placeholders, and report fields against the applicable contract."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "The evidence records a clean run but does not establish a portable runtime dependency or environment defect in the skill.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "The agent must respect the environment and user restrictions, including avoiding unrequested installation or network access."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Framework selection, user-visible-text judgment, translation quality, interpolation mapping, and task-specific contract interpretation remain agent responsibilities.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "Do not automate or infer these professional judgments without an explicit source rule and independently testable checker."
+    }
+  ]
+}

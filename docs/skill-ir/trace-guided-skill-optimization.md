@@ -13,6 +13,12 @@ The active implementation authority is `docs/superpowers/plans/2026-09-13-api-ta
 3. JIT-optimize projects the original skill plus all usable evidence into its existing proposal workspace. Passing evidence is still analyzed for supported efficiency, clarity and reusable construction opportunities; a failure is not required.
 4. A partial-solidification layer adds the already-existing API Tester v2 generator/checker only where the trace and unchanged public contract justify it. Residual agent duties stay explicit.
 5. The resulting package is consumed by a real agent in a normal task workspace and compared with the original skill under a matched route.
+6. For execution-log optimization, the ordinary loop runs implementation selection and action-local program checks before choosing the candidate snapshot. It persists `round-N-validation/report.json`; imported source tasks are not replayed, and the new local executions are counted separately.
+7. A rejected local program gets at most one targeted repair through the existing optimizer. Repair feedback names only affected actions and files and preserves the original validation expectations. The loop reruns only affected checks, reuses independent observations, and restores the entire dependency/shared-file group from baseline if repair still fails or escapes scope. Initial and repair reports remain separately reviewable.
+
+Optimizer actions may carry evidence-bound constraints with `skill`, `task`, `environment`, or `unknown` scope. The workspace writes these sources to `.optimize/CONSTRAINT_SOURCES.json`; task paths, network conditions, example values, and observed output shapes are not promoted to permanent skill rules unless the skill sources independently establish them. Actions produced before this field existed remain valid.
+
+Action validation is three-valued at the local level. A concrete failure rejects its dependency closure and any inseparable shared-file group. A missing/not-run observation propagates as unvalidated through the same relationships without becoming a failure. Independent passed actions survive. Program help without any task-behavior case remains `not-applicable`, never behavior-passed.
 
 ## Trace formats
 
@@ -35,6 +41,7 @@ Malformed rows, unknown event kinds, absent usage, absent result content and mis
 - `<package>/scripts/api-task-solidify.js --binding ... --workdir ... --out-dir ... --node ...`: portable ordinary-input execution entry. The binding and OpenAPI document are supplied at runtime; it does not depend on the six historical migration identities or their result counts.
 - `bun scripts/skill-ir/trace-guided-api-tester-agent-run.ts ...`: real Pi-agent consumption harness. It copies the selected skill into a fresh ordinary work directory, prepares an independent v2 checker, and requires actual read/exec tool evidence when configured.
 - `analyzeSkillConsumption` in `src/jit-optimize/consumption.ts`: distinguishes actual skill/helper tool calls from assistant claims.
+- `deriveProgramValidationPlan` in `src/jit-optimize/validation-lifecycle.ts`: resolves optimizer-authored cases against declared evidence indices, task fixtures or workdir snapshots and derives reference-output digests before execution.
 - `bun scripts/skill-ir/trace-guided-effect-analysis.ts --pairs ... --out ...`: rejects unmatched input, binding, model or runtime pairs and reports quality, duration and token fields separately.
 
 ## Evidence and accounting
@@ -58,4 +65,7 @@ The completed development panel used three matching skills from three repositori
 - Exit code 2 is an explicit unsupported/not-applicable result that returns control to the original skill workflow. Exit code 1 is a binding or implementation error and is not relabeled as unsupported.
 - The helper output directory may not be inside (or contain) the task work directory. Use a new empty sibling directory; the binding-declared plan/report still land in the task work directory.
 - One trace is insufficient evidence for a repeated transformation. A no-change result is valid and must not be converted into a package merely to meet a breadth target.
+- A generated program's self-check is useful execution evidence but is not independent task correctness. Reference-output cases bind engine-derived digests; missing task files, reference bytes, credentials or runtimes remain action-local unresolved facts.
+- A log-only candidate with concrete program failure cannot win merely because files changed. A candidate without sufficient local validation may remain an explicit draft; it is not described as behavior-passed.
+- A repair cannot change an independent expected digest or smuggle unrelated files into the selected snapshot. Failed inseparable edits are rolled back together; a complete rollback is a no-change result and does not export an empty success package.
 - Lower duration or output tokens do not establish savings when input/cache tokens rise and pricing is unknown.

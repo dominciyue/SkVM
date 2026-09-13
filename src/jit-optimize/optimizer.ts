@@ -54,9 +54,19 @@ export async function runOptimizer(
     input.history ?? [],
     { skillDir: workspace.dir },
   )
+  if (input.repairFeedback) {
+    await Bun.write(
+      path.join(workspace.optimizeDir, "REPAIR_FEEDBACK.json"),
+      `${JSON.stringify(input.repairFeedback, null, 2)}\n`,
+    )
+  }
 
   // 3. Build the prompt
-  const prompt = buildOptimizerPrompt(input.evidences.length, (input.history ?? []).length)
+  const prompt = buildOptimizerPrompt(
+    input.evidences.length,
+    (input.history ?? []).length,
+    input.repairFeedback !== undefined,
+  )
 
   // 4. Run the headless agent with the workspace as its cwd
   const absWorkspace = path.resolve(workspace.dir)
@@ -245,7 +255,7 @@ function emptySubmission(reason: string): OptimizeSubmission {
 // Prompt
 // ---------------------------------------------------------------------------
 
-export function buildOptimizerPrompt(evidenceCount: number, historyCount: number): string {
+export function buildOptimizerPrompt(evidenceCount: number, historyCount: number, repairMode = false): string {
   return `You are a skill optimization agent.
 
 A "skill" is a markdown instruction file (SKILL.md) plus optional bundle files
@@ -280,14 +290,25 @@ Then read \`.optimize/README.md\` — it explains the full layout. In short:
   Multiple runs of the same task live in the same directory so you can tell
   "same task failed N times" apart from "N different tasks failed once".
 - \`.optimize/tasks/<safeTaskId>/run-N.json\` — same data in structured form.
+- \`.optimize/tasks/<safeTaskId>/run-N-task-fixtures/\` — original pre-run inputs
+  from the trace-bound task file, when its adjacent manifest says
+  \`materialized\`. These are not evaluator expectations or observed outputs;
+  an \`unresolved\` manifest is an evidence gap that must not be guessed away.
 - \`.optimize/tasks/<safeTaskId>/run-N-workdir/\` — files the agent left in
   its work directory on that run.
 - \`.optimize/SKILL_RESOURCE_INDEX.md\` — complete configured skill-file
   navigation and explicit trace-to-skill bindings. Read only the resources
   relevant to an opportunity, but do not assume an unobserved rule is unused.
+- \`.optimize/CONSTRAINT_SOURCES.json\` — structured provenance buckets for
+  permanent skill rules, current-task values or restrictions, observed
+  environment facts, and unknown scope. A task or environment condition is
+  not a skill-wide rule.
 ${historyCount > 0 ? `- \`.optimize/history.md\` — ${historyCount} previous optimization round(s) with their root causes and whether they improved scores. READ THIS BEFORE PROPOSING CHANGES.` : ""}
+${repairMode ? `- \`.optimize/REPAIR_FEEDBACK.json\` — one bounded repair request. Edit only its listed relevant files, preserve validation inputs/expectations, and do not revisit independent passed actions.` : ""}
 
 ## Method
+
+${repairMode ? `This is the single repair attempt for an already-validated candidate. Use the located failure diagnostics in \`.optimize/REPAIR_FEEDBACK.json\`; do not broaden the change, alter reference outputs, or replace independent checker expectations. If the listed files cannot be repaired from available evidence, leave them unchanged and report the limitation.` : ""}
 
 1. Read \`PER_TASK_SUMMARY.md\` to get the per-task landscape. Analyze every
    usable status: FAILING/MARGINAL for defects, UNASSESSED for visible workflow
@@ -320,6 +341,26 @@ ${historyCount > 0 ? `- \`.optimize/history.md\` — ${historyCount} previous op
    contract says it is exact: do not add plausible fields that the contract does
    not declare. Preserve \`not applicable\` as distinct from a true property or a
    successful check; never turn an absent condition into affirmative evidence.
+
+   The inventory is not a ranking where one convenient edit excuses every
+   other item: implement every independent evidence-backed opportunity that
+   passes the generality, no-trade-off, resource and verification tests. A
+   bounded executable does not need to cover every input format supported by the skill:
+   when the skill is broad, it may serve only the
+   declared format or contract for which the visible rules, inputs, outputs and
+   checks are sufficient, while the original workflow remains the fallback for
+   everything else. Do not retain such a bounded executable opportunity merely
+   because it cannot replace the whole skill.
+   A deterministic checker or normalizer is also a valid generated program: it
+   does not have to perform the whole transformation when it can enforce a
+   source-established invariant over parameterized inputs. Keep judgment in the
+   agent, but generate the checker when visible rules and files make its result
+   independently testable. In particular, when a source-established invariant,
+   original pre-run inputs, observed post-run files, and an independent passing criterion
+   jointly expose the rule and a positive case, a checker opportunity does not require a repeated cross-task occurrence
+   and does not require a pre-existing checker. Generate the smallest checker that
+   accepts arbitrary declared input paths instead of baking in evidence file names;
+   keep every fact the sources do not establish as a residual duty.
 
    Then identify the root cause of the selected opportunity. State it as an underlying gap in
    the skill's instructions or bundle, not as a list of changes. Good root causes are
@@ -409,9 +450,26 @@ Write \`.optimize/submission.json\` with these fields (see
 - \`actions\` (array, optional): dependency-aware implementation actions. Each
   complete action contains \`id\`, \`kind\`, \`evidenceIds\`, \`sourceRefs\`,
   \`dependsOn\`, \`inputs\`, \`outputs\`, \`preconditions\`, \`changedPaths\`,
-  \`residualDuties\`, and \`verification\`. Use \`reuse-script\`, \`domain-backend\`,
-  \`generate-script\`, or \`restructure-docs\`. Do not invent empty values for
-  unknown required facts; omit an unsupported action and retain the opportunity.
+  \`residualDuties\`, and \`verification\`. An action may also contain
+  \`constraints\`; each constraint is
+  \`{"description","scope","sourceRef"}\`, where \`scope\` is \`skill\`, \`task\`,
+  \`environment\`, or \`unknown\`. Never promote a fixed path, network condition,
+  output ABI, example value, or other task/environment fact into a permanent
+  skill rule unless the skill sources independently establish it. An executable
+  action should also include \`validation\` when the evidence exposes runnable
+  resources. Its \`cases\` identify a declared \`evidenceId\`, exact \`args\`,
+  \`inputFiles\`, and \`expectedFiles\`. Use \`inputSource\` \`task-fixtures\` for
+  original task inputs or \`workdir-snapshot\` for observed workdir inputs. Use
+  \`basis\` \`reference-output\` only when each claimed output names an observed
+  \`referencePath\`; use \`task-contract\` for evidence-backed assertions without
+  reference bytes, and \`self-check\` for program-local checks. Always cite
+  \`sourceRefs\`. A \`self-check\` does not establish task correctness; do not use
+  a generated program's own assertion as the only basis for a validated recommendation.
+  Do not invent task files, expected bytes, credentials, runtimes, or arguments.
+  Use
+  \`reuse-script\`, \`domain-backend\`, \`generate-script\`, or
+  \`restructure-docs\`. Do not invent empty values for unknown required facts;
+  omit an unsupported action and retain the opportunity.
   When a documentation change routes normal work through an existing executable,
   represent that executable in a separate \`reuse-script\` action instead of only
   declaring \`restructure-docs\`. If users would otherwise need to read the full
