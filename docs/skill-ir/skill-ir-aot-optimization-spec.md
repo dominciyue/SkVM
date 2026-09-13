@@ -2326,6 +2326,14 @@ Windows LF 工作文件与 `core.autocrlf` filter 的 CRLF checkout bytes 不同
 
 ### 14.31 优化生产链闭合与可执行程序交付（2026-09-13，active-H12）
 
+**运行中修订，revision 2（2026-09-14）：** 保留下列 H0–H11 已完成结果，接续当前 H12，再执行任务书新增必需 R1–R7 后完成 H13/适用 Y/H14。本次追加不构成已执行声明，实际阶段由机器状态维护。
+
+默认输入责任调整为用户选择 skill、说明任务和目录，系统接管一次正常运行并自动捕获/关联 trace，然后进入已有优化器；手工 logs/locator/criteria 只保留为高级兼容接口。采用本次 run 标识与实际 skill/task/事件关联，禁止扫描全机会话或仅凭最新文件猜对应关系。先实现已有默认 adapter 的真实 capture；外部 agent 只有明确日志接口时才接入，不能声称任意平台都可透明捕获。原任务只运行一次，后续验证独立计数，恢复不重复业务副作用；采集失败仍保留原任务成果。
+
+普通用户通常没有评分文件。R3 自动寻找原 skill 的规则、现成测试、格式检查和可验证不变量，真实执行后产生新的检查依据，不将旧 failed/null criterion 篡改为 passed。原输出仅作观测或保真参照；source-derived、自检、模型评价与独立验证分别标注。依据不足只限制相应正确性主张，仍可实施有依据的局部改进，不要求用户手工准备研究协议。
+
+R4 改进动作兑现和模型可读接口，减少 H8 多次尝试暴露的映射/生成摩擦；保留 no-change 合理性，不强迫所有 skill 出脚本，不无限抽样。R6/R7 要求默认入口的两种结构真实尝试，其中至少一条原/变化任务完整通过；从普通命令完成自动采集、优化、包使用和异常恢复，不以历史手动日志实验替代。工程覆盖、任务质量与效果继续分别评价；没有支持 80%–90% 的测量时不得声称这种成功概率。
+
 本轮依据[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 1 的 H0–H14，主线达标后有条件执行 Y1–Y2。H0 已完成实际调用链定位与单次基线，H1 已绑定四类真实用例，H2 已实现有来源的条件范围并保持旧 action 兼容；H3 已修复 pending 的依赖/共享文件传播和 help-only 误提升；H4 已把 action 建议转换为真实资源与参考输出绑定的执行计划；H5 已接入正常 log loop 并持久化实际执行、检查和选轮状态；H6 复用同一 optimizer 完成最多一次的局部修复，只复验受影响动作，并在失败时按依赖/共享文件闭包恢复 baseline，同时保留独立已验证动作；H7 使 v2 包归档并重验最终选中 snapshot 的行为报告，以 draft/validated-recommendation 区分验证缺口，同时保持 v1 只读兼容；H8 完成新程序生成与自然消费，H9 完成现成程序复用，H10 完成变化条件、局部降级和资源诊断，H11 完成常规入口交接策略、general-skill gzip trace 接入及同任务行为配对，当前 active-H12。恢复状态见 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`。14.30 历史交付和 mixed 结果保留。
 
 H8 的正向提升不依赖模型自写测试：task-contract case 只有在 exact sourceRef 指向已供应且 `passed=true` 的外部 criterion 时才算 independent；optimizer workspace 的投影路径必须可映射回同一 evidence 的声明 source，失败则 unresolved。独立说明改写仍未验证，只有选中且声明依赖的路由说明可随依赖闭包保留。最终程序在新的路径、键、值和 locale 标签上通过，缺键、占位符改名和非法叶三项故障均由预定结构字段及退出码检出。自然消费的原始事件证明 skill read、helper exec、残余报告和包/输入不变；共享 analyzer 对 exit-zero JSON `ok=true` 的漏判经红例修复，`ok=false` 仍不计成功。结果路径为 `results/skill-ir/skill-optimization-production-closure-20260913/h8/report.json`，效果未配对所以保持 unknown。
@@ -2340,7 +2348,7 @@ H11 从 H8/H9 的两份已绑定自然消费事件定位到同一常规开销：
 
 一次宽搜索意外显示过 i18n heldout 文件中的匹配行；其内容未用于生成、变体或结论，也未选择/运行/修改，但该 heldout 对本线程不再可声称 pristine unseen。后续 H9–H14 不使用该来源，且任何未来 prospective 预登记必须排除或显式处理这次暴露。
 
-复核澄清：14.30 的 action-local validation 是已实现组件，不代表正常 CLI/loop 已接入程序验证、失败反馈和修复选轮；`validateOptimizationProgram` 与 `resolveActionValidation` 当前只有实现、导出和测试调用。四个已交付 G 包身份实际均只改 SKILL.md；30 个阅读条目中的 10 个为深读子集，实际优化运行覆盖 4 个 skill。此处澄清能力范围，不改写历史原始结果。
+H0 基线澄清：14.30 交付时的 action-local validation 是已实现组件，当时正常 CLI/loop 尚未接入程序验证、失败反馈和修复选轮；此缺口已由本节 H5–H7 修复。四个 G 包身份实际均只改 SKILL.md；30 个阅读条目中的 10 个为深读子集，G 实际优化运行覆盖 4 个 skill。此处澄清历史能力范围，不改写原始结果或否认新 H8/H9 程序成果。
 
 H 路线优先将现有组件接入真实日志优化路径：动作实施后执行有依据的局部程序检查，按依赖/共享文件组处理通过、失败与待验证，一次自动局部修复后导出真实最终 snapshot。缺少观察或资源只影响相关动作；未知依赖的下游不得提升为已验证。可保存未验证候选，但它不是已验证推荐；闭包、程序执行、输出检查、自然任务与效果分别报告。
 

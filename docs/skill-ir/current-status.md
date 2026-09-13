@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-13
 - 工作分支：`skill-ir-aot`
-- 当前路线：H0–H14，“单次真实 trace → 程序实施与验证 → 局部修复/回退 → 新 skill 包 → 自然消费”
+- 当前路线：H0–H14 + R1–R7，“正常运行一次 → 自动采集 trace → 程序实施与验证 → 新 skill 包 → 自然消费”
 - 执行状态：`active-H12`（H0–H11 已完成；G0–G14 历史整体效果仍为 mixed）
 
 本页是 Skill IR 唯一实时状态入口。日期化任务书、历史计划和结果报告都不是“当前状态”。
@@ -49,7 +49,9 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 
 ## 3. 当前计划
 
-下一轮继续共享实现，依据[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 1、spec 14.31：
+本轮继续共享实现，依据[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 2、spec 14.31：
+
+运行中追加决定：H0–H11 成果保留，当前 H12 之后执行 R1–R7，再进入 H13/适用 Y/H14。新增默认体验为用户选择 skill、说明任务并运行一次，系统自动捕获/关联 trace，再优化和导出；无需用户提供 logs、locator 或评分文件。新增能力仍待执行，不是当前已支持功能；机器状态由执行任务维护，不能仅按旧 H 条件关闭总目标。
 
 1. H0–H2：接续基线，使用已有语料定位问题，区分 skill 规则、任务条件和环境事实。
 2. H3–H7：修复待验证依赖传播，将实际程序验证、一次局部修复/回退及最终 snapshot 导出接入正常 CLI/log 路径。
@@ -57,7 +59,7 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 4. H11–H13：根据真实 trace 改善开销，做少量不同结构复用检查，完成普通工程入口使用。
 5. H14：有限回归与交付；主链达标且窗口允许时处理适用的 Y1–Y2。
 
-复核补充：已有程序验证与动作解析组件尚未接入正常优化循环；当前四个 G 包身份的实际改动均集中在 SKILL.md。
+H0 启动时复核：当时程序验证与动作解析组件尚未接入正常优化循环，这一缺口已由下述 H5–H7 修复；四个 G 包身份的实际改动均集中在 SKILL.md，不能与新的 H8/H9 程序包混算。
 30 个阅读条目中的 10 个为深读子集，不能表述为 40 个独立 skill。新计划要求真实程序链，不能用文档重组替代。
 H0 已创建 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`。普通日志入口的实际缺口已定位在
 `runLogOnly`：它会调用 optimizer、保存 round-0/1 并仅按是否改文件选择 round-1，尚未在推荐 snapshot 前调用程序验证、
