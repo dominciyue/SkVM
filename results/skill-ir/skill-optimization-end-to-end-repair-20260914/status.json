@@ -2,27 +2,27 @@
   "schemaVersion": "skill-ir-skill-optimization-end-to-end-repair-status/v1",
   "identity": "skill-optimization-end-to-end-repair-20260914",
   "exposure": "development",
-  "updatedAt": "2026-09-14T07:22:06+08:00",
+  "updatedAt": "2026-09-14T07:39:18+08:00",
   "branch": "skill-ir-aot",
   "headAtStart": "d619ee915e33fc1e93489a02e987f4d78222969e",
   "originAtStart": "d619ee915e33fc1e93489a02e987f4d78222969e",
-  "currentStage": "C4",
+  "currentStage": "C5",
   "deliveryStatus": "in-progress",
   "stages": {
     "C0": "completed",
     "C1": "completed",
     "C2": "completed",
     "C3": "completed",
-    "C4": "in-progress",
-    "C5": "planned",
+    "C4": "completed",
+    "C5": "in-progress",
     "C6": "planned",
     "C7": "planned",
     "C8": "planned",
     "C9": "planned",
     "C10": "planned"
   },
-  "lastSuccessfulAction": "Completed C3: generic local selection now routes misdeclared executable actions through reuse-script or generate-script, emits action-kind-mismatch diagnostics, preserves registered-only domain backends, and passes 66/66 focused tests (210 assertions), 27/27 package/production regression tests (135 assertions), and typecheck.",
-  "nextAction": "Read loop.ts, optimizer.ts, validation-lifecycle.ts, and production-closure tests; add C4 red cases proving metadata-only repair is adopted even with changedPaths=[] and that file plus action repair preserves the complete action set and shared dependency closure.",
+  "lastSuccessfulAction": "Completed C4: repair feedback now carries baseline/candidate action snapshots, actual candidate diff paths, original intent and diagnostics; only validated failed-action metadata is merged, metadata-only repairs execute, and independent actions remain bound through validation/history/package. C4 combined suite passed 36/36 tests (188 assertions), prompt suite 26/26 (103 assertions), and typecheck passed.",
+  "nextAction": "Read optimizer.ts, workspace.ts, loop selection and archived I18n no-change evidence; add C5 red cases separating bounded candidate attempts from recommendation and preserving truthful no-change/document-only outcomes without using score defect as the sole optimization objective.",
   "currentCommand": null,
   "attemptDirectories": [],
   "failures": [
@@ -30,9 +30,11 @@
     "C1 red capture gate: a digest-only initial manifest was incorrectly accepted as complete source inputs (8 pass, 1 fail).",
     "C2 red adapter case: a digest-bound pre-run snapshot was not propagated into Evidence.inputResources (expected failure before implementation).",
     "C2 red workspace case: Evidence had no independent pre-run input projection or byte-preserving context locator (expected failure before implementation).",
-    "C2 red validation case: saved binary pre-run input had no explicit materialization source and remained unresolved (expected failure before implementation)."
-    ,"C3 red implementation case: a local executable misdeclared as domain-backend was returned as not-applicable instead of using a generic local route (8 pass, 1 fail, 17 assertions before the fix)."
-    ,"C3 test portability adjustment: Python output line endings were normalized in the assertion; the product behavior remained unchanged."
+    "C2 red validation case: saved binary pre-run input had no explicit materialization source and remained unresolved (expected failure before implementation).",
+    "C3 red implementation case: a local executable misdeclared as domain-backend was returned as not-applicable instead of using a generic local route (8 pass, 1 fail, 17 assertions before the fix).",
+    "C3 test portability adjustment: Python output line endings were normalized in the assertion; the product behavior remained unchanged.",
+    "C4 red metadata-only repair case: corrected action metadata was not adopted, so the final validation remained not-run despite no additional file diff (4 pass, 2 fail, 39 assertions across the new closure cases).",
+    "C4 red file-plus-action repair case: actual candidate path was outside the stale declared scope and the repair was rejected as scope-violation; the final action set was not merged."
   ],
   "verification": {
     "C0": {
@@ -80,6 +82,20 @@
       },
       "typecheck": "passed",
       "evidence": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c3/verification.json"
+    },
+    "C4": {
+      "command": "bun test ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/package.test.ts",
+      "passed": 36,
+      "failed": 0,
+      "assertions": 188,
+      "prompt": {
+        "command": "bun test ./test/jit-optimize/optimizer-prompt.test.ts",
+        "passed": 26,
+        "failed": 0,
+        "assertions": 103
+      },
+      "typecheck": "passed",
+      "evidence": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c4/verification.json"
     }
   },
   "evidencePaths": [
@@ -89,6 +105,7 @@
     "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c1/verification.json",
     "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c2/verification.json",
     "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c3/verification.json",
+    "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c4/verification.json",
     "src/run/pre-run-input-snapshot.ts",
     "src/jit-optimize/trace-adapters.ts",
     "src/jit-optimize/workspace.ts",
@@ -122,5 +139,5 @@
     ],
     "command": "Resume from nextAction and currentStage; do not substitute historical H8/H9/R7 packages for this identity's required same-new-package chain."
   },
-  "claimBoundary": "Development only. C3 proves a generic local route, action-level declaration diagnostics, and a bounded Python TXT/DOCX dependency case. It does not establish a generated program, package export, natural consumption, behavior improvement, cost benefit, prospective readiness, held-out performance or human savings."
+  "claimBoundary": "Development only. C4 proves constrained local repair adoption for designed metadata-only and file-plus-metadata cases, including final validation/history/package binding. It does not establish the new-program natural-consumption chain, general optimizer reliability, behavior improvement, cost benefit, prospective readiness, held-out performance or human savings."
 }

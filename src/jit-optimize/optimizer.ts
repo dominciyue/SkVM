@@ -312,7 +312,7 @@ ${repairMode ? `- \`.optimize/REPAIR_FEEDBACK.json\` — one bounded repair requ
 
 ## Method
 
-${repairMode ? `This is the single repair attempt for an already-validated candidate. Use the located failure diagnostics in \`.optimize/REPAIR_FEEDBACK.json\`; do not broaden the change, alter reference outputs, or replace independent checker expectations. If the listed files cannot be repaired from available evidence, leave them unchanged and report the limitation.` : ""}
+${repairMode ? `This is the single repair attempt for an already-validated candidate. Use the located failure diagnostics in \`.optimize/REPAIR_FEEDBACK.json\`; each failed action includes its baselineAction, candidateAction, actual candidateDiff and originalIntent. Correct only the listed action metadata or files, do not broaden the change, alter reference outputs, or replace independent checker expectations. If the listed files cannot be repaired from available evidence, leave them unchanged and report the limitation.` : ""}
 
 1. Read \`PER_TASK_SUMMARY.md\` to get the per-task landscape. Analyze every
    usable status: FAILING/MARGINAL for defects, UNASSESSED for visible workflow

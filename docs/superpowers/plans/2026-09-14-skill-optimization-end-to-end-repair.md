@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 bare-agent/provider、Python/Node skill 程序、既有 task/source 检查与通用包导出。默认沿用本机已配置模型路由。
 
-**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C3 已完成，C4 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
+**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C4 已完成，C5 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
 
 **执行目录：** `D:\skill优化\SkVM`。结果根为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/`，仅在 C0 启动时创建 `status.json`。阶段记录、尝试和失败均收进该目录，不新增每阶段 Markdown。
 
@@ -126,17 +126,19 @@
 
 ## C4 — 修复动作描述，而不只修文件
 
+> C4 implementation is complete: one bounded repair now receives action snapshots plus the actual candidate diff, adopts only validated metadata for failed actions, re-executes metadata-only repairs, and preserves independent actions; C5 is the active stage.
+
 **修改与测试：** `loop.ts`、`optimizer.ts`、`validation-lifecycle.ts`、必要类型；扩展 `production-closure.test.ts`。
 
-- [ ] 红例一：首轮脚本内容正确但动作 kind/entry/args 错；修复仅纠正动作描述，没有文件 diff。最终必须采用修复动作实际运行，不能因 `changedPaths=[]` 忽略它。
-- [ ] 红例二：修复文件和动作都改变，最终 snapshot、history、validation、package 均指向同一修复版本；独立通过动作不能被空数组静默删除。
-- [ ] 修复输入明确提供原始基线、当前候选的实际 diff、原动作意图和失败诊断。不能让模型把“候选已经改好”误认为“原 skill 本来就不需要改”。不用再让模型重复全量机会分析。
-- [ ] 合并动作修订时，仅接受失败或确受影响动作的实现描述调整；完整原动作集合保留。允许改 kind、entry/sourceRefs、输入 locator、执行参数等有来源的接线信息，不允许把期望结果改为当前错误答案、删除必需案例或篡改 source authority。
-- [ ] 先校验修订结构和依赖，再据修订后的动作重建计划。文件、参数或输入绑定变化使相关观察失效；独立无影响观察复用。保持一次模型修复，不堆额外审核调用。
-- [ ] noChanges、repair-failed、明确撤销动作分别处理：没有文件 diff 不等于没有元数据修复；明确撤销应按依赖/共享文件组回退，不能删除 action 后把尚存程序包装为无动作成功。
-- [ ] 修复仍失败时保留原报告、修复报告和回退理由；只恢复本次拥有的变更。测试保护判断依据、共享组和独立动作，红绿后提交。
+- [x] 红例一：首轮脚本内容正确但动作 kind/entry/args 错；修复仅纠正动作描述，没有文件 diff。最终必须采用修复动作实际运行，不能因 `changedPaths=[]` 忽略它。
+- [x] 红例二：修复文件和动作都改变，最终 snapshot、history、validation、package 均指向同一修复版本；独立通过动作不能被空数组静默删除。
+- [x] 修复输入明确提供原始基线、当前候选的实际 diff、原动作意图和失败诊断。不能让模型把“候选已经改好”误认为“原 skill 本来就不需要改”。不用再让模型重复全量机会分析。
+- [x] 合并动作修订时，仅接受失败或确受影响动作的实现描述调整；完整原动作集合保留。允许改 kind、entry/sourceRefs、输入 locator、执行参数等有来源的接线信息，不允许把期望结果改为当前错误答案、删除必需案例或篡改 source authority。
+- [x] 先校验修订结构和依赖，再据修订后的动作重建计划。文件、参数或输入绑定变化使相关观察失效；独立无影响观察复用。保持一次模型修复，不堆额外审核调用。
+- [x] noChanges、repair-failed、明确撤销动作分别处理：没有文件 diff 不等于没有元数据修复；明确撤销应按依赖/共享文件组回退，不能删除 action 后把尚存程序包装为无动作成功。
+- [x] 修复仍失败时保留原报告、修复报告和回退理由；只恢复本次拥有的变更。测试保护判断依据、共享组和独立动作，红绿后提交。
 
-**验证：** `bun test ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/package.test.ts`。
+**验证：** `bun test ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/package.test.ts`（36/36 tests，188 assertions）及 `bun test ./test/jit-optimize/optimizer-prompt.test.ts`（26/26 tests，103 assertions），`bun run typecheck` 通过；机器证据为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c4/verification.json`。
 
 ## C5 — 优化正确流程，分开候选尝试和推荐
 

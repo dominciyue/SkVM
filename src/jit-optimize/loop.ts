@@ -30,11 +30,15 @@ import type {
   RoundResult,
   Evidence,
   HistoryEntry,
+  OptimizeSubmission,
+  OptimizationAction,
+  OptimizationRepairFeedbackItem,
   TaskSource,
   CostSlice,
 } from "./types.ts"
 import { emptyCostSlice } from "./types.ts"
 import { runOptimizer } from "./optimizer.ts"
+import { validateOptimizationActions } from "./action-plan.ts"
 import {
   resolveTrainTestTasks,
   resolveSyntheticTasks,
@@ -1084,6 +1088,107 @@ async function restoreChangedPaths(
   }
 }
 
+function repairLocalPath(value: string): string | undefined {
+  const pathPart = value.split("#", 1)[0]!.replaceAll("\\", "/")
+  if (!pathPart || pathPart.startsWith("evidence:") || pathPart.includes("://") || /^[A-Za-z]:[\\/]/u.test(pathPart)) return undefined
+  if (path.posix.isAbsolute(pathPart) || pathPart === "." || pathPart === ".." || pathPart.startsWith("../")) return undefined
+  return path.posix.normalize(pathPart)
+}
+
+function actionDeclaredPaths(action: OptimizationAction): string[] {
+  return [...action.changedPaths, ...action.sourceRefs]
+    .map(repairLocalPath)
+    .filter((item): item is string => item !== undefined)
+}
+
+function repairOriginalIntent(action: OptimizationAction): OptimizationRepairFeedbackItem["originalIntent"] {
+  return {
+    kind: action.kind,
+    sourceRefs: [...action.sourceRefs],
+    inputs: [...action.inputs],
+    outputs: [...action.outputs],
+    preconditions: [...action.preconditions],
+    changedPaths: [...action.changedPaths],
+    residualDuties: [...action.residualDuties],
+    verification: [...action.verification],
+  }
+}
+
+function buildRepairFeedback(
+  resolutionFeedback: OptimizationValidationLifecycleReport["resolution"]["feedback"],
+  actions: readonly OptimizationAction[],
+  candidateDiff: readonly string[],
+): OptimizationRepairFeedbackItem[] {
+  const byId = new Map(actions.map((action) => [action.id, action]))
+  const declaredByOther = new Map<string, Set<string>>()
+  for (const action of actions) {
+    declaredByOther.set(action.id, new Set(actionDeclaredPaths(action)))
+  }
+  return resolutionFeedback.map((item) => {
+    const action = byId.get(item.actionId)
+    if (!action) {
+      throw new Error(`Validation feedback names an unknown action: ${item.actionId}`)
+    }
+    const otherDeclared = new Set(
+      actions
+        .filter((candidate) => candidate.id !== action.id)
+        .flatMap((candidate) => [...(declaredByOther.get(candidate.id) ?? [])]),
+    )
+    const unclaimedCandidateDiff = candidateDiff.filter((candidatePath) => !otherDeclared.has(candidatePath))
+    const relevantFiles = [...new Set([
+      ...item.relevantFiles,
+      ...actionDeclaredPaths(action),
+      ...unclaimedCandidateDiff,
+    ])].sort()
+    return {
+      actionId: item.actionId,
+      failureKind: item.failureKind,
+      diagnostics: [...item.diagnostics],
+      relevantFiles,
+      baselineAction: structuredClone(action),
+      candidateAction: structuredClone(action),
+      candidateDiff: [...candidateDiff],
+      originalIntent: repairOriginalIntent(action),
+    }
+  })
+}
+
+/**
+ * Accept only metadata for actions that failed validation. The original action
+ * set, root cause and file-change summary remain authoritative; a repair may
+ * not add, remove or rewrite an independent action through this merge.
+ */
+function mergeRepairSubmission(
+  base: OptimizeSubmission,
+  repair: OptimizeSubmission,
+  repairActionIds: readonly string[],
+): OptimizeSubmission {
+  const allowed = new Set(repairActionIds)
+  const repairPlan = validateOptimizationActions(repair.actions ?? [])
+  const repairedById = new Map(
+    repairPlan.actions
+      .filter((action) => allowed.has(action.id))
+      .map((action) => [action.id, action]),
+  )
+  const proposedActions = (base.actions ?? []).map((action) => repairedById.get(action.id) ?? action)
+  const mergedPlan = validateOptimizationActions(proposedActions)
+  const validMergedById = new Map(mergedPlan.actions.map((action) => [action.id, action]))
+  const actions = (base.actions ?? []).map((action) => validMergedById.get(action.id) ?? action)
+  const repairDiagnostics = [
+    ...(repair.actionDiagnostics ?? []),
+    ...repairPlan.diagnostics,
+    ...mergedPlan.diagnostics,
+  ]
+    .filter((diagnostic) => !diagnostic.actionId || allowed.has(diagnostic.actionId))
+  return {
+    ...base,
+    actions,
+    ...(repairDiagnostics.length > 0
+      ? { actionDiagnostics: [...(base.actionDiagnostics ?? []), ...repairDiagnostics] }
+      : {}),
+  }
+}
+
 async function persistValidationReport(
   proposalDir: string,
   round: number,
@@ -1132,6 +1237,9 @@ async function runLogOnly(
   let optimizerTokens = optimizeResult.tokens
   let optimizerCost = optimizeResult.cost
   const optimizerWorkspaces = new Set([optimizeResult.workspaceDir])
+  const initialCandidateDiff = await computeDiff(candidateWorkspace, skillDir)
+  const initialCandidateChangedPaths = [...initialCandidateDiff.added, ...initialCandidateDiff.modified, ...initialCandidateDiff.removed]
+    .sort()
   let validationLifecycle = optimizeResult.changed && !optimizeResult.submission.noChanges
     ? await runOptimizationValidationLifecycle({
         proposalDir: proposal.dir,
@@ -1148,12 +1256,11 @@ async function runLogOnly(
     const validationDir = path.join(proposal.dir, "round-1-validation")
     await copyFile(path.join(validationDir, "report.json"), path.join(validationDir, "initial-report.json"))
     const initialLifecycle = validationLifecycle
-    const repairFeedback = initialLifecycle.report.resolution.feedback.map((item) => ({
-      actionId: item.actionId,
-      failureKind: item.failureKind,
-      diagnostics: [...item.diagnostics],
-      relevantFiles: [...item.relevantFiles],
-    }))
+    const repairFeedback = buildRepairFeedback(
+      initialLifecycle.report.resolution.feedback,
+      candidateSubmission.actions ?? [],
+      initialCandidateChangedPaths,
+    )
     const repairActionIds = repairFeedback.map((item) => item.actionId)
     const allowedRepairPaths = new Set(repairFeedback.flatMap((item) => item.relevantFiles))
     const repairRecordRelative = "round-1-repair-1-optimizer"
@@ -1194,6 +1301,7 @@ async function runLogOnly(
         repairOutcome = "scope-violation"
         repairFailure = `Repair changed files outside its feedback scope: ${unexpectedPaths.join(", ")}`
       } else {
+        candidateSubmission = mergeRepairSubmission(candidateSubmission, repairResult.submission, repairActionIds)
         candidateWorkspace = repairResult.workspaceDir
         validationLifecycle = await runOptimizationValidationLifecycle({
           proposalDir: proposal.dir,

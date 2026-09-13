@@ -629,13 +629,37 @@ export interface OptimizeInput {
 export interface OptimizationRepairFeedback {
   attempt: 1
   actionIds: string[]
-  feedback: Array<{
-    actionId: string
-    failureKind: string
-    diagnostics: string[]
-    relevantFiles: string[]
-  }>
+  feedback: OptimizationRepairFeedbackItem[]
   rule: "repair-only-listed-files-and-preserve-validation-expectations"
+}
+
+/**
+ * Located context supplied to the single repair pass. The action snapshots
+ * are deliberately retained alongside the actual candidate diff so a repair
+ * can correct executable metadata even when no additional file bytes change.
+ */
+export interface OptimizationRepairFeedbackItem {
+  actionId: string
+  failureKind: string
+  diagnostics: string[]
+  relevantFiles: string[]
+  /** Action declaration before the repair pass. */
+  baselineAction: OptimizationAction
+  /** Current candidate declaration presented to the repair pass. */
+  candidateAction: OptimizationAction
+  /** Actual candidate-vs-source paths, independent of self-reported paths. */
+  candidateDiff: string[]
+  /** Intent fields that the repair may reconnect but may not rewrite semantically. */
+  originalIntent: {
+    kind: OptimizationActionKind
+    sourceRefs: string[]
+    inputs: string[]
+    outputs: string[]
+    preconditions: string[]
+    changedPaths: string[]
+    residualDuties: string[]
+    verification: string[]
+  }
 }
 
 export interface OptimizeConfig {

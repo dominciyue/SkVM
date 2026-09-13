@@ -217,6 +217,154 @@ await writeFile(out, JSON.stringify({ value: rules[${JSON.stringify(id)}] }) + "
   return { skillDir, baselineSkill, proposal, packageDir, result, report, exported, calls, repairFeedback }
 }
 
+async function metadataRepairScenario(options: { changeFile: boolean }) {
+  const skillDir = await tempDir("metadata-repair-skill-")
+  const taskDir = await tempDir("metadata-repair-task-")
+  const evidenceWorkDir = await tempDir("metadata-repair-evidence-")
+  const logDir = await tempDir("metadata-repair-log-")
+  const packageDir = path.join(await tempDir("metadata-repair-package-parent-"), "package")
+  await writeFile(path.join(skillDir, "SKILL.md"), "# Metadata repair\n\nUse bounded converters.\n")
+  const ids = options.changeFile ? ["a", "b"] : ["a"]
+  const taskPath = path.join(taskDir, "task.json")
+  await writeFile(taskPath, JSON.stringify({
+    id: "metadata-repair",
+    prompt: "Run the bounded converters.",
+    fixtures: Object.fromEntries(ids.map((id) => [`inputs/${id}.json`, `${JSON.stringify({ value: id })}\n`])),
+    eval: ids.map((id) => ({
+      id: `output-${id}`,
+      method: "file-check",
+      path: `out/${id}.json`,
+      mode: "exact",
+      expected: `${JSON.stringify({ value: id.toUpperCase() })}\n`,
+    })),
+  }))
+  await mkdir(path.join(evidenceWorkDir, "reference"), { recursive: true })
+  for (const id of ids) {
+    await writeFile(path.join(evidenceWorkDir, "reference", `${id}.json`), `${JSON.stringify({ value: id.toUpperCase() })}\n`)
+  }
+  const logPath = path.join(logDir, "raw-runs.jsonl")
+  await writeFile(logPath, `${JSON.stringify({
+    caseId: "metadata-repair:development",
+    system: "original",
+    stdout: "Tokens: in=1 out=1\n\nFinal output:\ncompleted",
+    successSource: "execution-only",
+    taskPath,
+    skillPath: path.join(skillDir, "SKILL.md"),
+    workDir: evidenceWorkDir,
+    runStatus: "ok",
+  })}\n`)
+
+  const source = (id: string, value: string) => `
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+const args = process.argv.slice(2); const out = args[args.indexOf("--out") + 1];
+await mkdir(path.dirname(out), { recursive: true });
+await writeFile(out, ${JSON.stringify(`${JSON.stringify({ value })}\n`)});
+`
+  let calls = 0
+  const repairFeedback: unknown[] = []
+  const makeSubmission = (phase: "candidate" | "repair"): OptimizeSubmission => {
+    const wrongMetadata = phase === "candidate"
+    const actionIds = phase === "repair" && options.changeFile ? ["a"] : ids
+    const actions = actionIds.map((id) => ({
+      id,
+      kind: "generate-script" as const,
+      evidenceIds: ["0"],
+      sourceRefs: wrongMetadata && id === "a"
+        ? ["scripts/missing.mjs"]
+        : [`scripts/${id}.mjs`],
+      dependsOn: [],
+      inputs: [`inputs/${id}.json`],
+      outputs: [`out/${id}.json`],
+      preconditions: ["Node.js is available"],
+      changedPaths: wrongMetadata && id === "a"
+        ? ["scripts/missing.mjs"]
+        : [`scripts/${id}.mjs`],
+      residualDuties: [],
+      verification: ["reference output digest"],
+      validation: {
+        cases: [{
+          id,
+          evidenceId: "0",
+          inputSource: "task-fixtures" as const,
+          inputFiles: [`inputs/${id}.json`],
+          args: ["--out", `out/${id}.json`],
+          expectedFiles: [{ path: `out/${id}.json`, referencePath: `reference/${id}.json` }],
+          basis: "task-contract" as const,
+          sourceRefs: [`evidence:0#criteria/output-${id}`, `evidence:0#reference/${id}.json`],
+        }],
+      },
+    }))
+    return {
+      rootCause: "The bounded converter action has incorrect executable metadata.",
+      reasoning: "The repair is limited to the failed action metadata and preserves the independent action.",
+      confidence: 0.9,
+      changedFiles: actionIds.map((id) => `scripts/${id}.mjs`),
+      changes: actionIds.map((id) => ({
+        file: `scripts/${id}.mjs`,
+        description: `Add converter ${id}.`,
+        generality: `Other bounded inputs can use converter ${id}.`,
+      })),
+      actions,
+    }
+  }
+
+  optimizerHandler = async (input, config) => {
+    calls += 1
+    const workspaceDir = await tempDir(`metadata-repair-optimizer-${calls}-`)
+    await cp(input.skillDir, workspaceDir, { recursive: true })
+    await mkdir(path.join(workspaceDir, "scripts"), { recursive: true })
+    if (calls === 1) {
+      await writeFile(path.join(workspaceDir, "scripts", "a.mjs"), source("a", options.changeFile ? "WRONG" : "A"))
+      if (options.changeFile) await writeFile(path.join(workspaceDir, "scripts", "b.mjs"), source("b", "B"))
+    } else {
+      repairFeedback.push((input as OptimizeInput & { repairFeedback?: unknown }).repairFeedback)
+      if (options.changeFile) await writeFile(path.join(workspaceDir, "scripts", "a.mjs"), source("a", "A"))
+    }
+    const submission = makeSubmission(calls === 1 ? "candidate" : "repair")
+    if (config.recordDir) {
+      await mkdir(config.recordDir, { recursive: true })
+      await writeFile(path.join(config.recordDir, "submission.json"), `${JSON.stringify(submission, null, 2)}\n`)
+    }
+    return {
+      changed: true,
+      workspaceDir,
+      submission,
+      actualChangedFiles: calls === 1
+        ? ids.map((id) => `scripts/${id}.mjs`)
+        : options.changeFile ? ["scripts/a.mjs"] : [],
+      cost: calls,
+      tokens: { input: calls, output: calls, cacheRead: 0, cacheWrite: 0 },
+    }
+  }
+
+  const proposal = await createProposal({
+    skillName: `metadata-repair-${Date.now()}-${options.changeFile ? "file" : "metadata"}`,
+    skillDir,
+    harness: "pi",
+    optimizerModel: "test/optimizer",
+    targetModel: "test/target",
+    source: `log:${logPath}`,
+  })
+  proposalDirs.push(proposal.dir)
+  const result = await runLoop({
+    skillDir,
+    optimizer: { model: "test/optimizer" },
+    taskSource: { kind: "execution-log", logs: [{ path: logPath, recordLocators: ["line:1"] }] },
+    targetAdapter: { model: "test/target", harness: "pi" },
+    delivery: { keepAllRounds: true, autoApply: false },
+    evalProvider: {
+      name: "unused-test-provider",
+      complete: async () => { throw new Error("log-only flow must not call the eval provider") },
+      completeWithToolResults: async () => { throw new Error("log-only flow must not call the eval provider") },
+    },
+  }, { proposal })
+  const exported = await buildOptimizedSkillPackage({ proposalDir: proposal.dir, packageDir })
+  const report = JSON.parse(await readFile(path.join(proposal.dir, "round-1-validation", "report.json"), "utf8"))
+  const history = JSON.parse(await readFile(path.join(proposal.dir, "history.json"), "utf8"))
+  return { proposal, packageDir, result, report, history, exported, calls, repairFeedback }
+}
+
 describe("execution-log production validation closure", () => {
   test("normal loop validates a generated program, persists evidence, and exports the real proposal snapshot", async () => {
     const skillDir = await tempDir("production-closure-skill-")
@@ -390,9 +538,16 @@ console.log(JSON.stringify({ status: "success", output: args[outAt + 1] }));
       revalidatedActionIds: ["a"],
       reusedActionIds: ["b"],
     }))
-    expect(scenario.report.repair.feedback).toEqual([
-      expect.objectContaining({ actionId: "a", relevantFiles: ["scripts/a.mjs"] }),
-    ])
+    expect(scenario.report.repair.feedback).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        actionId: "a",
+        relevantFiles: expect.arrayContaining(["scripts/a.mjs"]),
+        baselineAction: expect.any(Object),
+        candidateAction: expect.any(Object),
+        candidateDiff: expect.any(Array),
+        originalIntent: expect.any(Object),
+      }),
+    ]))
     expect(scenario.repairFeedback).toEqual([
       expect.objectContaining({ actionIds: ["a"] }),
     ])
@@ -444,5 +599,56 @@ console.log(JSON.stringify({ status: "success", output: args[outAt + 1] }));
     expect(Bun.file(path.join(scenario.packageDir, "scripts", "a.mjs")).size).toBe(0)
     expect(Bun.file(path.join(scenario.packageDir, "scripts", "b.mjs")).size).toBe(0)
     expect(await readFile(path.join(scenario.packageDir, "scripts", "c.mjs"), "utf8")).toContain("\\\"C\\\"")
+  })
+
+  test("adopts a metadata-only repair and executes the repaired action when no file diff remains", async () => {
+    const scenario = await metadataRepairScenario({ changeFile: false })
+
+    expect(scenario.calls).toBe(2)
+    expect(scenario.result.bestRound).toBe(1)
+    expect(scenario.result.validation?.status).toBe("passed")
+    expect(scenario.report.repair).toEqual(expect.objectContaining({
+      outcome: "passed",
+      changedPaths: [],
+      revalidatedActionIds: ["a"],
+    }))
+    expect(scenario.report.actions).toEqual([
+      expect.objectContaining({ actionId: "a", validationSource: "executed", programStatus: "passed" }),
+    ])
+    expect(scenario.history.entries[0].actions).toEqual([
+      expect.objectContaining({ id: "a", changedPaths: ["scripts/a.mjs"] }),
+    ])
+    expect(await readFile(path.join(scenario.packageDir, "scripts", "a.mjs"), "utf8")).toContain("\\\"A\\\"")
+  })
+
+  test("merges file and metadata repair into the final snapshot while preserving an independent action", async () => {
+    const scenario = await metadataRepairScenario({ changeFile: true })
+
+    expect(scenario.calls).toBe(2)
+    expect(scenario.result.bestRound).toBe(1)
+    expect(scenario.result.validation?.status).toBe("passed")
+    expect(scenario.report.repair).toEqual(expect.objectContaining({
+      outcome: "passed",
+      changedPaths: ["scripts/a.mjs"],
+      revalidatedActionIds: ["a"],
+    }))
+    expect(scenario.report.actions.map((item: { actionId: string }) => item.actionId)).toEqual(["a", "b"])
+    expect(scenario.report.actions.find((item: { actionId: string }) => item.actionId === "a"))
+      .toEqual(expect.objectContaining({ validationSource: "executed", programStatus: "passed" }))
+    expect(scenario.report.actions.find((item: { actionId: string }) => item.actionId === "b"))
+      .toEqual(expect.objectContaining({ validationSource: "reused-initial-observation", programStatus: "passed" }))
+    expect(scenario.history.entries[0].actions.map((item: { id: string }) => item.id)).toEqual(["a", "b"])
+    expect(await readFile(path.join(scenario.packageDir, "scripts", "a.mjs"), "utf8")).toContain("\\\"A\\\"")
+    expect(await readFile(path.join(scenario.packageDir, "scripts", "b.mjs"), "utf8")).toContain("\\\"B\\\"")
+    expect(scenario.repairFeedback[0]).toEqual(expect.objectContaining({
+      actionIds: ["a"],
+      feedback: [expect.objectContaining({
+        actionId: "a",
+        baselineAction: expect.any(Object),
+        candidateAction: expect.any(Object),
+        candidateDiff: expect.any(Array),
+        originalIntent: expect.any(Object),
+      })],
+    }))
   })
 })

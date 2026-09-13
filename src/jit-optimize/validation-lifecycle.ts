@@ -17,6 +17,7 @@ import type {
   Evidence,
   OptimizationAction,
   OptimizationRoundValidationSummary,
+  OptimizationRepairFeedbackItem,
   OptimizationValidationBasis,
   OptimizationValidationCaseSuggestion,
 } from "./types.ts"
@@ -147,12 +148,7 @@ export interface OptimizationValidationLifecycleReport {
     changedPaths: string[]
     revalidatedActionIds: string[]
     reusedActionIds: string[]
-    feedback: Array<{
-      actionId: string
-      failureKind: string
-      diagnostics: string[]
-      relevantFiles: string[]
-    }>
+    feedback: OptimizationRepairFeedbackItem[]
     optimizerRecordPath: string
     initialReportPath: string
     repairReportPath?: string

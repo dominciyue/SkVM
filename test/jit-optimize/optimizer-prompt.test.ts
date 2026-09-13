@@ -173,6 +173,15 @@ describe("buildOptimizerPrompt", () => {
     expect(p).toContain("local-script kind mismatch")
   })
 
+  test("repair prompt carries bounded action snapshots and actual diff context", () => {
+    const p = buildOptimizerPrompt(1, 0, true)
+    expect(p).toContain("baselineAction")
+    expect(p).toContain("candidateAction")
+    expect(p).toContain("candidateDiff")
+    expect(p).toContain("originalIntent")
+    expect(p).toContain("do not broaden the change")
+  })
+
   test("asks for executable handoff metadata that avoids routine full-source inspection", () => {
     const p = buildOptimizerPrompt(1, 0)
     expect(p).toContain("separate `reuse-script` action")

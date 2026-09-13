@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "skill-ir-skill-optimization-end-to-end-repair-c4-verification/v1",
+  "identity": "skill-optimization-end-to-end-repair-20260914",
+  "exposure": "development",
+  "stage": "C4",
+  "status": "passed",
+  "createdAt": "2026-09-14T07:39:18+08:00",
+  "redEvidence": {
+    "command": "bun test ./test/jit-optimize/production-closure.test.ts",
+    "beforeImplementation": {
+      "passed": 4,
+      "failed": 2,
+      "assertions": 39,
+      "failures": [
+        "A metadata-only repair was not adopted, so the final validation stayed not-run even though the repaired action had a usable entry and no additional file diff.",
+        "A file-plus-metadata repair was rejected as a scope violation because the allowed paths came only from the stale action declaration and ignored the actual candidate path; the repaired action was not merged."
+      ]
+    }
+  },
+  "implementation": {
+    "feedbackContract": "Each failed action now carries baselineAction, candidateAction, candidateDiff, originalIntent, diagnostics and relevant files. Candidate diff paths come from an engine filesystem comparison, not self-reported changedPaths.",
+    "scope": "Repair scope includes the failed action's declared/local references plus candidate diff paths not claimed by another action; unrelated independent paths remain outside the scope.",
+    "constrainedMerge": "Only validated repaired metadata for failed action ids is merged. The original action set, root cause, file-change summary and independent actions remain authoritative; malformed or out-of-scope repair entries do not add or delete actions.",
+    "validation": "The merged action set is revalidated before execution. A repaired action is explicitly in executeActionIds even when changedPathsSincePrior is empty; unaffected actions reuse a binding-matched observation.",
+    "packageClosure": "Final report, history entry and exported package use the merged repaired action set and the repaired workspace snapshot."
+  },
+  "verification": {
+    "productionClosure": {
+      "command": "bun test ./test/jit-optimize/production-closure.test.ts",
+      "passed": 6,
+      "failed": 0,
+      "assertions": 50,
+      "cases": [
+        "metadata-only action repair with changedPaths=[]",
+        "file-plus-action repair with an omitted independent action in the repair submission",
+        "existing independent repair, shared dependency revalidation and shared-group rollback regressions"
+      ]
+    },
+    "validationAndPackage": {
+      "command": "bun test ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/package.test.ts",
+      "passed": 30,
+      "failed": 0,
+      "assertions": 138
+    },
+    "prompt": {
+      "command": "bun test ./test/jit-optimize/optimizer-prompt.test.ts",
+      "passed": 26,
+      "failed": 0,
+      "assertions": 103
+    },
+    "combined": {
+      "command": "bun test ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/package.test.ts",
+      "passed": 36,
+      "failed": 0,
+      "assertions": 188
+    },
+    "typecheck": {
+      "command": "bun run typecheck",
+      "status": "passed"
+    }
+  },
+  "accounting": {
+    "optimizerModelCalls": 0,
+    "repairModelCalls": 0,
+    "remoteApiCalls": 0,
+    "paidCalls": 0,
+    "projectRuntimeCostUsd": 0,
+    "actualProjectCostUnknown": false,
+    "developerAgentCost": "not-measured-by-project-runtime"
+  },
+  "claimBoundary": "Development evidence only. C4 proves constrained local repair adoption for the designed metadata-only and file-plus-metadata cases, including final validation/history/package binding. It does not establish the new-program natural-consumption chain, general optimizer reliability, behavior improvement, prospective readiness, held-out performance, or human savings."
+}

@@ -121,6 +121,8 @@ C2 将这份引用接入 Evidence 的 `inputResources.preRun`，由 adapter 校�
 
 C3 将现成脚本动作接入通用本地实现选择：可解析的既有可执行入口优先归类为 `reuse-script`，真正新增或重写入口才归类为 `generate-script`，`changedPaths` 只表示候选实际改动，不把预先存在的脚本包装成新程序。`domain-backend` 仍仅对明确注册后端开放；如果动作声明与可定位的本地文件冲突，选择器保留局部可执行路线并附带 `action-kind-mismatch` 诊断（字段、原值、支持路径和建议值），而不是把声明错误升级为程序失败或整份 skill 不适用。开发回归覆盖可选 Python 依赖的惰性导入：TXT 路径可运行，DOCX 路径仍如实报告缺少依赖；证据为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c3/verification.json`。
 
+C4 修正一次约束修复只改文件、不改动作描述的问题。验证失败反馈现在同时绑定初始 action、当前 candidate action、引擎重算的候选差异路径、原动作意图、失败诊断和局部文件范围；范围允许失败动作的真实未归属候选路径，但不开放独立动作的路径。修复 submission 先按 action 结构/依赖校验，再只把失败 action 的有效元数据合并回完整原动作集合；metadata-only repair 即使增量 `changedPaths=[]` 也会强制重跑该 action，未受影响 action 复用 binding 相符的观察。最终 validation report、history 和 package 使用同一合并动作集；红绿证据与回归统计见 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c4/verification.json`。
+
 ### 3.0.3 通用包导出、自然消费与效果边界
 
 `buildOptimizedSkillPackage` 从 proposal 的 original 与 selected round 重新计算文件差异，复制完整选中闭包并写
