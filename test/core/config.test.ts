@@ -1,9 +1,17 @@
 import { test, expect, describe } from "bun:test"
+import os from "node:os"
 import path from "node:path"
-import { getRuntimeLogDir, safeModelName } from "../../src/core/config.ts"
+import { expandHome, getRuntimeLogDir, safeModelName } from "../../src/core/config.ts"
 
 // The routing-prefix convention (resolveBackendModel / routeProviderName) is
 // the provider registry's knowledge — tests live in test/providers/registry.test.ts.
+
+describe("expandHome", () => {
+  test("uses the operating-system home when HOME is absent", () => {
+    expect(process.env.HOME).toBeUndefined()
+    expect(expandHome("~/.skvm")).toBe(path.join(os.homedir(), ".skvm"))
+  })
+})
 
 describe("safeModelName", () => {
   test("slugifies the full CLI id; distinct providers get distinct slugs", () => {

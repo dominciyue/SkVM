@@ -89,7 +89,7 @@ G4 的 optimizer 合同允许从一次成功但未评分的运行中提出有依
 避免由转换器自证。机器报告位于
 `results/skill-ir/general-skill-optimization-20260913/g6-program-validation/report.json`。
 
-### 3.0.2.1 生产链接线边界（H0–H14 + R1–R7，active-R7）
+### 3.0.2.1 生产链接线边界（H0–H14 + R1–R7，active-H13）
 
 普通 execution-log loop 已调用 program validator 和 action resolver，在选轮前完成局部验证、最多一次定向修复与依赖/共享文件回退。
 本轮依据[生产链任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md)继续在真实日志路径核验程序生成、复用、条件变化及自然消费。
@@ -109,13 +109,15 @@ task 自带的 local non-LLM criterion 会在 source run 后自动重算；有 s
 
 R6 的两结构 fresh optimizer 尝试均为 no-change，随后按任务书复用已验证 H8/H9 包做实际消费。I18n 原/变化由系统 evaluator 各 5/5，generated checker 对 2-key/3-key 输入均 exit 0；Law 两个无评分自然输入真实复用 converter，source-owned Stage3 各 8/8。agent 在 I18n 变化输入未调用 checker、Law 在旧 tool 描述下出现命令重试，因此效果为 unknown，不声称省时或总体成本下降。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/r6/report.json`。
 
+R7 从普通项目目录实际运行同一入口，用户侧没有 task/log/locator/validation/criteria/package-out 接线。Windows 没有 HOME 时，cache 根现在使用 `os.homedir()`，不再随 cwd 落入被观测项目。实际 source/capture/handoff/proposal 完整，首次 package 阶段因输入本身是旧 v2 优化包而失败；exporter 经 TDD 后支持重新优化已核验的 v1/v2 包：先验证原包闭包，从 diff/copy 输入中移除旧的 framework-owned manifest、validation report 和 user guide，再写当前元数据。普通未验证 source 若自行引入这些保留路径仍拒绝。公开 resume 随后只重做 package，未重跑 source/optimizer。新包为文档-only draft/behavior not-run，不新增程序正例。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/r7/report.json`。
+
 ### 3.0.3 通用包导出、自然消费与效果边界
 
 `buildOptimizedSkillPackage` 从 proposal 的 original 与 selected round 重新计算文件差异，复制完整选中闭包并写
 `optimization-manifest.json`。清单绑定 proposal meta/submission 摘要、原/新 closure、真实 added/modified/deleted/moved、
 动作实现、runtime/dependency files 与 package/behavior validation；声明的 `changedPaths` 不替代文件系统事实。输出目录必须
 为空且不与 source/proposal 重叠，路径逃逸、symlink、缺失 license/resource 或 no-change 都 fail closed/no package。
-普通技能不会被注入 API binding/helper；原 API Tester solidifier 保留为独立兼容入口。
+普通技能不会被注入 API binding/helper；原 API Tester solidifier 保留为独立兼容入口。若 original snapshot 是通过现有 verifier 的优化包，旧的三个框架元数据文件不参与新 source closure/diff，也不会复制到新包；它们由当前 proposal 重新生成并重新绑定。无法验证的旧 metadata 不获得这一例外。
 
 新 writer 使用 `skvm-optimized-skill-package/v2`，并把最终选中轮的既有 `optimization-validation-report.json` 复制、摘要绑定和内容重验；不为导出重跑等价检查。无报告或带未验证/拒绝动作的包是 `draft`。只有 action-local 状态 passed、至少一个 independent case 且无缺口时才是 `validated-recommendation`，仍不代表整 skill、真实 agent 消费或效果通过。reader 继续接受 v1 且不回写旧 manifest。
 

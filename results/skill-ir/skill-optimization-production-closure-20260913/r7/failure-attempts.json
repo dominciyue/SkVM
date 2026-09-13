@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-r7-failures/v1",
+  "identity": "development",
+  "attempts": [
+    {
+      "attempt": 1,
+      "workDir": "ordinary-project",
+      "stage": "capture-initialization",
+      "modelCalls": 0,
+      "error": "initial workdir manifest must be outside workdir",
+      "rootCause": "On Windows without HOME, expandHome resolved ~/.skvm as a relative path under the invocation directory, placing runtime evidence inside the observed project.",
+      "resolution": "expandHome now falls back to os.homedir(); the failing project and its nested .skvm directory remain unmodified and are excluded from committed evidence."
+    },
+    {
+      "attempt": 2,
+      "workDir": "ordinary-project-revision-001",
+      "stage": "provider-configuration",
+      "modelCalls": 0,
+      "error": "No providers.routes entry matches model id xty/gpt-5.6-sol.",
+      "rootCause": "The fresh user-level cache had no configured custom xty route; the only existing development route was in the repository cache.",
+      "resolution": "The accepted run explicitly selected the already configured SKVM_CACHE root. This is model configuration, not a task, trace, locator, validation, criteria, log, or package-output input. The CLI error already states the one required configuration action."
+    },
+    {
+      "attempt": 3,
+      "workDir": "ordinary-project-revision-002",
+      "stage": "package-export",
+      "modelCalls": 2,
+      "sourceRunCompleted": true,
+      "optimizerCompleted": true,
+      "failedAt": "2026-09-13T20:33:55.286Z",
+      "error": "Selected snapshot already contains reserved package metadata: optimization-manifest.json",
+      "rootCause": "Re-optimizing a valid v2 package carried its old framework-owned manifest, validation report, and guide into the selected snapshot; the exporter rejected these instead of replacing them with current metadata.",
+      "resolution": "The exporter now verifies the original as a valid optimized package, removes only its reserved framework metadata from source diff/copy inputs, and creates fresh bound metadata. The saved package-stage session then resumed without rerunning source or optimizer."
+    }
+  ],
+  "claimBoundary": "The first two attempts ended before any paid model request. The third is a real post-optimizer package failure and is not hidden by the successful package-only resume."
+}

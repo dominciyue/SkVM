@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "jit-optimize-validation-lifecycle/v1",
+  "createdAt": "2026-09-13T14:25:10.029Z",
+  "round": 1,
+  "sourceMode": "execution-log-local-validation",
+  "sourceTaskReplayed": false,
+  "actions": [
+    {
+      "actionId": "make-txt-pipeline-routinely-runnable",
+      "kind": "reuse-script",
+      "implementation": {
+        "actionId": "make-txt-pipeline-routinely-runnable",
+        "kind": "reuse-script",
+        "inputs": [
+          "local .txt input path supplied by the task",
+          "caller classification: law, non-law, or auto",
+          "optional output directory and artifact level"
+        ],
+        "outputs": [
+          "review report under the selected output directory",
+          "final deliverable only when the pipeline approves it",
+          "structured console stage/check completion summary"
+        ],
+        "preconditions": [
+          "Python can execute the bundled script",
+          "the input is a local .txt file for the dependency-free path"
+        ],
+        "residualDuties": [
+          "classify the document and pass the decision",
+          "supply task-scoped output arguments",
+          "inspect generated results and do not claim approval after a failed command",
+          "resolve explicit external hierarchy requirements not established by the skill source"
+        ],
+        "verification": [
+          "run `python scripts/law_to_markdown.py --help` without optional fallback packages",
+          "compile law_to_markdown.py, cn_law_normalizer.py, and stage3_checker.py",
+          "run the materialized TXT fixture with law decision and minimal artifacts",
+          "confirm Stage3 A/B PASS, exactly two minimal output files, report approval, and unchanged input"
+        ],
+        "status": "selected",
+        "entry": "scripts/law_to_markdown.py",
+        "runtime": "python"
+      },
+      "planStatus": "ready",
+      "planDiagnostics": [],
+      "independentCaseIds": [
+        "observed-statute-txt"
+      ],
+      "selfCheckCaseIds": [],
+      "programStatus": "passed",
+      "program": {
+        "status": "passed",
+        "actionId": "make-txt-pipeline-routinely-runnable",
+        "entry": "scripts/law_to_markdown.py",
+        "help": {
+          "id": "help",
+          "status": "passed",
+          "command": [
+            "python",
+            "C:\\Users\\14182\\AppData\\Local\\Temp\\jit-optimize-L9oC27\\scripts\\law_to_markdown.py",
+            "--help"
+          ],
+          "cwd": "C:\\Users\\14182\\AppData\\Local\\Temp\\jit-optimize-L9oC27",
+          "exitCode": 0,
+          "stdout": "usage: law_to_markdown.py [-h] [--out OUT] [--out-dir OUT_DIR]\r\n                          [--allow-fallback]\r\n                          [--docx-engine {auto,mineru,python-docx}]\r\n                          [--pdf-engine {auto,mineru,pdfplumber}]\r\n                          [--skip-mineru-ocr-skill]\r\n                          [--law-decision {auto,law,non-law}]\r\n                          [--skip-stage3-check]\r\n                          [--stage3-max-retries STAGE3_MAX_RETRIES]\r\n                          [--stage3-strict] [--no-stage3-strict]\r\n                          [--artifact-level {minimal,standard,debug}]\r\n                          input\r\n\r\nConvert law text files (.txt/.docx/.pdf) to Markdown.\r\n\r\npositional arguments:\r\n  input                 Input file path (.txt/.docx/.pdf)\r\n\r\noptions:\r\n  -h, --help            show this help message and exit\r\n  --out OUT             Output .md file path (overrides --out-dir)\r\n  --out-dir OUT_DIR     Output directory (default: create \"markdown/\" under\r\n                        input file directory)\r\n  --allow-fallback      Allow local fallback engines when mineru-ocr is\r\n                        unavailable or fails.\r\n  --docx-engine {auto,mineru,python-docx}\r\n                        DOCX extraction engine (default: auto = mineru-ocr\r\n                        skill; fallback needs --allow-fallback)\r\n  --pdf-engine {auto,mineru,pdfplumber}\r\n                        PDF extraction engine (default: auto = mineru-ocr\r\n                        skill; fallback needs --allow-fallback)\r\n  --skip-mineru-ocr-skill\r\n                        Skip calling installed mineru-ocr skill and use local\r\n                        fallback engines.\r\n  --law-decision {auto,law,non-law}\r\n                        Stage2 document type decision from caller (auto=rule\r\n                        fallback).\r\n  --skip-stage3-check   Skip Stage3 checking/report generation.\r\n  --stage3-max-retries STAGE3_MAX_RETRIES\r\n                        Maximum Stage3-driven retry count (default: 2).\r\n  --stage3-strict       Fail the run when Stage3 does not pass after retries.\r\n  --no-stage3-strict    Do not fail the run when Stage3 fails.\r\n  --artifact-level {minimal,standard,debug}\r\n                        Output artifact level: minimal|standard|debug\r\n                        (default: minimal).\r\n",
+          "stderr": "",
+          "outputFiles": [],
+          "diagnostics": []
+        },
+        "cases": [
+          {
+            "id": "observed-statute-txt",
+            "status": "passed",
+            "command": [
+              "python",
+              "C:\\Users\\14182\\AppData\\Local\\Temp\\jit-optimize-L9oC27\\scripts\\law_to_markdown.py",
+              "document.txt",
+              "--law-decision",
+              "law",
+              "--artifact-level",
+              "minimal"
+            ],
+            "cwd": "D:\\skill优化\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\source\\20260913T142032117Z\\round-1-validation\\cases\\make-txt-pipeline-routinely-runnable\\01-observed-statute-txt",
+            "exitCode": 0,
+            "stdout": "Stage2 Retry: attempt=0 profile=default\r\nStage2 Classifier: law (provided-by-caller)\r\nStage2: applied (title=1, part=0, chapter=1, section=0, article=2, item_split=1, space_cleanup=2)\r\nStage3: attempt=0 A=PASS B=PASS overall=PASS\r\nSaved stage3 report: D:\\skill�Ż�\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\source\\20260913T142032117Z\\round-1-validation\\cases\\make-txt-pipeline-routinely-runnable\\01-observed-statute-txt\\markdown\\document\\document.stage3-check.md\r\nSaved review report: D:\\skill�Ż�\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\source\\20260913T142032117Z\\round-1-validation\\cases\\make-txt-pipeline-routinely-runnable\\01-observed-statute-txt\\markdown\\document\\document+��˱���.md\r\nSaved deliverable: D:\\skill�Ż�\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\source\\20260913T142032117Z\\round-1-validation\\cases\\make-txt-pipeline-routinely-runnable\\01-observed-statute-txt\\markdown\\document\\document+���ճɹ�.md\r\nResult: APPROVED\r\n",
+            "stderr": "",
+            "outputFiles": [
+              {
+                "path": "markdown/document/document+审核报告.md",
+                "bytes": 2758,
+                "sha256": "9d9bbf417b7d4d63121759fd65b875d25d718ece2f609e5132b577c7bcde830c"
+              },
+              {
+                "path": "markdown/document/document+最终成果.md",
+                "bytes": 251,
+                "sha256": "9476eaeb16d5de55fbd3033ee01701d25f3ea00ad977767443f41bbc4e43bd10"
+              }
+            ],
+            "diagnostics": []
+          }
+        ],
+        "diagnostics": []
+      },
+      "validationSource": "executed"
+    }
+  ],
+  "resolution": {
+    "status": "passed",
+    "retainedActionIds": [
+      "make-txt-pipeline-routinely-runnable"
+    ],
+    "unvalidatedActionIds": [],
+    "rejected": [],
+    "feedback": [],
+    "rollbackGroups": []
+  },
+  "execution": {
+    "programRuns": 1,
+    "helpRuns": 1,
+    "caseRuns": 1,
+    "independentCaseRuns": 1,
+    "reusedActionObservations": 0
+  }
+}

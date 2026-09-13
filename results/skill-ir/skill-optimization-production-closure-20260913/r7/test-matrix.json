@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-r7-test-matrix/v1",
+  "identity": "development",
+  "requiredFailures": [
+    {
+      "risk": "concurrent runs cross records",
+      "test": "test/run/optimization-session.test.ts :: same task twice and two skills in parallel retain unique explicit bindings",
+      "expectedLayer": "run/session binding",
+      "status": "passed"
+    },
+    {
+      "risk": "source succeeds while capture fails",
+      "test": "test/run/optimization-session.test.ts :: successful source result survives an unreadable full trace but automatic handoff is blocked",
+      "expectedLayer": "capture/handoff gate",
+      "status": "passed"
+    },
+    {
+      "risk": "cancelled or incomplete execution is promoted",
+      "test": "test/run/optimization-session.test.ts :: provider failure and interruption are terminal, retained, and never ready for optimization",
+      "expectedLayer": "source terminal state",
+      "status": "passed"
+    },
+    {
+      "risk": "missing model configuration reaches execution",
+      "test": "test/cli/run.test.ts :: model remains required for source execution but not for session recovery",
+      "expectedLayer": "CLI validation",
+      "status": "passed",
+      "realAttempt": "R7 attempt 2 also stopped before a provider request with a concrete missing-route message."
+    },
+    {
+      "risk": "resume reruns a completed source or optimizer",
+      "test": "test/run/optimization-handoff.test.ts :: uses the session manifest once, persists proposal/package refs, and resumes without another model call; retries a known atomic package failure without replaying the source or optimizer",
+      "expectedLayer": "handoff state machine",
+      "status": "passed",
+      "realAttempt": "The R7 package-only resume completed after one source run and one optimizer run."
+    },
+    {
+      "risk": "optimizer failure discards the source result",
+      "test": "test/run/optimization-handoff.test.ts :: executes the source task once and preserves its result when optimization fails",
+      "expectedLayer": "combined runner",
+      "status": "passed"
+    },
+    {
+      "risk": "unknown usage or cost is reported as zero",
+      "test": "test/jit-optimize/trace-adapters.test.ts :: keeps one successful trace analyzable when usage is unavailable",
+      "expectedLayer": "trace evidence adapter",
+      "status": "passed",
+      "realAttempt": "R7 evidence retained all token/cache values while listing usage.costUsd in unknownFields; actualUsd is null, not zero."
+    }
+  ],
+  "revision3Counterexamples": [
+    { "id": "V1", "disposition": "reproduced-then-fixed", "evidence": "test/jit-optimize/validation-lifecycle.test.ts :: executes current task assertions instead of accepting exit zero, a same-name wrong file, or printed ok" },
+    { "id": "V2", "disposition": "reproduced-then-fixed", "evidence": "test/run/index.test.ts :: namespaces a colliding skill resource without overwriting the user's original file" },
+    { "id": "V3", "disposition": "fixed", "evidence": "test/jit-optimize/production-closure.test.ts :: revalidates a passed sibling when repair changes a resource its program actually reads" },
+    { "id": "V4", "disposition": "fixed", "evidence": "test/jit-optimize/validation-lifecycle.test.ts :: runs ready cases and independent actions while preserving a missing case as unassessed" },
+    { "id": "V5", "disposition": "fixed-bounded", "evidence": "test/jit-optimize/validation-lifecycle.test.ts parameterized applicability and partial-write cases plus R4 report" },
+    { "id": "V6", "disposition": "fixed", "evidence": "test/jit-optimize/package.test.ts atomic half-written package tests and test/run/optimization-session.test.ts failed-run isolation" }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "rootCause": "The skill specified the conversion rules and command syntax but did not give agents an explicit, ordered completion procedure for recording byte preservation, selecting the law decision before invocation, checking the generated artifacts, and reporting the independent verification result. As a result, those duties were left to ad hoc tool use even though the bundled converter and its report already expose the needed evidence.",
+  "reasoning": "Evidence 0 is a clean run (runStatus=ok) with no structured quality score, so it is usable workflow evidence but not proof of a score improvement. The agent eventually produced the correct final and audit files and ran a successful Stage 3 check plus a separate SHA-256/existence verification, demonstrating that the bundled implementation already supports the desired workflow. The gap is instruction clarity and handoff: the source skill says to confirm the final result, but does not state the exact order or the required independent checks. I rewrote the existing common-command section in place rather than appending overlapping rules, making the routine path explicit while preserving all existing format, fallback, rejection, retry, and artifact policies. Generality test: the same ordered procedure benefits a future conversion of any other TXT legal document, a non-law standards document, and DOCX/PDF conversions after their permitted extraction step. Coherent-scope test: a concise documentation-only change is sufficient because the existing converter already performs the transformation, report generation, and Stage 3 checks. No-trade-off test: PER_TASK_SUMMARY lists no PASSING tasks; the change only clarifies invocation and verification and does not alter transformation semantics or rejection behavior, so it cannot plausibly regress the observed successful workflow. Residual judgment remains with the agent: locate the user's actual input, classify the document when reliable, honor mineru-ocr and fallback consent rules, interpret the script's result, and report only facts verified locally.",
+  "confidence": 0.83,
+  "changedFiles": [
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "执行顺序与本地核验 / 常用命令",
+      "description": "Rewrite the routine execution guidance to require ordered input discovery, pre/post byte-hash checks, explicit law-decision passing, artifact existence checks, and evidence-based final reporting before claiming delivery.",
+      "generality": "Any other task converting a different TXT, DOCX, or PDF document benefits from the same repeatable ordering and independent completion checks.",
+      "linesDelta": 9
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "The successful trace shows that agents can complete the work, but the required ordering of classification, invocation, artifact inspection, and final reporting was implicit rather than operationally explicit.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must still interpret the document and choose law, non-law, or auto without inventing a classification."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "The bundled script already accepts the user-supplied input path and decision/output parameters; the run demonstrates use with a concrete user input, so no new parameter mechanism is justified.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must locate the actual input in the user's work directory and pass its path, rather than assuming a fixed filename or path."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "The observed TXT conversion is already delegated to the bundled converter and produces the normal final and audit artifacts; the evidence does not establish a missing reusable transformation.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "Use the bundled script for each supported input and do not hand-author a substitute conversion or report."
+    },
+    {
+      "category": "verification",
+      "summary": "The run independently checked Stage 3, output existence, and source SHA-256 preservation, but the skill did not previously prescribe that sequence; the documentation now does.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must use the generated report and local filesystem/hash results and must not claim approval when any check fails."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "The trace used a Windows/bare-agent environment, but those runtime facts are not skill-wide requirements; existing format-specific mineru-ocr and optional dependency rules remain the applicable environment guidance.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "Handle unavailable runtimes, mineru-ocr installation/configuration, and explicitly authorized local fallbacks according to the existing rules."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Professional classification, consent handling, and interpretation of whether outputs are actually deliverable cannot be safely automated from this evidence alone.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent remains responsible for classification, consent-sensitive fallback decisions, checking actual paths/statuses, and communicating only verified outcomes."
+    }
+  ],
+  "actions": [],
+  "actionDiagnostics": [],
+  "noChanges": false
+}

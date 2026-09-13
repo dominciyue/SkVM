@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-r7/v1",
+  "identity": "development",
+  "stage": "R7",
+  "baselineCommit": "e5d939584b0e0797009ee2fc0b9da4596ae26a9c",
+  "status": { "engineering": "complete", "behavior": "passed", "effect": "unknown" },
+  "ordinaryEntry": {
+    "report": "command.json",
+    "sourceRun": "completed",
+    "capture": "complete",
+    "handoff": "ready",
+    "proposal": "bare-agent/xty--gpt-5.6-sol/skill/20260913T203028782Z",
+    "package": "completed-draft-after-package-only-resume",
+    "manualResearchInputs": 0
+  },
+  "actualOutcome": {
+    "sourceArtifacts": ["ordinary-project-revision-002/markdown/document/document+最终成果.md", "ordinary-project-revision-002/markdown/document/document+审核报告.md"],
+    "sourceVerification": "Stage 3 A/B/overall PASS and source SHA-256 preserved",
+    "optimizerChange": "SKILL.md documentation workflow only",
+    "selectedProgramActions": 0,
+    "packageClosure": "passed",
+    "behaviorStatus": "not-run",
+    "deliveryStatus": "draft",
+    "interpretation": "This run validates no-manual-wiring and safe recovery. It is not a new program success and does not replace the R6 behavior evidence."
+  },
+  "sharedFixes": [
+    {
+      "defect": "On Windows without HOME, ~/.skvm became a cwd-relative cache and entered the observed workdir.",
+      "fix": "Use os.homedir() as the home expansion fallback.",
+      "tdd": "test/core/config.test.ts :: uses the operating-system home when HOME is absent"
+    },
+    {
+      "defect": "A valid optimized package could not be optimized again because old framework metadata collided with new package metadata.",
+      "fix": "Verify the original package, strip only framework-owned metadata from diff/copy inputs, and generate fresh bound metadata.",
+      "tdd": "test/jit-optimize/package.test.ts :: re-exports a valid optimized package with fresh framework metadata"
+    }
+  ],
+  "failures": "failure-attempts.json",
+  "reliability": "test-matrix.json",
+  "captureSupport": "capture-support-matrix.json",
+  "archivedEvidence": {
+    "session": "evidence/session",
+    "proposal": "evidence/proposal",
+    "optimizerLog": "optimizer-log-archive.json",
+    "keyDigests": {
+      "session": "1176d620d2f9edbbb916519d41f175a803b2cd4c75abfcb8f83c73206f704ba9",
+      "evidence": "40035e958631522b7bc4de8cb9ec102ec958f51bc318f56901381ed5ddaaecd8",
+      "runResult": "584f1d3b10b3aac61b50786049a9078e581ced1de3f8bc5e57081559cfccf69f",
+      "conversation": "f45f746ee07a5b2e55d00324a2059f3285cdc74ef8177314f14dec737b4df689",
+      "proposalHistory": "97faf8ca159a6e27840353f2198ffe0abb08fe4824e6b880dd028e86278b2ecc",
+      "packageManifest": "1e03056ff6d7c4eb112926fd541b52e26ea7a2e999acca035d32a16fcfa51675"
+    }
+  },
+  "verification": {
+    "r7GateBeforeFixes": "61 passed, 275 assertions",
+    "targetedConfigAndSessionAfterFix": "19 passed, 72 assertions; typecheck passed",
+    "packageExporterAfterFix": "11 passed, 58 assertions",
+    "copiedPackageVerification": "passed",
+    "finalR7Gate": "77 passed, 347 assertions; typecheck passed; documentation tests 12/12; documentation scan 8775 files with zero broken, legacy, or governance errors; code/docs/status diff check passed. The byte-preserved optimized-package usage guide retains its generated blank line at EOF and is intentionally not rewritten because its digest is bound by the archived manifest.",
+    "finalMergedGate": "pending H14"
+  },
+  "uncovered": [
+    "Automatic capture for adapters other than bare-agent is unverified and rejected by this entry.",
+    "This real optimizer selected a documentation-only draft; its future-task behavioral effect was not evaluated.",
+    "Provider-bound USD cost remains unavailable.",
+    "Professional legal correctness, DOCX/PDF extraction, and real external side effects are outside this acceptance."
+  ],
+  "next": "Proceed to H13 package portability and installed-use documentation, then one H14 merged verification."
+}

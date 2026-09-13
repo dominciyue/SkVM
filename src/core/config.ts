@@ -25,7 +25,7 @@ function findFlag(name: string): string | undefined {
 }
 
 export function expandHome(p: string): string {
-  if (p.startsWith("~/")) return path.join(process.env.HOME ?? "", p.slice(2))
+  if (p.startsWith("~/")) return path.join(process.env.HOME || os.homedir(), p.slice(2))
   return p
 }
 

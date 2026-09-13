@@ -17,6 +17,12 @@ export const OPTIMIZED_SKILL_PACKAGE_MANIFEST = "optimization-manifest.json" as 
 export const OPTIMIZED_SKILL_PACKAGE_VALIDATION_REPORT = "optimization-validation-report.json" as const
 export const OPTIMIZED_SKILL_PACKAGE_USER_GUIDE = "OPTIMIZATION-USAGE.md" as const
 
+const OPTIMIZED_SKILL_PACKAGE_METADATA = new Set<string>([
+  OPTIMIZED_SKILL_PACKAGE_MANIFEST,
+  OPTIMIZED_SKILL_PACKAGE_VALIDATION_REPORT,
+  OPTIMIZED_SKILL_PACKAGE_USER_GUIDE,
+])
+
 const FileRefSchema = z.object({
   path: z.string().min(1),
   bytes: z.number().int().nonnegative(),
@@ -553,20 +559,25 @@ export async function buildOptimizedSkillPackage(options: BuildOptimizedSkillPac
   if (meta.status === "infra-blocked") throw new Error("Infra-blocked proposals cannot be exported as optimized packages")
   const originalDir = path.join(proposalDir, "original")
   const selectedDir = path.join(proposalDir, `round-${meta.bestRound}`)
-  const [original, selected] = await Promise.all([
+  let [original, selected] = await Promise.all([
     listSourceFiles(originalDir, { excludeProposalTransients: true }),
     listSourceFiles(selectedDir, { excludeProposalTransients: true }),
   ])
+  const originalMetadata = original.filter((file) => OPTIMIZED_SKILL_PACKAGE_METADATA.has(file.path))
+  const selectedMetadata = selected.filter((file) => OPTIMIZED_SKILL_PACKAGE_METADATA.has(file.path))
+  if (originalMetadata.length > 0) {
+    try {
+      await verifyOptimizedSkillPackage(originalDir)
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error)
+      throw new Error(`Original snapshot contains reserved package metadata but is not a valid optimized package: ${detail}`)
+    }
+    original = original.filter((file) => !OPTIMIZED_SKILL_PACKAGE_METADATA.has(file.path))
+    selected = selected.filter((file) => !OPTIMIZED_SKILL_PACKAGE_METADATA.has(file.path))
+  } else if (selectedMetadata.length > 0) {
+    throw new Error(`Selected snapshot introduced reserved package metadata: ${selectedMetadata[0]!.path}`)
+  }
   if (!selected.some((file) => file.path === "SKILL.md")) throw new Error("Selected proposal snapshot has no SKILL.md")
-  if (selected.some((file) => file.path === OPTIMIZED_SKILL_PACKAGE_MANIFEST)) {
-    throw new Error(`Selected snapshot already contains reserved package metadata: ${OPTIMIZED_SKILL_PACKAGE_MANIFEST}`)
-  }
-  if (selected.some((file) => file.path === OPTIMIZED_SKILL_PACKAGE_VALIDATION_REPORT)) {
-    throw new Error(`Selected snapshot already contains reserved package metadata: ${OPTIMIZED_SKILL_PACKAGE_VALIDATION_REPORT}`)
-  }
-  if (selected.some((file) => file.path === OPTIMIZED_SKILL_PACKAGE_USER_GUIDE)) {
-    throw new Error(`Selected snapshot already contains reserved package metadata: ${OPTIMIZED_SKILL_PACKAGE_USER_GUIDE}`)
-  }
   const actualDiff = computeDiff(original, selected)
   if (!hasChanges(actualDiff)) return { status: "no-change", sourceProposalDir: proposalDir, validation: "not-run" }
   const selectedRound = await readSelectedRoundState(proposalDir, meta.bestRound, selectedDir)

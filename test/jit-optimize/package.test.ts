@@ -233,6 +233,43 @@ describe("buildOptimizedSkillPackage", () => {
     }
   })
 
+  test("re-exports a valid optimized package with fresh framework metadata", async () => {
+    const first = await makeProposal({
+      original: { "SKILL.md": "# Original\n" },
+      round: { "SKILL.md": "# First optimization\n" },
+      actions: [action("first-docs", "restructure-docs", { changedPaths: ["SKILL.md"] })],
+    })
+    await buildOptimizedSkillPackage(first)
+    const priorPackage = {
+      "SKILL.md": await readFile(path.join(first.packageDir, "SKILL.md"), "utf8"),
+      [OPTIMIZED_SKILL_PACKAGE_USER_GUIDE]: await readFile(
+        path.join(first.packageDir, OPTIMIZED_SKILL_PACKAGE_USER_GUIDE),
+        "utf8",
+      ),
+      [OPTIMIZED_SKILL_PACKAGE_MANIFEST]: await readFile(
+        path.join(first.packageDir, OPTIMIZED_SKILL_PACKAGE_MANIFEST),
+        "utf8",
+      ),
+    }
+    const second = await makeProposal({
+      original: priorPackage,
+      round: { ...priorPackage, "SKILL.md": "# Second optimization\n" },
+      actions: [action("second-docs", "restructure-docs", { changedPaths: ["SKILL.md"] })],
+    })
+
+    await buildOptimizedSkillPackage(second)
+    const verified = await verifyOptimizedSkillPackage(second.packageDir)
+
+    expect(verified.manifest.actualDiff).toEqual({ added: [], modified: ["SKILL.md"], deleted: [], moved: [] })
+    expect(verified.manifest.files.map((file) => file.path)).toEqual([
+      OPTIMIZED_SKILL_PACKAGE_USER_GUIDE,
+      "SKILL.md",
+    ])
+    expect(await readFile(path.join(second.packageDir, "SKILL.md"), "utf8")).toBe("# Second optimization\n")
+    expect(await readFile(path.join(second.packageDir, OPTIMIZED_SKILL_PACKAGE_MANIFEST), "utf8"))
+      .not.toBe(priorPackage[OPTIMIZED_SKILL_PACKAGE_MANIFEST])
+  })
+
   test("exports reused and generated program packages from unrelated names without API injection", async () => {
     const scenarios: Array<{
       name: string

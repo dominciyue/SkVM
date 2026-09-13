@@ -482,18 +482,20 @@ bun test ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/pr
 
 ## R7 — 无手工接线的整体验收与交接
 
-- [ ] 从普通项目目录完成一条真实命令，过程中不手工构造 task.json、日志路径、locator、validation plan 或 criteria。保留实际命令、自动产生的 run/proposal/package 引用和用户输出。
-- [ ] 自动化测试覆盖：并发 run 不串记录、运行成功但采集失败、取消/未完成记录、缺模型配置、run 完成后恢复不重跑、优化失败保留原成果、未知 usage 不记零。大多数用本地 fixture/模拟 provider，避免为错误路径付费。
-- [ ] revision 3 的 V1/V2 优先反例必须修复，V3–V6 在对应 R 阶段完成有针对性的回归与处理；实际代码已修复的直接引用测试，不重复实现。最终说明区分已复现缺陷、已修复问题和未覆盖范围，不能用文档更新代替代码结果。
-- [ ] 明确捕获支持矩阵，先覆盖真实通过的默认 adapter；其他 adapter 未验证就标未验证，不假装适配器注册了就能自动捕获。
-- [ ] 将 R1–R7 实际状态合入现有 status，不新建总目标或研究 identity；更新实际 goal 的范围说明（若平台不支持改写目标文本，则在其执行记录中注明 revision 2 为当前用户要求）。
-- [ ] 完成后进入 H13/H14，相关测试合并跑一次，不为新文档/最后 SHA 重跑整个程序链。未达到新增条件时保留 partial 与具体下一动作，不仅依据旧 H 条件关闭目标。
+- [x] 从普通项目目录完成一条真实命令，过程中不手工构造 task.json、日志路径、locator、validation plan 或 criteria。保留实际命令、自动产生的 run/proposal/package 引用和用户输出。
+- [x] 自动化测试覆盖：并发 run 不串记录、运行成功但采集失败、取消/未完成记录、缺模型配置、run 完成后恢复不重跑、优化失败保留原成果、未知 usage 不记零。大多数用本地 fixture/模拟 provider，避免为错误路径付费。
+- [x] revision 3 的 V1/V2 优先反例必须修复，V3–V6 在对应 R 阶段完成有针对性的回归与处理；实际代码已修复的直接引用测试，不重复实现。最终说明区分已复现缺陷、已修复问题和未覆盖范围，不能用文档更新代替代码结果。
+- [x] 明确捕获支持矩阵，先覆盖真实通过的默认 adapter；其他 adapter 未验证就标未验证，不假装适配器注册了就能自动捕获。
+- [x] 将 R1–R7 实际状态合入现有 status，不新建总目标或研究 identity；更新实际 goal 的范围说明（若平台不支持改写目标文本，则在其执行记录中注明 revision 2 为当前用户要求）。
+- [x] 完成后进入 H13/H14，相关测试合并跑一次，不为新文档/最后 SHA 重跑整个程序链。未达到新增条件时保留 partial 与具体下一动作，不仅依据旧 H 条件关闭目标。
 
 ```powershell
 bun test ./test/run ./test/cli/run.test.ts ./test/cli/run-optimize.test.ts ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/trace-adapters.test.ts
 ```
 
 **新增最低交付条件：** R2 默认入口无需用户提供 trace；本次运行唯一关联且能安全恢复；R3 无人工评分文件路径有实际覆盖；R6 至少一条完整原/变化任务通过、另一结构真实尝试；新增失败路径准确。工程覆盖不是未来成功率，不能把“八九不离十”写成没有测量支持的 80%–90%。
+
+**实际结果：** 从新的普通 Law 项目目录仅以自然任务、已选 skill、workdir 和既有模型配置运行默认 `bare-agent`；未提供 task.json、日志、locator、validation plan、criteria、adapter、optimizer model 或 package-out。source run、capture、handoff 均完整，原产物 Stage3 A/B/overall PASS；系统自动生成唯一 proposal，优化器只改 `SKILL.md`，无程序 action，故最终包准确标为 `draft/behavior not-run`。真实命令先暴露两项共享缺陷：Windows 未设置 HOME 时 `~/.skvm` 误落入 cwd；有效 v2 优化包再次优化时旧 framework metadata 与新包冲突。前者由 `os.homedir()` 回退修复，后者在确认原包闭包有效后只剥离旧 manifest/report/guide 并生成新绑定元数据；两者均有 TDD。首次包导出失败保留，随后公开 `--resume-optimization` 只重做 package，source/optimizer 均未重放。缺模型路由的独立尝试在 provider 调用前给出具体配置错误。七项故障矩阵、V1–V6 代码证据与 adapter 支持矩阵已机器化；只有 bare-agent 自动 capture 经真实验证，其余六个注册 adapter 仍标 unverified。usage token/cache 字段保留，USD 仍以 `usage.costUsd` unknown/null 报告。平台 goal 文本与 revision 3 任务书已一致，无需新建 goal；机器报告见 `results/skill-ir/skill-optimization-production-closure-20260913/r7/report.json`。当前进入 H13/H14。
 
 ## H13 — 可安装使用的工程收尾
 
