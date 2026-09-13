@@ -89,7 +89,7 @@ G4 的 optimizer 合同允许从一次成功但未评分的运行中提出有依
 避免由转换器自证。机器报告位于
 `results/skill-ir/general-skill-optimization-20260913/g6-program-validation/report.json`。
 
-### 3.0.2.1 生产链接线边界（H0–H14 + R1–R7，active-H13）
+### 3.0.2.1 生产链接线边界（H0–H14 + R1–R7，active-H14）
 
 普通 execution-log loop 已调用 program validator 和 action resolver，在选轮前完成局部验证、最多一次定向修复与依赖/共享文件回退。
 本轮依据[生产链任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md)继续在真实日志路径核验程序生成、复用、条件变化及自然消费。
@@ -110,6 +110,8 @@ task 自带的 local non-LLM criterion 会在 source run 后自动重算；有 s
 R6 的两结构 fresh optimizer 尝试均为 no-change，随后按任务书复用已验证 H8/H9 包做实际消费。I18n 原/变化由系统 evaluator 各 5/5，generated checker 对 2-key/3-key 输入均 exit 0；Law 两个无评分自然输入真实复用 converter，source-owned Stage3 各 8/8。agent 在 I18n 变化输入未调用 checker、Law 在旧 tool 描述下出现命令重试，因此效果为 unknown，不声称省时或总体成本下降。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/r6/report.json`。
 
 R7 从普通项目目录实际运行同一入口，用户侧没有 task/log/locator/validation/criteria/package-out 接线。Windows 没有 HOME 时，cache 根现在使用 `os.homedir()`，不再随 cwd 落入被观测项目。实际 source/capture/handoff/proposal 完整，首次 package 阶段因输入本身是旧 v2 优化包而失败；exporter 经 TDD 后支持重新优化已核验的 v1/v2 包：先验证原包闭包，从 diff/copy 输入中移除旧的 framework-owned manifest、validation report 和 user guide，再写当前元数据。普通未验证 source 若自行引入这些保留路径仍拒绝。公开 resume 随后只重做 package，未重跑 source/optimizer。新包为文档-only draft/behavior not-run，不新增程序正例。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/r7/report.json`。
+
+H13 将该包一次复制到全新的普通系统临时目录，在复制处用生产 verifier 重算闭包，再从新的 cwd 运行复制包内 TXT converter。直接调用使用 Python `-B`，Stage3 A/B/overall 通过、两份最小产物生成，输入与包的运行前后摘要分别相同，包内无研究根路径。首次复制因此前帮助命令产生的两个未跟踪 `__pycache__` 被 verifier 正确拒绝；失败保留，缓存仅移入系统临时隔离位置，没有修改 R7 提交字节。该结果只证明一份已暴露 TXT 的可搬运局部路径；包自身仍为 draft/behavior not-run，PDF/DOCX、其他 adapter 自动 capture 与优化效果未建立。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/h13/report.json`。
 
 ### 3.0.3 通用包导出、自然消费与效果边界
 

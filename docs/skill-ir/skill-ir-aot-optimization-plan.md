@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-14
 - 路线：H0–H14 + R1–R7，自动采集真实运行的 skill 优化生产链
-- 状态：`active-H13`；H0–H12、R1–R7 已完成，恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
+- 状态：`active-H14`；H0–H13、R1–R7 已完成，Y1 不适用、Y2 复用实际证据完成；恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 3
 - 方法依据：spec 14.31
@@ -32,10 +32,10 @@ H0 启动时的验证接线、待验证依赖和最终包状态缺口已由 H3�
 | H10 条件变化与降级 | completed | 5/5 预登记条件通过；8 条 acquisition 整命令误分类由共享解析器修复，历史报告不回写 |
 | H11 实际使用开销 | completed | 常规入口策略与 general-skill gzip trace 接入完成；同任务配对质量通过、discovery 2→1、tool 11→9，完整指标与 unknown USD 并列 |
 | H12 过程复用 | completed | Env 同入口单次尝试为合理 no-change，未制造程序或包 |
-| H13 工程使用 | active | 研究 runner 外的正常入口、可搬运包与真实命令 |
-| H14 验证与交付 | pending | 有限回归、文档、精确提交并推用户 origin |
+| H13 工程使用 | completed | 普通自然入口、一次复制后的临时目录闭包/TXT 消费与实际命令均已验证；首个 cache 污染失败保留 |
+| H14 验证与交付 | active | 有限回归、文档、精确提交并推用户 origin |
 
-执行顺序为 H12 → R1–R7 → H13 → 适用 Y1/Y2 → H14。R1–R7 已实际完成，当前执行 H13，不回滚或重抽 R6/R7 的模型样本。
+执行顺序为 H12 → R1–R7 → H13 → 适用 Y1/Y2 → H14。R1–R7 与 H13 已实际完成；Y1 因无真实双程序前提记不适用，Y2 复用 R7 缺 provider cost 的真实支持 trace 完成，当前只执行 H14，不回滚或重抽 R6/R7 的模型样本。
 
 | 新增阶段 | 状态 | 交付与验收 |
 | --- | --- | --- |
@@ -51,9 +51,11 @@ revision 3 在现有阶段补充 V1–V6：R1 保护同名资源/执行前输入
 
 R6 的机器入口为 `results/skill-ir/skill-optimization-production-closure-20260913/r6/report.json`。I18n generated checker 对 2-key 原输入和带新插值的 3-key 变化输入均独立 exit 0，系统 evaluator 最终均 5/5；Law 现成程序对两份无评分自然输入均实际运行，source-owned Stage3 各 8/8。当前新优化尝试均为 no-change，包内容按任务书复用 H8/H9，未导入其 report 充当新 capture。Windows 长路径、输出观察、评价隔离、锚点入口及 native command shell 的共享缺口已由 TDD 修复；首个无效 variation fixture 与命令重试保留。actual USD 和可比效果仍为 unknown。
 
-R7 的机器入口为 `results/skill-ir/skill-optimization-production-closure-20260913/r7/report.json`。普通项目命令没有 task/log/locator/criteria/package-out 接线，source、capture、handoff 与 proposal 均由默认入口产生；原 Law 产物 Stage3 通过。该 optimizer 只给出未验证的文档改进，因此包为 draft，不新增程序行为正例。实际运行修复了 Windows 无 HOME 时 cache 落入 cwd，以及有效优化包无法再次导出的共享缺陷；首次 package failure 通过同一 session 的 package-only resume 完成，未重跑业务任务或 optimizer。自动 capture 当前只确认 bare-agent，其他注册 adapter 保持 unverified；USD unknown 不记零。当前 H13 只做可搬运性与使用文档收尾。
+R7 的机器入口为 `results/skill-ir/skill-optimization-production-closure-20260913/r7/report.json`。普通项目命令没有 task/log/locator/criteria/package-out 接线，source、capture、handoff 与 proposal 均由默认入口产生；原 Law 产物 Stage3 通过。该 optimizer 只给出未验证的文档改进，因此包为 draft，不新增程序行为正例。实际运行修复了 Windows 无 HOME 时 cache 落入 cwd，以及有效优化包无法再次导出的共享缺陷；首次 package failure 通过同一 session 的 package-only resume 完成，未重跑业务任务或 optimizer。自动 capture 当前只确认 bare-agent，其他注册 adapter 保持 unverified；USD unknown 不记零。
 
-Y1 多程序接力、Y2 缺信息可用性只在包含 R 队列的主链达标且收尾窗口前有明确问题时执行，不能替代主链或用于凑时长。
+H13 的机器入口为 `results/skill-ir/skill-optimization-production-closure-20260913/h13/report.json`。R7 包一次复制到全新系统临时目录后，生产闭包核验在复制处通过；从新 cwd 使用复制包的 `python -B` TXT 命令，Stage3 A/B/overall 通过，输入和包均保持摘要不变，研究根路径匹配为 0。首次复制因预检查生成的未跟踪 Python cache 而被正确拒绝，失败保留且未改提交字节。该结果只证明局部 TXT 可搬运消费，不改变 draft/behavior not-run 与 effect unknown。当前只执行 H14 有限回归和最终交付。
+
+Y1 多程序接力因当前真实最终选择没有双程序组合而 `not-applicable`；Y2 由 R7 实际 bare-agent trace 在成本字段未知时仍给出有依据的小改进、诊断和 draft/no-program 状态，记 `passed-existing-evidence`。没有新增模型调用、adapter 或真实样本。
 
 ## 最低工程交付
 

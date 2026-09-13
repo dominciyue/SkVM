@@ -128,6 +128,52 @@ skvm run --task=<path> --skill=<path> --model=<id> --adapter=bare-agent --skill-
 skvm run --task=<path> --skill=<path> --model=<id> --workdir=./tmp/run-workdir
 ```
 
+### Natural task with automatic optimization
+
+The supported default path needs only a natural task, source skill, work directory, and configured model:
+
+```bash
+skvm run --prompt="<task>" --skill=./skill --workdir=./project --model=<id> --optimize
+```
+
+SkVM materializes the internal task, runs it once, binds that run's capture, passes the evidence to the existing optimizer, and exports any resulting package under the run session. Users do not provide a task JSON, log path, record locator, validation plan, criteria file, action mapping, or package destination. `--optimizer-model=<id>` and `--package-out=<new-empty-directory>` are optional advanced overrides. Manual `jit-optimize --task-source=log` remains an advanced compatibility path.
+
+Automatic run-scoped capture is currently verified only for the default `bare-agent` adapter. The other registered adapters may have manual trace readers, but that does not make automatic capture supported; `run --optimize` rejects them before source execution. The target model must match a `providers.routes` entry in the active `skvm.config.json`. Missing configuration produces a concrete route error instead of silently selecting another provider.
+
+If source execution finished and a known atomic package-export step failed, resume that session without rerunning the task or optimizer:
+
+```bash
+skvm run --resume-optimization=path/to/optimization-session.json
+```
+
+States whose external completion is unknown remain non-replayable. A completed package can be `draft` or `validated-recommendation`; package-file closure alone is not behavior validation, and neither status establishes whole-skill correctness or cost savings.
+
+The R7 development acceptance actually ran this command with the recorded local configuration (shown as evidence, not a portable example):
+
+```powershell
+$env:SKVM_CACHE = 'D:\skill优化\SkVM\.skvm'
+bun D:\skill优化\SkVM\src\index.ts run --prompt="Read document.txt in this directory and convert it to Markdown with the selected skill. Preserve the source bytes, produce the skill's normal final and audit outputs, and report the local verification result." --skill=D:\skill优化\SkVM\results\skill-ir\skill-optimization-production-closure-20260913\h9\package-attempt-001-revision-001\SKILL.md --workdir=D:\skill优化\SkVM\results\skill-ir\skill-optimization-production-closure-20260913\r7\ordinary-project-revision-002 --model=xty/gpt-5.6-sol --optimize
+```
+
+Its source/capture/handoff completed. The optimizer changed documentation only, so the package correctly remained `draft` with behavior `not-run`; provider-bound USD cost was unavailable and remains unknown.
+
+### Copy and use an exported package
+
+An exported package is an ordinary skill directory. Copy it once, then point `--skill` at the copy:
+
+```powershell
+Copy-Item -LiteralPath <exported-package> -Destination .\optimized-skill -Recurse
+skvm run --prompt="<task>" --skill=.\optimized-skill --workdir=.\project --model=<id>
+```
+
+Inspect `OPTIMIZATION-USAGE.md` and `optimization-manifest.json` first. For the verified Law TXT package's direct local path, run from the new parent directory with Python bytecode disabled so the exact package closure stays unchanged:
+
+```powershell
+python -B .\optimized-skill\scripts\law_to_markdown.py .\project\document.txt --law-decision law --artifact-level minimal
+```
+
+H13 verified that command after a single copy to a fresh Windows temporary directory: package closure passed before and after, Stage3 A/B/overall passed, the input and package digests were unchanged, and no research-root path was embedded. This covers TXT only. PDF/DOCX still follow `SKILL.md`: use the configured `mineru-ocr` route, or install `python-docx>=1.1.0` and `pdfplumber>=0.11.0` only for an explicitly authorized local fallback.
+
 ## `bench`
 
 Runs benchmark conditions over tasks, skills, and models. Logs and reports land under `~/.skvm/log/bench/{sessionId}/`.

@@ -501,19 +501,23 @@ bun test ./test/run ./test/cli/run.test.ts ./test/cli/run-optimize.test.ts ./tes
 
 **修改：** 仅实际暴露的 CLI、依赖打包与现有使用文档。
 
-- [ ] 从研究 runner 外使用正常项目入口优化或消费本轮包；程序工作目录变化后仍可运行，不依赖本机研究目录、旧 identity 或硬编码绝对路径。
-- [ ] 默认用户只提供原 skill、自然任务和目录，由 R1/R2 自动捕获并读取 trace；手工日志是高级兼容方式。不要求手工完成动作映射/内部验证协议。如果仍需人工接线，记录具体步骤并优先消除。
-- [ ] 检查导出包的最小安装要求和运行命令，一次复制到新的普通临时目录即可验证可搬运性；不新开分支、不重建完整历史 clean 归档。
-- [ ] 在现有 usage/component 写出实际运行命令、包使用方式、支持格式和状态含义；真实路径/模型来自运行记录，不能以示例路径冒充已执行命令。
+- [x] 从研究 runner 外使用正常项目入口优化或消费本轮包；程序工作目录变化后仍可运行，不依赖本机研究目录、旧 identity 或硬编码绝对路径。
+- [x] 默认用户只提供原 skill、自然任务和目录，由 R1/R2 自动捕获并读取 trace；手工日志是高级兼容方式。不要求手工完成动作映射/内部验证协议。如果仍需人工接线，记录具体步骤并优先消除。
+- [x] 检查导出包的最小安装要求和运行命令，一次复制到新的普通临时目录即可验证可搬运性；不新开分支、不重建完整历史 clean 归档。
+- [x] 在现有 usage/component 写出实际运行命令、包使用方式、支持格式和状态含义；真实路径/模型来自运行记录，不能以示例路径冒充已执行命令。
 
 **验收：** 外人按文档能走已支持路径；缺配置给具体提示，产品内部研究术语不成为必填输入。
+
+**实际结果：** R7 的普通 `run --prompt --skill --workdir --model --optimize` 已提供正常项目入口，H13 再把其最终包一次复制到新的系统临时目录。生产 verifier 在复制处对 9 个 manifest 文件和完整闭包通过；从新 cwd 以 `python -B skill/scripts/law_to_markdown.py project/document.txt --law-decision law --artifact-level minimal` 调用复制包，exit 0，Stage3 A/B/overall PASS，生成两份最小产物，输入与包的运行前后摘要分别相同，包内研究根路径匹配为 0。首次复制被 verifier 正确拒绝：H13 前直接 `--help` 曾在归档包旁生成两个未跟踪 `__pycache__` 文件；失败保留，缓存完整移到系统临时隔离位置，未改提交字节，修订调用使用 `-B` 后通过。TXT 直接路径只需兼容 Python；DOCX/PDF 的 mineru/local fallback 没有在本节验证。普通优化入口还需匹配 `providers.routes` 的模型配置，缺失时 R7 已给出具体配置错误。实际命令、临时环境字段、摘要与产物见 `results/skill-ir/skill-optimization-production-closure-20260913/h13/report.json`；包仍为 `draft/behavior not-run`，本节的局部 TXT 搬运通过不改变其优化效果状态。
 
 ## Y1–Y2 — 有条件追加，不能替代主链
 
 H0–H13 与 R1–R7 满足工程交付条件、尚未进入收尾窗口且用户未叫停时才执行。每项围绕一个已有失败或结构缺口，约 1–2 小时；没有问题就记不适用，不为凑时长强行执行。
 
-- [ ] **Y1 多程序组合：** 已有 skill 确有两个机械步骤时，检验一个程序输出给下一程序再交 agent 的接力；修现有动作图和路径交接，不增加通用工作流语言。
-- [ ] **Y2 缺信息的可用性：** 用真实缺 usage 或部分工具结果的已支持 trace 检查，仍可产生有依据的小改进、具体诊断或 no-change；不新增没有真实记录的适配器。
+- [x] **Y1 多程序组合（不适用）：** 当前真实 H8/H9/R7 最终选择分别只有一个、一个、零个程序动作，没有已观察到的双程序接力缺口；不为凑项新增工作流或模型样本。多动作依赖/共享文件传播仍由 R3–R6 行为测试覆盖。
+- [x] **Y2 缺信息的可用性（复用实际证据）：** R7 的受支持 bare-agent trace 有完整 token/cache/tool 字段但 `usage.costUsd` 缺 provider price/invoice binding；同一记录仍产生有依据的文档小改进、具体闭包/恢复诊断和准确 draft/no-program 状态。成本保持 unknown/null，不再调用模型或新增 adapter。
+
+**条件项结果：** Y1 因前提不存在而完成为 `not-applicable`；Y2 由 R7 已归档真实 trace 满足，完成为 `passed-existing-evidence`。两者不新增真实任务分母，也不改变 effect unknown。
 
 ## H14 — 有限验证、提交与准确交付
 

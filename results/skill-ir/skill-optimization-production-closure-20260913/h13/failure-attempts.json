@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-h13-failures/v1",
+  "identity": "development",
+  "attempts": [
+    {
+      "attempt": 1,
+      "temporaryDirectory": "C:/Users/14182/AppData/Local/Temp/skvm-h13-portable-e4f4436c59574bc9b378d77342447455",
+      "stage": "copied-package-closure",
+      "status": "failed-as-required",
+      "detector": "verifyOptimizedSkillPackage",
+      "error": "Package file closure mismatch: copied package contained scripts/__pycache__/cn_law_normalizer.cpython-312.pyc and scripts/__pycache__/stage3_checker.cpython-312.pyc.",
+      "cause": "A pre-H13 direct --help inspection invoked the archived Python entry without bytecode suppression and created two untracked cache files beside the committed package scripts before the copy.",
+      "evidenceIntegrity": "The committed R7 package bytes and manifest were not modified. The two cache files were untracked runtime byproducts and the closure verifier rejected them rather than ignoring them.",
+      "correction": "Record the failure, remove only the verified generated cache directory and failed temporary copy, verify the committed package closure, then repeat in a new directory with Python -B so direct package consumption is read-only.",
+      "claimImpact": "The first portability attempt failed. A later clean attempt may establish only the explicitly documented Python -B direct-use path; ordinary skvm run still deploys a workdir-local skill copy."
+    }
+  ]
+}
