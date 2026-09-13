@@ -1,0 +1,321 @@
+{
+  "schemaVersion": "skill-ir-general-corpus-review/v1",
+  "identity": "general-skill-optimization-20260913-g1",
+  "exposure": "development",
+  "reviewedAt": "2026-09-13",
+  "sourceIndex": {
+    "path": "results/skill-ir/skill-family-deepening-20260911/sources.json",
+    "sha256": "d6d01e58ae55eed471fb32ef65f821f99d829818f0767e3b5ab7ed5169e7d3af",
+    "repositories": { "processed": 8, "failed": 1 },
+    "skills": 31,
+    "skillBodies": 31,
+    "skillsWithResources": 21,
+    "resourceFiles": 109,
+    "licenseFiles": 31,
+    "duplicateBodies": 0,
+    "skillsWithClosureIssues": 27,
+    "issues": { "missing-resource": 208, "external-resource": 9 },
+    "failedRepository": {
+      "repository": "jeremylongshore/claude-code-plugins-plus-skills",
+      "reason": "repository is private, forked, archived, disabled, or renamed"
+    },
+    "interpretation": "All 31 selected skills have bodies and licenses. Missing-resource is not treated as a count of genuine missing dependencies because the current closure scanner also classifies inline commands, placeholders, schema pointers and examples as paths."
+  },
+  "reviewCounts": {
+    "broadReadUniqueSkills": 30,
+    "deepReadUniqueSkills": 10,
+    "deepReadDirectDependenciesInspected": true,
+    "targetIsAdvisory": true
+  },
+  "lineagesRepresented": [
+    "local pilot sources",
+    "LambdaTest/agent-skills@0491a3a29aa18558d2c3c64ff09367adb976c56f",
+    "fishzjp/qa-skills@9d93d0410362cceb14c2597b12bc465fc2062bd4",
+    "PramodDutta/qaskills@ee81c5b16b8c22933b79e8d9a23e130bce29a847",
+    "event4u-app/agent-config@4a77fe23c2d4d095c75ed84499a3aebc7cb72a53",
+    "pactflow/pactflow-agent-skills@463f70a32daba156376dbe030bbf23097a6a1ecb",
+    "mcp-use/mcp-use@3350560957fa03dd7dde3f4ce592046bb37e1c7c",
+    "vaquarkhan/ml-ops-agent-skills@43e909a2fb8dafcb029ee716e9857cd7f1ee77a5",
+    "jeremylongshore/tons-of-skills-marketplace@59783c9e51f716b2963a4025356519aadf7475ee"
+  ],
+  "skills": [
+    {
+      "id": "pilot:zh-readme",
+      "source": "benchmarks/skill-ir/pilots/zh-readme/source/SKILL.md",
+      "depth": "deep",
+      "resourceForm": "single instruction document",
+      "mechanicalSteps": ["inspect repository files", "extract install and run commands", "write Markdown structure", "check required sections"],
+      "judgmentSteps": ["identify audience and value proposition", "avoid unsupported marketing claims"],
+      "suspiciousOverhead": ["re-reading the whole repository when a file inventory and focused excerpts would suffice", "no declared executable helper despite repeatable section checks"]
+    },
+    {
+      "id": "pilot:i18n-helper",
+      "source": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+      "depth": "deep",
+      "resourceForm": "single instruction document with language-file examples",
+      "mechanicalSteps": ["scan source extensions", "extract user-visible literals", "generate locale files", "compare key sets and counts"],
+      "judgmentSteps": ["distinguish UI text from imports, regexes and logs", "preserve interpolation and plural semantics"],
+      "suspiciousOverhead": ["source scanning and locale-key comparison are repeatedly reconstructed instead of using a parameterized program"]
+    },
+    {
+      "id": "pilot:zh-code-reviewer",
+      "source": "benchmarks/skill-ir/pilots/zh-code-reviewer/source/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "single judgment-heavy instruction document",
+      "mechanicalSteps": ["locate target files and line numbers", "format findings"],
+      "judgmentSteps": ["assess correctness, security, performance and design", "rank severity"],
+      "suspiciousOverhead": ["generic report format can be templated, but substantive review must remain with the agent"]
+    },
+    {
+      "id": "pilot:law-to-markdown",
+      "source": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+      "depth": "deep",
+      "resourceForm": "instruction document plus three Python modules, requirements and runtime metadata",
+      "mechanicalSteps": ["convert txt, docx or pdf", "normalize headings", "verify character fidelity", "write result and audit artifacts"],
+      "judgmentSteps": ["decide legal versus non-legal text", "authorize local fallback", "handle OCR configuration"],
+      "suspiciousOverhead": ["the complete deterministic converter already exists but a generic optimizer has no way to select and expose it", "help and result summaries are not represented as package entry metadata"]
+    },
+    {
+      "id": "pilot:experimental-design",
+      "source": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+      "depth": "deep",
+      "resourceForm": "long instruction document, two Python programs and four on-demand references",
+      "mechanicalSteps": ["generate seeded allocation or DOE matrices", "randomize run order", "write CSV"],
+      "judgmentSteps": ["choose design family", "identify unit of randomization and nuisance factors", "retain analysis handoff"],
+      "suspiciousOverhead": ["existing script functions are not discoverable by the current package builder", "large references should be indexed and read only when their branch applies"]
+    },
+    {
+      "id": "pilot:env-manager",
+      "source": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+      "depth": "deep",
+      "resourceForm": "instruction-only source with known optional domain backend",
+      "mechanicalSteps": ["enumerate env names and code references", "diff names", "generate example and schema"],
+      "judgmentSteps": ["decide whether apparently unused names are truly obsolete", "avoid exposing secrets"],
+      "suspiciousOverhead": ["mechanical name extraction is separable from advisory deletion decisions", "ordinary directories must not be forced through a domain binding"]
+    },
+    {
+      "id": "LambdaTest:api-to-testcase-generator",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/LambdaTest/agent-skills/0491a3a29aa18558d2c3c64ff09367adb976c56f/api-skill/api-to-testcase-generator/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "large instruction with two references and multi-framework examples",
+      "mechanicalSteps": ["parse API definition", "enumerate operations and constraints", "emit test files"],
+      "judgmentSteps": ["select test strategy and framework", "handle incomplete specs"],
+      "suspiciousOverhead": ["examples and commands are misclassified as missing resources", "framework breadth can overload a single optimization context"]
+    },
+    {
+      "id": "LambdaTest:postman-openapi-converter",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/LambdaTest/agent-skills/0491a3a29aa18558d2c3c64ff09367adb976c56f/api-skill/postman/postman-openapi-converter/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "instruction-only data-model conversion",
+      "mechanicalSteps": ["map OpenAPI paths, bodies and auth", "write collection and environment JSON"],
+      "judgmentSteps": ["choose representative examples", "preserve unsupported semantics"],
+      "suspiciousOverhead": ["schema pointers and output names appear as false missing dependencies"]
+    },
+    {
+      "id": "LambdaTest:postman-testcase-generator",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/LambdaTest/agent-skills/0491a3a29aa18558d2c3c64ff09367adb976c56f/api-skill/postman/postman-testcase-generator/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "instruction-only script snippets",
+      "mechanicalSteps": ["emit Postman assertions", "embed scripts in collection JSON"],
+      "judgmentSteps": ["select assertions justified by the contract"],
+      "suspiciousOverhead": ["large cheat-sheet content could be branch-indexed instead of always loaded"]
+    },
+    {
+      "id": "LambdaTest:openapi-spec-generator",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/LambdaTest/agent-skills/0491a3a29aa18558d2c3c64ff09367adb976c56f/api-skill/openapi-spec-generator/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "large instruction with two references",
+      "mechanicalSteps": ["extract routes and models", "write OpenAPI skeleton and components"],
+      "judgmentSteps": ["infer only documented behavior", "choose response and security descriptions"],
+      "suspiciousOverhead": ["no executable validation entry is exposed despite repeatable linting"]
+    },
+    {
+      "id": "fishzjp:api-testing",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/fishzjp/qa-skills/9d93d0410362cceb14c2597b12bc465fc2062bd4/skills/api-testing/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "instruction with eleven shared method and reporting references",
+      "mechanicalSteps": ["parse input", "generate executable tests", "run and report"],
+      "judgmentSteps": ["scope cases", "separate contract and business assertions"],
+      "suspiciousOverhead": ["a large shared reference closure needs explicit on-demand navigation"]
+    },
+    {
+      "id": "fishzjp:automated-e2e-testing",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/fishzjp/qa-skills/9d93d0410362cceb14c2597b12bc465fc2062bd4/skills/automated-e2e-testing/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "multi-step browser workflow with seven resources",
+      "mechanicalSteps": ["generate Playwright tests", "run tests", "capture evidence"],
+      "judgmentSteps": ["learn the UI and diagnose selectors", "triage bugs"],
+      "suspiciousOverhead": ["process has real external state and is not a safe default program-generation candidate"]
+    },
+    {
+      "id": "fishzjp:exploratory-testing",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/fishzjp/qa-skills/9d93d0410362cceb14c2597b12bc465fc2062bd4/skills/exploratory-testing/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "judgment workflow plus three references",
+      "mechanicalSteps": ["create note skeleton", "record evidence and open questions"],
+      "judgmentSteps": ["form and revise charter", "explore and prioritize risks"],
+      "suspiciousOverhead": ["document structure can be simplified but interactive exploration must remain residual"]
+    },
+    {
+      "id": "fishzjp:regression-testing",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/fishzjp/qa-skills/9d93d0410362cceb14c2597b12bc465fc2062bd4/skills/regression-testing/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "traceability workflow plus three references",
+      "mechanicalSteps": ["enumerate changed files", "map symbols and tests", "format ranked checklist"],
+      "judgmentSteps": ["assess impact and priority", "mark uncertainty"],
+      "suspiciousOverhead": ["file and symbol inventory is a reusable mechanical front-end"]
+    },
+    {
+      "id": "PramodDutta:api-rate-limit-testing",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/PramodDutta/qaskills/ee81c5b16b8c22933b79e8d9a23e130bce29a847/seed-skills/api-rate-limit-testing/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "short operational instruction",
+      "mechanicalSteps": ["issue timed requests", "summarize headers and thresholds"],
+      "judgmentSteps": ["avoid destructive load and interpret distributed behavior"],
+      "suspiciousOverhead": ["requires live state, so a package must expose preconditions rather than claim offline completeness"]
+    },
+    {
+      "id": "event4u:api-testing",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/event4u-app/agent-config/4a77fe23c2d4d095c75ed84499a3aebc7cb72a53/src/skills/api-testing/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "focused instruction and one dependency",
+      "mechanicalSteps": ["write endpoint tests", "filter noisy output", "run targeted validation"],
+      "judgmentSteps": ["clarify ambiguous contracts", "diagnose before retry"],
+      "suspiciousOverhead": ["targeted log summarization is reusable across non-API command helpers"]
+    },
+    {
+      "id": "event4u:contract-review",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/event4u-app/agent-config/4a77fe23c2d4d095c75ed84499a3aebc7cb72a53/src/skills/contract-review/SKILL.md",
+      "depth": "deep",
+      "resourceForm": "judgment-heavy router with four related skill dependencies",
+      "mechanicalSteps": ["produce two named Markdown artifacts", "check jurisdiction tags and disclaimer"],
+      "judgmentSteps": ["establish party role and jurisdiction", "map and rank clause risk", "retain attorney decision"],
+      "suspiciousOverhead": ["mandatory structural checks can be validated without automating legal judgment", "missing profile must remain an explicit unresolved precondition"]
+    },
+    {
+      "id": "event4u:contracts-cognition",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/event4u-app/agent-config/4a77fe23c2d4d095c75ed84499a3aebc7cb72a53/src/skills/contracts-cognition/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "four-artifact professional judgment workflow",
+      "mechanicalSteps": ["check five-family coverage", "emit artifact skeletons"],
+      "judgmentSteps": ["size tail risk", "rank redlines", "handoff to counsel"],
+      "suspiciousOverhead": ["document reorganization may help navigation but cannot replace professional judgment"]
+    },
+    {
+      "id": "event4u:openapi",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/event4u-app/agent-config/4a77fe23c2d4d095c75ed84499a3aebc7cb72a53/src/skills/openapi/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "code-aware documentation workflow",
+      "mechanicalSteps": ["extract framework routes", "write attributes or YAML", "run Redocly or framework validation"],
+      "judgmentSteps": ["choose stable public contract", "avoid documenting unsupported behavior"],
+      "suspiciousOverhead": ["validator choice and runtime are discoverable from content, not an API-only binding"]
+    },
+    {
+      "id": "pactflow:openapi-parser",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/pactflow/pactflow-agent-skills/463f70a32daba156376dbe030bbf23097a6a1ecb/plugins/swagger-contract-testing/skills/openapi-parser/SKILL.md",
+      "depth": "deep",
+      "resourceForm": "focused skill with three progressive-disclosure references",
+      "mechanicalSteps": ["locate endpoint", "resolve local references", "enumerate schema variants", "emit Drift YAML"],
+      "judgmentSteps": ["bound combinatorics", "separate stateful variants and external references"],
+      "suspiciousOverhead": ["the source explicitly says to read only the endpoint block, but current optimizer context has no resource navigation index", "local versus external references must remain distinct preconditions"]
+    },
+    {
+      "id": "pactflow:contract-testing-flywheel",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/pactflow/pactflow-agent-skills/463f70a32daba156376dbe030bbf23097a6a1ecb/plugins/contract-testing-flywheel/skills/contract-testing-flywheel/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "fifteen templates and library references with an external scrum destination",
+      "mechanicalSteps": ["render ticket templates", "map issue types", "perform idempotency check"],
+      "judgmentSteps": ["choose workflow and stack", "obtain confirmation before external writes"],
+      "suspiciousOverhead": ["templates are reusable package resources", "external side effects require explicit preconditions and residual duties"]
+    },
+    {
+      "id": "pactflow:drift-testing",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/pactflow/pactflow-agent-skills/463f70a32daba156376dbe030bbf23097a6a1ecb/plugins/swagger-contract-testing/skills/drift-testing/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "large workflow with six references and six scripts",
+      "mechanicalSteps": ["extract operations", "check coverage", "run failed-only loop"],
+      "judgmentSteps": ["diagnose contract versus server failures", "stop on unsafe stateful behavior"],
+      "suspiciousOverhead": ["existing scripts should be reused rather than regenerated", "help and coverage summaries could avoid repeated full-document reads"]
+    },
+    {
+      "id": "mcp-use:openapi-to-mcp",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/mcp-use/mcp-use/3350560957fa03dd7dde3f4ce592046bb37e1c7c/skills/openapi-to-mcp/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "long scaffold workflow with five references and repository metadata",
+      "mechanicalSteps": ["dereference spec", "scaffold project", "map operations to tools", "generate Zod schemas"],
+      "judgmentSteps": ["scope operations and auth", "decide whether deployment is authorized"],
+      "suspiciousOverhead": ["network, install and deployment stages need separate action preconditions", "one monolithic action would hide partial success"]
+    },
+    {
+      "id": "mcp-use:purchasing",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/mcp-use/mcp-use/3350560957fa03dd7dde3f4ce592046bb37e1c7c/libraries/typescript/packages/server/examples/skills-over-mcp/skills/purchasing/SKILL.md",
+      "depth": "deep",
+      "resourceForm": "minimal instruction plus one policy and one output template",
+      "mechanicalSteps": ["read approval policy", "call declared tool", "render confirmation template"],
+      "judgmentSteps": ["confirm approval and quantity"],
+      "suspiciousOverhead": ["arbitrary tool names and resource paths disprove hard-coding one helper filename"]
+    },
+    {
+      "id": "mcp-use:refunds",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/mcp-use/mcp-use/3350560957fa03dd7dde3f4ce592046bb37e1c7c/libraries/typescript/packages/server/examples/skills-over-mcp/skills/refunds/SKILL.md",
+      "depth": "deep",
+      "resourceForm": "minimal instruction plus one policy and one output template",
+      "mechanicalSteps": ["read refund policy", "call declared tool", "render confirmation template"],
+      "judgmentSteps": ["determine 30-day eligibility", "request missing purchase date"],
+      "suspiciousOverhead": ["small on-demand resources should not force a full source-context load"]
+    },
+    {
+      "id": "vaquarkhan:data-validation-and-contract-testing",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/vaquarkhan/ml-ops-agent-skills/43e909a2fb8dafcb029ee716e9857cd7f1ee77a5/skills/data-validation-and-contract-testing/SKILL.md",
+      "depth": "deep",
+      "resourceForm": "skill with Python pipeline, GX config, dbt schema, template and tests",
+      "mechanicalSteps": ["copy declared project files", "run volume and schema validation", "run pytest"],
+      "judgmentSteps": ["choose schema bounds", "decide how upstream drift is corrected"],
+      "suspiciousOverhead": ["source scripts and tests provide stronger construction evidence than regenerating a program", "runtime dependencies need explicit not-applicable versus implementation-error reporting"]
+    },
+    {
+      "id": "vaquarkhan:distributed-gpu-training",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/vaquarkhan/ml-ops-agent-skills/43e909a2fb8dafcb029ee716e9857cd7f1ee77a5/skills/distributed-gpu-training-and-scheduling/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "Kubernetes workflow with seven manifests/scripts/references",
+      "mechanicalSteps": ["render manifests", "run dry-run validator and tests"],
+      "judgmentSteps": ["choose queue and GPU shape", "assess cluster availability"],
+      "suspiciousOverhead": ["environment-unavailable is normal not-applicable, not proof that the implementation is broken"]
+    },
+    {
+      "id": "vaquarkhan:feast-feature-store",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/vaquarkhan/ml-ops-agent-skills/43e909a2fb8dafcb029ee716e9857cd7f1ee77a5/skills/feast-feature-store-engineering/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "data-system workflow with five resources",
+      "mechanicalSteps": ["copy definitions", "run point-in-time retrieval tests"],
+      "judgmentSteps": ["choose entities, TTLs and online/offline stores", "assess leakage"],
+      "suspiciousOverhead": ["package can preserve reusable code while leaving infrastructure configuration residual"]
+    },
+    {
+      "id": "jeremylongshore:generating-api-contracts",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/jeremylongshore/tons-of-skills-marketplace/59783c9e51f716b2963a4025356519aadf7475ee/plugins/api-development/api-contract-generator/skills/generating-api-contracts/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "short instruction plus four references",
+      "mechanicalSteps": ["render contract artifacts", "validate output"],
+      "judgmentSteps": ["choose contract style", "handle incomplete implementation evidence"],
+      "suspiciousOverhead": ["literal environment placeholders must not be treated as local dependency paths"]
+    },
+    {
+      "id": "jeremylongshore:load-testing-apis",
+      "source": "results/skill-ir/skill-family-deepening-20260911/sources/jeremylongshore/tons-of-skills-marketplace/59783c9e51f716b2963a4025356519aadf7475ee/plugins/api-development/api-load-tester/skills/load-testing-apis/SKILL.md",
+      "depth": "broad",
+      "resourceForm": "short live-service workflow plus three references",
+      "mechanicalSteps": ["generate load scripts", "run and summarize metrics"],
+      "judgmentSteps": ["set safe limits", "interpret bottlenecks and obtain authorization"],
+      "suspiciousOverhead": ["live load execution cannot be implied by successful offline package validation"]
+    }
+  ],
+  "crossStructureFindings": [
+    "Existing source scripts and templates are common across scientific, legal, data and testing skills; reuse must be a first-class implementation path.",
+    "Small policy and template resources benefit from on-demand navigation, while current optimization context has no resource index.",
+    "Mechanical work and professional or live-state duties frequently coexist; packages must retain residual duties instead of claiming whole-task completion.",
+    "Entrypoints vary across Python modules, shell commands, declared tools and docs-only flows; helper detection cannot depend on api-task-solidify.js.",
+    "The acquisition closure scanner over-reports missing resources when it sees commands, examples, JSON pointers or placeholders; these diagnostics cannot be trusted as dependency facts without classification."
+  ],
+  "claimBoundary": "Purposive development review, not a random corpus or generalization estimate. No protected, reserve, held-out or prospective source was read."
+}

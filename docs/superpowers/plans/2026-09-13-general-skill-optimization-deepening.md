@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 headless-agent/provider/trace adapters、proposal storage、Skill IR 与已有领域 checker；按原 skill 需要使用 Python/Node 等已有运行时。
 
-**状态：** revision 1，`planned-not-started`，2026-09-13。制定任务书不等于启动持续目标。U0–U7 已完成且结果保持 mixed；本轮为新的 development 工作，不是 prospective 或 held-out。
+**状态：** revision 1，`active`，2026-09-13。G0 completed，G1 corpus evidence completed / implementation commitment open，G2 active。U0–U7 已完成且结果保持 mixed；本轮为新的 development 工作，不是 prospective 或 held-out。
 
 **队列：** G0–G14 主队列；X1–X3 为主链达到要求后、交付窗口前自动选择的有限深化队列。工作量按约 16–24 小时的连续开发范围设计，实际时间由故障和已有能力决定，不承诺靠任务文字保证运行时长。
 
@@ -80,10 +80,10 @@
 
 **读取/修改：** 当前状态、任务书、`src/jit-optimize/index.ts` 和相关组件；创建本轮 `status.json`，不先运行旧大矩阵。
 
-- [ ] 核对分支、最近提交及 dirty 文件，特别保留 `src/skill-ir/skill-family-minimum-delivery-run.ts`、`docs/skill-ir/1.md` 和历史 raw/cache。
-- [ ] 阅读本轮将修改的主工程接口，确认 log-only 当前不评价、API builder 独立、accept 会部署的事实。
-- [ ] 一次运行 `bun test ./test/jit-optimize/solidification.test.ts ./test/jit-optimize/consumption.test.ts ./test/jit-optimize/effect.test.ts`；记录实际结果，只处理阻塞本轮的故障。
-- [ ] 建立 G0–G14 状态和源材料路径，旧 U0–U7 标记为已完成基线；不要把新任务提前勾选。
+- [x] 核对分支、最近提交及 dirty 文件，特别保留 `src/skill-ir/skill-family-minimum-delivery-run.ts`、`docs/skill-ir/1.md` 和历史 raw/cache。
+- [x] 阅读本轮将修改的主工程接口，确认 log-only 当前不评价、API builder 独立、accept 会部署的事实。
+- [x] 一次运行 `bun test ./test/jit-optimize/solidification.test.ts ./test/jit-optimize/consumption.test.ts ./test/jit-optimize/effect.test.ts`；实际结果为 9/9 tests、31 assertions。
+- [x] 建立 G0–G14 状态和源材料路径，旧 U0–U7 标记为已完成基线；新任务仅 G1 标记 active。
 
 **完成：** 恢复入口清楚、修改归属清楚，可以直接开始 G1/G2。
 
@@ -91,10 +91,10 @@
 
 **复用：** `scripts/skill-ir/skill-family-acquire.ts`、上述 sources 索引、`benchmarks/skill-ir/pilots/` 已暴露 source。
 
-- [ ] 读取已有 sources 索引，区分成功正文、依赖缺失、获取失败、同正文重复与仓库谱系；不读取 metadata-only reserve 或保护样本。
-- [ ] 首批读 README、i18n、代码审查、law-to-markdown、experimental-design、env-manager 的已暴露正文，随后按结构补足广读目标；每份记录原文位置、资源形态、机械步骤/判断步骤和可疑开销。
-- [ ] 原库结构不够时，用已有获取器补公开 development 来源及直接依赖，保留来源/版本/许可和失败原因；不执行下载的未知安装脚本。
-- [ ] 输出 `corpus-review.json` 和 `implementation-backlog.json`。每个问题包含证据定位、当前代码位置、跨结构适用范围、拟测试行为；不只输出分类标签或长篇综述。
+- [x] 读取已有 sources 索引，区分 31 份成功正文、0 正文重复、8 个成功仓库谱系和 1 个仓库获取失败；未读取 metadata-only reserve 或保护样本。
+- [x] 首批及补充样本共广读 30 份、深读 10 份，逐份记录原文位置、资源形态、机械/判断步骤和可疑开销。
+- [x] 已有语料达到结构广度，因此本轮未新增网络获取；既有来源的 commit、license、闭包问题和仓库失败仍完整保留。
+- [x] 输出 `corpus-review.json` 和 `implementation-backlog.json`，8 项问题均带证据定位、当前代码、跨结构范围与拟测试行为。
 - [ ] 优先处理真实重复机制，例如已有脚本发现、参考资料按需加载、输入提取、程序结果摘要、剩余流程交接。至少三项进入 G3–G11 的实际代码；两成员共用证据有帮助，但不设每个合理修复都必须已有两个正例的门。
 
 **完成：** 语料阅读已经产生可测试的实现问题；数量不足如实说明，不阻塞开发。

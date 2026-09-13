@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-13
 - 路线：G0–G14，单次真实 trace 驱动的通用 skill 优化
-- 状态：`planned-not-started`
+- 状态：`active`（G0 completed，G1 语料证据完成但生产落地承诺开放，G2 active）
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[持续开发任务书](../superpowers/plans/2026-09-13-general-skill-optimization-deepening.md)
 
@@ -16,9 +16,9 @@
 
 | 阶段 | 状态 | 交付与验收 |
 | --- | --- | --- |
-| G0 现场与基线 | planned | 确认归属、建立本轮机器恢复入口，单次相关测试 |
-| G1 语料驱动诊断 | planned | 广读目标 24–30、深读目标 8–10；至少三项问题进入生产实现，数量非硬门 |
-| G2 单次 trace | planned | 真实记录、任务资源与未知信息分开，后续验证不冒充优化输入 |
+| G0 现场与基线 | completed | 确认归属，建立机器恢复入口；规定的单次基线 9/9 tests、31 assertions |
+| G1 语料驱动诊断 | evidence-completed | 30 份广读、10 份深读、8 项积压已绑定；至少三项进入生产实现后才终态 completed |
+| G2 单次 trace | active | 真实记录、任务资源与未知信息分开，后续验证不冒充优化输入 |
 | G3 可执行动作 | planned | 复用机会/历史，动作依赖、参数与残余职责可表达 |
 | G4 模型优化 | planned | 解除普遍缺陷/重复次数/行数门槛，依据行为保留质量 |
 | G5 实现选择 | planned | 原脚本、领域组件、生成程序、文档重组按需选择 |
@@ -51,4 +51,4 @@ X1–X3 仅在主链达标且交付窗口允许时，深化多资源路径、信
 
 ## 启动方式
 
-将详细任务书最后一节作为持续目标启动文本。当前仅登记计划，未启动目标、模型调用、公开来源获取或新的运行结果。
+持续目标已启动。恢复时先读取 `results/skill-ir/general-skill-optimization-20260913/status.json`，按 `currentStage` 和 `nextAction` 继续；G0 基线不应为了恢复而重复运行。

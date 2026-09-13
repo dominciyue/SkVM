@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "skill-ir-general-implementation-backlog/v1",
+  "identity": "general-skill-optimization-20260913-g1",
+  "sourceReview": "results/skill-ir/general-skill-optimization-20260913/corpus-review.json",
+  "issues": [
+    {
+      "id": "g-action-plan-contract",
+      "priority": 1,
+      "evidenceLocator": [
+        "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md:92",
+        "results/skill-ir/skill-family-deepening-20260911/sources/mcp-use/mcp-use/3350560957fa03dd7dde3f4ce592046bb37e1c7c/skills/openapi-to-mcp/SKILL.md:54"
+      ],
+      "currentCode": ["src/jit-optimize/types.ts:432", "src/jit-optimize/workspace.ts:182"],
+      "problem": "Submissions can describe opportunities and file edits, but cannot represent independent implementation actions, their dependencies, preconditions, inputs, outputs, verification and residual duties.",
+      "crossStructureScope": ["existing Python scripts", "generated programs", "multi-stage network scaffolds", "docs-only restructuring"],
+      "testBehavior": ["reject duplicate action ids", "reject unknown dependencies and cycles with action-local errors", "accept legacy submissions with no actions"],
+      "plannedStages": ["G3", "G4", "G9"],
+      "selectedForProduction": true
+    },
+    {
+      "id": "g-implementation-selection",
+      "priority": 2,
+      "evidenceLocator": [
+        "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md:82",
+        "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md:204",
+        "results/skill-ir/skill-family-deepening-20260911/sources/vaquarkhan/ml-ops-agent-skills/43e909a2fb8dafcb029ee716e9857cd7f1ee77a5/skills/data-validation-and-contract-testing/SKILL.md:74"
+      ],
+      "currentCode": ["src/jit-optimize/solidification.ts:220"],
+      "problem": "The only post-proposal builder is API Tester-specific and does not select a source-provided program, optional domain backend, generated program or docs-only action from content.",
+      "crossStructureScope": ["law converter", "experimental design generators", "data validation pipeline", "ordinary instruction directories"],
+      "testBehavior": ["reuse the same declared source-script action under two unrelated directories", "do not infer API binding for ordinary directories", "separate not-applicable from implementation failure"],
+      "plannedStages": ["G5", "G6"],
+      "selectedForProduction": true
+    },
+    {
+      "id": "g-generic-package-export",
+      "priority": 3,
+      "evidenceLocator": [
+        "results/skill-ir/skill-family-deepening-20260911/sources/mcp-use/mcp-use/3350560957fa03dd7dde3f4ce592046bb37e1c7c/libraries/typescript/packages/server/examples/skills-over-mcp/skills/purchasing/SKILL.md:7",
+        "results/skill-ir/skill-family-deepening-20260911/sources/event4u-app/agent-config/4a77fe23c2d4d095c75ed84499a3aebc7cb72a53/src/skills/contract-review/SKILL.md:63"
+      ],
+      "currentCode": ["src/jit-optimize/solidification.ts:220", "src/proposals/deploy.ts:29"],
+      "problem": "Users can deploy a selected round over a source skill or build an API-specific package, but cannot export an independent generic package with exact actual diff, resources, runtime entrypoints and validation status.",
+      "crossStructureScope": ["docs-only", "source-script", "generated-script", "optional domain backend"],
+      "testBehavior": ["export docs, reused-script and generated-script packages without API injection", "preserve original skill", "truthfully return no-change", "bind additions, modifications, deletions and moves from the filesystem"],
+      "plannedStages": ["G7", "G8"],
+      "selectedForProduction": true
+    },
+    {
+      "id": "g-natural-consumption",
+      "priority": 4,
+      "evidenceLocator": [
+        "results/skill-ir/skill-family-deepening-20260911/sources/mcp-use/mcp-use/3350560957fa03dd7dde3f4ce592046bb37e1c7c/libraries/typescript/packages/server/examples/skills-over-mcp/skills/refunds/SKILL.md:7",
+        "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md:82"
+      ],
+      "currentCode": ["src/jit-optimize/consumption.ts:15"],
+      "problem": "Consumption analysis recognizes only SKILL.md under a literal skill directory and api-task-solidify.js under shell-like tools; it cannot verify arbitrary declared entries, source scripts, docs-only reads or a remaining-work handoff.",
+      "crossStructureScope": ["declared tool calls", "Python and Node programs", "docs-only packages", "post-program agent duties"],
+      "testBehavior": ["recognize arbitrary manifest-declared entries", "distinguish help, failed execution and successful result", "require residual work evidence when declared"],
+      "plannedStages": ["G10", "G11"],
+      "selectedForProduction": true
+    },
+    {
+      "id": "g-single-trace-deduplication",
+      "priority": 5,
+      "evidenceLocator": ["results/skill-ir/general-skill-optimization-20260913/corpus-review.json"],
+      "currentCode": ["src/jit-optimize/task-source.ts:159", "src/jit-optimize/trace-adapters.ts:631"],
+      "problem": "Execution-log loading appends every adapted record and only suffixes basename collisions. Repeating the same file or same bound record can masquerade as independent evidence.",
+      "crossStructureScope": ["all external trace formats"],
+      "testBehavior": ["deduplicate the same inputSha256 plus recordLocator", "retain distinct records from one multi-row file", "preserve missing usage as analyzable unknown"],
+      "plannedStages": ["G2"],
+      "selectedForProduction": true
+    },
+    {
+      "id": "g-prompt-admission-bias",
+      "priority": 6,
+      "evidenceLocator": [
+        "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md:20",
+        "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md:92"
+      ],
+      "currentCode": ["src/jit-optimize/optimizer.ts:237"],
+      "problem": "The prompt still treats repeated failures and defects as the default admission path and imposes an approximate 50-line ceiling, discouraging a successful single-trace rule conversion or a small multi-file program.",
+      "crossStructureScope": ["successful mechanical traces", "resource reorganization", "small multi-file generated helpers"],
+      "testBehavior": ["prompt admits a successful single run as evidence", "prompt keeps professional judgment residual", "prompt contains no universal repetition or line-count gate"],
+      "plannedStages": ["G4"],
+      "selectedForProduction": true
+    },
+    {
+      "id": "g-resource-navigation",
+      "priority": 7,
+      "evidenceLocator": [
+        "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md:211",
+        "results/skill-ir/skill-family-deepening-20260911/sources/pactflow/pactflow-agent-skills/463f70a32daba156376dbe030bbf23097a6a1ecb/plugins/swagger-contract-testing/skills/openapi-parser/SKILL.md:36"
+      ],
+      "currentCode": ["src/jit-optimize/workspace.ts:157"],
+      "problem": "The optimizer receives task-first evidence but no compact index of source resources, executable candidates, sizes or reference relationships, so large skills invite repeated broad reads.",
+      "crossStructureScope": ["many-reference instruction skills", "source-script skills", "large traces"],
+      "testBehavior": ["write a deterministic source resource index", "surface scripts and referenced files without reading their full content", "retain unreferenced skill rules in the copied workspace"],
+      "plannedStages": ["G2", "G4", "G11"],
+      "selectedForProduction": true
+    },
+    {
+      "id": "g-closure-diagnostic-classification",
+      "priority": 8,
+      "evidenceLocator": ["results/skill-ir/skill-family-deepening-20260911/sources.json"],
+      "currentCode": ["scripts/skill-ir/skill-family-acquire.ts:84"],
+      "problem": "The public resource closure planner reports commands, placeholders, JSON pointers and examples as missing resource paths; 208 missing-resource records across 31 complete bodies cannot be interpreted as 208 dependency failures.",
+      "crossStructureScope": ["all acquired public skill corpora"],
+      "testBehavior": ["classify unresolved references without upgrading heuristic candidates to required dependencies", "preserve genuine local missing paths", "keep acquisition history immutable"],
+      "plannedStages": ["G1 follow-up", "G14 documentation"],
+      "selectedForProduction": false
+    }
+  ],
+  "productionCommitment": {
+    "minimumIssuesToImplement": 3,
+    "selectedIssueIds": [
+      "g-action-plan-contract",
+      "g-implementation-selection",
+      "g-generic-package-export",
+      "g-natural-consumption",
+      "g-single-trace-deduplication",
+      "g-prompt-admission-bias",
+      "g-resource-navigation"
+    ]
+  },
+  "claimBoundary": "A backlog item is a development hypothesis until its behavior test and implementation pass. Corpus frequency is not a population estimate."
+}
