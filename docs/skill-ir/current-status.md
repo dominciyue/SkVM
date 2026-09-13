@@ -3,7 +3,7 @@
 - 更新日期：2026-09-14
 - 工作分支：`skill-ir-aot`
 - 当前路线：C0–C10，“原始输入内容 → 本地程序动作 → 元数据修复 → 同一个新包的自然消费”
-- 执行状态：`planned-not-started`；[新任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1、spec 14.32 已登记，尚未创建新运行状态或启动模型。
+- 执行状态：`active`；[新任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1、spec 14.32。C0 已建立机器状态与命名失败诊断，C1 正在补自然任务的运行前内容快照；尚未启动本轮模型。
 
 2026-09-14 二次复核：上一轮 H/R 报告原样保留，其组件与局部程序结果有效；但 R6 新优化 no-change 后使用旧 H8/H9 包，R7 输入本身为 H9 包，默认新程序生产闭环仍为 partial。新计划修复原始内容未传入验证、普通脚本修改被误送 domain backend、修复动作未采纳和候选/no-change 判断问题；旧包不能替代本次产物。
 
@@ -51,7 +51,7 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 
 ## 3. 当前计划
 
-当前待执行的是[单次真实运行到新程序包任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1、spec 14.32。C0–C2 补原始内容，C3–C4 补本地动作与元数据修复，C5–C7 调整机会判断并验证连续生产链，C8–C9 做真实新包消费及效果，C10 有限验证交付。仅在 C0 启动时创建 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/status.json`。
+当前执行的是[单次真实运行到新程序包任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1、spec 14.32。C0 已完成：实际起点为 `d619ee9`，机器状态和 `diagnosis.json` 已创建，命名历史材料证明输入内容缺失与 repair 动作未采纳是当前根因，锚点 selector 已修；基线为 12/12、48 assertions。C1–C2 补原始内容，C3–C4 补本地动作与元数据修复，C5–C7 调整机会判断并验证连续生产链，C8–C9 做真实新包消费及效果，C10 有限验证交付。
 
 最低交付要求至少一条从原始 skill 开始、本次优化器生成非 API 参数化程序的完整链，同一最终包在原/变化任务中实际调用；现成脚本路线另有真实尝试。no-change、文档草稿、旧包消费及测试数都不能替代。此处是计划，不是已实现能力。
 

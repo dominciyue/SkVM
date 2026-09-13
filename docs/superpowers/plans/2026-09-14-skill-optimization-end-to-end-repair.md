@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 bare-agent/provider、Python/Node skill 程序、既有 task/source 检查与通用包导出。默认沿用本机已配置模型路由。
 
-**状态：** revision 1，planned-not-started。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320`。本次仅登记任务书，不执行模型、不创建运行状态、不恢复或创建持续目标。执行授权来自后续用户的启动指令。
+**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0 已完成，C1 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
 
 **执行目录：** `D:\skill优化\SkVM`。结果根为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/`，仅在 C0 启动时创建 `status.json`。阶段记录、尝试和失败均收进该目录，不新增每阶段 Markdown。
 
@@ -71,11 +71,11 @@
 
 ## C0 — 用已知失败建立开发检查点
 
-- [ ] 检查分支、最近提交、tracked/staged 与本轮归属，读 current-status、spec 14.32 和本任务书。记录实际 HEAD，不重置到审查基线。
-- [ ] 创建本轮 `status.json`，只记录阶段、当前动作、尝试目录、失败原因、下一动作和费用位置；不新增摘要冻结层。
-- [ ] 从命名 Law/I18n 提交与初始/修复报告生成一份精简 `diagnosis.json`：区分原始资源缺失、动作声明拒绝、程序失败、模型 abstain、包导出失败。
-- [ ] 复查当前 selector 已支持 `scripts/x.py#symbol`；记录为已修。确认 `domain-backend` 不匹配仍存在，以及 repair 仍读取首轮动作。不能把静态发现描述成已发生过的成功修复被吞掉。
-- [ ] 只跑一次基础套件：`bun test ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/implementations.test.ts`。审查时为 12/12、48 assertions，新增失败必须具体归因。
+- [x] 检查分支、最近提交、tracked/staged 与本轮归属，读 current-status、spec 14.32 和本任务书。记录实际 HEAD，不重置到审查基线。
+- [x] 创建本轮 `status.json`，只记录阶段、当前动作、尝试目录、失败原因、下一动作和费用位置；不新增摘要冻结层。
+- [x] 从命名 Law/I18n 提交与初始/修复报告生成一份精简 `diagnosis.json`：区分原始资源缺失、动作声明拒绝、程序失败、模型 abstain、包导出失败。
+- [x] 复查当前 selector 已支持 `scripts/x.py#symbol`；记录为已修。确认 `domain-backend` 不匹配仍存在，以及 repair 仍读取首轮动作。不能把静态发现描述成已发生过的成功修复被吞掉。
+- [x] 只跑一次基础套件：`bun test ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/implementations.test.ts`。审查时为 12/12、48 assertions，新增失败必须具体归因。
 
 **验收：** 本轮回归和实现各有一个已证实根因，不重跑 H/R 真实任务。
 

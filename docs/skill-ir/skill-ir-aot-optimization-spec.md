@@ -2386,7 +2386,7 @@ H 路线优先将现有组件接入真实日志优化路径：动作实施后执
 
 ## 14.32 原始输入、动作修复与同一新包的生产闭环
 
-2026-09-14 二次复核及下一轮设计，状态 planned-not-started。执行依据为[新任务书 C0–C10](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md)，本节不声明新能力已实现。
+2026-09-14 二次复核及执行合同，状态 active。执行依据为[新任务书 C0–C10](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md)。C0 已完成命名失败诊断与 12/12、48 assertions 基线；C1 正在执行，本节不提前声明后续能力已实现。
 
 14.31 的历史基础设施和局部程序结果有效，但不能拼接为默认生产闭环成功：R6 当前候选最终 no-change 后消费历史 H8/H9 包，R7 从已优化 H9 包得到零程序动作的文档候选。新路线要求同一个原始 skill 的本次 capture、proposal、最终 snapshot、导出包和自然消费保持连续；旧包仅作回归对照。
 

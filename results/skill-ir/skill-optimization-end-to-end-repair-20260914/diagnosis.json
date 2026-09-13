@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "skill-ir-skill-optimization-end-to-end-repair-diagnosis/v1",
+  "identity": "skill-optimization-end-to-end-repair-20260914",
+  "exposure": "development",
+  "createdAt": "2026-09-14T06:24:00+08:00",
+  "headInspected": "d619ee915e33fc1e93489a02e987f4d78222969e",
+  "scope": {
+    "lawProposalId": "20260913T193254660Z",
+    "i18nProposalId": "20260913T192735046Z",
+    "historicalReportsRewritten": false,
+    "historicalRunsReplayed": false
+  },
+  "findings": [
+    {
+      "id": "law-pre-run-input-content-missing",
+      "category": "original-resource-missing",
+      "observed": true,
+      "currentSharedRootCause": true,
+      "evidence": [
+        "results/skill-ir/skill-optimization-production-closure-20260913/r6/law-reuse/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/skill/20260913T193254660Z/round-1-optimizer/optimize-context/IMPLEMENTATION_CONTEXT.json"
+      ],
+      "facts": [
+        "The Law evidence input status is empty and files is an empty array.",
+        "The context exposes two post-run Markdown outputs and no checks.",
+        "The proposal explicitly says the original fixture manifest is unresolved/empty, so its candidate could not be validated against original document bytes."
+      ],
+      "nextStage": "C1-C2"
+    },
+    {
+      "id": "law-reuse-anchor-selection",
+      "category": "action-declaration-rejected",
+      "observed": true,
+      "currentSharedRootCause": false,
+      "evidence": [
+        "results/skill-ir/skill-optimization-production-closure-20260913/r6/law-reuse/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/skill/20260913T193254660Z/round-1-validation/initial-report.json",
+        "src/jit-optimize/implementations.ts:60",
+        "src/jit-optimize/validation-lifecycle.ts:328"
+      ],
+      "facts": [
+        "The historical lifecycle rejected the reuse action as having no executable source reference.",
+        "Current executableRef removes a #symbol anchor before extension matching and current dependency binding does the same.",
+        "This is an already-repaired selector defect, not evidence that the historical action executed successfully."
+      ],
+      "nextStage": "regression-only"
+    },
+    {
+      "id": "law-local-script-misdeclared-domain-backend",
+      "category": "action-declaration-rejected",
+      "observed": true,
+      "currentSharedRootCause": true,
+      "evidence": [
+        "results/skill-ir/skill-optimization-production-closure-20260913/r6/law-reuse/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/skill/20260913T193254660Z/round-1-optimizer/submission.json",
+        "results/skill-ir/skill-optimization-production-closure-20260913/r6/law-reuse/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/skill/20260913T193254660Z/round-1-validation/initial-report.json",
+        "src/jit-optimize/implementations.ts:170"
+      ],
+      "facts": [
+        "The optimizer modified scripts/law_to_markdown.py but declared the action as domain-backend.",
+        "No registered backend accepted that contract, so the implementation remained not-applicable and no program ran.",
+        "The generic selector still reserves domain-backend for registered backends; C3 must make local script repair diagnostics and action choice explicit rather than silently coercing it."
+      ],
+      "nextStage": "C3"
+    },
+    {
+      "id": "law-lifecycle-program-execution",
+      "category": "program-failure",
+      "observed": false,
+      "currentSharedRootCause": false,
+      "evidence": [
+        "results/skill-ir/skill-optimization-production-closure-20260913/r6/law-reuse/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/skill/20260913T193254660Z/round-1-validation/initial-report.json"
+      ],
+      "facts": [
+        "The lifecycle recorded programRuns=0, helpRuns=0 and caseRuns=0.",
+        "Action selection failed before program execution; this must not be reported as a candidate program execution failure."
+      ],
+      "nextStage": "C3-C4"
+    },
+    {
+      "id": "law-repair-action-metadata-discarded",
+      "category": "model-abstain",
+      "observed": true,
+      "currentSharedRootCause": true,
+      "evidence": [
+        "results/skill-ir/skill-optimization-production-closure-20260913/r6/law-reuse/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/skill/20260913T193254660Z/round-1-repair-1-optimizer/submission.json",
+        "results/skill-ir/skill-optimization-production-closure-20260913/r6/law-reuse/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/skill/20260913T193254660Z/round-1-validation/repair-report.json",
+        "src/jit-optimize/loop.ts:1204"
+      ],
+      "facts": [
+        "The repair submission returned noChanges=true and actions=[], treating actionable metadata diagnostics as a reason to abandon the candidate.",
+        "The current loop still passes candidateSubmission.actions into the repair validation lifecycle instead of a constrained merge of repairResult.submission.actions.",
+        "The repair report therefore repeats the initial action set and the final report rolls back both modified files."
+      ],
+      "nextStage": "C4-C5"
+    },
+    {
+      "id": "i18n-bounded-opportunity-abstained",
+      "category": "model-abstain",
+      "observed": true,
+      "currentSharedRootCause": true,
+      "evidence": [
+        "results/skill-ir/skill-optimization-production-closure-20260913/r6/i18n-generated/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/skill/20260913T192735046Z/round-1-optimizer/submission.json",
+        "results/skill-ir/skill-optimization-production-closure-20260913/r6/i18n-generated/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/skill/20260913T192735046Z/round-1-optimizer/optimize-context/IMPLEMENTATION_CONTEXT.json"
+      ],
+      "facts": [
+        "The evidence contained materialized project inputs plus five passing task checks.",
+        "The submission recognized a plausible contract-aware checker but rejected trying it because it would not cover the entire skill and might divert a passing workflow.",
+        "C5 must separate a bounded candidate attempt from recommendation and retain uncovered translation/source-edit duties."
+      ],
+      "nextStage": "C5-C6"
+    },
+    {
+      "id": "named-attempt-package-export",
+      "category": "package-export-failure",
+      "observed": false,
+      "currentSharedRootCause": false,
+      "evidence": [
+        "results/skill-ir/skill-optimization-production-closure-20260913/r6/law-reuse/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/skill/20260913T193254660Z/history.json",
+        "results/skill-ir/skill-optimization-production-closure-20260913/r6/i18n-generated/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/skill/20260913T192735046Z/history.json"
+      ],
+      "facts": [
+        "Law rolled back before an exportable changed round survived; I18n selected round 0 after no-change.",
+        "Neither named attempt reached package export, so absence of a package is not an export failure."
+      ],
+      "nextStage": "C7-C8"
+    }
+  ],
+  "historicalAccounting": {
+    "lawOptimizerTokens": { "input": 105614, "output": 13838, "cacheRead": 898304, "cacheWrite": 0 },
+    "lawRepairTokens": { "input": 31504, "output": 3249, "cacheRead": 217600, "cacheWrite": 0 },
+    "i18nOptimizerTokens": { "input": 42577, "output": 3729, "cacheRead": 56960, "cacheWrite": 0 },
+    "reportedCostUsd": 0,
+    "actualCostUsd": null,
+    "note": "Historical provider records contain zero-valued cost without a route price or invoice binding; actual USD remains unknown and is not charged to the new C identity."
+  },
+  "conclusion": "C0 establishes two current production roots: pre-run content is absent from natural-task evidence, and repair validation does not adopt constrained repaired action metadata. Local script misdeclaration and opportunity-abstention are additional current method roots. The historical anchor selector defect is already fixed. No named lifecycle program run or package export occurred, so neither may be called a runtime/export failure."
+}
