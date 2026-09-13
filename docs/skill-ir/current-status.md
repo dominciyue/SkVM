@@ -3,7 +3,7 @@
 - 更新日期：2026-09-13
 - 工作分支：`skill-ir-aot`
 - 当前路线：G0–G14，“单次真实 trace → 通用优化过程 → 新 skill 包 → 自然消费”
-- 执行状态：`active`（G0–G3 completed，G4 active）
+- 执行状态：`active`（G0–G6 completed，G7 active）
 
 本页是 Skill IR 唯一实时状态入口。日期化任务书、历史计划和结果报告都不是“当前状态”。
 
@@ -47,7 +47,7 @@ trace 优化闭环已完成。最窄证据入口见[证据索引](evidence-index
 4. G10–G13：自然消费、共享上下文优化、少量多结构案例与后加入 development 成员检查。
 5. G14：有限验证和交付；主链提前达标且窗口允许时执行 X1–X3。
 
-任务级细节见[当前计划](skill-ir-aot-optimization-plan.md)与[持续开发任务书](../superpowers/plans/2026-09-13-general-skill-optimization-deepening.md)。G0 基线为 9/9 tests、31 assertions。G1 广读 30 份、深读 10 份，且单记录去重、完整资源导航、依赖化动作合同三项问题已经进入生产代码。G2 的真实 Law To Markdown 非 API 记录仍为 unassessed。G3 新增四类动作、依赖/循环/局部解析诊断和 history 持久化，真实 diff 继续是实施权威。机器恢复入口为 `results/skill-ir/general-skill-optimization-20260913/status.json`；当前进入 G4 优化模型行为。下方命令仍只描述已交付能力，未通过对应阶段前不宣称新通用包入口存在。
+任务级细节见[当前计划](skill-ir-aot-optimization-plan.md)与[持续开发任务书](../superpowers/plans/2026-09-13-general-skill-optimization-deepening.md)。G0 基线为 9/9 tests、31 assertions。G1 广读 30 份、深读 10 份，且单记录去重、完整资源导航、依赖化动作合同三项问题已经进入生产代码。G2 的真实 Law To Markdown 非 API 记录仍为 unassessed。G3 新增四类动作、依赖/循环/局部解析诊断和 history 持久化。G4 放开了普遍的缺陷、重复次数和约 50 行门槛，但唯一真实 proposal 在缺少质量失败证据时正确返回 no-change。G5 按动作语义选择原脚本、可选领域后端、生成程序或文档重组；G6 复用既有 Law 转换器，在固定依赖环境中通过帮助、原输入、变化输入、空输入拒绝和缺文件错误共 5 项验证，且两份产物经独立字符流检查。机器恢复入口为 `results/skill-ir/general-skill-optimization-20260913/status.json`；当前进入 G7 通用包导出。下方命令仍只描述已交付能力，未通过对应阶段前不宣称新通用包入口存在。
 
 ## 4. 直接运行
 

@@ -1,0 +1,66 @@
+{
+  "rootCause": "The only clean evidence shows a successful execution and complete minimal artifact set, while the run is UNASSESSED and provides no evaluator criterion or quality signal identifying a general defect in the skill. The observed transformation, output naming, report contents, input preservation, and review claims are already covered by the existing instructions and bundled pipeline, so there is no evidence-supported skill-level root cause to repair.",
+  "reasoning": "Evidence 0 has runStatus=ok, produced the requested markdown/document/ directory with both minimal artifacts, left document.txt unchanged, classified the input, applied the prescribed title/chapter/article and item formatting, and reported Stage3-A and Stage3-B as passing. Because the task has no structured evaluation data, this artifact/trace evidence establishes successful workflow behavior but does not establish a quality failure or a missing rule. I therefore retain the existing instructions rather than guessing at an edit. Generality test: no proposed fix can be justified from this run; a task-specific tweak would violate the task-content-agnostic requirement. Rewrite-in-place test: no vague or conflicting section is evidenced, so there is nothing to rewrite in place. Coherent scope: the smallest complete implementation is no change. No-trade-off test: PER_TASK_SUMMARY lists no PASSING tasks, but the absence of a regression constraint does not turn unscored evidence into a defect, and an speculative change could still reduce behavior on other law-to-markdown tasks. The existing skill already parameterizes document type, output level, fallback consent, stage checks, retries, and output paths; it also preserves agent duties around document judgment and reporting. No files other than this required submission record were edited.",
+  "confidence": 0.84,
+  "changedFiles": [],
+  "changes": [],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "The observed task followed the existing staged workflow and output contract; no ambiguity causing an error is visible.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must still apply the instructions to the actual input and communicate the resulting files without reproducing the document."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "The skill already exposes document-type decisions, fallback consent, artifact level, output location, and Stage3 controls, and the run used the relevant minimal-output behavior.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must select parameters appropriate to the supplied file and user constraints."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "The bundled conversion and normalization pipeline already makes the repeated TXT-to-Markdown and structure-formatting transformation executable.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must invoke the bundled workflow rather than inventing task-specific transformation logic when the bundled runtime is usable."
+    },
+    {
+      "category": "verification",
+      "summary": "The skill already specifies the dual Stage3 content-preservation and structural checks, and the observed report records both as passing.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must not treat a purportedly successful conversion as deliverable when the configured checks fail."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "The run was clean and used a TXT input, for which the skill has no external OCR dependency; no environment failure or missing dependency is evidenced.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "For DOCX/PDF inputs, the agent must follow the mineru-ocr availability and explicit-fallback-consent policy."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Document-type judgment, adherence to the user's no-network/no-install constraints, input immutability, and concise delivery communication remain appropriate agent responsibilities and were visibly satisfied.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent remains responsible for context-dependent legal/non-legal judgment and for confirming the final artifact contract before replying."
+    }
+  ],
+  "actions": [],
+  "actionDiagnostics": [],
+  "noChanges": true
+}

@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "skill-ir-general-program-validation/v1",
+  "identity": "general-skill-optimization-20260913-g6-law-reuse-001",
+  "exposure": "development",
+  "sourceCommit": "1f802860bff63f3a8a8fcae03b191a3407e557ea",
+  "implementation": {
+    "selection": "reuse-script",
+    "entry": "scripts/law_to_markdown.py",
+    "runtime": "python",
+    "generatedForMetric": false,
+    "reason": "The selected skill already contains an equivalent parameterized conversion program; G6 therefore reuses it instead of rewriting the algorithm."
+  },
+  "environment": {
+    "initialAttempt": {
+      "status": "failed",
+      "layer": "environment-not-reconstructable",
+      "command": "python law_to_markdown.py --help",
+      "exitCode": 1,
+      "error": "ModuleNotFoundError: No module named 'docx'"
+    },
+    "reconstructedRuntime": {
+      "python": "3.10.11",
+      "declaredRequirements": ["python-docx>=1.1.0", "pdfplumber>=0.11.0"],
+      "directPinsUsedForThisRun": ["python-docx==1.2.0", "pdfplumber==0.11.8"],
+      "dependencyFreeze": [
+        "cffi==2.1.1",
+        "charset-normalizer==3.5.1",
+        "cryptography==50.0.1",
+        "lxml==6.1.3",
+        "pdfminer.six==20251107",
+        "pdfplumber==0.11.8",
+        "pillow==12.3.0",
+        "pycparser==3.0",
+        "pypdfium2==5.13.0",
+        "python-docx==1.2.0",
+        "typing_extensions==4.16.0"
+      ]
+    }
+  },
+  "runs": [
+    {
+      "id": "help",
+      "expectedExitCode": 0,
+      "actualExitCode": 0,
+      "status": "passed",
+      "assertions": ["usage lists positional input", "--out-dir is documented", "--artifact-level is documented"]
+    },
+    {
+      "id": "original-input",
+      "input": "original/document.txt",
+      "expectedExitCode": 0,
+      "actualExitCode": 0,
+      "status": "passed",
+      "output": "original/out/document/document+最终成果.md",
+      "result": "APPROVED"
+    },
+    {
+      "id": "changed-and-renamed-input",
+      "input": "changed/renamed-input.txt",
+      "expectedExitCode": 0,
+      "actualExitCode": 0,
+      "status": "passed",
+      "output": "changed/out/renamed-input/renamed-input+最终成果.md",
+      "result": "APPROVED"
+    },
+    {
+      "id": "legal-empty-input",
+      "input": "empty/empty.txt",
+      "expectedExitCode": 1,
+      "actualExitCode": 1,
+      "status": "passed",
+      "output": "empty/out/empty/empty+审核报告.md",
+      "result": "REJECTED_CHECK_FAILED",
+      "reason": "An empty legal document cannot satisfy the required title and chapter/article structure, so explicit rejection is the contract-correct outcome."
+    },
+    {
+      "id": "missing-resource",
+      "input": "missing.txt",
+      "expectedExitCode": 1,
+      "actualExitCode": 1,
+      "status": "passed",
+      "result": "Input not found"
+    }
+  ],
+  "files": [
+    {"path": "original/document.txt", "bytes": 184, "sha256": "bb551d6e0c54d3c6d76035e113b916f93e342c12ae2bbf8b6cac8f081ecf185c"},
+    {"path": "original/out/document/document+最终成果.md", "bytes": 211, "sha256": "dca6397ad55690935e9efd4277e7d0bdee332f0a1f575723341d8ab3f79e1767"},
+    {"path": "changed/renamed-input.txt", "bytes": 202, "sha256": "f6d7f066743ca7773338ef81b0409857cf3285cd1e36c2bd6d78a56aa1549192"},
+    {"path": "changed/out/renamed-input/renamed-input+最终成果.md", "bytes": 229, "sha256": "c935d26f7cad751d77b472ea29db74a57e621b1d554c52ad0298561d152aeeb2"},
+    {"path": "empty/empty.txt", "bytes": 1, "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"},
+    {"path": "empty/out/empty/empty+审核报告.md", "bytes": 3333, "sha256": "cc6afd731178f4b081e81716338089ad97a4d9ffa4e3d22b050c77f515d01c68"}
+  ],
+  "independentChecks": {
+    "method": "Compare source and Markdown character streams after independently removing heading markers and whitespace; also assert the changed marker and changed output digest.",
+    "originalCharacterStreamPreserved": true,
+    "changedCharacterStreamPreserved": true,
+    "changedOutputDiffers": true,
+    "changedMarkerPresent": true
+  },
+  "summary": {
+    "runCount": 5,
+    "correctOutcomes": 5,
+    "unexpectedFailures": 0,
+    "environmentFailuresRetained": 1,
+    "status": "passed-after-declared-environment-reconstruction"
+  },
+  "claimBoundary": "This validates one existing non-API program on deterministic development inputs. It is not a generated-program success, a whole-skill quality result, or an effect estimate."
+}

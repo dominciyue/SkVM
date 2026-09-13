@@ -70,6 +70,25 @@ source refs、依赖、可变输入、输出、前置条件、实际涉及路径
 和 proposal analysis 都保存有效动作与拒绝定位。动作的 `changedPaths` 仍是声明，是否实施只由真实工作区 diff 证明。
 机器验证见 `results/skill-ir/general-skill-optimization-20260913/g3-action-plan-verification.json`。
 
+### 3.0.2 通用实现选择与程序验证
+
+G4 的 optimizer 合同允许从一次成功但未评分的运行中提出有依据的规则转换，同时要求把专业判断保留为
+`residualDuties`，不得把 unknown score 改写成失败。缺陷、跨运行重复和约 50 行新增不再是普遍准入门；模型仍须说明
+证据、适用范围、质量目标和真实文件集合。本轮唯一真实 Law To Markdown proposal 读取了完整资源索引和所需脚本，
+但因为记录没有独立质量失败证据而返回 no-change。该结果证明 no-change 路径诚实，不构成优化效果正例。完整原始模型
+事件以单成员 tar+gzip 归档，provider 实际费用仍为 unknown。
+
+`selectOptimizationImplementation` 只按动作 kind、声明路径和可选领域后端选择实现，不读取 skill/repository 名称。
+复用脚本和生成程序必须指向包内真实可执行文件；纯文档动作不要求 API binding；领域后端的 not-applicable 与执行失败
+分开。输入、输出、前置条件、验证和残余职责从动作原样保留，未知参数不自动填充。
+
+`validateOptimizationProgram` 在包路径边界内运行选中程序的帮助和显式案例，记录命令、退出码、stdout/stderr、输出文件
+摘要和逐项诊断。它只执行调用方声明的领域断言，不承担领域正确性自证。本轮 G6 因原 skill 已含等价程序而复用
+`scripts/law_to_markdown.py`；初次系统 Python 缺 `python-docx` 的环境失败被保留，随后在 Python 3.10.11 与固定直接依赖
+环境中验证帮助、原/变化输入、任务合法的空输入拒绝和缺资源错误。独立检查另行比较输入/Markdown 字符流及变化标记，
+避免由转换器自证。机器报告位于
+`results/skill-ir/general-skill-optimization-20260913/g6-program-validation/report.json`。
+
 当前使用双源：original 证明失败 lineage 是否持续，ir-static 提供 schema/location 等静态残差。只在
 original 与 static 均失败、证据公开且可复现时生成 repair；static regression 直接阻断。
 

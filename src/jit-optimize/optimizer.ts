@@ -282,6 +282,9 @@ Then read \`.optimize/README.md\` — it explains the full layout. In short:
 - \`.optimize/tasks/<safeTaskId>/run-N.json\` — same data in structured form.
 - \`.optimize/tasks/<safeTaskId>/run-N-workdir/\` — files the agent left in
   its work directory on that run.
+- \`.optimize/SKILL_RESOURCE_INDEX.md\` — complete configured skill-file
+  navigation and explicit trace-to-skill bindings. Read only the resources
+  relevant to an opportunity, but do not assume an unobserved rule is unused.
 ${historyCount > 0 ? `- \`.optimize/history.md\` — ${historyCount} previous optimization round(s) with their root causes and whether they improved scores. READ THIS BEFORE PROPOSING CHANGES.` : ""}
 
 ## Method
@@ -294,10 +297,13 @@ ${historyCount > 0 ? `- \`.optimize/history.md\` — ${historyCount} previous op
    **failing/marginal first, unassessed next, passing last**. Passing evidence
    can still support an optimization when repeated work or a general contract
    gap is visible; it is not limited to regression protection.
-   For each failing task, look at every run-N.md it has: if a task failed
-   on the same criterion across multiple runs, that is a skill defect; if
-   it failed differently each time, the failure is task-or-infra-specific
-   and is probably NOT a skill defect.
+   Do not impose a universal repetition threshold. One successful run may
+   establish that a specific mechanical transformation occurred and support
+   a parameterized, verifiable action. However, one successful run does not by itself prove quality
+   or improvement. Conversely, unknown quality is neither failure nor success.
+   Additional runs may strengthen a diagnosis, but they are not a prerequisite
+   when source rules, visible inputs/outputs and an independent check already
+   support the proposed boundary.
 3. ${historyCount > 0 ? "Read history.md. Do not repeat diagnoses that previous rounds tried and failed to improve. If previous rounds clarified something and it didn't help, the problem is elsewhere — look harder." : "Read the skill files you need to understand (SKILL.md is the entry point)."}
 4. Inventory every evidence-backed opportunity before choosing edits. Use
    these exact categories in the submission: \`instruction-clarity\`,
@@ -307,6 +313,9 @@ ${historyCount > 0 ? `- \`.optimize/history.md\` — ${historyCount} previous op
    any residual agent duty. Do not treat an absent score or absent criterion as
    a failure. Passing evidence can still support an optimization; repeated
    transformations and avoidable verification work are positive evidence.
+   Keep professional judgment, policy choices and context-dependent decisions
+   in \`residualDuties\`: those responsibilities must remain with the agent unless
+   the source and a checker make their replacement explicit and testable.
 
    Then identify the root cause of the selected opportunity. State it as an underlying gap in
    the skill's instructions or bundle, not as a list of changes. Good root causes are
@@ -335,9 +344,12 @@ ${historyCount > 0 ? `- \`.optimize/history.md\` — ${historyCount} previous op
       contradict the fix. If you're unsure whether a rule still applies,
       leave it.
 
-   c) **Budget.** Aim for a net diff under ~50 added lines across all
-      files for this round. If your diagnosis needs more than that, the
-      root cause is probably wrong — go back to step 4.
+   c) **Coherent scope.** Prefer the smallest complete implementation that
+      makes the selected opportunity usable and testable. A small multi-file program
+      is valid when its runtime, parameters and checker need separate files. You may
+      move long tutorials or references behind on-demand navigation when doing so
+      preserves every rule. Judge complexity by evidence, cohesion and verification,
+      not an approximate line-count threshold.
 
    d) **No-trade-off test.** List every task in \`PER_TASK_SUMMARY.md\` with
       status \`PASSING\`. For each one, ask yourself: "Could the change I'm
@@ -389,9 +401,15 @@ Write \`.optimize/submission.json\` with these fields (see
   \`{"category","summary","evidenceIds","disposition","residualDuty"?}\`.
   \`disposition\` is \`implemented\`, \`retained\`, or \`not-applicable\`. Do not mark
   a residual duty implemented merely because the skill documents it.
+- \`actions\` (array, optional): dependency-aware implementation actions. Each
+  complete action contains \`id\`, \`kind\`, \`evidenceIds\`, \`sourceRefs\`,
+  \`dependsOn\`, \`inputs\`, \`outputs\`, \`preconditions\`, \`changedPaths\`,
+  \`residualDuties\`, and \`verification\`. Use \`reuse-script\`, \`domain-backend\`,
+  \`generate-script\`, or \`restructure-docs\`. Do not invent empty values for
+  unknown required facts; omit an unsupported action and retain the opportunity.
 
-If you determine the skill needs no changes — the evidence shows the skill is
-fine and every observed opportunity is already handled or must remain a
+If you determine the skill needs no changes — every evidence-backed opportunity
+is already handled, is not verifiable, or must remain a
 residual duty — write \`{"noChanges": true, "opportunities": [...]}\` to
 submission.json and do NOT edit any files. This is a
 legitimate outcome, not a failure: the Pre-Edit Checklist in step 4(a) is

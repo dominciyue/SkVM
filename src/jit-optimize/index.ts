@@ -89,6 +89,27 @@ export {
 
 export { validateOptimizationActions } from "./action-plan.ts"
 export type { OptimizationActionValidationResult } from "./action-plan.ts"
+export {
+  selectOptimizationImplementation,
+  selectOptimizationImplementations,
+} from "./implementations.ts"
+export type {
+  ImplementationSelection,
+  ImplementationSelectionStatus,
+  DomainImplementationBackend,
+  DomainImplementationBackendSelection,
+  SelectOptimizationImplementationOptions,
+  SelectOptimizationImplementationsOptions,
+} from "./implementations.ts"
+export { validateOptimizationProgram } from "./package-validation.ts"
+export type {
+  ValidateOptimizationProgramOptions,
+  OptimizationProgramValidationResult,
+  ProgramValidationExpectation,
+  ProgramValidationCase,
+  ProgramRunValidation,
+  ProgramOutputFileEvidence,
+} from "./package-validation.ts"
 
 export { runOptimizer } from "./optimizer.ts"
 export { runLoop } from "./loop.ts"

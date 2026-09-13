@@ -95,4 +95,41 @@ describe("buildOptimizerPrompt", () => {
     expect(p).toContain("changedFiles")
     expect(p).toContain("every file you create or edit")
   })
+
+  test("admits an evidence-backed transformation observed in one successful run", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("one successful run")
+    expect(p).toContain("mechanical transformation")
+    expect(p).toContain("does not by itself prove quality")
+    expect(p).not.toContain("same criterion across multiple runs, that is a skill defect")
+  })
+
+  test("keeps professional judgment as a residual duty instead of pretending to solidify it", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("professional judgment")
+    expect(p).toContain("residualDuties")
+    expect(p).toContain("must remain with the agent")
+  })
+
+  test("does not turn an unknown score into failure or success", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("unknown quality")
+    expect(p).toContain("neither failure nor success")
+  })
+
+  test("has no universal repetition or approximate line-count admission gate", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).not.toContain("under ~50 added lines")
+    expect(p).not.toContain("If your diagnosis needs more than that")
+    expect(p).toContain("small multi-file program")
+    expect(p).toContain("move long tutorials or references")
+  })
+
+  test("asks for dependency-aware actions in the structured submission", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("actions")
+    expect(p).toContain("dependsOn")
+    expect(p).toContain("preconditions")
+    expect(p).toContain("verification")
+  })
 })
