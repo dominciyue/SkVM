@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-14
 - 路线：H0–H14 + R1–R7，自动采集真实运行的 skill 优化生产链
-- 状态：`active-H14`；H0–H13、R1–R7 已完成，Y1 不适用、Y2 复用实际证据完成；恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
+- 状态：`completed-development`；H0–H14、R1–R7 已完成，Y1 不适用、Y2 复用实际证据完成；总报告为 `results/skill-ir/skill-optimization-production-closure-20260913/final-report.json`
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 3
 - 方法依据：spec 14.31
@@ -33,9 +33,9 @@ H0 启动时的验证接线、待验证依赖和最终包状态缺口已由 H3�
 | H11 实际使用开销 | completed | 常规入口策略与 general-skill gzip trace 接入完成；同任务配对质量通过、discovery 2→1、tool 11→9，完整指标与 unknown USD 并列 |
 | H12 过程复用 | completed | Env 同入口单次尝试为合理 no-change，未制造程序或包 |
 | H13 工程使用 | completed | 普通自然入口、一次复制后的临时目录闭包/TXT 消费与实际命令均已验证；首个 cache 污染失败保留 |
-| H14 验证与交付 | active | 有限回归、文档、精确提交并推用户 origin |
+| H14 验证与交付 | completed | 首次 343/347 后修复 4 项，针对性 18/18、最终 347/347；typecheck/文档通过，三分栏总报告已交付 |
 
-执行顺序为 H12 → R1–R7 → H13 → 适用 Y1/Y2 → H14。R1–R7 与 H13 已实际完成；Y1 因无真实双程序前提记不适用，Y2 复用 R7 缺 provider cost 的真实支持 trace 完成，当前只执行 H14，不回滚或重抽 R6/R7 的模型样本。
+执行顺序 H12 → R1–R7 → H13 → 适用 Y1/Y2 → H14 已完成。Y1 因无真实双程序前提记不适用，Y2 复用 R7 缺 provider cost 的真实支持 trace 完成；没有回滚或重抽 R6/R7 的模型样本。
 
 | 新增阶段 | 状态 | 交付与验收 |
 | --- | --- | --- |
@@ -53,7 +53,9 @@ R6 的机器入口为 `results/skill-ir/skill-optimization-production-closure-20
 
 R7 的机器入口为 `results/skill-ir/skill-optimization-production-closure-20260913/r7/report.json`。普通项目命令没有 task/log/locator/criteria/package-out 接线，source、capture、handoff 与 proposal 均由默认入口产生；原 Law 产物 Stage3 通过。该 optimizer 只给出未验证的文档改进，因此包为 draft，不新增程序行为正例。实际运行修复了 Windows 无 HOME 时 cache 落入 cwd，以及有效优化包无法再次导出的共享缺陷；首次 package failure 通过同一 session 的 package-only resume 完成，未重跑业务任务或 optimizer。自动 capture 当前只确认 bare-agent，其他注册 adapter 保持 unverified；USD unknown 不记零。
 
-H13 的机器入口为 `results/skill-ir/skill-optimization-production-closure-20260913/h13/report.json`。R7 包一次复制到全新系统临时目录后，生产闭包核验在复制处通过；从新 cwd 使用复制包的 `python -B` TXT 命令，Stage3 A/B/overall 通过，输入和包均保持摘要不变，研究根路径匹配为 0。首次复制因预检查生成的未跟踪 Python cache 而被正确拒绝，失败保留且未改提交字节。该结果只证明局部 TXT 可搬运消费，不改变 draft/behavior not-run 与 effect unknown。当前只执行 H14 有限回归和最终交付。
+H13 的机器入口为 `results/skill-ir/skill-optimization-production-closure-20260913/h13/report.json`。R7 包一次复制到全新系统临时目录后，生产闭包核验在复制处通过；从新 cwd 使用复制包的 `python -B` TXT 命令，Stage3 A/B/overall 通过，输入和包均保持摘要不变，研究根路径匹配为 0。首次复制因预检查生成的未跟踪 Python cache 而被正确拒绝，失败保留且未改提交字节。该结果只证明局部 TXT 可搬运消费，不改变 draft/behavior not-run 与 effect unknown。随后进入 H14 有限回归和最终交付。
+
+H14 的机器入口为 `results/skill-ir/skill-optimization-production-closure-20260913/h14/verification.json`，总报告为同 identity 的 `final-report.json`。首次合并回归 343/347，四项失败全部保留并归因为两项 Windows 路径测试、一个并发测试调度假设和一个嵌套 snapshot portable-key 生产缺陷；共享 reader 与测试边界修复后，针对性 18/18、最终合并 347/347、typecheck 与文档治理均通过。最终判断 engineering complete、behavior partial、effect unknown；无 readiness、prospective 或人工节省结论。当前路线停止扩展，等待复核。
 
 Y1 多程序接力因当前真实最终选择没有双程序组合而 `not-applicable`；Y2 由 R7 实际 bare-agent trace 在成本字段未知时仍给出有依据的小改进、诊断和 draft/no-program 状态，记 `passed-existing-evidence`。没有新增模型调用、adapter 或真实样本。
 

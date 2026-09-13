@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-h14-verification/v1",
+  "identity": "development",
+  "stage": "H14",
+  "baselineCommit": "f8e1669caad1881bac8abff9a4a24032e8c5b932",
+  "runtime": {
+    "skvmVersion": "0.1.4",
+    "bun": "1.3.14",
+    "os": "Windows x64"
+  },
+  "preRepairMerged": {
+    "command": "bun test ./test/jit-optimize ./test/cli/jit-optimize.test.ts ./test/proposals/storage.test.ts",
+    "passed": 343,
+    "failed": 4,
+    "tests": 347,
+    "assertions": 991,
+    "status": "failed-preserved",
+    "details": "failure-attempts.json"
+  },
+  "repairs": [
+    {
+      "layer": "production",
+      "file": "src/jit-optimize/record.ts",
+      "change": "Read recursive Dirent parents across Bun/Node variants and normalize nested snapshot keys to forward-slash portable paths.",
+      "risk": "Without this, a nested workdir snapshot could be persisted but not addressed by its original portable key on Windows."
+    },
+    {
+      "layer": "test",
+      "file": "test/jit-optimize/detach-env.test.ts",
+      "change": "Compare the documented resolved root rather than a POSIX spelling on Windows."
+    },
+    {
+      "layer": "test",
+      "file": "test/jit-optimize/task-concurrency.test.ts",
+      "change": "Release both active waves without assuming train/test admission order; retain the global max-in-flight assertion."
+    }
+  ],
+  "targetedAfterRepair": {
+    "command": "bun test ./test/jit-optimize/detach-env.test.ts ./test/jit-optimize/record.test.ts ./test/jit-optimize/task-concurrency.test.ts",
+    "passed": 18,
+    "failed": 0,
+    "assertions": 61
+  },
+  "mergedAfterRepair": {
+    "command": "bun test ./test/jit-optimize ./test/cli/jit-optimize.test.ts ./test/proposals/storage.test.ts",
+    "passed": 347,
+    "failed": 0,
+    "tests": 347,
+    "assertions": 998
+  },
+  "typecheck": {
+    "command": "bun run typecheck",
+    "status": "passed"
+  },
+  "documentation": {
+    "testCommand": "python scripts/check_skill_ir_doc_links_test.py",
+    "tests": 12,
+    "status": "passed",
+    "scanCommand": "python scripts/check_skill_ir_doc_links.py",
+    "scannedFiles": 8882,
+    "brokenReferences": 0,
+    "legacyReferences": 0,
+    "governanceErrors": 0,
+    "existingSoftLineWarnings": 4
+  },
+  "modelOrExternalCalls": 0,
+  "packageOrHistoricalReruns": 0,
+  "finalDiffCheck": "passed after final report and documentation synchronization",
+  "originAlignment": "A post-commit push check is recorded in the outer conversation/handoff ledgers and user response because a Git commit cannot contain its own hash."
+}

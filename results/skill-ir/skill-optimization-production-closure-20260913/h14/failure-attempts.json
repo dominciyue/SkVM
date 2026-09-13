@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-h14-failures/v1",
+  "identity": "development",
+  "baselineCommit": "f8e1669caad1881bac8abff9a4a24032e8c5b932",
+  "attempts": [
+    {
+      "attempt": 1,
+      "command": "bun test ./test/jit-optimize ./test/cli/jit-optimize.test.ts ./test/proposals/storage.test.ts",
+      "result": { "passed": 343, "failed": 4, "tests": 347, "assertions": 991, "exitCode": 1 },
+      "failures": [
+        {
+          "test": "detach worker env forwarding > forwards a --tmp-dir flag as SKVM_TMP_DIR so the detached worker honors it",
+          "expected": "/fasttmp/skvm",
+          "actual": "D:/fasttmp/skvm",
+          "classification": "test-portability",
+          "rootCause": "The production contract forwards a resolved absolute root, but the test asserted a POSIX spelling on Windows."
+        },
+        {
+          "test": "detach worker env forwarding > forwards the SKVM_TMP_DIR env value when no flag is set",
+          "expected": "/var/tmp/skvm-detach",
+          "actual": "D:/var/tmp/skvm-detach",
+          "classification": "test-portability",
+          "rootCause": "The same test compared the unresolved input spelling instead of path.resolve(input)."
+        },
+        {
+          "test": "writeEvidenceRecord / readEvidenceRecord > roundtrip preserves every field",
+          "expected": "workDirSnapshot.files['sub/answer.json'] is present",
+          "actual": "undefined",
+          "classification": "production-portability",
+          "rootCause": "Recursive Dirent parent properties and path.relative separators were not normalized consistently across Bun/Windows, so a nested snapshot key did not round-trip as a portable slash path."
+        },
+        {
+          "test": "runTasksForRound adapterPool concurrency bound > two runTasksForRound calls sharing one adapterPool are globally capped",
+          "expected": "second released job completes within 2000ms",
+          "actual": "waitUntil timed out: second done",
+          "classification": "test-scheduling-assumption",
+          "rootCause": "The test released x1 by name even when the shared pool had admitted t1 and t2 first; the asserted property is the global cap, not a cross-set admission order."
+        }
+      ],
+      "next": "Normalize nested snapshot paths in production, make the two path assertions platform-resolved, drive the concurrency barrier by actually active ids, run the three targeted files, then run one post-repair merged confirmation."
+    }
+  ]
+}

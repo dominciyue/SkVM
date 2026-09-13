@@ -1,4 +1,5 @@
 import { describe, test, expect, afterEach } from "bun:test"
+import path from "node:path"
 import { buildWorkerEnv } from "../../src/jit-optimize/detach.ts"
 import { SKVM_CACHE, SKVM_DATA_DIR, invalidateConfigCache } from "../../src/core/config.ts"
 
@@ -24,7 +25,7 @@ describe("detach worker env forwarding", () => {
     invalidateConfigCache()
     try {
       const env = buildWorkerEnv({ PATH: "/usr/bin" })
-      expect(env.SKVM_TMP_DIR).toBe("/fasttmp/skvm")   // flag → env for the child
+      expect(env.SKVM_TMP_DIR).toBe(path.resolve("/fasttmp/skvm")) // resolved flag → env for the child
       expect(env.PATH).toBe("/usr/bin")                 // base env preserved
       expect(env.SKVM_CACHE).toBe(SKVM_CACHE)           // sibling roots forwarded too
       expect(env.SKVM_DATA_DIR).toBe(SKVM_DATA_DIR)
@@ -37,6 +38,6 @@ describe("detach worker env forwarding", () => {
     process.env.SKVM_TMP_DIR = "/var/tmp/skvm-detach"
     invalidateConfigCache()
     const env = buildWorkerEnv({})
-    expect(env.SKVM_TMP_DIR).toBe("/var/tmp/skvm-detach")
+    expect(env.SKVM_TMP_DIR).toBe(path.resolve("/var/tmp/skvm-detach"))
   })
 })

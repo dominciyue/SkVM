@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-h14-plan/v1",
+  "identity": "development",
+  "stage": "H14",
+  "baselineCommit": "f8e1669caad1881bac8abff9a4a24032e8c5b932",
+  "objective": "Run the taskbook's finite merged regression once, repair only concrete new-development-chain defects exposed by it, then publish separate engineering, behavior and effect verdicts and close the route.",
+  "requiredCommands": [
+    "bun test ./test/jit-optimize ./test/cli/jit-optimize.test.ts ./test/proposals/storage.test.ts",
+    "bun run typecheck",
+    "python scripts/check_skill_ir_doc_links_test.py",
+    "python scripts/check_skill_ir_doc_links.py"
+  ],
+  "repairPolicy": "Preserve the first merged result. For actionable failures, use targeted tests and one post-repair merged confirmation; do not rerun model samples or historical archive matrices.",
+  "deliverables": [
+    "failure-attempts.json",
+    "verification.json",
+    "../final-report.json",
+    "updated taskbook/status/plan/spec/component/ledger records",
+    "one precise local commit pushed to origin/skill-ir-aot"
+  ],
+  "result": {
+    "status": "completed-after-one-preserved-repair-cycle",
+    "initialMerged": "343/347",
+    "targetedAfterRepair": "18/18",
+    "finalMerged": "347/347",
+    "finalReport": "../final-report.json"
+  }
+}

@@ -130,8 +130,9 @@ async function readWorkDirSnapshot(workdirRoot: string): Promise<WorkDirSnapshot
   const entries = await readdir(workdirRoot, { withFileTypes: true, recursive: true })
   for (const entry of entries) {
     if (!entry.isFile()) continue
-    const full = path.join(entry.parentPath ?? workdirRoot, entry.name)
-    const rel = path.relative(workdirRoot, full)
+    const legacyParent = (entry as typeof entry & { path?: string }).path
+    const full = path.join(entry.parentPath ?? legacyParent ?? workdirRoot, entry.name)
+    const rel = path.relative(workdirRoot, full).split(path.sep).join("/")
     files.set(rel, await Bun.file(full).text())
   }
   return { files }

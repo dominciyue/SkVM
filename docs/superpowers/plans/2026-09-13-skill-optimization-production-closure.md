@@ -495,7 +495,7 @@ bun test ./test/run ./test/cli/run.test.ts ./test/cli/run-optimize.test.ts ./tes
 
 **新增最低交付条件：** R2 默认入口无需用户提供 trace；本次运行唯一关联且能安全恢复；R3 无人工评分文件路径有实际覆盖；R6 至少一条完整原/变化任务通过、另一结构真实尝试；新增失败路径准确。工程覆盖不是未来成功率，不能把“八九不离十”写成没有测量支持的 80%–90%。
 
-**实际结果：** 从新的普通 Law 项目目录仅以自然任务、已选 skill、workdir 和既有模型配置运行默认 `bare-agent`；未提供 task.json、日志、locator、validation plan、criteria、adapter、optimizer model 或 package-out。source run、capture、handoff 均完整，原产物 Stage3 A/B/overall PASS；系统自动生成唯一 proposal，优化器只改 `SKILL.md`，无程序 action，故最终包准确标为 `draft/behavior not-run`。真实命令先暴露两项共享缺陷：Windows 未设置 HOME 时 `~/.skvm` 误落入 cwd；有效 v2 优化包再次优化时旧 framework metadata 与新包冲突。前者由 `os.homedir()` 回退修复，后者在确认原包闭包有效后只剥离旧 manifest/report/guide 并生成新绑定元数据；两者均有 TDD。首次包导出失败保留，随后公开 `--resume-optimization` 只重做 package，source/optimizer 均未重放。缺模型路由的独立尝试在 provider 调用前给出具体配置错误。七项故障矩阵、V1–V6 代码证据与 adapter 支持矩阵已机器化；只有 bare-agent 自动 capture 经真实验证，其余六个注册 adapter 仍标 unverified。usage token/cache 字段保留，USD 仍以 `usage.costUsd` unknown/null 报告。平台 goal 文本与 revision 3 任务书已一致，无需新建 goal；机器报告见 `results/skill-ir/skill-optimization-production-closure-20260913/r7/report.json`。当前进入 H13/H14。
+**实际结果：** 从新的普通 Law 项目目录仅以自然任务、已选 skill、workdir 和既有模型配置运行默认 `bare-agent`；未提供 task.json、日志、locator、validation plan、criteria、adapter、optimizer model 或 package-out。source run、capture、handoff 均完整，原产物 Stage3 A/B/overall PASS；系统自动生成唯一 proposal，优化器只改 `SKILL.md`，无程序 action，故最终包准确标为 `draft/behavior not-run`。真实命令先暴露两项共享缺陷：Windows 未设置 HOME 时 `~/.skvm` 误落入 cwd；有效 v2 优化包再次优化时旧 framework metadata 与新包冲突。前者由 `os.homedir()` 回退修复，后者在确认原包闭包有效后只剥离旧 manifest/report/guide 并生成新绑定元数据；两者均有 TDD。首次包导出失败保留，随后公开 `--resume-optimization` 只重做 package，source/optimizer 均未重放。缺模型路由的独立尝试在 provider 调用前给出具体配置错误。七项故障矩阵、V1–V6 代码证据与 adapter 支持矩阵已机器化；只有 bare-agent 自动 capture 经真实验证，其余六个注册 adapter 仍标 unverified。usage token/cache 字段保留，USD 仍以 `usage.costUsd` unknown/null 报告。平台 goal 文本与 revision 3 任务书已一致，无需新建 goal；机器报告见 `results/skill-ir/skill-optimization-production-closure-20260913/r7/report.json`。随后进入 H13/H14。
 
 ## H13 — 可安装使用的工程收尾
 
@@ -521,7 +521,7 @@ H0–H13 与 R1–R7 满足工程交付条件、尚未进入收尾窗口且用�
 
 ## H14 — 有限验证、提交与准确交付
 
-- [ ] 一次合并执行本轮修改模块测试。默认相关回归如下；无新问题不重复历史大矩阵、全部归档或全仓模型测试。
+- [x] 一次合并执行本轮修改模块测试。默认相关回归如下；无新问题不重复历史大矩阵、全部归档或全仓模型测试。
 
 ```powershell
 bun test ./test/jit-optimize ./test/cli/jit-optimize.test.ts ./test/proposals/storage.test.ts
@@ -530,10 +530,12 @@ python scripts/check_skill_ir_doc_links_test.py
 python scripts/check_skill_ir_doc_links.py
 ```
 
-- [ ] 最终 `final-report.json` 分列 engineering、behavior、effect：例如工程 complete/partial，行为 passed/partial/unassessed，效果 positive/mixed/no-benefit/unknown。阶段终态不能代替这三项。
-- [ ] 更新本任务书复选框、current-status、plan、spec/组件已实现段和 conversation log；不为每阶段新增 Markdown，不重写 G/U 原结果。
-- [ ] 精确提交本轮代码、测试、必要文档和脱敏结果，推送 `origin/skill-ir-aot`，核对一次本地/远端对齐；保留其他线程修改。
-- [ ] 交付最短真实使用命令、新包、实现改进、实际结果、限制、剩余动作。若未达到下面最低工程条件，明确 partial；可执行工作尚在时不得将持续目标标为完成。
+- [x] 最终 `final-report.json` 分列 engineering、behavior、effect：例如工程 complete/partial，行为 passed/partial/unassessed，效果 positive/mixed/no-benefit/unknown。阶段终态不能代替这三项。
+- [x] 更新本任务书复选框、current-status、plan、spec/组件已实现段和 conversation log；不为每阶段新增 Markdown，不重写 G/U 原结果。
+- [x] 精确提交本轮代码、测试、必要文档和脱敏结果，推送 `origin/skill-ir-aot`，核对一次本地/远端对齐；保留其他线程修改。
+- [x] 交付最短真实使用命令、新包、实现改进、实际结果、限制、剩余动作。若未达到下面最低工程条件，明确 partial；可执行工作尚在时不得将持续目标标为完成。
+
+**实际结果：** 首次规定合并测试为 343 pass/4 fail/991 assertions；两项测试把已解析 Windows 路径误写成 POSIX 期望，一项并发测试错误假设 train/test 入池顺序，另有一项生产缺陷使嵌套 workdir snapshot 在 Windows 上不能以原 portable key 往返。失败机器记录保留。`readEvidenceRecord` 现在兼容 Bun/Node Dirent parent 属性并把相对键规范为 `/`；路径测试比较 `path.resolve`，并发测试按两波实际占用释放但继续断言全局上限。针对性 18/18、61 assertions 通过；修复后合并 347/347、998 assertions，typecheck、12/12 文档单测通过，8,882 文件扫描为 0 broken/legacy/governance error，保留四个既有软行数警告。最终机器报告分别给出 engineering=`complete`、behavior=`partial`、effect=`unknown`：局部生成/复用/TXT 搬运行为通过，但 R7 包是零程序 action 的 draft、其他 adapter/PDF/DOCX/真实 API 未验证；只有 H11 一组局部正向配对，R6/R7 无受控效果对比且 provider USD 不可绑定。结果见 `results/skill-ir/skill-optimization-production-closure-20260913/final-report.json` 与 `h14/verification.json`。提交/推送项以本节最终交付提交和 origin 对齐为完成依据，不在报告内写自引用 SHA。
 
 ## 5. 本轮交付判据
 

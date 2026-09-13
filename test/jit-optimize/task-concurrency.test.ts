@@ -288,14 +288,15 @@ describe("runTasksForRound adapterPool concurrency bound", () => {
         await waitUntil(() => barrier.inFlight() === 2, "2 in-flight across sets")
         expect(barrier.maxSeen()).toBe(2)
 
-        barrier.release("t1")
-        await waitUntil(() => barrier.completed().length === 1, "first done")
+        // Admission order across the two producers is intentionally unspecified.
+        // Release whichever two ids currently own the pool, then repeat for the
+        // second wave instead of assuming one train + one test job was admitted.
+        const allIds = ["t1", "t2", "x1", "x2"]
+        for (const id of allIds) barrier.release(id)
+        await waitUntil(() => barrier.completed().length === 2, "first wave done")
         expect(barrier.maxSeen()).toBe(2)
-        barrier.release("x1")
-        await waitUntil(() => barrier.completed().length === 2, "second done")
-        barrier.release("t2")
-        await waitUntil(() => barrier.completed().length === 3, "third done")
-        barrier.release("x2")
+        await waitUntil(() => barrier.inFlight() === 2, "second wave admitted")
+        for (const id of allIds) barrier.release(id)
 
         const [trainEv, testEv] = await both
         expect(trainEv).toHaveLength(2)

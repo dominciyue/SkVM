@@ -3,7 +3,7 @@
 - 更新日期：2026-09-14
 - 工作分支：`skill-ir-aot`
 - 当前路线：H0–H14 + R1–R7，“正常运行一次 → 自动采集 trace → 程序实施与验证 → 新 skill 包 → 自然消费”
-- 执行状态：`active-H14`（H0–H13、R1–R7 已完成；Y1 不适用、Y2 复用实际证据完成；G0–G14 历史整体效果仍为 mixed）
+- 执行状态：`completed-development`（H0–H14、R1–R7 已完成；Y1 不适用、Y2 复用实际证据完成；engineering complete、behavior partial、effect unknown）
 
 本页是 Skill IR 唯一实时状态入口。日期化任务书、历史计划和结果报告都不是“当前状态”。
 
@@ -51,9 +51,9 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 
 本轮继续共享实现，依据[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 3、spec 14.31：
 
-当前 machine status 已进入 H14。R1 的唯一 run/capture/输入隔离保持；R2 已把互斥 `--prompt`/`--task` 与 `--optimize` 接入普通 run。R3 修复 V1/V4，R4 修复 V3/V5，R5 修复 V6。R6 已用 I18n generated-program 和 Law reuse-script 两种结构完成 fresh capture/handoff、当前 optimizer 尝试及 H8/H9 已验证包的原/变化输入消费；四个最终样本独立检查通过。R7 已从普通目录完成零研究接线的 source→capture→proposal→package 恢复，七项故障矩阵和 bare-agent-only 支持矩阵已绑定。H13 已完成一次复制后的临时目录闭包和 TXT 消费，输入/包均不变。effect/actual USD 仍 unknown；当前只做 H14 有限收尾。
+当前 machine status 已完成。R1 的唯一 run/capture/输入隔离保持；R2 已把互斥 `--prompt`/`--task` 与 `--optimize` 接入普通 run。R3 修复 V1/V4，R4 修复 V3/V5，R5 修复 V6。R6 已用 I18n generated-program 和 Law reuse-script 两种结构完成 fresh capture/handoff、当前 optimizer 尝试及 H8/H9 已验证包的原/变化输入消费；四个最终样本独立检查通过。R7 已从普通目录完成零研究接线的 source→capture→proposal→package 恢复，七项故障矩阵和 bare-agent-only 支持矩阵已绑定。H13 已完成一次复制后的临时目录闭包和 TXT 消费，输入/包均不变。H14 修复一个嵌套 snapshot portable-key 缺陷和三项跨平台/调度测试假设，最终合并 347/347。effect/actual USD 仍 unknown。
 
-运行中追加决定：H0–H13 与 R1–R7 成果保留，当前进入 H14。默认入口已经能接收 skill、自然任务、目录与模型，并自动捕获/关联 trace、调用现有优化器及原子导出；无需用户提供 logs、locator 或评分文件。普通无评分输入可复用原 skill 的 `.skvm-validation.json` 有界文件规则，未知/专业部分仍由 agent 承担。Y1 没有真实双程序前提，Y2 由 R7 缺成本绑定的真实支持 trace 完成，未新增运行。H14 尚未完成，因此总目标仍保持 active。
+本轮最终决定：H0–H14 与 R1–R7 完成。默认入口能接收 skill、自然任务、目录与模型，并自动捕获/关联 bare-agent trace、调用现有优化器及原子导出；无需用户提供 logs、locator 或评分文件。普通无评分输入可复用原 skill 的 `.skvm-validation.json` 有界文件规则，未知/专业部分仍由 agent 承担。Y1 没有真实双程序前提，Y2 由 R7 缺成本绑定的真实支持 trace 完成，未新增运行。总报告分列 engineering complete、behavior partial、effect unknown；当前停止开发扩展，等待复核。
 
 1. H0–H2：接续基线，使用已有语料定位问题，区分 skill 规则、任务条件和环境事实。
 2. H3–H7：修复待验证依赖传播，将实际程序验证、一次局部修复/回退及最终 snapshot 导出接入正常 CLI/log 路径。
@@ -95,7 +95,9 @@ R6 两种结构都通过普通 `run` 自动捕获实际 source run 并交给既�
 
 R7 从普通项目目录实际运行自然任务入口，未提供 task.json、日志、locator、criteria、validation plan 或 package-out。原 Law 转换和 Stage3 通过；系统自动形成完整 capture、唯一 proposal 和最终 draft 包。过程中修复 Windows 无 HOME 时用户 cache 误落 cwd，以及已核验优化包无法再次导出的框架元数据冲突；首次 package 失败通过同一 session 的公开恢复命令完成，source 和 optimizer 没有重放。该 proposal 没有程序 actions，behavior 为 not-run，不能计新行为成功。自动 capture 当前只有 bare-agent 经真实验证，其他 adapter 保持 unverified；usage cost 仍 unknown/null。机器入口为 `results/skill-ir/skill-optimization-production-closure-20260913/r7/report.json`。
 
-H13 将该最终包一次复制到全新系统临时目录，复制处的生产闭包核验和从新 cwd 的 `python -B` TXT 直接消费均通过；Stage3 A/B/overall PASS，源文件与包摘要运行前后一致，包内无研究根路径。首个复制因帮助检查生成的两个未跟踪 `__pycache__` 被正确拒绝并保留记录；缓存移到系统临时隔离位置，没有改 R7 提交。机器入口为 `results/skill-ir/skill-optimization-production-closure-20260913/h13/report.json`；当前执行 H14。
+H13 将该最终包一次复制到全新系统临时目录，复制处的生产闭包核验和从新 cwd 的 `python -B` TXT 直接消费均通过；Stage3 A/B/overall PASS，源文件与包摘要运行前后一致，包内无研究根路径。首个复制因帮助检查生成的两个未跟踪 `__pycache__` 被正确拒绝并保留记录；缓存移到系统临时隔离位置，没有改 R7 提交。机器入口为 `results/skill-ir/skill-optimization-production-closure-20260913/h13/report.json`；随后执行 H14。
+
+H14 首次合并回归为 343 pass/4 fail；失败原样保留。嵌套 workdir snapshot 的递归 reader 现在兼容 Bun/Node parent 属性并把 key 统一为 `/`；两项 Windows 路径测试改为比较解析后路径，并发测试不再假定 train/test 入池次序。针对性 18/18、修复后合并 347/347、typecheck、12/12 文档测试和 8,882 文件治理扫描通过。总报告为 `results/skill-ir/skill-optimization-production-closure-20260913/final-report.json`。下一步仅复核；若需要未见输入，另开预登记 identity，不由本轮自动执行。
 
 任务摘要见[当前计划](skill-ir-aot-optimization-plan.md)。G0–G14 历史结果继续保留在
 `results/skill-ir/general-skill-optimization-20260913/final-report.json` 与同目录 `g14-verification.json`；旧结果不回写。
