@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "jit-optimize-constraint-sources/v1",
+  "skill": {
+    "sourceRef": "SKILL.md",
+    "note": "Only rules stated by the source skill may be treated as permanent skill constraints. An unobserved rule is not removable."
+  },
+  "tasks": [
+    {
+      "evidenceIndex": 0,
+      "taskId": "source:20260913T142032117Z:round-1",
+      "sourceRef": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-optimization-production-closure-20260913\\h9\\natural-consumption-run-001\\report.json#json+gzip-pi-events#taskPrompt",
+      "text": "First read ./skill/SKILL.md and use it as the task method. Complete this normal task in the current directory:\n\n把 ./incoming/renamed-statute.txt 转换为 Markdown；这是一份法律文本。 把转换程序的输出根目录设为 ./outputs，并使用最小产物级别。不得修改输入、安装依赖或联网。 命令完成后，读取生成的审核报告和最终成果，确认审核结论、标题层级及输入字符是否完整保留。 最后写 ./completion-audit.json，内容必须是 JSON 对象并记录 classification、commandSucceeded、reviewApproved、deliverableInspected、inputPreserved 五项。\n\nAvailable task resources:\n- ./incoming/renamed-statute.txt\n\nExpected task outputs:\n- ./outputs/renamed-statute/renamed-statute+审核报告.md\n- ./outputs/renamed-statute/renamed-statute+最终成果.md\n- ./completion-audit.json\n\nTreat ./skill as immutable. When invoking Python code from it, suppress bytecode writes (for example, use python -B) so caches do not modify the package. Use the package instructions to decide whether a bundled program applies. If it explicitly reports not-applicable, continue the package's original workflow. If it fails, preserve the error and do not claim that invocation completed the task. Complete all remaining review or communication duties required by the task, check the final outputs, and do not ask a question.",
+      "note": "Current task values and restrictions are task-scoped unless the source skill independently states them."
+    }
+  ],
+  "environments": [
+    {
+      "evidenceIndex": 0,
+      "sourceRef": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-optimization-production-closure-20260913\\h9\\natural-consumption-run-001\\report.json#json+gzip-pi-events#environment",
+      "facts": {
+        "adapter": "pi",
+        "model": "xty/gpt-5.6-sol",
+        "system": "optimized",
+        "workDirPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-optimization-production-closure-20260913\\h9\\natural-consumption-run-001\\work"
+      },
+      "note": "Observed runtime facts describe this execution and are not portable skill requirements by default."
+    }
+  ],
+  "unknown": {
+    "note": "If the available source cannot establish a constraint's scope, record scope=unknown; do not promote it to a permanent rule or discard it."
+  }
+}

@@ -1,0 +1,280 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-h11/v1",
+  "identity": "skill-optimization-production-closure-20260913-h11-entrypoint-handoff",
+  "exposure": "development",
+  "status": "completed",
+  "stage": "H11",
+  "result": {
+    "sharedUsageIssueEnteredProductionStrategy": true,
+    "matchedBehaviorPassed": true,
+    "preregisteredEffect": "positive",
+    "qualityRegression": false,
+    "packageDeliveryStatus": "draft",
+    "remainingRoutineDiscovery": "one package enumeration"
+  },
+  "baseline": {
+    "evidence": {
+      "path": "baseline-analysis.json",
+      "bytes": 14968,
+      "sha256": "7a826dba8cdedae686c1463de177440b27884dda429a008b1fae8f3568078118"
+    },
+    "checks": {
+      "allBindingsMatch": true,
+      "bothTasksPassed": true,
+      "bothEnumeratedPackage": true,
+      "noHelperSourceRead": true,
+      "noRepeatedReadPath": true,
+      "h9AddedHelpDiscovery": true
+    },
+    "diagnosis": "Both natural consumers read SKILL.md and then enumerated the package even though SKILL.md named the executable. The Law consumer also emitted a full --help call before executing a command already documented by the package. Neither consumer reread the same file or inspected helper source, so the bounded shared target is routine entrypoint discovery, not source-read suppression."
+  },
+  "productionChanges": [
+    {
+      "area": "optimizer handoff prompt",
+      "files": [
+        "src/jit-optimize/optimizer.ts",
+        "test/jit-optimize/optimizer-prompt.test.ts"
+      ],
+      "change": "Require a copy-ready common-path command, common arguments, concise stdout/path/error/residual handoff, and retain --help/source inspection for uncommon or diagnostic work."
+    },
+    {
+      "area": "general-skill trace ingestion",
+      "files": [
+        "src/jit-optimize/trace-adapters.ts",
+        "test/jit-optimize/trace-adapters.test.ts"
+      ],
+      "change": "Load skill-ir-general-skill-development/v1 through its gzip Pi-event binding, verify compressed/raw size and SHA-256, preserve usage/quality/workdir facts, and fail closed on mismatch."
+    }
+  ],
+  "infrastructureFailure": {
+    "evidence": {
+      "path": "optimizer-run-001-failure.json",
+      "bytes": 1668,
+      "sha256": "03d5c5d00f98ff8679e3eb1295e82e9dc19f83ecd13d3c963e44592c9f949a9a"
+    },
+    "status": "infrastructure-failed",
+    "modelCallMade": false,
+    "error": "Trace report.json file [unrecognized-format]: Input does not match a supported trace or the narrow simple-report contract; jit-optimize: no evidences loaded from execution logs",
+    "retained": true
+  },
+  "optimizer": {
+    "ordinaryCliModelRuns": 1,
+    "model": "xty/gpt-5.6-sol",
+    "proposal": {
+      "identity": "bare-agent/xty--gpt-5.6-sol/round-1/20260913T152806230Z",
+      "meta": {
+        "path": "proposal-attempt-001-revision-001/meta.json",
+        "bytes": 605,
+        "sha256": "70c78f715882cab0709f0e0cec3aef6939f4e8518cfea005ea5d609bcd38793b"
+      },
+      "submission": {
+        "path": "proposal-attempt-001-revision-001/round-1-optimizer/submission.json",
+        "bytes": 10250,
+        "sha256": "78e807dc483c3a9281bc96f6a11543cf5bcef333f6276910061fbde53b75a781"
+      },
+      "rawStdoutArchive": {
+        "path": "proposal-attempt-001-revision-001/round-1-optimizer/stdout.log.gz",
+        "bytes": 2860583,
+        "sha256": "475f077f2fb3c54281730c2e097721d9d56b63da1cad5d79f8de4bb3a491a488"
+      }
+    },
+    "tokens": {
+      "input": 39995,
+      "output": 6999,
+      "cacheRead": 194944,
+      "cacheWrite": 0
+    },
+    "reportedCostUsd": 0,
+    "actualCostUsd": null,
+    "actualCostMissingReason": "The provider route reported zero and no invoice or route-specific price binding was supplied.",
+    "actualDiff": {
+      "added": [],
+      "modified": [
+        "SKILL.md"
+      ],
+      "deleted": [],
+      "moved": []
+    },
+    "package": {
+      "path": "package-attempt-001-revision-001",
+      "manifest": {
+        "path": "package-attempt-001-revision-001/optimization-manifest.json",
+        "bytes": 5250,
+        "sha256": "d72b5e8a5d8428227ddb31f359541815ed6e8d4ac574406becae8fe1081855cd"
+      },
+      "selectedClosureSha256": "cfecf943b6fca012b88740c623b55519985f76a2bdf8e7895250d061c55b8db7",
+      "deliveryStatus": "draft",
+      "closureStatus": "passed",
+      "behaviorStatus": "not-run",
+      "boundary": "The exported package is a draft because action-local evidence has no independent case. H11 uses it only as a development behavior candidate, not as a validated recommendation."
+    }
+  },
+  "matchedBehavior": {
+    "evidence": {
+      "path": "pair-analysis.json",
+      "bytes": 24688,
+      "sha256": "093a959cbf7b814a504cbab068a12b433d8bde8950b776cfc38bfb562343fbf2"
+    },
+    "task": "Same H9 Law prompt, input bytes, expected paths, residual audit, model and Pi driver.",
+    "quality": {
+      "originalPassed": 1,
+      "optimizedPassed": 1,
+      "paired": 1
+    },
+    "preregistered": {
+      "primaryMetric": "entrypointDiscoveryCalls",
+      "target": "candidate <= 1 with quality passed",
+      "result": {
+        "original": 2,
+        "optimized": 1,
+        "delta": -1,
+        "changeRatio": -0.5
+      },
+      "decision": "positive",
+      "secondary": {
+        "packageEnumerations": {
+          "original": 1,
+          "optimized": 1,
+          "delta": 0,
+          "changeRatio": 0
+        },
+        "helperHelpCalls": {
+          "original": 1,
+          "optimized": 0,
+          "delta": -1,
+          "changeRatio": -1
+        },
+        "toolCallCount": {
+          "original": 11,
+          "optimized": 9,
+          "delta": -2,
+          "changeRatio": -0.18181818181818182
+        }
+      }
+    },
+    "metrics": {
+      "durationMs": {
+        "original": 48636,
+        "optimized": 44728,
+        "delta": -3908,
+        "changeRatio": -0.08035200263179537
+      },
+      "tokens": {
+        "input": {
+          "original": 13101,
+          "optimized": 10225,
+          "delta": -2876,
+          "changeRatio": -0.21952522708190214
+        },
+        "output": {
+          "original": 1234,
+          "optimized": 786,
+          "delta": -448,
+          "changeRatio": -0.36304700162074555
+        },
+        "cacheRead": {
+          "original": 33152,
+          "optimized": 19328,
+          "delta": -13824,
+          "changeRatio": -0.416988416988417
+        },
+        "cacheWrite": {
+          "original": 0,
+          "optimized": 0,
+          "delta": 0,
+          "changeRatio": null
+        },
+        "totalObserved": {
+          "original": 47487,
+          "optimized": 30339,
+          "delta": -17148,
+          "changeRatio": -0.361109356244867
+        }
+      },
+      "executionCounts": {
+        "status": "available",
+        "runCount": {
+          "original": 1,
+          "optimized": 1,
+          "delta": 0,
+          "changeRatio": 0
+        },
+        "modelResponseCount": {
+          "original": 10,
+          "optimized": 7,
+          "delta": -3,
+          "changeRatio": -0.3
+        },
+        "turnCount": {
+          "original": 10,
+          "optimized": 7,
+          "delta": -3,
+          "changeRatio": -0.3
+        },
+        "toolCallCount": {
+          "original": 11,
+          "optimized": 9,
+          "delta": -2,
+          "changeRatio": -0.18181818181818182
+        },
+        "retryCount": {
+          "original": 0,
+          "optimized": 0,
+          "delta": 0,
+          "changeRatio": null
+        }
+      }
+    },
+    "toolOutputCharacters": {
+      "original": 8567,
+      "optimized": 6496,
+      "delta": -2071,
+      "changeRatio": -0.2417415664760126
+    },
+    "effect": "positive",
+    "costComparison": {
+      "status": "unknown",
+      "reason": "provider-pricing-unavailable"
+    },
+    "residualIssue": "Package enumeration remained 1 -> 1. The full --help call fell 1 -> 0, and the ad hoc inline preservation checker was not repeated; no claim is made that all discovery was eliminated."
+  },
+  "verification": [
+    {
+      "command": "bun test ./test/jit-optimize/optimizer-prompt.test.ts --test-name-pattern='copy-ready common path'",
+      "result": "expected red before implementation, then passed"
+    },
+    {
+      "command": "bun test ./test/jit-optimize/trace-adapters.test.ts --test-name-pattern='general-skill development'",
+      "result": "expected red before implementation, then passed"
+    },
+    {
+      "command": "bun test ./test/jit-optimize/effect.test.ts ./test/jit-optimize/consumption.test.ts ./test/jit-optimize/optimizer-prompt.test.ts ./test/jit-optimize/trace-adapters.test.ts",
+      "result": "45 passed, 168 assertions, 0 failed"
+    },
+    {
+      "command": "bun run typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "bun results/skill-ir/skill-optimization-production-closure-20260913/h11/analyze-pair.ts",
+      "result": "passed"
+    },
+    {
+      "command": "bounded secret-pattern scan over the raw optimizer stdout",
+      "result": "0 API-key, Bearer-token or sk-token pattern matches"
+    }
+  ],
+  "accounting": {
+    "projectRuntime": {
+      "optimizerModelRuns": 1,
+      "targetAgentRuns": 1,
+      "businessApiCalls": 0,
+      "reportedCostUsd": 0,
+      "actualCostUsd": null
+    },
+    "developerAgent": "separate and not measured by project runtime reports"
+  },
+  "interpretation": "The preregistered routine-entrypoint metric improved without quality regression. All observed target-agent token fields, tool output characters, tool calls and model responses also decreased in this one pair. Duration decreased but is a noisy one-run observation; actual USD is unknown. This does not establish general cost, latency, human-effort or whole-skill savings.",
+  "claimBoundary": "H11 supports one preregistered development pair and one shared prompt-policy correction. It does not establish stable latency, actual USD, broad token savings, whole-skill quality, human savings, readiness, prospective performance, or repair of the historical Law 0.7 source/evaluator conflict.",
+  "nextStage": "H12: run the same production entry on a different-structure development member and retain the first-run boundary without name-specific core logic."
+}

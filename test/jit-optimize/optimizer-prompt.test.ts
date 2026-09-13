@@ -167,6 +167,15 @@ describe("buildOptimizerPrompt", () => {
     expect(p).toContain("must remain allowed")
   })
 
+  test("requires a copy-ready common path before routine entrypoint discovery", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("copy-ready common-path command")
+    expect(p).toContain("enumerate package files")
+    expect(p).toContain("routine consumers")
+    expect(p).toContain("large results in files")
+    expect(p).toContain("residual next step")
+  })
+
   test("asks the optimizer for evidence-bound executable validation suggestions", () => {
     const p = buildOptimizerPrompt(2, 0)
     expect(p).toContain("`validation`")

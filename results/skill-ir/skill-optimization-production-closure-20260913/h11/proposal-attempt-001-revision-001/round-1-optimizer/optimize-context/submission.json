@@ -1,0 +1,208 @@
+{
+  "rootCause": "The skill already has a reliable bundled conversion and Stage3 verification path, but its common-command section does not expose the output-root and artifact-level parameters beside the routine command, and its post-run instruction does not distinguish checks already established by the generated report from stricter user-requested verification. As a result, agents can needlessly inspect --help and write an ad hoc preservation checker even on the standard TXT path.",
+  "reasoning": "Evidence 0 is a clean passing run (runStatus=ok, score 1.0), so it does not support diagnosing conversion failure. It does, however, show two avoidable workflow costs: the agent invoked --help to discover --out-dir and --artifact-level, although both were required by the task, and then wrote an inline Python checker even though the generated review report already recorded Stage3-A character-stream preservation and structural checks. The selected fix preserves the successful executable and rewrites the existing common-command section in place rather than adding an overlapping section. Generality test: a different TXT-law task that requests a custom output root or explicit minimal artifacts, and a task that asks the agent to inspect the generated review, both benefit from copy-ready parameterized commands and a clear verification boundary. Rewrite-in-place test: the ambiguity was in the existing 常用命令 paragraph, so only that block was tightened. Coherent-scope test: no new program is warranted because the bundled program and checker already passed independently; the smallest complete change is documentation that exposes their existing interface and results. No-trade-off test: the only PASSING task is source:20260913T142032117Z:round-1. The revised TXT command is semantically the same command that passed, now with the already-supported minimal level and optional output-root form made explicit; it retains mandatory report/deliverable inspection and does not weaken preservation verification, so it cannot plausibly lower that task's score. Classification remains an agent responsibility, and user-requested verification stricter than the skill's whitespace-insensitive Stage3-A definition remains residual work.",
+  "confidence": 0.91,
+  "changedFiles": [
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "常用命令",
+      "description": "Replace underspecified examples with copy-ready parameterized commands for output roots and artifact levels, and clarify when generated review evidence is sufficient versus when independent verification is still required.",
+      "generality": "Any different TXT statute conversion that selects a custom output root or asks for post-run preservation review benefits from the same explicit command and verification boundary; the same inspection rule also applies after successful DOCX/PDF conversion.",
+      "linesDelta": 9
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "The common path did not clearly say to read both generated outputs or explain the evidentiary scope of Stage3-A.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must inspect the actual report and deliverable and must not claim approval when their contents disagree with expectations."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "The executable already accepts arbitrary input paths, output roots, law decisions, and artifact levels, but the common command omitted the two routine output controls seen in use.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent supplies task-specific paths and selects law, non-law, or auto from the document and user instructions."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "The bundled law_to_markdown.py already performs the parameterized conversion, normalization, report generation, and deliverable generation successfully; no duplicate implementation is needed.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent determines whether the bundled path applies, especially for DOCX/PDF mineru-ocr and fallback conditions."
+    },
+    {
+      "category": "verification",
+      "summary": "The generated report already exposes approval, title-structure checks, and whitespace-insensitive character-stream preservation, making the run's ad hoc checker avoidable for ordinary skill-defined verification.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent performs any stricter byte-for-byte, source-specific, or user-mandated independent check not established by Stage3-A/B."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "Evidence 0 confirms the TXT path ran without optional extraction dependencies, while the existing skill already keeps mineru-ocr and local fallback conditions scoped to DOCX/PDF.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must honor runtime restrictions such as no installation, no network, immutable package files, and bytecode suppression when those are imposed by the current task."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Document classification, applicability decisions, final artifact inspection, and satisfaction of task-specific audit schemas require contextual judgment rather than replacement by the converter.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent remains responsible for classification, task-specific communication or audit files, and truthful reporting of command and review outcomes."
+    }
+  ],
+  "actions": [
+    {
+      "id": "reuse-bundled-converter",
+      "kind": "reuse-script",
+      "evidenceIds": [
+        "0"
+      ],
+      "sourceRefs": [
+        "SKILL.md#处理规则",
+        "scripts/law_to_markdown.py",
+        "evidence:0#conversation-log-entry-9",
+        "evidence:0#general-skill-task-checker"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "input .txt path supplied by the current task",
+        "optional output root",
+        "law decision",
+        "artifact level"
+      ],
+      "outputs": [
+        "a per-input output directory",
+        "a generated review report",
+        "an approved final Markdown deliverable when applicable",
+        "concise labeled stdout status and output paths"
+      ],
+      "preconditions": [
+        "the input format is supported",
+        "for the documented TXT path, the bundled Python runtime is available"
+      ],
+      "constraints": [
+        {
+          "description": "TXT input must use the bundled script rather than a hand-written conversion or report.",
+          "scope": "skill",
+          "sourceRef": "SKILL.md#处理规则"
+        },
+        {
+          "description": "The observed task prohibited input modification, dependency installation, networking, and package mutation.",
+          "scope": "task",
+          "sourceRef": ".optimize/tasks/source-20260913T142032117Z-round-1/run-0.json#taskPrompt"
+        }
+      ],
+      "validation": {
+        "help": {
+          "args": [
+            "--help"
+          ],
+          "stdoutIncludes": [
+            "--out-dir",
+            "--law-decision",
+            "--artifact-level"
+          ]
+        },
+        "cases": [
+          {
+            "id": "observed-txt-common-path",
+            "evidenceId": "0",
+            "inputSource": "workdir-snapshot",
+            "inputFiles": [
+              "incoming/renamed-statute.txt"
+            ],
+            "args": [
+              "incoming/renamed-statute.txt",
+              "--out-dir",
+              "outputs",
+              "--law-decision",
+              "law",
+              "--artifact-level",
+              "minimal"
+            ],
+            "expectedFiles": [
+              {
+                "path": "outputs/renamed-statute/renamed-statute+审核报告.md"
+              },
+              {
+                "path": "outputs/renamed-statute/renamed-statute+最终成果.md"
+              }
+            ],
+            "basis": "task-contract",
+            "sourceRefs": [
+              ".optimize/tasks/source-20260913T142032117Z-round-1/run-0.json#taskPrompt",
+              "evidence:0#general-skill-task-checker"
+            ]
+          }
+        ]
+      },
+      "changedPaths": [],
+      "residualDuties": [
+        "classify the document and select the law-decision value",
+        "inspect the generated report and deliverable",
+        "complete task-specific audit or communication outputs"
+      ],
+      "verification": [
+        "confirm the process exit status",
+        "read the generated review report for its final conclusion and Stage3 results",
+        "read the final deliverable and inspect actual heading levels"
+      ]
+    },
+    {
+      "id": "document-common-conversion-path",
+      "kind": "restructure-docs",
+      "evidenceIds": [
+        "0"
+      ],
+      "sourceRefs": [
+        "SKILL.md#常用命令",
+        "evidence:0#conversation-log-entries-7-17"
+      ],
+      "dependsOn": [
+        "reuse-bundled-converter"
+      ],
+      "inputs": [
+        "the existing bundled converter interface",
+        "the skill-defined Stage3 verification contract"
+      ],
+      "outputs": [
+        "copy-ready TXT commands with required and common optional arguments",
+        "an explicit post-run inspection and verification boundary"
+      ],
+      "preconditions": [
+        "the bundled converter remains the standard TXT path"
+      ],
+      "changedPaths": [
+        "SKILL.md"
+      ],
+      "residualDuties": [
+        "choose task-specific argument values",
+        "perform stricter verification when requested"
+      ],
+      "verification": [
+        "run the documented command with an arbitrary TXT path and optional output root",
+        "confirm the report and deliverable paths match the documented output rules"
+      ]
+    }
+  ]
+}

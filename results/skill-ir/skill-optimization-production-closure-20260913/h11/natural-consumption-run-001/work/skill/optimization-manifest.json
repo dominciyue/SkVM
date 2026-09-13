@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "skvm-optimized-skill-package/v2",
+  "identity": "round-1:20260913T152806230Z:round-1",
+  "exposure": "development",
+  "proposal": {
+    "dirName": "20260913T152806230Z",
+    "bestRound": 1,
+    "meta": {
+      "path": "meta.json",
+      "bytes": 605,
+      "sha256": "70c78f715882cab0709f0e0cec3aef6939f4e8518cfea005ea5d609bcd38793b"
+    },
+    "submission": {
+      "path": "round-1-optimizer/submission.json",
+      "bytes": 10250,
+      "sha256": "78e807dc483c3a9281bc96f6a11543cf5bcef333f6276910061fbde53b75a781"
+    }
+  },
+  "snapshots": {
+    "originalClosureSha256": "411b6838be82e3cc0cbf8cdd055ab6ade626920ad55d9b35dee708e11b493626",
+    "selectedClosureSha256": "cfecf943b6fca012b88740c623b55519985f76a2bdf8e7895250d061c55b8db7"
+  },
+  "actualDiff": {
+    "added": [],
+    "modified": [
+      "SKILL.md"
+    ],
+    "deleted": [],
+    "moved": []
+  },
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 40,
+      "sha256": "e2a5eb44cf2c61a7c54100dc0aceb5b3151f662bf2bdaee4ed9166bc55293867"
+    },
+    {
+      "path": "agents/openai.yaml",
+      "bytes": 181,
+      "sha256": "ef9b3a8dbe86fcd642e1e91928fd91c9f67c0d515c29b9abd20812b79ef52ef7"
+    },
+    {
+      "path": "optimization-validation-report.json",
+      "bytes": 9190,
+      "sha256": "c1d84a9fac53de4397ae850dce4a236ffe7b9acb9ca0816ab567bf5297d425b8"
+    },
+    {
+      "path": "scripts/cn_law_normalizer.py",
+      "bytes": 10090,
+      "sha256": "89150d769de67a3e682de9675f64f863f4238fd66a8c128ec50751c471ce056a"
+    },
+    {
+      "path": "scripts/law_to_markdown.py",
+      "bytes": 32618,
+      "sha256": "6d01f49a55b513f29c3f7a9046b5d67b07a4faab7cf1206bccb8cde08d0f337b"
+    },
+    {
+      "path": "scripts/requirements.txt",
+      "bytes": 40,
+      "sha256": "e0452219dc7859b40a49032864673d9f10f8b1e8f149237d2530fcaed1c7b337"
+    },
+    {
+      "path": "scripts/stage3_checker.py",
+      "bytes": 15912,
+      "sha256": "865345bddfaa469f5f4082f81ab1cfe91ab8911353b244860b632e2dab007605"
+    },
+    {
+      "path": "SKILL.md",
+      "bytes": 5612,
+      "sha256": "f535ef9a2fcc24f4383a5b9a4441c416d1ccac91ecec6d820ea5e1b24e56c7a6"
+    }
+  ],
+  "implementations": [
+    {
+      "actionId": "reuse-bundled-converter",
+      "kind": "reuse-script",
+      "status": "selected",
+      "entry": "scripts/law_to_markdown.py",
+      "runtime": "python",
+      "inputs": [
+        "input .txt path supplied by the current task",
+        "optional output root",
+        "law decision",
+        "artifact level"
+      ],
+      "outputs": [
+        "a per-input output directory",
+        "a generated review report",
+        "an approved final Markdown deliverable when applicable",
+        "concise labeled stdout status and output paths"
+      ],
+      "preconditions": [
+        "the input format is supported",
+        "for the documented TXT path, the bundled Python runtime is available"
+      ],
+      "residualDuties": [
+        "classify the document and select the law-decision value",
+        "inspect the generated report and deliverable",
+        "complete task-specific audit or communication outputs"
+      ],
+      "verification": [
+        "confirm the process exit status",
+        "read the generated review report for its final conclusion and Stage3 results",
+        "read the final deliverable and inspect actual heading levels"
+      ]
+    },
+    {
+      "actionId": "document-common-conversion-path",
+      "kind": "restructure-docs",
+      "status": "selected",
+      "inputs": [
+        "the existing bundled converter interface",
+        "the skill-defined Stage3 verification contract"
+      ],
+      "outputs": [
+        "copy-ready TXT commands with required and common optional arguments",
+        "an explicit post-run inspection and verification boundary"
+      ],
+      "preconditions": [
+        "the bundled converter remains the standard TXT path"
+      ],
+      "residualDuties": [
+        "choose task-specific argument values",
+        "perform stricter verification when requested"
+      ],
+      "verification": [
+        "run the documented command with an arbitrary TXT path and optional output root",
+        "confirm the report and deliverable paths match the documented output rules"
+      ]
+    }
+  ],
+  "runtime": {
+    "runtimes": [
+      "python"
+    ],
+    "dependencyFiles": [
+      "scripts/requirements.txt"
+    ]
+  },
+  "claimBoundary": "Development package export. Package file closure passed. Behavior status covers only the listed action-local program cases; whole-skill correctness, source-task replay, agent consumption and optimization effect require separate evidence.",
+  "validation": {
+    "status": "passed",
+    "scope": "package-file-closure",
+    "behaviorStatus": "not-run",
+    "behaviorScope": "action-local-program-cases",
+    "deliveryStatus": "draft",
+    "report": {
+      "path": "optimization-validation-report.json",
+      "bytes": 9190,
+      "sha256": "c1d84a9fac53de4397ae850dce4a236ffe7b9acb9ca0816ab567bf5297d425b8"
+    },
+    "retainedActionIds": [],
+    "unvalidatedActionIds": [
+      "reuse-bundled-converter",
+      "document-common-conversion-path"
+    ],
+    "rejectedActionIds": [],
+    "programRuns": 1,
+    "caseRuns": 1,
+    "independentCaseRuns": 0
+  }
+}

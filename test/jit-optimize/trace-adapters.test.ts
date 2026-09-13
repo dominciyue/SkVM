@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test"
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
+import { gzipSync } from "node:zlib"
 import { adaptTraceFile } from "../../src/jit-optimize/trace-adapters.ts"
 import { loadEvidencesFromLogs } from "../../src/jit-optimize/task-source.ts"
 
@@ -227,6 +228,126 @@ describe("adaptTraceFile", () => {
       usage: { inputTokens: 10, outputTokens: 2, cacheReadTokens: 30 },
     })
     expect(adapted.diagnostics).toEqual([])
+  })
+
+  test("loads a general-skill development report through its bound gzip Pi events", async () => {
+    const dir = await tempDir()
+    const workDir = path.join(dir, "run", "work")
+    const skillDir = path.join(dir, "skill")
+    await Promise.all([
+      mkdir(workDir, { recursive: true }),
+      mkdir(skillDir, { recursive: true }),
+    ])
+    await writeFile(path.join(skillDir, "SKILL.md"), "# General skill\n")
+    const rawEvents = JSON.stringify([
+      { type: "message_end", message: { role: "user", content: [{ type: "text", text: "perform the ordinary task" }], timestamp: 1 } },
+      { type: "message_end", message: {
+        role: "assistant",
+        content: [{ type: "text", text: "done" }],
+        api: "openai-completions",
+        provider: "openai",
+        model: "model",
+        usage: {
+          input: 11,
+          output: 3,
+          cacheRead: 20,
+          cacheWrite: 0,
+          totalTokens: 34,
+          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+        },
+        stopReason: "stop",
+        timestamp: 2,
+      } },
+    ])
+    const compressed = gzipSync(rawEvents)
+    const tracePath = path.join(dir, "run", "agent-events.json.gz")
+    const reportPath = path.join(dir, "run", "report.json")
+    await writeFile(tracePath, compressed)
+    await writeFile(reportPath, JSON.stringify({
+      schemaVersion: "skill-ir-general-skill-development/v1",
+      status: "passed",
+      exposure: "development",
+      prompt: "perform the ordinary task",
+      package: { kind: "optimized", path: skillDir, manifestIdentity: "source:test", selectedEntrypoints: ["scripts/tool.py"] },
+      runtime: {
+        runDir: path.dirname(workDir),
+        workDir,
+        model: "provider/model",
+        driver: "pi",
+        exitCode: 0,
+        timedOut: false,
+        durationMs: 321,
+        tokens: { input: 11, output: 3, cacheRead: 20, cacheWrite: 0 },
+        agentEvents: {
+          path: "agent-events.json.gz",
+          format: "gzip",
+          bytes: compressed.byteLength,
+          sha256: new Bun.CryptoHasher("sha256").update(compressed).digest("hex"),
+          rawBytes: Buffer.byteLength(rawEvents),
+          rawSha256: new Bun.CryptoHasher("sha256").update(rawEvents).digest("hex"),
+        },
+        reportedCostUsd: 0,
+        actualCostUsd: null,
+      },
+      verification: { taskPassed: true, skillPackagePreserved: true, protectedResourcesPreserved: true, expectedFiles: [], residualEvidenceFiles: [] },
+    }))
+
+    const adapted = await adaptTraceFile(reportPath)
+
+    expect(adapted.format).toBe("skill-ir-general-skill-development/v1")
+    expect(adapted.representation).toBe("conversation-trace")
+    expect(adapted.records).toHaveLength(1)
+    expect(adapted.records[0]!.taskPrompt).toBe("perform the ordinary task")
+    expect(adapted.records[0]!.criteria?.[0]).toMatchObject({ score: 1, passed: true })
+    expect(adapted.records[0]!.source).toMatchObject({
+      sourceAgent: "pi",
+      model: "provider/model",
+      runStatus: "ok",
+      skillPath: path.join(skillDir, "SKILL.md"),
+      workDirPath: workDir,
+      usage: { inputTokens: 11, outputTokens: 3, cacheReadTokens: 20, cacheWriteTokens: 0 },
+    })
+    expect(adapted.diagnostics).toEqual([])
+  })
+
+  test("rejects a general-skill development report whose gzip digest does not match", async () => {
+    const dir = await tempDir()
+    const compressed = gzipSync("[]")
+    const tracePath = path.join(dir, "agent-events.json.gz")
+    const reportPath = path.join(dir, "report.json")
+    await writeFile(tracePath, compressed)
+    await writeFile(reportPath, JSON.stringify({
+      schemaVersion: "skill-ir-general-skill-development/v1",
+      status: "passed",
+      prompt: "perform task",
+      package: { kind: "optimized", path: path.join(dir, "skill"), manifestIdentity: "source:test" },
+      runtime: {
+        workDir: path.join(dir, "work"),
+        model: "provider/model",
+        driver: "pi",
+        exitCode: 0,
+        timedOut: false,
+        durationMs: 1,
+        tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        agentEvents: {
+          path: "agent-events.json.gz",
+          format: "gzip",
+          bytes: compressed.byteLength,
+          sha256: "0".repeat(64),
+          rawBytes: 2,
+          rawSha256: new Bun.CryptoHasher("sha256").update("[]").digest("hex"),
+        },
+      },
+      verification: { taskPassed: true },
+    }))
+
+    const adapted = await adaptTraceFile(reportPath)
+
+    expect(adapted.records).toEqual([])
+    expect(adapted.diagnostics).toContainEqual(expect.objectContaining({
+      code: "trace-digest-mismatch",
+      severity: "error",
+    }))
   })
 })
 

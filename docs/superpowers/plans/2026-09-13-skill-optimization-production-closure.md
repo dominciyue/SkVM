@@ -282,17 +282,19 @@ bun test ./test/jit-optimize/constraint-scope.test.ts ./test/jit-optimize/produc
 
 **修改：** optimizer/workspace、程序生成指引、consumption/effect；仅针对新的真实 trace 暴露问题。
 
-- [ ] 检查新链是否重复注入原文和新文、重复读取源码、反复找入口、输出过长或因缺摘要重做程序工作。
-- [ ] 在生成策略中改进按需引用、参数帮助、简洁结果和后续步骤交接；大产物写文件，stdout 保留结果摘要、路径与必要错误，不隐去诊断换低 token。
-- [ ] 保留有依据的小优化，不只看最大热点；但每次修改对应一个可解释的开销，不为文档越短越好而删规则。
-- [ ] 同任务/模型/环境做必要配对，使用现有统计口径，不把字符数代 token、不重复扣 cache、不把 agent runCount 当 API 请求数。
-- [ ] 在运行前登记目标指标（如减少反复生成脚本或重复工具步骤），运行后同时列全部已观测指标。质量下降不计优化收益；不能事后从众多指标挑一个下降就宣布总体成功。
+- [x] 检查新链是否重复注入原文和新文、重复读取源码、反复找入口、输出过长或因缺摘要重做程序工作。
+- [x] 在生成策略中改进按需引用、参数帮助、简洁结果和后续步骤交接；大产物写文件，stdout 保留结果摘要、路径与必要错误，不隐去诊断换低 token。
+- [x] 保留有依据的小优化，不只看最大热点；但每次修改对应一个可解释的开销，不为文档越短越好而删规则。
+- [x] 同任务/模型/环境做必要配对，使用现有统计口径，不把字符数代 token、不重复扣 cache、不把 agent runCount 当 API 请求数。
+- [x] 在运行前登记目标指标（如减少反复生成脚本或重复工具步骤），运行后同时列全部已观测指标。质量下降不计优化收益；不能事后从众多指标挑一个下降就宣布总体成功。
 
 ```powershell
 bun test ./test/jit-optimize/effect.test.ts ./test/jit-optimize/consumption.test.ts ./test/jit-optimize/optimizer-prompt.test.ts
 ```
 
 **验收：** 至少一项共享使用问题进入生产策略并有行为证据；未测 USD、不稳定时延与 mixed 如实表达。
+
+**实际结果：** 两份既有自然消费事件均在读取 `SKILL.md` 后枚举包，Law 还为已记录的常用途径执行完整 `--help`；没有重复文件读取或 helper 源码读取。生产提示现在要求常用途径就地给出可复制命令、必需/常用可选参数，以及简洁状态、输出路径、必要错误和 residual next step；`--help` 与源码诊断仍保留给非常用途径。首次普通 CLI 因 `skill-ir-general-skill-development/v1` 未被 trace adapter 识别而在模型前失败，原失败保留；TDD 修订以 gzip/raw 双摘要 fail closed 地接入该报告后，一次模型优化只改 Law `SKILL.md`。同任务/模型/Pi 配对均通过独立字符、层级、审核和残余审计检查；预登记 discovery `2→1`，完整 `--help` `1→0`，tool calls `11→9`，model responses `10→7`，tool output chars `8567→6496`，observed tokens `47487→30339`。package enumeration 仍为 `1→1`；时延单次 `48636→44728ms` 仅作噪声观察，实际 USD unknown。候选包因无独立 action-local variation 仍为 draft，只用于本阶段 development 行为配对。完整报告见 `results/skill-ir/skill-optimization-production-closure-20260913/h11/report.json`。
 
 ## H12 — 小规模过程复用检查
 

@@ -1,0 +1,424 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-h11-baseline/v1",
+  "identity": "skill-optimization-production-closure-20260913-h11-baseline-analysis",
+  "exposure": "development",
+  "status": "passed",
+  "runs": [
+    {
+      "id": "h8-i18n",
+      "source": {
+        "report": {
+          "path": "results/skill-ir/skill-optimization-production-closure-20260913/h8/natural-consumption-run-001/report-revision-001.json",
+          "bytes": 5098,
+          "sha256": "bcfa053cb0db1483c83831654ce7564166d058098990facf831da1b1bb3b1ed0"
+        },
+        "events": {
+          "path": "results/skill-ir/skill-optimization-production-closure-20260913/h8/natural-consumption-run-001/agent-events.json.gz",
+          "bytes": 12593,
+          "sha256": "0b588dfc9a14d149b32feacf819e80ee73705e51448a4455ec4244941bfc4dea",
+          "rawBytes": 362253,
+          "rawSha256": "a892359e6a497838420952d81f93b38dda4894227efdee3a34f5b3b21920418f"
+        }
+      },
+      "evidenceBindingsMatch": true,
+      "taskPassed": true,
+      "metrics": {
+        "durationMs": 22139,
+        "modelResponseCount": 6,
+        "toolCallCount": 8,
+        "toolOutputCharacters": 2695,
+        "tokens": {
+          "input": 4423,
+          "output": 557,
+          "cacheRead": 14336,
+          "cacheWrite": 0
+        },
+        "totalObservedTokens": 19316,
+        "skillReads": 1,
+        "packageEnumerations": 1,
+        "helperSourceReads": 0,
+        "helperHelpCalls": 0,
+        "helperProgramCalls": 1,
+        "repeatedReadPaths": [],
+        "entrypointDiscoveryCalls": 1
+      },
+      "toolCalls": [
+        {
+          "id": "call_LIoGn90rxijAOVMuEG4TqNgc",
+          "tool": "read",
+          "args": {
+            "path": "skill/SKILL.md"
+          },
+          "resultCharacters": 1791,
+          "isError": null,
+          "classifications": {
+            "skillRead": true,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_XStzHeu9C4jXh5bWO1HHNBqU",
+          "tool": "find",
+          "args": {
+            "path": "skill",
+            "pattern": "**/*"
+          },
+          "resultCharacters": 128,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": true,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_XdqSksOkGh505Xb61US8Ifjv",
+          "tool": "read",
+          "args": {
+            "path": "translations/base.json"
+          },
+          "resultCharacters": 166,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_dyax75NHYB695HvPYtQUiMWj",
+          "tool": "read",
+          "args": {
+            "path": "translations/pt-BR.json"
+          },
+          "resultCharacters": 168,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_4blIybO4dISXNNZeIgbF3iWD",
+          "tool": "bash",
+          "args": {
+            "command": "python -B skill/scripts/check_json_locales.py --reference base=translations/base.json --locale pt-BR=translations/pt-BR.json",
+            "timeout": 120
+          },
+          "resultCharacters": 167,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": true
+          }
+        },
+        {
+          "id": "call_0Z12EsnSMhMAn3go1Vau8qUA",
+          "tool": "write",
+          "args": {
+            "path": "audit.json",
+            "content": "{\n  \"status\": \"passed\",\n  \"referenceLocale\": \"base\",\n  \"comparedLocales\": [\n    \"pt-BR\"\n  ],\n  \"keyCount\": 4,\n  \"issues\": [],\n  \"residualReview\": \"Nested JSON scope checked; translation quality not assessed.\"\n}\n"
+          },
+          "resultCharacters": 42,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_VATccXsGlke2tKW1mUSzQqXt",
+          "tool": "read",
+          "args": {
+            "path": "audit.json"
+          },
+          "resultCharacters": 211,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_W705MY7jMMXuxX9J0S6fjmEi",
+          "tool": "bash",
+          "args": {
+            "command": "python -B -c \"import json; p='audit.json'; d=json.load(open(p,encoding='utf-8')); assert list(d)==['status','referenceLocale','comparedLocales','keyCount','issues','residualReview']; assert d=={'status':'passed','referenceLocale':'base','comparedLocales':['pt-BR'],'keyCount':4,'issues':[],'residualReview':'Nested JSON scope checked; translation quality not assessed.'}; print('audit.json validated')\"",
+            "timeout": 120
+          },
+          "resultCharacters": 22,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "h9-law",
+      "source": {
+        "report": {
+          "path": "results/skill-ir/skill-optimization-production-closure-20260913/h9/natural-consumption-run-001/report.json",
+          "bytes": 6117,
+          "sha256": "a4c509c11521f6e9452fcc5419f130d121e55f6b009a37fcbbbdcb1c3d32f65a"
+        },
+        "events": {
+          "path": "results/skill-ir/skill-optimization-production-closure-20260913/h9/natural-consumption-run-001/agent-events.json.gz",
+          "bytes": 27261,
+          "sha256": "5c7a5f4304c8839694c985ec3a17104a39d6d6825b2d0844165ad7eb2fc29166",
+          "rawBytes": 1353965,
+          "rawSha256": "c223f45adcb339d75c71f78238eeb33faa07651f2611e7442cb7033028bcf4eb"
+        }
+      },
+      "evidenceBindingsMatch": true,
+      "taskPassed": true,
+      "metrics": {
+        "durationMs": 48636,
+        "modelResponseCount": 10,
+        "toolCallCount": 11,
+        "toolOutputCharacters": 8567,
+        "tokens": {
+          "input": 13101,
+          "output": 1234,
+          "cacheRead": 33152,
+          "cacheWrite": 0
+        },
+        "totalObservedTokens": 47487,
+        "skillReads": 1,
+        "packageEnumerations": 1,
+        "helperSourceReads": 0,
+        "helperHelpCalls": 1,
+        "helperProgramCalls": 1,
+        "repeatedReadPaths": [],
+        "entrypointDiscoveryCalls": 2
+      },
+      "toolCalls": [
+        {
+          "id": "call_ZHo8Tc3BRuWbe5QY6lrDaFEP",
+          "tool": "read",
+          "args": {
+            "path": "skill/SKILL.md",
+            "limit": 2000,
+            "offset": 1
+          },
+          "resultCharacters": 2957,
+          "isError": null,
+          "classifications": {
+            "skillRead": true,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_StOKKRsncqXLJG6lgMS3rNdc",
+          "tool": "find",
+          "args": {
+            "path": "skill",
+            "pattern": "**/*"
+          },
+          "resultCharacters": 227,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": true,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_ykhoCmEGbYnD3e6t7gCyTFmq",
+          "tool": "read",
+          "args": {
+            "path": "incoming/renamed-statute.txt",
+            "offset": 1,
+            "limit": 2000
+          },
+          "resultCharacters": 79,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_hVWfasTXO3Ciw93IxO1kDB2N",
+          "tool": "bash",
+          "args": {
+            "command": "python -B skill/scripts/law_to_markdown.py --help",
+            "timeout": 120
+          },
+          "resultCharacters": 2322,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": true,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_w36wBeq3Feofnaxp7Uz90a65",
+          "tool": "bash",
+          "args": {
+            "command": "python -B skill/scripts/law_to_markdown.py incoming/renamed-statute.txt --out-dir outputs --law-decision law --artifact-level minimal",
+            "timeout": 120
+          },
+          "resultCharacters": 820,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": true
+          }
+        },
+        {
+          "id": "call_aFDmiqi1iYUIArzoWrvW09nG",
+          "tool": "ls",
+          "args": {
+            "path": "outputs/renamed-statute",
+            "limit": 50
+          },
+          "resultCharacters": 47,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_B3Mc24Tgj4zh8jKgEPV0nOrY",
+          "tool": "read",
+          "args": {
+            "path": "outputs/renamed-statute/renamed-statute+审核报告.md",
+            "offset": 1,
+            "limit": 2000
+          },
+          "resultCharacters": 1653,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_OY1NafABEwoX4EcQ1VcMKoJE",
+          "tool": "read",
+          "args": {
+            "path": "outputs/renamed-statute/renamed-statute+最终成果.md",
+            "offset": 1,
+            "limit": 2000
+          },
+          "resultCharacters": 106,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_luXgx9YQvYcoFy2MhH6nKiUD",
+          "tool": "bash",
+          "args": {
+            "command": "python -B - <<'PY'\nfrom pathlib import Path\nimport re\nsrc = Path('incoming/renamed-statute.txt').read_text(encoding='utf-8')\nout = Path('outputs/renamed-statute/renamed-statute+最终成果.md').read_text(encoding='utf-8')\n# Markdown conversion may add heading markers and alter whitespace only.\ndef chars(s):\n    s = re.sub(r'(?m)^#{1,6}[ \\t]+', '', s)\n    return ''.join(s.split())\na = chars(src)\nb = chars(out)\nprint('inputPreserved=', a == b)\nprint('inputChars=', len(a), 'deliverableChars=', len(b))\nexpected = [\n    '# 中华人民共和国示例消费者权益法',\n    '### 第一章 总则',\n    '##### 第一条',\n    '##### 第二条',\n]\nprint('headingHierarchy=', all(x in out.splitlines() for x in expected))\nprint('minimalArtifacts=', sorted(p.name for p in Path('outputs/renamed-statute').iterdir()))\nPY",
+            "timeout": 120
+          },
+          "resultCharacters": 161,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_Ff7AUNwJYZy5icTm34HSHUxa",
+          "tool": "write",
+          "args": {
+            "path": "completion-audit.json",
+            "content": "{\n  \"classification\": \"law\",\n  \"commandSucceeded\": true,\n  \"reviewApproved\": true,\n  \"deliverableInspected\": true,\n  \"inputPreserved\": true\n}\n"
+          },
+          "resultCharacters": 53,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        },
+        {
+          "id": "call_jG8G8pOqugoKvpfdJYB8EzTg",
+          "tool": "read",
+          "args": {
+            "path": "completion-audit.json",
+            "offset": 1,
+            "limit": 100
+          },
+          "resultCharacters": 142,
+          "isError": null,
+          "classifications": {
+            "skillRead": false,
+            "packageEnumeration": false,
+            "helperSourceRead": false,
+            "helperHelp": false,
+            "helperProgram": false
+          }
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "allBindingsMatch": true,
+    "bothTasksPassed": true,
+    "bothEnumeratedPackage": true,
+    "noHelperSourceRead": true,
+    "noRepeatedReadPath": true,
+    "h9AddedHelpDiscovery": true
+  },
+  "diagnosis": "Both natural consumers read SKILL.md and then enumerated the package even though SKILL.md named the executable. The Law consumer also emitted a full --help call before executing a command already documented by the package. Neither consumer reread the same file or inspected helper source, so the bounded shared target is routine entrypoint discovery, not source-read suppression.",
+  "claimBoundary": "Read-only analysis of two preserved development traces. Tool-call counts and provider tokens are exact report fields; duration is noisy, actual USD remains unknown, and the two different tasks are not an effect pair."
+}

@@ -3,7 +3,7 @@
 - 更新日期：2026-09-13
 - 工作分支：`skill-ir-aot`
 - 当前路线：H0–H14，“单次真实 trace → 程序实施与验证 → 局部修复/回退 → 新 skill 包 → 自然消费”
-- 执行状态：`active-H11`（H0–H10 已完成；G0–G14 历史整体效果仍为 mixed）
+- 执行状态：`active-H12`（H0–H11 已完成；G0–G14 历史整体效果仍为 mixed）
 
 本页是 Skill IR 唯一实时状态入口。日期化任务书、历史计划和结果报告都不是“当前状态”。
 
@@ -75,7 +75,9 @@ H8 已由普通 CLI 的第 8 次真实尝试生成 I18n nested-JSON checker；�
 
 H9 精确读取 Law development `line:3` 的实际 scorer 后确认原任务为 `0.7/failed`，并记录外部 evaluator 与源 skill 的条标题规则冲突；未为追分改变源语义。一次普通 CLI 真实产生 `reuse-script` 动作，复用既有 converter 并把可选 PDF/DOCX 依赖延迟到对应 fallback。动作局部原输入通过，但首次包暴露验证生成的 Python cache 被误装入包；失败包保留，shared diff/export 现在排除运行缓存且仍拒绝包内额外文件，并统一 Windows 路径为 portable `/`。修订包在改名/变文/异 cwd 输入上独立检查 12/12 通过，普通 Pi agent 未获入口提示即 read/help/exec、复核产物并完成残余审计。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/h9/report.json`；该证据不等于修复原 0.7 任务或证明成本收益。
 
-H10 的五项预登记条件在修订核验器下 5/5 通过：空 JSON/无合同与可选判断缺失继续成功，必需输入和 DOCX 可选依赖缺失在指定层准确失败且零产物，纯本地 helper 的联网条件变化记为不适用。首次外部核验器错误读取摘要/目录的失败证据保留，两个包的闭包摘要始终不变。acquisition 的共享解析器经 TDD 修复 8 条已证实的整命令误分类：真实 tree 文件、JSON pointer、API route 与本机路径现在分开处理；六份历史报告及其余 issue 不回写、不重分类。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/h10/report.json`，当前进入 H11 实际使用开销。
+H10 的五项预登记条件在修订核验器下 5/5 通过：空 JSON/无合同与可选判断缺失继续成功，必需输入和 DOCX 可选依赖缺失在指定层准确失败且零产物，纯本地 helper 的联网条件变化记为不适用。首次外部核验器错误读取摘要/目录的失败证据保留，两个包的闭包摘要始终不变。acquisition 的共享解析器经 TDD 修复 8 条已证实的整命令误分类：真实 tree 文件、JSON pointer、API route 与本机路径现在分开处理；六份历史报告及其余 issue 不回写、不重分类。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/h10/report.json`。
+
+H11 已将普通常用途径的可复制命令、参数和简洁结果/残余步骤交接写入生产 optimizer 提示，并以 gzip/raw 双摘要接入 general-skill 自然消费报告。Law 的同任务/模型/Pi 配对质量均通过，预登记 discovery `2→1`、tool calls `11→9`、observed tokens `47487→30339`；包枚举仍为 `1→1`，时延只是一组噪声观察，实际 USD unknown，候选仍是 draft。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/h11/report.json`，当前进入 H12 不同结构过程复用。
 
 任务摘要见[当前计划](skill-ir-aot-optimization-plan.md)。G0–G14 历史结果继续保留在
 `results/skill-ir/general-skill-optimization-20260913/final-report.json` 与同目录 `g14-verification.json`；旧结果不回写。

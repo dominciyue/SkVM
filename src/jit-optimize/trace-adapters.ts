@@ -1,5 +1,6 @@
 import path from "node:path"
 import { stat } from "node:fs/promises"
+import { gunzipSync } from "node:zlib"
 import { DurableRuntimeTraceEventSchema } from "../core/durable-runtime-trace.ts"
 import { piEventsToRunRecord, type PiEvent, type PiUserMessage } from "../core/pi-runtime.ts"
 import { RunStatusSchema } from "../core/types.ts"
@@ -73,7 +74,7 @@ function parseJson(value: string): unknown {
   }
 }
 
-function digest(value: string): string {
+function digest(value: string | Uint8Array): string {
   return new Bun.CryptoHasher("sha256").update(value).digest("hex")
 }
 
@@ -135,6 +136,15 @@ function isTraceGuidedConsumptionReport(value: JsonObject): boolean {
     && objectValue(value.targetAgent) !== undefined
     && objectValue(value.verification) !== undefined
     && objectValue(value.trace) !== undefined
+}
+
+function isGeneralSkillDevelopmentReport(value: JsonObject): boolean {
+  return value.schemaVersion === "skill-ir-general-skill-development/v1"
+    && typeof value.status === "string"
+    && typeof value.prompt === "string"
+    && objectValue(value.package) !== undefined
+    && objectValue(value.runtime) !== undefined
+    && objectValue(value.verification) !== undefined
 }
 
 function resolveLocator(sourcePath: string, locator: unknown): string | undefined {
@@ -627,6 +637,171 @@ async function adaptTraceGuidedConsumptionReport(
   }
 }
 
+async function adaptGeneralSkillDevelopmentReport(
+  sourcePath: string,
+  inputSha256: string,
+  report: JsonObject,
+): Promise<AdaptedTraceFile> {
+  const format = "skill-ir-general-skill-development/v1"
+  const representation = "conversation-trace" as const
+  const diagnostics: TraceDiagnostic[] = []
+  const runtime = objectValue(report.runtime)!
+  const packageValue = objectValue(report.package)!
+  const verification = objectValue(report.verification)!
+  const trace = objectValue(runtime.agentEvents)
+  const tracePath = resolveLocator(sourcePath, trace?.path)
+  if (!trace || trace.format !== "gzip" || !tracePath || !await exists(tracePath)) {
+    diagnostics.push(diagnostic(
+      "trace-file-unavailable",
+      "General-skill report bound gzip event archive is missing or unreadable",
+      "json:runtime.agentEvents",
+      "error",
+    ))
+    return { format, representation, inputSha256, records: [], diagnostics }
+  }
+
+  const compressed = await Bun.file(tracePath).bytes()
+  if (finiteNumber(trace.bytes) !== undefined && trace.bytes !== compressed.byteLength) {
+    diagnostics.push(diagnostic("trace-size-mismatch", "Compressed event archive size does not match", "json:runtime.agentEvents.bytes", "error"))
+  }
+  if (stringValue(trace.sha256) && digest(compressed) !== trace.sha256) {
+    diagnostics.push(diagnostic("trace-digest-mismatch", "Compressed event archive digest does not match", "json:runtime.agentEvents.sha256", "error"))
+  }
+  if (diagnostics.some((item) => item.severity === "error")) {
+    return { format, representation, inputSha256, records: [], diagnostics }
+  }
+
+  let raw: Uint8Array
+  try {
+    raw = new Uint8Array(gunzipSync(compressed))
+  } catch (error) {
+    diagnostics.push(diagnostic(
+      "trace-decompression-failed",
+      error instanceof Error ? error.message : String(error),
+      "json:runtime.agentEvents",
+      "error",
+    ))
+    return { format, representation, inputSha256, records: [], diagnostics }
+  }
+  if (finiteNumber(trace.rawBytes) !== undefined && trace.rawBytes !== raw.byteLength) {
+    diagnostics.push(diagnostic("trace-raw-size-mismatch", "Raw event archive size does not match", "json:runtime.agentEvents.rawBytes", "error"))
+  }
+  if (stringValue(trace.rawSha256) && digest(raw) !== trace.rawSha256) {
+    diagnostics.push(diagnostic("trace-raw-digest-mismatch", "Raw event archive digest does not match", "json:runtime.agentEvents.rawSha256", "error"))
+  }
+  if (diagnostics.some((item) => item.severity === "error")) {
+    return { format, representation, inputSha256, records: [], diagnostics }
+  }
+
+  let events: PiEvent[]
+  try {
+    const value = JSON.parse(new TextDecoder().decode(raw))
+    if (!Array.isArray(value)) throw new Error("raw trace is not an event array")
+    events = value as PiEvent[]
+  } catch (error) {
+    diagnostics.push(diagnostic(
+      "trace-parse-failed",
+      error instanceof Error ? error.message : String(error),
+      "json:runtime.agentEvents",
+      "error",
+    ))
+    return { format, representation, inputSha256, records: [], diagnostics }
+  }
+
+  const exitCode = integerValue(runtime.exitCode)
+  const runStatus = runtime.timedOut === true ? "timeout" : exitCode === 0 ? "ok" : "adapter-crashed"
+  const workDirPath = resolveLocator(sourcePath, runtime.workDir)
+  const runRecord = piEventsToRunRecord(events).finish({
+    workDir: workDirPath ?? path.dirname(sourcePath),
+    durationMs: finiteNumber(runtime.durationMs) ?? 0,
+    runStatus,
+  })
+  const taskPrompt = stringValue(report.prompt)
+  const conversationLog: ConversationLogEntry[] = []
+  if (taskPrompt) conversationLog.push({ type: "request", ts: "unknown", text: taskPrompt, sourceLocator: "json:prompt" })
+  for (const step of runRecord.steps) {
+    if (step.text) {
+      conversationLog.push({
+        type: "response",
+        ts: Number.isFinite(step.timestamp) ? new Date(step.timestamp).toISOString() : "unknown",
+        text: step.text,
+        sourceLocator: "gzip-pi-events:assistant",
+      })
+    }
+    for (const call of step.toolCalls) {
+      conversationLog.push({
+        type: "tool",
+        ts: Number.isFinite(step.timestamp) ? new Date(step.timestamp).toISOString() : "unknown",
+        name: call.name,
+        input: call.input,
+        output: call.output,
+        exitCode: call.exitCode,
+        sourceLocator: `gzip-pi-events:tool-call:${call.id}`,
+      })
+    }
+  }
+
+  const taskPassed = typeof verification.taskPassed === "boolean" ? verification.taskPassed : undefined
+  const criteria = taskPassed === undefined ? undefined : [{
+    id: "general-skill-task-checker",
+    name: "general-skill-task-checker",
+    method: "custom" as const,
+    description: "Bound expected-file, package-preservation and protected-resource result from the general-skill development report",
+    weight: 1,
+    score: taskPassed ? 1 : 0,
+    passed: taskPassed,
+    ...(!taskPassed ? { details: JSON.stringify(verification) } : {}),
+  }]
+  const tokens = objectValue(runtime.tokens)
+  const usage = tokens ? {
+    inputTokens: finiteNumber(tokens.input),
+    outputTokens: finiteNumber(tokens.output),
+    cacheReadTokens: finiteNumber(tokens.cacheRead),
+    cacheWriteTokens: finiteNumber(tokens.cacheWrite),
+    ...(finiteNumber(runtime.actualCostUsd) === undefined ? {} : { costUsd: finiteNumber(runtime.actualCostUsd) }),
+    source: "general-skill-development-runtime",
+  } : undefined
+  const unknownFields: string[] = []
+  if (!usage) unknownFields.push("usage")
+  if (finiteNumber(runtime.actualCostUsd) === undefined) unknownFields.push("usage.costUsd")
+  const skillDir = resolveLocator(sourcePath, packageValue.path)
+  const source = makeSource({
+    format,
+    representation,
+    sourcePath,
+    inputSha256,
+    recordLocator: "json+gzip-pi-events",
+    taskIdSource: "source",
+    diagnostics,
+    values: {
+      sourceAgent: stringValue(runtime.driver),
+      adapter: stringValue(runtime.driver),
+      model: stringValue(runtime.model),
+      system: stringValue(packageValue.kind),
+      skillPath: skillDir ? path.join(skillDir, "SKILL.md") : undefined,
+      workDirPath,
+      runStatus,
+      durationMs: finiteNumber(runtime.durationMs),
+      usage,
+      unknownFields,
+    },
+  })
+  return {
+    format,
+    representation,
+    inputSha256,
+    records: [{
+      taskId: stringValue(packageValue.manifestIdentity) ?? path.basename(path.dirname(sourcePath)),
+      taskPrompt,
+      conversationLog,
+      criteria,
+      workDirPath,
+      source,
+    }],
+    diagnostics,
+  }
+}
+
 /** Identify and adapt one external trace file without guessing absent facts. */
 export async function adaptTraceFile(filePath: string): Promise<AdaptedTraceFile> {
   const sourcePath = path.resolve(filePath)
@@ -643,6 +818,9 @@ export async function adaptTraceFile(filePath: string): Promise<AdaptedTraceFile
   const whole = objectValue(parseJson(raw))
   if (whole && isTraceGuidedConsumptionReport(whole)) {
     return adaptTraceGuidedConsumptionReport(sourcePath, inputSha256, whole)
+  }
+  if (whole && isGeneralSkillDevelopmentReport(whole)) {
+    return adaptGeneralSkillDevelopmentReport(sourcePath, inputSha256, whole)
   }
   if (whole && isSimpleReport(whole)) return adaptSimpleReport(sourcePath, inputSha256, whole)
 

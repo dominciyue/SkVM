@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-h11-optimizer-failure/v1",
+  "identity": "skill-optimization-production-closure-20260913-h11-optimizer-run-001",
+  "exposure": "development",
+  "status": "infrastructure-failed",
+  "command": "bun run skvm jit-optimize --skill=results/skill-ir/skill-optimization-production-closure-20260913/h9/proposal-attempt-001/round-1 --task-source=log --logs=results/skill-ir/skill-optimization-production-closure-20260913/h9/natural-consumption-run-001/report.json --optimizer-model=xty/gpt-5.6-sol --target-model=xty/gpt-5.6-sol --target-adapter=bare-agent --rounds=1 --package-out=results/skill-ir/skill-optimization-production-closure-20260913/h11/package-attempt-001 --timeout-ms=600000",
+  "proposal": {
+    "identity": "bare-agent/xty--gpt-5.6-sol/round-1/20260913T152418470Z",
+    "metaPath": ".skvm/proposals/jit-optimize/bare-agent/xty--gpt-5.6-sol/round-1/20260913T152418470Z/meta.json",
+    "metaStatus": "pending",
+    "roundCount": 0
+  },
+  "exitCode": 1,
+  "error": "Trace report.json file [unrecognized-format]: Input does not match a supported trace or the narrow simple-report contract; jit-optimize: no evidences loaded from execution logs",
+  "modelCallMade": false,
+  "diagnosis": "The general-skill development report binds the raw Pi event archive, but the log adapter recognizes neither that report schema nor its gzip binding. The failure occurred before optimizer execution.",
+  "nextAction": "Add a fail-closed adapter for skill-ir-general-skill-development/v1 with gzip and digest verification, then retry under a new identity as allowed by the preregistered infrastructure-failure rule."
+}

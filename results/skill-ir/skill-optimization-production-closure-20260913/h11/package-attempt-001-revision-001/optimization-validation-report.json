@@ -1,0 +1,166 @@
+{
+  "schemaVersion": "jit-optimize-validation-lifecycle/v1",
+  "createdAt": "2026-09-13T15:30:27.339Z",
+  "round": 1,
+  "sourceMode": "execution-log-local-validation",
+  "sourceTaskReplayed": false,
+  "actions": [
+    {
+      "actionId": "reuse-bundled-converter",
+      "kind": "reuse-script",
+      "implementation": {
+        "actionId": "reuse-bundled-converter",
+        "kind": "reuse-script",
+        "inputs": [
+          "input .txt path supplied by the current task",
+          "optional output root",
+          "law decision",
+          "artifact level"
+        ],
+        "outputs": [
+          "a per-input output directory",
+          "a generated review report",
+          "an approved final Markdown deliverable when applicable",
+          "concise labeled stdout status and output paths"
+        ],
+        "preconditions": [
+          "the input format is supported",
+          "for the documented TXT path, the bundled Python runtime is available"
+        ],
+        "residualDuties": [
+          "classify the document and select the law-decision value",
+          "inspect the generated report and deliverable",
+          "complete task-specific audit or communication outputs"
+        ],
+        "verification": [
+          "confirm the process exit status",
+          "read the generated review report for its final conclusion and Stage3 results",
+          "read the final deliverable and inspect actual heading levels"
+        ],
+        "status": "selected",
+        "entry": "scripts/law_to_markdown.py",
+        "runtime": "python"
+      },
+      "planStatus": "ready",
+      "planDiagnostics": [],
+      "independentCaseIds": [],
+      "selfCheckCaseIds": [
+        "observed-txt-common-path"
+      ],
+      "programStatus": "passed",
+      "program": {
+        "status": "passed",
+        "actionId": "reuse-bundled-converter",
+        "entry": "scripts/law_to_markdown.py",
+        "help": {
+          "id": "help",
+          "status": "passed",
+          "command": [
+            "python",
+            "C:\\Users\\14182\\AppData\\Local\\Temp\\jit-optimize-ofCBJX\\scripts\\law_to_markdown.py",
+            "--help"
+          ],
+          "cwd": "C:\\Users\\14182\\AppData\\Local\\Temp\\jit-optimize-ofCBJX",
+          "exitCode": 0,
+          "stdout": "usage: law_to_markdown.py [-h] [--out OUT] [--out-dir OUT_DIR]\r\n                          [--allow-fallback]\r\n                          [--docx-engine {auto,mineru,python-docx}]\r\n                          [--pdf-engine {auto,mineru,pdfplumber}]\r\n                          [--skip-mineru-ocr-skill]\r\n                          [--law-decision {auto,law,non-law}]\r\n                          [--skip-stage3-check]\r\n                          [--stage3-max-retries STAGE3_MAX_RETRIES]\r\n                          [--stage3-strict] [--no-stage3-strict]\r\n                          [--artifact-level {minimal,standard,debug}]\r\n                          input\r\n\r\nConvert law text files (.txt/.docx/.pdf) to Markdown.\r\n\r\npositional arguments:\r\n  input                 Input file path (.txt/.docx/.pdf)\r\n\r\noptions:\r\n  -h, --help            show this help message and exit\r\n  --out OUT             Output .md file path (overrides --out-dir)\r\n  --out-dir OUT_DIR     Output directory (default: create \"markdown/\" under\r\n                        input file directory)\r\n  --allow-fallback      Allow local fallback engines when mineru-ocr is\r\n                        unavailable or fails.\r\n  --docx-engine {auto,mineru,python-docx}\r\n                        DOCX extraction engine (default: auto = mineru-ocr\r\n                        skill; fallback needs --allow-fallback)\r\n  --pdf-engine {auto,mineru,pdfplumber}\r\n                        PDF extraction engine (default: auto = mineru-ocr\r\n                        skill; fallback needs --allow-fallback)\r\n  --skip-mineru-ocr-skill\r\n                        Skip calling installed mineru-ocr skill and use local\r\n                        fallback engines.\r\n  --law-decision {auto,law,non-law}\r\n                        Stage2 document type decision from caller (auto=rule\r\n                        fallback).\r\n  --skip-stage3-check   Skip Stage3 checking/report generation.\r\n  --stage3-max-retries STAGE3_MAX_RETRIES\r\n                        Maximum Stage3-driven retry count (default: 2).\r\n  --stage3-strict       Fail the run when Stage3 does not pass after retries.\r\n  --no-stage3-strict    Do not fail the run when Stage3 fails.\r\n  --artifact-level {minimal,standard,debug}\r\n                        Output artifact level: minimal|standard|debug\r\n                        (default: minimal).\r\n",
+          "stderr": "",
+          "outputFiles": [],
+          "diagnostics": []
+        },
+        "cases": [
+          {
+            "id": "observed-txt-common-path",
+            "status": "passed",
+            "command": [
+              "python",
+              "C:\\Users\\14182\\AppData\\Local\\Temp\\jit-optimize-ofCBJX\\scripts\\law_to_markdown.py",
+              "incoming/renamed-statute.txt",
+              "--out-dir",
+              "outputs",
+              "--law-decision",
+              "law",
+              "--artifact-level",
+              "minimal"
+            ],
+            "cwd": "D:\\skill优化\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\round-1\\20260913T152806230Z\\round-1-validation\\cases\\reuse-bundled-converter\\01-observed-txt-common-path",
+            "exitCode": 0,
+            "stdout": "Stage2 Retry: attempt=0 profile=default\r\nStage2 Classifier: law (provided-by-caller)\r\nStage2: applied (title=1, part=0, chapter=1, section=0, article=2, item_split=1, space_cleanup=2)\r\nStage3: attempt=0 A=PASS B=PASS overall=PASS\r\nSaved stage3 report: D:\\skill�Ż�\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\round-1\\20260913T152806230Z\\round-1-validation\\cases\\reuse-bundled-converter\\01-observed-txt-common-path\\outputs\\renamed-statute\\renamed-statute.stage3-check.md\r\nSaved review report: D:\\skill�Ż�\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\round-1\\20260913T152806230Z\\round-1-validation\\cases\\reuse-bundled-converter\\01-observed-txt-common-path\\outputs\\renamed-statute\\renamed-statute+��˱���.md\r\nSaved deliverable: D:\\skill�Ż�\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\round-1\\20260913T152806230Z\\round-1-validation\\cases\\reuse-bundled-converter\\01-observed-txt-common-path\\outputs\\renamed-statute\\renamed-statute+���ճɹ�.md\r\nResult: APPROVED\r\n",
+            "stderr": "",
+            "outputFiles": [
+              {
+                "path": "outputs/renamed-statute/renamed-statute+审核报告.md",
+                "bytes": 2791,
+                "sha256": "3312465e8e1fdf16ba3640023ec8874793cdaa607c24988c77f0dd129273254f"
+              },
+              {
+                "path": "outputs/renamed-statute/renamed-statute+最终成果.md",
+                "bytes": 248,
+                "sha256": "be70bb89e6ca5c5671074953ef493256e91f39ddf0b08d011b12c1c42dbe52e1"
+              }
+            ],
+            "diagnostics": []
+          }
+        ],
+        "diagnostics": []
+      },
+      "validationSource": "executed"
+    },
+    {
+      "actionId": "document-common-conversion-path",
+      "kind": "restructure-docs",
+      "implementation": {
+        "actionId": "document-common-conversion-path",
+        "kind": "restructure-docs",
+        "inputs": [
+          "the existing bundled converter interface",
+          "the skill-defined Stage3 verification contract"
+        ],
+        "outputs": [
+          "copy-ready TXT commands with required and common optional arguments",
+          "an explicit post-run inspection and verification boundary"
+        ],
+        "preconditions": [
+          "the bundled converter remains the standard TXT path"
+        ],
+        "residualDuties": [
+          "choose task-specific argument values",
+          "perform stricter verification when requested"
+        ],
+        "verification": [
+          "run the documented command with an arbitrary TXT path and optional output root",
+          "confirm the report and deliverable paths match the documented output rules"
+        ],
+        "status": "selected"
+      },
+      "planStatus": "not-applicable",
+      "planDiagnostics": [
+        {
+          "code": "implementation-not-executable",
+          "message": "Documentation route is statically selected and validated only through its declared dependency closure."
+        }
+      ],
+      "independentCaseIds": [],
+      "selfCheckCaseIds": [],
+      "programStatus": "not-run",
+      "validationSource": "executed"
+    }
+  ],
+  "resolution": {
+    "status": "not-run",
+    "retainedActionIds": [],
+    "unvalidatedActionIds": [
+      "reuse-bundled-converter",
+      "document-common-conversion-path"
+    ],
+    "rejected": [],
+    "feedback": [],
+    "rollbackGroups": []
+  },
+  "execution": {
+    "programRuns": 1,
+    "helpRuns": 1,
+    "caseRuns": 1,
+    "independentCaseRuns": 0,
+    "reusedActionObservations": 0
+  }
+}

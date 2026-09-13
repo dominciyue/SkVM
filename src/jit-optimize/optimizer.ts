@@ -472,9 +472,13 @@ Write \`.optimize/submission.json\` with these fields (see
   omit an unsupported action and retain the opportunity.
   When a documentation change routes normal work through an existing executable,
   represent that executable in a separate \`reuse-script\` action instead of only
-  declaring \`restructure-docs\`. If users would otherwise need to read the full
-  program source to discover parameters or interpret its result, add or generate a
-  stable documented entry with \`--help\` and a concise structured completion summary.
+  declaring \`restructure-docs\`. For every documented common path, put a
+  copy-ready common-path command beside its applicability rule and name the required
+  and common optional arguments; routine consumers must not need to enumerate package files,
+  invoke \`--help\`, or inspect program source merely to begin that documented path.
+  Keep \`--help\` stable for uncommon arguments and diagnosis. Have the executable keep
+  large results in files and emit a concise structured completion summary on stdout with
+  status, output paths, necessary errors, and the residual next step.
   Source inspection for genuine diagnosis must remain allowed; this handoff rule is
   for routine use, not a prohibition on necessary debugging.
 
