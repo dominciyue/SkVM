@@ -1,53 +1,54 @@
 # Skill IR AOT 当前执行计划
 
 - 更新日期：2026-09-13
-- 路线：U0–U7
-- 状态：`completed`（U0–U7）
+- 路线：G0–G14，单次真实 trace 驱动的通用 skill 优化
+- 状态：`planned-not-started`
 - 唯一实时状态：[current-status.md](current-status.md)
-- 详细任务书：[2026-09-13-api-task-usable-delivery.md](../superpowers/plans/2026-09-13-api-task-usable-delivery.md)
+- 详细任务书：[持续开发任务书](../superpowers/plans/2026-09-13-general-skill-optimization-deepening.md)
 
-本页只维护未完成任务与验收条件。完成记录写入 Git 和 `results/skill-ir/`，不在这里追加执行流水。
+本页只维护当前待执行任务与验收条件。U0–U7 已完成，旧结果见 `results/skill-ir/trace-guided-skill-optimization-20260913/final-report.json`；其 mixed 效果和未知 USD 成本不改写。
 
 ## 目标
 
-用一次可审计的端到端交付回答：真实 agent trace 能否驱动模型优化，产出一个职责完整的新 skill 包，并在
-agent 的新消费任务中保持或改善质量，同时给出真实一次性成本与重复使用成本。
+将已有日志优化器推进为可用于不同结构 skill 的新包生成过程。输入 skill、一次真实运行记录和可取得的资源，模型选择有依据的脚本复用、程序生成或文档重组，经实际使用形成反馈。开发共享实现为主，语料阅读和少量实验服务实现。
 
-## U0–U7
+## 待执行队列
 
-| 阶段 | 当前状态 | 交付与验收 |
-|---|---|---|
-| U0 输入冻结 | completed | 已确认 JIT optimize 基线 45 pass / 0 fail，并绑定两份仓库内真实运行材料 |
-| U1 Evidence | completed | Pi run-summary、bare-agent runtime-event、既有 conversation 与本轮 Pi consumption report adapter 均保留缺失和未知 |
-| U2 模型优化 | completed | 优化模型读取真实 evidence；保留首次错误分类与 `NUL` 失败，修订 proposal 覆盖六类机会 |
-| U3 有界固化 | completed | 两个包复用未放宽的 API Tester v2 helper/checker，保留剩余职责与不适用 fallback |
-| U4 新 skill 包 | completed | 真实 agent 在普通目录读取包、调用 helper 并通过独立 checker；首次路径错误完整保留 |
-| U5 Agent 消费 | completed | 3 skill / 3 repo 完成匹配；同一 helper 用于两个成员，第三个成员为有依据 no-change |
-| U6 成对评估 | completed | 两个成员 × 原/变化输入共 4 对；质量 4/4 对 4/4，效果 mixed，USD unknown |
-| U7 收口 | completed | 81 tests、typecheck、2 package closure、文档与 10 trace archive bindings 通过；精确提交并推送 origin |
+| 阶段 | 状态 | 交付与验收 |
+| --- | --- | --- |
+| G0 现场与基线 | planned | 确认归属、建立本轮机器恢复入口，单次相关测试 |
+| G1 语料驱动诊断 | planned | 广读目标 24–30、深读目标 8–10；至少三项问题进入生产实现，数量非硬门 |
+| G2 单次 trace | planned | 真实记录、任务资源与未知信息分开，后续验证不冒充优化输入 |
+| G3 可执行动作 | planned | 复用机会/历史，动作依赖、参数与残余职责可表达 |
+| G4 模型优化 | planned | 解除普遍缺陷/重复次数/行数门槛，依据行为保留质量 |
+| G5 实现选择 | planned | 原脚本、领域组件、生成程序、文档重组按需选择 |
+| G6 程序运行 | planned | 参数化脚本通过原/变化输入检查，错误可反馈 |
+| G7 通用包 | planned | 不强制 API 字段，重组入口并保留必要资源与原件 |
+| G8 CLI 接通 | planned | 可选新包输出，无须另走 API-only 构建脚本 |
+| G9 局部修复 | planned | 受影响行为验证，依赖相关修改协调修复或回退 |
+| G10 自然消费 | planned | 正常任务不提示 helper 命令，agent 完成剩余流程 |
+| G11 上下文与计数 | planned | 修共享重复阅读，分开运行/模型响应/工具/重试和 usage |
+| G12 多结构验证 | planned | API 兼容回归、两个不同结构非 API 成员的实际尝试 |
+| G13 后加入成员 | planned | development 过程复用检查，不按 skill 名称写成功分支 |
+| G14 交付 | planned | 相关验证、真实命令/包/结果与限制，精确提交推送 origin |
 
-## 复用边界
+X1–X3 仅在主链达标且交付窗口允许时，深化多资源路径、信息缺失降级及纯文档重组；不无限续作。
 
-- 首选复用现有 JIT Evidence/workspace/proposal、Skill IR、API TaskContract、checker 和 artifact package 能力。
-- API request/pytest 是 U3 可选后端，不是路线的默认入口。
-- 不改变构造算法、评价语义、冻结绑定或产品行为；治理只调整文档、文档检查器和必要导航引用。
-- 历史 Q1/Q2、API Tester、Env Manager 等证据只按各自原范围引用，不冒充 U0–U7 结果。
+## 复用与方法边界
 
-## 整体验收
+- 复用 JIT Evidence/workspace/loop/proposals、trace adapters 与现有执行框架，不另建优化器。
+- API/Env 是领域组件，不是两个 skill 本体，也不是所有 skill 必须服从的通用输入格式。
+- 一次 trace 可支持有依据的局部修改；原 skill 未观测的关键规则与剩余职责保留。允许重组外观，不要求逐字不变。
+- 原包默认保留，生成与部署分开；旧 log 模式按修改选轮不等于效果验证通过。
+- 已有正例作回归，公开新阅读均为 development；不启动 Q1/held-out/prospective，不改历史结果。
+- 工作在 skill-ir-aot；本轮结果目录为 `results/skill-ir/general-skill-optimization-20260913/`，G0 启动时才创建。
 
-- 输入、Evidence、proposal、接受决定、新包、消费 trace 和评价结果形成可复核 closure。
-- 新包职责完整；未自动化工作没有因固化而消失。
-- 至少一个真实消费任务完成成对比较，并分开报告质量、运行成本、构造成本和人工成本。
-- 任一失败、缺失或未测量项都保留为显式状态，不用空行、补写或外推掩盖。
+## 完成与失败处理
 
-## 停止条件
+最低产品要求是单条 trace 经通用 CLI 产生可消费非 API 新包，另一个不同结构成员经过实际尝试；至少三项共享问题落实到实现；已有 API 路线不回归。效果逐项报告，没有实测就不能声称节省。
 
-- trace 或原 skill 无法形成可靠 closure。
-- proposal 需要未公开答案或越过受保护边界。
-- 新包无法保留原职责，或 checker 不能验证关键输出。
-- 成对任务发生不可归因的基础设施失败；冻结本轮，不偷偷换样或重跑。
+单个来源、任务或动作失败不关闭整轮；有新证据可修复，不能无信息重复请求。不可替代的资源缺失只阻止依赖它的工作。不能把所有阶段填终态当成产品完成；按任务书区分有收益、mixed/no-benefit 和 partial delivery。
 
-## 下一动作
+## 启动方式
 
-U0–U7 已完成。用户复核入口是 `results/skill-ir/trace-guided-skill-optimization-20260913/final-report.json` 与两个
-development package。下一轮 prospective/held-out 若获准，必须使用独立预登记 identity；本轮不自动选择或运行。
+将详细任务书最后一节作为持续目标启动文本。当前仅登记计划，未启动目标、模型调用、公开来源获取或新的运行结果。

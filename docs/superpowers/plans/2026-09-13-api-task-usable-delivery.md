@@ -8,7 +8,7 @@
 
 **Tech Stack：** TypeScript/Bun、现有 provider/headless-agent/adapters、JIT-optimize/proposals、Skill IR/API/Env 后端，按产物需要使用 Python。
 
-**状态：** revision 2，active，2026-09-13。沿用本文件路径，替代未执行的 API-only U0–U5；当前主队列为 U0–U7。2026-09-13 已从仓库真实状态启动持续实现，恢复入口见 `results/skill-ir/trace-guided-skill-optimization-20260913/status.json`。旧版可从 Git 提交 4ae2518 恢复。
+**状态：** revision 2，completed，2026-09-13。U0–U7 已交付，结果为 mixed，执行记录见 `results/skill-ir/trace-guided-skill-optimization-20260913/status.json`。本日期化任务书保留历史执行步骤；后续待执行任务见[通用优化深化任务书](2026-09-13-general-skill-optimization-deepening.md)，项目事实以 [current-status](../../skill-ir/current-status.md) 为准。旧 API-only U0–U5 可从 Git 提交 4ae2518 恢复。
 
 ## 1. 用户已经确定的方向
 

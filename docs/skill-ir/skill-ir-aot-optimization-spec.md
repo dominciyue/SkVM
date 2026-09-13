@@ -2299,3 +2299,15 @@ TaskContract 明确 operation、覆盖义务、输出与 observation；Construct
 交付为可被 agent 实际加载和消费的优化 skill 包，不只是请求包或新文档。固化规则必须适用于变化输入；原 skill 未接管的限制和流程保留。本轮 development 已匹配 3 skill / 3 repo：两个成员共享同一摘要绑定 helper 并各在原输入、变化输入由真实 Pi agent 调用；第三个成员仅有一条合格 trace，保留 no-change。四组成对 checker 质量为 original 4/4、optimized 4/4；耗时与输出 token 下降，但输入、cache-read 与 total observed token 上升，结论为 mixed，USD unknown。该结果不外推为总体成本、人工节省、跨模型或 held-out 效果。
 
 保留原始记录、脱敏派生、摘要、合成 parser fixture 与模型推断的区别；一次 trace 不是所有分支的证明。复用已有测试和 checker，不增加多层摘要、审计或 clean 循环。历史受保护证据不变；文档治理归并导航，不改变本节方法决定。
+
+### 14.30 单次 trace 驱动的通用优化过程深化（2026-09-13，planned-not-started）
+
+下一开发依据为[通用优化持续任务书](../superpowers/plans/2026-09-13-general-skill-optimization-deepening.md)，G0–G14 与有条件 X1–X3。14.29 的 U0–U7 交付及 mixed 结果继续作为历史基线；本节只登记方法方向，不表示实现已开始。
+
+通用化目标是从真实 skill、一次执行记录与可取得资源，生成有依据的脚本复用、参数化程序或文档重组，再导出新 skill 包并自然消费。API/Env 是可选领域实现，不是所有 skill 的统一输入约束；复用 JIT-optimize/proposals，不新造优化器。一次 trace 不因缺少跨运行重复或原任务已成功而被拒绝；规则依据来自 skill、程序接口和可见事实，未观测分支继续保留。包可以改变文档结构，须保持任务目的、关键约束和残余职责，原件默认保留。
+
+广读已有公开 development skill 和相关 trace，用结构差异暴露代码缺口。阅读量、来源数、优化尝试、可消费包与效果分别统计。初步工程范围为含可参数化机械子步骤或可改善信息组织的 skill；有限阅读不构成完整分类或总体代表性。代码按能力/格式适配，不能按仓库或 skill 名称制造成功。
+
+补齐动作与实际 diff/history 的对应、原脚本/领域组件/生成程序/文档路径选择、通用包导出与修改后反馈。旧日志模式只按实际 diff 选轮的结果不升级为质量或效果通过；新验证状态与生成状态分开。自然消费任务不提供 helper 专用调用指令，具体方法由包承载；生成程序承担局部步骤后 agent 必须继续剩余任务。
+
+实验作为开发反馈，仅做必要原/变化输入和配对运行。有依据的小收益可以交付，负面/未知指标同时保留。agent 运行、模型响应/请求、工具调用、重试与不同 token 字段分别计数；没有 provider 价格不声称实际 USD 节省。失败保留但允许有证据的工程修复，不以旧一次性研究规则冻结全轮；不重做历史归档审计，不启动保护样本或 prospective。
