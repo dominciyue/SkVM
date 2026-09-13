@@ -15,6 +15,10 @@ import {
   writeInitialWorkdirManifest,
   type InitialWorkdirManifestReference,
 } from "../core/workdir-manifest.ts"
+import {
+  writePreRunInputSnapshot,
+  type PreRunInputSnapshotReference,
+} from "./pre-run-input-snapshot.ts"
 
 const log = createLogger("run")
 
@@ -34,6 +38,7 @@ export interface ExecuteRunOptions {
   keepWorkDir?: boolean
   skillMode?: SkillMode
   initialWorkdirManifestPath?: string
+  preRunInputSnapshotPath?: string
   convLog?: ConversationLog
   runtimeTrace?: DurableRuntimeTrace
 }
@@ -44,6 +49,7 @@ export interface ExecuteRunResult {
   runResult: RunResult
   workDir: string
   initialWorkdirManifest?: InitialWorkdirManifestReference
+  preRunInputSnapshot?: PreRunInputSnapshotReference
 }
 
 export interface PrepareRunWorkspaceOptions {
@@ -51,6 +57,7 @@ export interface PrepareRunWorkspaceOptions {
   skill?: LoadedSkill
   workDir: string
   initialWorkdirManifestPath?: string
+  preRunInputSnapshotPath?: string
 }
 
 const RunTaskFileSchema = BenchTaskFileSchema.omit({ eval: true }).extend({
@@ -124,9 +131,23 @@ export function naturalRunTaskId(prompt: string): string {
 export async function prepareRunWorkspace(
   opts: PrepareRunWorkspaceOptions,
 ): Promise<InitialWorkdirManifestReference | undefined> {
+  return (await prepareRunWorkspaceArtifacts(opts)).initialWorkdirManifest
+}
+
+async function prepareRunWorkspaceArtifacts(opts: PrepareRunWorkspaceOptions): Promise<{
+  initialWorkdirManifest?: InitialWorkdirManifestReference
+  preRunInputSnapshot?: PreRunInputSnapshotReference
+}> {
   const workDir = path.resolve(opts.workDir)
   await mkdir(workDir, { recursive: true })
   await copyTaskFixtures(opts.task, workDir)
+  const preRunInputSnapshot = opts.preRunInputSnapshotPath
+    ? await writePreRunInputSnapshot({
+        workDir,
+        manifestPath: opts.preRunInputSnapshotPath,
+        excludedPrefixes: [".skvm"],
+      })
+    : undefined
   const initialWorkdirManifest = opts.initialWorkdirManifestPath
     ? await writeInitialWorkdirManifest({
         workDir,
@@ -139,7 +160,10 @@ export async function prepareRunWorkspace(
   // A canonical namespace keeps those resources available even when a legacy
   // relative path collides with a user file.
   if (opts.skill) await deploySkillBundle(opts.skill, workDir)
-  return initialWorkdirManifest
+  return {
+    ...(initialWorkdirManifest ? { initialWorkdirManifest } : {}),
+    ...(preRunInputSnapshot ? { preRunInputSnapshot } : {}),
+  }
 }
 
 export async function executeRun(opts: ExecuteRunOptions): Promise<ExecuteRunResult> {
@@ -149,11 +173,12 @@ export async function executeRun(opts: ExecuteRunOptions): Promise<ExecuteRunRes
     ? path.resolve(opts.workDir)
     : await mkdtemp(path.join(getTmpDir(), `skvm-run-${task.id}-`))
 
-  const initialWorkdirManifest = await prepareRunWorkspace({
+  const prepared = await prepareRunWorkspaceArtifacts({
     task,
     skill,
     workDir,
     initialWorkdirManifestPath: opts.initialWorkdirManifestPath,
+    preRunInputSnapshotPath: opts.preRunInputSnapshotPath,
   })
 
   log.info(`Run task ${task.id}: adapter=${adapter.name} model=${adapterConfig.model} workDir=${workDir}`)
@@ -180,7 +205,8 @@ export async function executeRun(opts: ExecuteRunOptions): Promise<ExecuteRunRes
       skill,
       runResult,
       workDir,
-      ...(initialWorkdirManifest ? { initialWorkdirManifest } : {}),
+      ...(prepared.initialWorkdirManifest ? { initialWorkdirManifest: prepared.initialWorkdirManifest } : {}),
+      ...(prepared.preRunInputSnapshot ? { preRunInputSnapshot: prepared.preRunInputSnapshot } : {}),
     }
   } finally {
     await adapter.teardown()

@@ -7,6 +7,7 @@ import { ConversationLog } from "../core/conversation-logger.ts"
 import { EvalResultSchema, type EvalResult, type RunResult } from "../core/types.ts"
 import { InitialWorkdirManifestSchema, snapshotWorkdir } from "../core/workdir-manifest.ts"
 import type { LoadedRunTask, LoadedSkill } from "./index.ts"
+import { readPreRunInputSnapshot } from "./pre-run-input-snapshot.ts"
 
 const ArtifactStatusSchema = z.enum(["pending", "complete", "partial", "failed"])
 const ArtifactReferenceSchema = z.object({
@@ -157,6 +158,7 @@ export const OptimizationSessionManifestSchema = z.object({
     durableTrace: ArtifactReferenceSchema,
     runResult: ArtifactReferenceSchema,
     initialWorkdirManifest: ArtifactReferenceSchema,
+    preRunInputSnapshot: ArtifactReferenceSchema.optional(),
     observedWorkdirSnapshot: ArtifactReferenceSchema.optional(),
     sourceEvaluation: ArtifactReferenceSchema.optional(),
   }).strict(),
@@ -387,6 +389,7 @@ export class OptimizationSession {
   readonly durableTracePath: string
   readonly runResultPath: string
   readonly initialWorkdirManifestPath: string
+  readonly preRunInputSnapshotPath: string
   readonly observedWorkdirSnapshotPath: string
   readonly sourceEvaluationPath: string
   readonly runtimeTrace: DurableRuntimeTrace
@@ -401,6 +404,8 @@ export class OptimizationSession {
     this.durableTracePath = manifest.artifacts.durableTrace.path
     this.runResultPath = manifest.artifacts.runResult.path
     this.initialWorkdirManifestPath = manifest.artifacts.initialWorkdirManifest.path
+    this.preRunInputSnapshotPath = manifest.artifacts.preRunInputSnapshot?.path
+      ?? path.join(path.dirname(this.manifestPath), "source-inputs", "manifest.json")
     this.observedWorkdirSnapshotPath = manifest.artifacts.observedWorkdirSnapshot?.path
       ?? path.join(path.dirname(this.manifestPath), "observed-workdir-snapshot.json")
     this.sourceEvaluationPath = manifest.artifacts.sourceEvaluation?.path
@@ -426,6 +431,7 @@ export class OptimizationSession {
     const durableTracePath = path.join(sessionDir, "runtime-trace.jsonl")
     const runResultPath = path.join(sessionDir, "run-result.json")
     const initialWorkdirManifestPath = path.join(sessionDir, "initial-workdir-manifest.json")
+    const preRunInputSnapshotPath = path.join(sessionDir, "source-inputs", "manifest.json")
     const observedWorkdirSnapshotPath = path.join(sessionDir, "observed-workdir-snapshot.json")
     const sourceEvaluationPath = path.join(sessionDir, "source-evaluation.json")
     const startedAt = new Date().toISOString()
@@ -454,6 +460,7 @@ export class OptimizationSession {
         durableTrace: { path: durableTracePath },
         runResult: { path: runResultPath },
         initialWorkdirManifest: { path: initialWorkdirManifestPath },
+        ...(options.optimizationRequested ? { preRunInputSnapshot: { path: preRunInputSnapshotPath } } : {}),
         observedWorkdirSnapshot: { path: observedWorkdirSnapshotPath },
         ...(options.task.eval.length > 0 ? { sourceEvaluation: { path: sourceEvaluationPath } } : {}),
       },
@@ -497,9 +504,15 @@ export class OptimizationSession {
     if (this.manifest.optimization?.status !== "not-requested") {
       try {
         InitialWorkdirManifestSchema.parse(JSON.parse(await Bun.file(this.initialWorkdirManifestPath).text()))
+        const preRunInputSnapshotReference = await reference(this.preRunInputSnapshotPath)
+        await readPreRunInputSnapshot({
+          path: preRunInputSnapshotReference.path,
+          sha256: preRunInputSnapshotReference.sha256!,
+          bytes: preRunInputSnapshotReference.bytes!,
+        })
         sourceInputs = { status: "complete" }
       } catch (error) {
-        sourceInputs = { status: "failed", error: `initial source-input manifest is missing or unreadable: ${error instanceof Error ? error.message : String(error)}` }
+        sourceInputs = { status: "failed", error: `initial source-input manifest or pre-run content snapshot is missing or unreadable: ${error instanceof Error ? error.message : String(error)}` }
       }
       try {
         await captureObservedWorkdirSnapshot({
@@ -555,6 +568,9 @@ export class OptimizationSession {
         initialWorkdirManifest: await fileExists(this.initialWorkdirManifestPath)
           ? await reference(this.initialWorkdirManifestPath)
           : this.manifest.artifacts.initialWorkdirManifest,
+        preRunInputSnapshot: await fileExists(this.preRunInputSnapshotPath)
+          ? await reference(this.preRunInputSnapshotPath)
+          : this.manifest.artifacts.preRunInputSnapshot,
         observedWorkdirSnapshot: await fileExists(this.observedWorkdirSnapshotPath)
           ? await reference(this.observedWorkdirSnapshotPath)
           : this.manifest.artifacts.observedWorkdirSnapshot,

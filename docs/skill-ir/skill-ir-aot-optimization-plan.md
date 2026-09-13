@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-14
 - 路线：C0–C10，原始输入内容、本地程序动作、元数据修复与同一新包消费
-- 状态：`active`；C0 已完成，C1 正在执行；本轮尚未启动模型
+- 状态：`active`；C0–C1 已完成，C2 正在执行；本轮尚未启动模型
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[单次真实运行到新程序包](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1
 - 方法依据：spec 14.32
@@ -14,7 +14,8 @@
 | 阶段 | 状态 | 下一交付 |
 | --- | --- | --- |
 | C0 | completed | 已创建 status/diagnosis；命名根因已分层；基线 12/12、48 assertions |
-| C1–C2 | active | 自然任务执行前内容保存，并接入 Evidence/workspace/验证器 |
+| C1 | completed | 运行前字节快照、逐项 omission、session 摘要绑定；14/14、68 assertions + typecheck |
+| C2 | active | 同一份保存内容接入 Evidence/workspace/验证器，旧日志兼容 |
 | C3–C4 | planned | 本地脚本修改、动作声明诊断、修复元数据采纳及最终一致性 |
 | C5–C6 | planned | 局部机会判断、无人工评分文件的来源检查和正确推荐边界 |
 | C7 | planned | 自动输入到同一新程序包的连续集成测试及旧包替换反例 |

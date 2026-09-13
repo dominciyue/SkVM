@@ -382,6 +382,7 @@ export async function executeRunAndOptimize(
       keepWorkDir: true,
       skillMode: options.skillMode,
       initialWorkdirManifestPath: options.session.initialWorkdirManifestPath,
+      preRunInputSnapshotPath: options.session.preRunInputSnapshotPath,
       convLog: options.session.conversationLog,
       runtimeTrace: options.session.runtimeTrace,
     })

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "skill-ir-skill-optimization-end-to-end-repair-stage-verification/v1",
+  "identity": "skill-optimization-end-to-end-repair-20260914",
+  "stage": "C1",
+  "exposure": "development",
+  "implementation": {
+    "snapshotSchema": "skvm-pre-run-input-snapshot/v1",
+    "timing": "after task fixture materialization and before skill deployment or adapter setup",
+    "storage": "session-owned external source-inputs directory",
+    "limits": { "maxFileBytes": 65536, "maxTotalBytes": 524288 },
+    "captured": ["unchanged file", "later-modified file", "later-deleted file", "empty file", "UTF-8 path with spaces", "binary file"],
+    "explicitOmissions": ["file-too-large", "total-cap-exceeded", "unreadable", "unsupported"],
+    "legacyManifestSchemaChanged": false,
+    "userWorkdirReceivesSnapshotFiles": false
+  },
+  "red": [
+    {
+      "command": "bun test ./src/run/index.test.ts",
+      "passed": 1,
+      "failed": 1,
+      "assertions": 5,
+      "expectedFailure": "sourceBytesVisibleBeforeRun was false because executeRun ignored preRunInputSnapshotPath"
+    },
+    {
+      "command": "bun test ./test/run/optimization-session.test.ts",
+      "passed": 8,
+      "failed": 1,
+      "assertions": 40,
+      "expectedFailure": "a digest-only initial manifest was incorrectly accepted as complete source input capture"
+    }
+  ],
+  "green": {
+    "command": "bun test ./test/run/optimization-session.test.ts ./src/run/index.test.ts",
+    "passed": 14,
+    "failed": 0,
+    "assertions": 68
+  },
+  "typecheck": {
+    "command": "bun run typecheck",
+    "status": "passed",
+    "exitCode": 0
+  },
+  "claimBoundary": "C1 proves bounded byte capture and binding for ordinary pre-run task files. It does not yet prove that Evidence, optimizer workspace or program validation materializes those bytes; C2 owns that continuation."
+}

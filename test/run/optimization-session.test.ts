@@ -10,6 +10,11 @@ import {
   OptimizationSession,
   readOptimizationSession,
 } from "../../src/run/optimization-session.ts"
+import {
+  PreRunInputSnapshotSchema,
+  readPreRunInputSnapshot,
+  writePreRunInputSnapshot,
+} from "../../src/run/pre-run-input-snapshot.ts"
 
 const roots: string[] = []
 
@@ -65,6 +70,29 @@ function successfulResult(workDir: string): RunResult {
 }
 
 describe("optimization run session binding", () => {
+  test("an unreadable input remains an explicit omission rather than empty content", () => {
+    const snapshot = PreRunInputSnapshotSchema.parse({
+      schemaVersion: "skvm-pre-run-input-snapshot/v1",
+      limits: { maxFileBytes: 64 * 1024, maxTotalBytes: 512 * 1024 },
+      entries: [{
+        path: "permission-denied.txt",
+        type: "file",
+        status: "omitted",
+        reason: "unreadable",
+        bytes: 12,
+      }],
+    })
+
+    expect(snapshot.entries[0]).toEqual({
+      path: "permission-denied.txt",
+      type: "file",
+      status: "omitted",
+      reason: "unreadable",
+      bytes: 12,
+    })
+    expect("contentPath" in snapshot.entries[0]!).toBe(false)
+  })
+
   test("freezes only changed and new post-run files as observed outputs", async () => {
     const item = await fixture("observed-outputs")
     await Bun.write(path.join(item.workDir, "input.txt"), "before\n")
@@ -223,6 +251,68 @@ describe("optimization run session binding", () => {
     expect(completed.handoff).toMatchObject({ status: "blocked" })
     expect(completed.handoff.reason).toContain("sourceInputs=failed")
     expect(completed.optimization).toMatchObject({ status: "failed", phase: "capture" })
+  })
+
+  test("a digest-only input manifest cannot replace the pre-run content snapshot", async () => {
+    const item = await fixture("missing-input-content")
+    await Bun.write(path.join(item.workDir, "document.txt"), "original input\n")
+    const run = await RunSession.start({ type: "run", tag: "missing-input-content", logDir: item.sessionsRoot })
+    const session = await OptimizationSession.start({
+      runId: run.id, rootDir: item.sessionsRoot, skill: item.skill, task: item.task,
+      workDir: item.workDir, adapter: "bare-agent", model: "test/model", optimizationRequested: true,
+    })
+    await writeInitialWorkdirManifest({
+      workDir: item.workDir,
+      manifestPath: session.initialWorkdirManifestPath,
+      excludedPrefixes: [".skvm"],
+    })
+    await Bun.write(path.join(item.workDir, "document.txt"), "changed after capture point\n")
+    await Bun.write(session.conversationTracePath, `${JSON.stringify({ type: "response", ts: "now", text: "done" })}\n`)
+    session.runtimeTrace.finalize(0, "completed")
+
+    const completed = await session.complete(successfulResult(item.workDir))
+
+    expect(completed.capture.sourceInputs?.status).toBe("failed")
+    expect(completed.handoff).toMatchObject({ status: "blocked" })
+    expect(completed.handoff.reason).toContain("sourceInputs=failed")
+  })
+
+  test("a bound content snapshot keeps original bytes and local omissions without blocking other inputs", async () => {
+    const item = await fixture("bound-input-content")
+    await Bun.write(path.join(item.workDir, "document.txt"), "original\n")
+    await Bun.write(path.join(item.workDir, "oversized.txt"), "z".repeat(65 * 1024))
+    const run = await RunSession.start({ type: "run", tag: "bound-input-content", logDir: item.sessionsRoot })
+    const session = await OptimizationSession.start({
+      runId: run.id, rootDir: item.sessionsRoot, skill: item.skill, task: item.task,
+      workDir: item.workDir, adapter: "bare-agent", model: "test/model", optimizationRequested: true,
+    })
+    await writePreRunInputSnapshot({
+      workDir: item.workDir,
+      manifestPath: session.preRunInputSnapshotPath,
+      excludedPrefixes: [".skvm"],
+    })
+    await writeInitialWorkdirManifest({
+      workDir: item.workDir,
+      manifestPath: session.initialWorkdirManifestPath,
+      excludedPrefixes: [".skvm"],
+    })
+    await Bun.write(path.join(item.workDir, "document.txt"), "after\n")
+    await Bun.write(session.conversationTracePath, `${JSON.stringify({ type: "response", ts: "now", text: "done" })}\n`)
+    session.runtimeTrace.finalize(0, "completed")
+
+    const completed = await session.complete(successfulResult(item.workDir))
+    const snapshotRef = completed.artifacts.preRunInputSnapshot
+
+    expect(completed.capture.sourceInputs).toEqual({ status: "complete" })
+    expect(completed.handoff).toEqual({ status: "ready" })
+    expect(snapshotRef?.sha256).toMatch(/^[a-f0-9]{64}$/)
+    const snapshot = await readPreRunInputSnapshot(snapshotRef as { path: string; sha256: string; bytes: number })
+    const source = snapshot.entries.find((entry) => entry.path === "document.txt")
+    const omission = snapshot.entries.find((entry) => entry.path === "oversized.txt")
+    expect(source).toMatchObject({ status: "captured", mediaType: "text" })
+    expect(omission).toMatchObject({ status: "omitted", reason: "file-too-large" })
+    if (!source || source.status !== "captured") throw new Error("document.txt was not captured")
+    expect(await Bun.file(path.join(path.dirname(snapshotRef!.path), source.contentPath)).text()).toBe("original\n")
   })
 
   test("provider failure and interruption are terminal, retained, and never ready for optimization", async () => {

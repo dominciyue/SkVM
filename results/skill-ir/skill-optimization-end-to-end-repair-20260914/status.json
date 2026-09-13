@@ -2,16 +2,16 @@
   "schemaVersion": "skill-ir-skill-optimization-end-to-end-repair-status/v1",
   "identity": "skill-optimization-end-to-end-repair-20260914",
   "exposure": "development",
-  "updatedAt": "2026-09-14T06:29:00+08:00",
+  "updatedAt": "2026-09-14T06:44:00+08:00",
   "branch": "skill-ir-aot",
   "headAtStart": "d619ee915e33fc1e93489a02e987f4d78222969e",
   "originAtStart": "d619ee915e33fc1e93489a02e987f4d78222969e",
-  "currentStage": "C1",
+  "currentStage": "C2",
   "deliveryStatus": "in-progress",
   "stages": {
     "C0": "completed",
-    "C1": "in-progress",
-    "C2": "planned",
+    "C1": "completed",
+    "C2": "in-progress",
     "C3": "planned",
     "C4": "planned",
     "C5": "planned",
@@ -21,23 +21,35 @@
     "C9": "planned",
     "C10": "planned"
   },
-  "lastSuccessfulAction": "Completed C0: diagnosis.json separates current roots from already-fixed/not-run stages, and the one prescribed baseline passed 12/12 tests with 48 assertions.",
-  "nextAction": "Read the exact run/session input-manifest code and tests, then add a failing natural-prompt pre-run content snapshot test for modified/generated files before implementing C1.",
+  "lastSuccessfulAction": "Completed C1 with two observed red cases, a bounded pre-run byte snapshot outside the user workdir, digest-bound session capture, explicit omissions, 14/14 focused tests with 68 assertions and passing typecheck.",
+  "nextAction": "Read the exact Evidence adapter/resource/workspace/validation representations, then add a failing pass-through test proving saved pre-run bytes materialize after the live workdir changes or disappears.",
   "currentCommand": null,
   "attemptDirectories": [],
-  "failures": [],
+  "failures": [
+    "C1 red integration: sourceBytesVisibleBeforeRun was false because executeRun ignored the requested content snapshot path (1 pass, 1 fail).",
+    "C1 red capture gate: a digest-only initial manifest was incorrectly accepted as complete source inputs (8 pass, 1 fail)."
+  ],
   "verification": {
     "C0": {
       "command": "bun test ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/implementations.test.ts",
       "passed": 12,
       "failed": 0,
       "assertions": 48
+    },
+    "C1": {
+      "command": "bun test ./test/run/optimization-session.test.ts ./src/run/index.test.ts",
+      "passed": 14,
+      "failed": 0,
+      "assertions": 68,
+      "typecheck": "passed"
     }
   },
   "evidencePaths": [
     "docs/superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md",
     "docs/skill-ir/skill-ir-aot-optimization-spec.md#1432-original-input-action-repair-and-same-new-package-production-closure",
     "results/skill-ir/skill-optimization-end-to-end-repair-20260914/diagnosis.json",
+    "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c1/verification.json",
+    "src/run/pre-run-input-snapshot.ts",
     "results/skill-ir/skill-optimization-production-closure-20260913/r6/"
   ],
   "accounting": {
@@ -67,5 +79,5 @@
     ],
     "command": "Resume from nextAction and currentStage; do not substitute historical H8/H9/R7 packages for this identity's required same-new-package chain."
   },
-  "claimBoundary": "Development only. This status begins C0 and does not claim an end-to-end new-program package, behavior improvement, cost benefit, prospective readiness, held-out performance or human savings."
+  "claimBoundary": "Development only. C1 proves bounded pre-run byte capture and binding but not yet downstream materialization or a new-program package. No behavior improvement, cost benefit, prospective readiness, held-out performance or human savings is claimed."
 }

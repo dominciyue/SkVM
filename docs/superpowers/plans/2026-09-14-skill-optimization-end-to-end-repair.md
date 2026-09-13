@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 bare-agent/provider、Python/Node skill 程序、既有 task/source 检查与通用包导出。默认沿用本机已配置模型路由。
 
-**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0 已完成，C1 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
+**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C1 已完成，C2 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
 
 **执行目录：** `D:\skill优化\SkVM`。结果根为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/`，仅在 C0 启动时创建 `status.json`。阶段记录、尝试和失败均收进该目录，不新增每阶段 Markdown。
 
@@ -83,12 +83,12 @@
 
 **修改与测试：** `src/run/index.ts`、`src/run/optimization-session.ts`，必要时把内容快照放入 `src/run/input-snapshot.ts`；扩展 `test/run/optimization-session.test.ts` 与 `src/run/index.test.ts`。
 
-- [ ] 先写红例：自然 prompt、无 task fixtures，目录已有 `document.txt`；source 执行修改它并生成另一文件。原始版本必须仍能从本次 session 读取，且与后置输出分开。
-- [ ] 增加原文件未变化、被删除、空文件、中文/空格路径、二进制文件的内容或明确未捕获状态测试；不能把 binary、过大文件或权限失败悄悄变成空字符串。
-- [ ] 在 agent 第一次读取/写入任务前保存有界、可复用的内容快照。沿用 workdir 根边界和资源隔离，内容放 session 外于业务目录的位置；不要把 source skill、缓存、凭据目录和其他会话无差别打包。
-- [ ] 首版可以有界快照用户指定任务根的普通文件，复用现有大小/排除机制；对超过限制或不支持项逐项记录原因，不能因此拒绝其余可用动作。不得在事后把已被改写的文件冒称原始输入。
-- [ ] 初始摘要清单继续供 delta 检查，不要求修改旧 manifest schema。新增内容引用只服务优化输入；同一份副本供各下游复用，不重复拷贝多套。
-- [ ] 红绿验证后提交本阶段；在现有组件文档记录输入捕获范围与遗漏语义。
+- [x] 先写红例：自然 prompt、无 task fixtures，目录已有 `document.txt`；source 执行修改它并生成另一文件。原始版本必须仍能从本次 session 读取，且与后置输出分开。
+- [x] 增加原文件未变化、被删除、空文件、中文/空格路径、二进制文件的内容或明确未捕获状态测试；不能把 binary、过大文件或权限失败悄悄变成空字符串。
+- [x] 在 agent 第一次读取/写入任务前保存有界、可复用的内容快照。沿用 workdir 根边界和资源隔离，内容放 session 外于业务目录的位置；不要把 source skill、缓存、凭据目录和其他会话无差别打包。
+- [x] 首版可以有界快照用户指定任务根的普通文件，复用现有大小/排除机制；对超过限制或不支持项逐项记录原因，不能因此拒绝其余可用动作。不得在事后把已被改写的文件冒称原始输入。
+- [x] 初始摘要清单继续供 delta 检查，不要求修改旧 manifest schema。新增内容引用只服务优化输入；同一份副本供各下游复用，不重复拷贝多套。
+- [x] 红绿验证后提交本阶段；在现有组件文档记录输入捕获范围与遗漏语义。
 
 **关键断言：** source 前字节 = session 原始内容；source 后字节只属于输出/变化；原用户目录不会因快照而增加文件。
 
