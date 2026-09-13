@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 bare-agent/provider、Python/Node skill 程序、既有 task/source 检查与通用包导出。默认沿用本机已配置模型路由。
 
-**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C2 已完成，C3 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
+**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C3 已完成，C4 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
 
 **执行目录：** `D:\skill优化\SkVM`。结果根为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/`，仅在 C0 启动时创建 `status.json`。阶段记录、尝试和失败均收进该目录，不新增每阶段 Markdown。
 
@@ -111,16 +111,18 @@
 
 ## C3 — 现成脚本修改走通用本地动作
 
+> C3 implementation is complete: the generic local route now repairs misdeclared executable actions, preserves the registered-backend boundary, and records action-level diagnostics; C4 is the active stage.
+
 **修改与测试：** `implementations.ts`、`action-plan.ts`、`optimizer.ts`、`workspace.ts`；`implementations.test.ts`、`action-plan.test.ts`、`optimizer-prompt.test.ts`。
 
-- [ ] 写红例：已有 Python 脚本因可选包 eager import 无法处理不需要该包的 TXT；候选只延迟导入并调整命令，必须能选择当前候选的本地入口，不能要求注册领域后端。
-- [ ] 优先沿用 `reuse-script` 表示复用及对既有程序的局部改进，`changedPaths` 包含实际修改；`generate-script` 保留真实新生成/重写定义，报告分清新增和修改。若现有类型无法表达，经代码证据再做最小扩展，不抢先增加大型类型层。
-- [ ] 明确 `domain-backend` 仅供真实已注册后端；不把任意脚本 patch 自动路由到它。入口引用按真实文件及 sourceRef 解析，不按 Law/I18n 名称特判。
-- [ ] 动作声明错但文件/意图存在时，输出可修的 action diagnostic，包括字段、原值、支持的本地路径；不能把它写成程序语义失败或整个 skill 不适用。
-- [ ] 能从实际 entry、捕获输入和已声明参数形成案例时形成可执行计划。只有文字 `verification`、没有可执行参数/案例时，准确说明缺口并交 C4 修复，不能因模型说“我跑过”而判 passed。
-- [ ] 测试真实程序执行、缺可选依赖不影响 TXT、实际 DOCX 路径仍报告所需依赖；不强求每个脚本统一 help/stdout ABI。提交共享修复。
+- [x] 写红例：已有 Python 脚本因可选包 eager import 无法处理不需要该包的 TXT；候选只延迟导入并调整命令，必须能选择当前候选的本地入口，不能要求注册领域后端。
+- [x] 优先沿用 `reuse-script` 表示复用及对既有程序的局部改进，`changedPaths` 包含实际修改；`generate-script` 保留真实新生成/重写定义，报告分清新增和修改。若现有类型无法表达，经代码证据再做最小扩展，不抢先增加大型类型层。
+- [x] 明确 `domain-backend` 仅供真实已注册后端；不把任意脚本 patch 自动路由到它。入口引用按真实文件及 sourceRef 解析，不按 Law/I18n 名称特判。
+- [x] 动作声明错但文件/意图存在时，输出可修的 action diagnostic，包括字段、原值、支持的本地路径；不能把它写成程序语义失败或整个 skill 不适用。
+- [x] 能从实际 entry、捕获输入和已声明参数形成案例时形成可执行计划。只有文字 `verification`、没有可执行参数/案例时，准确说明缺口并交 C4 修复，不能因模型说“我跑过”而判 passed。
+- [x] 测试真实程序执行、缺可选依赖不影响 TXT、实际 DOCX 路径仍报告所需依赖；不强求每个脚本统一 help/stdout ABI。提交共享修复。
 
-**验证：** `bun test ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/action-plan.test.ts ./test/jit-optimize/optimizer-prompt.test.ts`。
+**验证：** `bun test ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/action-plan.test.ts ./test/jit-optimize/optimizer-prompt.test.ts ./test/jit-optimize/workspace.test.ts`（66/66 tests，210 assertions），另有 package/production regression 27/27 tests、135 assertions，`bun run typecheck` 通过；机器证据为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c3/verification.json`。
 
 ## C4 — 修复动作描述，而不只修文件
 

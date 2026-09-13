@@ -166,6 +166,13 @@ describe("buildOptimizerPrompt", () => {
     expect(p).toContain("verification")
   })
 
+  test("distinguishes local script reuse from registered domain backends", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("existing executable is modified in place")
+    expect(p).toContain("Reserve `domain-backend` for a registered backend")
+    expect(p).toContain("local-script kind mismatch")
+  })
+
   test("asks for executable handoff metadata that avoids routine full-source inspection", () => {
     const p = buildOptimizerPrompt(1, 0)
     expect(p).toContain("separate `reuse-script` action")

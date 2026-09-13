@@ -4,7 +4,10 @@ import {
   OptimizeSubmissionSchema,
   type OptimizationAction,
 } from "../../src/jit-optimize/types.ts"
-import { validateOptimizationActions } from "../../src/jit-optimize/action-plan.ts"
+import {
+  actionKindMismatchDiagnostic,
+  validateOptimizationActions,
+} from "../../src/jit-optimize/action-plan.ts"
 import { normalizeSubmission } from "../../src/jit-optimize/optimizer.ts"
 
 function action(
@@ -86,6 +89,28 @@ describe("validateOptimizationActions", () => {
       code: "invalid-action",
       locator: "actions[0]",
     }))
+  })
+})
+
+describe("action declaration diagnostics", () => {
+  test("retains the wrong field value and the local repair path", () => {
+    const diagnostic = actionKindMismatchDiagnostic({
+      action: action("local-script", {
+        kind: "domain-backend",
+        sourceRefs: ["scripts/convert.py#main"],
+      }),
+      supportedLocalPaths: ["scripts/convert.py"],
+      suggestedKind: "reuse-script",
+    })
+
+    expect(diagnostic).toMatchObject({
+      code: "action-kind-mismatch",
+      field: "kind",
+      originalValue: "domain-backend",
+      supportedLocalPaths: ["scripts/convert.py"],
+      suggestedValue: "reuse-script",
+    })
+    expect(diagnostic.message).toContain("registered backend")
   })
 })
 

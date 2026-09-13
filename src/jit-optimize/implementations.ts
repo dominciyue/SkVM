@@ -1,6 +1,11 @@
 import path from "node:path"
 import { stat } from "node:fs/promises"
-import type { OptimizationAction, OptimizationActionKind } from "./types.ts"
+import { actionKindMismatchDiagnostic } from "./action-plan.ts"
+import type {
+  OptimizationAction,
+  OptimizationActionDiagnostic,
+  OptimizationActionKind,
+} from "./types.ts"
 
 export type ImplementationSelectionStatus = "selected" | "not-applicable" | "failed"
 
@@ -17,6 +22,8 @@ export interface ImplementationSelection {
   preconditions: string[]
   residualDuties: string[]
   verification: string[]
+  /** Repairable semantic declaration issues found while selecting a route. */
+  actionDiagnostics?: OptimizationActionDiagnostic[]
 }
 
 export interface DomainImplementationBackendSelection {
@@ -109,6 +116,75 @@ async function sameFile(left: string, right: string): Promise<boolean> {
   return new Uint8Array(leftBytes).every((value, index) => value === new Uint8Array(rightBytes)[index])
 }
 
+async function existingExecutableEntries(skillDir: string, refs: readonly string[]): Promise<string[]> {
+  const entries: string[] = []
+  const seen = new Set<string>()
+  for (const ref of refs) {
+    const entry = ref.split("#", 1)[0]
+    if (!entry || ![".py", ".js", ".mjs", ".cjs", ".ts", ".sh", ".ps1"]
+      .includes(path.extname(entry).toLowerCase())) continue
+    const resolved = containedPath(skillDir, entry)
+    if (!resolved || seen.has(resolved.relative) || !await isFile(resolved.absolute)) continue
+    seen.add(resolved.relative)
+    entries.push(resolved.relative)
+  }
+  return entries
+}
+
+async function baselineHasEntry(baselineSkillDir: string | undefined, entry: string): Promise<boolean> {
+  if (!baselineSkillDir) return false
+  const resolved = containedPath(baselineSkillDir, entry)
+  return resolved ? isFile(resolved.absolute) : false
+}
+
+async function selectMisdeclaredDomainAction(
+  options: SelectOptimizationImplementationOptions,
+): Promise<ImplementationSelection | undefined> {
+  const { action, skillDir, baselineSkillDir } = options
+  const sourceEntries = await existingExecutableEntries(skillDir, action.sourceRefs)
+  const changedEntries = await existingExecutableEntries(skillDir, action.changedPaths)
+  const localPaths = [...new Set([...sourceEntries, ...changedEntries])]
+  if (localPaths.length === 0) return undefined
+
+  const reuseEntry = sourceEntries[0]
+    ?? (await Promise.any(changedEntries.map(async (entry) => {
+      if (await baselineHasEntry(baselineSkillDir, entry)) return entry
+      throw new Error("not a pre-existing entry")
+    })).catch(() => undefined))
+  const suggestedKind: "reuse-script" | "generate-script" = reuseEntry ? "reuse-script" : "generate-script"
+  const localAction: OptimizationAction = {
+    ...action,
+    kind: suggestedKind,
+    ...(suggestedKind === "reuse-script"
+      ? { sourceRefs: sourceEntries.length > 0 ? action.sourceRefs : [reuseEntry!] }
+      : {}),
+  }
+  const selected = await selectFileAction(
+    skillDir,
+    localAction,
+    suggestedKind === "reuse-script" ? localAction.sourceRefs : action.changedPaths,
+    baselineSkillDir,
+  )
+  if (selected.status !== "selected") {
+    return {
+      ...selected,
+      actionDiagnostics: [actionKindMismatchDiagnostic({
+        action,
+        supportedLocalPaths: localPaths,
+        suggestedKind,
+      })],
+    }
+  }
+  return {
+    ...selected,
+    actionDiagnostics: [actionKindMismatchDiagnostic({
+      action,
+      supportedLocalPaths: localPaths,
+      suggestedKind,
+    })],
+  }
+}
+
 async function selectFileAction(
   skillDir: string,
   action: OptimizationAction,
@@ -198,6 +274,8 @@ export async function selectOptimizationImplementation(
       }
     }
   }
+  const localRoute = await selectMisdeclaredDomainAction(options)
+  if (localRoute) return localRoute
   return {
     ...common,
     status: "not-applicable",

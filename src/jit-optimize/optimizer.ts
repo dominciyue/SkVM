@@ -493,6 +493,13 @@ Write \`.optimize/submission.json\` with these fields (see
   \`reuse-script\`, \`domain-backend\`, \`generate-script\`, or
   \`restructure-docs\`. Do not invent empty values for unknown required facts;
   omit an unsupported action and retain the opportunity.
+  If an existing executable is modified in place, use \`reuse-script\` with its
+  real \`sourceRefs\` and include the actually modified path in
+  \`changedPaths\`; reserve \`generate-script\` for a new or genuinely
+  rewritten entry. Reserve \`domain-backend\` for a registered backend and use it
+  only when that backend is explicitly available. A local-script kind mismatch is
+  repairable action metadata, not a program failure or a reason to reject the
+  whole skill.
   When a documentation change routes normal work through an existing executable,
   represent that executable in a separate \`reuse-script\` action instead of only
   declaring \`restructure-docs\`. For every documented common path, put a

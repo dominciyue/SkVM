@@ -43,6 +43,78 @@ function action(
 }
 
 describe("selectOptimizationImplementation", () => {
+  test("uses a local existing script for a misdeclared domain action and keeps optional TXT dependencies lazy", async () => {
+    const baseline = await skillDir("optional-import-baseline-")
+    const candidate = await skillDir("optional-import-candidate-")
+    for (const dir of [baseline, candidate]) await mkdir(path.join(dir, "scripts"))
+    await writeFile(path.join(baseline, "scripts", "convert.py"), [
+      "import optional_docx_package",
+      "print('baseline')",
+      "",
+    ].join("\n"))
+    await writeFile(path.join(candidate, "scripts", "convert.py"), [
+      "import sys",
+      "def main(path):",
+      "    if path.lower().endswith('.docx'):",
+      "        import optional_docx_package",
+      "    with open(path, encoding='utf-8') as handle:",
+      "        print(handle.read().upper(), end='')",
+      "if __name__ == '__main__': main(sys.argv[1])",
+      "",
+    ].join("\n"))
+    const input = path.join(candidate, "input.txt")
+    await writeFile(input, "hello txt\n")
+    const misdeclared = action("local-existing-script", {
+      kind: "domain-backend",
+      sourceRefs: ["scripts/convert.py#main"],
+      changedPaths: ["scripts/convert.py"],
+      outputs: ["uppercase text"],
+    })
+
+    const selected = await selectOptimizationImplementation({
+      skillDir: candidate,
+      baselineSkillDir: baseline,
+      action: misdeclared,
+    })
+
+    expect(selected).toMatchObject({
+      status: "selected",
+      kind: "reuse-script",
+      entry: "scripts/convert.py",
+      runtime: "python",
+    })
+    expect((selected as { actionDiagnostics?: unknown[] }).actionDiagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: "action-kind-mismatch",
+        field: "kind",
+        originalValue: "domain-backend",
+        supportedLocalPaths: ["scripts/convert.py"],
+      }),
+    ]))
+
+    const process = Bun.spawn(["python", "-B", path.join(candidate, "scripts", "convert.py"), input], {
+      stdout: "pipe",
+      stderr: "pipe",
+    })
+    const [stdout, stderr] = await Promise.all([
+      new Response(process.stdout).text(),
+      new Response(process.stderr).text(),
+    ])
+    expect(await process.exited).toBe(0)
+    expect(stdout.replaceAll("\r\n", "\n")).toBe("HELLO TXT\n")
+    expect(stderr).toBe("")
+
+    const docx = path.join(candidate, "input.docx")
+    await writeFile(docx, "placeholder")
+    const docxProcess = Bun.spawn(["python", "-B", path.join(candidate, "scripts", "convert.py"), docx], {
+      stdout: "pipe",
+      stderr: "pipe",
+    })
+    const docxStderr = await new Response(docxProcess.stderr).text()
+    expect(await docxProcess.exited).not.toBe(0)
+    expect(docxStderr).toContain("optional_docx_package")
+  })
+
   test("selects the same declared source script under two unrelated skill directories", async () => {
     const first = await skillDir("inventory-skill-")
     const second = await skillDir("document-skill-")

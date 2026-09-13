@@ -780,6 +780,13 @@ async function buildImplementationContext(
   return {
     schemaVersion: "jit-optimize-implementation-context/v1",
     note: "This is a navigation and observed-shape index, not proof that every declared input or precondition is supported. Use exact locators and retain untested conditions as residual duties.",
+    implementationContract: {
+      existingExecutable: "reuse-script",
+      newExecutable: "generate-script",
+      domainBackend: "registered-only",
+      declarationMismatch: "repairable-action-diagnostic",
+      changedPathsMeaning: "paths actually changed in the candidate; do not use them to turn a pre-existing script into a generated-program claim",
+    },
     sourceInterfaces,
     evidence,
   }

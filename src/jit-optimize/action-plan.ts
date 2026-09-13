@@ -4,6 +4,31 @@ import {
   type OptimizationActionDiagnostic,
 } from "./types.ts"
 
+/**
+ * Build a repairable semantic diagnostic without pretending that the local
+ * program is a runtime failure. The caller supplies only paths it has already
+ * resolved inside the candidate skill root.
+ */
+export function actionKindMismatchDiagnostic(options: {
+  action: OptimizationAction
+  supportedLocalPaths: readonly string[]
+  suggestedKind: "reuse-script" | "generate-script"
+}): OptimizationActionDiagnostic {
+  const { action } = options
+  const paths = [...new Set(options.supportedLocalPaths)].sort((left, right) => left.localeCompare(right, "en"))
+  return {
+    code: "action-kind-mismatch",
+    severity: "error",
+    actionId: action.id,
+    locator: `action:${action.id}.kind`,
+    message: `Action ${action.id} declares kind=${action.kind}, but the candidate exposes local executable path(s) ${paths.join(", ") || "(none)"}. Use ${options.suggestedKind}; domain-backend is reserved for a registered backend.`,
+    field: "kind",
+    originalValue: action.kind,
+    supportedLocalPaths: paths,
+    suggestedValue: options.suggestedKind,
+  }
+}
+
 export interface OptimizationActionValidationResult {
   actions: OptimizationAction[]
   diagnostics: OptimizationActionDiagnostic[]

@@ -93,7 +93,7 @@ export {
   emptyCostSlice,
 } from "./types.ts"
 
-export { validateOptimizationActions } from "./action-plan.ts"
+export { actionKindMismatchDiagnostic, validateOptimizationActions } from "./action-plan.ts"
 export type { OptimizationActionValidationResult } from "./action-plan.ts"
 export {
   selectOptimizationImplementation,

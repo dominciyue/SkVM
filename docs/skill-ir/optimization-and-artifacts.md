@@ -119,6 +119,8 @@ C 路线 C1 补上自然任务的运行前内容层。`prepareRunWorkspace` 在 
 
 C2 将这份引用接入 Evidence 的 `inputResources.preRun`，由 adapter 校验 manifest/内容绑定，workspace 独立投影到 `.optimize/tasks/<safeTaskId>/run-N-pre-run-inputs/`，并在 `IMPLEMENTATION_CONTEXT.json` 中列出相对 locator、摘要、media type、格式和 omission。validation 新增 `pre-run-input-snapshot` 来源，以原始 `Uint8Array` 物化独立 case；task-fixture 与 pre-run 同名且字节漂移时 fail closed，要求显式选择真实运行前来源。旧 trace 没有该字段仍可读，不会事后回填不可恢复的输入。
 
+C3 将现成脚本动作接入通用本地实现选择：可解析的既有可执行入口优先归类为 `reuse-script`，真正新增或重写入口才归类为 `generate-script`，`changedPaths` 只表示候选实际改动，不把预先存在的脚本包装成新程序。`domain-backend` 仍仅对明确注册后端开放；如果动作声明与可定位的本地文件冲突，选择器保留局部可执行路线并附带 `action-kind-mismatch` 诊断（字段、原值、支持路径和建议值），而不是把声明错误升级为程序失败或整份 skill 不适用。开发回归覆盖可选 Python 依赖的惰性导入：TXT 路径可运行，DOCX 路径仍如实报告缺少依赖；证据为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c3/verification.json`。
+
 ### 3.0.3 通用包导出、自然消费与效果边界
 
 `buildOptimizedSkillPackage` 从 proposal 的 original 与 selected round 重新计算文件差异，复制完整选中闭包并写

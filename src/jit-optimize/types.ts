@@ -516,6 +516,7 @@ export type OptimizationActionDiagnosticCode =
   | "duplicate-action-id"
   | "unknown-action-dependency"
   | "action-dependency-cycle"
+  | "action-kind-mismatch"
 
 export interface OptimizationActionDiagnostic {
   code: OptimizationActionDiagnosticCode
@@ -523,6 +524,14 @@ export interface OptimizationActionDiagnostic {
   actionId?: string
   locator: string
   message: string
+  /** Semantic field that was declared inconsistently with the local candidate. */
+  field?: string
+  /** Original serialized value retained for a repair pass. */
+  originalValue?: string
+  /** Local executable paths that make the declaration repairable. */
+  supportedLocalPaths?: string[]
+  /** Suggested replacement value, when the engine can derive one. */
+  suggestedValue?: string
 }
 
 export const OptimizationActionDiagnosticSchema = z.object({
@@ -531,11 +540,16 @@ export const OptimizationActionDiagnosticSchema = z.object({
     "duplicate-action-id",
     "unknown-action-dependency",
     "action-dependency-cycle",
+    "action-kind-mismatch",
   ]),
   severity: z.literal("error"),
   actionId: z.string().optional(),
   locator: z.string(),
   message: z.string(),
+  field: z.string().optional(),
+  originalValue: z.string().optional(),
+  supportedLocalPaths: z.array(z.string()).optional(),
+  suggestedValue: z.string().optional(),
 })
 
 /**

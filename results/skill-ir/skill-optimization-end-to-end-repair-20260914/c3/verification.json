@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "skill-ir-skill-optimization-end-to-end-repair-c3-verification/v1",
+  "identity": "skill-optimization-end-to-end-repair-20260914",
+  "exposure": "development",
+  "stage": "C3",
+  "status": "passed",
+  "createdAt": "2026-09-14T07:22:06+08:00",
+  "redEvidence": {
+    "command": "bun test ./test/jit-optimize/implementations.test.ts",
+    "beforeImplementation": {
+      "passed": 8,
+      "failed": 1,
+      "assertions": 17,
+      "failure": "A local existing script misdeclared as domain-backend was returned as not-applicable instead of being routed through a generic local implementation."
+    },
+    "preservedFailureClass": "The declaration mismatch is repairable action metadata, not a program semantic failure or whole-skill rejection."
+  },
+  "implementation": {
+    "localRoute": "Existing executable entries are selected from resolved sourceRefs/changedPaths; pre-existing entries use reuse-script and genuinely new entries use generate-script.",
+    "backendBoundary": "domain-backend remains registered-backend-only; no skill-name or repository-name branch was added.",
+    "diagnostic": "action-kind-mismatch retains field, original value, supported local paths, suggested kind, action locator and first actionable reason.",
+    "executionCase": {
+      "txt": "The candidate Python script delays optional_docx_package import, consumes input.txt, exits 0, and emits HELLO TXT.",
+      "docx": "The same script reaches the DOCX branch and exits nonzero with optional_docx_package in stderr; the missing dependency remains explicit."
+    },
+    "contextContract": "IMPLEMENTATION_CONTEXT.json records reuse-script, generate-script, registered-only domain backends, repairable declaration mismatch, and the actual-changed-paths meaning."
+  },
+  "verification": {
+    "focused": {
+      "command": "bun test ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/action-plan.test.ts ./test/jit-optimize/optimizer-prompt.test.ts ./test/jit-optimize/workspace.test.ts",
+      "passed": 66,
+      "failed": 0,
+      "assertions": 210
+    },
+    "implementationOnly": {
+      "command": "bun test ./test/jit-optimize/implementations.test.ts",
+      "passed": 9,
+      "failed": 0,
+      "assertions": 23
+    },
+    "regression": {
+      "command": "bun test ./test/jit-optimize/package.test.ts ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/production-closure.test.ts",
+      "passed": 27,
+      "failed": 0,
+      "assertions": 135
+    },
+    "typecheck": {
+      "command": "bun run typecheck",
+      "status": "passed"
+    }
+  },
+  "accounting": {
+    "optimizerModelCalls": 0,
+    "repairModelCalls": 0,
+    "remoteApiCalls": 0,
+    "paidCalls": 0,
+    "projectRuntimeCostUsd": 0,
+    "actualProjectCostUnknown": false,
+    "developerAgentCost": "not-measured-by-project-runtime"
+  },
+  "claimBoundary": "Development evidence only. C3 proves a generic local route, declaration diagnostics, and a bounded Python TXT/DOCX dependency case. It does not prove the end-to-end new-package chain, natural agent consumption, behavior improvement, prospective readiness, held-out performance, or human savings."
+}

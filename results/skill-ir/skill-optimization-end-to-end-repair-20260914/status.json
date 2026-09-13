@@ -2,18 +2,18 @@
   "schemaVersion": "skill-ir-skill-optimization-end-to-end-repair-status/v1",
   "identity": "skill-optimization-end-to-end-repair-20260914",
   "exposure": "development",
-  "updatedAt": "2026-09-14T22:56:00+08:00",
+  "updatedAt": "2026-09-14T07:22:06+08:00",
   "branch": "skill-ir-aot",
   "headAtStart": "d619ee915e33fc1e93489a02e987f4d78222969e",
   "originAtStart": "d619ee915e33fc1e93489a02e987f4d78222969e",
-  "currentStage": "C3",
+  "currentStage": "C4",
   "deliveryStatus": "in-progress",
   "stages": {
     "C0": "completed",
     "C1": "completed",
     "C2": "completed",
-    "C3": "in-progress",
-    "C4": "planned",
+    "C3": "completed",
+    "C4": "in-progress",
     "C5": "planned",
     "C6": "planned",
     "C7": "planned",
@@ -21,8 +21,8 @@
     "C9": "planned",
     "C10": "planned"
   },
-  "lastSuccessfulAction": "Completed C2 with three observed propagation red cases, digest-bound pre-run resources flowing through adapter, Evidence, workspace, and validation, 90/90 focused tests with 358 assertions, and passing typecheck.",
-  "nextAction": "Read implementations.ts, action-plan.ts, optimizer.ts, and their tests; add a failing C3 case proving an existing Python script with an optional import can be repaired by a generic local action without domain-backend routing.",
+  "lastSuccessfulAction": "Completed C3: generic local selection now routes misdeclared executable actions through reuse-script or generate-script, emits action-kind-mismatch diagnostics, preserves registered-only domain backends, and passes 66/66 focused tests (210 assertions), 27/27 package/production regression tests (135 assertions), and typecheck.",
+  "nextAction": "Read loop.ts, optimizer.ts, validation-lifecycle.ts, and production-closure tests; add C4 red cases proving metadata-only repair is adopted even with changedPaths=[] and that file plus action repair preserves the complete action set and shared dependency closure.",
   "currentCommand": null,
   "attemptDirectories": [],
   "failures": [
@@ -31,6 +31,8 @@
     "C2 red adapter case: a digest-bound pre-run snapshot was not propagated into Evidence.inputResources (expected failure before implementation).",
     "C2 red workspace case: Evidence had no independent pre-run input projection or byte-preserving context locator (expected failure before implementation).",
     "C2 red validation case: saved binary pre-run input had no explicit materialization source and remained unresolved (expected failure before implementation)."
+    ,"C3 red implementation case: a local executable misdeclared as domain-backend was returned as not-applicable instead of using a generic local route (8 pass, 1 fail, 17 assertions before the fix)."
+    ,"C3 test portability adjustment: Python output line endings were normalized in the assertion; the product behavior remained unchanged."
   ],
   "verification": {
     "C0": {
@@ -58,6 +60,26 @@
         "failed": 0,
         "assertions": 47
       }
+    },
+    "C3": {
+      "command": "bun test ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/action-plan.test.ts ./test/jit-optimize/optimizer-prompt.test.ts ./test/jit-optimize/workspace.test.ts",
+      "passed": 66,
+      "failed": 0,
+      "assertions": 210,
+      "implementationOnly": {
+        "command": "bun test ./test/jit-optimize/implementations.test.ts",
+        "passed": 9,
+        "failed": 0,
+        "assertions": 23
+      },
+      "regression": {
+        "command": "bun test ./test/jit-optimize/package.test.ts ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/production-closure.test.ts",
+        "passed": 27,
+        "failed": 0,
+        "assertions": 135
+      },
+      "typecheck": "passed",
+      "evidence": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c3/verification.json"
     }
   },
   "evidencePaths": [
@@ -66,6 +88,7 @@
     "results/skill-ir/skill-optimization-end-to-end-repair-20260914/diagnosis.json",
     "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c1/verification.json",
     "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c2/verification.json",
+    "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c3/verification.json",
     "src/run/pre-run-input-snapshot.ts",
     "src/jit-optimize/trace-adapters.ts",
     "src/jit-optimize/workspace.ts",
@@ -99,5 +122,5 @@
     ],
     "command": "Resume from nextAction and currentStage; do not substitute historical H8/H9/R7 packages for this identity's required same-new-package chain."
   },
-  "claimBoundary": "Development only. C2 proves byte-preserving pre-run input propagation into Evidence, workspace and local validation for the designed cases. It does not establish a generated program, package export, natural consumption, behavior improvement, cost benefit, prospective readiness, held-out performance or human savings."
+  "claimBoundary": "Development only. C3 proves a generic local route, action-level declaration diagnostics, and a bounded Python TXT/DOCX dependency case. It does not establish a generated program, package export, natural consumption, behavior improvement, cost benefit, prospective readiness, held-out performance or human savings."
 }

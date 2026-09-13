@@ -3,7 +3,7 @@
 - 更新日期：2026-09-14
 - 工作分支：`skill-ir-aot`
 - 当前路线：C0–C10，“原始输入内容 → 本地程序动作 → 元数据修复 → 同一个新包的自然消费”
-- 执行状态：`active`；[新任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1、spec 14.32。C0–C2 已完成，C3 正在执行现成脚本本地动作路线；尚未启动本轮模型。
+- 执行状态：`active`；[新任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1、spec 14.32。C0–C3 已完成，C4 正在执行修复动作描述路线；尚未启动本轮模型。
 
 2026-09-14 二次复核：上一轮 H/R 报告原样保留，其组件与局部程序结果有效；但 R6 新优化 no-change 后使用旧 H8/H9 包，R7 输入本身为 H9 包，默认新程序生产闭环仍为 partial。新计划修复原始内容未传入验证、普通脚本修改被误送 domain backend、修复动作未采纳和候选/no-change 判断问题；旧包不能替代本次产物。
 
@@ -51,7 +51,7 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 
 ## 3. 当前计划
 
-当前执行的是[单次真实运行到新程序包任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1、spec 14.32。C0 已完成命名诊断和 12/12 基线。C1 新增 session 外、业务目录外的 `skvm-pre-run-input-snapshot/v1`：在 fixture 物化后、skill/adapter 之前有界保存原始字节，binary 作为原始字节保存，大小/总量/不可读/不支持逐项 omission；旧初始 manifest schema 不变。C1 红例分别为 1/2 与 8/9，最终 14/14、68 assertions 及 typecheck 通过。C2 已将同一引用接入 Evidence 的 `inputResources.preRun`、workspace 的独立 `run-N-pre-run-inputs/` 投影和 validation 的 `pre-run-input-snapshot` 来源；二进制按原始字节物化，同名且漂移的 task-fixture 绑定 fail closed。C2 focused suite 90/90、358 assertions，typecheck 通过。C3 进入现成脚本本地动作路线。
+当前执行的是[单次真实运行到新程序包任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1、spec 14.32。C0 已完成命名诊断和 12/12 基线。C1 新增 session 外、业务目录外的 `skvm-pre-run-input-snapshot/v1`：在 fixture 物化后、skill/adapter 之前有界保存原始字节，binary 作为原始字节保存，大小/总量/不可读/不支持逐项 omission；旧初始 manifest schema 不变。C1 红例分别为 1/2 与 8/9，最终 14/14、68 assertions 及 typecheck 通过。C2 已将同一引用接入 Evidence 的 `inputResources.preRun`、workspace 的独立 `run-N-pre-run-inputs/` 投影和 validation 的 `pre-run-input-snapshot` 来源；二进制按原始字节物化，同名且漂移的 task-fixture 绑定 fail closed。C2 focused suite 90/90、358 assertions，typecheck 通过。C3 已将误声明的可执行动作路由到通用 `reuse-script`/`generate-script`，保留 registered-only `domain-backend`，并写入可修的 `action-kind-mismatch` 诊断；focused suite 66/66、210 assertions，package/production regression 27/27、135 assertions，typecheck 通过。C4 正执行修复动作描述路线。
 
 最低交付要求至少一条从原始 skill 开始、本次优化器生成非 API 参数化程序的完整链，同一最终包在原/变化任务中实际调用；现成脚本路线另有真实尝试。no-change、文档草稿、旧包消费及测试数都不能替代。此处是计划，不是已实现能力。
 

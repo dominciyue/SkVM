@@ -6,6 +6,7 @@ import { selectOptimizationImplementations } from "./implementations.ts"
 import type { ImplementationSelection } from "./implementations.ts"
 import {
   OptimizationRoundValidationSummarySchema,
+  OptimizationActionDiagnosticSchema,
   OptimizeSubmissionSchema,
   type OptimizationAction,
   type OptimizationRoundValidationSummary,
@@ -42,6 +43,7 @@ const ImplementationSelectionSchema = z.object({
   preconditions: z.array(z.string()),
   residualDuties: z.array(z.string()),
   verification: z.array(z.string()),
+  actionDiagnostics: z.array(OptimizationActionDiagnosticSchema).optional(),
 })
 
 const CommonManifestShape = {
@@ -167,6 +169,7 @@ export interface OptimizedSkillPackageUserStep {
   preconditions: string[]
   residualDuties: string[]
   reason?: string
+  actionDiagnostics?: z.infer<typeof OptimizationActionDiagnosticSchema>[]
 }
 
 export interface OptimizedSkillPackageUserSummary {
@@ -366,6 +369,7 @@ function userSummary(
     preconditions: [...item.preconditions],
     residualDuties: [...item.residualDuties],
     ...(item.reason ? { reason: item.reason } : {}),
+    ...(item.actionDiagnostics ? { actionDiagnostics: item.actionDiagnostics } : {}),
   }))
   return {
     deliveryStatus: options.deliveryStatus,
@@ -402,6 +406,9 @@ function renderUserGuide(summary: OptimizedSkillPackageUserSummary): string {
     if (step.outputs.length > 0) lines.push(`  - outputs: ${step.outputs.join("; ")}`)
     if (step.preconditions.length > 0) lines.push(`  - preconditions: ${step.preconditions.join("; ")}`)
     if (step.reason) lines.push(`  - status detail: ${step.reason}`)
+    for (const diagnostic of step.actionDiagnostics ?? []) {
+      lines.push(`  - action diagnostic: ${diagnostic.code} at ${diagnostic.locator}: ${diagnostic.message}`)
+    }
   }
   lines.push("", "## Remaining agent work", "")
   if (summary.residualDuties.length === 0) lines.push("No residual duty was declared for the selected steps.")
@@ -501,6 +508,7 @@ async function readSelectedRoundState(
   proposalDir: string,
   bestRound: number,
   selectedDir: string,
+  baselineDir?: string,
 ): Promise<SelectedRoundState> {
   if (bestRound === 0) return { implementations: [] }
   const persisted = await readSubmission(proposalDir, bestRound)
@@ -525,7 +533,11 @@ async function readSelectedRoundState(
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error
   }
 
-  const implementations = await selectOptimizationImplementations({ skillDir: selectedDir, actions })
+  const implementations = await selectOptimizationImplementations({
+    skillDir: selectedDir,
+    baselineSkillDir: baselineDir,
+    actions,
+  })
   if (!validation) return { submission: persisted.submission, implementations }
   const normalized = OptimizationRoundValidationSummarySchema.parse(validation)
   const reportBytes = await readFile(resolveContained(proposalDir, normalized.reportPath))
@@ -580,7 +592,7 @@ export async function buildOptimizedSkillPackage(options: BuildOptimizedSkillPac
   if (!selected.some((file) => file.path === "SKILL.md")) throw new Error("Selected proposal snapshot has no SKILL.md")
   const actualDiff = computeDiff(original, selected)
   if (!hasChanges(actualDiff)) return { status: "no-change", sourceProposalDir: proposalDir, validation: "not-run" }
-  const selectedRound = await readSelectedRoundState(proposalDir, meta.bestRound, selectedDir)
+  const selectedRound = await readSelectedRoundState(proposalDir, meta.bestRound, selectedDir, originalDir)
   const runtimes = [...new Set(selectedRound.implementations
     .filter((item) => item.status === "selected" && item.runtime)
     .map((item) => item.runtime!))].sort()

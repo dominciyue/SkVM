@@ -562,6 +562,12 @@ describe("serializeContext — implementation context", () => {
       const context = JSON.parse(await readFile(path.join(optimizeDir, "IMPLEMENTATION_CONTEXT.json"), "utf8"))
       expect(context).toMatchObject({
         schemaVersion: "jit-optimize-implementation-context/v1",
+        implementationContract: {
+          existingExecutable: "reuse-script",
+          newExecutable: "generate-script",
+          domainBackend: "registered-only",
+          declarationMismatch: "repairable-action-diagnostic",
+        },
         sourceInterfaces: [{
           path: "scripts/table.py",
           runtime: "python",

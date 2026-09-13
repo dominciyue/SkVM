@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-14
 
-**当前已确认路线：** 第 14.32 节与[单次真实运行到新程序包任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1，状态 `planned-not-started`。沿用已实现的采集、JIT 优化和导出组件，补原始输入内容、本地程序修改、修复动作采纳和同一新包的连续消费。U/G/H/R 历史结果原样保留；上一轮阶段收口不等于默认新程序生产闭环完成。Q1/held-out、旧 0/6、readiness 与冻结结果不变。
+**当前已确认路线：** 第 14.32 节与[单次真实运行到新程序包任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1，状态 `active`。沿用已实现的采集、JIT 优化和导出组件，补原始输入内容、本地程序修改、修复动作采纳和同一新包的连续消费。U/G/H/R 历史结果原样保留；上一轮阶段收口不等于默认新程序生产闭环完成。Q1/held-out、旧 0/6、readiness 与冻结结果不变。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
@@ -2386,13 +2386,13 @@ H 路线优先将现有组件接入真实日志优化路径：动作实施后执
 
 ## 14.32 原始输入、动作修复与同一新包的生产闭环
 
-2026-09-14 二次复核及执行合同，状态 active。执行依据为[新任务书 C0–C10](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md)。C0–C2 已完成：运行前用户文件现有界保存为 session 外部内容快照并与旧摘要 manifest 分开绑定；同一份副本现通过 Evidence 的 `inputResources.preRun` 进入 workspace 和验证器，旧 trace 继续兼容。C3 进入现成脚本本地动作路线，本节不提前声明后续能力已实现。
+2026-09-14 二次复核及执行合同，状态 active。执行依据为[新任务书 C0–C10](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md)。C0–C2 已完成：运行前用户文件现有界保存为 session 外部内容快照并与旧摘要 manifest 分开绑定；同一份副本现通过 Evidence 的 `inputResources.preRun` 进入 workspace 和验证器，旧 trace 继续兼容。C3 已完成：现成脚本按真实路径进入通用本地动作，`domain-backend` 保持 registered-only，误声明输出可修的 `action-kind-mismatch` 诊断，并由实现上下文明确 `reuse-script`、`generate-script` 与 `changedPaths` 语义；TXT 可执行，DOCX 缺依赖仍显式失败。C4 正在执行，本节不提前声明后续能力已实现。
 
 14.31 的历史基础设施和局部程序结果有效，但不能拼接为默认生产闭环成功：R6 当前候选最终 no-change 后消费历史 H8/H9 包，R7 从已优化 H9 包得到零程序动作的文档候选。新路线要求同一个原始 skill 的本次 capture、proposal、最终 snapshot、导出包和自然消费保持连续；旧包仅作回归对照。
 
 **输入合同：** 用户提供自然任务和已有工作目录，系统在执行前有界保存相关原始内容，并通过 `inputResources.preRun` 传给 Evidence、workspace 和验证器。路径/摘要清单不替代内容；task fixtures、pre-run 内容和 observed outputs 分源，输入被改写/删除后仍可重放保存的原始版本。workspace 使用 `.optimize/tasks/<safeTaskId>/run-N-pre-run-inputs/` 独立 namespace，validation 以 `pre-run-input-snapshot` 显式选择来源；同名且字节漂移的 task-fixture 绑定 fail closed。binary、大小限制与不可读项如实局部遗漏，不写成空输入或拒绝整个 skill。旧日志缺少可恢复内容时不伪造原始输入。
 
-**本地程序合同：** 现成脚本可通过通用本地路径复用并改进，优先沿用 reuse-script 加实际 changedPaths；无需为每个 skill 注册 domain backend。新增程序、既有程序修改和文档改进分别报告。动作字段错误、缺资源、程序运行错误、输出错误分开；仅文字验证建议或入口存在不构成行为通过。
+**本地程序合同：** 现成脚本可通过通用本地路径复用并改进，优先沿用 `reuse-script` 加实际 `changedPaths`；新入口或真实重写才使用 `generate-script`，无需为每个 skill 注册 domain backend。`domain-backend` 只接受明确注册的后端；动作字段错误产生带字段、原值、支持路径和建议值的 `action-kind-mismatch`，不伪装成程序语义失败或整份 skill 不适用。新增程序、既有程序修改和文档改进分别报告。动作字段错误、缺资源、程序运行错误、输出错误分开；仅文字验证建议或入口存在不构成行为通过。
 
 **修复合同：** 修复提供原始基线、当前候选及动作意图，支持有依据的实现元数据修订，不限于文件 diff。最终验证与导出采用经过约束合并的修复动作；相关参数/输入/文件变动使原观察失效，独立未受影响动作保留。修正执行参数或类型不允许篡改来源规则、期望输出或删除必需义务。一次模型修复后仍失败则局部回退，不能让空 actions 隐藏尚存程序改动。
 
