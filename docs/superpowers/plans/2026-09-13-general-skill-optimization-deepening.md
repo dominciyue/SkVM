@@ -197,12 +197,12 @@ export interface BuildOptimizedSkillPackageResult {
 // package.ts 导出 buildOptimizedSkillPackage(options): Promise<BuildOptimizedSkillPackageResult>
 ```
 
-- [ ] 先测试纯文档包、复用脚本包、生成脚本包都可导出且不注入 API 文件；原包未改；no-change 不宣称 exported optimization；旧 API 构建/验证接口仍可运行。
-- [ ] 从实际选中 snapshot 和 diff 正确处理新增、修改、删除/移动文件，保留必要许可证与资源；不盲信模型自报清单，不整体排除 skill 必需的隐藏配置。
-- [ ] 新入口前置适用条件、任务流程、程序调用和剩余职责。长教程/模板按需读取，不在旧入口末尾堆第二套重叠流程，不把完整原文和新原文同时强制注入。
-- [ ] 把 manifest 的领域固定字段隔离到可选实现信息；包 identity 可从 proposal 标识，不新造复杂签名协议；运行时与依赖从实际内容列出。
-- [ ] 允许版式大改，关注行为保留：例如 i18n 占位符、文档转换正文、实验单位/seed 等按实际案例检查，不增加整包逐句审核。
-- [ ] 导出与部署分开。生成新包不得暗中调用 accept 覆盖原 skill；现有显式 accept 行为保持兼容，必要修复限定于已复现问题。
+- [x] 先测试纯文档包、复用脚本包、生成脚本包都可导出且不注入 API 文件；原包未改；no-change 不宣称 exported optimization；旧 API 构建/验证接口仍可运行。
+- [x] 从实际选中 snapshot 和 diff 正确处理新增、修改、删除/移动文件，保留必要许可证与资源；不盲信模型自报清单，不整体排除 skill 必需的隐藏配置。
+- [x] 新入口前置适用条件、任务流程、程序调用和剩余职责。长教程/模板按需读取，不在旧入口末尾堆第二套重叠流程，不把完整原文和新原文同时强制注入。
+- [x] 把 manifest 的领域固定字段隔离到可选实现信息；包 identity 可从 proposal 标识，不新造复杂签名协议；运行时与依赖从实际内容列出。
+- [x] 允许版式大改，关注行为保留：例如 i18n 占位符、文档转换正文、实验单位/seed 等按实际案例检查，不增加整包逐句审核。
+- [x] 导出与部署分开。生成新包不得暗中调用 accept 覆盖原 skill；现有显式 accept 行为保持兼容，必要修复限定于已复现问题。
 
 **运行：** `bun test ./test/jit-optimize/package.test.ts ./test/jit-optimize/solidification.test.ts ./test/jit-optimize/workspace.test.ts ./test/proposals/storage.test.ts`。
 
@@ -210,11 +210,11 @@ export interface BuildOptimizedSkillPackageResult {
 
 **修改：** `src/cli/jit-optimize.ts`、`src/jit-optimize/index.ts`，需要时补 `OptimizeConfig`/result 的可选字段；更新 `docs/usage.md` 相关段。
 
-- [ ] 先测试新增 `--package-out` 参数只导出新包、不触发 autoApply；没有该参数的旧命令输出保持兼容；no-change/infra-blocked 不谎称新包生成。
-- [ ] 将 G7 接在真实 proposal 结果后，输出包路径、实际修改类别、验证状态和缺项。不能用一次 API-only 脚本模拟通用 CLI 已接通。
-- [ ] trace 入口仍使用现有 `--task-source=log`/`--logs`。从 trace/skill 中提取可见任务资源；无法取得的内容给出具体缺项，不要求所有格式先转成 API JSON。
-- [ ] 不把 log 模式按 diff 选出的 bestRound 当成效果最佳。生成、技术检查、实际消费和测得效果分开表达。
-- [ ] 用真实 skill 和单条 trace 从 CLI 导出新包；所用命令的真实路径写入本轮结果，避免交付时仍只给抽象目录示例。
+- [x] 先测试新增 `--package-out` 参数只导出新包、不触发 autoApply；没有该参数的旧命令输出保持兼容；no-change/infra-blocked 不谎称新包生成。
+- [x] 将 G7 接在真实 proposal 结果后，输出包路径、实际修改类别、验证状态和缺项。不能用一次 API-only 脚本模拟通用 CLI 已接通。
+- [x] trace 入口仍使用现有 `--task-source=log`/`--logs`。从 trace/skill 中提取可见任务资源；无法取得的内容给出具体缺项，不要求所有格式先转成 API JSON。
+- [x] 不把 log 模式按 diff 选出的 bestRound 当成效果最佳。生成、技术检查、实际消费和测得效果分开表达。
+- [x] 用真实 skill 和单条 trace 从 CLI 导出新包；所用命令的真实路径写入本轮结果，避免交付时仍只给抽象目录示例。
 
 **运行：** `bun test ./test/cli/jit-optimize.test.ts ./test/jit-optimize/package.test.ts ./test/jit-optimize/loop-infra-blocked.test.ts`。
 
@@ -224,10 +224,10 @@ G8 完成后的新增用法是现有日志命令增加 `--package-out=./optimize
 
 **修改：** `package-validation.ts`、`loop.ts`、action/history/result 的必要字段；复用已有轮次，不建立另一套优化器。
 
-- [ ] 先测试两个独立动作中一个失败时，成功动作可保留；失败动作的依赖动作一起取消或修订；不能回退半个共享文件而丢失其他修改。
-- [ ] 区分脚本执行错误、参数缺失、入口不明确、结果不符和环境无法重建。反馈给模型的是具体错误与相关文件，不反复注入全部历史。
-- [ ] 对可明确定位的问题执行有证据的修复。无法可靠拆分共同改动时回退整个相关组，再保留其他独立组，不强行做行级自动逆补丁。
-- [ ] 优化流程可结束为有用的部分包、no-change 或仍未通过的候选；“验证未运行”不得等同“通过”。
+- [x] 先测试两个独立动作中一个失败时，成功动作可保留；失败动作的依赖动作一起取消或修订；不能回退半个共享文件而丢失其他修改。
+- [x] 区分脚本执行错误、参数缺失、入口不明确、结果不符和环境无法重建。反馈给模型的是具体错误与相关文件，不反复注入全部历史。
+- [x] 对可明确定位的问题执行有证据的修复。无法可靠拆分共同改动时回退整个相关组，再保留其他独立组，不强行做行级自动逆补丁。
+- [x] 优化流程可结束为有用的部分包、no-change 或仍未通过的候选；“验证未运行”不得等同“通过”。
 
 **运行：** `bun test ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/action-plan.test.ts ./test/jit-optimize/loop.test.ts ./test/jit-optimize/pick-best-round.test.ts`，后两项仅在 loop/选轮受改动时执行。
 
@@ -235,11 +235,11 @@ G8 完成后的新增用法是现有日志命令增加 `--package-out=./optimize
 
 **修改：** `consumption.ts`；新增 `general-skill-development.ts`；复用 `runHeadlessAgent` 和本轮 G6 检查。
 
-- [ ] 先测试消费识别来自实际 read/exec 及结果，支持包声明的不同入口名；不能仅搜索 `api-task-solidify.js`，也不能把帮助命令/失败调用算成完成。
-- [ ] 给 agent 正常任务、资源与 skill 位置，不在实验提示中指定 helper 路径、命令或内部 binding。调用指引由新包提供。
-- [ ] 至少一项任务在局部程序完成后仍需 agent 完成后续步骤，核对最终结果而非仅核对 helper 被调用；复用 JIT-boost 时避免全 run 提前结束。
-- [ ] 不适用输入由原流程继续，程序失败则明确修复/回退；报告区分脚本调用成功与任务成功。
-- [ ] 纯文档优化包不要求调用一个不存在的 helper，验证其真实读取流程和任务结果。
+- [x] 先测试消费识别来自实际 read/exec 及结果，支持包声明的不同入口名；不能仅搜索 `api-task-solidify.js`，也不能把帮助命令/失败调用算成完成。
+- [x] 给 agent 正常任务、资源与 skill 位置，不在实验提示中指定 helper 路径、命令或内部 binding。调用指引由新包提供。
+- [x] 至少一项任务在局部程序完成后仍需 agent 完成后续步骤，核对最终结果而非仅核对 helper 被调用；复用 JIT-boost 时避免全 run 提前结束。
+- [x] 不适用输入由原流程继续，程序失败则明确修复/回退；报告区分脚本调用成功与任务成功。
+- [x] 纯文档优化包不要求调用一个不存在的 helper，验证其真实读取流程和任务结果。
 
 **运行：** `bun test ./test/jit-optimize/consumption.test.ts ./test/jit-optimize/general-skill-development.test.ts`，随后运行一个非 API 新包的自然任务。
 
@@ -247,12 +247,12 @@ G8 完成后的新增用法是现有日志命令增加 `--package-out=./optimize
 
 **修改：** package/optimizer 上下文策略、`effect.ts`、`src/core/pi-runtime.ts` 的必要计数字段；沿用已有 provider usage 解释。
 
-- [ ] 从实际新 trace 定位重复读取、全文脚本阅读、过大工具返回和无意义重做；每项修复落在生成/交接策略，不手改两份历史成品。
-- [ ] helper 给出足够的帮助和摘要，agent 通常无须读打包源码；诊断确实需要源码时仍允许读取，不能为了数字好看禁用必要工具。
-- [ ] 先测试 runCount、model response/turnCount、toolCallCount、retryCount 分离；流式重复事件不重复计。不能把 agent 运行次数标为底层 API 请求总数。
-- [ ] 分别报告 input/output/cacheRead/cacheWrite、可用的 reasoning 与 provider total；已有 Pi completions 输入扣缓存逻辑保持正确，不再次扣除。不同 provider 缺失字段保留 unknown。
-- [ ] 统计工具返回字符量仅作为诊断，不能代替 token；长返回压缩必须保留后续判断需要的错误和结果。
-- [ ] 付费单价未知时不硬编码官方价格当成当前代理商价格；可记录有来源的估算与实际账单的区别。摊销只在同单位、可比成本已知时计算。
+- [x] 从实际新 trace 定位重复读取、全文脚本阅读、过大工具返回和无意义重做；每项修复落在生成/交接策略，不手改两份历史成品。
+- [x] helper 给出足够的帮助和摘要，agent 通常无须读打包源码；诊断确实需要源码时仍允许读取，不能为了数字好看禁用必要工具。
+- [x] 先测试 runCount、model response/turnCount、toolCallCount、retryCount 分离；流式重复事件不重复计。不能把 agent 运行次数标为底层 API 请求总数。
+- [x] 分别报告 input/output/cacheRead/cacheWrite、可用的 reasoning 与 provider total；已有 Pi completions 输入扣缓存逻辑保持正确，不再次扣除。不同 provider 缺失字段保留 unknown。
+- [x] 统计工具返回字符量仅作为诊断，不能代替 token；长返回压缩必须保留后续判断需要的错误和结果。
+- [x] 付费单价未知时不硬编码官方价格当成当前代理商价格；可记录有来源的估算与实际账单的区别。摊销只在同单位、可比成本已知时计算。
 
 **运行：** `bun test ./test/jit-optimize/effect.test.ts ./test/jit-optimize/consumption.test.ts`，以及被修改 Pi 计数函数对应的现有测试。先定位原测试文件再添加行为例，不重测无关 provider。
 
@@ -260,11 +260,11 @@ G8 完成后的新增用法是现有日志命令增加 `--package-out=./optimize
 
 **复用/修改：** 本轮 development 编排脚本及结果；实现修复回到 G3–G11 对应模块。
 
-- [ ] 工程目标：保留一个 API 兼容回归，至少两个结构不同的非 API skill 走同一 CLI，其中覆盖原脚本复用和生成脚本或文档重组。候选优先来自 G1/G2；不强行把专业判断转成确定程序。
-- [ ] 核心非 API 案例只提供一条真实运行给优化器；用原任务和一个变化任务验证新包。第二条消费 trace 不回灌后仍称单次。
-- [ ] 初始每个可执行修改仅做必要配对，模型、任务、环境尽量一致，采用交错顺序。明确波动或归因问题才补一次有目的重复，不预设大型样本矩阵。
-- [ ] 两个 skill 共用流程代码，具体脚本可不同；共用 helper 字节不是过程泛化的必要条件。若工程人工介入了 mapping/脚本，要说明并修产品入口，不能计全自动成功。
-- [ ] 保留不适用、无改动、失败及效果 mixed。找不到有效机会时先诊断方法偏置或输入信息，不能无限换 skill 找正例；追加案例须对应新结构或新修复问题。
+- [x] 工程目标：保留一个 API 兼容回归，至少两个结构不同的非 API skill 走同一 CLI，其中覆盖原脚本复用和生成脚本或文档重组。候选优先来自 G1/G2；不强行把专业判断转成确定程序。
+- [x] 核心非 API 案例只提供一条真实运行给优化器；用原任务和一个变化任务验证新包。第二条消费 trace 不回灌后仍称单次。
+- [x] 初始每个可执行修改仅做必要配对，模型、任务、环境尽量一致，采用交错顺序。明确波动或归因问题才补一次有目的重复，不预设大型样本矩阵。
+- [x] 两个 skill 共用流程代码，具体脚本可不同；共用 helper 字节不是过程泛化的必要条件。若工程人工介入了 mapping/脚本，要说明并修产品入口，不能计全自动成功。
+- [x] 保留不适用、无改动、失败及效果 mixed。找不到有效机会时先诊断方法偏置或输入信息，不能无限换 skill 找正例；追加案例须对应新结构或新修复问题。
 
 **完成：** 有可消费的非 API 输出和对共享实现的具体验证；广读数、尝试数、包数、消费数、收益数分别报告。
 
@@ -272,10 +272,10 @@ G8 完成后的新增用法是现有日志命令增加 `--package-out=./optimize
 
 **范围：** G1 已暴露但未用于前期实现的一份不同结构 skill；若没有则从普通公开来源补一份，仍标为 development。
 
-- [ ] 在不预先编写按 skill 名称的分支下，运行已有优化入口；只有一条 trace 也允许开始。
-- [ ] 记录首次结果：可导出、部分修改、no-change、输入缺失或实现失败。不能把配置填写工作隐去，也不把阅读正文当优化成功。
-- [ ] 若失败暴露共享缺陷，回到对应生产模块修复，再保留首跑与修订结果。这是开发反馈，不使用“修订后 prospective 成功”措辞。
-- [ ] 检查运行路径是否依赖研究目录、旧 identity、API 字段或特定 helper 名；去除实际暴露的耦合，不做全仓抽象重构。
+- [x] 在不预先编写按 skill 名称的分支下，运行已有优化入口；只有一条 trace 也允许开始。
+- [x] 记录首次结果：可导出、部分修改、no-change、输入缺失或实现失败。不能把配置填写工作隐去，也不把阅读正文当优化成功。
+- [x] 若失败暴露共享缺陷，回到对应生产模块修复，再保留首跑与修订结果。这是开发反馈，不使用“修订后 prospective 成功”措辞。
+- [x] 检查运行路径是否依赖研究目录、旧 identity、API 字段或特定 helper 名；去除实际暴露的耦合，不做全仓抽象重构。
 
 **完成：** 对过程的复用边界有明确证据，无须先冻结方法。
 
@@ -287,16 +287,18 @@ G8 完成后的新增用法是现有日志命令增加 `--package-out=./optimize
 - [ ] **X2 单次 trace 信息不足时的可用降级：** 利用真实缺 usage/返回的已知格式，验证只输出有依据的文档/调用改进或具体资源诊断；不把缺失补零，不再新增没有真实记录的 agent adapter。
 - [ ] **X3 轻量文档重组的自然效果：** 选已读、无适合生成程序但长说明明显的 skill，通过同一 optimizer/package 路径生成按需参考资料；用一个正常任务检查关键规则保留、实际读取量与结果。无改善如实记录。
 
+X1–X3 未另开新运行：G10–G13 已分别覆盖 references/scripts 闭包和相对路径、缺 usage 的逐字段 unknown、纯文档包自然消费与 mixed 效果；重复执行不增加新的结构信息。
+
 ## G14 — 有限验证、交付和恢复说明
 
 **更新：** `docs/usage.md`、现有 `docs/skill-ir/optimization-and-artifacts.md` 相关组件段、current-status/spec/plan，根 handoff/communication/conversation log。
 
-- [ ] 一次合并运行本轮实际改动模块的测试及 `bun run typecheck`；运行 `python scripts/check_skill_ir_doc_links_test.py` 与一次相关链接检查。新增文件纳入检查，不重复历史矩阵/归档校验。
-- [ ] 用户交付至少包括一条完整真实命令、原 skill/trace 来源说明、新包位置、实际使用方法、修复过的共享问题和效果限制。真实路径来自本轮运行，不能以示例命令代替实际完成。
-- [ ] 最终报告分开列：通用过程已实现的能力、仍需人工接线的地方、每案例实际结果、开发/优化/消费/评估成本。机器 report 可简短，不用 HTML、PPT 或新增一批阶段 Markdown。
-- [ ] 状态与结果按下节标准填写；不能把“所有阶段已终结”写成“通用优化成功”。修改同一文件前读取最新字节，不覆盖文档治理或其他开发线程变化。
-- [ ] 精确提交本轮生产代码、测试、必要文档及脱敏结果；只推 `origin/skill-ir-aot`。核对一次远端对齐即可，不为写最后 SHA 再生成整轮证据。
-- [ ] 写出未完成问题及可执行恢复动作；停止继续扩展。用户明确叫停时立即保留现场，不把未完成目标误标 complete。
+- [x] 一次合并运行本轮实际改动模块的测试及 `bun run typecheck`；运行 `python scripts/check_skill_ir_doc_links_test.py` 与一次相关链接检查。新增文件纳入检查，不重复历史矩阵/归档校验。
+- [x] 用户交付至少包括一条完整真实命令、原 skill/trace 来源说明、新包位置、实际使用方法、修复过的共享问题和效果限制。真实路径来自本轮运行，不能以示例命令代替实际完成。
+- [x] 最终报告分开列：通用过程已实现的能力、仍需人工接线的地方、每案例实际结果、开发/优化/消费/评估成本。机器 report 可简短，不用 HTML、PPT 或新增一批阶段 Markdown。
+- [x] 状态与结果按下节标准填写；不能把“所有阶段已终结”写成“通用优化成功”。修改同一文件前读取最新字节，不覆盖文档治理或其他开发线程变化。
+- [x] 精确提交本轮生产代码、测试、必要文档及脱敏结果；只推 `origin/skill-ir-aot`。核对一次远端对齐即可，不为写最后 SHA 再生成整轮证据。
+- [x] 写出未完成问题及可执行恢复动作；停止继续扩展。用户明确叫停时立即保留现场，不把未完成目标误标 complete。
 
 ## 4. 验收与诚实结束
 

@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "skill-ir-general-skill-evaluation/v1",
+  "identity": "g11-experimental-design-variation-input-revision-003",
+  "exposure": "development",
+  "taskId": "experimental-design-v2-cluster-sequential-dev-002-clean",
+  "runReport": "report.json",
+  "evaluator": "skill-ir-experimental-design-v2",
+  "results": [
+    {
+      "pass": true,
+      "score": 1,
+      "details": "Protected public inputs are unchanged.",
+      "criterion": {
+        "method": "custom",
+        "id": "design-input-integrity",
+        "name": "Protected public inputs remain unchanged",
+        "weight": 0.1,
+        "evaluatorId": "skill-ir-experimental-design-v2",
+        "payload": {
+          "schemaVersion": "skill-ir-experimental-design-eval/v2",
+          "contractRevision": "materialized-delta/v1",
+          "check": "input-integrity",
+          "paths": {
+            "study": "study.json",
+            "contract": "design-contract.json",
+            "plan": "design/design-plan.json",
+            "allocation": "design/allocation.csv",
+            "report": "design/design-report.md"
+          },
+          "protectedSha256": {
+            "study": "a7b9b27d70abb8300be375af7d0aa6383fabfedc17c92fb77ce1aa389cf46959",
+            "contract": "141c05cb11032f19f075bbf7544e08f0076cfa379b16fa9182f4457e1f8a48dc"
+          }
+        }
+      }
+    },
+    {
+      "pass": true,
+      "score": 1,
+      "details": "The three public design artifacts are present and parseable.",
+      "criterion": {
+        "method": "custom",
+        "id": "design-artifact-contract",
+        "name": "All three public outputs satisfy the artifact contract",
+        "weight": 0.1,
+        "evaluatorId": "skill-ir-experimental-design-v2",
+        "payload": {
+          "schemaVersion": "skill-ir-experimental-design-eval/v2",
+          "contractRevision": "materialized-delta/v1",
+          "check": "artifact-contract",
+          "paths": {
+            "study": "study.json",
+            "contract": "design-contract.json",
+            "plan": "design/design-plan.json",
+            "allocation": "design/allocation.csv",
+            "report": "design/design-report.md"
+          },
+          "protectedSha256": {
+            "study": "a7b9b27d70abb8300be375af7d0aa6383fabfedc17c92fb77ce1aa389cf46959",
+            "contract": "141c05cb11032f19f075bbf7544e08f0076cfa379b16fa9182f4457e1f8a48dc"
+          }
+        }
+      }
+    },
+    {
+      "pass": false,
+      "score": 0,
+      "details": "Plan semantics contradict the public study or observed allocation.",
+      "criterion": {
+        "method": "custom",
+        "id": "design-semantics",
+        "name": "Plan properties match the public study and allocation",
+        "weight": 0.25,
+        "evaluatorId": "skill-ir-experimental-design-v2",
+        "payload": {
+          "schemaVersion": "skill-ir-experimental-design-eval/v2",
+          "contractRevision": "materialized-delta/v1",
+          "check": "design-semantics",
+          "paths": {
+            "study": "study.json",
+            "contract": "design-contract.json",
+            "plan": "design/design-plan.json",
+            "allocation": "design/allocation.csv",
+            "report": "design/design-report.md"
+          },
+          "protectedSha256": {
+            "study": "a7b9b27d70abb8300be375af7d0aa6383fabfedc17c92fb77ce1aa389cf46959",
+            "contract": "141c05cb11032f19f075bbf7544e08f0076cfa379b16fa9182f4457e1f8a48dc"
+          }
+        }
+      }
+    },
+    {
+      "pass": true,
+      "score": 1,
+      "details": "Allocation satisfies the public unit and balance invariants.",
+      "criterion": {
+        "method": "custom",
+        "id": "design-allocation-safety",
+        "name": "Allocation preserves units and public balance invariants",
+        "weight": 0.35,
+        "evaluatorId": "skill-ir-experimental-design-v2",
+        "payload": {
+          "schemaVersion": "skill-ir-experimental-design-eval/v2",
+          "contractRevision": "materialized-delta/v1",
+          "check": "allocation-safety",
+          "paths": {
+            "study": "study.json",
+            "contract": "design-contract.json",
+            "plan": "design/design-plan.json",
+            "allocation": "design/allocation.csv",
+            "report": "design/design-report.md"
+          },
+          "protectedSha256": {
+            "study": "a7b9b27d70abb8300be375af7d0aa6383fabfedc17c92fb77ce1aa389cf46959",
+            "contract": "141c05cb11032f19f075bbf7544e08f0076cfa379b16fa9182f4457e1f8a48dc"
+          }
+        }
+      }
+    },
+    {
+      "pass": false,
+      "score": 0.75,
+      "details": "Report evidence contradicts observable design facts.",
+      "criterion": {
+        "method": "custom",
+        "id": "design-report-consistency",
+        "name": "Report evidence is consistent with observable facts",
+        "weight": 0.2,
+        "evaluatorId": "skill-ir-experimental-design-v2",
+        "payload": {
+          "schemaVersion": "skill-ir-experimental-design-eval/v2",
+          "contractRevision": "materialized-delta/v1",
+          "check": "report-consistency",
+          "paths": {
+            "study": "study.json",
+            "contract": "design-contract.json",
+            "plan": "design/design-plan.json",
+            "allocation": "design/allocation.csv",
+            "report": "design/design-report.md"
+          },
+          "protectedSha256": {
+            "study": "a7b9b27d70abb8300be375af7d0aa6383fabfedc17c92fb77ce1aa389cf46959",
+            "contract": "141c05cb11032f19f075bbf7544e08f0076cfa379b16fa9182f4457e1f8a48dc"
+          }
+        }
+      }
+    }
+  ],
+  "overallPass": false,
+  "overallScore": 0.7000000000000001,
+  "repairOf": "variation-input-revision-002/evaluation.json",
+  "claimBoundary": "Deterministic public development evaluator; original trace only was reused by optimizer; not held-out or prospective."
+}

@@ -101,15 +101,33 @@ export type {
   SelectOptimizationImplementationOptions,
   SelectOptimizationImplementationsOptions,
 } from "./implementations.ts"
-export { validateOptimizationProgram } from "./package-validation.ts"
+export { validateOptimizationProgram, resolveActionValidation } from "./package-validation.ts"
 export type {
   ValidateOptimizationProgramOptions,
   OptimizationProgramValidationResult,
+  ProgramValidationFailureKind,
   ProgramValidationExpectation,
   ProgramValidationCase,
   ProgramRunValidation,
   ProgramOutputFileEvidence,
+  ActionValidationObservation,
+  ActionValidationFeedback,
+  ActionValidationResolution,
+  ResolveActionValidationOptions,
 } from "./package-validation.ts"
+export {
+  buildOptimizedSkillPackage,
+  verifyOptimizedSkillPackage,
+  OptimizedSkillPackageManifestSchema,
+  OPTIMIZED_SKILL_PACKAGE_SCHEMA_VERSION,
+  OPTIMIZED_SKILL_PACKAGE_MANIFEST,
+} from "./package.ts"
+export type {
+  BuildOptimizedSkillPackageOptions,
+  BuildOptimizedSkillPackageResult,
+  OptimizedSkillPackageManifest,
+  VerifiedOptimizedSkillPackage,
+} from "./package.ts"
 
 export { runOptimizer } from "./optimizer.ts"
 export { runLoop } from "./loop.ts"
@@ -144,7 +162,20 @@ export type {
   TraceGuidedSkillPackageManifest,
 } from "./solidification.ts"
 export { analyzeSkillConsumption } from "./consumption.ts"
-export type { SkillConsumptionAnalysis } from "./consumption.ts"
+export type { SkillConsumptionAnalysis, AnalyzeSkillConsumptionOptions } from "./consumption.ts"
+export {
+  buildGeneralSkillTaskPrompt,
+  runGeneralSkillDevelopment,
+} from "./general-skill-development.ts"
+export type {
+  GeneralSkillResource,
+  GeneralSkillExpectedFile,
+  GeneralSkillAgentExecution,
+  GeneralSkillAgentRunner,
+  RunGeneralSkillDevelopmentOptions,
+  GeneralSkillDevelopmentReport,
+  BuildGeneralSkillTaskPromptOptions,
+} from "./general-skill-development.ts"
 export { analyzeMatchedConsumptionPairs } from "./effect.ts"
 export type {
   ConsumptionRunForComparison,

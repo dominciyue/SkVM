@@ -1,0 +1,200 @@
+{
+  "schemaVersion": "skill-ir-general-skill-reuse-boundary/v1",
+  "identity": "g13-env-manager-first-attempt-001",
+  "exposure": "development",
+  "source": {
+    "skill": "benchmarks/skill-ir/pilots/env-manager/source",
+    "originalClosureSha256": "8671515453cc075c62b91c3a5852759c71b5f1337f4375955515365c406aa807",
+    "trace": {
+      "path": "results/skill-ir/env-manager-v3-validated-artifact-development-v1/raw-runs.jsonl",
+      "sha256": "7daf2ce0f979c5a88945ead1b566bc327e8105ea810bfa40877289bdabae87b5",
+      "recordLocator": "line:3",
+      "recordSha256": "8b43251d688a68ebf01f9b0ef88a16598715f8bd63fa356290fa8d00c1132c21",
+      "caseId": "env-manager-v3:skvm:windows:clean:env-manager-scorer-authority-node-dev-001"
+    }
+  },
+  "process": {
+    "command": "bun src/index.ts jit-optimize --skill=benchmarks/skill-ir/pilots/env-manager/source --task-source=log --logs=results/skill-ir/env-manager-v3-validated-artifact-development-v1/raw-runs.jsonl --log-records=line:3 --optimizer-model=xty/gpt-5.6-sol --target-model=xty/gpt-5.6-sol --rounds=1 --package-out=results/skill-ir/general-skill-optimization-20260913/g13-env-manager/package",
+    "proposalIdentity": "bare-agent/xty--gpt-5.6-sol/source/20260913T102840004Z",
+    "metaSha256": "4148358d25e058d95a6d9e7b775486b9fdd69d1a91605421f9c3a4d1afa64ab3",
+    "submissionSha256": "e8344dc513065a76818caae452feed6edf2dd5ef73c40410b2e07b880f87381e",
+    "rawOptimizerEvents": {
+      "bytes": 26924105,
+      "sha256": "2974c02e2b82ab45a7c1d43c3e3d1c1084243a6c5ac688315d1b88d3888d1084"
+    },
+    "optimizerUsage": {
+      "input": 31114,
+      "output": 5825,
+      "actualCostUsd": null,
+      "missingReason": "Provider pricing was not bound; engine-reported zero is not treated as actual cost."
+    }
+  },
+  "firstResult": {
+    "status": "exported-with-diagnostic",
+    "bestRound": 1,
+    "package": "package",
+    "packageManifestSha256": "ec96091f3dadbb620a84b498e85a0dcef60a41920ae895013fab0cdec35caca7",
+    "actualDiff": {
+      "added": [],
+      "modified": [
+        "SKILL.md"
+      ],
+      "deleted": [],
+      "moved": []
+    },
+    "validation": {
+      "status": "passed",
+      "scope": "package-file-closure",
+      "behaviorStatus": "not-run"
+    },
+    "implementations": [
+      {
+        "actionId": "make-contract-and-boundary-order-explicit",
+        "kind": "restructure-docs",
+        "status": "selected",
+        "inputs": [
+          "user-provided interface, schema, or manifest contract",
+          "task execution restrictions"
+        ],
+        "outputs": [
+          "contract-conforming audit artifacts",
+          "independent verification result"
+        ],
+        "preconditions": [
+          "the agent can inspect the workspace and supplied contract locally"
+        ],
+        "residualDuties": [
+          "resolve contract conflicts",
+          "identify protected inputs",
+          "choose local verification commands"
+        ],
+        "verification": [
+          "check declared artifacts and required semantics against the authoritative contract",
+          "compare protected input hashes or file manifest before and after",
+          "scan outputs and logs for secret values",
+          "confirm no prohibited network or installation action occurred"
+        ]
+      }
+    ],
+    "submissionSummary": {
+      "rootCause": "The skill describes a generic environment-audit workflow but does not tell the agent how to prioritize a task-provided interface contract or preserve its exact output semantics, and it lacks an explicit final check for protected inputs and execution restrictions. Consequently, an agent must infer whether the contract overrides the skill's illustrative formats and must invent its own verification boundary for artifact completeness, immutability, secrecy, and prohibited side effects.",
+      "confidence": 0.78,
+      "opportunities": [
+        {
+          "category": "instruction-clarity",
+          "summary": "The workflow did not make contract precedence, protected-input boundaries, or final verification ordering explicit.",
+          "evidenceIds": [
+            "0"
+          ],
+          "disposition": "implemented",
+          "residualDuty": "The agent must resolve conflicting instructions and identify the actual protected input manifest at runtime."
+        },
+        {
+          "category": "input-parameterization",
+          "summary": "The skill had fixed illustrative output names and formats but no instruction to parameterize them from a supplied interface contract.",
+          "evidenceIds": [
+            "0"
+          ],
+          "disposition": "implemented",
+          "residualDuty": "The agent must read the supplied contract and use its exact declared paths, fields, representations, and semantics."
+        },
+        {
+          "category": "repeated-transformation",
+          "summary": "The evidence shows one audit run and no repeated transformation whose implementation should be moved into a reusable script.",
+          "evidenceIds": [
+            "0"
+          ],
+          "disposition": "not-applicable",
+          "residualDuty": "The agent performs the task-specific scan and artifact generation."
+        },
+        {
+          "category": "verification",
+          "summary": "The run reported verification, but the baseline skill did not prescribe an independent contract, artifact, immutability, secrecy, and side-effect check.",
+          "evidenceIds": [
+            "0"
+          ],
+          "disposition": "implemented",
+          "residualDuty": "The agent must select and run appropriate local checks and report any inability to verify."
+        },
+        {
+          "category": "environment-dependency",
+          "summary": "The task imposed no-network, no-install, and protected-workspace constraints that were not explicitly represented in the baseline workflow.",
+          "evidenceIds": [
+            "0"
+          ],
+          "disposition": "implemented",
+          "residualDuty": "The agent must honor the task's runtime restrictions and avoid introducing tools or dependencies that require unavailable services."
+        },
+        {
+          "category": "residual-duty",
+          "summary": "Static non-reference and sensitive findings require contextual decisions that cannot be safely automated by the skill alone.",
+          "evidenceIds": [
+            "0"
+          ],
+          "disposition": "retained",
+          "residualDuty": "The agent must preserve uncertainty classifications, inspect dynamic/CI/deployment paths when appropriate, and obtain confirmation before modifying real environment files or remediating secrets."
+        }
+      ],
+      "actions": [
+        {
+          "id": "make-contract-and-boundary-order-explicit",
+          "kind": "restructure-docs",
+          "evidenceIds": [
+            "0"
+          ],
+          "sourceRefs": [
+            "SKILL.md"
+          ],
+          "dependsOn": [],
+          "inputs": [
+            "user-provided interface, schema, or manifest contract",
+            "task execution restrictions"
+          ],
+          "outputs": [
+            "contract-conforming audit artifacts",
+            "independent verification result"
+          ],
+          "preconditions": [
+            "the agent can inspect the workspace and supplied contract locally"
+          ],
+          "changedPaths": [
+            "SKILL.md"
+          ],
+          "residualDuties": [
+            "resolve contract conflicts",
+            "identify protected inputs",
+            "choose local verification commands"
+          ],
+          "verification": [
+            "check declared artifacts and required semantics against the authoritative contract",
+            "compare protected input hashes or file manifest before and after",
+            "scan outputs and logs for secret values",
+            "confirm no prohibited network or installation action occurred"
+          ]
+        }
+      ]
+    },
+    "diagnostic": {
+      "code": "DECLARED_CHANGED_FILES_MISMATCH",
+      "declaredNotActual": [
+        ".optimize/submission.json"
+      ],
+      "actualNotDeclared": [],
+      "effect": "The validator warned and the package exporter used the independently computed filesystem diff, so optimizer metadata was not packaged."
+    }
+  },
+  "sharedRepair": {
+    "test": "test/jit-optimize/optimizer-prompt.test.ts",
+    "productionFile": "src/jit-optimize/optimizer.ts",
+    "change": "The prompt now explicitly excludes .optimize/submission.json from changedFiles and changes.",
+    "paidRerunRequired": false
+  },
+  "reuseBoundary": {
+    "dependsOnResearchIdentity": false,
+    "dependsOnApiFields": false,
+    "dependsOnSpecificHelperName": false,
+    "requiresManualMapping": false,
+    "naturalConsumptionRun": false
+  },
+  "claimBoundary": "One previously exposed real-public development trace. Package closure passed, behavior and effect were not run; this is not held-out, prospective, readiness, quality improvement, or human-savings evidence."
+}

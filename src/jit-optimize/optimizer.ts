@@ -316,6 +316,10 @@ ${historyCount > 0 ? `- \`.optimize/history.md\` — ${historyCount} previous op
    Keep professional judgment, policy choices and context-dependent decisions
    in \`residualDuties\`: those responsibilities must remain with the agent unless
    the source and a checker make their replacement explicit and testable.
+   Treat an exact schema or enumerated field list as a closed set when the source
+   contract says it is exact: do not add plausible fields that the contract does
+   not declare. Preserve \`not applicable\` as distinct from a true property or a
+   successful check; never turn an absent condition into affirmative evidence.
 
    Then identify the root cause of the selected opportunity. State it as an underlying gap in
    the skill's instructions or bundle, not as a list of changes. Good root causes are
@@ -384,8 +388,9 @@ Write \`.optimize/submission.json\` with these fields (see
   it without overfitting.
 - \`confidence\` (number 0-1, required): your confidence that the fix will
   improve scores on similar tasks.
-- \`changedFiles\` (array of string, required): list of files you edited
-  (relative to workspace root).
+- \`changedFiles\` (array of string, required): list of skill files you edited
+  (relative to workspace root). Do not include \`.optimize/submission.json\` in \`changedFiles\` or \`changes\`;
+  it is optimizer metadata, not a skill change.
 - \`changes\` (array, REQUIRED unless \`noChanges\`): structured per-file change
   summary. Each item: \`{"file", "section"?, "description", "generality", "linesDelta"?}\`.
   - \`description\`: what and why of this change, one sentence.
@@ -407,6 +412,13 @@ Write \`.optimize/submission.json\` with these fields (see
   \`residualDuties\`, and \`verification\`. Use \`reuse-script\`, \`domain-backend\`,
   \`generate-script\`, or \`restructure-docs\`. Do not invent empty values for
   unknown required facts; omit an unsupported action and retain the opportunity.
+  When a documentation change routes normal work through an existing executable,
+  represent that executable in a separate \`reuse-script\` action instead of only
+  declaring \`restructure-docs\`. If users would otherwise need to read the full
+  program source to discover parameters or interpret its result, add or generate a
+  stable documented entry with \`--help\` and a concise structured completion summary.
+  Source inspection for genuine diagnosis must remain allowed; this handoff rule is
+  for routine use, not a prohibition on necessary debugging.
 
 If you determine the skill needs no changes — every evidence-backed opportunity
 is already handled, is not verifiable, or must remain a

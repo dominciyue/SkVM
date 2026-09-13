@@ -2,8 +2,12 @@ import { afterEach, describe, expect, test } from "bun:test"
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
-import { validateOptimizationProgram } from "../../src/jit-optimize/package-validation.ts"
+import {
+  resolveActionValidation,
+  validateOptimizationProgram,
+} from "../../src/jit-optimize/package-validation.ts"
 import type { ImplementationSelection } from "../../src/jit-optimize/implementations.ts"
+import type { OptimizationAction } from "../../src/jit-optimize/types.ts"
 
 const dirs: string[] = []
 
@@ -98,6 +102,111 @@ try {
     })
 
     expect(result.status).toBe("failed")
+    expect(result.failureKind).toBe("entry-unclear")
     expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "entry-outside-package" }))
+  })
+
+  test("classifies an unexpected required-argument exit separately from a result mismatch", async () => {
+    const packageDir = await tempDir("package-validation-classification-")
+    const workDir = await tempDir("package-validation-classification-work-")
+    await mkdir(path.join(packageDir, "scripts"))
+    await writeFile(path.join(packageDir, "scripts", "args.mjs"), `
+if (process.argv.includes("--fail-args")) { console.error("usage: args --input; required argument missing"); process.exit(2); }
+console.log("completed without expected marker");
+`)
+    const implementation: ImplementationSelection = {
+      actionId: "classified",
+      kind: "generate-script",
+      status: "selected",
+      entry: "scripts/args.mjs",
+      runtime: "node",
+      inputs: [], outputs: [], preconditions: [], residualDuties: [], verification: [],
+    }
+    const missingParameter = await validateOptimizationProgram({
+      packageDir,
+      implementation,
+      cases: [{ id: "args", cwd: workDir, args: ["--fail-args"], expectedExitCode: 0 }],
+    })
+    const resultMismatch = await validateOptimizationProgram({
+      packageDir,
+      implementation,
+      cases: [{ id: "result", cwd: workDir, args: [], stdoutIncludes: ["required-result-marker"] }],
+    })
+    expect(missingParameter.failureKind).toBe("parameter-missing")
+    expect(resultMismatch.failureKind).toBe("result-mismatch")
+  })
+})
+
+function action(id: string, changedPaths: string[], dependsOn: string[] = []): OptimizationAction {
+  return {
+    id,
+    kind: "generate-script",
+    evidenceIds: ["0"],
+    sourceRefs: [],
+    dependsOn,
+    inputs: [],
+    outputs: [],
+    preconditions: [],
+    changedPaths,
+    residualDuties: [],
+    verification: [],
+  }
+}
+
+describe("resolveActionValidation", () => {
+  test("retains a validated independent action while rejecting a failed action and its dependants", () => {
+    const result = resolveActionValidation({
+      actions: [
+        action("good", ["docs/good.md"]),
+        action("bad", ["scripts/bad.mjs"]),
+        action("depends-on-bad", ["docs/dependent.md"], ["bad"]),
+      ],
+      observations: [
+        { actionId: "good", status: "passed", diagnostics: [] },
+        { actionId: "bad", status: "failed", failureKind: "script-execution-error", diagnostics: ["exit 1"] },
+        { actionId: "depends-on-bad", status: "passed", diagnostics: [] },
+      ],
+    })
+
+    expect(result.status).toBe("partial")
+    expect(result.retainedActionIds).toEqual(["good"])
+    expect(result.rejected.map((item) => item.actionId)).toEqual(["bad", "depends-on-bad"])
+    expect(result.feedback).toEqual([
+      expect.objectContaining({ actionId: "bad", failureKind: "script-execution-error", relevantFiles: ["scripts/bad.mjs"] }),
+      expect.objectContaining({ actionId: "depends-on-bad", failureKind: "dependency-rejected", relevantFiles: ["docs/dependent.md"] }),
+    ])
+  })
+
+  test("rejects a whole shared-file group instead of attempting a half-file rollback", () => {
+    const result = resolveActionValidation({
+      actions: [
+        action("shared-good", ["SKILL.md", "docs/one.md"]),
+        action("shared-bad", ["SKILL.md", "scripts/two.mjs"]),
+        action("independent", ["references/keep.md"]),
+      ],
+      observations: [
+        { actionId: "shared-good", status: "passed", diagnostics: [] },
+        { actionId: "shared-bad", status: "failed", failureKind: "result-mismatch", diagnostics: ["wrong output"] },
+        { actionId: "independent", status: "passed", diagnostics: [] },
+      ],
+    })
+
+    expect(result.status).toBe("partial")
+    expect(result.retainedActionIds).toEqual(["independent"])
+    expect(result.rollbackGroups).toContainEqual({
+      actionIds: ["shared-bad", "shared-good"],
+      changedPaths: ["SKILL.md", "docs/one.md", "scripts/two.mjs"],
+      reason: "shared-files-with-rejected-action",
+    })
+  })
+
+  test("keeps validation not-run distinct from passed", () => {
+    const result = resolveActionValidation({
+      actions: [action("unvalidated", ["scripts/new.mjs"])],
+      observations: [{ actionId: "unvalidated", status: "not-run", diagnostics: ["no reconstructable case"] }],
+    })
+    expect(result.status).toBe("not-run")
+    expect(result.retainedActionIds).toEqual([])
+    expect(result.unvalidatedActionIds).toEqual(["unvalidated"])
   })
 })

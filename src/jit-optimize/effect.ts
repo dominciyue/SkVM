@@ -9,8 +9,15 @@ export interface ConsumptionRunForComparison {
   targetAgent: {
     durationMs: number
     usageAvailable: boolean
-    tokens: { input: number; output: number; cacheRead: number; cacheWrite: number }
+    tokens: { input: number | null; output: number | null; cacheRead: number | null; cacheWrite: number | null }
     actualCostUsd: number | string | null
+    counts?: {
+      runCount: number
+      modelResponseCount: number
+      turnCount: number
+      toolCallCount: number
+      retryCount: number
+    }
   }
   verification: { qualityPassed: boolean }
 }
@@ -32,11 +39,11 @@ function difference(original: number, optimized: number): Difference {
   }
 }
 
-function observedTokens(run: ConsumptionRunForComparison): number {
-  return run.targetAgent.tokens.input
-    + run.targetAgent.tokens.output
-    + run.targetAgent.tokens.cacheRead
-    + run.targetAgent.tokens.cacheWrite
+function observedTokens(run: ConsumptionRunForComparison): number | null {
+  const values = Object.values(run.targetAgent.tokens)
+  return values.every((value): value is number => typeof value === "number")
+    ? values.reduce((total, value) => total + value, 0)
+    : null
 }
 
 function assertMatched(pair: MatchedConsumptionPair): void {
@@ -62,15 +69,41 @@ export function analyzeMatchedConsumptionPairs(pairs: MatchedConsumptionPair[]) 
     pairs.reduce((total, pair) => total + value(pair[side]), 0)
   const metric = (value: (run: ConsumptionRunForComparison) => number) =>
     difference(sum("original", value), sum("optimized", value))
+  const optionalMetric = (value: (run: ConsumptionRunForComparison) => number | null) => {
+    const original = pairs.map((pair) => value(pair.original))
+    const optimized = pairs.map((pair) => value(pair.optimized))
+    if (!original.every((item): item is number => typeof item === "number")
+      || !optimized.every((item): item is number => typeof item === "number")) {
+      return { status: "unknown" as const, reason: "token-field-unavailable" as const }
+    }
+    return difference(
+      original.reduce((total, item) => total + item, 0),
+      optimized.reduce((total, item) => total + item, 0),
+    )
+  }
+  const optionalDifference = (original: number | null, optimized: number | null) =>
+    typeof original === "number" && typeof optimized === "number"
+      ? difference(original, optimized)
+      : { status: "unknown" as const, reason: "token-field-unavailable" as const }
   const aggregate = {
     durationMs: metric((run) => run.targetAgent.durationMs),
     tokens: {
-      input: metric((run) => run.targetAgent.tokens.input),
-      output: metric((run) => run.targetAgent.tokens.output),
-      cacheRead: metric((run) => run.targetAgent.tokens.cacheRead),
-      cacheWrite: metric((run) => run.targetAgent.tokens.cacheWrite),
-      totalObserved: metric(observedTokens),
+      input: optionalMetric((run) => run.targetAgent.tokens.input),
+      output: optionalMetric((run) => run.targetAgent.tokens.output),
+      cacheRead: optionalMetric((run) => run.targetAgent.tokens.cacheRead),
+      cacheWrite: optionalMetric((run) => run.targetAgent.tokens.cacheWrite),
+      totalObserved: optionalMetric(observedTokens),
     },
+    executionCounts: pairs.every((pair) => pair.original.targetAgent.counts && pair.optimized.targetAgent.counts)
+      ? {
+          status: "available" as const,
+          runCount: metric((run) => run.targetAgent.counts!.runCount),
+          modelResponseCount: metric((run) => run.targetAgent.counts!.modelResponseCount),
+          turnCount: metric((run) => run.targetAgent.counts!.turnCount),
+          toolCallCount: metric((run) => run.targetAgent.counts!.toolCallCount),
+          retryCount: metric((run) => run.targetAgent.counts!.retryCount),
+        }
+      : { status: "unknown" as const, reason: "execution-counts-unavailable" as const },
   }
   const quality = {
     originalPassed: pairs.filter((pair) => pair.original.verification.qualityPassed).length,
@@ -79,14 +112,8 @@ export function analyzeMatchedConsumptionPairs(pairs: MatchedConsumptionPair[]) 
   }
   const qualityRegression = pairs.some((pair) =>
     pair.original.verification.qualityPassed && !pair.optimized.verification.qualityPassed)
-  const deltas = [
-    aggregate.durationMs.delta,
-    aggregate.tokens.input.delta,
-    aggregate.tokens.output.delta,
-    aggregate.tokens.cacheRead.delta,
-    aggregate.tokens.cacheWrite.delta,
-    aggregate.tokens.totalObserved.delta,
-  ]
+  const deltas = [aggregate.durationMs, ...Object.values(aggregate.tokens)]
+    .flatMap((value) => "delta" in value ? [value.delta] : [])
   const improved = deltas.some((value) => value < 0)
   const worsened = deltas.some((value) => value > 0)
   const effect = qualityRegression
@@ -112,17 +139,24 @@ export function analyzeMatchedConsumptionPairs(pairs: MatchedConsumptionPair[]) 
       },
       durationMs: difference(pair.original.targetAgent.durationMs, pair.optimized.targetAgent.durationMs),
       tokens: {
-        input: difference(pair.original.targetAgent.tokens.input, pair.optimized.targetAgent.tokens.input),
-        output: difference(pair.original.targetAgent.tokens.output, pair.optimized.targetAgent.tokens.output),
-        cacheRead: difference(pair.original.targetAgent.tokens.cacheRead, pair.optimized.targetAgent.tokens.cacheRead),
-        cacheWrite: difference(pair.original.targetAgent.tokens.cacheWrite, pair.optimized.targetAgent.tokens.cacheWrite),
-        totalObserved: difference(observedTokens(pair.original), observedTokens(pair.optimized)),
+        input: optionalDifference(pair.original.targetAgent.tokens.input, pair.optimized.targetAgent.tokens.input),
+        output: optionalDifference(pair.original.targetAgent.tokens.output, pair.optimized.targetAgent.tokens.output),
+        cacheRead: optionalDifference(pair.original.targetAgent.tokens.cacheRead, pair.optimized.targetAgent.tokens.cacheRead),
+        cacheWrite: optionalDifference(pair.original.targetAgent.tokens.cacheWrite, pair.optimized.targetAgent.tokens.cacheWrite),
+        totalObserved: optionalDifference(observedTokens(pair.original), observedTokens(pair.optimized)),
       },
     })),
-    costComparison: {
-      status: "unknown" as const,
-      reason: "provider-pricing-unavailable" as const,
-    },
-    interpretation: "Quality is compared by the same deterministic checker. Token fields are reported separately; observed-token sums are not USD-equivalent because cache pricing is unknown.",
+    costComparison: pairs.every((pair) =>
+      typeof pair.original.targetAgent.actualCostUsd === "number"
+      && typeof pair.optimized.targetAgent.actualCostUsd === "number")
+      ? {
+          status: "available" as const,
+          actualUsd: metric((run) => run.targetAgent.actualCostUsd as number),
+        }
+      : {
+          status: "unknown" as const,
+          reason: "provider-pricing-unavailable" as const,
+        },
+    interpretation: "Quality is compared by the same deterministic checker. Token fields are reported separately and missing components remain unknown; observed-token sums are not USD-equivalent because cache pricing is unknown.",
   }
 }

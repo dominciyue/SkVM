@@ -78,6 +78,7 @@ describe("JIT_OPTIMIZE_FLAGS.parse", () => {
       tasks: undefined,
       "test-tasks": undefined,
       logs: undefined,
+      "log-records": undefined,
       failures: undefined,
       // Target & optimizer
       "optimizer-model": undefined,
@@ -92,6 +93,7 @@ describe("JIT_OPTIMIZE_FLAGS.parse", () => {
       // Delivery
       "no-keep-all-rounds": false,
       "auto-apply": false,
+      "package-out": undefined,
       // Batch
       concurrency: CLI_DEFAULTS.concurrency,
       // Adapter mode
@@ -121,6 +123,7 @@ describe("JIT_OPTIMIZE_FLAGS.parse", () => {
       tasks: undefined,
       "test-tasks": undefined,
       logs: undefined,
+      "log-records": undefined,
       failures: undefined,
       "optimizer-model": "o/m",
       "target-model": "t/m",
@@ -132,6 +135,7 @@ describe("JIT_OPTIMIZE_FLAGS.parse", () => {
       baseline: true,
       "no-keep-all-rounds": false,
       "auto-apply": true,
+      "package-out": undefined,
       concurrency: CLI_DEFAULTS.concurrency,
       "adapter-config": undefined,
       "timeout-ms": 5000,
@@ -144,6 +148,12 @@ describe("JIT_OPTIMIZE_FLAGS.parse", () => {
     expect(parse(["--model=x/y"])["target-model"]).toBe("x/y")
     expect(parse(["--adapter=opencode"])["target-adapter"]).toBe("opencode")
     expect(parse(["--compiler-model=o/m"])["optimizer-model"]).toBe("o/m")
+  })
+
+  test("--package-out is independent from auto-apply", () => {
+    const config = parse(["--package-out=./optimized-skill"])
+    expect(config["package-out"]).toBe("./optimized-skill")
+    expect(config["auto-apply"]).toBe(false)
   })
 
   test("canonical flag wins when both canonical and alias are given", () => {
@@ -221,6 +231,26 @@ describe("buildTaskSource", () => {
         { path: "b", criteriaPath: "y" },
       ],
     })
+  })
+
+  test("log: binds explicit record locators to each input without copying a source log", () => {
+    expect(buildTaskSource(parse([
+      "--task-source=log",
+      "--logs=a,b",
+      "--log-records=line:3+line:7,lines:1-4",
+    ]))).toEqual({
+      kind: "execution-log",
+      logs: [
+        { path: "a", criteriaPath: undefined, recordLocators: ["line:3", "line:7"] },
+        { path: "b", criteriaPath: undefined, recordLocators: ["lines:1-4"] },
+      ],
+    })
+  })
+
+  test("log: --log-records count must match --logs count", () => {
+    expect(buildError(["--task-source=log", "--logs=a,b", "--log-records=line:3"]).message).toBe(
+      "jit-optimize: --log-records count (1) must match --logs count (2)",
+    )
   })
 
   test("log: --failures count must match --logs count", () => {
@@ -353,6 +383,7 @@ Options:
   --test-tasks=<id|path,...>    Held-out test tasks (real only). If omitted, --tasks is used as
                                 both train and test (fallback for small task lists).
   --logs=<path,...>             Conversation log files, comma-separated (log only, required)
+  --log-records=<spec,...>      Per-log record locators; join multiple locators with + (log only, optional)
   --failures=<path,...>         Per-log failure JSON files, same order (log only, optional).
                                 Each file holds EvidenceCriterion[] evidence for its log.
   --optimizer-model=<id>        Optimizer LLM model, shaped as <provider>/<model-id> (required)
@@ -367,6 +398,7 @@ Options:
   --baseline                    Run no-skill/original conditions for comparison (forbidden for log)
   --no-keep-all-rounds          Keep only the best round's folder (default: keep all)
   --auto-apply                  Overwrite original skillDir with best round
+  --package-out=<path>          Export the selected proposal as a new independent skill package
   --concurrency=<n>             Parallel jobs (batch mode) (default: ${CLI_DEFAULTS.concurrency})
   --adapter-config=<m>          native | managed (default: defaults.adapterConfigMode in
                                 skvm.config.json, else managed)

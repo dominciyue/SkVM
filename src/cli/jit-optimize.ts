@@ -50,6 +50,7 @@ export const JIT_OPTIMIZE_FLAGS = defineFlags(
     tasks: { kind: "string", placeholder: "<id|path,...>", help: "Train tasks — IDs or task.json paths (real only, required)" },
     "test-tasks": { kind: "string", placeholder: "<id|path,...>", help: "Held-out test tasks (real only). If omitted, --tasks is used as\nboth train and test (fallback for small task lists)." },
     logs: { kind: "string", placeholder: "<path,...>", help: "Conversation log files, comma-separated (log only, required)" },
+    "log-records": { kind: "string", placeholder: "<spec,...>", help: "Per-log record locators; join multiple locators with + (log only, optional)" },
     failures: { kind: "string", placeholder: "<path,...>", help: "Per-log failure JSON files, same order (log only, optional).\nEach file holds EvidenceCriterion[] evidence for its log." },
     // Target & optimizer
     "optimizer-model": { kind: "string", placeholder: "<id>", help: "Optimizer LLM model, shaped as <provider>/<model-id> (required)" },
@@ -69,6 +70,7 @@ export const JIT_OPTIMIZE_FLAGS = defineFlags(
     // Delivery
     "no-keep-all-rounds": { kind: "bool", help: "Keep only the best round's folder (default: keep all)" },
     "auto-apply": { kind: "bool", help: "Overwrite original skillDir with best round" },
+    "package-out": { kind: "string", placeholder: "<path>", help: "Export the selected proposal as a new independent skill package" },
     // Batch
     concurrency: { kind: "int", min: 1, default: CLI_DEFAULTS.concurrency, help: "Parallel jobs (batch mode)" },
     // Adapter mode
@@ -95,6 +97,13 @@ export async function runJitOptimize(config: JitOptimizeConfig): Promise<void> {
   const skillDirs = await resolveSkillDirs(config)
   if (skillDirs.length === 0) {
     throw new UsageError("jit-optimize: no skills resolved from --skill or --skill-list", JIT_OPTIMIZE_FLAGS.help)
+  }
+  const packageOut = config["package-out"]
+  if (packageOut && skillDirs.length !== 1) {
+    throw new UsageError("jit-optimize: --package-out requires exactly one --skill", JIT_OPTIMIZE_FLAGS.help)
+  }
+  if (packageOut && config.detach) {
+    throw new UsageError("jit-optimize: --package-out cannot be used with --detach because export waits for the finished proposal", JIT_OPTIMIZE_FLAGS.help)
   }
 
   const optimizerModel = config["optimizer-model"]
@@ -223,6 +232,7 @@ export async function runJitOptimize(config: JitOptimizeConfig): Promise<void> {
     try {
       const result = await jitOptimize(buildConfig(skillDir))
       printOptimizeResult(skillName, result)
+      if (packageOut) await printPackageExport(result, packageOut)
     } finally {
       await releaseOptimizeLock(harness, tModel, skillName)
     }
@@ -336,9 +346,18 @@ export function buildTaskSource(config: JitOptimizeConfig): TaskSource {
     const failures = config.failures
       ? config.failures.split(",").map((s) => s.trim()).filter(Boolean)
       : []
+    const recordSpecs = config["log-records"]
+      ? config["log-records"].split(",").map((s) => s.trim()).filter(Boolean)
+      : []
     if (failures.length > 0 && failures.length !== logs.length) {
       throw new UsageError(
         `jit-optimize: --failures count (${failures.length}) must match --logs count (${logs.length})`,
+        JIT_OPTIMIZE_FLAGS.help,
+      )
+    }
+    if (recordSpecs.length > 0 && recordSpecs.length !== logs.length) {
+      throw new UsageError(
+        `jit-optimize: --log-records count (${recordSpecs.length}) must match --logs count (${logs.length})`,
         JIT_OPTIMIZE_FLAGS.help,
       )
     }
@@ -349,7 +368,13 @@ export function buildTaskSource(config: JitOptimizeConfig): TaskSource {
       // is load-bearing: without it, TS does not excess-property-check the
       // literal against ExecutionLogInput, so a future field-name typo here
       // would again compile clean and silently drop data (#76).
-      logs: logs.map((p, i): ExecutionLogInput => ({ path: p, criteriaPath: failures[i] })),
+      logs: logs.map((p, i): ExecutionLogInput => ({
+        path: p,
+        criteriaPath: failures[i],
+        ...(recordSpecs[i]
+          ? { recordLocators: recordSpecs[i]!.split("+").map((item) => item.trim()).filter(Boolean) }
+          : {}),
+      })),
     }
   }
   throw new UsageError(`jit-optimize: unknown --task-source "${kind}" (expected synthetic | real | log)`, JIT_OPTIMIZE_FLAGS.help)
@@ -369,6 +394,7 @@ export function validateFlagsForSource(config: JitOptimizeConfig, kind: TaskSour
     ["tasks", "real-task"],
     ["test-tasks", "real-task"],
     ["logs", "execution-log"],
+    ["log-records", "execution-log"],
     ["failures", "execution-log"],
   ]
   // Flags that only make sense when a target agent actually runs tasks.
@@ -486,6 +512,34 @@ function printOptimizeResult(skillName: string, result: JitOptimizeResult): void
     console.log(
       `  NOTE: total is $0 — likely the optimizer/target/judge model is not in the pricing table (src/core/cost.ts) or the adapter did not report cost.`,
     )
+  }
+}
+
+async function printPackageExport(result: JitOptimizeResult, packageOut: string): Promise<void> {
+  const { buildOptimizedSkillPackage, verifyOptimizedSkillPackage } = await import("../jit-optimize/package.ts")
+  try {
+    const exported = await buildOptimizedSkillPackage({ proposalDir: result.proposalDir, packageDir: packageOut })
+    if (exported.status === "no-change") {
+      console.log("\nPackage: not exported — selected proposal has no actual file changes")
+      console.log("Package validation: not-run")
+      return
+    }
+    const verified = await verifyOptimizedSkillPackage(exported.packageDir!)
+    const diff = verified.manifest.actualDiff
+    const gaps = verified.manifest.implementations.filter((item) => item.status !== "selected")
+    console.log(`\nPackage: ${exported.packageDir}`)
+    console.log(`Package changes: added=${diff.added.length} modified=${diff.modified.length} deleted=${diff.deleted.length} moved=${diff.moved.length}`)
+    console.log(`Package validation: ${exported.validation} (package-file-closure)`)
+    console.log(`Package behavior validation: ${verified.manifest.validation.behaviorStatus}`)
+    console.log(`Package implementation gaps: ${gaps.length === 0 ? "none declared" : gaps.map((item) => `${item.actionId}:${item.status}${item.reason ? ` (${item.reason})` : ""}`).join("; ")}`)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    if (message.startsWith("Infra-blocked proposals cannot be exported")) {
+      console.log(`\nPackage: not exported — ${message}`)
+      console.log("Package validation: not-run")
+      return
+    }
+    throw error
   }
 }
 

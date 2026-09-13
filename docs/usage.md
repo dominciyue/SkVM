@@ -215,13 +215,16 @@ skvm jit-optimize \
   --skill=path/to/skill-dir \
   --task-source=log \
   --logs=path/to/log1.jsonl,path/to/log2.jsonl \
+  --log-records=line:3+line:7,lines:1-4 \
   --failures=path/to/log1-failure.json,path/to/log2-failure.json \
   --optimizer-model=<id> \
-  --target-model=<id>
+  --target-model=<id> \
+  --package-out=path/to/new-empty-optimized-skill
 ```
 
 Log-specific flags:
 - `--logs=<path,...>` — **required.** Conversation log files, comma-separated.
+- `--log-records=<spec,...>` — optional exact record selection. Supply one comma-separated spec per log; join multiple locators for one log with `+` (for example `line:3+line:7`). The accepted locator syntax is adapter-specific, and the number of specs must match `--logs`.
 - `--failures=<path,...>` — optional. Per-log failure JSON files, same order as `--logs`. Each file holds `EvidenceCriterion[]` evidence for its log (structured per-criterion scores the log alone doesn't carry).
 
 Log source does not rerun tasks, so `--rounds`, `--runs-per-task`, `--convergence`, `--baseline`, `--tasks`, `--test-tasks`, and `--synthetic-count` are all forbidden with it. `--target-model` is still required — it's the storage key identifying which model the logs came from.
@@ -237,6 +240,23 @@ Log source does not rerun tasks, so `--rounds`, `--runs-per-task`, `--convergenc
 
 - `--no-keep-all-rounds` — keep only the best round's folder (default keeps all)
 - `--auto-apply` — after best-round selection, overwrite the original `--skill` directory, backing up overwritten files inside the proposal
+- `--package-out=<new-empty-directory>` — export the selected round as an independent optimized skill without modifying the source. The package manifest binds the proposal, actual filesystem diff, exact file closure, implementation actions, runtime/dependency files, and validation status. A genuine no-change leaves this directory absent.
+
+The following development command was run end-to-end against one exact record and exported a non-API package:
+
+```bash
+bun src/index.ts jit-optimize \
+  --skill=benchmarks/skill-ir/pilots/i18n-helper/source \
+  --task-source=log \
+  --logs=results/skill-ir/i18n-helper-v3-execution-observable-calibration-v3/run/raw-runs.jsonl \
+  --log-records=line:3 \
+  --optimizer-model=xty/gpt-5.6-sol \
+  --target-model=xty/gpt-5.6-sol \
+  --rounds=1 \
+  --package-out=results/skill-ir/general-skill-optimization-20260913/g12-i18n-helper/package
+```
+
+This is development evidence, not a generic quality or cost claim. Inspect `optimization-manifest.json` before use; behavior validation and natural task evaluation remain separate from package-file closure.
 
 ### Batch mode
 

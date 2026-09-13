@@ -66,9 +66,46 @@ describe("pi runtime execution observability", () => {
       },
       terminal: { present: true, stopReason: "stop" },
       usage: { available: true, input: 12, output: 3 },
+      counts: { runCount: 1, modelResponseCount: 1, turnCount: 1, toolCallCount: 0, retryCount: 0, toolOutputCharacters: 0 },
       parser: { outcome: "ok", unknownTypes: [] },
     })
     expect(JSON.stringify(observation)).not.toContain("PRIVATE")
+  })
+
+  test("separates run, model response, turn, tool-call and retry counts without counting streaming duplicates", () => {
+    const terminal = assistantEvent({ text: "done", inputTokens: 1, outputTokens: 1 })
+    const assistant = terminal.messages[0]!
+    if (assistant.role !== "assistant") throw new Error("assistant fixture mismatch")
+    assistant.content.push({ type: "toolCall", id: "tool-1", name: "read", arguments: { path: "x" } })
+    terminal.messages.push({
+      role: "toolResult",
+      toolCallId: "tool-1",
+      toolName: "read",
+      content: [{ type: "text", text: "abc" }],
+      isError: false,
+      timestamp: 2,
+    })
+    const observation = observePiExecution([
+      { type: "agent_start" },
+      { type: "turn_start" },
+      { type: "message_start", message: assistant },
+      { type: "message_update", message: assistant },
+      { type: "message_end", message: assistant },
+      { type: "turn_end", message: assistant, toolResults: [] },
+      { type: "auto_retry_start", attempt: 1, maxAttempts: 2, delayMs: 0, errorMessage: "HTTP 503" },
+      { type: "auto_retry_start", attempt: 1, maxAttempts: 2, delayMs: 0, errorMessage: "HTTP 503" },
+      terminal,
+    ], { exitCode: 0, durationMs: 1, timedOut: false })
+
+    expect(observation.counts).toEqual({
+      runCount: 1,
+      modelResponseCount: 1,
+      turnCount: 1,
+      toolCallCount: 1,
+      retryCount: 1,
+      toolOutputCharacters: 3,
+    })
+    expect(observation.usage).toMatchObject({ providerTotal: 2, reasoning: null })
   })
 
   test("accepts standard thinking blocks but rejects truly unknown Pi content", () => {

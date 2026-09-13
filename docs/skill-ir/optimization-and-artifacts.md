@@ -89,6 +89,31 @@ G4 的 optimizer 合同允许从一次成功但未评分的运行中提出有依
 避免由转换器自证。机器报告位于
 `results/skill-ir/general-skill-optimization-20260913/g6-program-validation/report.json`。
 
+### 3.0.3 通用包导出、自然消费与效果边界
+
+`buildOptimizedSkillPackage` 从 proposal 的 original 与 selected round 重新计算文件差异，复制完整选中闭包并写
+`optimization-manifest.json`。清单绑定 proposal meta/submission 摘要、原/新 closure、真实 added/modified/deleted/moved、
+动作实现、runtime/dependency files 与 package/behavior validation；声明的 `changedPaths` 不替代文件系统事实。输出目录必须
+为空且不与 source/proposal 重叠，路径逃逸、symlink、缺失 license/resource 或 no-change 都 fail closed/no package。
+普通技能不会被注入 API binding/helper；原 API Tester solidifier 保留为独立兼容入口。
+
+CLI 的 `--package-out` 在正常 proposal 结束后调用上述导出器；`--log-records` 为每个日志传入一组 `+` 分隔的精确 adapter
+locator，使一份多行真实日志无需复制即可只选择一条记录。包导出不等于行为通过：action-local 验证分别记录 execution-error、
+missing-argument、ambiguous-entry、result-mismatch、environment-unavailable 与 not-run；独立动作可保留，失败动作的 dependants
+被拒，共享文件无法安全拆分时按整组处理。
+
+`runGeneralSkillDevelopment` 接受优化包或普通 source skill，复制到新 workdir，给 agent 的正常任务只暴露 `./skill/SKILL.md`、
+任务资源和预期输出，不指定内部 helper。它从实际 read/exec/result 判断 skill/helper 消费，并分别核验最终任务、残余职责、
+protected resources 和整个 skill 副本不变；Python 指引使用 `-B` 防止 bytecode cache 修改包。Pi 原始事件保存为摘要绑定的
+`agent-events.json.gz`，报告同时保留压缩和解压字节摘要。
+
+`observePiExecution` 从终态事件区分 run、model response、turn、tool call、retry 与 tool-output characters，流式 update 不重复计。
+`analyzeMatchedConsumptionPairs` 只接受相同 input/binding/model/driver/Bun/Node 的配对；input/output/cacheRead/cacheWrite 分字段比较，
+缺失字段和 provider 价格保持 unknown。I18n 的一组当前运行时严格配对质量均为 5/5：input -32.32%，但 output、cache、总
+observed token、工具调用和耗时上升，因此结论为 mixed 而非整体收益。Experimental Design 的变化输入在多次修订仍不稳定；
+Env Manager 只证明第三类文档包可导出。机器证据位于
+`results/skill-ir/general-skill-optimization-20260913/`；这些均为 development，不建立 held-out、跨模型、人工节省或稳定因果效果。
+
 当前使用双源：original 证明失败 lineage 是否持续，ir-static 提供 schema/location 等静态残差。只在
 original 与 static 均失败、证据公开且可复现时生成 repair；static regression 直接阻断。
 

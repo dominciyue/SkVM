@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-13
 - 路线：G0–G14，单次真实 trace 驱动的通用 skill 优化
-- 状态：`active`（G0–G6 completed，G7 active）
+- 状态：`completed-with-measured-benefit`（G0–G14 completed；effect mixed）
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[持续开发任务书](../superpowers/plans/2026-09-13-general-skill-optimization-deepening.md)
 
@@ -23,16 +23,16 @@
 | G4 模型优化 | completed | 已解除普遍缺陷/重复次数/行数门槛；真实单 trace proposal 因无质量失败证据而 no-change |
 | G5 实现选择 | completed | 原脚本、领域组件、生成程序、文档重组按动作语义选择，不绑定 skill 名称 |
 | G6 程序运行 | completed | 复用 Law 参数化脚本完成 5 项运行与独立字符流检查，首个缺依赖失败保留 |
-| G7 通用包 | active | 不强制 API 字段，重组入口并保留必要资源与原件 |
-| G8 CLI 接通 | planned | 可选新包输出，无须另走 API-only 构建脚本 |
-| G9 局部修复 | planned | 受影响行为验证，依赖相关修改协调修复或回退 |
-| G10 自然消费 | planned | 正常任务不提示 helper 命令，agent 完成剩余流程 |
-| G11 上下文与计数 | planned | 修共享重复阅读，分开运行/模型响应/工具/重试和 usage |
-| G12 多结构验证 | planned | API 兼容回归、两个不同结构非 API 成员的实际尝试 |
-| G13 后加入成员 | planned | development 过程复用检查，不按 skill 名称写成功分支 |
-| G14 交付 | planned | 相关验证、真实命令/包/结果与限制，精确提交推送 origin |
+| G7 通用包 | completed | 独立导出真实 diff/闭包/动作与运行依赖；不强制 API 字段，no-change 不建空包 |
+| G8 CLI 接通 | completed | `--package-out` 与精确 `--log-records` 接入原 CLI；原 source 不被覆盖 |
+| G9 局部修复 | completed | 独立动作可保留，失败动作及依赖被拒；共享文件整组处理，not-run 不冒充 passed |
+| G10 自然消费 | completed | 普通提示不泄露 helper；优化包和 source skill 均核验输出、残余职责与包不变性 |
+| G11 上下文与计数 | completed | run/response/turn/tool/retry 分开；usage 缺失逐字段 unknown；原始事件摘要绑定 gzip 归档 |
+| G12 多结构验证 | completed | Experimental/I18n 走同一 CLI 和自然 runner；API 固化/v2 产物回归 6/6 通过，mixed/失败保留 |
+| G13 后加入成员 | completed | Env 单 trace 首跑导出文档包；无名称/API/helper 特判；修复内部 submission 文件声明歧义 |
+| G14 交付 | completed | 130/130 tests、369 assertions、typecheck、4/4 包闭包、9/9 事件归档、12/12 文档测试与 0 broken/legacy；最终报告已生成 |
 
-X1–X3 仅在主链达标且交付窗口允许时，深化多资源路径、信息缺失降级及纯文档重组；不无限续作。
+X1–X3 不另开运行：其多资源路径、信息缺失降级和纯文档自然消费问题已分别被 G10–G13 的 Experimental、effect/adapter 和 I18n/Env 证据覆盖；重复运行没有新增结构目的。
 
 ## 复用与方法边界
 
@@ -51,4 +51,4 @@ X1–X3 仅在主链达标且交付窗口允许时，深化多资源路径、信
 
 ## 启动方式
 
-持续目标已启动。恢复时先读取 `results/skill-ir/general-skill-optimization-20260913/status.json`，按 `currentStage` 和 `nextAction` 继续；G0 基线不应为了恢复而重复运行。
+持续目标已完成。复核从 `results/skill-ir/general-skill-optimization-20260913/final-report.json` 与 `g14-verification.json` 开始；不要为了寻求总体正收益重复付费 development 运行。任何未见输入或 prospective 验证须使用另行预登记的 identity。

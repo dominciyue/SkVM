@@ -39,6 +39,8 @@ export interface PiUsage {
   cacheRead: number
   cacheWrite: number
   totalTokens: number
+  reasoning?: number
+  reasoningTokens?: number
   cost: {
     input: number
     output: number
@@ -192,6 +194,23 @@ export function observePiExecution(
   const lastAssistant = assistants.at(-1)
   const toolCalls = assistants.reduce((count, message) => count
     + message.content.filter((content) => content.type === "toolCall").length, 0)
+  const turnCount = Math.max(
+    events.filter((event) => event.type === "turn_start").length,
+    events.filter((event) => event.type === "turn_end").length,
+  )
+  const retryCount = new Set(events
+    .filter((event): event is Extract<PiEvent, { type: "auto_retry_start" }> => event.type === "auto_retry_start")
+    .map((event) => `${event.attempt}:${event.maxAttempts}:${event.delayMs}:${event.errorMessage}`)).size
+  const toolOutputCharacters = toolResults.reduce((count, message) => count + message.content
+    .filter((content): content is PiTextContent => content.type === "text")
+    .reduce((subtotal, content) => subtotal + content.text.length, 0), 0)
+  const providerTotal = assistants.every((message) => Number.isFinite(message.usage?.totalTokens))
+    ? assistants.reduce((total, message) => total + message.usage.totalTokens, 0)
+    : null
+  const reasoningValues = assistants.flatMap((message) => {
+    const value = message.usage?.reasoning ?? message.usage?.reasoningTokens
+    return Number.isFinite(value) ? [value!] : []
+  })
   const hasPayload = assistants.some((message) => message.content.some((content) =>
     content.type === "toolCall" || (content.type === "text" && content.text.trim().length > 0)))
     || toolResults.length > 0
@@ -222,11 +241,24 @@ export function observePiExecution(
         lastActivityMs: subprocess.lastActivityMs,
       }),
     },
+    counts: {
+      runCount: 1,
+      modelResponseCount: assistants.length,
+      turnCount,
+      toolCallCount: toolCalls,
+      retryCount,
+      toolOutputCharacters,
+    },
     terminal: {
       present: terminal !== undefined,
       ...(lastAssistant?.stopReason ? { stopReason: lastAssistant.stopReason } : {}),
     },
-    usage: { available: assistants.some((message) => message.usage !== undefined), ...usage },
+    usage: {
+      available: assistants.some((message) => message.usage !== undefined),
+      ...usage,
+      providerTotal,
+      reasoning: reasoningValues.length > 0 ? reasoningValues.reduce((sum, value) => sum + value, 0) : null,
+    },
     parser: { outcome: parserOutcome, unknownTypes: [...unknownTypes].sort() },
     ...(transientError ? { transientError } : {}),
   }

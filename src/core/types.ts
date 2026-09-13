@@ -212,6 +212,14 @@ export const RunExecutionObservationSchema = z.object({
     firstActivityMs: z.number().nonnegative().optional(),
     lastActivityMs: z.number().nonnegative().optional(),
   }).strict(),
+  counts: z.object({
+    runCount: z.number().int().nonnegative(),
+    modelResponseCount: z.number().int().nonnegative(),
+    turnCount: z.number().int().nonnegative(),
+    toolCallCount: z.number().int().nonnegative(),
+    retryCount: z.number().int().nonnegative(),
+    toolOutputCharacters: z.number().int().nonnegative(),
+  }).strict().optional(),
   terminal: z.object({
     present: z.boolean(),
     stopReason: z.string().min(1).optional(),
@@ -222,6 +230,8 @@ export const RunExecutionObservationSchema = z.object({
     output: z.number().int().nonnegative(),
     cacheRead: z.number().int().nonnegative(),
     cacheWrite: z.number().int().nonnegative(),
+    providerTotal: z.number().int().nonnegative().nullable().optional(),
+    reasoning: z.number().int().nonnegative().nullable().optional(),
   }).strict(),
   parser: z.object({
     outcome: z.enum(["ok", "empty", "incompatible"]),

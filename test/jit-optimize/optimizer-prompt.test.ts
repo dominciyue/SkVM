@@ -94,6 +94,7 @@ describe("buildOptimizerPrompt", () => {
     expect(p).toContain("Do not create `NUL`")
     expect(p).toContain("changedFiles")
     expect(p).toContain("every file you create or edit")
+    expect(p).toContain("Do not include `.optimize/submission.json` in `changedFiles` or `changes`")
   })
 
   test("admits an evidence-backed transformation observed in one successful run", () => {
@@ -131,5 +132,20 @@ describe("buildOptimizerPrompt", () => {
     expect(p).toContain("dependsOn")
     expect(p).toContain("preconditions")
     expect(p).toContain("verification")
+  })
+
+  test("asks for executable handoff metadata that avoids routine full-source inspection", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("separate `reuse-script` action")
+    expect(p).toContain("`--help`")
+    expect(p).toContain("structured completion summary")
+    expect(p).toContain("must remain allowed")
+  })
+
+  test("preserves closed-world artifact fields and inapplicable semantics", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("closed set")
+    expect(p).toContain("do not add plausible fields")
+    expect(p).toContain("not applicable")
   })
 })

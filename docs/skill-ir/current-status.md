@@ -3,7 +3,7 @@
 - 更新日期：2026-09-13
 - 工作分支：`skill-ir-aot`
 - 当前路线：G0–G14，“单次真实 trace → 通用优化过程 → 新 skill 包 → 自然消费”
-- 执行状态：`active`（G0–G6 completed，G7 active）
+- 执行状态：`completed-with-measured-benefit`（G0–G14 completed；整体效果仍为 mixed）
 
 本页是 Skill IR 唯一实时状态入口。日期化任务书、历史计划和结果报告都不是“当前状态”。
 
@@ -11,9 +11,10 @@
 
 - 从 Pi run-summary、bare-agent runtime-event 和既有 conversation log 读取 trace，保留来源摘要、定位、表示层级、诊断和未知 usage，并生成 Evidence、优化 workspace 和 proposal；日志源不会重跑原任务。
 - 从本轮 `skill-ir-trace-guided-agent-consumption/v1` 报告及其摘要绑定 Pi 事件恢复完整 conversation trace、checker criterion 与 cache usage；缺失费用仍保持 unknown。
-- 查看、接受或拒绝 proposal，并把已接受修改落到新的 skill 包。
+- 查看、接受或拒绝 proposal；也可由 `jit-optimize --package-out` 直接把选中轮导出为不覆盖原件的通用 skill 包。包清单绑定真实增删改移、完整文件闭包、动作实现、运行时/依赖文件和验证状态，no-change 不制造空包。
 - 从 JIT proposal 构造带精确文件闭包的新 API Tester skill 包；包内普通输入入口接收 v2 binding、工作目录和输出目录，并复用未放宽的 `api-tester-openapi-subset-v2` generator/checker。
 - 在普通任务目录运行真实 Pi agent，依据实际 read/exec tool call 而非最终文字核验 skill 加载与 helper 消费，并对相同 model、input、binding 和 runtime 的原/新结果做成对比较。
+- 通用 development runner 可直接消费优化包或普通 source skill，提示不泄露 helper 路径；它分别核验任务输出、残余职责、受保护输入、整个 skill 副本不变性，并以带原始摘要的 gzip 保存 Pi 事件。
 - 使用 Skill IR 的 parser、validator、静态 pass、lowering、runner、checker/scorer 和 paired analyzer。
 - 构造并验证受限 API TaskContract；既有 API Tester 与 Env Manager 产品路径继续可用。
 - 用 `skvm artifact`、standalone verified-artifact 工具和 external-skill import 处理已支持产物。
@@ -37,6 +38,15 @@ no-change。U6 对两个可打包成员各做原输入与变化输入，4/4 原�
 4/9 task、8/18 run 通过，10 个失败待归因；native runner 4 pass / 5 skip。它不是当前路线本身，也不代表
 trace 优化闭环已完成。最窄证据入口见[证据索引](evidence-index.md)。
 
+G0–G13 已把通用动作、实现选择、独立包导出、普通 source/优化包自然消费和分字段效果统计接入生产代码。30 份
+development skill 经广读、10 份经深读；实际对 Law To Markdown、Experimental Design、I18n Helper 与 Env Manager
+执行 5 次优化尝试（Experimental 修订一次），得到 4 个包 identity（覆盖 3 个 skill；Law no-change），并完成 9 次自然消费运行。Experimental Design 的原任务通过，
+变化任务在两版包上仍有 0.6/0.9/0.7 的不稳定结果，因此不计收益；I18n 原任务与未回灌变化任务均为 5/5 checker 通过。
+其当前运行时严格配对为 `mixed`：input token -6,199（-32.32%），但 output +723、cache-read +9,600、total observed
++4,124、tool calls +4、duration +4,627 ms；provider USD 未绑定。Env Manager 首跑导出文档重组包，闭包通过但未做行为/效果验证，
+并促成 `.optimize/submission.json` 不得冒充 skill 变更的共享提示修复。机器入口仍为
+`results/skill-ir/general-skill-optimization-20260913/status.json`。
+
 ## 3. 当前计划
 
 下一轮以共享实现为主，旧两份 API 包用于回归：
@@ -47,7 +57,7 @@ trace 优化闭环已完成。最窄证据入口见[证据索引](evidence-index
 4. G10–G13：自然消费、共享上下文优化、少量多结构案例与后加入 development 成员检查。
 5. G14：有限验证和交付；主链提前达标且窗口允许时执行 X1–X3。
 
-任务级细节见[当前计划](skill-ir-aot-optimization-plan.md)与[持续开发任务书](../superpowers/plans/2026-09-13-general-skill-optimization-deepening.md)。G0 基线为 9/9 tests、31 assertions。G1 广读 30 份、深读 10 份，且单记录去重、完整资源导航、依赖化动作合同三项问题已经进入生产代码。G2 的真实 Law To Markdown 非 API 记录仍为 unassessed。G3 新增四类动作、依赖/循环/局部解析诊断和 history 持久化。G4 放开了普遍的缺陷、重复次数和约 50 行门槛，但唯一真实 proposal 在缺少质量失败证据时正确返回 no-change。G5 按动作语义选择原脚本、可选领域后端、生成程序或文档重组；G6 复用既有 Law 转换器，在固定依赖环境中通过帮助、原输入、变化输入、空输入拒绝和缺文件错误共 5 项验证，且两份产物经独立字符流检查。机器恢复入口为 `results/skill-ir/general-skill-optimization-20260913/status.json`；当前进入 G7 通用包导出。下方命令仍只描述已交付能力，未通过对应阶段前不宣称新通用包入口存在。
+任务级细节见[当前计划](skill-ir-aot-optimization-plan.md)与[持续开发任务书](../superpowers/plans/2026-09-13-general-skill-optimization-deepening.md)。G0–G14 已完成；最终机器报告为 `results/skill-ir/general-skill-optimization-20260913/final-report.json`，核验为同目录 `g14-verification.json`。条件 X1–X3 不另开运行：多资源/相对路径已由 Experimental Design 包覆盖，unknown usage 降级已由 effect/adapter 测试覆盖，纯文档自然消费与效果已由 I18n/Env 的主链证据覆盖，重复执行不会增加新的结构信息。
 
 ## 4. 直接运行
 
@@ -58,9 +68,11 @@ skvm jit-optimize `
   --skill=path/to/skill-dir `
   --task-source=log `
   --logs=path/to/log1.jsonl,path/to/log2.jsonl `
+  --log-records=line:3+line:7,lines:1-4 `
   --failures=path/to/log1-failure.json,path/to/log2-failure.json `
   --optimizer-model=<id> `
-  --target-model=<id>
+  --target-model=<id> `
+  --package-out=path/to/new-empty-optimized-skill
 ```
 
 审阅与落地 proposal：
@@ -112,11 +124,11 @@ python scripts/check_skill_ir_doc_links.py
 
 ## 5. 当前限制
 
-- U0–U7 已完成并形成机器 closure；当前闭环只支持本轮 development 范围。
+- U0–U7 和 G0–G14 均为 development；本状态完成不改变 prospective/readiness。
 - 模型 proposal 不自动获得正确性；必须由明确 checker 或人工接受边界约束。
 - 固化只能覆盖证据支持的稳定部分，未自动化职责必须随新 skill 包保留。
-- 第三个 skill 在本次 evidence 下保留 no-change，不能为凑包数强制固化；一条 trace 不应成为今后普遍拒绝优化的规则。三份 skill 不是随机总体样本。
-- 四组成对结果同时含下降和上升指标，且 provider USD 定价未知，不声称成本或人工节省。
+- Law 首次真实 proposal 为 no-change；Experimental 的变化输入质量不稳定；Env 的包只通过闭包。这些结果不能为凑成功数改写。四份 skill 不是随机总体样本。
+- I18n 的单组当前运行时配对同时含下降和上升指标，provider USD 定价未知，不声称整体成本、速度或人工节省。
 - development 结果不能外推到 held-out、跨模型、任意 skill 或人工节省。
 - 被校验器按摘要绑定的版本化材料不得重写、移动或删除。
 
