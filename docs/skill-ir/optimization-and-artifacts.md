@@ -89,6 +89,13 @@ G4 的 optimizer 合同允许从一次成功但未评分的运行中提出有依
 避免由转换器自证。机器报告位于
 `results/skill-ir/general-skill-optimization-20260913/g6-program-validation/report.json`。
 
+### 3.0.2.1 下一轮接线边界（H0–H14，planned-not-started）
+
+上述 program validator 和 action resolver 已有组件及测试；当前普通 loop/CLI 尚未调用它们完成程序验证与修复选轮。
+下一轮依据[生产链任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md)接入真实日志路径，补齐待验证依赖传播、条件适用范围及最终 snapshot/验证一致性。
+四个 G 包身份实际只改 SKILL.md；生成非 API 新程序、自然消费与变化输入检查是新任务，不能当作既有能力。
+实现后在本节更新实际接口；本次不新增已经实现的声明或运行结果。
+
 ### 3.0.3 通用包导出、自然消费与效果边界
 
 `buildOptimizedSkillPackage` 从 proposal 的 original 与 selected round 重新计算文件差异，复制完整选中闭包并写

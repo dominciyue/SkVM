@@ -2,8 +2,8 @@
 
 - 更新日期：2026-09-13
 - 工作分支：`skill-ir-aot`
-- 当前路线：G0–G14，“单次真实 trace → 通用优化过程 → 新 skill 包 → 自然消费”
-- 执行状态：`completed-with-measured-benefit`（G0–G14 completed；整体效果仍为 mixed）
+- 当前路线：H0–H14，“单次真实 trace → 程序实施与验证 → 局部修复/回退 → 新 skill 包 → 自然消费”
+- 执行状态：`planned-not-started`（新任务仅登记；G0–G14 completed，历史整体效果仍为 mixed）
 
 本页是 Skill IR 唯一实时状态入口。日期化任务书、历史计划和结果报告都不是“当前状态”。
 
@@ -49,15 +49,20 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 
 ## 3. 当前计划
 
-下一轮以共享实现为主，旧两份 API 包用于回归：
+下一轮继续共享实现，依据[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 1、spec 14.31：
 
-1. G0–G2：复用公开 development 语料，广读结构差异并准备单次真实 trace。
-2. G3–G6：把机会接成动作，改进模型优化，复用脚本/领域组件或生成小程序。
-3. G7–G9：通用新包导出接进现有 CLI，按修改涉及的行为验证并反馈修复。
-4. G10–G13：自然消费、共享上下文优化、少量多结构案例与后加入 development 成员检查。
-5. G14：有限验证和交付；主链提前达标且窗口允许时执行 X1–X3。
+1. H0–H2：接续基线，使用已有语料定位问题，区分 skill 规则、任务条件和环境事实。
+2. H3–H7：修复待验证依赖传播，将实际程序验证、一次局部修复/回退及最终 snapshot 导出接入正常 CLI/log 路径。
+3. H8–H10：实际生成并自然消费非 API 参数化程序，验证现成脚本复用、变化条件和局部降级。
+4. H11–H13：根据真实 trace 改善开销，做少量不同结构复用检查，完成普通工程入口使用。
+5. H14：有限回归与交付；主链达标且窗口允许时处理适用的 Y1–Y2。
 
-任务级细节见[当前计划](skill-ir-aot-optimization-plan.md)与[持续开发任务书](../superpowers/plans/2026-09-13-general-skill-optimization-deepening.md)。G0–G14 已完成；最终机器报告为 `results/skill-ir/general-skill-optimization-20260913/final-report.json`，核验为同目录 `g14-verification.json`。条件 X1–X3 不另开运行：多资源/相对路径已由 Experimental Design 包覆盖，unknown usage 降级已由 effect/adapter 测试覆盖，纯文档自然消费与效果已由 I18n/Env 的主链证据覆盖，重复执行不会增加新的结构信息。
+复核补充：已有程序验证与动作解析组件尚未接入正常优化循环；当前四个 G 包身份的实际改动均集中在 SKILL.md。
+30 个阅读条目中的 10 个为深读子集，不能表述为 40 个独立 skill。新计划要求真实程序链，不能用文档重组替代。
+H0 启动时才创建 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`，本次未启动执行。
+
+任务摘要见[当前计划](skill-ir-aot-optimization-plan.md)。G0–G14 历史结果继续保留在
+`results/skill-ir/general-skill-optimization-20260913/final-report.json` 与同目录 `g14-verification.json`；旧结果不回写。
 
 ## 4. 直接运行
 
