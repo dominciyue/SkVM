@@ -87,3 +87,28 @@ bun run typecheck
 
 修改分类 schema、criterion role 或冻结 input 必须新建 identity；修改实现前先保留完整分母、dependency graph 与
 source/evidence binding。
+
+## 8. Public skill 资源闭包
+
+`scripts/skill-ir/skill-family-acquire.ts` 调用
+`planPublicSkillResourceClosure`，从已取得的 `SKILL.md` 和同一 pinned Git tree 发现直接引用资源。Markdown link、单一
+反引号文件、明确命名目录分别保留定位原因；目录只闭包其 tree descendants。每个文件继续受 per-file、数量和总字节
+预算约束，symlink、submodule、路径逃逸、外部或缺失资源都保留独立 issue，任一 issue 使计划保持
+`resource-closure-incomplete`。
+
+反引号也常承载命令、API route 和示例，不能把整条命令拼到 skill 目录后报成一个缺失文件。多 token 命令只提取两类
+对象：外部/本机绝对引用，以及在 pinned Git tree 中实际存在的路径 token；`METHOD /route` 是 API 语法而非文件。
+`file.json#/pointer` 在 `#` 前绑定真实文件。单一明确文件仍 fail closed：不存在时保留 `missing-resource`，不会因命令
+降噪而被吞掉。该逻辑按语法和 tree 工作，不按仓库名、skill 名或固定文件名分支。
+
+H10 以六份既有 development `sources.json` 做只读诊断：635 条历史 issue 中 580 条是 missing-resource，仅 8 条整命令
+记录被实际定位为这一缺陷。旧报告不重写，其余 issue 不自动重分类。机器证据见
+`results/skill-ir/skill-optimization-production-closure-20260913/h10/acquisition-diagnostic.json`。
+
+修改时运行：
+
+```powershell
+bun test ./src/benchmarks/skill-ir/public-skill-responsibility-corpus-archive.test.ts `
+  ./scripts/skill-ir/skill-family-acquire.test.ts
+bun run typecheck
+```

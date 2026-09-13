@@ -92,6 +92,56 @@ describe("public skill licensed source archive and direct resource closure", () 
     expect(plan.accounting).toEqual({ files: 4, bytes: 512 });
   });
 
+  test("extracts real files from inline commands without treating commands or API routes as paths", () => {
+    const plan = planPublicSkillResourceClosure({
+      skillPath: "skills/demo/SKILL.md",
+      skillBody: [
+        "# Demo",
+        "Run `python scripts/validate.py --input examples/request.json#/payload`.",
+        "Also run `python scripts/validate-skills.py` and `pytest tests/test_gateway.py -v`.",
+        "The browser example is `npx playwright test tests/{文件名}.spec.ts`.",
+        "Start the fixture with `npx tsx tests/fixtures/mock-backend/server.ts`.",
+        "Convert with `npx swagger2openapi --outfile openapi.yaml swagger.yaml`.",
+        "The remote example is `curl -X POST https://example.com/api/v1/users`.",
+        "Read `references/schema.json#/components/schemas/Foo`.",
+        "The API example is `GET /api/v1/users`.",
+        "A developer-local example is `D:\\work\\input.json`.",
+        "A single explicit missing file is `references/not-there.json`.",
+      ].join("\n"),
+      treeEntries: [
+        entry("skills/demo/scripts", "tree", "040000", null),
+        entry("skills/demo/scripts/validate.py", "blob", "100755"),
+        entry("skills/demo/scripts/validate-skills.py", "blob", "100755"),
+        entry("skills/demo/examples", "tree", "040000", null),
+        entry("skills/demo/examples/request.json"),
+        entry("skills/demo/references", "tree", "040000", null),
+        entry("skills/demo/references/schema.json"),
+        entry("skills/demo/tests/test_gateway.py"),
+        entry("skills/demo/tests/fixtures/mock-backend/server.ts"),
+        entry("skills/demo/swagger.yaml"),
+      ],
+      directlyNamedDirectories: ["scripts", "references", "templates", "assets", "examples"],
+      maximumFiles: 100,
+      maximumTotalBytes: 5 * 1024 * 1024,
+      maximumBytesPerResource: 1024 * 1024,
+    });
+
+    expect(plan.resources.map((resource) => resource.path)).toEqual([
+      "skills/demo/examples/request.json",
+      "skills/demo/references/schema.json",
+      "skills/demo/scripts/validate-skills.py",
+      "skills/demo/scripts/validate.py",
+      "skills/demo/swagger.yaml",
+      "skills/demo/tests/fixtures/mock-backend/server.ts",
+      "skills/demo/tests/test_gateway.py",
+    ]);
+    expect(plan.issues).toEqual([
+      { code: "external-resource", reference: "https://example.com/api/v1/users", paths: [] },
+      { code: "external-resource", reference: "D:\\work\\input.json", paths: [] },
+      { code: "missing-resource", reference: "references/not-there.json", paths: ["skills/demo/references/not-there.json"] },
+    ]);
+  });
+
   test("records each per-file, file-count, and total-byte budget omission", () => {
     const plan = planPublicSkillResourceClosure({
       skillPath: "skills/demo/SKILL.md",

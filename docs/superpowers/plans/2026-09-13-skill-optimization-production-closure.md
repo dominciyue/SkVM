@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 Pi/headless-agent/provider、proposal storage、已有领域 checker；复用原 skill 所需的 Python/Node 等运行时。只在现有模块不能清晰承担职责时增加小模块。
 
-**状态：** revision 1，`active-H10`，2026-09-13。H0–H9 已完成；机器恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`。G0–G14 历史效果维持 mixed。
+**状态：** revision 1，`active-H11`，2026-09-13。H0–H10 已完成；机器恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`。G0–G14 历史效果维持 mixed。
 
 **队列：** H0–H14 主队列；Y1–Y2 为主链达标后有条件执行的有限深化。按约 12–20 小时开发范围组织，不保证固定时长，不以等待、重复测试、审计或无限补样填满夜间。
 
@@ -265,16 +265,18 @@ bun test ./test/jit-optimize/package.test.ts ./test/cli/jit-optimize.test.ts ./t
 
 **修改：** H2/H3/H7 对应共享模块；有实际影响才修改 acquisition 诊断。
 
-- [ ] 在一个已用 skill 上改变任务条件：原来的固定路径改为新目录，原来有显式合同改为无合同，或离线限制不存在；使用本地测试环境验证流程选择，无须为了证明允许联网发真实业务请求。
-- [ ] 合法空输入、缺可选字段、缺必需资源分别验证；只跳过不适用步骤或保留原 agent 路径，不吞掉程序错误。
-- [ ] 以 acquisition 已记录的命令、示例、JSON pointer 与真实本地路径做诊断测试；先定位 `skill-family-acquire.ts` 实际调用的解析器，再原位修复，历史扫描结果不改。
-- [ ] 部分自动化失败时，新包仍清楚告诉 agent 哪部分需要继续处理；不输出含断链调用的所谓 partial package。
+- [x] 在一个已用 skill 上改变任务条件：原来的固定路径改为新目录，原来有显式合同改为无合同，或离线限制不存在；使用本地测试环境验证流程选择，无须为了证明允许联网发真实业务请求。
+- [x] 合法空输入、缺可选字段、缺必需资源分别验证；只跳过不适用步骤或保留原 agent 路径，不吞掉程序错误。
+- [x] 以 acquisition 已记录的命令、示例、JSON pointer 与真实本地路径做诊断测试；先定位 `skill-family-acquire.ts` 实际调用的解析器，再原位修复，历史扫描结果不改。
+- [x] 部分自动化失败时，新包仍清楚告诉 agent 哪部分需要继续处理；不输出含断链调用的所谓 partial package。
 
 ```powershell
 bun test ./test/jit-optimize/constraint-scope.test.ts ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/general-skill-development.test.ts
 ```
 
 **验收：** 通用性通过变化条件和实际降级体现，不靠放宽语义检查或增加 skill 名称特判。
+
+**实际结果：** 预登记的五项条件全部在修订核验器下通过：空 JSON/无合同与 Law 可选判定缺失继续成功；必需输入缺失及 DOCX 可选依赖缺失均在指定层非零退出且零产物；本地 helper 没有业务联网分支，因此“解除离线限制”如实记为不适用。首次外部核验器误读 H8 扁平摘要并错误枚举 H9 输出目录，失败报告保留后以新 identity 修订，两个选中包摘要前后一致。acquisition 的实际调用点确认在 `planPublicSkillResourceClosure`；六份历史 development 报告共 635 条 issue、580 条 missing-resource，只对其中 8 条可定位的整命令误分类建立修复依据。解析器现在从多 token 命令提取真实 Git-tree 文件、忽略 method+route 示例、保留外部/本机路径和单一缺失引用；历史报告不重写。完整报告见 `results/skill-ir/skill-optimization-production-closure-20260913/h10/report.json`。
 
 ## H11 — 改善实际使用开销
 

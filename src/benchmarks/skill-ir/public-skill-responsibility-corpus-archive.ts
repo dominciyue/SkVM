@@ -178,6 +178,59 @@ function withoutQueryOrFragment(value: string): string {
   return boundary.length === 0 ? value : value.slice(0, Math.min(...boundary));
 }
 
+function pathForReference(
+  raw: string,
+  packageRoot: string,
+  byPath: ReadonlyMap<string, z.infer<typeof GitTreeEntrySchema>>,
+): string | null {
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(withoutQueryOrFragment(raw).replaceAll("\\", "/"));
+  } catch {
+    return null;
+  }
+  if (!decoded) return null;
+  const repositoryPath = posix.normalize(decoded.replace(/^\/+/, ""));
+  if (byPath.has(repositoryPath)) return repositoryPath;
+  if (decoded.startsWith("/")) return null;
+  const packagePath = posix.normalize(posix.join(packageRoot, decoded));
+  return byPath.has(packagePath) ? packagePath : null;
+}
+
+function stripCommandToken(value: string): string {
+  let token = value.trim().replace(/^["']|["']$/gu, "");
+  const assignment = token.indexOf("=");
+  if (assignment > 0 && token.startsWith("-")) token = token.slice(assignment + 1);
+  return token.replace(/^[([{]+|[\]),;]+$/gu, "");
+}
+
+function expandCommandReferences(
+  reference: ResourceReference,
+  packageRoot: string,
+  byPath: ReadonlyMap<string, z.infer<typeof GitTreeEntrySchema>>,
+): ResourceReference[] {
+  if (reference.kind !== "code" || !/\s/u.test(reference.raw)) return [reference];
+  if (/^(?:GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS|TRACE|CONNECT)\s+\/\S*$/iu.test(reference.raw)) return [];
+  if (pathForReference(reference.raw, packageRoot, byPath) !== null) return [reference];
+
+  const expanded: ResourceReference[] = [];
+  for (const match of reference.raw.matchAll(/"[^"]+"|'[^']+'|\S+/gu)) {
+    const token = stripCommandToken(match[0]);
+    if (!token) continue;
+    const isExternal = /^(?:[A-Za-z][A-Za-z0-9+.-]*:|\/\/)/u.test(token);
+    const isKnownLocalAbsolute = /^\/(?:tmp|var|home|Users|opt|etc)(?:\/|$)/u.test(token);
+    if (isExternal || isKnownLocalAbsolute || pathForReference(token, packageRoot, byPath) !== null) {
+      expanded.push({ raw: token, kind: "code" });
+    }
+  }
+  const seen = new Set<string>();
+  return expanded.filter(({ raw }) => {
+    if (seen.has(raw)) return false;
+    seen.add(raw);
+    return true;
+  });
+}
+
 function issue(
   issues: PublicSkillResourceClosureIssue[],
   code: PublicSkillResourceClosureIssue["code"],
@@ -238,8 +291,12 @@ export function planPublicSkillResourceClosure(options: {
     }
   };
 
-  for (const reference of extractReferences(options.skillBody, directories)) {
-    if (/^(?:[A-Za-z][A-Za-z0-9+.-]*:|\/\/)/u.test(reference.raw)) {
+  const references = extractReferences(options.skillBody, directories)
+    .flatMap((reference) => expandCommandReferences(reference, packageRoot, byPath));
+  for (const reference of references) {
+    const isLocalAbsoluteCode = reference.kind === "code"
+      && (/^[A-Za-z]:[\\/]/u.test(reference.raw) || /^\/(?:tmp|var|home|Users|opt|etc)(?:\/|$)/u.test(reference.raw));
+    if (/^(?:[A-Za-z][A-Za-z0-9+.-]*:|\/\/)/u.test(reference.raw) || isLocalAbsoluteCode) {
       issue(issues, "external-resource", reference.raw);
       continue;
     }

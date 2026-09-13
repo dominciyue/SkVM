@@ -3,7 +3,7 @@
 - 更新日期：2026-09-13
 - 工作分支：`skill-ir-aot`
 - 当前路线：H0–H14，“单次真实 trace → 程序实施与验证 → 局部修复/回退 → 新 skill 包 → 自然消费”
-- 执行状态：`active-H10`（H0–H9 已完成；G0–G14 历史整体效果仍为 mixed）
+- 执行状态：`active-H11`（H0–H10 已完成；G0–G14 历史整体效果仍为 mixed）
 
 本页是 Skill IR 唯一实时状态入口。日期化任务书、历史计划和结果报告都不是“当前状态”。
 
@@ -73,7 +73,9 @@ H6 在该正常路径上增加一次局部 repair：只把失败动作、相关�
 H7 将新包 manifest 升级为向后兼容的 v2：exporter 从最终 history 而非修复前 submission 读取动作，把选中轮的既有验证报告连同摘要归档进包并在 verify 时重验；无报告、部分通过或失败只标 draft，只有带独立案例且无缺口的 action-local passed 才标 validated-recommendation。旧 v1 包仍只读可核验。CLI 同时显示改动类型、适用输入/前置条件、残余职责和具体验证缺口，并明确局部程序检查不是整 skill 正确性。精确套件 41/41、127 assertions 与 typecheck 通过。
 H8 已由普通 CLI 的第 8 次真实尝试生成 I18n nested-JSON checker；前 7 次和第 9 次的文档/no-change/基础设施结果均保留。修复通用 fixture 投影、locator、外部 criterion 绑定、依赖文档状态及 `ok=true` 消费判定后，原 trace 1/1、未回灌变化输入 4/4（含 3/3 故障检出）和同一普通 agent 事件的自然 read/exec/残余任务均通过。最终包为 v2 `validated-recommendation`；效果未配对，保持 unknown。一次宽搜索意外显示 i18n heldout 匹配行，未使用也未执行，但该 heldout 对本线程不再声称 pristine。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/h8/report.json`，当前进入 H9 现成程序复用。
 
-H9 精确读取 Law development `line:3` 的实际 scorer 后确认原任务为 `0.7/failed`，并记录外部 evaluator 与源 skill 的条标题规则冲突；未为追分改变源语义。一次普通 CLI 真实产生 `reuse-script` 动作，复用既有 converter 并把可选 PDF/DOCX 依赖延迟到对应 fallback。动作局部原输入通过，但首次包暴露验证生成的 Python cache 被误装入包；失败包保留，shared diff/export 现在排除运行缓存且仍拒绝包内额外文件，并统一 Windows 路径为 portable `/`。修订包在改名/变文/异 cwd 输入上独立检查 12/12 通过，普通 Pi agent 未获入口提示即 read/help/exec、复核产物并完成残余审计。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/h9/report.json`；该证据不等于修复原 0.7 任务或证明成本收益，当前进入 H10 条件变化与局部降级。
+H9 精确读取 Law development `line:3` 的实际 scorer 后确认原任务为 `0.7/failed`，并记录外部 evaluator 与源 skill 的条标题规则冲突；未为追分改变源语义。一次普通 CLI 真实产生 `reuse-script` 动作，复用既有 converter 并把可选 PDF/DOCX 依赖延迟到对应 fallback。动作局部原输入通过，但首次包暴露验证生成的 Python cache 被误装入包；失败包保留，shared diff/export 现在排除运行缓存且仍拒绝包内额外文件，并统一 Windows 路径为 portable `/`。修订包在改名/变文/异 cwd 输入上独立检查 12/12 通过，普通 Pi agent 未获入口提示即 read/help/exec、复核产物并完成残余审计。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/h9/report.json`；该证据不等于修复原 0.7 任务或证明成本收益。
+
+H10 的五项预登记条件在修订核验器下 5/5 通过：空 JSON/无合同与可选判断缺失继续成功，必需输入和 DOCX 可选依赖缺失在指定层准确失败且零产物，纯本地 helper 的联网条件变化记为不适用。首次外部核验器错误读取摘要/目录的失败证据保留，两个包的闭包摘要始终不变。acquisition 的共享解析器经 TDD 修复 8 条已证实的整命令误分类：真实 tree 文件、JSON pointer、API route 与本机路径现在分开处理；六份历史报告及其余 issue 不回写、不重分类。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/h10/report.json`，当前进入 H11 实际使用开销。
 
 任务摘要见[当前计划](skill-ir-aot-optimization-plan.md)。G0–G14 历史结果继续保留在
 `results/skill-ir/general-skill-optimization-20260913/final-report.json` 与同目录 `g14-verification.json`；旧结果不回写。

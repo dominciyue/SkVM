@@ -1,0 +1,215 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-h10-degradation/v1",
+  "identity": "skill-optimization-production-closure-20260913-h10-degradation-run-001-revision-001",
+  "exposure": "development",
+  "status": "passed",
+  "plan": {
+    "path": "../plan.json",
+    "sha256": "c73f15f1761a4003a2a023e09d8d69b6ff2dd6ef431daa3205d5fe2847833473"
+  },
+  "packages": {
+    "h8": {
+      "identity": "source:20260913T133219213Z:round-1",
+      "selectedClosureSha256": "e4fb8e1cf93cdd44457e023091a1b0311d8aaa5488ff88c982eedbaeafcd4082"
+    },
+    "h9": {
+      "identity": "source:20260913T142032117Z:round-1",
+      "selectedClosureSha256": "411b6838be82e3cc0cbf8cdd055ab6ade626920ad55d9b35dee708e11b493626"
+    },
+    "checks": {
+      "h8Preserved": true,
+      "h9Preserved": true
+    }
+  },
+  "cases": [
+    {
+      "id": "legal-empty-no-contract",
+      "classification": "applicable-success",
+      "status": "passed",
+      "checks": {
+        "exitZero": true,
+        "reportsOk": true,
+        "referenceHasZeroLeaves": true,
+        "localeHasNoDifferences": true
+      },
+      "invocation": {
+        "command": [
+          "python",
+          "-B",
+          "results/skill-ir/skill-optimization-production-closure-20260913/h8/package-attempt-008-revision-001/scripts/check_json_locales.py",
+          "--reference",
+          "en=en.json",
+          "--locale",
+          "zh=zh.json"
+        ],
+        "cwd": "results/skill-ir/skill-optimization-production-closure-20260913/h10/degradation-run-001-revision-001/legal-empty-no-contract/caller",
+        "exitCode": 0,
+        "stdout": {
+          "path": "legal-empty-no-contract/stdout.txt",
+          "bytes": 155,
+          "sha256": "589455b9d3edcfc893ef53a879f3b916856f54476a81a4a4e3bc7d1a61b5f8c6"
+        },
+        "stderr": {
+          "path": "legal-empty-no-contract/stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "parsedSummary": {
+        "extraKeys": {
+          "en": [],
+          "zh": []
+        },
+        "keyCount": 0,
+        "missingKeys": {
+          "en": [],
+          "zh": []
+        },
+        "ok": true,
+        "placeholderMismatches": [],
+        "referenceLocale": "en"
+      }
+    },
+    {
+      "id": "optional-decision-omitted",
+      "classification": "applicable-success",
+      "status": "passed",
+      "checks": {
+        "exitZero": true,
+        "autoDecisionReported": true,
+        "minimalOutputsPresent": true,
+        "checkedApproval": true,
+        "inputContentPreserved": true
+      },
+      "invocation": {
+        "command": [
+          "python",
+          "-B",
+          "results/skill-ir/skill-optimization-production-closure-20260913/h9/package-attempt-001-revision-001/scripts/law_to_markdown.py",
+          "incoming/renamed-law.txt",
+          "--artifact-level",
+          "minimal",
+          "--out-dir",
+          "outputs"
+        ],
+        "cwd": "results/skill-ir/skill-optimization-production-closure-20260913/h10/degradation-run-001-revision-001/optional-decision-omitted/caller",
+        "exitCode": 0,
+        "stdout": {
+          "path": "optional-decision-omitted/stdout.txt",
+          "bytes": 931,
+          "sha256": "7400152ca410cd6b8abb818f9bc3eaeccbb27dafd0734cc990ed73a920413464"
+        },
+        "stderr": {
+          "path": "optional-decision-omitted/stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "outputs": {
+        "files": [
+          "renamed-law+审核报告.md",
+          "renamed-law+最终成果.md"
+        ],
+        "deliverableSha256": "1d86832fe37d253261ee3a97cacfc19d6fa335d000514769777d73a5229ac9af",
+        "reviewSha256": "a7248aca346196c2edba5a00ddd2d9ba55e053d5f5a7ace0881b552689ebcf63"
+      }
+    },
+    {
+      "id": "required-input-missing",
+      "classification": "applicable-error",
+      "status": "passed",
+      "checks": {
+        "exitNonzero": true,
+        "preciseDiagnostic": true,
+        "noOutputArtifacts": true
+      },
+      "invocation": {
+        "command": [
+          "python",
+          "-B",
+          "results/skill-ir/skill-optimization-production-closure-20260913/h9/package-attempt-001-revision-001/scripts/law_to_markdown.py",
+          "incoming/does-not-exist.txt",
+          "--artifact-level",
+          "minimal",
+          "--out-dir",
+          "outputs"
+        ],
+        "cwd": "results/skill-ir/skill-optimization-production-closure-20260913/h10/degradation-run-001-revision-001/required-input-missing/caller",
+        "exitCode": 1,
+        "stdout": {
+          "path": "required-input-missing/stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "required-input-missing/stderr.txt",
+          "bytes": 199,
+          "sha256": "06abc0e9cb6a69fca1fd499d6ec40b1dba8518cb63b7e082e13798df34d7bbde"
+        }
+      },
+      "outputs": {
+        "files": []
+      }
+    },
+    {
+      "id": "optional-docx-dependency-missing",
+      "classification": "branch-local-error",
+      "status": "passed",
+      "checks": {
+        "exitNonzero": true,
+        "dependencySpecificDiagnostic": true,
+        "noOutputArtifacts": true,
+        "txtRouteStillPassed": true
+      },
+      "invocation": {
+        "command": [
+          "python",
+          "-B",
+          "results/skill-ir/skill-optimization-production-closure-20260913/h9/package-attempt-001-revision-001/scripts/law_to_markdown.py",
+          "incoming/sample.docx",
+          "--allow-fallback",
+          "--skip-mineru-ocr-skill",
+          "--docx-engine",
+          "python-docx",
+          "--artifact-level",
+          "minimal",
+          "--out-dir",
+          "outputs"
+        ],
+        "cwd": "results/skill-ir/skill-optimization-production-closure-20260913/h10/degradation-run-001-revision-001/optional-docx-dependency-missing/caller",
+        "exitCode": 1,
+        "stdout": {
+          "path": "optional-docx-dependency-missing/stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "optional-docx-dependency-missing/stderr.txt",
+          "bytes": 68,
+          "sha256": "f0c97619a083bae61255e42326f8a3337c1f5d3ec583f50065e6e3896c8581f5"
+        }
+      },
+      "outputs": {
+        "files": []
+      },
+      "residualDuty": "Install/configure mineru-ocr, or install python-docx only after explicit fallback authorization; do not claim a DOCX deliverable."
+    },
+    {
+      "id": "business-network-condition",
+      "classification": "not-applicable",
+      "status": "passed",
+      "checks": {
+        "noBusinessNetworkRoute": true,
+        "noManufacturedCall": true
+      },
+      "reason": "The selected H8/H9 helpers are local file processors. Removing an offline restriction does not create a network branch."
+    }
+  ],
+  "accounting": {
+    "programRuns": 4,
+    "businessApiCalls": 0,
+    "modelCalls": 0,
+    "paidCalls": 0
+  },
+  "claimBoundary": "Five predeclared local conditions, including one not-applicable network condition. Expected errors count as passes only when the responsible layer emitted the specified diagnostic and no artifact was produced."
+}
