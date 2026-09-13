@@ -16,6 +16,7 @@ The active implementation authority is `docs/superpowers/plans/2026-09-13-api-ta
 6. For execution-log optimization, the ordinary loop runs implementation selection and action-local program checks before choosing the candidate snapshot. It persists `round-N-validation/report.json`; imported source tasks are not replayed, and the new local executions are counted separately.
 7. A rejected local program gets at most one targeted repair through the existing optimizer. Repair feedback names only affected actions and files and preserves the original validation expectations. The loop reruns only affected checks, reuses independent observations, and restores the entire dependency/shared-file group from baseline if repair still fails or escapes scope. Initial and repair reports remain separately reviewable.
 8. Proposal diffing and package export treat interpreter caches (`__pycache__`, `.pyc`, `.pyo`, test/type caches and `node_modules`) as runtime transients, and diff paths are portable `/` paths. Exported-package verification remains stricter: injecting any such undeclared file after export breaks the exact closure.
+9. The run-and-optimize path creates a run-scoped optimization session before the source task starts. It snapshots only the selected skill and declared task resources, gives the bare-agent an explicit conversation log and durable event trace, writes the pre-run workdir manifest, and binds all of them to a collision-resistant run id. A successful source task remains usable when capture is incomplete, but automatic optimization stays blocked until its required trace is readable.
 
 Optimizer actions may carry evidence-bound constraints with `skill`, `task`, `environment`, or `unknown` scope. The workspace writes these sources to `.optimize/CONSTRAINT_SOURCES.json`; task paths, network conditions, example values, and observed output shapes are not promoted to permanent skill rules unless the skill sources independently establish them. Actions produced before this field existed remain valid.
 
@@ -38,6 +39,7 @@ Malformed rows, unknown event kinds, absent usage, absent result content and mis
 - `src/jit-optimize/trace-adapters.ts`: format identification and conversion into adapted trace records.
 - `loadEvidencesFromLogs` in `src/jit-optimize/task-source.ts`: expands adapted records into JIT `Evidence` values.
 - `skvm jit-optimize --task-source=log`: unchanged user-facing optimization entry.
+- `OptimizationSession` in `src/run/optimization-session.ts`: local run-to-skill/task/workdir/trace association, terminal capture state, and the recovery handoff used by the automatic path. This component records no environment-variable values and does not choose optimization actions.
 - `buildTraceGuidedApiTesterPackage` and `verifyTraceGuidedSkillPackage` in `src/jit-optimize/solidification.ts`: proposal-to-package construction and exact-closure verification.
 - `bun scripts/skill-ir/trace-guided-api-tester-package.ts build|verify`: reproducible package construction and verification.
 - `<package>/scripts/api-task-solidify.js --binding ... --workdir ... --out-dir ... --node ...`: portable ordinary-input execution entry. The binding and OpenAPI document are supplied at runtime; it does not depend on the six historical migration identities or their result counts.
@@ -67,6 +69,7 @@ H11 uses preserved Pi events rather than prose summaries to diagnose common-path
 - A structurally unsupported file is rejected with diagnostics rather than interpreted as a generic report.
 - A missing task or skill locator prevents claims that require it but does not erase visible execution facts.
 - A runtime trace without content can support ordering/tool-count diagnostics only.
+- A run session never discovers evidence by newest-file ordering. Same-second sessions carry random identity suffixes, and the automatic path passes its conversation and durable trace objects explicitly to the selected adapter. Missing or unreadable full trace blocks only the optimization handoff, not the already-produced source result.
 - A run summary without turn events can support final-output and artifact analysis only.
 - No local helper is allowed to guess remote business state, hidden reasoning, credentials or unobserved responses.
 - Proposal files that were not declared by the optimizer are never silently shipped. They are recorded as excluded or restored-to-baseline differences; portable package paths reject Windows device names.

@@ -8,6 +8,8 @@ import { EvalCriterionSchema } from "../core/types.ts"
 import type { AdapterConfig, AgentAdapter, EvalCriterion, RunResult, SkillMode } from "../core/types.ts"
 import { loadSkill as loadSkillFromPath, buildSkillBundle } from "../core/skill-loader.ts"
 import type { ResolvedSkill } from "../core/skill-loader.ts"
+import type { ConversationLog } from "../core/conversation-logger.ts"
+import type { DurableRuntimeTrace } from "../core/durable-runtime-trace.ts"
 import { createLogger } from "../core/logger.ts"
 import {
   writeInitialWorkdirManifest,
@@ -32,6 +34,8 @@ export interface ExecuteRunOptions {
   keepWorkDir?: boolean
   skillMode?: SkillMode
   initialWorkdirManifestPath?: string
+  convLog?: ConversationLog
+  runtimeTrace?: DurableRuntimeTrace
 }
 
 export interface ExecuteRunResult {
@@ -132,6 +136,8 @@ export async function executeRun(opts: ExecuteRunOptions): Promise<ExecuteRunRes
       workDir,
       skill: buildSkillBundle(skill, opts.skillMode),
       taskId: task.id,
+      convLog: opts.convLog,
+      runtimeTrace: opts.runtimeTrace,
       // Use the resolved timeout from adapterConfig (CLI override > task value)
       // rather than reading task.timeoutMs directly — otherwise a CLI
       // --timeoutMs would be silently shadowed by the task file's value.

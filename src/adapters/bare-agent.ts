@@ -254,8 +254,10 @@ Available skills:
       },
     }
 
-    const loopResult = await runAgentLoop(
-      {
+    let loopResult: Awaited<ReturnType<typeof runAgentLoop>>
+    try {
+      loopResult = await runAgentLoop(
+        {
         provider: wrappedProvider,
         model: this.model,
         tools: TOOLS,
@@ -264,6 +266,7 @@ Available skills:
         maxIterations: this.maxSteps,
         timeoutMs: task.timeoutMs ?? this.timeoutMs,
         maxTokens: 16384,
+        runtimeTrace: task.runtimeTrace,
         // bare-agent's tool executor spawns isolated shell subprocesses per
         // call — safe for ILP fan-out. Closes the runtime side of pass3's ILP
         // annotation: when a skill hints the model to batch independent
@@ -294,9 +297,18 @@ Available skills:
               }
             }
           : (completedCall) => { allToolCalls.push(completedCall) },
-      },
-      [{ role: "user", content: task.prompt }],
-    )
+        },
+        [{ role: "user", content: task.prompt }],
+      )
+    } finally {
+      if (convLog) {
+        try {
+          await convLog.finalize()
+        } catch (error) {
+          log.error(`Failed to write conversation trace: ${error instanceof Error ? error.message : String(error)}`)
+        }
+      }
+    }
 
     const durationMs = performance.now() - startMs
 
@@ -331,9 +343,6 @@ Available skills:
         await hook({ result: runResult, success: loopResult.text.length > 0 })
       }
     }
-
-    // Flush conversation log
-    if (convLog) await convLog.finalize()
 
     return runResult
   }

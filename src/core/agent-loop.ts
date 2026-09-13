@@ -27,6 +27,8 @@ export interface AgentLoopConfig {
   timeoutMs: number
   maxTokens?: number
   temperature?: number
+  /** Explicit trace owned by one run session; falls back to the legacy env opt-in. */
+  runtimeTrace?: import("./durable-runtime-trace.ts").DurableRuntimeTrace
 
   /** Called after each LLM response (for monitoring, e.g. solidification skeleton matching) */
   onAfterLLM?: (response: LLMResponse, iteration: number) => Promise<void> | void
@@ -93,7 +95,7 @@ export async function runAgentLoop(
 
   const startMs = performance.now()
   const deadline = startMs + timeoutMs
-  const runtimeTrace = createDurableRuntimeTraceFromEnv()
+  const runtimeTrace = config.runtimeTrace ?? createDurableRuntimeTraceFromEnv()
 
   const params: CompletionParams = {
     messages: [...initialMessages],

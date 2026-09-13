@@ -1,5 +1,6 @@
 import { appendFile, mkdir } from "node:fs/promises"
 import path from "node:path"
+import { randomUUID } from "node:crypto"
 import { z } from "zod"
 import { SKVM_CACHE, SESSIONS_INDEX_PATH } from "./config.ts"
 import { createLogger } from "./logger.ts"
@@ -129,7 +130,8 @@ export class RunSession {
   static generateId(type: string, tag: string): string {
     const ts = formatTimestamp()
     const safe = sanitizeTag(tag)
-    return safe ? `${ts}-${type}-${safe}` : `${ts}-${type}`
+    const nonce = randomUUID().slice(0, 8)
+    return safe ? `${ts}-${type}-${safe}-${nonce}` : `${ts}-${type}-${nonce}`
   }
 
   /**

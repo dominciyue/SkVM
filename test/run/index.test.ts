@@ -5,6 +5,8 @@ import path from "node:path"
 import type { AdapterConfig, AgentAdapter, RunResult } from "../../src/core/types.ts"
 import { emptyTokenUsage } from "../../src/core/types.ts"
 import { executeRun, loadRunSkill, loadRunTask } from "../../src/run/index.ts"
+import { OptimizationSession } from "../../src/run/optimization-session.ts"
+import { RunSession } from "../../src/core/run-session.ts"
 
 let tempRoot: string
 
@@ -65,6 +67,70 @@ describe("run task loading", () => {
 })
 
 describe("executeRun", () => {
+  test("passes one explicit optimization capture to the selected adapter before it runs", async () => {
+    const taskDir = path.join(tempRoot, "capture-task")
+    const skillDir = path.join(tempRoot, "capture-skill")
+    const workDir = path.join(tempRoot, "capture-workdir")
+    const sessionsRoot = path.join(tempRoot, "capture-sessions")
+    await mkdir(taskDir, { recursive: true })
+    await mkdir(skillDir, { recursive: true })
+    await Bun.write(path.join(taskDir, "task.json"), JSON.stringify({
+      id: "capture-task",
+      prompt: "Read input.txt and report it",
+      fixtures: { "input.txt": "hello" },
+      eval: [],
+    }))
+    await Bun.write(path.join(skillDir, "SKILL.md"), "---\nname: capture\ndescription: capture\n---\nRead the input.\n")
+    const task = await loadRunTask(path.join(taskDir, "task.json"))
+    const skill = await loadRunSkill(skillDir)
+    const runSession = await RunSession.start({ type: "run", tag: "capture", logDir: sessionsRoot })
+    const capture = await OptimizationSession.start({
+      runId: runSession.id,
+      rootDir: sessionsRoot,
+      task,
+      skill,
+      workDir,
+      adapter: "bare-agent",
+      model: "test/model",
+    })
+    let sawCapture = false
+    const adapter: AgentAdapter = {
+      name: "bare-agent",
+      async setup() {},
+      async run(runTask) {
+        const captured = runTask as typeof runTask & { runtimeTrace?: unknown }
+        sawCapture = runTask.convLog === capture.conversationLog
+          && captured.runtimeTrace === capture.runtimeTrace
+          && await Bun.file(capture.initialWorkdirManifestPath).exists()
+        return {
+          text: "done",
+          steps: [],
+          tokens: emptyTokenUsage(),
+          cost: 0,
+          durationMs: 1,
+          llmDurationMs: 1,
+          workDir,
+          runStatus: "ok",
+        }
+      },
+      async teardown() {},
+    }
+
+    await executeRun({
+      task,
+      skill,
+      adapter,
+      adapterConfig: { model: "test/model", maxSteps: 1, timeoutMs: 1000 },
+      workDir,
+      convLog: capture.conversationLog,
+      runtimeTrace: capture.runtimeTrace,
+      initialWorkdirManifestPath: capture.initialWorkdirManifestPath,
+    })
+
+    expect(sawCapture).toBe(true)
+    await capture.fail("interrupted", "test cleanup")
+  })
+
   test("copies inline fixtures, task fixtures dir, and skill bundle files before adapter execution", async () => {
     const taskDir = path.join(tempRoot, "task")
     const skillDir = path.join(tempRoot, "skill")

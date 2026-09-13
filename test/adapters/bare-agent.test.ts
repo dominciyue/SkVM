@@ -5,6 +5,8 @@ import path from "node:path"
 import { BareAgentAdapter } from "../../src/adapters/bare-agent.ts"
 import type { LLMProvider, LLMResponse, CompletionParams, LLMToolResult } from "../../src/providers/types.ts"
 import type { AdapterConfig } from "../../src/core/types.ts"
+import { ConversationLog } from "../../src/core/conversation-logger.ts"
+import { DurableRuntimeTrace, DurableRuntimeTraceEventSchema } from "../../src/core/durable-runtime-trace.ts"
 
 let workDir: string
 
@@ -34,6 +36,37 @@ function createSequenceProvider(responses: LLMResponse[]): LLMProvider {
 }
 
 describe("BareAgentAdapter", () => {
+  test("writes an explicitly scoped conversation and durable trace for one run", async () => {
+    const conversationPath = path.join(workDir, "capture", "conversation.jsonl")
+    const durablePath = path.join(workDir, "capture", "runtime.jsonl")
+    const conversationLog = new ConversationLog(conversationPath)
+    const runtimeTrace = new DurableRuntimeTrace(durablePath)
+    const provider = createSequenceProvider([{
+      text: "Captured result",
+      toolCalls: [],
+      tokens: { input: 10, output: 5, cacheRead: 1, cacheWrite: 0 },
+      durationMs: 2,
+      stopReason: "end_turn",
+    }])
+    const adapter = new BareAgentAdapter(() => provider)
+    await adapter.setup({ model: "test", maxSteps: 2, timeoutMs: 1000 })
+
+    const result = await adapter.run({
+      prompt: "Capture only this run",
+      workDir,
+      convLog: conversationLog,
+      runtimeTrace,
+    })
+
+    expect(result.text).toBe("Captured result")
+    const conversation = await Bun.file(conversationPath).text()
+    expect(conversation).toContain("Capture only this run")
+    expect(conversation).toContain("Captured result")
+    const events = (await Bun.file(durablePath).text()).trim().split(/\r?\n/).map((line) =>
+      DurableRuntimeTraceEventSchema.parse(JSON.parse(line)))
+    expect(events.at(-1)).toMatchObject({ event: "finalize", outcome: "completed" })
+  })
+
   test("handles text-only response (no tool calls)", async () => {
     const provider = createSequenceProvider([
       {

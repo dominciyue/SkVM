@@ -120,3 +120,15 @@ describe("RunSession.rehydrate", () => {
     expect(session).toBeNull()
   })
 })
+
+describe("RunSession identity", () => {
+  test("same-second sessions with the same tag never share an id", async () => {
+    const logDir = path.join(SKVM_CACHE, "log", "run", "unique-same-tag")
+    const sessions = await Promise.all(Array.from({ length: 4 }, () => RunSession.start({
+      type: "run",
+      tag: "same-tag",
+      logDir,
+    })))
+    expect(new Set(sessions.map((session) => session.id)).size).toBe(sessions.length)
+  })
+})

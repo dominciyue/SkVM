@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { InitialWorkdirManifestReferenceSchema } from "./workdir-manifest.ts"
 import type { ConversationLog } from "./conversation-logger.ts"
+import type { DurableRuntimeTrace } from "./durable-runtime-trace.ts"
 import { TASK_FILE_DEFAULTS, EVAL_DEFAULTS, HEADLESS_AGENT_DEFAULTS } from "./ui-defaults.ts"
 
 // ---------------------------------------------------------------------------
@@ -651,6 +652,8 @@ export interface AgentAdapter {
     skill?: SkillBundle
     taskId?: string
     convLog?: ConversationLog
+    /** Explicit run-scoped trace. Undefined preserves the legacy env-controlled path. */
+    runtimeTrace?: DurableRuntimeTrace
     /** Per-task timeout override (ms). Falls back to adapter setup timeout. */
     timeoutMs?: number
     /** Optional per-task inactivity timeout (ms). */
