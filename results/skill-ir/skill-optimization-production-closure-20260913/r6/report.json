@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-r6/v1",
+  "identity": "development",
+  "stage": "R6",
+  "baselineCommit": "da1d94a4c7e02082cb0fcfde0fd16ae93fedcd11",
+  "status": {
+    "engineering": "complete",
+    "behavior": "passed",
+    "effect": "unknown"
+  },
+  "method": {
+    "entry": "bun src/index.ts run",
+    "adapter": "bare-agent",
+    "sourceModel": "xty/gpt-5.6-sol",
+    "optimizerModel": "xty/gpt-5.6-sol",
+    "historicalPackageReuse": "R6 reused the already validated H8/H9 package contents as allowed by the taskbook. R6 itself performed fresh automatic source capture/handoff and fresh ordinary package-consumption runs; historical reports were not optimizer inputs.",
+    "actualUsdPolicy": "Provider records did not expose a billable dollar amount. Stored zero-valued cost fields are not treated as evidence of zero cost; actualUsd is null.",
+    "optimizerLogArchives": "optimizer-log-archives.json records and verifies the six large single-member stdout.log.tar.gz archives, including each compressed and decompressed SHA-256."
+  },
+  "automaticAttempts": [
+    {
+      "case": "i18n-generated",
+      "finalSession": {
+        "path": "i18n-generated/runtime/runtime/bare-agent/xty--gpt-5.6-sol/i18n-helper-v3-react-ba-b4b48d68/20260914-032659-run-bar-582f1b40/optimization-session.json",
+        "sha256": "9c20d402088b3ee887b4295058ecf8e91707bc70a43ae853bfb47211f34185b9"
+      },
+      "capture": "complete",
+      "handoff": "ready",
+      "sourceEvaluation": "5/5 passed",
+      "optimization": "no-change",
+      "proposalId": "bare-agent/xty--gpt-5.6-sol/skill/20260913T192735046Z",
+      "sourceMetrics": {
+        "durationMs": 35284.0444,
+        "tokens": { "input": 5406, "output": 1303, "cacheRead": 8192, "cacheWrite": 0 },
+        "actualUsd": null,
+        "toolCalls": 20
+      },
+      "packageUsed": "../h8/package-attempt-008-revision-001",
+      "revisions": [
+        "Initial source run completed but conversation finalization failed because a Windows artifact path exceeded the host limit.",
+        "The next run captured no post-run output snapshot and exported a documentation-only package.",
+        "The following run captured outputs but had no system evaluation and exported a documentation-only package.",
+        "The first evaluator-integrated run scored 4/5 because framework-owned staged skill files polluted the user delta and exported a documentation-only package.",
+        "After evaluation isolation, the final run scored 5/5 and correctly returned no-change rather than inventing a program from one new trace."
+      ]
+    },
+    {
+      "case": "law-reuse",
+      "finalSession": {
+        "path": "law-reuse/runtime/runtime/bare-agent/xty--gpt-5.6-sol/natural-15b9fd666e95/20260914-033006-run-bar-d4136d22/optimization-session.json",
+        "sha256": "5b151093a5decfec4af2d302681edfc7b84ef4fdd9dd11ed89211f3aa209c93f"
+      },
+      "capture": "complete",
+      "handoff": "ready",
+      "sourceEvaluation": "not present because the natural user prompt supplied no criteria",
+      "optimization": "no-change after one bounded repair and rollback",
+      "proposalId": "bare-agent/xty--gpt-5.6-sol/skill/20260913T193254660Z",
+      "sourceMetrics": {
+        "durationMs": 168082.5222,
+        "tokens": { "input": 26972, "output": 1357, "cacheRead": 17920, "cacheWrite": 0 },
+        "actualUsd": null,
+        "toolCalls": 15
+      },
+      "packageUsed": "../h9/package-attempt-001-revision-001",
+      "limitation": "The captured source run predated the Windows shell fix, so its agent bypassed the bundled script after uv_spawn sh failed. The optimizer's candidate was rejected and preserved; an anchored sourceRefs resolver defect found from that report was fixed generically, but the historical no-change decision was not rewritten."
+    }
+  ],
+  "packageConsumption": {
+    "i18nGenerated": {
+      "report": "i18n-generated/package-consumption-evaluation.json",
+      "original": "passed 5/5; generated checker naturally invoked",
+      "variation": "passed 5/5 after preserving one invalid system-fixture attempt; generated checker independently passed a different three-key placeholder case"
+    },
+    "lawReuse": {
+      "report": "law-reuse/package-consumption-evaluation.json",
+      "original": "passed all 8 Stage3 checks; bundled converter naturally invoked",
+      "variation": "passed all 8 Stage3 checks; bundled converter naturally invoked on three articles and three items"
+    }
+  },
+  "sharedFixes": [
+    {
+      "risk": "Windows path overflow prevented durable conversation capture.",
+      "implementation": "Bounded runtime and optimization-session artifact path segments while retaining the full runId in the manifest."
+    },
+    {
+      "risk": "The optimizer could not observe files created or modified by the source run.",
+      "implementation": "Added digest-bound observed workdir snapshots and trace-adapter validation, excluding framework-owned resources."
+    },
+    {
+      "risk": "Task-declared local checks were not attached to ordinary captured runs, and staged skill resources polluted delta checks.",
+      "implementation": "Added automatic local non-LLM source evaluation and a temporary user-only evaluation view."
+    },
+    {
+      "risk": "A source reference such as scripts/tool.py#main was not recognized as executable.",
+      "implementation": "Resolve local symbol anchors before extension and containment checks."
+    },
+    {
+      "risk": "The default command tool hard-coded sh and described an ambiguous shell on Windows.",
+      "implementation": "Use the host command language, prefer discovered pwsh on Windows with Windows PowerShell fallback, and expose PowerShell in the tool description."
+    }
+  ],
+  "verification": {
+    "tdd": [
+      "bun test test/core/config.test.ts test/core/agent-tools.test.ts test/adapters/bare-agent.test.ts test/run/optimization-session.test.ts test/run/optimization-handoff.test.ts test/jit-optimize/trace-adapters.test.ts test/jit-optimize/implementations.test.ts: 61 passed, 233 assertions",
+      "bun run typecheck: passed",
+      "python scripts/check_skill_ir_doc_links_test.py: 12 passed",
+      "python scripts/check_skill_ir_doc_links.py: zero broken, legacy or governance errors; four existing soft line warnings",
+      "git diff --check: passed"
+    ],
+    "behavior": [
+      "i18n system evaluator: final original 5/5 and variation revision 2 5/5",
+      "generated locale checker: exit 0 for two-key original and three-key interpolation variation",
+      "law source-bundled Stage3 checker: original and variation each 8/8 checks, overall approved"
+    ]
+  },
+  "effect": {
+    "status": "unknown",
+    "reason": "No source/package comparison kept model, prompt, context, task and checker sufficiently identical. Tool and token counts are reported per run but are not subtracted as savings.",
+    "observations": [
+      "The i18n original run naturally used the generated checker once; the variation run bypassed it and used six generic commands.",
+      "The law runs eventually used the existing program, but pre-description-fix shell retries added material friction."
+    ]
+  },
+  "claimBoundaries": [
+    "Four passed development consumptions do not estimate whole-skill success probability.",
+    "A generated checker pass is narrower than source transformation, translation quality or real API behavior.",
+    "The law result covers the dependency-free TXT path, not DOCX/PDF or legal correctness.",
+    "No user labor reduction or cost savings is claimed.",
+    "All runs remain development; no held-out or prospective input was selected or read."
+  ],
+  "next": "Proceed to R7 no-manual-wiring acceptance using the same production entry, then H13/H14."
+}

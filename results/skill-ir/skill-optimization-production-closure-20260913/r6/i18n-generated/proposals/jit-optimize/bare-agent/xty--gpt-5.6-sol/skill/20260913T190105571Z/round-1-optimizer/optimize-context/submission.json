@@ -1,0 +1,61 @@
+{
+  "rootCause": "The skill describes i18n work as a generic scan-and-replace exercise but does not tell the agent how to prioritize and honor a task-provided contract, distinguish confirmed text from merely visible text, preserve an exact output ABI, or perform a bounded final verification when shell tooling is unavailable. This leaves agents to infer file boundaries, key semantics, interpolation handling, locale parity, and report shape from the prompt, increasing the risk of plausible but non-conforming edits on contract-driven tasks.",
+  "reasoning": "Evidence 0 is a clean, successfully executed run with no quality score, so it cannot establish a failure or regression. It does expose a general workflow gap: the agent had to infer the contract's closed output fields, confirmation rule, exact-key rule, file restrictions, and locale-keyed missing-key structure, and its attempted shell verification failed because the environment could not spawn sh. The observed output was correct for this simple fixture, but the skill itself did not explain why those choices were required or how to handle more complex confirmed attributes and interpolations. I rewrote the existing workflow in place rather than appending overlapping guidance. Generality test: the same clarification benefits a different task such as a Vue or React project with a contract restricting modified files and requiring a locale-completeness report; it is not tied to the observed key names or fixture. Coherent scope: one concise SKILL.md workflow rewrite is sufficient; no executable is justified because the evidence provides no stable source interface or independent runnable checker. No-trade-off test: PER_TASK_SUMMARY lists no PASSING tasks, so there is no passing mean to protect; the change preserves the existing broad framework support and fallback judgment rather than narrowing capability. Residual professional duties remain with the agent: decide which text is genuinely user-visible when the source rule does not confirm it, choose translations, map complex expressions to safe identifiers, and report checks that were actually performed. Confidence is moderate because the run is unassessed, but the source contract and successful artifact shape directly support the added boundaries.",
+  "confidence": 0.78,
+  "changedFiles": [
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "工作流程",
+      "description": "Rewrite the workflow to make contract-first analysis, confirmed-text extraction, exact interpolation and ABI handling, scope control, locale parity, and honest final verification explicit.",
+      "generality": "A different contract-driven React, Vue, or i18next migration task with restricted files and a machine-readable report would benefit from the same workflow boundaries.",
+      "linesDelta": 5
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "The generic workflow did not explain how to operationalize a public contract's confirmation, exact-key, closed-schema, and file-boundary rules.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must still interpret ambiguous user-visible content and make context-dependent translation decisions."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "The skill did not direct the agent to use task-provided paths, locale names, allowed files, and exact contract values instead of generic defaults.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must read each task's contract and supply the actual paths, locales, and parameters; no values are hard-coded by the skill."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "The run demonstrates repeated extraction and replacement across multiple confirmed JSX keys, while the original instructions offered only a single generic example.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must preserve component semantics and handle duplicates, nested JSX, and complex expressions case by case."
+    },
+    {
+      "category": "verification",
+      "summary": "The agent performed read-back checks, but the skill did not prescribe ABI, locale-parity, placeholder, scope, and honest-tooling verification as a final checklist.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must use available checks, avoid claiming failed or unavailable checks, and disclose residual risk."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "The observed shell check failed with an unavailable sh executable, exposing that verification instructions must not assume a particular shell or network/package availability.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must adapt verification to available tools and continue without installation or network access when prohibited."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Professional judgment remains necessary for ambiguous visibility, translation quality, expression-to-identifier mapping, and unsupported checks; the skill now states those boundaries instead of implying automation.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "The agent remains responsible for judgment calls and must distinguish confirmed facts, performed checks, and unresolved risks."
+    }
+  ]
+}

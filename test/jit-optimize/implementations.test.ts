@@ -59,6 +59,23 @@ describe("selectOptimizationImplementation", () => {
     expect(selected.map((item) => item.runtime)).toEqual(["python", "python"])
   })
 
+  test("selects an executable source reference with a symbol anchor", async () => {
+    const dir = await skillDir("anchored-reuse-")
+    await mkdir(path.join(dir, "scripts"))
+    await writeFile(path.join(dir, "scripts", "tool.py"), "def main(): pass\n")
+
+    const result = await selectOptimizationImplementation({
+      skillDir: dir,
+      action: action("anchored-reuse", { sourceRefs: ["scripts/tool.py#main"] }),
+    })
+
+    expect(result).toMatchObject({
+      status: "selected",
+      entry: "scripts/tool.py",
+      runtime: "python",
+    })
+  })
+
   test("selects ordinary documentation restructuring without requiring an API binding", async () => {
     const dir = await skillDir("plain-text-skill-")
     const result = await selectOptimizationImplementation({

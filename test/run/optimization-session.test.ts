@@ -4,6 +4,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import { emptyTokenUsage, type RunResult } from "../../src/core/types.ts"
 import { RunSession } from "../../src/core/run-session.ts"
+import { writeInitialWorkdirManifest } from "../../src/core/workdir-manifest.ts"
 import { loadRunSkill, loadRunTask } from "../../src/run/index.ts"
 import {
   OptimizationSession,
@@ -64,6 +65,49 @@ function successfulResult(workDir: string): RunResult {
 }
 
 describe("optimization run session binding", () => {
+  test("freezes only changed and new post-run files as observed outputs", async () => {
+    const item = await fixture("observed-outputs")
+    await Bun.write(path.join(item.workDir, "input.txt"), "before\n")
+    await Bun.write(path.join(item.workDir, "unchanged.txt"), "same\n")
+    const run = await RunSession.start({ type: "run", tag: "observed-outputs", logDir: item.sessionsRoot })
+    const session = await OptimizationSession.start({
+      runId: run.id, rootDir: item.sessionsRoot, skill: item.skill, task: item.task,
+      workDir: item.workDir, adapter: "bare-agent", model: "test/model", optimizationRequested: true,
+    })
+    await writeInitialWorkdirManifest({
+      workDir: item.workDir,
+      manifestPath: session.initialWorkdirManifestPath,
+      excludedPrefixes: [".skvm"],
+    })
+    await Bun.write(path.join(item.workDir, "input.txt"), "after\n")
+    await Bun.write(path.join(item.workDir, "result.txt"), "result\n")
+    await Bun.write(session.conversationTracePath, `${JSON.stringify({ type: "response", ts: "now", text: "done" })}\n`)
+    session.runtimeTrace.finalize(1, "completed")
+
+    const completed = await session.complete(successfulResult(item.workDir))
+    const observedRef = (completed.artifacts as Record<string, { path: string } | undefined>).observedWorkdirSnapshot
+    expect(observedRef).toBeDefined()
+    const observed = JSON.parse(await Bun.file(observedRef!.path).text())
+    expect(observed.files.map((file: { path: string }) => file.path)).toEqual(["input.txt", "result.txt"])
+    expect(observed.files[0].content).toBe("after\n")
+    expect(observed.files[1].content).toBe("result\n")
+    expect(observed.deleted).toEqual([])
+    expect(completed.capture).toMatchObject({ observedOutputs: { status: "complete" } })
+  })
+
+  test("bounds the filesystem directory while retaining the full run identity", async () => {
+    const item = await fixture("bounded-run-dir")
+    const runId = `run-${"a".repeat(150)}`
+    const session = await OptimizationSession.start({
+      runId, rootDir: item.sessionsRoot, skill: item.skill, task: item.task,
+      workDir: item.workDir, adapter: "bare-agent", model: "test/model",
+    })
+
+    expect(path.basename(path.dirname(session.manifestPath)).length).toBeLessThanOrEqual(32)
+    expect((await readOptimizationSession(session.manifestPath)).runId).toBe(runId)
+    await session.fail("interrupted", "test cleanup")
+  })
+
   test("same task twice and two skills in parallel retain unique explicit bindings", async () => {
     const a = await fixture("alpha")
     const b = await fixture("beta")

@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-14
 - 路线：H0–H14 + R1–R7，自动采集真实运行的 skill 优化生产链
-- 状态：`active-R6`；H0–H12、R1–R5 已完成，恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
+- 状态：`active-R7`；H0–H12、R1–R6 已完成，恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 3
 - 方法依据：spec 14.31
@@ -35,7 +35,7 @@ H0 启动时的验证接线、待验证依赖和最终包状态缺口已由 H3�
 | H13 工程使用 | pending | 研究 runner 外的正常入口、可搬运包与真实命令 |
 | H14 验证与交付 | pending | 有限回归、文档、精确提交并推用户 origin |
 
-执行顺序调整为当前 H12 → R1–R7 → H13 → 适用 Y1/Y2 → H14。R 队列是用户最新要求的必需开发，不是可选调研；本次只追加文档，尚未将 R 阶段标为已执行。
+执行顺序为 H12 → R1–R7 → H13 → 适用 Y1/Y2 → H14。R1–R6 已实际完成，当前只执行 R7，不回滚或重抽 R6 的模型样本。
 
 | 新增阶段 | 状态 | 交付与验收 |
 | --- | --- | --- |
@@ -44,10 +44,12 @@ H0 启动时的验证接线、待验证依赖和最终包状态缺口已由 H3�
 | R3 无人工评分文件 | completed | 重新执行 task/source 文件断言；旧 pass 与未评分 reference 不再冒充候选正确性，缺失案例局部保留 |
 | R4 生成过程改进 | completed | `IMPLEMENTATION_CONTEXT` 组织入口/输入/格式/参数/检查；动作真实兑现；V3 绑定失效和 V5 能力边界通过 |
 | R5 可用与恢复 | completed | 原子 staging/verify/publish、包内使用指南、失败下一动作与 package-only session 恢复；V6 通过 |
-| R6 多结构实用 | active | 两种结构同入口真实尝试，至少一条原/变化任务完整通过 |
-| R7 整体验收 | pending | 无人工接线命令、故障与恢复测试、准确支持矩阵 |
+| R6 多结构实用 | completed | 两种结构均完成 fresh capture/handoff、optimizer 与历史验证包的原/变化消费；四个最终样本独立检查通过，当前 optimizer 结果为 no-change、effect unknown |
+| R7 整体验收 | active | 无人工接线命令、故障与恢复测试、准确支持矩阵 |
 
 revision 3 在现有阶段补充 V1–V6：R1 保护同名资源/执行前输入；R3 实际执行输出断言并局部处理缺失案例；R4 处理修复后观察失效与参数适用边界；R5 避免半成品和重复副作用；R7 运行相应反例。V1 已临时实测空程序被旧 criterion 引用误提升，必须修复，不能只降低文档措辞。其余按代码定位写有针对性的回归，不新增大队列或审计协议。
+
+R6 的机器入口为 `results/skill-ir/skill-optimization-production-closure-20260913/r6/report.json`。I18n generated checker 对 2-key 原输入和带新插值的 3-key 变化输入均独立 exit 0，系统 evaluator 最终均 5/5；Law 现成程序对两份无评分自然输入均实际运行，source-owned Stage3 各 8/8。当前新优化尝试均为 no-change，包内容按任务书复用 H8/H9，未导入其 report 充当新 capture。Windows 长路径、输出观察、评价隔离、锚点入口及 native command shell 的共享缺口已由 TDD 修复；首个无效 variation fixture 与命令重试保留。actual USD 和可比效果仍为 unknown。
 
 Y1 多程序接力、Y2 缺信息可用性只在包含 R 队列的主链达标且收尾窗口前有明确问题时执行，不能替代主链或用于凑时长。
 

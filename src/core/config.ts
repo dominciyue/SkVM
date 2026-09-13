@@ -1,6 +1,7 @@
 import path from "node:path"
 import os from "node:os"
 import { existsSync, mkdirSync } from "node:fs"
+import { createHash } from "node:crypto"
 import {
   ProvidersConfigSchema,
   HeadlessAgentConfigSchema,
@@ -185,6 +186,28 @@ export function safeModelName(model: string): string {
   return replaced
 }
 
+/**
+ * Turn an externally sourced identity into one bounded filesystem segment.
+ * Normal short identities remain readable. Normalized or truncated values
+ * carry a digest suffix so distinct task/run identities cannot silently share
+ * a directory on case-insensitive filesystems.
+ */
+export function boundedArtifactPathSegment(value: string, maxLength = 32): string {
+  if (!Number.isInteger(maxLength) || maxLength < 10) {
+    throw new Error(`boundedArtifactPathSegment: maxLength must be an integer >= 10, got ${maxLength}`)
+  }
+  const normalized = value
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/^\.+/, "")
+  const safe = normalized.length > 0 && !/^\.+$/.test(normalized) ? normalized : "artifact"
+  if (safe === value && safe.length <= maxLength) return safe
+  const digest = createHash("sha256").update(value).digest("hex").slice(0, 8)
+  const prefix = safe.slice(0, maxLength - digest.length - 1).replace(/[.-]+$/g, "") || "artifact"
+  return `${prefix}-${digest}`
+}
+
 // Proposal-tree layout accessors (aot-compile variants, jit-boost state,
 // jit-optimize rounds) live in src/proposals/storage.ts — the single owner
 // of the on-disk proposal shapes. Only the root constants stay here.
@@ -210,7 +233,7 @@ export function getBenchLogDir(sessionId: string): string {
 
 /** Runtime logs (JIT traces, notebook): log/runtime/{harness}/{safeModel}/{skill}/ */
 export function getRuntimeLogDir(harness: string, model: string, skill: string): string {
-  return path.join(LOGS_DIR, "runtime", harness, safeModelName(model), skill)
+  return path.join(LOGS_DIR, "runtime", harness, safeModelName(model), boundedArtifactPathSegment(skill))
 }
 
 // ---------------------------------------------------------------------------

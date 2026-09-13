@@ -73,8 +73,12 @@ function runtimeFor(entry: string): ImplementationSelection["runtime"] {
 }
 
 function executableRef(refs: readonly string[]): string | undefined {
-  return refs.find((ref) => [".py", ".js", ".mjs", ".cjs", ".ts", ".sh", ".ps1"]
-    .includes(path.extname(ref).toLowerCase()))
+  for (const ref of refs) {
+    const entry = ref.split("#", 1)[0]
+    if (entry && [".py", ".js", ".mjs", ".cjs", ".ts", ".sh", ".ps1"]
+      .includes(path.extname(entry).toLowerCase())) return entry
+  }
+  return undefined
 }
 
 function containedPath(skillDir: string, entry: string): { relative: string; absolute: string } | undefined {

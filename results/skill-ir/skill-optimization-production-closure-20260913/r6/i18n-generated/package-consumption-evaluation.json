@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "skill-optimization-r6-i18n-consumption/v1",
+  "identity": "development",
+  "package": {
+    "path": "results/skill-ir/skill-optimization-production-closure-20260913/h8/package-attempt-008-revision-001",
+    "manifestSha256": "8f0bde50f0fadb2b6cf00219fa48ad1ee0e68e8d3eb2506699c33d7dfb582da9",
+    "implementation": "scripts/check_json_locales.py",
+    "kind": "generate-script"
+  },
+  "runs": [
+    {
+      "id": "original",
+      "status": "passed",
+      "workDir": "package-consumption-original",
+      "conversation": {
+        "path": "package-consumption-original-logs/20260914-034532-run/conv-001-i18n-helper-v3-react-basic-dev.jsonl",
+        "sha256": "28f8494690258823da0b6234c4e753c95c4e47dea1fa016ac4a93a01875aa8c2"
+      },
+      "metrics": {
+        "durationMs": 150200,
+        "tokens": { "input": 3695, "output": 1862, "cacheRead": 12800, "cacheWrite": 0 },
+        "actualUsd": null,
+        "toolCalls": 18,
+        "toolNames": { "list_directory": 3, "read_file": 9, "write_file": 5, "execute_command": 1 }
+      },
+      "programConsumption": {
+        "invokedByAgent": true,
+        "exitCode": 0,
+        "command": "python scripts/check_json_locales.py --reference zh-CN=src/locales/zh-CN.json --locale en-US=src/locales/en-US.json",
+        "observedKeyCount": 2
+      },
+      "systemEvaluation": {
+        "authority": "repository custom evaluator prepared outside the user task",
+        "passed": 5,
+        "total": 5,
+        "checks": ["delta-policy", "source-transform", "locale-integrity", "interpolation", "report"]
+      }
+    },
+    {
+      "id": "variation-attempt-001",
+      "status": "invalid-input-fixture",
+      "workDir": "package-consumption-variation",
+      "conversation": {
+        "path": "package-consumption-variation-logs/20260914-035104-run/conv-001-r6-i18n-unfed-variation-001.jsonl",
+        "sha256": "e4ef00ac899e241341657089c722356f0e1bfa270a01c219f598ace30f4a03c0"
+      },
+      "metrics": {
+        "durationMs": 94900,
+        "tokens": { "input": 11274, "output": 1751, "cacheRead": 9216, "cacheWrite": 0 },
+        "actualUsd": null,
+        "toolCalls": 19
+      },
+      "systemEvaluation": {
+        "passed": 3,
+        "total": 5,
+        "invalidReason": "The system-authored contract fixture contained two extra closing braces; contract and report checks could not run. This attempt is retained and is not counted as a behavior failure or pass."
+      }
+    },
+    {
+      "id": "variation-revision-002",
+      "status": "passed",
+      "inputTask": {
+        "path": "variation-task/task.json",
+        "sha256": "3b5a8093ceda2492864f52bf48375875b20186d25637604f043eaf096e03b9f5",
+        "semanticVariation": "Checkout component with three new cart keys and count interpolation"
+      },
+      "workDir": "package-consumption-variation-revision-002",
+      "conversation": {
+        "path": "package-consumption-variation-revision-002-logs/20260914-035431-run/conv-001-r6-i18n-unfed-variation-001.jsonl",
+        "sha256": "286843a15a7fa5f113b2789868e0a1d3da42bb87bdfd1ef631e2c2f8bfd52a2f"
+      },
+      "metrics": {
+        "durationMs": 108500,
+        "tokens": { "input": 21105, "output": 2557, "cacheRead": 18944, "cacheWrite": 0 },
+        "actualUsd": null,
+        "toolCalls": 33,
+        "toolNames": { "list_directory": 4, "read_file": 18, "write_file": 5, "execute_command": 6 }
+      },
+      "programConsumption": {
+        "invokedByAgent": false,
+        "limitation": "The agent used generic JSON checks instead of the documented package checker on this run."
+      },
+      "independentProgramCheck": {
+        "exitCode": 0,
+        "ok": true,
+        "observedKeyCount": 3,
+        "missingKeys": { "zh-CN": [], "en-US": [] },
+        "extraKeys": { "zh-CN": [], "en-US": [] },
+        "placeholderMismatches": []
+      },
+      "systemEvaluation": {
+        "authority": "repository custom evaluator prepared outside the user task",
+        "passed": 5,
+        "total": 5,
+        "checks": ["delta-policy", "source-transform", "locale-integrity", "interpolation", "report"]
+      }
+    }
+  ],
+  "conclusion": {
+    "behavior": "passed",
+    "parameterization": "The same generated checker returned ok=true for two-key and three-key locale trees, including the new count placeholder.",
+    "agentConsumption": "Observed naturally on the original run; not observed on the variation run.",
+    "claimBoundary": "This validates the declared React/i18next development cases and checker obligations, not translation quality, other frameworks, or whole-skill success rate."
+  }
+}

@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "jit-optimize-validation-lifecycle/v1",
+  "createdAt": "2026-09-13T13:53:48.806Z",
+  "round": 1,
+  "sourceMode": "execution-log-local-validation",
+  "sourceTaskReplayed": false,
+  "actions": [
+    {
+      "actionId": "check-json-locale-parity",
+      "kind": "generate-script",
+      "implementation": {
+        "actionId": "check-json-locale-parity",
+        "kind": "generate-script",
+        "inputs": [
+          "one reference locale supplied as LOCALE=PATH",
+          "zero or more translated locales supplied as LOCALE=PATH"
+        ],
+        "outputs": [
+          "a JSON completion summary on stdout",
+          "exit code 0 for parity, 1 for detected differences, or 2 for invalid input"
+        ],
+        "preconditions": [
+          "Python 3 is available",
+          "locale files are nested JSON objects with string leaf values"
+        ],
+        "residualDuties": [
+          "select the reference locale",
+          "interpret framework-specific placeholders not covered by the common token patterns",
+          "verify source transformations, translation quality, report ABI, and filesystem delta separately"
+        ],
+        "verification": [
+          "run python scripts/check_json_locales.py --help",
+          "run the checker on all changed nested JSON locale files",
+          "treat ok=true only as locale key and placeholder parity, not as full task correctness"
+        ],
+        "status": "selected",
+        "entry": "scripts/check_json_locales.py",
+        "runtime": "python"
+      },
+      "planStatus": "ready",
+      "planDiagnostics": [],
+      "independentCaseIds": [
+        "observed-complete-locales"
+      ],
+      "selfCheckCaseIds": [],
+      "programStatus": "passed",
+      "program": {
+        "status": "passed",
+        "actionId": "check-json-locale-parity",
+        "entry": "scripts/check_json_locales.py",
+        "help": {
+          "id": "help",
+          "status": "passed",
+          "command": [
+            "python",
+            "D:\\skill优化\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\source\\20260913T133219213Z\\round-1\\scripts\\check_json_locales.py",
+            "--help"
+          ],
+          "cwd": "D:\\skill优化\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\source\\20260913T133219213Z\\round-1",
+          "exitCode": 0,
+          "stdout": "usage: check_json_locales.py [-h] --reference LOCALE=PATH\r\n                             [--locale LOCALE=PATH]\r\n\r\nCompare nested JSON locale keys and common placeholder tokens.\r\n\r\noptions:\r\n  -h, --help            show this help message and exit\r\n  --reference LOCALE=PATH\r\n                        primary locale and JSON path\r\n  --locale LOCALE=PATH  translated locale and JSON path; repeat for each\r\n                        locale\r\n",
+          "stderr": "",
+          "outputFiles": [],
+          "diagnostics": []
+        },
+        "cases": [
+          {
+            "id": "observed-complete-locales",
+            "status": "passed",
+            "command": [
+              "python",
+              "D:\\skill优化\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\source\\20260913T133219213Z\\round-1\\scripts\\check_json_locales.py",
+              "--reference",
+              "zh-CN=src/locales/zh-CN.json",
+              "--locale",
+              "en-US=src/locales/en-US.json"
+            ],
+            "cwd": "D:\\skill优化\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\source\\20260913T133219213Z\\round-1-validation\\cases\\check-json-locale-parity\\01-observed-complete-locales",
+            "exitCode": 0,
+            "stdout": "{\"extraKeys\": {\"en-US\": [], \"zh-CN\": []}, \"keyCount\": 2, \"missingKeys\": {\"en-US\": [], \"zh-CN\": []}, \"ok\": true, \"placeholderMismatches\": [], \"referenceLocale\": \"zh-CN\"}\r\n",
+            "stderr": "",
+            "outputFiles": [],
+            "diagnostics": []
+          }
+        ],
+        "diagnostics": []
+      },
+      "validationSource": "executed"
+    },
+    {
+      "actionId": "route-json-verification",
+      "kind": "restructure-docs",
+      "implementation": {
+        "actionId": "route-json-verification",
+        "kind": "restructure-docs",
+        "inputs": [
+          "the current project's locale format",
+          "any task-provided contract or allowed-file declaration"
+        ],
+        "outputs": [
+          "an explicit verification route for nested JSON locales",
+          "a final contract and filesystem-delta review"
+        ],
+        "preconditions": [
+          "the agent has inspected the project and current task constraints"
+        ],
+        "residualDuties": [
+          "fall back to framework-specific manual checks for non-JSON formats",
+          "apply closed schemas exactly without adding plausible fields"
+        ],
+        "verification": [
+          "confirm the documented command exposes --help",
+          "confirm the observed passing locale pair yields ok=true",
+          "review actual changed and created paths against the current task contract"
+        ],
+        "status": "selected"
+      },
+      "planStatus": "not-applicable",
+      "planDiagnostics": [
+        {
+          "code": "implementation-not-executable",
+          "message": "Documentation route is statically selected and validated only through its declared dependency closure."
+        }
+      ],
+      "independentCaseIds": [],
+      "selfCheckCaseIds": [],
+      "programStatus": "not-run",
+      "validationSource": "executed"
+    }
+  ],
+  "resolution": {
+    "status": "passed",
+    "retainedActionIds": [
+      "check-json-locale-parity",
+      "route-json-verification"
+    ],
+    "unvalidatedActionIds": [],
+    "rejected": [],
+    "feedback": [],
+    "rollbackGroups": []
+  },
+  "execution": {
+    "programRuns": 1,
+    "helpRuns": 1,
+    "caseRuns": 1,
+    "independentCaseRuns": 1,
+    "reusedActionObservations": 0
+  }
+}

@@ -1,5 +1,6 @@
 import { test, expect, describe } from "bun:test"
-import { safeModelName } from "../../src/core/config.ts"
+import path from "node:path"
+import { getRuntimeLogDir, safeModelName } from "../../src/core/config.ts"
 
 // The routing-prefix convention (resolveBackendModel / routeProviderName) is
 // the provider registry's knowledge — tests live in test/providers/registry.test.ts.
@@ -25,5 +26,26 @@ describe("safeModelName", () => {
   test("rejects empty / dot-segment ids", () => {
     expect(() => safeModelName("")).toThrow()
     expect(() => safeModelName("..")).toThrow()
+  })
+})
+
+describe("getRuntimeLogDir", () => {
+  test("uses a bounded stable task segment without allowing path traversal", () => {
+    const first = path.basename(getRuntimeLogDir(
+      "bare-agent",
+      "xty/gpt-5.6-sol",
+      `../${"same-prefix-".repeat(8)}alpha`,
+    ))
+    const second = path.basename(getRuntimeLogDir(
+      "bare-agent",
+      "xty/gpt-5.6-sol",
+      `../${"same-prefix-".repeat(8)}beta`,
+    ))
+
+    expect(first.length).toBeLessThanOrEqual(32)
+    expect(second.length).toBeLessThanOrEqual(32)
+    expect(first).not.toBe(second)
+    expect(first).not.toContain("..")
+    expect(first).toMatch(/-[a-f0-9]{8}$/)
   })
 })

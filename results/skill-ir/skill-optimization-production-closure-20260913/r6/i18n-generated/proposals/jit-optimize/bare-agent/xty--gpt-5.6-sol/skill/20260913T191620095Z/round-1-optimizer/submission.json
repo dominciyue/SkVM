@@ -1,0 +1,76 @@
+{
+  "rootCause": "The skill describes the transformation and translation steps but does not make a supplied contract the authoritative source of scope and output shape, nor does it require a final before/after file-set audit. As a result, an agent can produce semantically correct i18n files and still violate a contract's exact modified/new/protected-file boundary or ABI without detecting the mismatch before reporting completion.",
+  "reasoning": "Evidence 0 is a clean, scored run with four substantive criteria passing and only the declared-delta criterion failing (0.00), while the source transformation, locale completeness, interpolation, and report checks all passed. The observed agent read and wrote the expected-looking five files and then asserted compliance, but it never performed an explicit contract-driven delta audit or an independent ABI/file-set verification; the skill likewise contained no such guardrail. I therefore tightened the existing workflow in place rather than adding an overlapping section: contract and scope are established before scanning, confirmed text is separated from judgment, and the final step explicitly re-reads/parses outputs and compares the exact changed-file set with the contract. Generality test: the same fix benefits a Vue locale migration with a file whitelist, a gettext extraction with a strict report schema, or any future i18n task that protects package/config files. Rewrite-in-place test: the vague existing workflow headings were rewritten directly, preserving the original capabilities and examples while adding ordering and checks. Coherent scope: this is a small documentation-only change; no executable is justified because the evidence exposes no stable reusable source interface or checker resource, and the task-specific contract cannot be hard-coded into the skill. No-trade-off test: PER_TASK_SUMMARY lists no PASSING tasks, so there is no passing-task regression concern; the revised instructions preserve broad framework support and explicitly retain residual judgment for ambiguous text. Residual runtime duty remains with the agent to interpret each task's contract, choose translations, and restore any accidental changes found by the audit.",
+  "confidence": 0.86,
+  "changedFiles": [
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "工作流程",
+      "description": "Rewrite the workflow to make contract-first scope control, exact ABI handling, and a final file-set/output audit explicit.",
+      "generality": "A Vue-i18n migration with a declared locale whitelist and protected build files would also benefit from the same contract-first and post-write delta audit.",
+      "linesDelta": 7
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "The original workflow did not clearly prioritize a public contract or distinguish confirmed text from uncertain text.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must interpret the particular project's contract and decide which text is genuinely user-visible when the contract leaves judgment open."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "The workflow did not tell the agent to derive file paths, keys, required fields, and framework values from task-provided parameters instead of defaults.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must read and apply each task's actual contract values; the skill does not prescribe any task-specific paths or locales."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "The run successfully repeated the common extraction-to-locale-to-source transformation, but the skill did not connect each output to the exact confirmed key set and interpolation rules.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must perform the transformation for all confirmed occurrences and preserve context-dependent JSX structure and variable names."
+    },
+    {
+      "category": "verification",
+      "summary": "The only failed criterion was the declared-delta contract check, and the observed run had no explicit independent final audit despite claiming compliance.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must actually inspect the resulting diff/file inventory and correct any mismatch; documentation alone does not prove the audit passed."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "The task prohibited package installation and network use, and the skill did not previously state these as part of a clean delivery audit.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must honor the current task's environment and side-effect restrictions, which remain task-scoped rather than universal tool requirements."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Translation choices, ambiguous UI classification, and framework-specific integration details remain professional judgments that cannot be safely automated from this evidence.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must resolve ambiguous text and validate framework-specific code while applying the contract's explicit rules."
+    }
+  ],
+  "actions": [],
+  "actionDiagnostics": [],
+  "noChanges": false
+}

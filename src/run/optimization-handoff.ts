@@ -1,5 +1,6 @@
 import path from "node:path"
-import type { AdapterConfig, AgentAdapter, SkillMode } from "../core/types.ts"
+import { copyFile, mkdir, mkdtemp, rm } from "node:fs/promises"
+import type { AdapterConfig, AgentAdapter, RunResult, SkillMode } from "../core/types.ts"
 import type {
   BuildOptimizedSkillPackageOptions,
   BuildOptimizedSkillPackageResult,
@@ -26,7 +27,10 @@ import {
   readOptimizationSession,
   transitionOptimizationSession,
   type OptimizationSessionManifest,
+  type CapturedSourceEvaluation,
 } from "./optimization-session.ts"
+import { getTmpDir } from "../core/config.ts"
+import { readInitialWorkdirManifest, snapshotWorkdir } from "../core/workdir-manifest.ts"
 
 export interface OptimizationHandoffDependencies {
   jitOptimize(config: JitOptimizeConfig): Promise<JitOptimizeResult>
@@ -252,11 +256,94 @@ export async function runCapturedOptimization(
 export interface ExecuteRunAndOptimizeDependencies {
   executeRun(options: ExecuteRunOptions): Promise<ExecuteRunResult>
   runCapturedOptimization(options: RunCapturedOptimizationOptions): Promise<CapturedOptimizationResult>
+  prepareSourceEvaluation?(
+    task: LoadedRunTask,
+    result: RunResult,
+    options?: { skill?: LoadedSkill },
+  ): Promise<CapturedSourceEvaluation>
 }
 
 const DEFAULT_EXECUTE_DEPENDENCIES: ExecuteRunAndOptimizeDependencies = {
   executeRun,
   runCapturedOptimization,
+  prepareSourceEvaluation: prepareCapturedSourceEvaluation,
+}
+
+export async function prepareCapturedSourceEvaluation(
+  task: LoadedRunTask,
+  result: RunResult,
+  options?: { skill?: LoadedSkill },
+): Promise<CapturedSourceEvaluation> {
+  await import("../bench/evaluators/index.ts")
+  const { evaluate } = await import("../framework/evaluator.ts")
+  const results: CapturedSourceEvaluation["results"] = []
+  const skipped: CapturedSourceEvaluation["skipped"] = []
+  const errors: CapturedSourceEvaluation["errors"] = []
+  let evaluationResult = result
+  let cleanup: (() => Promise<void>) | undefined
+  if (result.initialWorkdirManifest && options?.skill) {
+    const root = await mkdtemp(path.join(getTmpDir(), "skvm-source-evaluation-"))
+    const workDir = path.join(root, "work")
+    const manifestPath = path.join(root, "initial-workdir-manifest.json")
+    await mkdir(workDir, { recursive: true })
+    try {
+      const initial = await readInitialWorkdirManifest({
+        workDir: result.workDir,
+        reference: result.initialWorkdirManifest,
+      })
+      const initialPaths = new Set(initial.entries.map((entry) => entry.path))
+      const skillDigests = new Map<string, string>()
+      for (const relative of options.skill.bundleFiles) {
+        const bytes = await Bun.file(path.join(options.skill.skillDir, relative)).bytes()
+        skillDigests.set(
+          relative.replaceAll("\\", "/"),
+          new Bun.CryptoHasher("sha256").update(bytes).digest("hex"),
+        )
+      }
+      for (const entry of await snapshotWorkdir(result.workDir, { excludedPrefixes: [".skvm"] })) {
+        if (entry.type !== "file") continue
+        if (!initialPaths.has(entry.path) && skillDigests.get(entry.path) === entry.sha256) continue
+        const destination = path.join(workDir, ...entry.path.split("/"))
+        await mkdir(path.dirname(destination), { recursive: true })
+        await copyFile(path.join(result.workDir, ...entry.path.split("/")), destination)
+      }
+      await copyFile(result.initialWorkdirManifest.path, manifestPath)
+      evaluationResult = {
+        ...result,
+        workDir,
+        initialWorkdirManifest: {
+          path: manifestPath,
+          sha256: result.initialWorkdirManifest.sha256,
+        },
+      }
+      cleanup = async () => { await rm(root, { recursive: true, force: true }) }
+    } catch (error) {
+      await rm(root, { recursive: true, force: true })
+      throw error
+    }
+  }
+  try {
+    for (const [index, criterion] of task.eval.entries()) {
+      const criterionId = criterion.id ?? `${criterion.method}:${index}`
+      if (criterion.method === "llm-judge") {
+        skipped.push({ criterionId, reason: "llm-judge-requires-an-additional-model-call" })
+        continue
+      }
+      try {
+        results.push(await evaluate(criterion, evaluationResult))
+      } catch (error) {
+        errors.push({ criterionId, error: errorMessage(error) })
+      }
+    }
+  } finally {
+    await cleanup?.()
+  }
+  return {
+    schemaVersion: "skvm-captured-source-evaluation/v1",
+    results,
+    skipped,
+    errors,
+  }
 }
 
 export interface ExecuteRunAndOptimizeOptions {
@@ -305,7 +392,18 @@ export async function executeRunAndOptimize(
 
   let manifest: OptimizationSessionManifest
   try {
-    manifest = await options.session.complete(source.runResult)
+    const sourceEvaluation = options.task.eval.length > 0
+      ? await (deps.prepareSourceEvaluation ?? prepareCapturedSourceEvaluation)(options.task, {
+          ...source.runResult,
+          ...(source.initialWorkdirManifest
+            ? { initialWorkdirManifest: source.initialWorkdirManifest }
+            : {}),
+        }, { skill: options.skill })
+      : undefined
+    manifest = await options.session.complete(
+      source.runResult,
+      sourceEvaluation ? { sourceEvaluation } : undefined,
+    )
   } catch (error) {
     manifest = await options.session.fail("capture-error", errorMessage(error))
     return { source, session: manifest, optimization: { status: "failed", error: errorMessage(error) } }

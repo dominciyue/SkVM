@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "skill-optimization-r6-law-consumption/v1",
+  "identity": "development",
+  "package": {
+    "path": "results/skill-ir/skill-optimization-production-closure-20260913/h9/package-attempt-001-revision-001",
+    "manifestSha256": "e2849af59f725fef30c9809d21f2f0c76191784e23daebe867eb8aad18d7881e",
+    "implementation": "scripts/law_to_markdown.py",
+    "kind": "reuse-script"
+  },
+  "evaluationAuthority": {
+    "kind": "source-bundled deterministic checker",
+    "entry": "scripts/stage3_checker.py",
+    "userProvidedScoreOrTaskJson": false,
+    "note": "The normal user prompt had no criteria. The repository prepared this post-run check from the package's own Stage3 contract; it is not external human scoring."
+  },
+  "runs": [
+    {
+      "id": "original",
+      "status": "passed",
+      "input": { "path": "source-input/document.txt", "sha256": "31cdf87b4079f5ed92cdcb826ab281564dd65d1611103ddfdba4ec556ed5d79f" },
+      "workDir": "package-consumption-original",
+      "conversation": {
+        "path": "package-consumption-original-logs/20260914-035705-run/conv-001-natural-88b2e2acc67a.jsonl",
+        "sha256": "5f120f9cb12e60ca36a9dd5451ea7f4338a76deef18cdedd78951bca4a363c9e"
+      },
+      "metrics": {
+        "durationMs": 84700,
+        "tokens": { "input": 15438, "output": 1955, "cacheRead": 26624, "cacheWrite": 0 },
+        "actualUsd": null,
+        "toolCalls": 14,
+        "toolNames": { "list_directory": 4, "read_file": 3, "execute_command": 7 }
+      },
+      "programConsumption": {
+        "invokedByAgent": true,
+        "successfulInvocations": 1,
+        "unsuccessfulOrAmbiguousCommandAttempts": 6,
+        "exitCode": 0,
+        "inputByteIdentical": true
+      },
+      "systemEvaluation": {
+        "overallPass": true,
+        "stage3aPass": true,
+        "stage3bPass": true,
+        "decision": "approved",
+        "passedChecks": 8,
+        "articleCount": 2,
+        "minimalOutputFiles": 2
+      }
+    },
+    {
+      "id": "variation",
+      "status": "passed",
+      "input": {
+        "path": "variation-input/document.txt",
+        "sha256": "acc4356d9640a97f7704b4cb5a66d414d01516a263da6ecbaf018aa0324e24e7",
+        "semanticVariation": "different title and chapter, three articles, and three distinct enumerated items"
+      },
+      "workDir": "package-consumption-variation",
+      "conversation": {
+        "path": "package-consumption-variation-logs/20260914-035850-run/conv-001-natural-640491a6b861.jsonl",
+        "sha256": "29b9eaa4ea59d5f1149748533440c552e970385fa3d31f0f852e6db534cd7a49"
+      },
+      "metrics": {
+        "durationMs": 51200,
+        "tokens": { "input": 14567, "output": 1420, "cacheRead": 12160, "cacheWrite": 0 },
+        "actualUsd": null,
+        "toolCalls": 11,
+        "toolNames": { "list_directory": 3, "read_file": 4, "execute_command": 4 }
+      },
+      "programConsumption": {
+        "invokedByAgent": true,
+        "successfulInvocations": 1,
+        "unsuccessfulCommandAttempts": 2,
+        "inspectionCommands": 1,
+        "exitCode": 0,
+        "inputByteIdentical": true
+      },
+      "systemEvaluation": {
+        "overallPass": true,
+        "stage3aPass": true,
+        "stage3bPass": true,
+        "decision": "approved",
+        "passedChecks": 8,
+        "articleCount": 3,
+        "minimalOutputFiles": 2
+      }
+    }
+  ],
+  "conclusion": {
+    "behavior": "passed",
+    "parameterization": "The same bundled program and checker handled different titles, article counts and enumerated-item content.",
+    "limitation": "The pre-fix tool description caused Bash syntax retries on Windows; the original run also needed interpreter discovery before one successful invocation.",
+    "claimBoundary": "The check covers the package's TXT law path and Stage3 invariants. It does not validate DOCX/PDF fallbacks, legal advice, or the separate public benchmark review-evidence ABI."
+  }
+}

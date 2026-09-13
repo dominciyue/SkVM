@@ -470,13 +470,15 @@ bun test ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/pr
 
 ## R6 — 不同结构与变化任务上的小规模实用验证
 
-- [ ] 使用两个已有 development skill 的不同结构，至少覆盖生成程序与现成程序复用；通过同一 R2 入口运行，人工只提供普通任务、skill、目录和已有模型配置。
-- [ ] 每项先保留原 task 与自动捕获记录，再检查优化包在原任务及一个未回灌变化任务中的实际消费。可复用本轮已验证程序内容，但自动采集/交接必须真实发生，不能人工导入 H8/H9 的历史 report 冒充。
-- [ ] 无评分文件的用户输入至少覆盖一项；评价准备由系统依据 R3 完成。外部研究者人工写 checker 的情况必须单列，不能算用户零接线通过。
-- [ ] 变化任务检查语义与程序参数化，不只改文件名；专业判断的变化仍交 agent。测试失败回到共享代码修复，保留首跑，无 skill-name 特判。
-- [ ] 第一次可比运行前确定目标指标。优先观察重复程序生成/发现步骤、工具调用和实际 token；同时记录质量、全部 token/cache 字段、耗时与未知费用。旧 H11 可作参考，不跨模型/上下文相减声称新增效果。
+- [x] 使用两个已有 development skill 的不同结构，至少覆盖生成程序与现成程序复用；通过同一 R2 入口运行，人工只提供普通任务、skill、目录和已有模型配置。
+- [x] 每项先保留原 task 与自动捕获记录，再检查优化包在原任务及一个未回灌变化任务中的实际消费。可复用本轮已验证程序内容，但自动采集/交接必须真实发生，不能人工导入 H8/H9 的历史 report 冒充。
+- [x] 无评分文件的用户输入至少覆盖一项；评价准备由系统依据 R3 完成。外部研究者人工写 checker 的情况必须单列，不能算用户零接线通过。
+- [x] 变化任务检查语义与程序参数化，不只改文件名；专业判断的变化仍交 agent。测试失败回到共享代码修复，保留首跑，无 skill-name 特判。
+- [x] 第一次可比运行前确定目标指标。优先观察重复程序生成/发现步骤、工具调用和实际 token；同时记录质量、全部 token/cache 字段、耗时与未知费用。旧 H11 可作参考，不跨模型/上下文相减声称新增效果。
 
 **验收：** 两种结构均有自动捕获→优化→新包使用的真实尝试；至少一条完整通过且原/变化任务合格，另一条限制明确。若只有一条成功，交付明确适用范围，不能称两类都已成功。
+
+**实际结果：** 两种结构均通过普通 `run` 完成新 source capture、digest-bound handoff 与 optimizer 调用；最终新尝试都准确返回 `no-change`，没有把历史包伪装成本次生成。按本节允许的复用规则，H8 的 generated checker 包和 H9 的 existing-program 包随后各由普通 agent 消费原输入与未回灌语义变化输入。I18n 原/变化均由系统隔离后的独立 evaluator 得到 5/5，checker 对 2-key 与带新插值的 3-key 输入均 exit 0；agent 在原输入自然调用 checker，变化输入改用通用检查，故该消费限制单列。Law 的无 task/score 自然输入与三条款变化输入均真实调用 bundled converter，source-owned Stage3 各 8/8、input byte-identical、minimal 两文件；Windows 命令语法重试作为摩擦保留。共享 TDD 修复了长路径、post-run output capture、task-local evaluator、framework-owned delta 污染、带锚点脚本引用和 Windows native shell/说明。首个无效 variation contract、文档-only 包、4/5 evaluator 与 law rollback 全部保留。provider 未给可绑定账单价格，实际 USD 为 unknown；不同上下文不做节省相减，效果结论 `unknown`。机器报告见 `results/skill-ir/skill-optimization-production-closure-20260913/r6/report.json`。
 
 ## R7 — 无手工接线的整体验收与交接
 

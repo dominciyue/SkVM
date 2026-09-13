@@ -12,12 +12,14 @@ import {
 } from "../../src/run/optimization-session.ts"
 import {
   executeRunAndOptimize,
+  prepareCapturedSourceEvaluation,
   runCapturedOptimization,
 } from "../../src/run/optimization-handoff.ts"
 import { loadEvidencesFromLogs } from "../../src/jit-optimize/task-source.ts"
 import type { TaskSource } from "../../src/jit-optimize/types.ts"
-import { writeInitialWorkdirManifest } from "../../src/core/workdir-manifest.ts"
+import { snapshotWorkdir, writeInitialWorkdirManifest } from "../../src/core/workdir-manifest.ts"
 import { publishOptimizedSkillPackageAtomically } from "../../src/jit-optimize/package.ts"
+import { registerCustomEvaluator, customEvaluators } from "../../src/framework/types.ts"
 
 const roots: string[] = []
 
@@ -82,6 +84,64 @@ describe("natural task materialization", () => {
 })
 
 describe("captured optimization handoff", () => {
+  test("prepares declared local checks without invoking an LLM judge", async () => {
+    const item = await fixture("source-evaluation")
+    await Bun.write(path.join(item.workDir, "result.txt"), "ok\n")
+    const task = {
+      ...item.task,
+      eval: [
+        { method: "file-check" as const, id: "result", path: "result.txt", mode: "exact" as const, expected: "ok\n" },
+        { method: "llm-judge" as const, id: "judge", rubric: "looks good", maxScore: 1 },
+      ],
+    }
+
+    const prepared = await prepareCapturedSourceEvaluation(task, {
+      ...item.result,
+      workDir: item.workDir,
+    })
+
+    expect(prepared.results).toHaveLength(1)
+    expect(prepared.results[0]).toMatchObject({ pass: true, criterion: { id: "result" } })
+    expect(prepared.skipped).toEqual([{ criterionId: "judge", reason: "llm-judge-requires-an-additional-model-call" }])
+    expect(prepared.errors).toEqual([])
+  })
+
+  test("evaluates a user-only view without deployed skill resources", async () => {
+    const item = await fixture("source-evaluation-isolation")
+    const helperPath = path.join(item.skill.skillDir, "helper.txt")
+    await Bun.write(helperPath, "framework helper\n")
+    const skill = { ...item.skill, bundleFiles: ["helper.txt"] }
+    await mkdir(path.join(item.workDir, ".skvm", "skills", item.skill.skillId), { recursive: true })
+    await Bun.write(path.join(item.workDir, ".skvm", "skills", item.skill.skillId, "SKILL.md"), item.skill.skillContent)
+    await Bun.write(path.join(item.workDir, "helper.txt"), "framework helper\n")
+    await Bun.write(path.join(item.workDir, "result.txt"), "user output\n")
+    const evaluatorId = "test-source-evaluation-isolation"
+    registerCustomEvaluator(evaluatorId, {
+      async run({ runResult }) {
+        const paths = (await snapshotWorkdir(runResult.workDir)).map((entry) => entry.path)
+        const pass = paths.includes("result.txt")
+          && !paths.some((entry) => entry === ".skvm" || entry.startsWith(".skvm/"))
+          && !paths.includes("helper.txt")
+        return { pass, score: pass ? 1 : 0, details: paths.join(",") }
+      },
+    })
+    try {
+      const manifest = await readOptimizationSession(item.session.manifestPath)
+      const initial = manifest.artifacts.initialWorkdirManifest
+      const task = {
+        ...item.task,
+        eval: [{ method: "custom" as const, id: "isolated", evaluatorId }],
+      }
+      const prepared = await prepareCapturedSourceEvaluation(task, {
+        ...item.result,
+        initialWorkdirManifest: { path: initial.path, sha256: initial.sha256! },
+      }, { skill })
+      expect(prepared.results).toMatchObject([{ pass: true, criterion: { id: "isolated" } }])
+    } finally {
+      customEvaluators.delete(evaluatorId)
+    }
+  })
+
   test("rejects a captured session from an adapter the automatic handoff does not support", async () => {
     const item = await fixture("unsupported-adapter")
     const manifest = await readOptimizationSession(item.session.manifestPath)

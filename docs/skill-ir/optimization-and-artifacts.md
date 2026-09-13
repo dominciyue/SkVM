@@ -89,7 +89,7 @@ G4 的 optimizer 合同允许从一次成功但未评分的运行中提出有依
 避免由转换器自证。机器报告位于
 `results/skill-ir/general-skill-optimization-20260913/g6-program-validation/report.json`。
 
-### 3.0.2.1 生产链接线边界（H0–H14，active-H9）
+### 3.0.2.1 生产链接线边界（H0–H14 + R1–R7，active-R7）
 
 普通 execution-log loop 已调用 program validator 和 action resolver，在选轮前完成局部验证、最多一次定向修复与依赖/共享文件回退。
 本轮依据[生产链任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md)继续在真实日志路径核验程序生成、复用、条件变化及自然消费。
@@ -101,7 +101,13 @@ H8 用同一普通入口从一条已暴露 I18n trace 生成参数化 nested-JSO
 把 optimizer workspace locator 映射回声明的 snapshot 路径，只有实际通过的外部 criterion 才能把 task-contract case
 提升为 independent；文档路由仅随其声明依赖的验证闭包保留。原 trace 1/1、未回灌变化输入 4/4 与自然 Pi agent
 read/exec 均有摘要绑定证据。消费分析器接受 exit-zero `ok=true`，但明确拒绝 `ok=false`；原错判报告保留，未重跑模型。
-该结果只覆盖检查器的键和常见占位符规则，不覆盖翻译质量或整个 i18n 工作流。当前进入 H9 的已有程序复用。
+该结果只覆盖检查器的键和常见占位符规则，不覆盖翻译质量或整个 i18n 工作流。
+
+R1–R6 已把普通 `run --prompt|--task --skill --model --optimize` 接到同一优化器。每次 source run 使用唯一 session，保存完整 run id 但把磁盘目录段限制为摘要化长度，避免 Windows 最长路径破坏 conversation finalization。source 完成后保存相对初始 manifest 的 added/modified/deleted snapshot；`.skvm` 与字节相同的 skill root alias 不作为用户输出。trace adapter 逐文件核对摘要并把冻结 snapshot 交给 optimizer，不能用已变动 live workdir 替代。
+
+task 自带的 local non-LLM criterion 会在 source run 后自动重算；有 skill bundle 时，系统在临时 user-only 视图执行 evaluator，使 task 输入、agent 输出与 framework-owned skill 文件分离，结束后删除临时视图。LLM judge 仍跳过，未知专业判断不自动变绿。`reuse-script` 的 `sourceRefs` 可用 `scripts/tool.py#symbol` 定位，选择器在 containment/extension 检查前只移除 symbol anchor。共享 command tool 在 Windows 优先使用 PATH 中的 `pwsh`，缺失时退到 `powershell.exe`，并向模型明确输入语言为 PowerShell；POSIX 保持 `sh -c`。它仍禁止宽进程终止命令并设 30 秒单命令上限。
+
+R6 的两结构 fresh optimizer 尝试均为 no-change，随后按任务书复用已验证 H8/H9 包做实际消费。I18n 原/变化由系统 evaluator 各 5/5，generated checker 对 2-key/3-key 输入均 exit 0；Law 两个无评分自然输入真实复用 converter，source-owned Stage3 各 8/8。agent 在 I18n 变化输入未调用 checker、Law 在旧 tool 描述下出现命令重试，因此效果为 unknown，不声称省时或总体成本下降。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/r6/report.json`。
 
 ### 3.0.3 通用包导出、自然消费与效果边界
 

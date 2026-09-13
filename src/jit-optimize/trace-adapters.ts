@@ -4,7 +4,12 @@ import { gunzipSync } from "node:zlib"
 import { DurableRuntimeTraceEventSchema } from "../core/durable-runtime-trace.ts"
 import { piEventsToRunRecord, type PiEvent, type PiUserMessage } from "../core/pi-runtime.ts"
 import { RunResultSchema, RunStatusSchema } from "../core/types.ts"
-import { OptimizationSessionManifestSchema } from "../run/optimization-session.ts"
+import {
+  CapturedSourceEvaluationSchema,
+  ObservedWorkdirSnapshotSchema,
+  OptimizationSessionManifestSchema,
+} from "../run/optimization-session.ts"
+import { buildEvidenceCriteria } from "./evidence-criteria.ts"
 import type {
   ConversationLogEntry,
   EvidenceCriterion,
@@ -19,6 +24,7 @@ export interface AdaptedTraceRecord {
   conversationLog: ConversationLogEntry[]
   criteria?: EvidenceCriterion[]
   workDirPath?: string
+  workDirSnapshot?: { files: Map<string, string> }
   source: TraceEvidenceSource
 }
 
@@ -236,13 +242,19 @@ async function adaptOptimizationSession(
   if (path.resolve(manifest.artifacts.manifest.path) !== sourcePath) {
     diagnostics.push(diagnostic("session-manifest-binding-mismatch", "Manifest self path does not match the supplied file", "json:artifacts.manifest.path", "error"))
   }
-  const directArtifacts = [
+  const directArtifacts: Array<[string, { path: string; sha256?: string; bytes?: number }]> = [
     ["taskSnapshot", manifest.artifacts.taskSnapshot],
     ["conversationTrace", manifest.artifacts.conversationTrace],
     ["durableTrace", manifest.artifacts.durableTrace],
     ["runResult", manifest.artifacts.runResult],
     ["initialWorkdirManifest", manifest.artifacts.initialWorkdirManifest],
   ] as const
+  if (manifest.artifacts.observedWorkdirSnapshot) {
+    directArtifacts.push(["observedWorkdirSnapshot", manifest.artifacts.observedWorkdirSnapshot])
+  }
+  if (manifest.artifacts.sourceEvaluation) {
+    directArtifacts.push(["sourceEvaluation", manifest.artifacts.sourceEvaluation])
+  }
   for (const [name, reference] of directArtifacts) {
     const artifactPath = path.resolve(reference.path)
     if (!isWithin(sessionDir, artifactPath)) {
@@ -297,6 +309,47 @@ async function adaptOptimizationSession(
     { type: "response", ts: manifest.updatedAt, text: runResult.text, sourceLocator: "run-result:text" },
   ]) as ConversationLogEntry[]
   const unknownFields: string[] = []
+  let criteria: EvidenceCriterion[] | undefined
+  if (manifest.artifacts.sourceEvaluation) {
+    try {
+      const evaluation = CapturedSourceEvaluationSchema.parse(JSON.parse(
+        await Bun.file(manifest.artifacts.sourceEvaluation.path).text(),
+      ))
+      const flattened = buildEvidenceCriteria(evaluation.results)
+      criteria = flattened.length > 0 ? flattened : undefined
+      unknownFields.push(...evaluation.skipped.map((entry) => `evaluation.skipped:${entry.criterionId}`))
+      unknownFields.push(...evaluation.errors.map((entry) => `evaluation.error:${entry.criterionId}`))
+    } catch (error) {
+      diagnostics.push(diagnostic("session-source-evaluation-invalid", `Source evaluation is invalid: ${error}`, "json:artifacts.sourceEvaluation", "error"))
+      return { format, representation, inputSha256, records: [], diagnostics }
+    }
+  } else {
+    unknownFields.push("criteria")
+  }
+  let workDirSnapshot: { files: Map<string, string> } | undefined
+  if (manifest.artifacts.observedWorkdirSnapshot) {
+    try {
+      const observed = ObservedWorkdirSnapshotSchema.parse(JSON.parse(
+        await Bun.file(manifest.artifacts.observedWorkdirSnapshot.path).text(),
+      ))
+      workDirSnapshot = {
+        files: new Map(observed.files.flatMap((file) => {
+          if (file.content === undefined) return []
+          const bytes = new TextEncoder().encode(file.content)
+          if (bytes.byteLength !== file.bytes || digest(bytes) !== file.sha256) {
+            throw new Error(`observed output ${file.path} does not match its digest/size`)
+          }
+          return [[file.path, redactString(file.content)] as const]
+        })),
+      }
+      unknownFields.push(...observed.contentOmissions.map((entry) => `observedOutputs.content:${entry.path}`))
+    } catch (error) {
+      diagnostics.push(diagnostic("session-observed-output-invalid", `Observed output snapshot is invalid: ${error}`, "json:artifacts.observedWorkdirSnapshot", "error"))
+      return { format, representation, inputSha256, records: [], diagnostics }
+    }
+  } else {
+    unknownFields.push("observedOutputs")
+  }
   const usage = runResult.usageAvailable === false ? undefined : {
     inputTokens: runResult.tokens.input,
     outputTokens: runResult.tokens.output,
@@ -305,7 +358,7 @@ async function adaptOptimizationSession(
     source: "run-result",
   }
   if (!usage) unknownFields.push("usage")
-  unknownFields.push("usage.costUsd", "criteria")
+  unknownFields.push("usage.costUsd")
   const source = makeSource({
     format,
     representation,
@@ -336,8 +389,8 @@ async function adaptOptimizationSession(
       taskId: manifest.binding.taskId,
       taskPrompt: redactString(taskPrompt),
       conversationLog,
-      // Deliberately omit workDirPath here: task-source would otherwise
-      // snapshot the post-run directory and present outputs as source inputs.
+      ...(criteria ? { criteria } : {}),
+      ...(workDirSnapshot ? { workDirSnapshot } : {}),
       source,
     }],
     diagnostics,

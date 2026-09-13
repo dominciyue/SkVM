@@ -1,11 +1,11 @@
 import path from "node:path"
-import { copyFile, mkdir, readdir, rename, stat, writeFile } from "node:fs/promises"
+import { copyFile, mkdir, readFile, readdir, rename, stat, writeFile } from "node:fs/promises"
 import { z } from "zod"
-import { LOGS_DIR } from "../core/config.ts"
+import { boundedArtifactPathSegment, LOGS_DIR } from "../core/config.ts"
 import { DurableRuntimeTrace } from "../core/durable-runtime-trace.ts"
 import { ConversationLog } from "../core/conversation-logger.ts"
-import type { RunResult } from "../core/types.ts"
-import { InitialWorkdirManifestSchema } from "../core/workdir-manifest.ts"
+import { EvalResultSchema, type EvalResult, type RunResult } from "../core/types.ts"
+import { InitialWorkdirManifestSchema, snapshotWorkdir } from "../core/workdir-manifest.ts"
 import type { LoadedRunTask, LoadedSkill } from "./index.ts"
 
 const ArtifactStatusSchema = z.enum(["pending", "complete", "partial", "failed"])
@@ -20,6 +20,56 @@ const CaptureItemSchema = z.object({
   finalized: z.boolean().optional(),
   error: z.string().optional(),
 }).strict()
+
+const SafeObservedPathSchema = z.string().min(1).refine((value) => {
+  if (path.posix.isAbsolute(value) || path.win32.isAbsolute(value) || value.includes("\\")) return false
+  return value.split("/").every((segment) => segment.length > 0 && segment !== "." && segment !== "..")
+}, "path must be a safe POSIX relative path")
+
+const ObservedWorkdirFileSchema = z.object({
+  path: SafeObservedPathSchema,
+  sha256: z.string().regex(/^[a-f0-9]{64}$/),
+  bytes: z.number().int().nonnegative(),
+  content: z.string().optional(),
+}).strict()
+
+export const ObservedWorkdirSnapshotSchema = z.object({
+  schemaVersion: z.literal("skvm-observed-workdir-snapshot/v1"),
+  files: z.array(ObservedWorkdirFileSchema),
+  deleted: z.array(z.object({
+    path: SafeObservedPathSchema,
+    sha256: z.string().regex(/^[a-f0-9]{64}$/),
+  }).strict()),
+  contentOmissions: z.array(z.object({
+    path: SafeObservedPathSchema,
+    reason: z.enum(["binary", "file-too-large", "total-cap-exceeded", "unreadable"]),
+  }).strict()),
+}).strict().superRefine((value, context) => {
+  for (const [label, paths] of [
+    ["files", value.files.map((entry) => entry.path)],
+    ["deleted", value.deleted.map((entry) => entry.path)],
+    ["contentOmissions", value.contentOmissions.map((entry) => entry.path)],
+  ] as const) {
+    if (new Set(paths).size !== paths.length) {
+      context.addIssue({ code: "custom", message: `${label} paths must be unique` })
+    }
+    const sorted = [...paths].sort((left, right) => left.localeCompare(right, "en"))
+    if (paths.some((entry, index) => entry !== sorted[index])) {
+      context.addIssue({ code: "custom", message: `${label} paths must be sorted` })
+    }
+  }
+})
+
+export type ObservedWorkdirSnapshot = z.infer<typeof ObservedWorkdirSnapshotSchema>
+
+export const CapturedSourceEvaluationSchema = z.object({
+  schemaVersion: z.literal("skvm-captured-source-evaluation/v1"),
+  results: z.array(EvalResultSchema),
+  skipped: z.array(z.object({ criterionId: z.string(), reason: z.string() }).strict()),
+  errors: z.array(z.object({ criterionId: z.string(), error: z.string() }).strict()),
+}).strict()
+
+export type CapturedSourceEvaluation = z.infer<typeof CapturedSourceEvaluationSchema>
 
 export const OptimizationSessionStateSchema = z.discriminatedUnion("status", [
   z.object({ status: z.literal("not-requested") }).strict(),
@@ -107,6 +157,8 @@ export const OptimizationSessionManifestSchema = z.object({
     durableTrace: ArtifactReferenceSchema,
     runResult: ArtifactReferenceSchema,
     initialWorkdirManifest: ArtifactReferenceSchema,
+    observedWorkdirSnapshot: ArtifactReferenceSchema.optional(),
+    sourceEvaluation: ArtifactReferenceSchema.optional(),
   }).strict(),
   sourceRun: z.object({
     status: z.enum(["running", "completed", "failed", "interrupted"]),
@@ -120,6 +172,8 @@ export const OptimizationSessionManifestSchema = z.object({
     durable: CaptureItemSchema,
     runResult: CaptureItemSchema,
     sourceInputs: CaptureItemSchema.optional(),
+    observedOutputs: CaptureItemSchema.optional(),
+    sourceEvaluation: CaptureItemSchema.optional(),
   }).strict(),
   handoff: z.object({
     status: z.enum(["pending", "ready", "blocked"]),
@@ -165,6 +219,72 @@ async function fileExists(filePath: string): Promise<boolean> {
   } catch {
     return false
   }
+}
+
+const OBSERVED_OUTPUT_MAX_TOTAL_BYTES = 512 * 1024
+const OBSERVED_OUTPUT_MAX_FILE_BYTES = 64 * 1024
+
+async function captureObservedWorkdirSnapshot(input: {
+  workDir: string
+  initialManifestPath: string
+  skillSnapshotPath: string
+  outputPath: string
+}): Promise<void> {
+  const initial = InitialWorkdirManifestSchema.parse(JSON.parse(await Bun.file(input.initialManifestPath).text()))
+  const current = await snapshotWorkdir(input.workDir, { excludedPrefixes: [".skvm"] })
+  const skillRoot = path.dirname(input.skillSnapshotPath)
+  const skillEntries = await snapshotWorkdir(skillRoot)
+  const initialByPath = new Map(initial.entries.map((entry) => [entry.path, entry]))
+  const currentByPath = new Map(current.map((entry) => [entry.path, entry]))
+  const skillByPath = new Map(skillEntries.map((entry) => [entry.path, entry]))
+  const files: ObservedWorkdirSnapshot["files"] = []
+  const contentOmissions: ObservedWorkdirSnapshot["contentOmissions"] = []
+  let capturedBytes = 0
+
+  for (const entry of current) {
+    if (entry.type !== "file") continue
+    const initialEntry = initialByPath.get(entry.path)
+    if (initialEntry?.type === "file" && initialEntry.sha256 === entry.sha256) continue
+    const skillEntry = skillByPath.get(entry.path)
+    if (!initialEntry && skillEntry?.type === "file" && skillEntry.sha256 === entry.sha256) continue
+
+    const absolute = path.join(input.workDir, ...entry.path.split("/"))
+    const file = { path: entry.path, sha256: entry.sha256, bytes: 0, content: undefined as string | undefined }
+    try {
+      const bytes = await readFile(absolute)
+      file.bytes = bytes.byteLength
+      if (bytes.byteLength > OBSERVED_OUTPUT_MAX_FILE_BYTES) {
+        contentOmissions.push({ path: entry.path, reason: "file-too-large" })
+      } else if (capturedBytes + bytes.byteLength > OBSERVED_OUTPUT_MAX_TOTAL_BYTES) {
+        contentOmissions.push({ path: entry.path, reason: "total-cap-exceeded" })
+      } else {
+        try {
+          file.content = new TextDecoder("utf-8", { fatal: true }).decode(bytes)
+          capturedBytes += bytes.byteLength
+        } catch {
+          contentOmissions.push({ path: entry.path, reason: "binary" })
+        }
+      }
+    } catch {
+      contentOmissions.push({ path: entry.path, reason: "unreadable" })
+    }
+    files.push(file)
+  }
+
+  const deleted = initial.entries
+    .filter((entry): entry is Extract<(typeof initial.entries)[number], { type: "file" }> => (
+      entry.type === "file" && !currentByPath.has(entry.path)
+    ))
+    .map((entry) => ({ path: entry.path, sha256: entry.sha256 }))
+    .sort((left, right) => left.path.localeCompare(right.path, "en"))
+  files.sort((left, right) => left.path.localeCompare(right.path, "en"))
+  contentOmissions.sort((left, right) => left.path.localeCompare(right.path, "en"))
+  await atomicJson(input.outputPath, ObservedWorkdirSnapshotSchema.parse({
+    schemaVersion: "skvm-observed-workdir-snapshot/v1",
+    files,
+    deleted,
+    contentOmissions,
+  }))
 }
 
 async function copyOptionalDirectory(sourceDir: string, destinationDir: string): Promise<void> {
@@ -267,6 +387,8 @@ export class OptimizationSession {
   readonly durableTracePath: string
   readonly runResultPath: string
   readonly initialWorkdirManifestPath: string
+  readonly observedWorkdirSnapshotPath: string
+  readonly sourceEvaluationPath: string
   readonly runtimeTrace: DurableRuntimeTrace
   readonly conversationLog: ConversationLog
 
@@ -279,13 +401,20 @@ export class OptimizationSession {
     this.durableTracePath = manifest.artifacts.durableTrace.path
     this.runResultPath = manifest.artifacts.runResult.path
     this.initialWorkdirManifestPath = manifest.artifacts.initialWorkdirManifest.path
+    this.observedWorkdirSnapshotPath = manifest.artifacts.observedWorkdirSnapshot?.path
+      ?? path.join(path.dirname(this.manifestPath), "observed-workdir-snapshot.json")
+    this.sourceEvaluationPath = manifest.artifacts.sourceEvaluation?.path
+      ?? path.join(path.dirname(this.manifestPath), "source-evaluation.json")
     this.runtimeTrace = runtimeTrace
     this.conversationLog = new ConversationLog(this.conversationTracePath)
   }
 
   static async start(options: StartOptimizationSessionOptions): Promise<OptimizationSession> {
     assertRunId(options.runId)
-    const sessionDir = path.join(path.resolve(options.rootDir ?? path.join(LOGS_DIR, "run-optimize")), options.runId)
+    const sessionDir = path.join(
+      path.resolve(options.rootDir ?? path.join(LOGS_DIR, "run-optimize")),
+      boundedArtifactPathSegment(options.runId),
+    )
     const manifestPath = path.join(sessionDir, "optimization-session.json")
     if (await fileExists(manifestPath)) throw new Error(`Optimization session already exists: ${options.runId}`)
     await mkdir(sessionDir, { recursive: true })
@@ -297,6 +426,8 @@ export class OptimizationSession {
     const durableTracePath = path.join(sessionDir, "runtime-trace.jsonl")
     const runResultPath = path.join(sessionDir, "run-result.json")
     const initialWorkdirManifestPath = path.join(sessionDir, "initial-workdir-manifest.json")
+    const observedWorkdirSnapshotPath = path.join(sessionDir, "observed-workdir-snapshot.json")
+    const sourceEvaluationPath = path.join(sessionDir, "source-evaluation.json")
     const startedAt = new Date().toISOString()
     const runtimeTrace = new DurableRuntimeTrace(durableTracePath)
     const manifest: OptimizationSessionManifest = {
@@ -323,6 +454,8 @@ export class OptimizationSession {
         durableTrace: { path: durableTracePath },
         runResult: { path: runResultPath },
         initialWorkdirManifest: { path: initialWorkdirManifestPath },
+        observedWorkdirSnapshot: { path: observedWorkdirSnapshotPath },
+        ...(options.task.eval.length > 0 ? { sourceEvaluation: { path: sourceEvaluationPath } } : {}),
       },
       sourceRun: { status: "running" },
       capture: {
@@ -344,12 +477,23 @@ export class OptimizationSession {
     return new OptimizationSession(manifest, runtimeTrace)
   }
 
-  async complete(result: RunResult): Promise<OptimizationSessionManifest> {
+  async complete(
+    result: RunResult,
+    options?: { sourceEvaluation?: CapturedSourceEvaluation },
+  ): Promise<OptimizationSessionManifest> {
     await atomicJson(this.runResultPath, result)
+    if (options?.sourceEvaluation) {
+      await atomicJson(
+        this.sourceEvaluationPath,
+        CapturedSourceEvaluationSchema.parse(options.sourceEvaluation),
+      )
+    }
     const conversation = await inspectConversation(this.conversationTracePath)
     const durable = await inspectDurable(this.durableTracePath)
     const runResult = { status: "complete" as const }
     let sourceInputs: z.infer<typeof CaptureItemSchema> | undefined
+    let observedOutputs: z.infer<typeof CaptureItemSchema> | undefined
+    let sourceEvaluation: z.infer<typeof CaptureItemSchema> | undefined
     if (this.manifest.optimization?.status !== "not-requested") {
       try {
         InitialWorkdirManifestSchema.parse(JSON.parse(await Bun.file(this.initialWorkdirManifestPath).text()))
@@ -357,13 +501,38 @@ export class OptimizationSession {
       } catch (error) {
         sourceInputs = { status: "failed", error: `initial source-input manifest is missing or unreadable: ${error instanceof Error ? error.message : String(error)}` }
       }
+      try {
+        await captureObservedWorkdirSnapshot({
+          workDir: this.manifest.binding.workDir,
+          initialManifestPath: this.initialWorkdirManifestPath,
+          skillSnapshotPath: this.manifest.artifacts.skillSnapshot.path,
+          outputPath: this.observedWorkdirSnapshotPath,
+        })
+        observedOutputs = { status: "complete" }
+      } catch (error) {
+        observedOutputs = { status: "failed", error: `observed output snapshot failed: ${error instanceof Error ? error.message : String(error)}` }
+      }
+      if (options?.sourceEvaluation) {
+        sourceEvaluation = options.sourceEvaluation.errors.length > 0 || options.sourceEvaluation.skipped.length > 0
+          ? {
+              status: "partial",
+              error: `${options.sourceEvaluation.errors.length} local evaluation error(s), ${options.sourceEvaluation.skipped.length} skipped criterion/criteria`,
+            }
+          : { status: "complete" }
+      }
     }
-    const captureStatus = overallCapture([conversation, durable, runResult, ...(sourceInputs ? [sourceInputs] : [])])
+    const captureStatus = overallCapture([
+      conversation,
+      durable,
+      runResult,
+      ...(sourceInputs ? [sourceInputs] : []),
+      ...(observedOutputs ? [observedOutputs] : []),
+    ])
     const sourceCompleted = result.runStatus === "ok"
     const reason = !sourceCompleted
       ? `source run ended with ${result.runStatus}`
       : captureStatus !== "complete"
-        ? `automatic optimization requires complete source inputs, conversation and durable trace; sourceInputs=${sourceInputs?.status ?? "not-required"}, conversation=${conversation.status}, durable=${durable.status}`
+        ? `automatic optimization requires complete source inputs, observed outputs, conversation and durable trace; sourceInputs=${sourceInputs?.status ?? "not-required"}, observedOutputs=${observedOutputs?.status ?? "not-required"}, conversation=${conversation.status}, durable=${durable.status}`
         : undefined
     const optimization = reason && this.manifest.optimization?.status === "pending"
       ? {
@@ -386,6 +555,12 @@ export class OptimizationSession {
         initialWorkdirManifest: await fileExists(this.initialWorkdirManifestPath)
           ? await reference(this.initialWorkdirManifestPath)
           : this.manifest.artifacts.initialWorkdirManifest,
+        observedWorkdirSnapshot: await fileExists(this.observedWorkdirSnapshotPath)
+          ? await reference(this.observedWorkdirSnapshotPath)
+          : this.manifest.artifacts.observedWorkdirSnapshot,
+        sourceEvaluation: await fileExists(this.sourceEvaluationPath)
+          ? await reference(this.sourceEvaluationPath)
+          : this.manifest.artifacts.sourceEvaluation,
       },
       sourceRun: sourceCompleted
         ? { status: "completed", runStatus: result.runStatus }
@@ -395,7 +570,15 @@ export class OptimizationSession {
             failureKind: result.runStatus === "timeout" ? "timeout" : "adapter-error",
             ...(result.statusDetail ? { error: result.statusDetail } : {}),
           },
-      capture: { status: captureStatus, conversation, durable, runResult, ...(sourceInputs ? { sourceInputs } : {}) },
+      capture: {
+        status: captureStatus,
+        conversation,
+        durable,
+        runResult,
+        ...(sourceInputs ? { sourceInputs } : {}),
+        ...(observedOutputs ? { observedOutputs } : {}),
+        ...(sourceEvaluation ? { sourceEvaluation } : {}),
+      },
       handoff: reason ? { status: "blocked", reason } : { status: "ready" },
       ...(optimization ? { optimization } : {}),
     }
@@ -410,6 +593,9 @@ export class OptimizationSession {
     const runResult = { status: "failed" as const, error: "source run did not return a RunResult" }
     const sourceInputs = this.manifest.optimization?.status !== "not-requested"
       ? { status: "failed" as const, error: "source run did not complete input capture" }
+      : undefined
+    const observedOutputs = this.manifest.optimization?.status !== "not-requested"
+      ? { status: "failed" as const, error: "source run did not complete output capture" }
       : undefined
     const optimization = this.manifest.optimization?.status === "pending"
       ? {
@@ -435,11 +621,18 @@ export class OptimizationSession {
         error: message,
       },
       capture: {
-        status: overallCapture([conversation, durable, runResult, ...(sourceInputs ? [sourceInputs] : [])]),
+        status: overallCapture([
+          conversation,
+          durable,
+          runResult,
+          ...(sourceInputs ? [sourceInputs] : []),
+          ...(observedOutputs ? [observedOutputs] : []),
+        ]),
         conversation,
         durable,
         runResult,
         ...(sourceInputs ? { sourceInputs } : {}),
+        ...(observedOutputs ? { observedOutputs } : {}),
       },
       handoff: { status: "blocked", reason: `${kind}: ${message}` },
       ...(optimization ? { optimization } : {}),

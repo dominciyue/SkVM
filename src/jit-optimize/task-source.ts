@@ -214,7 +214,8 @@ export async function loadEvidencesFromLogs(source: TaskSource): Promise<Evidenc
           conversationLog: record.conversationLog,
           taskPrompt: record.taskPrompt ?? "(task prompt unavailable in source trace)",
           criteria: suppliedCriteria ?? record.criteria,
-          workDirSnapshot: record.workDirPath ? await snapshotWorkDir(record.workDirPath) : undefined,
+          workDirSnapshot: record.workDirSnapshot
+            ?? (record.workDirPath ? await snapshotWorkDir(record.workDirPath) : undefined),
           trace: record.source,
         })
       }

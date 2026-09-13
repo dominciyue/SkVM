@@ -1,0 +1,257 @@
+{
+  "schemaVersion": "jit-optimize-validation-lifecycle/v1",
+  "createdAt": "2026-09-13T19:38:54.265Z",
+  "round": 1,
+  "sourceMode": "execution-log-local-validation",
+  "sourceTaskReplayed": false,
+  "actions": [
+    {
+      "actionId": "route-common-conversions-through-runtime-script",
+      "kind": "reuse-script",
+      "implementation": {
+        "actionId": "route-common-conversions-through-runtime-script",
+        "kind": "reuse-script",
+        "inputs": [
+          "user-supplied .txt/.docx/.pdf path",
+          "law decision: law, non-law, or auto",
+          "optional output directory",
+          "artifact level"
+        ],
+        "outputs": [
+          "review report path printed by the script",
+          "final deliverable path when approved",
+          "concise result status on stdout"
+        ],
+        "preconditions": [
+          "a Python 3 launcher can execute the bundled script",
+          "PDF/DOCX extraction follows the mineru-first and consent-gated fallback rules"
+        ],
+        "residualDuties": [
+          "classify the document or deliberately select auto",
+          "supply task-specific paths and restrictions",
+          "report actual rather than inferred check outcomes"
+        ],
+        "verification": [
+          "Run the copy-ready command with a changed local input and confirm exit status.",
+          "Confirm stdout names the review report, deliverable if any, and result status."
+        ],
+        "status": "not-applicable",
+        "reason": "No executable source reference was declared for reuse."
+      },
+      "planStatus": "not-applicable",
+      "planDiagnostics": [
+        {
+          "code": "implementation-not-executable",
+          "message": "No executable source reference was declared for reuse."
+        }
+      ],
+      "independentCaseIds": [],
+      "selfCheckCaseIds": [],
+      "programStatus": "not-run",
+      "validationBinding": {
+        "sha256": "97f55757d5f49327711e93ad36a0f0f7aa44c16671e6c6907f8543d57e04b8dd",
+        "dependencyAnalysis": "conservative",
+        "candidateFiles": [
+          {
+            "path": "scripts/law_to_markdown.py",
+            "sha256": "fbdf57080bd244340bc2a21d8b061e156053d1e952b576417c2ebd664d32cfde"
+          },
+          {
+            "path": "SKILL.md",
+            "sha256": "541940ec6087b601b966a3672e84d50a3cd6fba46229810f9f4298a09f1c8e73"
+          }
+        ],
+        "evidenceSha256": "9abe17e2d5364c63dc259bb90a19c0095a526c716ff8d2a96768bb53c9bb8da4"
+      },
+      "validationSource": "executed"
+    },
+    {
+      "actionId": "make-txt-entrypoint-independent-of-fallback-deps",
+      "kind": "domain-backend",
+      "implementation": {
+        "actionId": "make-txt-entrypoint-independent-of-fallback-deps",
+        "kind": "domain-backend",
+        "inputs": [
+          "CLI arguments and selected input format"
+        ],
+        "outputs": [
+          "a runnable help/TXT path without importing unused fallback libraries"
+        ],
+        "preconditions": [
+          "Python 3 is available"
+        ],
+        "residualDuties": [
+          "provide python-docx only when the consented DOCX fallback is selected",
+          "provide pdfplumber only when the consented PDF fallback is selected"
+        ],
+        "verification": [
+          "`python scripts/law_to_markdown.py --help` exits successfully without python-docx installed.",
+          "Compile law_to_markdown.py, cn_law_normalizer.py, and stage3_checker.py.",
+          "Run a temporary TXT legal document with explicit law decision, minimal artifacts, and an output directory; require exit 0 and exactly the review/final deliverables."
+        ],
+        "status": "not-applicable",
+        "reason": "No registered domain backend accepted the action's declared contract."
+      },
+      "planStatus": "not-applicable",
+      "planDiagnostics": [
+        {
+          "code": "implementation-not-executable",
+          "message": "No registered domain backend accepted the action's declared contract."
+        }
+      ],
+      "independentCaseIds": [],
+      "selfCheckCaseIds": [],
+      "programStatus": "not-run",
+      "validationBinding": {
+        "sha256": "3d85fd631fda253cfa3d16accc4195f7671fe61207e003f1a5e54e4bbdc531d3",
+        "dependencyAnalysis": "conservative",
+        "candidateFiles": [
+          {
+            "path": "scripts/law_to_markdown.py",
+            "sha256": "fbdf57080bd244340bc2a21d8b061e156053d1e952b576417c2ebd664d32cfde"
+          },
+          {
+            "path": "scripts/requirements.txt",
+            "sha256": "e0452219dc7859b40a49032864673d9f10f8b1e8f149237d2530fcaed1c7b337"
+          }
+        ],
+        "evidenceSha256": "9abe17e2d5364c63dc259bb90a19c0095a526c716ff8d2a96768bb53c9bb8da4"
+      },
+      "validationSource": "executed"
+    },
+    {
+      "actionId": "clarify-runtime-root-and-failure-handoff",
+      "kind": "restructure-docs",
+      "implementation": {
+        "actionId": "clarify-runtime-root-and-failure-handoff",
+        "kind": "restructure-docs",
+        "inputs": [
+          "harness-provided runtime resource root"
+        ],
+        "outputs": [
+          "copy-ready common commands and an explicit non-fabrication handoff rule"
+        ],
+        "preconditions": [
+          "the harness exposes the runtime resource root"
+        ],
+        "residualDuties": [
+          "select the available Python 3 launcher when `python3` is not present"
+        ],
+        "verification": [
+          "Inspect the common commands for runtime-root, required input, and common decision/artifact/output arguments."
+        ],
+        "status": "selected"
+      },
+      "planStatus": "not-applicable",
+      "planDiagnostics": [
+        {
+          "code": "implementation-not-executable",
+          "message": "Documentation route is statically selected and validated only through its declared dependency closure."
+        }
+      ],
+      "independentCaseIds": [],
+      "selfCheckCaseIds": [],
+      "programStatus": "not-run",
+      "validationBinding": {
+        "sha256": "c4c60467fe51ffe82aeb322218b161e1e010419d2772a44daeffc4e482461be1",
+        "dependencyAnalysis": "conservative",
+        "candidateFiles": [
+          {
+            "path": "SKILL.md",
+            "sha256": "541940ec6087b601b966a3672e84d50a3cd6fba46229810f9f4298a09f1c8e73"
+          }
+        ],
+        "evidenceSha256": "9abe17e2d5364c63dc259bb90a19c0095a526c716ff8d2a96768bb53c9bb8da4"
+      },
+      "validationSource": "executed"
+    }
+  ],
+  "resolution": {
+    "status": "failed",
+    "retainedActionIds": [],
+    "unvalidatedActionIds": [],
+    "rejected": [
+      {
+        "actionId": "route-common-conversions-through-runtime-script",
+        "failureKind": "not-applicable",
+        "diagnostics": [
+          "No executable source reference was declared for reuse."
+        ],
+        "relevantFiles": [
+          "SKILL.md"
+        ]
+      },
+      {
+        "actionId": "make-txt-entrypoint-independent-of-fallback-deps",
+        "failureKind": "not-applicable",
+        "diagnostics": [
+          "No registered domain backend accepted the action's declared contract."
+        ],
+        "relevantFiles": [
+          "scripts/law_to_markdown.py"
+        ]
+      },
+      {
+        "actionId": "clarify-runtime-root-and-failure-handoff",
+        "failureKind": "dependency-rejected",
+        "diagnostics": [
+          "dependency rejected: route-common-conversions-through-runtime-script"
+        ],
+        "relevantFiles": [
+          "SKILL.md"
+        ]
+      }
+    ],
+    "feedback": [
+      {
+        "actionId": "route-common-conversions-through-runtime-script",
+        "failureKind": "not-applicable",
+        "diagnostics": [
+          "No executable source reference was declared for reuse."
+        ],
+        "relevantFiles": [
+          "SKILL.md"
+        ]
+      },
+      {
+        "actionId": "make-txt-entrypoint-independent-of-fallback-deps",
+        "failureKind": "not-applicable",
+        "diagnostics": [
+          "No registered domain backend accepted the action's declared contract."
+        ],
+        "relevantFiles": [
+          "scripts/law_to_markdown.py"
+        ]
+      },
+      {
+        "actionId": "clarify-runtime-root-and-failure-handoff",
+        "failureKind": "dependency-rejected",
+        "diagnostics": [
+          "dependency rejected: route-common-conversions-through-runtime-script"
+        ],
+        "relevantFiles": [
+          "SKILL.md"
+        ]
+      }
+    ],
+    "rollbackGroups": [
+      {
+        "actionIds": [
+          "clarify-runtime-root-and-failure-handoff",
+          "route-common-conversions-through-runtime-script"
+        ],
+        "changedPaths": [
+          "SKILL.md"
+        ],
+        "reason": "shared-files-with-rejected-action"
+      }
+    ]
+  },
+  "execution": {
+    "programRuns": 0,
+    "helpRuns": 0,
+    "caseRuns": 0,
+    "independentCaseRuns": 0,
+    "reusedActionObservations": 0
+  }
+}

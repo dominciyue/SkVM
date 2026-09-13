@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "skill-optimization-production-closure-r6-failure/v1",
+  "identity": "development",
+  "caseId": "i18n-generated",
+  "attempt": 1,
+  "stage": "source-capture-finalization",
+  "status": "failed",
+  "errorCode": "ENAMETOOLONG",
+  "failedArtifact": "conversation.jsonl",
+  "failedPathLength": 291,
+  "consequence": "The source agent produced task files, but the conversation trace could not be finalized; execution observation was therefore unavailable and optimization did not start.",
+  "evidence": {
+    "sessionManifest": "runtime/runtime/bare-agent/xty--gpt-5.6-sol/i18n-helper-v3-react-basic-dev-001-clean/20260914-023606-run-bare-agent-gpt-5.6-sol-i18n-helper-v3-react-basic-dev-001-cl-1733d599/optimization-session.json",
+    "sessionIndex": "runtime/sessions.jsonl",
+    "retainedWorkdir": "source-work"
+  },
+  "rootCause": "The runtime path contained the full task id and the optimization session directory repeated it inside a long run id; a 105-character configured log root yielded a 291-character conversation path on Windows.",
+  "repair": {
+    "scope": "shared runtime path construction",
+    "behavior": "Use collision-resistant filesystem segments of at most 32 characters while retaining full task and run identities inside manifests.",
+    "tests": [
+      "test/core/config.test.ts: bounded stable runtime task segment",
+      "test/run/optimization-session.test.ts: bounded session directory with full manifest identity"
+    ],
+    "preFixResult": "2 targeted failures",
+    "postFixResult": "11/11 targeted tests passed"
+  },
+  "nextAction": "Retry from a fresh work directory; never promote the files left by attempt 1 as source inputs."
+}

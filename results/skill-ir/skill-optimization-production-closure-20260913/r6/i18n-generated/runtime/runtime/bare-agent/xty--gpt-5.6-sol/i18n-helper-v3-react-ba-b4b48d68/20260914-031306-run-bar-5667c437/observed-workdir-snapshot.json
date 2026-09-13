@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "skvm-observed-workdir-snapshot/v1",
+  "files": [
+    {
+      "path": "i18n-report.json",
+      "sha256": "8b6ee64298f024c2929b6433896bb57386d3715177e8b6ba3e82cd22f1195e0c",
+      "bytes": 197,
+      "content": "{\n  \"framework\": \"react-i18next\",\n  \"scannedFiles\": [\n    \"src/App.tsx\"\n  ],\n  \"extractedKeys\": [\n    \"home.welcome\",\n    \"home.save\"\n  ],\n  \"missingKeys\": {\n    \"zh-CN\": [],\n    \"en-US\": []\n  }\n}\n"
+    },
+    {
+      "path": "src/App.tsx",
+      "sha256": "8744fc90b90b2dab6f9890686939d34b20ac529f7c45d54d31ed85191f3bdefd",
+      "bytes": 292,
+      "content": "import { useTranslation } from 'react-i18next';\nimport './i18n';\n\nexport function App() {\n  const { t } = useTranslation();\n\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">{t('home.welcome')}</h1><button data-i18n-key=\"home.save\">{t('home.save')}</button></main>;\n}\n"
+    },
+    {
+      "path": "src/i18n.ts",
+      "sha256": "64b1a1daf24430f2b18513def5e6f937d3cb12edc0ed0db993f74cff0e1d6810",
+      "bytes": 401,
+      "content": "import i18n from 'i18next';\nimport { initReactI18next } from 'react-i18next';\nimport enUS from './locales/en-US.json';\nimport zhCN from './locales/zh-CN.json';\n\ni18n.use(initReactI18next).init({\n  resources: {\n    'zh-CN': { translation: zhCN },\n    'en-US': { translation: enUS },\n  },\n  lng: 'zh-CN',\n  fallbackLng: 'en-US',\n  interpolation: {\n    escapeValue: false,\n  },\n});\n\nexport default i18n;\n"
+    },
+    {
+      "path": "src/locales/en-US.json",
+      "sha256": "1fad0bf097238116207ff28fae26ee754c5da4ced2208b6d15451389585d314c",
+      "bytes": 55,
+      "content": "{\n  \"home.welcome\": \"Welcome\",\n  \"home.save\": \"Save\"\n}\n"
+    },
+    {
+      "path": "src/locales/zh-CN.json",
+      "sha256": "5c4c5dcbb8286d68e59205e4f1ee9c6ae69036ee8e77deb397bfa231424396cc",
+      "bytes": 62,
+      "content": "{\n  \"home.welcome\": \"欢迎使用\",\n  \"home.save\": \"保存\"\n}\n"
+    }
+  ],
+  "deleted": [],
+  "contentOmissions": []
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "skvm-observed-workdir-snapshot/v1",
+  "files": [
+    {
+      "path": "i18n-report.json",
+      "sha256": "92c7bd2c4514b78ecce0801a7c9d08adca75cbb885268b85896048e7f77dc653",
+      "bytes": 197,
+      "content": "{\n  \"framework\": \"react-i18next\",\n  \"scannedFiles\": [\n    \"src/App.tsx\"\n  ],\n  \"extractedKeys\": [\n    \"home.save\",\n    \"home.welcome\"\n  ],\n  \"missingKeys\": {\n    \"zh-CN\": [],\n    \"en-US\": []\n  }\n}\n"
+    },
+    {
+      "path": "src/App.tsx",
+      "sha256": "8744fc90b90b2dab6f9890686939d34b20ac529f7c45d54d31ed85191f3bdefd",
+      "bytes": 292,
+      "content": "import { useTranslation } from 'react-i18next';\nimport './i18n';\n\nexport function App() {\n  const { t } = useTranslation();\n\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">{t('home.welcome')}</h1><button data-i18n-key=\"home.save\">{t('home.save')}</button></main>;\n}\n"
+    },
+    {
+      "path": "src/i18n.ts",
+      "sha256": "20e62ac080d7aaad7ce0f6653cb91c0a0184ff2d4b35dc384a2b2f0e8a390245",
+      "bytes": 406,
+      "content": "import i18n from 'i18next';\nimport { initReactI18next } from 'react-i18next';\nimport enUS from './locales/en-US.json';\nimport zhCN from './locales/zh-CN.json';\n\nvoid i18n.use(initReactI18next).init({\n  resources: {\n    'zh-CN': { translation: zhCN },\n    'en-US': { translation: enUS },\n  },\n  lng: 'zh-CN',\n  fallbackLng: 'en-US',\n  interpolation: {\n    escapeValue: false,\n  },\n});\n\nexport default i18n;\n"
+    },
+    {
+      "path": "src/locales/en-US.json",
+      "sha256": "0491ae27efbb8c501d102ece8354e6f594cb61a1772c965e36d2b5d41f30210c",
+      "bytes": 65,
+      "content": "{\n  \"home\": {\n    \"save\": \"Save\",\n    \"welcome\": \"Welcome\"\n  }\n}\n"
+    },
+    {
+      "path": "src/locales/zh-CN.json",
+      "sha256": "22f639df4013843839378f899c2bb0936fae1bbce519749aba1b9bcf02029ff8",
+      "bytes": 72,
+      "content": "{\n  \"home\": {\n    \"save\": \"保存\",\n    \"welcome\": \"欢迎使用\"\n  }\n}\n"
+    }
+  ],
+  "deleted": [],
+  "contentOmissions": []
+}

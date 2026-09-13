@@ -3,6 +3,10 @@ import { mkdir } from "node:fs/promises"
 import type { LLMTool, LLMToolCall } from "../providers/types.ts"
 import type { ToolResult } from "./agent-loop.ts"
 
+function commandLanguage(platform: NodeJS.Platform = process.platform): string {
+  return platform === "win32" ? "PowerShell" : "POSIX shell"
+}
+
 // ---------------------------------------------------------------------------
 // Shared Tool Definitions
 // ---------------------------------------------------------------------------
@@ -31,10 +35,10 @@ export const AGENT_TOOLS: LLMTool[] = [
   },
   {
     name: "execute_command",
-    description: "Execute a shell command in the working directory. Returns stdout, stderr, and exit code.",
+    description: `Execute a ${commandLanguage()} command in the working directory. Returns stdout, stderr, and exit code.`,
     inputSchema: {
       type: "object",
-      properties: { command: { type: "string", description: "Shell command to execute" } },
+      properties: { command: { type: "string", description: `${commandLanguage()} command to execute` } },
       required: ["command"],
     },
   },
@@ -47,6 +51,16 @@ export const AGENT_TOOLS: LLMTool[] = [
 export interface AgentToolExecutorOptions {
   /** Require read_file before write_file for existing files */
   requireReadBeforeWrite?: boolean
+}
+
+/** Use the host's native command shell so the default adapter works without an optional POSIX shell. */
+export function commandShellArgs(
+  command: string,
+  platform: NodeJS.Platform = process.platform,
+  findExecutable: (name: string) => string | null | undefined = Bun.which,
+): string[] {
+  if (platform !== "win32") return ["sh", "-c", command]
+  return [findExecutable("pwsh") ?? "powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command]
 }
 
 export function createAgentToolExecutor(
@@ -100,11 +114,11 @@ export function createAgentToolExecutor(
           }
           const TOOL_TIMEOUT_MS = 30_000
           const READ_TIMEOUT_MS = 2_000
-          const proc = Bun.spawn(["sh", "-c", cmd], {
+          const proc = Bun.spawn(commandShellArgs(cmd), {
             cwd: workDir,
             stdout: "pipe",
             stderr: "pipe",
-            env: { ...process.env, HOME: process.env.HOME },
+            env: { ...process.env },
           })
           const timeout = new Promise<never>((_, reject) =>
             setTimeout(() => reject(new Error("command timed out after 30s")), TOOL_TIMEOUT_MS),

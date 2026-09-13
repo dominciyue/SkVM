@@ -475,6 +475,8 @@ describe("loadEvidencesFromLogs adapter integration", () => {
     const durablePath = path.join(dir, "runtime-trace.jsonl")
     const resultPath = path.join(dir, "run-result.json")
     const initialPath = path.join(dir, "initial-workdir-manifest.json")
+    const observedPath = path.join(dir, "observed-workdir-snapshot.json")
+    const evaluationPath = path.join(dir, "source-evaluation.json")
     const manifestPath = path.join(dir, "optimization-session.json")
     await mkdir(path.dirname(taskPath), { recursive: true })
     await mkdir(path.dirname(skillPath), { recursive: true })
@@ -494,6 +496,29 @@ describe("loadEvidencesFromLogs adapter integration", () => {
       usageAvailable: true,
     })}\n`
     const initialText = `${JSON.stringify({ schemaVersion: "skvm-initial-workdir-manifest/v1", workDir: path.join(dir, "work"), entries: [] })}\n`
+    const outputSecret = "token=output-secret"
+    const observedText = `${JSON.stringify({
+      schemaVersion: "skvm-observed-workdir-snapshot/v1",
+      files: [{
+        path: "artifact.txt",
+        sha256: new Bun.CryptoHasher("sha256").update(outputSecret).digest("hex"),
+        bytes: Buffer.byteLength(outputSecret),
+        content: outputSecret,
+      }],
+      deleted: [],
+      contentOmissions: [],
+    })}\n`
+    const evaluationText = `${JSON.stringify({
+      schemaVersion: "skvm-captured-source-evaluation/v1",
+      results: [{
+        pass: true,
+        score: 1,
+        details: "artifact exists",
+        criterion: { method: "file-check", id: "artifact", path: "artifact.txt", mode: "exact", expected: outputSecret },
+      }],
+      skipped: [],
+      errors: [],
+    })}\n`
     await Promise.all([
       Bun.write(taskPath, taskText),
       Bun.write(skillPath, skillText),
@@ -501,6 +526,8 @@ describe("loadEvidencesFromLogs adapter integration", () => {
       Bun.write(durablePath, durableText),
       Bun.write(resultPath, resultText),
       Bun.write(initialPath, initialText),
+      Bun.write(observedPath, observedText),
+      Bun.write(evaluationPath, evaluationText),
     ])
     const sha = (value: string) => new Bun.CryptoHasher("sha256").update(value).digest("hex")
     const skillClosureSha = sha(`SKILL.md\0${sha(skillText)}`)
@@ -527,6 +554,8 @@ describe("loadEvidencesFromLogs adapter integration", () => {
         durableTrace: { path: durablePath, sha256: sha(durableText), bytes: Buffer.byteLength(durableText) },
         runResult: { path: resultPath, sha256: sha(resultText), bytes: Buffer.byteLength(resultText) },
         initialWorkdirManifest: { path: initialPath, sha256: sha(initialText), bytes: Buffer.byteLength(initialText) },
+        observedWorkdirSnapshot: { path: observedPath, sha256: sha(observedText), bytes: Buffer.byteLength(observedText) },
+        sourceEvaluation: { path: evaluationPath, sha256: sha(evaluationText), bytes: Buffer.byteLength(evaluationText) },
       },
       sourceRun: { status: "completed", runStatus: "ok" },
       capture: {
@@ -534,6 +563,8 @@ describe("loadEvidencesFromLogs adapter integration", () => {
         conversation: { status: "complete" },
         durable: { status: "complete", finalized: true },
         runResult: { status: "complete" },
+        observedOutputs: { status: "complete" },
+        sourceEvaluation: { status: "complete" },
       },
       handoff: { status: "ready" },
       optimization: { status: "pending" },
@@ -546,10 +577,13 @@ describe("loadEvidencesFromLogs adapter integration", () => {
     expect(adapted.records[0]!.source.recordLocator).toBe("run:run-secret")
     expect(adapted.records[0]!.source).toMatchObject({ adapter: "bare-agent", model: "x/source", runStatus: "ok" })
     expect(adapted.records[0]!.source.usage).toMatchObject({ inputTokens: 5, outputTokens: 2 })
+    expect(adapted.records[0]!.workDirSnapshot?.files.get("artifact.txt")).toContain("REDACTED")
+    expect(adapted.records[0]!.criteria).toMatchObject([{ id: "artifact", passed: true, score: 1 }])
     expect(serialized).not.toContain("source-secret")
     expect(serialized).not.toContain("runtime-secret")
     expect(serialized).not.toContain("final-secret")
     expect(serialized).not.toContain("tool-secret")
+    expect(serialized).not.toContain("output-secret")
     expect(await Bun.file(conversationPath).text()).toContain("runtime-secret")
 
     await Bun.write(conversationPath, `${conversationText} `)

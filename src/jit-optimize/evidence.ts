@@ -17,6 +17,9 @@ import type {
 } from "./types.ts"
 import { createLogger } from "../core/logger.ts"
 import { adaptTraceFile } from "./trace-adapters.ts"
+import { buildEvidenceCriteria } from "./evidence-criteria.ts"
+
+export { buildEvidenceCriteria } from "./evidence-criteria.ts"
 
 const log = createLogger("jit-optimize-evidence")
 
@@ -98,78 +101,6 @@ export async function snapshotWorkDir(
  * one parent). IDs are kept stable across rounds: `${parentId}/${leafId}` when
  * there's a parent id, else `${method}/${leafId}`.
  */
-export function buildEvidenceCriteria(evalResults: EvalResult[]): EvidenceCriterion[] {
-  interface RawLeaf {
-    outerWeight: number
-    innerWeight: number
-    leaf: Omit<EvidenceCriterion, "weight">
-  }
-  const raw: RawLeaf[] = []
-
-  for (const r of evalResults) {
-    const outerWeight = r.criterion?.weight ?? 1
-    const parentId = r.criterion?.id
-    const parentName = r.criterion?.name
-    const method = r.criterion?.method ?? "custom"
-
-    if (r.checkpoints && r.checkpoints.length > 0) {
-      const cpCount = r.checkpoints.length
-      const anyInnerWeighted = r.checkpoints.some((cp) => cp.weight != null)
-      for (const cp of r.checkpoints) {
-        const innerWeight = cp.weight ?? (anyInnerWeighted ? 0 : 1 / cpCount)
-        const leafId = parentId ? `${parentId}/${cp.name}` : `${method}/${cp.name}`
-        const passed = cp.score >= 0.999
-        raw.push({
-          outerWeight,
-          innerWeight,
-          leaf: {
-            id: leafId,
-            name: cp.name,
-            method,
-            description: cp.description,
-            score: cp.score,
-            passed,
-            details: passed ? undefined : cp.reason,
-          },
-        })
-      }
-    } else {
-      const leafId = parentId ?? `${method}/${r.criterion?.name ?? "criterion"}`
-      let description: string | undefined
-      if (r.criterion?.method === "llm-judge") {
-        description = typeof r.criterion.rubric === "string"
-          ? r.criterion.rubric
-          : JSON.stringify(r.criterion.rubric)
-      } else if (r.criterion?.method === "script") {
-        description = `script: ${r.criterion.command}`
-      } else if (r.criterion?.method === "file-check") {
-        description = `file-check ${r.criterion.mode}: ${r.criterion.path}`
-      }
-      raw.push({
-        outerWeight,
-        innerWeight: 1,
-        leaf: {
-          id: leafId,
-          name: parentName,
-          method,
-          description,
-          score: r.score,
-          passed: r.pass,
-          details: r.pass && r.score >= 0.999 ? undefined : r.details,
-          infraError: r.infraError,
-        },
-      })
-    }
-  }
-
-  const totalRaw = raw.reduce((s, x) => s + x.outerWeight * x.innerWeight, 0)
-  if (totalRaw <= 0) return []
-  return raw.map((x) => ({
-    ...x.leaf,
-    weight: (x.outerWeight * x.innerWeight) / totalRaw,
-  }))
-}
-
 // ---------------------------------------------------------------------------
 // Conversation log reading
 // ---------------------------------------------------------------------------

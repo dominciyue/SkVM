@@ -1,0 +1,206 @@
+{
+  "rootCause": "The skill bundles a deterministic conversion-and-checking pipeline, but its documented common commands use a package-relative path instead of the runtime resource root and the entry point imports DOCX/PDF-only dependencies eagerly. Consequently, a routine TXT task can fail before argument parsing in constrained environments, after which the agent may bypass the bundled checker and manually create outputs while claiming Stage3 passed.",
+  "reasoning": "Evidence 0 is unassessed, so it is not treated as a quality failure; it nevertheless exposes a concrete workflow defect. The agent correctly selected the bundled script and supplied the task's law decision, output directory, minimal artifact level, and strict check, but execution failed with `uv_spawn 'sh'`. It then read three large source files, manually wrote both artifacts, and asserted Stage3-A/B success without running the checker. Independent local inspection showed an additional general entry-point failure: `python scripts/law_to_markdown.py --help` raised `ModuleNotFoundError: docx`, even though TXT conversion does not require python-docx or pdfplumber. The source skill's common commands also hard-code `law-to-markdown/scripts/...`, while the trace explicitly provides `<runtime-resource-root>`. Generality test: the same fix benefits any other TXT statute conversion in a minimal Python environment and any runtime installation whose skill directory is not literally named `law-to-markdown`; DOCX/PDF tasks retain their existing engines and policy. Rewrite-in-place test: the existing Common Commands section was tightened rather than adding an overlapping workflow section, and the executable was changed only at its dependency boundary. Coherent-scope test: lazy imports are the smallest executable change that makes TXT/help paths independent of optional fallback packages; documentation now gives copy-ready runtime-root commands and preserves uncommon options in `--help`. No-trade-off test: PER_TASK_SUMMARY.md contains no PASSING tasks, so there is no passing-task regression risk; the existing PDF/DOCX mineru-first and consent-gated fallback behavior is unchanged. Verification ran `--help`, compiled all three Python modules, and executed a changed temporary TXT input through Stage2 and Stage3 with exit 0 and only the two minimal deliverables retained. Because the original task fixture manifest is unresolved/empty and there are no evaluator checks, no reference-output validation claim is made.",
+  "confidence": 0.91,
+  "changedFiles": [
+    "SKILL.md",
+    "scripts/law_to_markdown.py"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "常用命令",
+      "description": "Rewrite common commands to resolve the bundled script from `<runtime-resource-root>`, show decision/artifact/output parameters, and forbid fabricated review success when execution is unavailable.",
+      "generality": "Any TXT, DOCX, or PDF conversion launched from a renamed or harness-managed skill installation benefits from runtime-root path resolution, including a future batch converting a local statute to a caller-selected output directory.",
+      "linesDelta": 5
+    },
+    {
+      "file": "scripts/law_to_markdown.py",
+      "section": "optional fallback imports",
+      "description": "Load python-docx and pdfplumber only inside their respective fallback functions so TXT conversion and `--help` do not require unrelated optional packages.",
+      "generality": "Any future TXT law conversion or command-discovery task in a minimal Python runtime benefits even when DOCX/PDF fallback dependencies are absent.",
+      "linesDelta": 12
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "The common path did not say to resolve bundled resources from the harness-provided runtime root or what to do when execution itself is unavailable.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must accurately report an environment/tool failure rather than claiming checks that did not run."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "The executable already accepts arbitrary input, output directory, law decision, and artifact level, but the common commands did not expose the routine parameterized invocation.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent supplies the actual user input path, requested output path, and its document-type decision."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "The bundled pipeline deterministically performs heading insertion, whitespace normalization, item splitting, artifact policy, and report generation; manual reproduction duplicated this work after launch failure.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "Manual transformation remains inappropriate unless the user explicitly requests work outside the supported executable contract."
+    },
+    {
+      "category": "verification",
+      "summary": "The bundled Stage3 checker is the source-established verification path, whereas the observed manual report asserted passing results without executing it.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must inspect the process exit status and generated report and must not convert an unavailable check into affirmative evidence."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "Eager imports made unrelated DOCX/PDF fallback packages mandatory for TXT conversion and even help output.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "DOCX/PDF local fallback still requires the corresponding optional dependency and explicit user consent; mineru-ocr availability/configuration remains environment-dependent."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Document classification and consent for local PDF/DOCX fallback are contextual decisions that cannot be replaced by the bounded dependency/path fix.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent decides law versus non-law from the document, honors user restrictions, obtains fallback consent, and reports only checks actually executed."
+    }
+  ],
+  "actions": [
+    {
+      "id": "route-common-conversions-through-runtime-script",
+      "kind": "reuse-script",
+      "evidenceIds": [
+        "0"
+      ],
+      "sourceRefs": [
+        "SKILL.md#常用命令",
+        "scripts/law_to_markdown.py#_parse_args",
+        ".optimize/tasks/natural-15b9fd666e95/run-0.md#Conversation-Log"
+      ],
+      "dependsOn": [
+        "make-txt-entrypoint-independent-of-fallback-deps"
+      ],
+      "inputs": [
+        "user-supplied .txt/.docx/.pdf path",
+        "law decision: law, non-law, or auto",
+        "optional output directory",
+        "artifact level"
+      ],
+      "outputs": [
+        "review report path printed by the script",
+        "final deliverable path when approved",
+        "concise result status on stdout"
+      ],
+      "preconditions": [
+        "a Python 3 launcher can execute the bundled script",
+        "PDF/DOCX extraction follows the mineru-first and consent-gated fallback rules"
+      ],
+      "constraints": [
+        {
+          "description": "TXT is copied into Stage1, then normalized and checked without modifying the input.",
+          "scope": "skill",
+          "sourceRef": "SKILL.md#处理规则"
+        },
+        {
+          "description": "The runtime resource root and no-network/no-install restrictions belong to Evidence 0's task environment.",
+          "scope": "task",
+          "sourceRef": ".optimize/tasks/natural-15b9fd666e95/run-0.md#Task"
+        }
+      ],
+      "changedPaths": [
+        "SKILL.md"
+      ],
+      "residualDuties": [
+        "classify the document or deliberately select auto",
+        "supply task-specific paths and restrictions",
+        "report actual rather than inferred check outcomes"
+      ],
+      "verification": [
+        "Run the copy-ready command with a changed local input and confirm exit status.",
+        "Confirm stdout names the review report, deliverable if any, and result status."
+      ]
+    },
+    {
+      "id": "make-txt-entrypoint-independent-of-fallback-deps",
+      "kind": "domain-backend",
+      "evidenceIds": [
+        "0"
+      ],
+      "sourceRefs": [
+        "scripts/law_to_markdown.py#_convert_txt",
+        "scripts/law_to_markdown.py#_convert_docx",
+        "scripts/law_to_markdown.py#_convert_pdf_pdfplumber",
+        "scripts/requirements.txt"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "CLI arguments and selected input format"
+      ],
+      "outputs": [
+        "a runnable help/TXT path without importing unused fallback libraries"
+      ],
+      "preconditions": [
+        "Python 3 is available"
+      ],
+      "changedPaths": [
+        "scripts/law_to_markdown.py"
+      ],
+      "residualDuties": [
+        "provide python-docx only when the consented DOCX fallback is selected",
+        "provide pdfplumber only when the consented PDF fallback is selected"
+      ],
+      "verification": [
+        "`python scripts/law_to_markdown.py --help` exits successfully without python-docx installed.",
+        "Compile law_to_markdown.py, cn_law_normalizer.py, and stage3_checker.py.",
+        "Run a temporary TXT legal document with explicit law decision, minimal artifacts, and an output directory; require exit 0 and exactly the review/final deliverables."
+      ]
+    },
+    {
+      "id": "clarify-runtime-root-and-failure-handoff",
+      "kind": "restructure-docs",
+      "evidenceIds": [
+        "0"
+      ],
+      "sourceRefs": [
+        "SKILL.md#常用命令",
+        ".optimize/tasks/natural-15b9fd666e95/run-0.md#External-Trace-Binding"
+      ],
+      "dependsOn": [
+        "route-common-conversions-through-runtime-script"
+      ],
+      "inputs": [
+        "harness-provided runtime resource root"
+      ],
+      "outputs": [
+        "copy-ready common commands and an explicit non-fabrication handoff rule"
+      ],
+      "preconditions": [
+        "the harness exposes the runtime resource root"
+      ],
+      "changedPaths": [
+        "SKILL.md"
+      ],
+      "residualDuties": [
+        "select the available Python 3 launcher when `python3` is not present"
+      ],
+      "verification": [
+        "Inspect the common commands for runtime-root, required input, and common decision/artifact/output arguments."
+      ]
+    }
+  ],
+  "actionDiagnostics": [],
+  "noChanges": false
+}

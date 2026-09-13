@@ -33,6 +33,7 @@ import "./api-tester-grade.ts"
 import "./zh-code-reviewer-grade.ts"
 import "./zh-readme-grade.ts"
 import "./i18n-helper-grade-v2.ts"
+import "./i18n-helper-grade-v3.ts"
 import "./i18n-helper-contribution-grade.ts"
 import "./i18n-helper-contribution-v2-grade.ts"
 import "./statistical-power-grade.ts"
@@ -55,6 +56,7 @@ export const customEvaluatorSourcePaths = new Map<string, string>([
   ["skill-ir-zh-code-reviewer", "src/bench/evaluators/zh-code-reviewer-grade.ts"],
   ["skill-ir-zh-readme", "src/bench/evaluators/zh-readme-grade.ts"],
   ["skill-ir-i18n-helper-v2", "src/bench/evaluators/i18n-helper-grade-v2.ts"],
+  ["skill-ir-i18n-helper-v3", "src/bench/evaluators/i18n-helper-grade-v3.ts"],
   ["skill-ir-i18n-helper-contribution-v1", "src/bench/evaluators/i18n-helper-contribution-grade.ts"],
   ["skill-ir-i18n-helper-contribution-v2", "src/bench/evaluators/i18n-helper-contribution-v2-grade.ts"],
   ["skill-ir-statistical-power", "src/bench/evaluators/statistical-power-grade.ts"],
@@ -76,6 +78,7 @@ export const customEvaluatorSourceDigests = new Map<string, string>([
   ["skill-ir-zh-code-reviewer", "0c3bc91fd611317741d0a1700e57bd938f2e207f2adac5442e22d72e297cc3d2"],
   ["skill-ir-zh-readme", "a9da3bab92bbb8f24f2a0b8292e66c5c2122bddded4996c350d4bbdc061a8a45"],
   ["skill-ir-i18n-helper-v2", "5adb4583cb33eb9429d62b23b0187cb1a061c263f15164d284f5c13732e55e91"],
+  ["skill-ir-i18n-helper-v3", "1a086b34aff287bb75954c81c2cc771f5d27c5cf364a10d784140c4ee62df45b"],
   ["skill-ir-i18n-helper-contribution-v1", "d439fbda85932240e4b78a0886bf116e06a6583e2a50608e301c9efefe09d536"],
   ["skill-ir-i18n-helper-contribution-v2", "f868a925abfe96bc18cacd85947becbf60df059cb7a4fdb654440f4a8003a264"],
   ["skill-ir-statistical-power", "7bd401739806a8991d7324f5aa8921e229c2b4ebd634132c3a20d6ebf1165093"],

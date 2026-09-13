@@ -1,0 +1,185 @@
+{
+  "entries": [
+    {
+      "timestamp": "2026-09-13T18:48:40.366Z",
+      "round": 1,
+      "rootCause": "The skill presents a generic scan-and-report workflow but does not tell the agent how to operate when a task supplies an authoritative contract or output schema, so exact file boundaries, confirmation rules, closed output fields, and post-write verification are left to ad hoc interpretation rather than being treated as the controlling workflow.",
+      "reasoning": "Evidence 0 is clean but UNASSESSED, so it does not prove a quality failure. It does expose a general contract-handling gap: the task supplied exact allowed, required, and protected paths, a confirmation/key/interpolation rule, and a closed output ABI, while the baseline skill only described broad scanning and a default Markdown report. The observed agent successfully read and followed many contract values, which is reusable positive workflow evidence, but it did not perform or report post-write parsing, locale-key comparison, ABI validation, protected-file comparison, or an unexpected-file check before claiming completion. The fix therefore rewrites the existing workflow in place to make external contracts authoritative, preserve the broad multi-framework fallback, and require bounded verification without inventing a task-specific schema or executable. Pre-edit checklist: (a) Generality: the same guidance benefits a Vue localization task with a manifest of allowed files and YAML report schema, or a gettext task with protected files and an exact JSON audit ABI. (b) Rewrite-in-place: the vague project-analysis, scanning, generation, replacement, completeness, and output-format sections were tightened where they already existed; no overlapping appendix was added and no capability rule was deleted. (c) Coherent scope: one documentation file is sufficient because IMPLEMENTATION_CONTEXT exposes no source interface, observed output snapshot, or independent runnable check from which a trustworthy generic checker could be generated. (d) No-trade-off: PER_TASK_SUMMARY lists no PASSING tasks, and the change preserves all supported frameworks and the original default report for tasks without a contract, so it does not narrow existing behavior. Professional translation choices, framework integration details, and whether optional local checks are safe remain agent duties.",
+      "changes": [
+        {
+          "file": "SKILL.md",
+          "section": "工作流程 / 输出格式",
+          "description": "Rewrites the existing workflow so supplied contracts control scope, extraction, output shape, and verification while retaining the generic fallback for unconstrained localization tasks.",
+          "generality": "A Vue task governed by an allowed-file manifest and YAML schema, or a gettext task requiring an exact audit report, would benefit from the same contract-first workflow.",
+          "linesDelta": 4
+        }
+      ],
+      "changedFiles": [
+        "SKILL.md"
+      ],
+      "actions": [
+        {
+          "id": "contract-first-i18n-workflow",
+          "kind": "restructure-docs",
+          "evidenceIds": [
+            "0"
+          ],
+          "sourceRefs": [
+            "SKILL.md#工作流程",
+            ".optimize/tasks/i18n-helper-v3-react-basic-dev-001-clean/run-0.md#Task",
+            ".optimize/tasks/i18n-helper-v3-react-basic-dev-001-clean/run-0-task-fixtures/i18n-contract.json"
+          ],
+          "dependsOn": [],
+          "inputs": [
+            "project source files",
+            "optional user-supplied localization contract, manifest, or schema"
+          ],
+          "outputs": [
+            "contract-compliant source and locale changes",
+            "contract output or the skill's default report when no exact format is supplied"
+          ],
+          "preconditions": [
+            "the agent can read the project and any supplied contract",
+            "required edits are permitted by the current task"
+          ],
+          "constraints": [
+            {
+              "description": "The skill supports multiple frameworks and output formats and must preserve placeholders.",
+              "scope": "skill",
+              "sourceRef": "SKILL.md#支持的-i18n-框架"
+            },
+            {
+              "description": "Evidence 0's exact paths, locale names, framework, no-network rule, and output ABI are task-scoped values.",
+              "scope": "task",
+              "sourceRef": ".optimize/tasks/i18n-helper-v3-react-basic-dev-001-clean/run-0-task-fixtures/i18n-contract.json"
+            }
+          ],
+          "changedPaths": [
+            "SKILL.md"
+          ],
+          "residualDuties": [
+            "interpret framework-specific source syntax",
+            "produce semantically accurate translations",
+            "run only locally available checks and report verification gaps"
+          ],
+          "verification": [
+            "Confirm the documented workflow makes supplied contracts authoritative.",
+            "Confirm the default Markdown report remains available when no contract output is specified.",
+            "Confirm all previously listed framework families remain supported."
+          ]
+        }
+      ],
+      "actionDiagnostics": [],
+      "validation": {
+        "status": "not-run",
+        "reportPath": "round-1-validation/report.json",
+        "retainedActionIds": [],
+        "unvalidatedActionIds": [
+          "contract-first-i18n-workflow"
+        ],
+        "rejectedActionIds": [],
+        "programRuns": 0,
+        "caseRuns": 0,
+        "independentCaseRuns": 0
+      },
+      "confidence": 0.78,
+      "trainScore": null,
+      "testScore": null,
+      "improved": null
+    }
+  ],
+  "bestRound": 1,
+  "bestRoundReason": "optimized draft has no concrete local program failure but remains partially or wholly unvalidated",
+  "rounds": [
+    {
+      "round": 0,
+      "isBaseline": true,
+      "trainScore": null,
+      "testScore": null,
+      "trainPassed": 0,
+      "trainTotal": 0,
+      "testPassed": 0,
+      "testTotal": 0,
+      "perTaskTrainScores": {},
+      "perTaskTestScores": {},
+      "targetAgent": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "runs": 0,
+        "durationMs": 0
+      },
+      "evalJudge": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "calls": 0
+      },
+      "optimizer": null,
+      "historyEntry": null
+    },
+    {
+      "round": 1,
+      "isBaseline": false,
+      "trainScore": null,
+      "testScore": null,
+      "trainPassed": 0,
+      "trainTotal": 0,
+      "testPassed": 0,
+      "testTotal": 0,
+      "perTaskTrainScores": {},
+      "perTaskTestScores": {},
+      "targetAgent": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "runs": 0,
+        "durationMs": 0
+      },
+      "evalJudge": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "calls": 0
+      },
+      "optimizer": {
+        "tokens": {
+          "input": 40844,
+          "output": 5095,
+          "cacheRead": 233216,
+          "cacheWrite": 0
+        },
+        "costUsd": 0
+      },
+      "historyEntry": null,
+      "validation": {
+        "status": "not-run",
+        "reportPath": "round-1-validation/report.json",
+        "retainedActionIds": [],
+        "unvalidatedActionIds": [
+          "contract-first-i18n-workflow"
+        ],
+        "rejectedActionIds": [],
+        "programRuns": 0,
+        "caseRuns": 0,
+        "independentCaseRuns": 0
+      }
+    }
+  ]
+}

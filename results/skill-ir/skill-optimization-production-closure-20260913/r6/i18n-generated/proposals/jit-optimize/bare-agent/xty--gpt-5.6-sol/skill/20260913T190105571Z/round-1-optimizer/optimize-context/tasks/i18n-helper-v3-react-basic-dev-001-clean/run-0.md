@@ -1,0 +1,1570 @@
+# Task `i18n-helper-v3-react-basic-dev-001-clean` — run 0
+
+- Evidence Index (global): 0
+- Task status (across all runs): UNASSESSED
+
+## Task
+
+```
+Context condition: clean
+
+Read the React project and public i18n-contract.json. Modify only the declared source file, create exactly the declared i18next files and report, and leave protected files unchanged. Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage, preserve interpolation identifiers, and keep both locale key sets complete. Do not install packages, run the network, or create other files. The JSON report must satisfy the public outputAbi exactly, including locale-keyed missing-key arrays.
+```
+
+## Evaluation Criteria
+
+(no structured eval data available for this evidence)
+
+## External Trace Binding
+
+- format: skvm-run-optimization-session/v1
+- representation: conversation-trace
+- source: D:\skill优化\SkVM\results\skill-ir\skill-optimization-production-closure-20260913\r6\i18n-generated\runtime\runtime\bare-agent\xty--gpt-5.6-sol\i18n-helper-v3-react-ba-b4b48d68\20260914-025654-run-bar-5260e615\optimization-evidence.json
+- SHA-256: bbb7241414a8f7c66b48078e782b7233dde82cbd339d34892b497df625257c8c
+- record: run:20260914-025654-run-bare-agent-gpt-5.6-sol-i18n-helper-v3-react-basic-dev-001-cl-1b32c920
+- source agent: bare-agent
+- adapter: bare-agent
+- model: xty/gpt-5.6-sol
+- system: source-run
+- run status: ok
+- duration: 250872.1917ms
+- observed usage: input=9477, output=1744, costUsd=unknown (run-result)
+- unknown fields: usage.costUsd, criteria
+
+## Original Task Fixtures
+
+- manifest: `.optimize/tasks/i18n-helper-v3-react-basic-dev-001-clean/run-0-task-fixtures-manifest.json`
+- files, when manifest status is `materialized`: `.optimize/tasks/i18n-helper-v3-react-basic-dev-001-clean/run-0-task-fixtures/`
+- meaning: original pre-run inputs bound by the trace taskPath; these are not evaluator expectations or files produced by the observed run.
+- completeness: treat status `unresolved` as a hard evidence gap. Do not infer or recreate skipped inputs.
+
+## Conversation Log (33 entries)
+
+### [0] request
+```json
+{
+  "type": "request",
+  "ts": "2026-09-13T18:56:54.475Z",
+  "text": "Context condition: clean\n\nRead the React project and public i18n-contract.json. Modify only the declared source file, create exactly the declared i18next files and report, and leave protected files unchanged. Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage, preserve interpolation identifiers, and keep both locale key sets complete. Do not install packages, run the network, or create other files. The JSON report must satisfy the public outputAbi exactly, including locale-keyed missing-key arrays.",
+  "sourceLocator": "task-snapshot:prompt"
+}
+```
+### [1] request
+```json
+{
+  "type": "request",
+  "ts": "2026-09-13T18:56:54.680Z",
+  "method": "complete",
+  "system": "You are a helpful assistant that completes tasks by using tools. Work in the provided directory.\n\n<skill>\n<runtime-resource-root>.skvm/skills/source</runtime-resource-root>\nBundled resources for this skill are installed under .skvm/skills/source. Resolve relative resource paths from that directory; non-conflicting root-level copies are legacy aliases only.\n\n---\nname: i18n-helper\ndescription: 国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译\n---\n\n# 🌍 i18n-helper — 国际化/本地化助手\n\n## 触发条件\n当用户要求以下操作时激活此技能：\n- 扫描代码中的硬编码中文/英文文本\n- 为项目添加国际化支持（i18n）\n- 批量提取和翻译语言文件\n- 检查翻译完整性（缺失 key 检测）\n\n## 工作流程\n\n### 1. 项目分析\n- 检测项目类型（React/Vue/Angular/Node.js/Python/Java 等）\n- 识别已使用的 i18n 框架（react-intl, vue-i18n, i18next, gettext 等）\n- 扫描源代码目录结构\n\n### 2. 硬编码文本扫描\n- 在 `.js/.jsx/.ts/.tsx/.vue/.py/.java/.go` 等文件中搜索硬编码字符串\n- 排除：变量名、URL、正则表达式、import 路径、日志调试信息\n- 标记：用户可见的 UI 文本、错误提示、通知消息\n\n### 3. 语言文件生成\n根据项目框架生成对应格式：\n- **JSON** (i18next/react-intl): `{ \"key\": \"value\" }`\n- **YAML** (vue-i18n): `key: value`\n- **PO/POT** (gettext): 标准格式\n- **Properties** (Java): `key=value`\n\n### 4. 代码替换\n- 将硬编码文本替换为 i18n 函数调用\n- 保持原有格式和变量插值\n- 示例：\n  ```javascript\n  // 替换前\n  alert('保存成功');\n  // 替换后\n  alert(t('alert.saveSuccess'));\n  ```\n\n### 5. 完整性检查\n- 对比主语言文件与翻译文件的 key 差异\n- 输出缺失翻译的 key 列表\n- 统计翻译完成度百分比\n\n## 输出格式\n```markdown\n## 📊 i18n 扫描报告\n\n### 硬编码文本\n| 文件 | 行号 | 内容 | 建议 key |\n|------|------|------|----------|\n| src/App.tsx | 42 | '欢迎使用' | page.welcome |\n\n### 语言文件\n已生成 `locales/zh-CN.json` 和 `locales/en-US.json`\n\n### 翻译完整性\n- zh-CN: 45/45 (100%) ✅\n- en-US: 42/45 (93.3%) ⚠️ 缺少 3 个 key\n```\n\n## 支持的 i18n 框架\n- react-intl / FormatJS\n- vue-i18n\n- i18next / react-i18next / next-i18next\n- Angular @ngx-translate\n- Python gettext / Flask-Babel\n- Java ResourceBundle / Spring MessageSource\n- Go go-i18n\n\n## 注意事项\n- 不要翻译技术术语（API、SDK、HTTP 等）\n- 保留变量占位符 `{name}` `{{count}}` `%s` 等格式\n- 复数形式和性别变体需要特殊处理\n- 日期、数字、货币格式需使用 locale 感知的格式化函数\n\n</skill>",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Context condition: clean\n\nRead the React project and public i18n-contract.json. Modify only the declared source file, create exactly the declared i18next files and report, and leave protected files unchanged. Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage, preserve interpolation identifiers, and keep both locale key sets complete. Do not install packages, run the network, or create other files. The JSON report must satisfy the public outputAbi exactly, including locale-keyed missing-key arrays."
+    }
+  ],
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read the contents of a file at the given path relative to the working directory."
+    },
+    {
+      "name": "write_file",
+      "description": "Write content to a file at the given path relative to the working directory. Creates directories as needed. You MUST read_file first before writing (unless creating a new file)."
+    },
+    {
+      "name": "execute_command",
+      "description": "Execute a shell command in the working directory. Returns stdout, stderr, and exit code."
+    },
+    {
+      "name": "list_directory",
+      "description": "List files and directories at the given path relative to the working directory."
+    },
+    {
+      "name": "web_fetch",
+      "description": "Fetch a URL and return the response body. Supports GET and POST."
+    }
+  ],
+  "maxTokens": 16384
+}
+```
+### [2] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T18:57:06.895Z",
+  "text": "",
+  "toolCalls": [
+    {
+      "id": "call_lqTSWWWmwDPjQNUIWJR5YRKc",
+      "name": "list_directory",
+      "arguments": {
+        "path": "."
+      }
+    }
+  ],
+  "tokens": {
+    "input": 1492,
+    "output": 36,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "durationMs": 12214.371599999999,
+  "stopReason": "tool_use"
+}
+```
+### [3] request
+```json
+{
+  "type": "request",
+  "ts": "2026-09-13T18:57:06.899Z",
+  "method": "completeWithToolResults",
+  "system": "You are a helpful assistant that completes tasks by using tools. Work in the provided directory.\n\n<skill>\n<runtime-resource-root>.skvm/skills/source</runtime-resource-root>\nBundled resources for this skill are installed under .skvm/skills/source. Resolve relative resource paths from that directory; non-conflicting root-level copies are legacy aliases only.\n\n---\nname: i18n-helper\ndescription: 国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译\n---\n\n# 🌍 i18n-helper — 国际化/本地化助手\n\n## 触发条件\n当用户要求以下操作时激活此技能：\n- 扫描代码中的硬编码中文/英文文本\n- 为项目添加国际化支持（i18n）\n- 批量提取和翻译语言文件\n- 检查翻译完整性（缺失 key 检测）\n\n## 工作流程\n\n### 1. 项目分析\n- 检测项目类型（React/Vue/Angular/Node.js/Python/Java 等）\n- 识别已使用的 i18n 框架（react-intl, vue-i18n, i18next, gettext 等）\n- 扫描源代码目录结构\n\n### 2. 硬编码文本扫描\n- 在 `.js/.jsx/.ts/.tsx/.vue/.py/.java/.go` 等文件中搜索硬编码字符串\n- 排除：变量名、URL、正则表达式、import 路径、日志调试信息\n- 标记：用户可见的 UI 文本、错误提示、通知消息\n\n### 3. 语言文件生成\n根据项目框架生成对应格式：\n- **JSON** (i18next/react-intl): `{ \"key\": \"value\" }`\n- **YAML** (vue-i18n): `key: value`\n- **PO/POT** (gettext): 标准格式\n- **Properties** (Java): `key=value`\n\n### 4. 代码替换\n- 将硬编码文本替换为 i18n 函数调用\n- 保持原有格式和变量插值\n- 示例：\n  ```javascript\n  // 替换前\n  alert('保存成功');\n  // 替换后\n  alert(t('alert.saveSuccess'));\n  ```\n\n### 5. 完整性检查\n- 对比主语言文件与翻译文件的 key 差异\n- 输出缺失翻译的 key 列表\n- 统计翻译完成度百分比\n\n## 输出格式\n```markdown\n## 📊 i18n 扫描报告\n\n### 硬编码文本\n| 文件 | 行号 | 内容 | 建议 key |\n|------|------|------|----------|\n| src/App.tsx | 42 | '欢迎使用' | page.welcome |\n\n### 语言文件\n已生成 `locales/zh-CN.json` 和 `locales/en-US.json`\n\n### 翻译完整性\n- zh-CN: 45/45 (100%) ✅\n- en-US: 42/45 (93.3%) ⚠️ 缺少 3 个 key\n```\n\n## 支持的 i18n 框架\n- react-intl / FormatJS\n- vue-i18n\n- i18next / react-i18next / next-i18next\n- Angular @ngx-translate\n- Python gettext / Flask-Babel\n- Java ResourceBundle / Spring MessageSource\n- Go go-i18n\n\n## 注意事项\n- 不要翻译技术术语（API、SDK、HTTP 等）\n- 保留变量占位符 `{name}` `{{count}}` `%s` 等格式\n- 复数形式和性别变体需要特殊处理\n- 日期、数字、货币格式需使用 locale 感知的格式化函数\n\n</skill>",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Context condition: clean\n\nRead the React project and public i18n-contract.json. Modify only the declared source file, create exactly the declared i18next files and report, and leave protected files unchanged. Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage, preserve interpolation identifiers, and keep both locale key sets complete. Do not install packages, run the network, or create other files. The JSON report must satisfy the public outputAbi exactly, including locale-keyed missing-key arrays."
+    }
+  ],
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read the contents of a file at the given path relative to the working directory."
+    },
+    {
+      "name": "write_file",
+      "description": "Write content to a file at the given path relative to the working directory. Creates directories as needed. You MUST read_file first before writing (unless creating a new file)."
+    },
+    {
+      "name": "execute_command",
+      "description": "Execute a shell command in the working directory. Returns stdout, stderr, and exit code."
+    },
+    {
+      "name": "list_directory",
+      "description": "List files and directories at the given path relative to the working directory."
+    },
+    {
+      "name": "web_fetch",
+      "description": "Fetch a URL and return the response body. Supports GET and POST."
+    }
+  ],
+  "maxTokens": 16384,
+  "toolResults": [
+    {
+      "toolCallId": "call_lqTSWWWmwDPjQNUIWJR5YRKc",
+      "content": "[dir] .skvm\n[file] i18n-contract.json\n[file] LICENSE.upstream\n[file] package.json\n[dir] src\n[file] tsconfig.json"
+    }
+  ]
+}
+```
+### [4] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T18:57:45.277Z",
+  "text": "",
+  "toolCalls": [
+    {
+      "id": "call_G1aQtPfTdqkbUGvzLTC40xZZ",
+      "name": "read_file",
+      "arguments": {
+        "path": "i18n-contract.json"
+      }
+    },
+    {
+      "id": "call_uewNnyF8N2xQlNJQU2NPrzaT",
+      "name": "list_directory",
+      "arguments": {
+        "path": "src"
+      }
+    },
+    {
+      "id": "call_ca74yr75fjKgAVanP4QODQzW",
+      "name": "read_file",
+      "arguments": {
+        "path": "package.json"
+      }
+    }
+  ],
+  "tokens": {
+    "input": 1557,
+    "output": 67,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "durationMs": 38377.7137,
+  "stopReason": "tool_use"
+}
+```
+### [5] request
+```json
+{
+  "type": "request",
+  "ts": "2026-09-13T18:57:45.281Z",
+  "method": "completeWithToolResults",
+  "system": "You are a helpful assistant that completes tasks by using tools. Work in the provided directory.\n\n<skill>\n<runtime-resource-root>.skvm/skills/source</runtime-resource-root>\nBundled resources for this skill are installed under .skvm/skills/source. Resolve relative resource paths from that directory; non-conflicting root-level copies are legacy aliases only.\n\n---\nname: i18n-helper\ndescription: 国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译\n---\n\n# 🌍 i18n-helper — 国际化/本地化助手\n\n## 触发条件\n当用户要求以下操作时激活此技能：\n- 扫描代码中的硬编码中文/英文文本\n- 为项目添加国际化支持（i18n）\n- 批量提取和翻译语言文件\n- 检查翻译完整性（缺失 key 检测）\n\n## 工作流程\n\n### 1. 项目分析\n- 检测项目类型（React/Vue/Angular/Node.js/Python/Java 等）\n- 识别已使用的 i18n 框架（react-intl, vue-i18n, i18next, gettext 等）\n- 扫描源代码目录结构\n\n### 2. 硬编码文本扫描\n- 在 `.js/.jsx/.ts/.tsx/.vue/.py/.java/.go` 等文件中搜索硬编码字符串\n- 排除：变量名、URL、正则表达式、import 路径、日志调试信息\n- 标记：用户可见的 UI 文本、错误提示、通知消息\n\n### 3. 语言文件生成\n根据项目框架生成对应格式：\n- **JSON** (i18next/react-intl): `{ \"key\": \"value\" }`\n- **YAML** (vue-i18n): `key: value`\n- **PO/POT** (gettext): 标准格式\n- **Properties** (Java): `key=value`\n\n### 4. 代码替换\n- 将硬编码文本替换为 i18n 函数调用\n- 保持原有格式和变量插值\n- 示例：\n  ```javascript\n  // 替换前\n  alert('保存成功');\n  // 替换后\n  alert(t('alert.saveSuccess'));\n  ```\n\n### 5. 完整性检查\n- 对比主语言文件与翻译文件的 key 差异\n- 输出缺失翻译的 key 列表\n- 统计翻译完成度百分比\n\n## 输出格式\n```markdown\n## 📊 i18n 扫描报告\n\n### 硬编码文本\n| 文件 | 行号 | 内容 | 建议 key |\n|------|------|------|----------|\n| src/App.tsx | 42 | '欢迎使用' | page.welcome |\n\n### 语言文件\n已生成 `locales/zh-CN.json` 和 `locales/en-US.json`\n\n### 翻译完整性\n- zh-CN: 45/45 (100%) ✅\n- en-US: 42/45 (93.3%) ⚠️ 缺少 3 个 key\n```\n\n## 支持的 i18n 框架\n- react-intl / FormatJS\n- vue-i18n\n- i18next / react-i18next / next-i18next\n- Angular @ngx-translate\n- Python gettext / Flask-Babel\n- Java ResourceBundle / Spring MessageSource\n- Go go-i18n\n\n## 注意事项\n- 不要翻译技术术语（API、SDK、HTTP 等）\n- 保留变量占位符 `{name}` `{{count}}` `%s` 等格式\n- 复数形式和性别变体需要特殊处理\n- 日期、数字、货币格式需使用 locale 感知的格式化函数\n\n</skill>",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Context condition: clean\n\nRead the React project and public i18n-contract.json. Modify only the declared source file, create exactly the declared i18next files and report, and leave protected files unchanged. Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage, preserve interpolation identifiers, and keep both locale key sets complete. Do not install packages, run the network, or create other files. The JSON report must satisfy the public outputAbi exactly, including locale-keyed missing-key arrays."
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: list_directory]"
+    },
+    {
+      "role": "user",
+      "content": "[dir] .skvm\n[file] i18n-contract.json\n[file] LICENSE.upstream\n[file] package.json\n[dir] src\n[file] tsconfig.json"
+    }
+  ],
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read the contents of a file at the given path relative to the working directory."
+    },
+    {
+      "name": "write_file",
+      "description": "Write content to a file at the given path relative to the working directory. Creates directories as needed. You MUST read_file first before writing (unless creating a new file)."
+    },
+    {
+      "name": "execute_command",
+      "description": "Execute a shell command in the working directory. Returns stdout, stderr, and exit code."
+    },
+    {
+      "name": "list_directory",
+      "description": "List files and directories at the given path relative to the working directory."
+    },
+    {
+      "name": "web_fetch",
+      "description": "Fetch a URL and return the response body. Supports GET and POST."
+    }
+  ],
+  "maxTokens": 16384,
+  "toolResults": [
+    {
+      "toolCallId": "call_G1aQtPfTdqkbUGvzLTC40xZZ",
+      "content": "{\"schemaVersion\":\"skill-ir-i18n-helper-public-contract/v3\",\"contractId\":\"i18n-helper-react-i18next-v3\",\"framework\":\"react-i18next\",\"allowedModifiedFiles\":[\"src/App.tsx\"],\"requiredNewFiles\":[\"src/i18n.ts\",\"src/locales/zh-CN.json\",\"src/locales/en-US.json\",\"i18n-report.json\"],\"protectedFiles\":[\"package.json\",\"tsconfig.json\",\"i18n-contract.json\"],\"confirmedTextRule\":\"A JSX child or string-valued user-visible attribute is confirmed only when its opening element declares data-i18n-key with a nonempty dot-separated key.\",\"keyRule\":\"Use the exact data-i18n-key value as the locale key and t() argument.\",\"interpolationRule\":\"Convert JSX expressions inside confirmed text to named i18next interpolation placeholders and pass the same identifiers to t().\",\"excludedTextClasses\":[\"import-path\",\"url\",\"technical-term\",\"test-selector\",\"debug-log\"],\"report\":{\"path\":\"i18n-report.json\",\"requiredFields\":[\"framework\",\"scannedFiles\",\"extractedKeys\",\"missingKeys\"]},\"outputAbi\":{\"schemaVersion\":\"skill-ir-public-output-abi/v2\",\"additionalProperties\":false,\"fields\":{\"framework\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false,\"enum\":[\"react-i18next\"]}},\"scannedFiles\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"ordered\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"extractedKeys\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"missingKeys\":{\"required\":true,\"schema\":{\"type\":\"object\",\"nullable\":false,\"additionalProperties\":false,\"fields\":{\"zh-CN\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"en-US\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}}}}}}}}"
+    },
+    {
+      "toolCallId": "call_uewNnyF8N2xQlNJQU2NPrzaT",
+      "content": "[file] App.tsx"
+    },
+    {
+      "toolCallId": "call_ca74yr75fjKgAVanP4QODQzW",
+      "content": "{\"name\":\"i18n-basic\",\"private\":true,\"dependencies\":{\"i18next\":\"^23.0.0\",\"react\":\"^18.0.0\",\"react-i18next\":\"^14.0.0\"}}\n"
+    }
+  ]
+}
+```
+### [6] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T18:58:07.298Z",
+  "text": "",
+  "toolCalls": [
+    {
+      "id": "call_ODr4Yq8jROLeU2Uo5lfczKrJ",
+      "name": "read_file",
+      "arguments": {
+        "path": "src/App.tsx"
+      }
+    }
+  ],
+  "tokens": {
+    "input": 608,
+    "output": 21,
+    "cacheRead": 1536,
+    "cacheWrite": 0
+  },
+  "durationMs": 22017.4136,
+  "stopReason": "tool_use"
+}
+```
+### [7] request
+```json
+{
+  "type": "request",
+  "ts": "2026-09-13T18:58:07.300Z",
+  "method": "completeWithToolResults",
+  "system": "You are a helpful assistant that completes tasks by using tools. Work in the provided directory.\n\n<skill>\n<runtime-resource-root>.skvm/skills/source</runtime-resource-root>\nBundled resources for this skill are installed under .skvm/skills/source. Resolve relative resource paths from that directory; non-conflicting root-level copies are legacy aliases only.\n\n---\nname: i18n-helper\ndescription: 国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译\n---\n\n# 🌍 i18n-helper — 国际化/本地化助手\n\n## 触发条件\n当用户要求以下操作时激活此技能：\n- 扫描代码中的硬编码中文/英文文本\n- 为项目添加国际化支持（i18n）\n- 批量提取和翻译语言文件\n- 检查翻译完整性（缺失 key 检测）\n\n## 工作流程\n\n### 1. 项目分析\n- 检测项目类型（React/Vue/Angular/Node.js/Python/Java 等）\n- 识别已使用的 i18n 框架（react-intl, vue-i18n, i18next, gettext 等）\n- 扫描源代码目录结构\n\n### 2. 硬编码文本扫描\n- 在 `.js/.jsx/.ts/.tsx/.vue/.py/.java/.go` 等文件中搜索硬编码字符串\n- 排除：变量名、URL、正则表达式、import 路径、日志调试信息\n- 标记：用户可见的 UI 文本、错误提示、通知消息\n\n### 3. 语言文件生成\n根据项目框架生成对应格式：\n- **JSON** (i18next/react-intl): `{ \"key\": \"value\" }`\n- **YAML** (vue-i18n): `key: value`\n- **PO/POT** (gettext): 标准格式\n- **Properties** (Java): `key=value`\n\n### 4. 代码替换\n- 将硬编码文本替换为 i18n 函数调用\n- 保持原有格式和变量插值\n- 示例：\n  ```javascript\n  // 替换前\n  alert('保存成功');\n  // 替换后\n  alert(t('alert.saveSuccess'));\n  ```\n\n### 5. 完整性检查\n- 对比主语言文件与翻译文件的 key 差异\n- 输出缺失翻译的 key 列表\n- 统计翻译完成度百分比\n\n## 输出格式\n```markdown\n## 📊 i18n 扫描报告\n\n### 硬编码文本\n| 文件 | 行号 | 内容 | 建议 key |\n|------|------|------|----------|\n| src/App.tsx | 42 | '欢迎使用' | page.welcome |\n\n### 语言文件\n已生成 `locales/zh-CN.json` 和 `locales/en-US.json`\n\n### 翻译完整性\n- zh-CN: 45/45 (100%) ✅\n- en-US: 42/45 (93.3%) ⚠️ 缺少 3 个 key\n```\n\n## 支持的 i18n 框架\n- react-intl / FormatJS\n- vue-i18n\n- i18next / react-i18next / next-i18next\n- Angular @ngx-translate\n- Python gettext / Flask-Babel\n- Java ResourceBundle / Spring MessageSource\n- Go go-i18n\n\n## 注意事项\n- 不要翻译技术术语（API、SDK、HTTP 等）\n- 保留变量占位符 `{name}` `{{count}}` `%s` 等格式\n- 复数形式和性别变体需要特殊处理\n- 日期、数字、货币格式需使用 locale 感知的格式化函数\n\n</skill>",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Context condition: clean\n\nRead the React project and public i18n-contract.json. Modify only the declared source file, create exactly the declared i18next files and report, and leave protected files unchanged. Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage, preserve interpolation identifiers, and keep both locale key sets complete. Do not install packages, run the network, or create other files. The JSON report must satisfy the public outputAbi exactly, including locale-keyed missing-key arrays."
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: list_directory]"
+    },
+    {
+      "role": "user",
+      "content": "[dir] .skvm\n[file] i18n-contract.json\n[file] LICENSE.upstream\n[file] package.json\n[dir] src\n[file] tsconfig.json"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: read_file, list_directory, read_file]"
+    },
+    {
+      "role": "user",
+      "content": "{\"schemaVersion\":\"skill-ir-i18n-helper-public-contract/v3\",\"contractId\":\"i18n-helper-react-i18next-v3\",\"framework\":\"react-i18next\",\"allowedModifiedFiles\":[\"src/App.tsx\"],\"requiredNewFiles\":[\"src/i18n.ts\",\"src/locales/zh-CN.json\",\"src/locales/en-US.json\",\"i18n-report.json\"],\"protectedFiles\":[\"package.json\",\"tsconfig.json\",\"i18n-contract.json\"],\"confirmedTextRule\":\"A JSX child or string-valued user-visible attribute is confirmed only when its opening element declares data-i18n-key with a nonempty dot-separated key.\",\"keyRule\":\"Use the exact data-i18n-key value as the locale key and t() argument.\",\"interpolationRule\":\"Convert JSX expressions inside confirmed text to named i18next interpolation placeholders and pass the same identifiers to t().\",\"excludedTextClasses\":[\"import-path\",\"url\",\"technical-term\",\"test-selector\",\"debug-log\"],\"report\":{\"path\":\"i18n-report.json\",\"requiredFields\":[\"framework\",\"scannedFiles\",\"extractedKeys\",\"missingKeys\"]},\"outputAbi\":{\"schemaVersion\":\"skill-ir-public-output-abi/v2\",\"additionalProperties\":false,\"fields\":{\"framework\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false,\"enum\":[\"react-i18next\"]}},\"scannedFiles\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"ordered\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"extractedKeys\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"missingKeys\":{\"required\":true,\"schema\":{\"type\":\"object\",\"nullable\":false,\"additionalProperties\":false,\"fields\":{\"zh-CN\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"en-US\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}}}}}}}}\n---\n[file] App.tsx\n---\n{\"name\":\"i18n-basic\",\"private\":true,\"dependencies\":{\"i18next\":\"^23.0.0\",\"react\":\"^18.0.0\",\"react-i18next\":\"^14.0.0\"}}\n"
+    }
+  ],
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read the contents of a file at the given path relative to the working directory."
+    },
+    {
+      "name": "write_file",
+      "description": "Write content to a file at the given path relative to the working directory. Creates directories as needed. You MUST read_file first before writing (unless creating a new file)."
+    },
+    {
+      "name": "execute_command",
+      "description": "Execute a shell command in the working directory. Returns stdout, stderr, and exit code."
+    },
+    {
+      "name": "list_directory",
+      "description": "List files and directories at the given path relative to the working directory."
+    },
+    {
+      "name": "web_fetch",
+      "description": "Fetch a URL and return the response body. Supports GET and POST."
+    }
+  ],
+  "maxTokens": 16384,
+  "toolResults": [
+    {
+      "toolCallId": "call_ODr4Yq8jROLeU2Uo5lfczKrJ",
+      "content": "export function App() {\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">欢迎使用</h1><button data-i18n-key=\"home.save\">保存</button></main>;\n}\n"
+    }
+  ]
+}
+```
+### [8] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T18:58:38.390Z",
+  "text": "",
+  "toolCalls": [
+    {
+      "id": "call_zQr8ZMnMXQojkHO2jVMheuBA",
+      "name": "write_file",
+      "arguments": {
+        "path": "src/App.tsx",
+        "content": "import { useTranslation } from 'react-i18next';\nimport './i18n';\n\nexport function App() {\n  const { t } = useTranslation();\n\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">{t('home.welcome')}</h1><button data-i18n-key=\"home.save\">{t('home.save')}</button></main>;\n}\n"
+      }
+    },
+    {
+      "id": "call_rrTeIpQJpfjyLg65bFUnqft6",
+      "name": "write_file",
+      "arguments": {
+        "path": "src/i18n.ts",
+        "content": "import i18n from 'i18next';\nimport { initReactI18next } from 'react-i18next';\nimport enUS from './locales/en-US.json';\nimport zhCN from './locales/zh-CN.json';\n\ni18n.use(initReactI18next).init({\n  resources: {\n    'zh-CN': { translation: zhCN },\n    'en-US': { translation: enUS },\n  },\n  lng: 'zh-CN',\n  fallbackLng: 'en-US',\n  interpolation: {\n    escapeValue: false,\n  },\n});\n\nexport default i18n;\n"
+      }
+    },
+    {
+      "id": "call_GD9g4Hxz2nNBJcXbMubK9gGb",
+      "name": "write_file",
+      "arguments": {
+        "path": "src/locales/zh-CN.json",
+        "content": "{\n  \"home.welcome\": \"欢迎使用\",\n  \"home.save\": \"保存\"\n}\n"
+      }
+    },
+    {
+      "id": "call_TFvUNVuxWn6BA80kjYZ7IAXk",
+      "name": "write_file",
+      "arguments": {
+        "path": "src/locales/en-US.json",
+        "content": "{\n  \"home.welcome\": \"Welcome\",\n  \"home.save\": \"Save\"\n}\n"
+      }
+    },
+    {
+      "id": "call_McOuBdvvQIuiLxj2nOXh4tuk",
+      "name": "write_file",
+      "arguments": {
+        "path": "i18n-report.json",
+        "content": "{\n  \"framework\": \"react-i18next\",\n  \"scannedFiles\": [\"src/App.tsx\"],\n  \"extractedKeys\": [\"home.welcome\", \"home.save\"],\n  \"missingKeys\": {\n    \"zh-CN\": [],\n    \"en-US\": []\n  }\n}\n"
+      }
+    }
+  ],
+  "tokens": {
+    "input": 2156,
+    "output": 785,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "durationMs": 31090.257700000002,
+  "stopReason": "tool_use"
+}
+```
+### [9] request
+```json
+{
+  "type": "request",
+  "ts": "2026-09-13T18:58:38.394Z",
+  "method": "completeWithToolResults",
+  "system": "You are a helpful assistant that completes tasks by using tools. Work in the provided directory.\n\n<skill>\n<runtime-resource-root>.skvm/skills/source</runtime-resource-root>\nBundled resources for this skill are installed under .skvm/skills/source. Resolve relative resource paths from that directory; non-conflicting root-level copies are legacy aliases only.\n\n---\nname: i18n-helper\ndescription: 国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译\n---\n\n# 🌍 i18n-helper — 国际化/本地化助手\n\n## 触发条件\n当用户要求以下操作时激活此技能：\n- 扫描代码中的硬编码中文/英文文本\n- 为项目添加国际化支持（i18n）\n- 批量提取和翻译语言文件\n- 检查翻译完整性（缺失 key 检测）\n\n## 工作流程\n\n### 1. 项目分析\n- 检测项目类型（React/Vue/Angular/Node.js/Python/Java 等）\n- 识别已使用的 i18n 框架（react-intl, vue-i18n, i18next, gettext 等）\n- 扫描源代码目录结构\n\n### 2. 硬编码文本扫描\n- 在 `.js/.jsx/.ts/.tsx/.vue/.py/.java/.go` 等文件中搜索硬编码字符串\n- 排除：变量名、URL、正则表达式、import 路径、日志调试信息\n- 标记：用户可见的 UI 文本、错误提示、通知消息\n\n### 3. 语言文件生成\n根据项目框架生成对应格式：\n- **JSON** (i18next/react-intl): `{ \"key\": \"value\" }`\n- **YAML** (vue-i18n): `key: value`\n- **PO/POT** (gettext): 标准格式\n- **Properties** (Java): `key=value`\n\n### 4. 代码替换\n- 将硬编码文本替换为 i18n 函数调用\n- 保持原有格式和变量插值\n- 示例：\n  ```javascript\n  // 替换前\n  alert('保存成功');\n  // 替换后\n  alert(t('alert.saveSuccess'));\n  ```\n\n### 5. 完整性检查\n- 对比主语言文件与翻译文件的 key 差异\n- 输出缺失翻译的 key 列表\n- 统计翻译完成度百分比\n\n## 输出格式\n```markdown\n## 📊 i18n 扫描报告\n\n### 硬编码文本\n| 文件 | 行号 | 内容 | 建议 key |\n|------|------|------|----------|\n| src/App.tsx | 42 | '欢迎使用' | page.welcome |\n\n### 语言文件\n已生成 `locales/zh-CN.json` 和 `locales/en-US.json`\n\n### 翻译完整性\n- zh-CN: 45/45 (100%) ✅\n- en-US: 42/45 (93.3%) ⚠️ 缺少 3 个 key\n```\n\n## 支持的 i18n 框架\n- react-intl / FormatJS\n- vue-i18n\n- i18next / react-i18next / next-i18next\n- Angular @ngx-translate\n- Python gettext / Flask-Babel\n- Java ResourceBundle / Spring MessageSource\n- Go go-i18n\n\n## 注意事项\n- 不要翻译技术术语（API、SDK、HTTP 等）\n- 保留变量占位符 `{name}` `{{count}}` `%s` 等格式\n- 复数形式和性别变体需要特殊处理\n- 日期、数字、货币格式需使用 locale 感知的格式化函数\n\n</skill>",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Context condition: clean\n\nRead the React project and public i18n-contract.json. Modify only the declared source file, create exactly the declared i18next files and report, and leave protected files unchanged. Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage, preserve interpolation identifiers, and keep both locale key sets complete. Do not install packages, run the network, or create other files. The JSON report must satisfy the public outputAbi exactly, including locale-keyed missing-key arrays."
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: list_directory]"
+    },
+    {
+      "role": "user",
+      "content": "[dir] .skvm\n[file] i18n-contract.json\n[file] LICENSE.upstream\n[file] package.json\n[dir] src\n[file] tsconfig.json"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: read_file, list_directory, read_file]"
+    },
+    {
+      "role": "user",
+      "content": "{\"schemaVersion\":\"skill-ir-i18n-helper-public-contract/v3\",\"contractId\":\"i18n-helper-react-i18next-v3\",\"framework\":\"react-i18next\",\"allowedModifiedFiles\":[\"src/App.tsx\"],\"requiredNewFiles\":[\"src/i18n.ts\",\"src/locales/zh-CN.json\",\"src/locales/en-US.json\",\"i18n-report.json\"],\"protectedFiles\":[\"package.json\",\"tsconfig.json\",\"i18n-contract.json\"],\"confirmedTextRule\":\"A JSX child or string-valued user-visible attribute is confirmed only when its opening element declares data-i18n-key with a nonempty dot-separated key.\",\"keyRule\":\"Use the exact data-i18n-key value as the locale key and t() argument.\",\"interpolationRule\":\"Convert JSX expressions inside confirmed text to named i18next interpolation placeholders and pass the same identifiers to t().\",\"excludedTextClasses\":[\"import-path\",\"url\",\"technical-term\",\"test-selector\",\"debug-log\"],\"report\":{\"path\":\"i18n-report.json\",\"requiredFields\":[\"framework\",\"scannedFiles\",\"extractedKeys\",\"missingKeys\"]},\"outputAbi\":{\"schemaVersion\":\"skill-ir-public-output-abi/v2\",\"additionalProperties\":false,\"fields\":{\"framework\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false,\"enum\":[\"react-i18next\"]}},\"scannedFiles\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"ordered\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"extractedKeys\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"missingKeys\":{\"required\":true,\"schema\":{\"type\":\"object\",\"nullable\":false,\"additionalProperties\":false,\"fields\":{\"zh-CN\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"en-US\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}}}}}}}}\n---\n[file] App.tsx\n---\n{\"name\":\"i18n-basic\",\"private\":true,\"dependencies\":{\"i18next\":\"^23.0.0\",\"react\":\"^18.0.0\",\"react-i18next\":\"^14.0.0\"}}\n"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: read_file]"
+    },
+    {
+      "role": "user",
+      "content": "export function App() {\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">欢迎使用</h1><button data-i18n-key=\"home.save\">保存</button></main>;\n}\n"
+    }
+  ],
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read the contents of a file at the given path relative to the working directory."
+    },
+    {
+      "name": "write_file",
+      "description": "Write content to a file at the given path relative to the working directory. Creates directories as needed. You MUST read_file first before writing (unless creating a new file)."
+    },
+    {
+      "name": "execute_command",
+      "description": "Execute a shell command in the working directory. Returns stdout, stderr, and exit code."
+    },
+    {
+      "name": "list_directory",
+      "description": "List files and directories at the given path relative to the working directory."
+    },
+    {
+      "name": "web_fetch",
+      "description": "Fetch a URL and return the response body. Supports GET and POST."
+    }
+  ],
+  "maxTokens": 16384,
+  "toolResults": [
+    {
+      "toolCallId": "call_zQr8ZMnMXQojkHO2jVMheuBA",
+      "content": "File written: src/App.tsx"
+    },
+    {
+      "toolCallId": "call_rrTeIpQJpfjyLg65bFUnqft6",
+      "content": "File written: src/i18n.ts"
+    },
+    {
+      "toolCallId": "call_GD9g4Hxz2nNBJcXbMubK9gGb",
+      "content": "File written: src/locales/zh-CN.json"
+    },
+    {
+      "toolCallId": "call_TFvUNVuxWn6BA80kjYZ7IAXk",
+      "content": "File written: src/locales/en-US.json"
+    },
+    {
+      "toolCallId": "call_McOuBdvvQIuiLxj2nOXh4tuk",
+      "content": "File written: i18n-report.json"
+    }
+  ]
+}
+```
+### [10] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T18:58:56.087Z",
+  "text": "",
+  "toolCalls": [
+    {
+      "id": "call_JXiroxsA1ZLzG0T4q9rhtnfP",
+      "name": "read_file",
+      "arguments": {
+        "path": "src/App.tsx"
+      }
+    },
+    {
+      "id": "call_zA7L3afEOQNFZdiJX4Qz69ls",
+      "name": "read_file",
+      "arguments": {
+        "path": "src/i18n.ts"
+      }
+    },
+    {
+      "id": "call_H2DGgZu4fUTh5yTmaHoMhYGH",
+      "name": "read_file",
+      "arguments": {
+        "path": "src/locales/zh-CN.json"
+      }
+    },
+    {
+      "id": "call_W04S518LxXLsUecSV3gWXdim",
+      "name": "read_file",
+      "arguments": {
+        "path": "src/locales/en-US.json"
+      }
+    },
+    {
+      "id": "call_JBGBa06zWGYfWbbMaDv6uMbt",
+      "name": "read_file",
+      "arguments": {
+        "path": "i18n-report.json"
+      }
+    },
+    {
+      "id": "call_ww8hI65Cyeex2llhWvGWMx5H",
+      "name": "list_directory",
+      "arguments": {
+        "path": "src"
+      }
+    }
+  ],
+  "tokens": {
+    "input": 2737,
+    "output": 252,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "durationMs": 17693.40269999999,
+  "stopReason": "tool_use"
+}
+```
+### [11] request
+```json
+{
+  "type": "request",
+  "ts": "2026-09-13T18:58:56.091Z",
+  "method": "completeWithToolResults",
+  "system": "You are a helpful assistant that completes tasks by using tools. Work in the provided directory.\n\n<skill>\n<runtime-resource-root>.skvm/skills/source</runtime-resource-root>\nBundled resources for this skill are installed under .skvm/skills/source. Resolve relative resource paths from that directory; non-conflicting root-level copies are legacy aliases only.\n\n---\nname: i18n-helper\ndescription: 国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译\n---\n\n# 🌍 i18n-helper — 国际化/本地化助手\n\n## 触发条件\n当用户要求以下操作时激活此技能：\n- 扫描代码中的硬编码中文/英文文本\n- 为项目添加国际化支持（i18n）\n- 批量提取和翻译语言文件\n- 检查翻译完整性（缺失 key 检测）\n\n## 工作流程\n\n### 1. 项目分析\n- 检测项目类型（React/Vue/Angular/Node.js/Python/Java 等）\n- 识别已使用的 i18n 框架（react-intl, vue-i18n, i18next, gettext 等）\n- 扫描源代码目录结构\n\n### 2. 硬编码文本扫描\n- 在 `.js/.jsx/.ts/.tsx/.vue/.py/.java/.go` 等文件中搜索硬编码字符串\n- 排除：变量名、URL、正则表达式、import 路径、日志调试信息\n- 标记：用户可见的 UI 文本、错误提示、通知消息\n\n### 3. 语言文件生成\n根据项目框架生成对应格式：\n- **JSON** (i18next/react-intl): `{ \"key\": \"value\" }`\n- **YAML** (vue-i18n): `key: value`\n- **PO/POT** (gettext): 标准格式\n- **Properties** (Java): `key=value`\n\n### 4. 代码替换\n- 将硬编码文本替换为 i18n 函数调用\n- 保持原有格式和变量插值\n- 示例：\n  ```javascript\n  // 替换前\n  alert('保存成功');\n  // 替换后\n  alert(t('alert.saveSuccess'));\n  ```\n\n### 5. 完整性检查\n- 对比主语言文件与翻译文件的 key 差异\n- 输出缺失翻译的 key 列表\n- 统计翻译完成度百分比\n\n## 输出格式\n```markdown\n## 📊 i18n 扫描报告\n\n### 硬编码文本\n| 文件 | 行号 | 内容 | 建议 key |\n|------|------|------|----------|\n| src/App.tsx | 42 | '欢迎使用' | page.welcome |\n\n### 语言文件\n已生成 `locales/zh-CN.json` 和 `locales/en-US.json`\n\n### 翻译完整性\n- zh-CN: 45/45 (100%) ✅\n- en-US: 42/45 (93.3%) ⚠️ 缺少 3 个 key\n```\n\n## 支持的 i18n 框架\n- react-intl / FormatJS\n- vue-i18n\n- i18next / react-i18next / next-i18next\n- Angular @ngx-translate\n- Python gettext / Flask-Babel\n- Java ResourceBundle / Spring MessageSource\n- Go go-i18n\n\n## 注意事项\n- 不要翻译技术术语（API、SDK、HTTP 等）\n- 保留变量占位符 `{name}` `{{count}}` `%s` 等格式\n- 复数形式和性别变体需要特殊处理\n- 日期、数字、货币格式需使用 locale 感知的格式化函数\n\n</skill>",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Context condition: clean\n\nRead the React project and public i18n-contract.json. Modify only the declared source file, create exactly the declared i18next files and report, and leave protected files unchanged. Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage, preserve interpolation identifiers, and keep both locale key sets complete. Do not install packages, run the network, or create other files. The JSON report must satisfy the public outputAbi exactly, including locale-keyed missing-key arrays."
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: list_directory]"
+    },
+    {
+      "role": "user",
+      "content": "[dir] .skvm\n[file] i18n-contract.json\n[file] LICENSE.upstream\n[file] package.json\n[dir] src\n[file] tsconfig.json"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: read_file, list_directory, read_file]"
+    },
+    {
+      "role": "user",
+      "content": "{\"schemaVersion\":\"skill-ir-i18n-helper-public-contract/v3\",\"contractId\":\"i18n-helper-react-i18next-v3\",\"framework\":\"react-i18next\",\"allowedModifiedFiles\":[\"src/App.tsx\"],\"requiredNewFiles\":[\"src/i18n.ts\",\"src/locales/zh-CN.json\",\"src/locales/en-US.json\",\"i18n-report.json\"],\"protectedFiles\":[\"package.json\",\"tsconfig.json\",\"i18n-contract.json\"],\"confirmedTextRule\":\"A JSX child or string-valued user-visible attribute is confirmed only when its opening element declares data-i18n-key with a nonempty dot-separated key.\",\"keyRule\":\"Use the exact data-i18n-key value as the locale key and t() argument.\",\"interpolationRule\":\"Convert JSX expressions inside confirmed text to named i18next interpolation placeholders and pass the same identifiers to t().\",\"excludedTextClasses\":[\"import-path\",\"url\",\"technical-term\",\"test-selector\",\"debug-log\"],\"report\":{\"path\":\"i18n-report.json\",\"requiredFields\":[\"framework\",\"scannedFiles\",\"extractedKeys\",\"missingKeys\"]},\"outputAbi\":{\"schemaVersion\":\"skill-ir-public-output-abi/v2\",\"additionalProperties\":false,\"fields\":{\"framework\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false,\"enum\":[\"react-i18next\"]}},\"scannedFiles\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"ordered\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"extractedKeys\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"missingKeys\":{\"required\":true,\"schema\":{\"type\":\"object\",\"nullable\":false,\"additionalProperties\":false,\"fields\":{\"zh-CN\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"en-US\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}}}}}}}}\n---\n[file] App.tsx\n---\n{\"name\":\"i18n-basic\",\"private\":true,\"dependencies\":{\"i18next\":\"^23.0.0\",\"react\":\"^18.0.0\",\"react-i18next\":\"^14.0.0\"}}\n"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: read_file]"
+    },
+    {
+      "role": "user",
+      "content": "export function App() {\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">欢迎使用</h1><button data-i18n-key=\"home.save\">保存</button></main>;\n}\n"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: write_file, write_file, write_file, write_file, write_file]"
+    },
+    {
+      "role": "user",
+      "content": "File written: src/App.tsx\n---\nFile written: src/i18n.ts\n---\nFile written: src/locales/zh-CN.json\n---\nFile written: src/locales/en-US.json\n---\nFile written: i18n-report.json"
+    }
+  ],
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read the contents of a file at the given path relative to the working directory."
+    },
+    {
+      "name": "write_file",
+      "description": "Write content to a file at the given path relative to the working directory. Creates directories as needed. You MUST read_file first before writing (unless creating a new file)."
+    },
+    {
+      "name": "execute_command",
+      "description": "Execute a shell command in the working directory. Returns stdout, stderr, and exit code."
+    },
+    {
+      "name": "list_directory",
+      "description": "List files and directories at the given path relative to the working directory."
+    },
+    {
+      "name": "web_fetch",
+      "description": "Fetch a URL and return the response body. Supports GET and POST."
+    }
+  ],
+  "maxTokens": 16384,
+  "toolResults": [
+    {
+      "toolCallId": "call_JXiroxsA1ZLzG0T4q9rhtnfP",
+      "content": "import { useTranslation } from 'react-i18next';\nimport './i18n';\n\nexport function App() {\n  const { t } = useTranslation();\n\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">{t('home.welcome')}</h1><button data-i18n-key=\"home.save\">{t('home.save')}</button></main>;\n}\n"
+    },
+    {
+      "toolCallId": "call_zA7L3afEOQNFZdiJX4Qz69ls",
+      "content": "import i18n from 'i18next';\nimport { initReactI18next } from 'react-i18next';\nimport enUS from './locales/en-US.json';\nimport zhCN from './locales/zh-CN.json';\n\ni18n.use(initReactI18next).init({\n  resources: {\n    'zh-CN': { translation: zhCN },\n    'en-US': { translation: enUS },\n  },\n  lng: 'zh-CN',\n  fallbackLng: 'en-US',\n  interpolation: {\n    escapeValue: false,\n  },\n});\n\nexport default i18n;\n"
+    },
+    {
+      "toolCallId": "call_H2DGgZu4fUTh5yTmaHoMhYGH",
+      "content": "{\n  \"home.welcome\": \"欢迎使用\",\n  \"home.save\": \"保存\"\n}\n"
+    },
+    {
+      "toolCallId": "call_W04S518LxXLsUecSV3gWXdim",
+      "content": "{\n  \"home.welcome\": \"Welcome\",\n  \"home.save\": \"Save\"\n}\n"
+    },
+    {
+      "toolCallId": "call_JBGBa06zWGYfWbbMaDv6uMbt",
+      "content": "{\n  \"framework\": \"react-i18next\",\n  \"scannedFiles\": [\"src/App.tsx\"],\n  \"extractedKeys\": [\"home.welcome\", \"home.save\"],\n  \"missingKeys\": {\n    \"zh-CN\": [],\n    \"en-US\": []\n  }\n}\n"
+    },
+    {
+      "toolCallId": "call_ww8hI65Cyeex2llhWvGWMx5H",
+      "content": "[file] App.tsx\n[file] i18n.ts\n[dir] locales"
+    }
+  ]
+}
+```
+### [12] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T18:59:21.278Z",
+  "text": "",
+  "toolCalls": [
+    {
+      "id": "call_xv5vCCVTcu3eRypoxcF7wAvo",
+      "name": "execute_command",
+      "arguments": {
+        "command": "git diff -- src/App.tsx src/i18n.ts src/locales/zh-CN.json src/locales/en-US.json i18n-report.json package.json tsconfig.json i18n-contract.json && printf '\\n-- untracked --\\n' && git status --short --untracked-files=all"
+      }
+    }
+  ],
+  "tokens": {
+    "input": 167,
+    "output": 150,
+    "cacheRead": 2560,
+    "cacheWrite": 0
+  },
+  "durationMs": 25187.09180000001,
+  "stopReason": "tool_use"
+}
+```
+### [13] request
+```json
+{
+  "type": "request",
+  "ts": "2026-09-13T18:59:21.284Z",
+  "method": "completeWithToolResults",
+  "system": "You are a helpful assistant that completes tasks by using tools. Work in the provided directory.\n\n<skill>\n<runtime-resource-root>.skvm/skills/source</runtime-resource-root>\nBundled resources for this skill are installed under .skvm/skills/source. Resolve relative resource paths from that directory; non-conflicting root-level copies are legacy aliases only.\n\n---\nname: i18n-helper\ndescription: 国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译\n---\n\n# 🌍 i18n-helper — 国际化/本地化助手\n\n## 触发条件\n当用户要求以下操作时激活此技能：\n- 扫描代码中的硬编码中文/英文文本\n- 为项目添加国际化支持（i18n）\n- 批量提取和翻译语言文件\n- 检查翻译完整性（缺失 key 检测）\n\n## 工作流程\n\n### 1. 项目分析\n- 检测项目类型（React/Vue/Angular/Node.js/Python/Java 等）\n- 识别已使用的 i18n 框架（react-intl, vue-i18n, i18next, gettext 等）\n- 扫描源代码目录结构\n\n### 2. 硬编码文本扫描\n- 在 `.js/.jsx/.ts/.tsx/.vue/.py/.java/.go` 等文件中搜索硬编码字符串\n- 排除：变量名、URL、正则表达式、import 路径、日志调试信息\n- 标记：用户可见的 UI 文本、错误提示、通知消息\n\n### 3. 语言文件生成\n根据项目框架生成对应格式：\n- **JSON** (i18next/react-intl): `{ \"key\": \"value\" }`\n- **YAML** (vue-i18n): `key: value`\n- **PO/POT** (gettext): 标准格式\n- **Properties** (Java): `key=value`\n\n### 4. 代码替换\n- 将硬编码文本替换为 i18n 函数调用\n- 保持原有格式和变量插值\n- 示例：\n  ```javascript\n  // 替换前\n  alert('保存成功');\n  // 替换后\n  alert(t('alert.saveSuccess'));\n  ```\n\n### 5. 完整性检查\n- 对比主语言文件与翻译文件的 key 差异\n- 输出缺失翻译的 key 列表\n- 统计翻译完成度百分比\n\n## 输出格式\n```markdown\n## 📊 i18n 扫描报告\n\n### 硬编码文本\n| 文件 | 行号 | 内容 | 建议 key |\n|------|------|------|----------|\n| src/App.tsx | 42 | '欢迎使用' | page.welcome |\n\n### 语言文件\n已生成 `locales/zh-CN.json` 和 `locales/en-US.json`\n\n### 翻译完整性\n- zh-CN: 45/45 (100%) ✅\n- en-US: 42/45 (93.3%) ⚠️ 缺少 3 个 key\n```\n\n## 支持的 i18n 框架\n- react-intl / FormatJS\n- vue-i18n\n- i18next / react-i18next / next-i18next\n- Angular @ngx-translate\n- Python gettext / Flask-Babel\n- Java ResourceBundle / Spring MessageSource\n- Go go-i18n\n\n## 注意事项\n- 不要翻译技术术语（API、SDK、HTTP 等）\n- 保留变量占位符 `{name}` `{{count}}` `%s` 等格式\n- 复数形式和性别变体需要特殊处理\n- 日期、数字、货币格式需使用 locale 感知的格式化函数\n\n</skill>",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Context condition: clean\n\nRead the React project and public i18n-contract.json. Modify only the declared source file, create exactly the declared i18next files and report, and leave protected files unchanged. Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage, preserve interpolation identifiers, and keep both locale key sets complete. Do not install packages, run the network, or create other files. The JSON report must satisfy the public outputAbi exactly, including locale-keyed missing-key arrays."
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: list_directory]"
+    },
+    {
+      "role": "user",
+      "content": "[dir] .skvm\n[file] i18n-contract.json\n[file] LICENSE.upstream\n[file] package.json\n[dir] src\n[file] tsconfig.json"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: read_file, list_directory, read_file]"
+    },
+    {
+      "role": "user",
+      "content": "{\"schemaVersion\":\"skill-ir-i18n-helper-public-contract/v3\",\"contractId\":\"i18n-helper-react-i18next-v3\",\"framework\":\"react-i18next\",\"allowedModifiedFiles\":[\"src/App.tsx\"],\"requiredNewFiles\":[\"src/i18n.ts\",\"src/locales/zh-CN.json\",\"src/locales/en-US.json\",\"i18n-report.json\"],\"protectedFiles\":[\"package.json\",\"tsconfig.json\",\"i18n-contract.json\"],\"confirmedTextRule\":\"A JSX child or string-valued user-visible attribute is confirmed only when its opening element declares data-i18n-key with a nonempty dot-separated key.\",\"keyRule\":\"Use the exact data-i18n-key value as the locale key and t() argument.\",\"interpolationRule\":\"Convert JSX expressions inside confirmed text to named i18next interpolation placeholders and pass the same identifiers to t().\",\"excludedTextClasses\":[\"import-path\",\"url\",\"technical-term\",\"test-selector\",\"debug-log\"],\"report\":{\"path\":\"i18n-report.json\",\"requiredFields\":[\"framework\",\"scannedFiles\",\"extractedKeys\",\"missingKeys\"]},\"outputAbi\":{\"schemaVersion\":\"skill-ir-public-output-abi/v2\",\"additionalProperties\":false,\"fields\":{\"framework\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false,\"enum\":[\"react-i18next\"]}},\"scannedFiles\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"ordered\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"extractedKeys\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"missingKeys\":{\"required\":true,\"schema\":{\"type\":\"object\",\"nullable\":false,\"additionalProperties\":false,\"fields\":{\"zh-CN\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"en-US\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}}}}}}}}\n---\n[file] App.tsx\n---\n{\"name\":\"i18n-basic\",\"private\":true,\"dependencies\":{\"i18next\":\"^23.0.0\",\"react\":\"^18.0.0\",\"react-i18next\":\"^14.0.0\"}}\n"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: read_file]"
+    },
+    {
+      "role": "user",
+      "content": "export function App() {\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">欢迎使用</h1><button data-i18n-key=\"home.save\">保存</button></main>;\n}\n"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: write_file, write_file, write_file, write_file, write_file]"
+    },
+    {
+      "role": "user",
+      "content": "File written: src/App.tsx\n---\nFile written: src/i18n.ts\n---\nFile written: src/locales/zh-CN.json\n---\nFile written: src/locales/en-US.json\n---\nFile written: i18n-report.json"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: read_file, read_file, read_file, read_file, read_file, list_directory]"
+    },
+    {
+      "role": "user",
+      "content": "import { useTranslation } from 'react-i18next';\nimport './i18n';\n\nexport function App() {\n  const { t } = useTranslation();\n\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">{t('home.welcome')}</h1><button data-i18n-key=\"home.save\">{t('home.save')}</button></main>;\n}\n\n---\nimport i18n from 'i18next';\nimport { initReactI18next } from 'react-i18next';\nimport enUS from './locales/en-US.json';\nimport zhCN from './locales/zh-CN.json';\n\ni18n.use(initReactI18next).init({\n  resources: {\n    'zh-CN': { translation: zhCN },\n    'en-US': { translation: enUS },\n  },\n  lng: 'zh-CN',\n  fallbackLng: 'en-US',\n  interpolation: {\n    escapeValue: false,\n  },\n});\n\nexport default i18n;\n\n---\n{\n  \"home.welcome\": \"欢迎使用\",\n  \"home.save\": \"保存\"\n}\n\n---\n{\n  \"home.welcome\": \"Welcome\",\n  \"home.save\": \"Save\"\n}\n\n---\n{\n  \"framework\": \"react-i18next\",\n  \"scannedFiles\": [\"src/App.tsx\"],\n  \"extractedKeys\": [\"home.welcome\", \"home.save\"],\n  \"missingKeys\": {\n    \"zh-CN\": [],\n    \"en-US\": []\n  }\n}\n\n---\n[file] App.tsx\n[file] i18n.ts\n[dir] locales"
+    }
+  ],
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read the contents of a file at the given path relative to the working directory."
+    },
+    {
+      "name": "write_file",
+      "description": "Write content to a file at the given path relative to the working directory. Creates directories as needed. You MUST read_file first before writing (unless creating a new file)."
+    },
+    {
+      "name": "execute_command",
+      "description": "Execute a shell command in the working directory. Returns stdout, stderr, and exit code."
+    },
+    {
+      "name": "list_directory",
+      "description": "List files and directories at the given path relative to the working directory."
+    },
+    {
+      "name": "web_fetch",
+      "description": "Fetch a URL and return the response body. Supports GET and POST."
+    }
+  ],
+  "maxTokens": 16384,
+  "toolResults": [
+    {
+      "toolCallId": "call_xv5vCCVTcu3eRypoxcF7wAvo",
+      "content": "Error: Error: ENOENT: no such file or directory, uv_spawn 'sh'"
+    }
+  ]
+}
+```
+### [14] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T19:00:20.301Z",
+  "text": "",
+  "toolCalls": [
+    {
+      "id": "call_megmItCSq12EI4NTUuldPkRo",
+      "name": "read_file",
+      "arguments": {
+        "path": "src/App.tsx"
+      }
+    },
+    {
+      "id": "call_tkJvtrfvoGKMMPiV1hwCfwSp",
+      "name": "read_file",
+      "arguments": {
+        "path": "src/i18n.ts"
+      }
+    },
+    {
+      "id": "call_wjhVG6Ry2JBcIK3S8wBNxcxT",
+      "name": "read_file",
+      "arguments": {
+        "path": "src/locales/zh-CN.json"
+      }
+    },
+    {
+      "id": "call_hgI7No4QNkoulh6dubM4iw9P",
+      "name": "read_file",
+      "arguments": {
+        "path": "src/locales/en-US.json"
+      }
+    },
+    {
+      "id": "call_iDfufcleZuuU0BcbWV7pJCzF",
+      "name": "read_file",
+      "arguments": {
+        "path": "i18n-report.json"
+      }
+    },
+    {
+      "id": "call_bnva1nLIAAQW22cjqqAHAgRe",
+      "name": "list_directory",
+      "arguments": {
+        "path": "."
+      }
+    },
+    {
+      "id": "call_qw0EpIUtT8E42jwf50ysLTJs",
+      "name": "list_directory",
+      "arguments": {
+        "path": "src"
+      }
+    }
+  ],
+  "tokens": {
+    "input": 130,
+    "output": 175,
+    "cacheRead": 2560,
+    "cacheWrite": 0
+  },
+  "durationMs": 59017.0527,
+  "stopReason": "tool_use"
+}
+```
+### [15] request
+```json
+{
+  "type": "request",
+  "ts": "2026-09-13T19:00:20.304Z",
+  "method": "completeWithToolResults",
+  "system": "You are a helpful assistant that completes tasks by using tools. Work in the provided directory.\n\n<skill>\n<runtime-resource-root>.skvm/skills/source</runtime-resource-root>\nBundled resources for this skill are installed under .skvm/skills/source. Resolve relative resource paths from that directory; non-conflicting root-level copies are legacy aliases only.\n\n---\nname: i18n-helper\ndescription: 国际化/本地化助手 — 扫描代码中的硬编码文本、生成 i18n 配置、批量翻译\n---\n\n# 🌍 i18n-helper — 国际化/本地化助手\n\n## 触发条件\n当用户要求以下操作时激活此技能：\n- 扫描代码中的硬编码中文/英文文本\n- 为项目添加国际化支持（i18n）\n- 批量提取和翻译语言文件\n- 检查翻译完整性（缺失 key 检测）\n\n## 工作流程\n\n### 1. 项目分析\n- 检测项目类型（React/Vue/Angular/Node.js/Python/Java 等）\n- 识别已使用的 i18n 框架（react-intl, vue-i18n, i18next, gettext 等）\n- 扫描源代码目录结构\n\n### 2. 硬编码文本扫描\n- 在 `.js/.jsx/.ts/.tsx/.vue/.py/.java/.go` 等文件中搜索硬编码字符串\n- 排除：变量名、URL、正则表达式、import 路径、日志调试信息\n- 标记：用户可见的 UI 文本、错误提示、通知消息\n\n### 3. 语言文件生成\n根据项目框架生成对应格式：\n- **JSON** (i18next/react-intl): `{ \"key\": \"value\" }`\n- **YAML** (vue-i18n): `key: value`\n- **PO/POT** (gettext): 标准格式\n- **Properties** (Java): `key=value`\n\n### 4. 代码替换\n- 将硬编码文本替换为 i18n 函数调用\n- 保持原有格式和变量插值\n- 示例：\n  ```javascript\n  // 替换前\n  alert('保存成功');\n  // 替换后\n  alert(t('alert.saveSuccess'));\n  ```\n\n### 5. 完整性检查\n- 对比主语言文件与翻译文件的 key 差异\n- 输出缺失翻译的 key 列表\n- 统计翻译完成度百分比\n\n## 输出格式\n```markdown\n## 📊 i18n 扫描报告\n\n### 硬编码文本\n| 文件 | 行号 | 内容 | 建议 key |\n|------|------|------|----------|\n| src/App.tsx | 42 | '欢迎使用' | page.welcome |\n\n### 语言文件\n已生成 `locales/zh-CN.json` 和 `locales/en-US.json`\n\n### 翻译完整性\n- zh-CN: 45/45 (100%) ✅\n- en-US: 42/45 (93.3%) ⚠️ 缺少 3 个 key\n```\n\n## 支持的 i18n 框架\n- react-intl / FormatJS\n- vue-i18n\n- i18next / react-i18next / next-i18next\n- Angular @ngx-translate\n- Python gettext / Flask-Babel\n- Java ResourceBundle / Spring MessageSource\n- Go go-i18n\n\n## 注意事项\n- 不要翻译技术术语（API、SDK、HTTP 等）\n- 保留变量占位符 `{name}` `{{count}}` `%s` 等格式\n- 复数形式和性别变体需要特殊处理\n- 日期、数字、货币格式需使用 locale 感知的格式化函数\n\n</skill>",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Context condition: clean\n\nRead the React project and public i18n-contract.json. Modify only the declared source file, create exactly the declared i18next files and report, and leave protected files unchanged. Extract every confirmed data-i18n-key text, replace it with react-i18next t() usage, preserve interpolation identifiers, and keep both locale key sets complete. Do not install packages, run the network, or create other files. The JSON report must satisfy the public outputAbi exactly, including locale-keyed missing-key arrays."
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: list_directory]"
+    },
+    {
+      "role": "user",
+      "content": "[dir] .skvm\n[file] i18n-contract.json\n[file] LICENSE.upstream\n[file] package.json\n[dir] src\n[file] tsconfig.json"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: read_file, list_directory, read_file]"
+    },
+    {
+      "role": "user",
+      "content": "{\"schemaVersion\":\"skill-ir-i18n-helper-public-contract/v3\",\"contractId\":\"i18n-helper-react-i18next-v3\",\"framework\":\"react-i18next\",\"allowedModifiedFiles\":[\"src/App.tsx\"],\"requiredNewFiles\":[\"src/i18n.ts\",\"src/locales/zh-CN.json\",\"src/locales/en-US.json\",\"i18n-report.json\"],\"protectedFiles\":[\"package.json\",\"tsconfig.json\",\"i18n-contract.json\"],\"confirmedTextRule\":\"A JSX child or string-valued user-visible attribute is confirmed only when its opening element declares data-i18n-key with a nonempty dot-separated key.\",\"keyRule\":\"Use the exact data-i18n-key value as the locale key and t() argument.\",\"interpolationRule\":\"Convert JSX expressions inside confirmed text to named i18next interpolation placeholders and pass the same identifiers to t().\",\"excludedTextClasses\":[\"import-path\",\"url\",\"technical-term\",\"test-selector\",\"debug-log\"],\"report\":{\"path\":\"i18n-report.json\",\"requiredFields\":[\"framework\",\"scannedFiles\",\"extractedKeys\",\"missingKeys\"]},\"outputAbi\":{\"schemaVersion\":\"skill-ir-public-output-abi/v2\",\"additionalProperties\":false,\"fields\":{\"framework\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false,\"enum\":[\"react-i18next\"]}},\"scannedFiles\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"ordered\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"extractedKeys\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"missingKeys\":{\"required\":true,\"schema\":{\"type\":\"object\",\"nullable\":false,\"additionalProperties\":false,\"fields\":{\"zh-CN\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"en-US\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}}}}}}}}\n---\n[file] App.tsx\n---\n{\"name\":\"i18n-basic\",\"private\":true,\"dependencies\":{\"i18next\":\"^23.0.0\",\"react\":\"^18.0.0\",\"react-i18next\":\"^14.0.0\"}}\n"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: read_file]"
+    },
+    {
+      "role": "user",
+      "content": "export function App() {\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">欢迎使用</h1><button data-i18n-key=\"home.save\">保存</button></main>;\n}\n"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: write_file, write_file, write_file, write_file, write_file]"
+    },
+    {
+      "role": "user",
+      "content": "File written: src/App.tsx\n---\nFile written: src/i18n.ts\n---\nFile written: src/locales/zh-CN.json\n---\nFile written: src/locales/en-US.json\n---\nFile written: i18n-report.json"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: read_file, read_file, read_file, read_file, read_file, list_directory]"
+    },
+    {
+      "role": "user",
+      "content": "import { useTranslation } from 'react-i18next';\nimport './i18n';\n\nexport function App() {\n  const { t } = useTranslation();\n\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">{t('home.welcome')}</h1><button data-i18n-key=\"home.save\">{t('home.save')}</button></main>;\n}\n\n---\nimport i18n from 'i18next';\nimport { initReactI18next } from 'react-i18next';\nimport enUS from './locales/en-US.json';\nimport zhCN from './locales/zh-CN.json';\n\ni18n.use(initReactI18next).init({\n  resources: {\n    'zh-CN': { translation: zhCN },\n    'en-US': { translation: enUS },\n  },\n  lng: 'zh-CN',\n  fallbackLng: 'en-US',\n  interpolation: {\n    escapeValue: false,\n  },\n});\n\nexport default i18n;\n\n---\n{\n  \"home.welcome\": \"欢迎使用\",\n  \"home.save\": \"保存\"\n}\n\n---\n{\n  \"home.welcome\": \"Welcome\",\n  \"home.save\": \"Save\"\n}\n\n---\n{\n  \"framework\": \"react-i18next\",\n  \"scannedFiles\": [\"src/App.tsx\"],\n  \"extractedKeys\": [\"home.welcome\", \"home.save\"],\n  \"missingKeys\": {\n    \"zh-CN\": [],\n    \"en-US\": []\n  }\n}\n\n---\n[file] App.tsx\n[file] i18n.ts\n[dir] locales"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: execute_command]"
+    },
+    {
+      "role": "user",
+      "content": "Error: Error: ENOENT: no such file or directory, uv_spawn 'sh'"
+    }
+  ],
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read the contents of a file at the given path relative to the working directory."
+    },
+    {
+      "name": "write_file",
+      "description": "Write content to a file at the given path relative to the working directory. Creates directories as needed. You MUST read_file first before writing (unless creating a new file)."
+    },
+    {
+      "name": "execute_command",
+      "description": "Execute a shell command in the working directory. Returns stdout, stderr, and exit code."
+    },
+    {
+      "name": "list_directory",
+      "description": "List files and directories at the given path relative to the working directory."
+    },
+    {
+      "name": "web_fetch",
+      "description": "Fetch a URL and return the response body. Supports GET and POST."
+    }
+  ],
+  "maxTokens": 16384,
+  "toolResults": [
+    {
+      "toolCallId": "call_megmItCSq12EI4NTUuldPkRo",
+      "content": "import { useTranslation } from 'react-i18next';\nimport './i18n';\n\nexport function App() {\n  const { t } = useTranslation();\n\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">{t('home.welcome')}</h1><button data-i18n-key=\"home.save\">{t('home.save')}</button></main>;\n}\n"
+    },
+    {
+      "toolCallId": "call_tkJvtrfvoGKMMPiV1hwCfwSp",
+      "content": "import i18n from 'i18next';\nimport { initReactI18next } from 'react-i18next';\nimport enUS from './locales/en-US.json';\nimport zhCN from './locales/zh-CN.json';\n\ni18n.use(initReactI18next).init({\n  resources: {\n    'zh-CN': { translation: zhCN },\n    'en-US': { translation: enUS },\n  },\n  lng: 'zh-CN',\n  fallbackLng: 'en-US',\n  interpolation: {\n    escapeValue: false,\n  },\n});\n\nexport default i18n;\n"
+    },
+    {
+      "toolCallId": "call_wjhVG6Ry2JBcIK3S8wBNxcxT",
+      "content": "{\n  \"home.welcome\": \"欢迎使用\",\n  \"home.save\": \"保存\"\n}\n"
+    },
+    {
+      "toolCallId": "call_hgI7No4QNkoulh6dubM4iw9P",
+      "content": "{\n  \"home.welcome\": \"Welcome\",\n  \"home.save\": \"Save\"\n}\n"
+    },
+    {
+      "toolCallId": "call_iDfufcleZuuU0BcbWV7pJCzF",
+      "content": "{\n  \"framework\": \"react-i18next\",\n  \"scannedFiles\": [\"src/App.tsx\"],\n  \"extractedKeys\": [\"home.welcome\", \"home.save\"],\n  \"missingKeys\": {\n    \"zh-CN\": [],\n    \"en-US\": []\n  }\n}\n"
+    },
+    {
+      "toolCallId": "call_bnva1nLIAAQW22cjqqAHAgRe",
+      "content": "[dir] .skvm\n[file] i18n-contract.json\n[file] i18n-report.json\n[file] LICENSE.upstream\n[file] package.json\n[dir] src\n[file] tsconfig.json"
+    },
+    {
+      "toolCallId": "call_qw0EpIUtT8E42jwf50ysLTJs",
+      "content": "[file] App.tsx\n[file] i18n.ts\n[dir] locales"
+    }
+  ]
+}
+```
+### [16] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T19:01:05.548Z",
+  "text": "已完成并核验：\n\n- 仅修改 `src/App.tsx`\n- 已创建且仅创建声明的文件：\n  - `src/i18n.ts`\n  - `src/locales/zh-CN.json`\n  - `src/locales/en-US.json`\n  - `i18n-report.json`\n- 已保留 `console.debug('HTTP')` 不变\n- 已将确认的文本替换为 `react-i18next` 的 `t()`：\n  - `home.welcome`\n  - `home.save`\n- 两个 locale 文件的 key 集合完整一致\n- `i18n-report.json` 符合声明的 `outputAbi`\n- 未安装依赖、未访问网络、未运行 shell 命令\n- 受保护文件保持未修改",
+  "toolCalls": [],
+  "tokens": {
+    "input": 630,
+    "output": 258,
+    "cacheRead": 2560,
+    "cacheWrite": 0
+  },
+  "durationMs": 45244.09780000002,
+  "stopReason": "end_turn"
+}
+```
+### [17] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T18:57:06.897Z",
+  "toolCalls": [
+    {
+      "id": "call_lqTSWWWmwDPjQNUIWJR5YRKc",
+      "name": "list_directory",
+      "input": {
+        "path": "."
+      }
+    }
+  ],
+  "sourceLocator": "run-result:steps"
+}
+```
+### [18] tool
+```json
+{
+  "type": "tool",
+  "ts": "2026-09-13T18:57:06.899Z",
+  "toolCalls": [
+    {
+      "id": "call_lqTSWWWmwDPjQNUIWJR5YRKc",
+      "name": "list_directory",
+      "input": {
+        "path": "."
+      },
+      "output": "[dir] .skvm\n[file] i18n-contract.json\n[file] LICENSE.upstream\n[file] package.json\n[dir] src\n[file] tsconfig.json",
+      "durationMs": 0.24840000000040163
+    }
+  ],
+  "sourceLocator": "run-result:steps"
+}
+```
+### [19] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T18:57:45.279Z",
+  "toolCalls": [
+    {
+      "id": "call_G1aQtPfTdqkbUGvzLTC40xZZ",
+      "name": "read_file",
+      "input": {
+        "path": "i18n-contract.json"
+      }
+    },
+    {
+      "id": "call_uewNnyF8N2xQlNJQU2NPrzaT",
+      "name": "list_directory",
+      "input": {
+        "path": "src"
+      }
+    },
+    {
+      "id": "call_ca74yr75fjKgAVanP4QODQzW",
+      "name": "read_file",
+      "input": {
+        "path": "package.json"
+      }
+    }
+  ],
+  "sourceLocator": "run-result:steps"
+}
+```
+### [20] tool
+```json
+{
+  "type": "tool",
+  "ts": "2026-09-13T18:57:45.280Z",
+  "toolCalls": [
+    {
+      "id": "call_G1aQtPfTdqkbUGvzLTC40xZZ",
+      "name": "read_file",
+      "input": {
+        "path": "i18n-contract.json"
+      },
+      "output": "{\"schemaVersion\":\"skill-ir-i18n-helper-public-contract/v3\",\"contractId\":\"i18n-helper-react-i18next-v3\",\"framework\":\"react-i18next\",\"allowedModifiedFiles\":[\"src/App.tsx\"],\"requiredNewFiles\":[\"src/i18n.ts\",\"src/locales/zh-CN.json\",\"src/locales/en-US.json\",\"i18n-report.json\"],\"protectedFiles\":[\"package.json\",\"tsconfig.json\",\"i18n-contract.json\"],\"confirmedTextRule\":\"A JSX child or string-valued user-visible attribute is confirmed only when its opening element declares data-i18n-key with a nonempty dot-separated key.\",\"keyRule\":\"Use the exact data-i18n-key value as the locale key and t() argument.\",\"interpolationRule\":\"Convert JSX expressions inside confirmed text to named i18next interpolation placeholders and pass the same identifiers to t().\",\"excludedTextClasses\":[\"import-path\",\"url\",\"technical-term\",\"test-selector\",\"debug-log\"],\"report\":{\"path\":\"i18n-report.json\",\"requiredFields\":[\"framework\",\"scannedFiles\",\"extractedKeys\",\"missingKeys\"]},\"outputAbi\":{\"schemaVersion\":\"skill-ir-public-output-abi/v2\",\"additionalProperties\":false,\"fields\":{\"framework\":{\"required\":true,\"schema\":{\"type\":\"string\",\"nullable\":false,\"enum\":[\"react-i18next\"]}},\"scannedFiles\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"ordered\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"extractedKeys\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"missingKeys\":{\"required\":true,\"schema\":{\"type\":\"object\",\"nullable\":false,\"additionalProperties\":false,\"fields\":{\"zh-CN\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}},\"en-US\":{\"required\":true,\"schema\":{\"type\":\"array\",\"nullable\":false,\"order\":\"set-like\",\"duplicates\":\"forbid\",\"items\":{\"type\":\"string\",\"nullable\":false}}}}}}}}}",
+      "durationMs": 0.3778000000020256
+    },
+    {
+      "id": "call_uewNnyF8N2xQlNJQU2NPrzaT",
+      "name": "list_directory",
+      "input": {
+        "path": "src"
+      },
+      "output": "[file] App.tsx",
+      "durationMs": 0.15939999999682186
+    },
+    {
+      "id": "call_ca74yr75fjKgAVanP4QODQzW",
+      "name": "read_file",
+      "input": {
+        "path": "package.json"
+      },
+      "output": "{\"name\":\"i18n-basic\",\"private\":true,\"dependencies\":{\"i18next\":\"^23.0.0\",\"react\":\"^18.0.0\",\"react-i18next\":\"^14.0.0\"}}\n",
+      "durationMs": 0.20610000000306172
+    }
+  ],
+  "sourceLocator": "run-result:steps"
+}
+```
+### [21] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T18:58:07.299Z",
+  "toolCalls": [
+    {
+      "id": "call_ODr4Yq8jROLeU2Uo5lfczKrJ",
+      "name": "read_file",
+      "input": {
+        "path": "src/App.tsx"
+      }
+    }
+  ],
+  "sourceLocator": "run-result:steps"
+}
+```
+### [22] tool
+```json
+{
+  "type": "tool",
+  "ts": "2026-09-13T18:58:07.300Z",
+  "toolCalls": [
+    {
+      "id": "call_ODr4Yq8jROLeU2Uo5lfczKrJ",
+      "name": "read_file",
+      "input": {
+        "path": "src/App.tsx"
+      },
+      "output": "export function App() {\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">欢迎使用</h1><button data-i18n-key=\"home.save\">保存</button></main>;\n}\n",
+      "durationMs": 0.2603999999992084
+    }
+  ],
+  "sourceLocator": "run-result:steps"
+}
+```
+### [23] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T18:58:38.391Z",
+  "toolCalls": [
+    {
+      "id": "call_zQr8ZMnMXQojkHO2jVMheuBA",
+      "name": "write_file",
+      "input": {
+        "path": "src/App.tsx",
+        "content": "import { useTranslation } from 'react-i18next';\nimport './i18n';\n\nexport function App() {\n  const { t } = useTranslation();\n\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">{t('home.welcome')}</h1><button data-i18n-key=\"home.save\">{t('home.save')}</button></main>;\n}\n"
+      }
+    },
+    {
+      "id": "call_rrTeIpQJpfjyLg65bFUnqft6",
+      "name": "write_file",
+      "input": {
+        "path": "src/i18n.ts",
+        "content": "import i18n from 'i18next';\nimport { initReactI18next } from 'react-i18next';\nimport enUS from './locales/en-US.json';\nimport zhCN from './locales/zh-CN.json';\n\ni18n.use(initReactI18next).init({\n  resources: {\n    'zh-CN': { translation: zhCN },\n    'en-US': { translation: enUS },\n  },\n  lng: 'zh-CN',\n  fallbackLng: 'en-US',\n  interpolation: {\n    escapeValue: false,\n  },\n});\n\nexport default i18n;\n"
+      }
+    },
+    {
+      "id": "call_GD9g4Hxz2nNBJcXbMubK9gGb",
+      "name": "write_file",
+      "input": {
+        "path": "src/locales/zh-CN.json",
+        "content": "{\n  \"home.welcome\": \"欢迎使用\",\n  \"home.save\": \"保存\"\n}\n"
+      }
+    },
+    {
+      "id": "call_TFvUNVuxWn6BA80kjYZ7IAXk",
+      "name": "write_file",
+      "input": {
+        "path": "src/locales/en-US.json",
+        "content": "{\n  \"home.welcome\": \"Welcome\",\n  \"home.save\": \"Save\"\n}\n"
+      }
+    },
+    {
+      "id": "call_McOuBdvvQIuiLxj2nOXh4tuk",
+      "name": "write_file",
+      "input": {
+        "path": "i18n-report.json",
+        "content": "{\n  \"framework\": \"react-i18next\",\n  \"scannedFiles\": [\"src/App.tsx\"],\n  \"extractedKeys\": [\"home.welcome\", \"home.save\"],\n  \"missingKeys\": {\n    \"zh-CN\": [],\n    \"en-US\": []\n  }\n}\n"
+      }
+    }
+  ],
+  "sourceLocator": "run-result:steps"
+}
+```
+### [24] tool
+```json
+{
+  "type": "tool",
+  "ts": "2026-09-13T18:58:38.393Z",
+  "toolCalls": [
+    {
+      "id": "call_zQr8ZMnMXQojkHO2jVMheuBA",
+      "name": "write_file",
+      "input": {
+        "path": "src/App.tsx",
+        "content": "import { useTranslation } from 'react-i18next';\nimport './i18n';\n\nexport function App() {\n  const { t } = useTranslation();\n\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">{t('home.welcome')}</h1><button data-i18n-key=\"home.save\">{t('home.save')}</button></main>;\n}\n"
+      },
+      "output": "File written: src/App.tsx",
+      "durationMs": 0.6665000000066357
+    },
+    {
+      "id": "call_rrTeIpQJpfjyLg65bFUnqft6",
+      "name": "write_file",
+      "input": {
+        "path": "src/i18n.ts",
+        "content": "import i18n from 'i18next';\nimport { initReactI18next } from 'react-i18next';\nimport enUS from './locales/en-US.json';\nimport zhCN from './locales/zh-CN.json';\n\ni18n.use(initReactI18next).init({\n  resources: {\n    'zh-CN': { translation: zhCN },\n    'en-US': { translation: enUS },\n  },\n  lng: 'zh-CN',\n  fallbackLng: 'en-US',\n  interpolation: {\n    escapeValue: false,\n  },\n});\n\nexport default i18n;\n"
+      },
+      "output": "File written: src/i18n.ts",
+      "durationMs": 0.7378000000026077
+    },
+    {
+      "id": "call_GD9g4Hxz2nNBJcXbMubK9gGb",
+      "name": "write_file",
+      "input": {
+        "path": "src/locales/zh-CN.json",
+        "content": "{\n  \"home.welcome\": \"欢迎使用\",\n  \"home.save\": \"保存\"\n}\n"
+      },
+      "output": "File written: src/locales/zh-CN.json",
+      "durationMs": 0.9180000000051223
+    },
+    {
+      "id": "call_TFvUNVuxWn6BA80kjYZ7IAXk",
+      "name": "write_file",
+      "input": {
+        "path": "src/locales/en-US.json",
+        "content": "{\n  \"home.welcome\": \"Welcome\",\n  \"home.save\": \"Save\"\n}\n"
+      },
+      "output": "File written: src/locales/en-US.json",
+      "durationMs": 0.9108999999880325
+    },
+    {
+      "id": "call_McOuBdvvQIuiLxj2nOXh4tuk",
+      "name": "write_file",
+      "input": {
+        "path": "i18n-report.json",
+        "content": "{\n  \"framework\": \"react-i18next\",\n  \"scannedFiles\": [\"src/App.tsx\"],\n  \"extractedKeys\": [\"home.welcome\", \"home.save\"],\n  \"missingKeys\": {\n    \"zh-CN\": [],\n    \"en-US\": []\n  }\n}\n"
+      },
+      "output": "File written: i18n-report.json",
+      "durationMs": 0.540900000007241
+    }
+  ],
+  "sourceLocator": "run-result:steps"
+}
+```
+### [25] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T18:58:56.088Z",
+  "toolCalls": [
+    {
+      "id": "call_JXiroxsA1ZLzG0T4q9rhtnfP",
+      "name": "read_file",
+      "input": {
+        "path": "src/App.tsx"
+      }
+    },
+    {
+      "id": "call_zA7L3afEOQNFZdiJX4Qz69ls",
+      "name": "read_file",
+      "input": {
+        "path": "src/i18n.ts"
+      }
+    },
+    {
+      "id": "call_H2DGgZu4fUTh5yTmaHoMhYGH",
+      "name": "read_file",
+      "input": {
+        "path": "src/locales/zh-CN.json"
+      }
+    },
+    {
+      "id": "call_W04S518LxXLsUecSV3gWXdim",
+      "name": "read_file",
+      "input": {
+        "path": "src/locales/en-US.json"
+      }
+    },
+    {
+      "id": "call_JBGBa06zWGYfWbbMaDv6uMbt",
+      "name": "read_file",
+      "input": {
+        "path": "i18n-report.json"
+      }
+    },
+    {
+      "id": "call_ww8hI65Cyeex2llhWvGWMx5H",
+      "name": "list_directory",
+      "input": {
+        "path": "src"
+      }
+    }
+  ],
+  "sourceLocator": "run-result:steps"
+}
+```
+### [26] tool
+```json
+{
+  "type": "tool",
+  "ts": "2026-09-13T18:58:56.090Z",
+  "toolCalls": [
+    {
+      "id": "call_JXiroxsA1ZLzG0T4q9rhtnfP",
+      "name": "read_file",
+      "input": {
+        "path": "src/App.tsx"
+      },
+      "output": "import { useTranslation } from 'react-i18next';\nimport './i18n';\n\nexport function App() {\n  const { t } = useTranslation();\n\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">{t('home.welcome')}</h1><button data-i18n-key=\"home.save\">{t('home.save')}</button></main>;\n}\n",
+      "durationMs": 0.47890000000188593
+    },
+    {
+      "id": "call_zA7L3afEOQNFZdiJX4Qz69ls",
+      "name": "read_file",
+      "input": {
+        "path": "src/i18n.ts"
+      },
+      "output": "import i18n from 'i18next';\nimport { initReactI18next } from 'react-i18next';\nimport enUS from './locales/en-US.json';\nimport zhCN from './locales/zh-CN.json';\n\ni18n.use(initReactI18next).init({\n  resources: {\n    'zh-CN': { translation: zhCN },\n    'en-US': { translation: enUS },\n  },\n  lng: 'zh-CN',\n  fallbackLng: 'en-US',\n  interpolation: {\n    escapeValue: false,\n  },\n});\n\nexport default i18n;\n",
+      "durationMs": 0.418100000009872
+    },
+    {
+      "id": "call_H2DGgZu4fUTh5yTmaHoMhYGH",
+      "name": "read_file",
+      "input": {
+        "path": "src/locales/zh-CN.json"
+      },
+      "output": "{\n  \"home.welcome\": \"欢迎使用\",\n  \"home.save\": \"保存\"\n}\n",
+      "durationMs": 0.3139999999984866
+    },
+    {
+      "id": "call_W04S518LxXLsUecSV3gWXdim",
+      "name": "read_file",
+      "input": {
+        "path": "src/locales/en-US.json"
+      },
+      "output": "{\n  \"home.welcome\": \"Welcome\",\n  \"home.save\": \"Save\"\n}\n",
+      "durationMs": 0.2789000000047963
+    },
+    {
+      "id": "call_JBGBa06zWGYfWbbMaDv6uMbt",
+      "name": "read_file",
+      "input": {
+        "path": "i18n-report.json"
+      },
+      "output": "{\n  \"framework\": \"react-i18next\",\n  \"scannedFiles\": [\"src/App.tsx\"],\n  \"extractedKeys\": [\"home.welcome\", \"home.save\"],\n  \"missingKeys\": {\n    \"zh-CN\": [],\n    \"en-US\": []\n  }\n}\n",
+      "durationMs": 0.2592000000004191
+    },
+    {
+      "id": "call_ww8hI65Cyeex2llhWvGWMx5H",
+      "name": "list_directory",
+      "input": {
+        "path": "src"
+      },
+      "output": "[file] App.tsx\n[file] i18n.ts\n[dir] locales",
+      "durationMs": 0.12010000000009313
+    }
+  ],
+  "sourceLocator": "run-result:steps"
+}
+```
+### [27] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T18:59:21.279Z",
+  "toolCalls": [
+    {
+      "id": "call_xv5vCCVTcu3eRypoxcF7wAvo",
+      "name": "execute_command",
+      "input": {
+        "command": "git diff -- src/App.tsx src/i18n.ts src/locales/zh-CN.json src/locales/en-US.json i18n-report.json package.json tsconfig.json i18n-contract.json && printf '\\n-- untracked --\\n' && git status --short --untracked-files=all"
+      }
+    }
+  ],
+  "sourceLocator": "run-result:steps"
+}
+```
+### [28] tool
+```json
+{
+  "type": "tool",
+  "ts": "2026-09-13T18:59:21.283Z",
+  "toolCalls": [
+    {
+      "id": "call_xv5vCCVTcu3eRypoxcF7wAvo",
+      "name": "execute_command",
+      "input": {
+        "command": "git diff -- src/App.tsx src/i18n.ts src/locales/zh-CN.json src/locales/en-US.json i18n-report.json package.json tsconfig.json i18n-contract.json && printf '\\n-- untracked --\\n' && git status --short --untracked-files=all"
+      },
+      "output": "Error: Error: ENOENT: no such file or directory, uv_spawn 'sh'",
+      "durationMs": 2.9349999999976717
+    }
+  ],
+  "sourceLocator": "run-result:steps"
+}
+```
+### [29] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T19:00:20.301Z",
+  "toolCalls": [
+    {
+      "id": "call_megmItCSq12EI4NTUuldPkRo",
+      "name": "read_file",
+      "input": {
+        "path": "src/App.tsx"
+      }
+    },
+    {
+      "id": "call_tkJvtrfvoGKMMPiV1hwCfwSp",
+      "name": "read_file",
+      "input": {
+        "path": "src/i18n.ts"
+      }
+    },
+    {
+      "id": "call_wjhVG6Ry2JBcIK3S8wBNxcxT",
+      "name": "read_file",
+      "input": {
+        "path": "src/locales/zh-CN.json"
+      }
+    },
+    {
+      "id": "call_hgI7No4QNkoulh6dubM4iw9P",
+      "name": "read_file",
+      "input": {
+        "path": "src/locales/en-US.json"
+      }
+    },
+    {
+      "id": "call_iDfufcleZuuU0BcbWV7pJCzF",
+      "name": "read_file",
+      "input": {
+        "path": "i18n-report.json"
+      }
+    },
+    {
+      "id": "call_bnva1nLIAAQW22cjqqAHAgRe",
+      "name": "list_directory",
+      "input": {
+        "path": "."
+      }
+    },
+    {
+      "id": "call_qw0EpIUtT8E42jwf50ysLTJs",
+      "name": "list_directory",
+      "input": {
+        "path": "src"
+      }
+    }
+  ],
+  "sourceLocator": "run-result:steps"
+}
+```
+### [30] tool
+```json
+{
+  "type": "tool",
+  "ts": "2026-09-13T19:00:20.303Z",
+  "toolCalls": [
+    {
+      "id": "call_megmItCSq12EI4NTUuldPkRo",
+      "name": "read_file",
+      "input": {
+        "path": "src/App.tsx"
+      },
+      "output": "import { useTranslation } from 'react-i18next';\nimport './i18n';\n\nexport function App() {\n  const { t } = useTranslation();\n\n  console.debug('HTTP');\n  return <main><h1 data-i18n-key=\"home.welcome\">{t('home.welcome')}</h1><button data-i18n-key=\"home.save\">{t('home.save')}</button></main>;\n}\n",
+      "durationMs": 0.5270000000018626
+    },
+    {
+      "id": "call_tkJvtrfvoGKMMPiV1hwCfwSp",
+      "name": "read_file",
+      "input": {
+        "path": "src/i18n.ts"
+      },
+      "output": "import i18n from 'i18next';\nimport { initReactI18next } from 'react-i18next';\nimport enUS from './locales/en-US.json';\nimport zhCN from './locales/zh-CN.json';\n\ni18n.use(initReactI18next).init({\n  resources: {\n    'zh-CN': { translation: zhCN },\n    'en-US': { translation: enUS },\n  },\n  lng: 'zh-CN',\n  fallbackLng: 'en-US',\n  interpolation: {\n    escapeValue: false,\n  },\n});\n\nexport default i18n;\n",
+      "durationMs": 0.35440000001108274
+    },
+    {
+      "id": "call_wjhVG6Ry2JBcIK3S8wBNxcxT",
+      "name": "read_file",
+      "input": {
+        "path": "src/locales/zh-CN.json"
+      },
+      "output": "{\n  \"home.welcome\": \"欢迎使用\",\n  \"home.save\": \"保存\"\n}\n",
+      "durationMs": 0.2978999999759253
+    },
+    {
+      "id": "call_hgI7No4QNkoulh6dubM4iw9P",
+      "name": "read_file",
+      "input": {
+        "path": "src/locales/en-US.json"
+      },
+      "output": "{\n  \"home.welcome\": \"Welcome\",\n  \"home.save\": \"Save\"\n}\n",
+      "durationMs": 0.2920999999914784
+    },
+    {
+      "id": "call_iDfufcleZuuU0BcbWV7pJCzF",
+      "name": "read_file",
+      "input": {
+        "path": "i18n-report.json"
+      },
+      "output": "{\n  \"framework\": \"react-i18next\",\n  \"scannedFiles\": [\"src/App.tsx\"],\n  \"extractedKeys\": [\"home.welcome\", \"home.save\"],\n  \"missingKeys\": {\n    \"zh-CN\": [],\n    \"en-US\": []\n  }\n}\n",
+      "durationMs": 0.26139999998849817
+    },
+    {
+      "id": "call_bnva1nLIAAQW22cjqqAHAgRe",
+      "name": "list_directory",
+      "input": {
+        "path": "."
+      },
+      "output": "[dir] .skvm\n[file] i18n-contract.json\n[file] i18n-report.json\n[file] LICENSE.upstream\n[file] package.json\n[dir] src\n[file] tsconfig.json",
+      "durationMs": 0.30270000000018626
+    },
+    {
+      "id": "call_qw0EpIUtT8E42jwf50ysLTJs",
+      "name": "list_directory",
+      "input": {
+        "path": "src"
+      },
+      "output": "[file] App.tsx\n[file] i18n.ts\n[dir] locales",
+      "durationMs": 0.2201000000059139
+    }
+  ],
+  "sourceLocator": "run-result:steps"
+}
+```
+### [31] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T19:01:05.549Z",
+  "text": "已完成并核验：\n\n- 仅修改 `src/App.tsx`\n- 已创建且仅创建声明的文件：\n  - `src/i18n.ts`\n  - `src/locales/zh-CN.json`\n  - `src/locales/en-US.json`\n  - `i18n-report.json`\n- 已保留 `console.debug('HTTP')` 不变\n- 已将确认的文本替换为 `react-i18next` 的 `t()`：\n  - `home.welcome`\n  - `home.save`\n- 两个 locale 文件的 key 集合完整一致\n- `i18n-report.json` 符合声明的 `outputAbi`\n- 未安装依赖、未访问网络、未运行 shell 命令\n- 受保护文件保持未修改",
+  "sourceLocator": "run-result:steps"
+}
+```
+### [32] response
+```json
+{
+  "type": "response",
+  "ts": "2026-09-13T19:01:05.560Z",
+  "text": "已完成并核验：\n\n- 仅修改 `src/App.tsx`\n- 已创建且仅创建声明的文件：\n  - `src/i18n.ts`\n  - `src/locales/zh-CN.json`\n  - `src/locales/en-US.json`\n  - `i18n-report.json`\n- 已保留 `console.debug('HTTP')` 不变\n- 已将确认的文本替换为 `react-i18next` 的 `t()`：\n  - `home.welcome`\n  - `home.save`\n- 两个 locale 文件的 key 集合完整一致\n- `i18n-report.json` 符合声明的 `outputAbi`\n- 未安装依赖、未访问网络、未运行 shell 命令\n- 受保护文件保持未修改",
+  "sourceLocator": "run-result:text"
+}
+```
+
+## Work Directory (5 files)
+
+Files are available under `.optimize/tasks/i18n-helper-v3-react-basic-dev-001-clean/run-0-workdir/`. Small files inlined below:
+
+### i18n-report.json
+```
+{
+  "framework": "react-i18next",
+  "scannedFiles": ["src/App.tsx"],
+  "extractedKeys": ["home.welcome", "home.save"],
+  "missingKeys": {
+    "zh-CN": [],
+    "en-US": []
+  }
+}
+
+```
+### src/App.tsx
+```
+import { useTranslation } from 'react-i18next';
+import './i18n';
+
+export function App() {
+  const { t } = useTranslation();
+
+  console.debug('HTTP');
+  return <main><h1 data-i18n-key="home.welcome">{t('home.welcome')}</h1><button data-i18n-key="home.save">{t('home.save')}</button></main>;
+}
+
+```
+### src/i18n.ts
+```
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import enUS from './locales/en-US.json';
+import zhCN from './locales/zh-CN.json';
+
+i18n.use(initReactI18next).init({
+  resources: {
+    'zh-CN': { translation: zhCN },
+    'en-US': { translation: enUS },
+  },
+  lng: 'zh-CN',
+  fallbackLng: 'en-US',
+  interpolation: {
+    escapeValue: false,
+  },
+});
+
+export default i18n;
+
+```
+### src/locales/en-US.json
+```
+{
+  "home.welcome": "Welcome",
+  "home.save": "Save"
+}
+
+```
+### src/locales/zh-CN.json
+```
+{
+  "home.welcome": "欢迎使用",
+  "home.save": "保存"
+}
+
+```

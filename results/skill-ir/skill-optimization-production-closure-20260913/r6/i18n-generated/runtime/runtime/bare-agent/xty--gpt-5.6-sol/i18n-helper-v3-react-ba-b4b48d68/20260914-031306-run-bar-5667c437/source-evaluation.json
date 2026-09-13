@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "skvm-captured-source-evaluation/v1",
+  "results": [
+    {
+      "pass": false,
+      "score": 0,
+      "details": "The workdir delta violates the public i18n contract.",
+      "criterion": {
+        "id": "i18n-v2-delta",
+        "name": "Only declared source modifications and outputs",
+        "weight": 0.2,
+        "method": "custom",
+        "evaluatorId": "skill-ir-i18n-helper-v3",
+        "payload": {
+          "schemaVersion": "skill-ir-i18n-helper-eval/v3",
+          "check": "delta-policy"
+        }
+      }
+    },
+    {
+      "pass": true,
+      "score": 1,
+      "details": "Marker-derived t() calls and the i18next setup are structurally valid.",
+      "criterion": {
+        "id": "i18n-v2-source-transform",
+        "name": "Confirmed hardcoded text is replaced by stable t() calls",
+        "weight": 0.3,
+        "method": "custom",
+        "evaluatorId": "skill-ir-i18n-helper-v3",
+        "payload": {
+          "schemaVersion": "skill-ir-i18n-helper-eval/v3",
+          "check": "source-transform"
+        }
+      }
+    },
+    {
+      "pass": true,
+      "score": 1,
+      "details": "Both locales contain exactly the marker-derived key set.",
+      "criterion": {
+        "id": "i18n-v2-locales",
+        "name": "Locale files contain the complete confirmed key set",
+        "weight": 0.3,
+        "method": "custom",
+        "evaluatorId": "skill-ir-i18n-helper-v3",
+        "payload": {
+          "schemaVersion": "skill-ir-i18n-helper-eval/v3",
+          "check": "locale-integrity"
+        }
+      }
+    },
+    {
+      "pass": true,
+      "score": 1,
+      "details": "Locale placeholders and t() interpolation arguments agree.",
+      "criterion": {
+        "id": "i18n-v2-interpolation",
+        "name": "Confirmed interpolation identifiers are preserved",
+        "weight": 0.1,
+        "method": "custom",
+        "evaluatorId": "skill-ir-i18n-helper-v3",
+        "payload": {
+          "schemaVersion": "skill-ir-i18n-helper-eval/v3",
+          "check": "interpolation"
+        }
+      }
+    },
+    {
+      "pass": true,
+      "score": 1,
+      "details": "The public report matches observable source and locale facts.",
+      "criterion": {
+        "id": "i18n-v2-report",
+        "name": "Public i18n report matches observable facts",
+        "weight": 0.1,
+        "method": "custom",
+        "evaluatorId": "skill-ir-i18n-helper-v3",
+        "payload": {
+          "schemaVersion": "skill-ir-i18n-helper-eval/v3",
+          "check": "report"
+        }
+      }
+    }
+  ],
+  "skipped": [],
+  "errors": []
+}
