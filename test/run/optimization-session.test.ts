@@ -184,4 +184,29 @@ describe("optimization run session binding", () => {
     expect(interrupted.sourceRun).toMatchObject({ status: "interrupted", failureKind: "interrupted" })
     expect(interrupted.handoff.status).toBe("blocked")
   })
+
+  test("a recovery run receives a fresh session and cannot consume a failed run's partial output", async () => {
+    const item = await fixture("recovery")
+    await Bun.write(path.join(item.workDir, "user-input.txt"), "keep me\n")
+    const firstRun = await RunSession.start({ type: "run", tag: "recovery", logDir: item.sessionsRoot })
+    const first = await OptimizationSession.start({
+      runId: firstRun.id, rootDir: item.sessionsRoot, skill: item.skill, task: item.task,
+      workDir: item.workDir, adapter: "bare-agent", model: "test/model",
+    })
+    const failedOutput = path.join(path.dirname(first.manifestPath), "partial-package", "result.txt")
+    await mkdir(path.dirname(failedOutput), { recursive: true })
+    await Bun.write(failedOutput, "unvalidated\n")
+    await first.fail("provider-error", "provider stopped after a partial write")
+
+    const secondRun = await RunSession.start({ type: "run", tag: "recovery", logDir: item.sessionsRoot })
+    const second = await OptimizationSession.start({
+      runId: secondRun.id, rootDir: item.sessionsRoot, skill: item.skill, task: item.task,
+      workDir: item.workDir, adapter: "bare-agent", model: "test/model",
+    })
+
+    expect(path.dirname(second.manifestPath)).not.toBe(path.dirname(first.manifestPath))
+    expect(await Bun.file(path.join(path.dirname(second.manifestPath), "partial-package", "result.txt")).exists()).toBe(false)
+    expect(await Bun.file(path.join(item.workDir, "user-input.txt")).text()).toBe("keep me\n")
+    await second.fail("interrupted", "test cleanup")
+  })
 })

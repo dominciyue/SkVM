@@ -5,7 +5,7 @@ import { getTmpDir } from "../core/config.ts"
 import { BenchTaskFileSchema } from "../bench/types.ts"
 import type { BenchTask } from "../bench/types.ts"
 import { EvalCriterionSchema } from "../core/types.ts"
-import type { AdapterConfig, AgentAdapter, EvalCriterion, RunResult, SkillMode } from "../core/types.ts"
+import type { AdapterConfig, AgentAdapter, EvalCriterion, RunResult, SkillBundle, SkillMode } from "../core/types.ts"
 import { loadSkill as loadSkillFromPath, buildSkillBundle } from "../core/skill-loader.ts"
 import type { ResolvedSkill } from "../core/skill-loader.ts"
 import type { ConversationLog } from "../core/conversation-logger.ts"
@@ -104,12 +104,15 @@ export async function prepareRunWorkspace(
   const workDir = path.resolve(opts.workDir)
   await mkdir(workDir, { recursive: true })
   await copyTaskFixtures(opts.task, workDir)
-  if (opts.skill) {
-    await copySkillBundle(opts.skill, workDir)
-  }
-  return opts.initialWorkdirManifestPath
-    ? writeInitialWorkdirManifest({ workDir, manifestPath: opts.initialWorkdirManifestPath })
+  const initialWorkdirManifest = opts.initialWorkdirManifestPath
+    ? await writeInitialWorkdirManifest({ workDir, manifestPath: opts.initialWorkdirManifestPath })
     : undefined
+  // The pre-run source manifest deliberately precedes skill deployment. It
+  // describes the user's/task's input bytes, not framework-owned resources.
+  // A canonical namespace keeps those resources available even when a legacy
+  // relative path collides with a user file.
+  if (opts.skill) await deploySkillBundle(opts.skill, workDir)
+  return initialWorkdirManifest
 }
 
 export async function executeRun(opts: ExecuteRunOptions): Promise<ExecuteRunResult> {
@@ -134,7 +137,7 @@ export async function executeRun(opts: ExecuteRunOptions): Promise<ExecuteRunRes
     const runResult = await adapter.run({
       prompt: task.prompt,
       workDir,
-      skill: buildSkillBundle(skill, opts.skillMode),
+      skill: buildRunSkillBundle(skill, opts.skillMode),
       taskId: task.id,
       convLog: opts.convLog,
       runtimeTrace: opts.runtimeTrace,
@@ -175,8 +178,48 @@ async function copyTaskFixtures(task: LoadedRunTask, workDir: string): Promise<v
   await copyDirectoryContents(fixturesDir, workDir)
 }
 
-async function copySkillBundle(skill: LoadedSkill, workDir: string): Promise<void> {
-  await copyDirectoryContents(skill.skillDir, workDir, new Set([skill.skillPath]))
+function safeSkillResourceName(skill: LoadedSkill): string {
+  const value = skill.skillId.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/^-+|-+$/g, "")
+  return value && value !== "." && value !== ".." ? value : "skill"
+}
+
+function skillResourceRelativeDir(skill: LoadedSkill): string {
+  return `.skvm/skills/${safeSkillResourceName(skill)}`
+}
+
+function buildRunSkillBundle(
+  skill: LoadedSkill | undefined,
+  mode: SkillMode | undefined,
+): SkillBundle | undefined {
+  const bundle = buildSkillBundle(skill, mode)
+  if (!bundle || !skill) return bundle
+  const resourceRoot = skillResourceRelativeDir(skill)
+  return {
+    ...bundle,
+    content: `<runtime-resource-root>${resourceRoot}</runtime-resource-root>\n` +
+      `Bundled resources for this skill are installed under ${resourceRoot}. ` +
+      "Resolve relative resource paths from that directory; non-conflicting root-level copies are legacy aliases only.\n\n" +
+      bundle.content,
+  }
+}
+
+async function deploySkillBundle(skill: LoadedSkill, workDir: string): Promise<void> {
+  const canonicalDir = path.join(workDir, ...skillResourceRelativeDir(skill).split("/"))
+  await mkdir(canonicalDir, { recursive: true })
+  await copyFile(skill.skillPath, path.join(canonicalDir, "SKILL.md"))
+  for (const relative of skill.bundleFiles) {
+    const source = path.join(skill.skillDir, relative)
+    const canonical = path.join(canonicalDir, relative)
+    await mkdir(path.dirname(canonical), { recursive: true })
+    await copyFile(source, canonical)
+
+    // Retain the historical root-relative lookup only when it is harmless.
+    // Existing user/task bytes are authoritative and are never overwritten.
+    const legacy = path.join(workDir, relative)
+    if (await Bun.file(legacy).exists()) continue
+    await mkdir(path.dirname(legacy), { recursive: true })
+    await copyFile(source, legacy)
+  }
 }
 
 async function copyDirectoryContents(

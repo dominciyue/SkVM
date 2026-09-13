@@ -12,7 +12,7 @@ afterEach(async () => {
   await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })))
 })
 
-test("executeRun captures fixtures and skill resources before adapter setup", async () => {
+test("executeRun captures source inputs before namespaced skill deployment", async () => {
   const root = await mkdtemp(join(tmpdir(), "skvm-execute-manifest-"))
   roots.push(root)
   const taskDir = join(root, "task")
@@ -34,7 +34,8 @@ test("executeRun captures fixtures and skill resources before adapter setup", as
   const adapter: AgentAdapter = {
     name: "bare-agent",
     async setup() {
-      setupObservedManifest = (await readFile(manifestPath, "utf8")).includes("references/guide.md")
+      const content = await readFile(manifestPath, "utf8")
+      setupObservedManifest = content.includes("study.json") && !content.includes("references/guide.md")
     },
     async run() {
       return {
@@ -66,9 +67,6 @@ test("executeRun captures fixtures and skill resources before adapter setup", as
     workDir,
     reference: result.initialWorkdirManifest!,
   })
-  expect(manifest.entries.map((entry) => entry.path)).toEqual([
-    "references",
-    "references/guide.md",
-    "study.json",
-  ])
+  expect(manifest.entries.map((entry) => entry.path)).toEqual(["study.json"])
+  expect(await Bun.file(join(workDir, ".skvm", "skills", "skill", "references", "guide.md")).text()).toBe("guide\n")
 })

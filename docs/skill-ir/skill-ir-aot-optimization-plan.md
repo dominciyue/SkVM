@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-14
 - 路线：H0–H14 + R1–R7，自动采集真实运行的 skill 优化生产链
-- 状态：`active-R1`；H0–H12 已完成，恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
+- 状态：`active-R2`；H0–H12、R1 已完成，恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 3
 - 方法依据：spec 14.31
@@ -39,8 +39,8 @@ H0 启动时的验证接线、待验证依赖和最终包状态缺口已由 H3�
 
 | 新增阶段 | 状态 | 交付与验收 |
 | --- | --- | --- |
-| R1 自动采集 | active | 本次 run/skill/task/trace 唯一关联；异常与不完整状态准确 |
-| R2 自然任务入口 | pending | 正常运行一次后自动优化，无需 task.json/logs/locator |
+| R1 自动采集 | completed | 本次 run/skill/task/trace 唯一关联；输入/skill 资源隔离，异常与不完整状态准确 |
+| R2 自然任务入口 | active | 正常运行一次后自动优化，无需 task.json/logs/locator |
 | R3 无人工评分文件 | pending | 自动利用 source 规则/现成检查，未知与自检不伪装独立正确性 |
 | R4 生成过程改进 | pending | 动作落到程序，输入映射由框架处理，避免无信息反复抽样 |
 | R5 可用与恢复 | pending | 新包易调用、原成果保留、失败有具体下一动作 |

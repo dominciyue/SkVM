@@ -4,6 +4,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import type { AdapterConfig, AgentAdapter, RunResult } from "../../src/core/types.ts"
 import { emptyTokenUsage } from "../../src/core/types.ts"
+import { readInitialWorkdirManifest } from "../../src/core/workdir-manifest.ts"
 import { executeRun, loadRunSkill, loadRunTask } from "../../src/run/index.ts"
 import { OptimizationSession } from "../../src/run/optimization-session.ts"
 import { RunSession } from "../../src/core/run-session.ts"
@@ -67,6 +68,79 @@ describe("run task loading", () => {
 })
 
 describe("executeRun", () => {
+  test("namespaces a colliding skill resource without overwriting the user's original file", async () => {
+    const taskDir = path.join(tempRoot, "collision-task")
+    const skillDir = path.join(tempRoot, "collision-skill")
+    const workDir = path.join(tempRoot, "collision-workdir")
+    const manifestPath = path.join(tempRoot, "collision-initial.json")
+    await mkdir(taskDir, { recursive: true })
+    await mkdir(skillDir, { recursive: true })
+    await mkdir(workDir, { recursive: true })
+    await Bun.write(path.join(taskDir, "task.json"), JSON.stringify({
+      id: "collision-task",
+      prompt: "Inspect the user config with the selected skill",
+      eval: [],
+    }))
+    await Bun.write(path.join(skillDir, "SKILL.md"), "---\nname: collision\ndescription: collision\n---\nUse config.json.\n")
+    await Bun.write(path.join(skillDir, "config.json"), "{\"origin\":\"skill\"}\n")
+    await Bun.write(path.join(workDir, "config.json"), "{\"origin\":\"user\"}\n")
+    const task = await loadRunTask(path.join(taskDir, "task.json"))
+    const skill = await loadRunSkill(skillDir)
+    let sawSeparatedSources = false
+    const adapter: AgentAdapter = {
+      name: "mock-collision",
+      async setup() {},
+      async run(runTask) {
+        const sourceConfig = await Bun.file(path.join(workDir, "config.json")).text()
+        sawSeparatedSources = sourceConfig === "{\"origin\":\"user\"}\n"
+          && await Bun.file(path.join(workDir, ".skvm", "skills", skill.skillId, "config.json")).text() === "{\"origin\":\"skill\"}\n"
+          && Boolean(runTask.skill?.content.includes(`.skvm/skills/${skill.skillId}`))
+        await Bun.write(path.join(workDir, "config.json"), "{\"origin\":\"agent-output\"}\n")
+        return {
+          text: "done",
+          steps: [{
+            role: "tool",
+            timestamp: 1,
+            toolCalls: [{
+              id: "read-config",
+              name: "read_file",
+              input: { path: "config.json" },
+              output: sourceConfig,
+            }],
+          }],
+          tokens: emptyTokenUsage(),
+          cost: 0,
+          durationMs: 1,
+          llmDurationMs: 1,
+          workDir,
+          runStatus: "ok",
+        }
+      },
+      async teardown() {},
+    }
+
+    const result = await executeRun({
+      task,
+      skill,
+      adapter,
+      adapterConfig: { model: "test/model", maxSteps: 1, timeoutMs: 1000 },
+      workDir,
+      initialWorkdirManifestPath: manifestPath,
+    })
+
+    expect(sawSeparatedSources).toBe(true)
+    const initial = await readInitialWorkdirManifest({
+      workDir,
+      reference: result.initialWorkdirManifest!,
+    })
+    expect(initial.entries.find((entry) => entry.path === "config.json")?.sha256).toBe(
+      new Bun.CryptoHasher("sha256").update("{\"origin\":\"user\"}\n").digest("hex"),
+    )
+    expect(initial.entries.some((entry) => entry.path.includes(".skvm"))).toBe(false)
+    expect(result.runResult.steps[0]?.toolCalls?.[0]?.output).toBe("{\"origin\":\"user\"}\n")
+    expect(await Bun.file(path.join(workDir, "config.json")).text()).toBe("{\"origin\":\"agent-output\"}\n")
+  })
+
   test("passes one explicit optimization capture to the selected adapter before it runs", async () => {
     const taskDir = path.join(tempRoot, "capture-task")
     const skillDir = path.join(tempRoot, "capture-skill")

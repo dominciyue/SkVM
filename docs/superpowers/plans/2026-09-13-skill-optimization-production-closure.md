@@ -298,12 +298,14 @@ bun test ./test/jit-optimize/effect.test.ts ./test/jit-optimize/consumption.test
 
 ## H12 — 小规模过程复用检查
 
-- [ ] 从已有已读但未用于本轮代码修改的不同结构成员，或定向补充公开 development 成员，选择一个带明确结构问题的案例。
-- [ ] 不按名称增加分支，不预先给优化器答案程序，通过同一入口运行；记录原始结果、人工配置、额外上下文和是否需要修改核心。
-- [ ] 需要修复时只改共享机制，并回归受影响的前一案例；无需重跑所有付费配对。成员变化是 development 反馈，不标 prospective。
-- [ ] 汇总“代码复用”“程序生成/复用”“自然消费”“任务质量”“观察到的效果”五项，避免包闭包通过掩盖行为缺失。
+- [x] 从已有已读但未用于本轮代码修改的不同结构成员，或定向补充公开 development 成员，选择一个带明确结构问题的案例。
+- [x] 不按名称增加分支，不预先给优化器答案程序，通过同一入口运行；记录原始结果、人工配置、额外上下文和是否需要修改核心。
+- [x] 需要修复时只改共享机制，并回归受影响的前一案例；无需重跑所有付费配对。成员变化是 development 反馈，不标 prospective。
+- [x] 汇总“代码复用”“程序生成/复用”“自然消费”“任务质量”“观察到的效果”五项，避免包闭包通过掩盖行为缺失。
 
 **验收：** 有不同结构成员的真实复用边界与首跑记录；失败不能删除，无须用大规模采样证明才能交付工程。
+
+**实际结果：** 使用已暴露 Env Manager development `line:3`，通过与 H8/H9 相同的普通 log optimizer 入口进行一次 `xty/gpt-5.6-sol` 尝试。源任务质量 3/3；优化器在读取实际 skill、trace 和环境约束后给出有依据的 no-change，未生成程序、提案包、自然消费或效果样本，也未修改核心代码。该负结果说明当前方法不会为不同结构强造程序，不构成优化收益；完整证据见 `results/skill-ir/skill-optimization-production-closure-20260913/h12/report.json`。运行消耗与开发代理分列，provider 实际 USD 因缺价格绑定保持 unknown。
 
 ## Revision 2/3 — 自动采集、固化语义与可用性深化（R1–R7）
 
@@ -371,19 +373,21 @@ H8 已有 I18n 生成程序，H9 已有 Law 脚本复用，H11 的一次 Law 同
 
 **修改：** run/index、run-session、run-record、默认 adapter 和现有事件记录器；新增 optimization-session 的持久化关联。
 
-- [ ] 先测试同一 task 连续两次运行及两个 skill 并行运行：分别拥有不同 run 标识，各自绑定实际加载 skill、task、workdir、adapter/model 和记录文件；不靠日志目录最新文件排序。
-- [ ] 在“运行并优化”路径启用实际 run-scoped 捕获，覆盖已发生的输入、工具调用/返回、结束状态和可见 usage。复用已有事件格式和现有必要摘要，不叠加第二套签名/归档验证器。
-- [ ] 捕获身份在运行前建立，记录完结后交接。正常结束、超时、中断、provider error 与日志写入失败分别保存；源任务成功但日志不可读时保留成果，只阻止依赖缺失记录的自动优化。
-- [ ] 仅绑定用户本次选择的 skill 和任务目录，不收集无关会话、全量环境变量或凭据；trace 本地保存，发给优化模型仅限相关信息并遮蔽可识别秘密。缺失工具事件要如实标部分记录。
-- [ ] 不修改所有其他命令的默认记录语义；`--optimize` 等新入口启用本轮需要的 capture。已有 durable trace 的默认无 IO 测试按旧调用保持有效。
-- [ ] source workdir 中被任务修改/删除的必要输入，在执行前按声明或实际读取机制保留可恢复副本；优先限定相关文件，不能为“自动”复制整个用户目录或把执行后文件误认为原输入。
-- [ ] **V2/V6 回归：** skill 与用户目录都有 `config.json` 时，不覆盖用户原文件；输入原地改写后，验证仍能定位执行前字节。使用明确资源命名空间/现有副本机制，并适配旧 skill 相对路径；不能改目录后破坏其脚本查找。第二次恢复不能将上次失败的候选输出当作原输入，也不清空用户目录。
+- [x] 先测试同一 task 连续两次运行及两个 skill 并行运行：分别拥有不同 run 标识，各自绑定实际加载 skill、task、workdir、adapter/model 和记录文件；不靠日志目录最新文件排序。
+- [x] 在“运行并优化”路径启用实际 run-scoped 捕获，覆盖已发生的输入、工具调用/返回、结束状态和可见 usage。复用已有事件格式和现有必要摘要，不叠加第二套签名/归档验证器。
+- [x] 捕获身份在运行前建立，记录完结后交接。正常结束、超时、中断、provider error 与日志写入失败分别保存；源任务成功但日志不可读时保留成果，只阻止依赖缺失记录的自动优化。
+- [x] 仅绑定用户本次选择的 skill 和任务目录，不收集无关会话、全量环境变量或凭据；trace 本地保存，发给优化模型仅限相关信息并遮蔽可识别秘密。缺失工具事件要如实标部分记录。
+- [x] 不修改所有其他命令的默认记录语义；`--optimize` 等新入口启用本轮需要的 capture。已有 durable trace 的默认无 IO 测试按旧调用保持有效。
+- [x] source workdir 中被任务修改/删除的必要输入，在执行前按声明或实际读取机制保留可恢复副本；优先限定相关文件，不能为“自动”复制整个用户目录或把执行后文件误认为原输入。
+- [x] **V2/V6 回归：** skill 与用户目录都有 `config.json` 时，不覆盖用户原文件；输入原地改写后，验证仍能定位执行前字节。使用明确资源命名空间/现有副本机制，并适配旧 skill 相对路径；不能改目录后破坏其脚本查找。第二次恢复不能将上次失败的候选输出当作原输入，也不清空用户目录。
 
 ```powershell
 bun test ./test/run/optimization-session.test.ts ./test/run/index.test.ts ./src/core/durable-runtime-trace.test.ts
 ```
 
 **验收：** 能从本次 run 直接获得唯一真实 trace，失败/不完整状态不伪造；无手工路径选择，无跨任务串样。
+
+**实际结果：** 新增 run-scoped `OptimizationSession`，在运行前以抗碰撞 run id 绑定所选 skill、物化 task、workdir、adapter/model、skill/task snapshot、执行前输入 manifest、conversation、durable trace 与最终 `RunResult`。同 task 连续运行和两个 skill 并行运行互不串样；正常、provider failure、中断和 trace 缺失均持久化准确终态，源成果不因捕获失败丢失。用户输入先取执行前摘要，skill 资源部署到 `.skvm/skills/<skill-id>`，仅在无冲突时保留旧根目录别名，因此同名 `config.json` 不覆盖；执行后仍可由 manifest 与实际 read 事件定位原字节。每次恢复使用独立 session 目录，失败候选不会进入下一次输入且用户目录不被清空。聚焦回归 23/23、106 assertions 与 typecheck 通过；R2 将把该能力接入 `--optimize` 的普通 CLI。
 
 ## R2 — 自然任务入口与自动优化交接
 

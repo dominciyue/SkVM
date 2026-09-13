@@ -2324,9 +2324,11 @@ action-local validation、普通 source/优化包自然消费、Pi 分层计数�
 未打包该文件，随后提示合同通过 TDD 明确排除。既有 API solidifier 与 v2 artifact 回归通过；历史候选冻结的额外测试仍会在当前
 Windows LF 工作文件与 `core.autocrlf` filter 的 CRLF checkout bytes 不同时拒绝 `package.json`，本轮不修改旧冻结链或摘要。
 
-### 14.31 优化生产链闭合与可执行程序交付（2026-09-13，active-H12）
+### 14.31 优化生产链闭合与可执行程序交付（2026-09-13，active-R2）
 
 **代码审查修订，revision 3（2026-09-14，active-R1）：** H0–H12 已完成，继续已有 R 队列。审查真实运行了一个仅 `process.exit(0)` 的程序：task-contract case 引用旧 passed criterion 且无输出断言，lifecycle 仍返回 passed/retained、independentCaseRuns=1、outputFiles=[]。这说明来源绑定不能替代对新输出执行语义断言；R3 必须修复，缺断言只支持执行状态或窄存在性主张，不强制整个 skill 停止优化。旧 H8/H9 另有独立变化输入与故障检查，保留原结果，不因框架漏洞猜测全部程序错误。
+
+**R1 实际实现（2026-09-14，completed）：** 普通 run 现在可在任务开始前建立唯一 `OptimizationSession`，以抗碰撞 run id 显式绑定 skill/task/workdir/adapter/model、source snapshots、conversation、durable trace、执行前输入 manifest 与 `RunResult`，并区分 ready、partial、failed、interrupted。用户/task 输入在 skill 部署前取证；skill 资源以 `.skvm/skills/<skill-id>` 为规范位置，旧根目录别名只在无冲突时生成。同名资源不覆盖用户输入，原地改写仍能由执行前摘要和 read 事件定位原字节。恢复使用新 session 目录，不清空用户 workdir，也不读取失败候选作为下一次 source。R1 聚焦回归 23/23、106 assertions 与 typecheck 通过；R2 负责把该底座接入自然任务 CLI 和已有 optimizer/package 链。
 
 R3 同时区分原输出保真、来源派生规则、程序自检与实际独立语义检查。一个独立案例缺资源不应阻止同动作其余 ready case 执行，但缺失必需案例也不能从分母删除或把完整声明范围提升为通过。比较器遵循任务语义，不为消除字节漂移而一律忽略空白、数组顺序或数据类型。
 

@@ -3,7 +3,7 @@
 - 更新日期：2026-09-14
 - 工作分支：`skill-ir-aot`
 - 当前路线：H0–H14 + R1–R7，“正常运行一次 → 自动采集 trace → 程序实施与验证 → 新 skill 包 → 自然消费”
-- 执行状态：`active-R1`（H0–H12 已完成；G0–G14 历史整体效果仍为 mixed）
+- 执行状态：`active-R2`（H0–H12、R1 已完成；G0–G14 历史整体效果仍为 mixed）
 
 本页是 Skill IR 唯一实时状态入口。日期化任务书、历史计划和结果报告都不是“当前状态”。
 
@@ -51,9 +51,9 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 
 本轮继续共享实现，依据[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 3、spec 14.31：
 
-当前 machine status 已进入 R1，H12 的 Env 单次尝试保留合理 no-change。revision 3 将 V1–V6 审查问题纳入原 R 队列，不重跑已完成 H。优先修复“只引用旧 passed criterion、空程序 exit 0 也可被提升为独立通过”的已复现路径，并补输入同名覆盖、修复观察失效、局部案例缺失及失败产物恢复。此处为待修问题，不表示已完成；H8/H9 的独立变化检查不因此被抹除。
+当前 machine status 已进入 R2。H12 的 Env 单次尝试保留合理 no-change；R1 已落地唯一 run 绑定、显式 trace 捕获及准确失败终态，并将执行前用户输入、`.skvm/skills/<skill-id>` 下的 skill 资源和执行后产物分开。同名输入不会被 skill 覆盖，输入原地修改仍能追溯执行前摘要/读取字节，失败 session 也不会污染下一次恢复。revision 3 的 V1、V3–V5 仍按 R3–R5 处理；H8/H9 的独立变化检查不因此被抹除。
 
-运行中追加决定：H0–H11 成果保留，当前 H12 之后执行 R1–R7，再进入 H13/适用 Y/H14。新增默认体验为用户选择 skill、说明任务并运行一次，系统自动捕获/关联 trace，再优化和导出；无需用户提供 logs、locator 或评分文件。新增能力仍待执行，不是当前已支持功能；机器状态由执行任务维护，不能仅按旧 H 条件关闭总目标。
+运行中追加决定：H0–H12 与 R1 成果保留，当前继续 R2–R7，再进入 H13/适用 Y/H14。目标默认体验为用户选择 skill、说明任务并运行一次，系统自动捕获/关联 trace，再优化和导出；无需用户提供 logs、locator 或评分文件。R1 捕获底座已经实现，CLI 自动交接仍在 R2 开发中，不能把目标流程提前写成完整可用。
 
 1. H0–H2：接续基线，使用已有语料定位问题，区分 skill 规则、任务条件和环境事实。
 2. H3–H7：修复待验证依赖传播，将实际程序验证、一次局部修复/回退及最终 snapshot 导出接入正常 CLI/log 路径。
@@ -81,7 +81,7 @@ H9 精确读取 Law development `line:3` 的实际 scorer 后确认原任务为 
 
 H10 的五项预登记条件在修订核验器下 5/5 通过：空 JSON/无合同与可选判断缺失继续成功，必需输入和 DOCX 可选依赖缺失在指定层准确失败且零产物，纯本地 helper 的联网条件变化记为不适用。首次外部核验器错误读取摘要/目录的失败证据保留，两个包的闭包摘要始终不变。acquisition 的共享解析器经 TDD 修复 8 条已证实的整命令误分类：真实 tree 文件、JSON pointer、API route 与本机路径现在分开处理；六份历史报告及其余 issue 不回写、不重分类。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/h10/report.json`。
 
-H11 已将普通常用途径的可复制命令、参数和简洁结果/残余步骤交接写入生产 optimizer 提示，并以 gzip/raw 双摘要接入 general-skill 自然消费报告。Law 的同任务/模型/Pi 配对质量均通过，预登记 discovery `2→1`、tool calls `11→9`、observed tokens `47487→30339`；包枚举仍为 `1→1`，时延只是一组噪声观察，实际 USD unknown，候选仍是 draft。机器报告为 `results/skill-ir/skill-optimization-production-closure-20260913/h11/report.json`，当前进入 H12 不同结构过程复用。
+H11 已将普通常用途径的可复制命令、参数和简洁结果/残余步骤交接写入生产 optimizer 提示，并以 gzip/raw 双摘要接入 general-skill 自然消费报告。Law 的同任务/模型/Pi 配对质量均通过，预登记 discovery `2→1`、tool calls `11→9`、observed tokens `47487→30339`；包枚举仍为 `1→1`，时延只是一组噪声观察，实际 USD unknown，候选仍是 draft。H12 随后用 Env 不同结构进行同入口单次尝试，得到有依据的 no-change，未制造程序或收益。R1 的自动捕获与资源隔离聚焦回归 23/23、106 assertions 与 typecheck 通过；当前进入 R2 自然任务与自动交接。
 
 任务摘要见[当前计划](skill-ir-aot-optimization-plan.md)。G0–G14 历史结果继续保留在
 `results/skill-ir/general-skill-optimization-20260913/final-report.json` 与同目录 `g14-verification.json`；旧结果不回写。
