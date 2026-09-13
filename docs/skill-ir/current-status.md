@@ -1,9 +1,9 @@
 # Skill IR 当前状态
 
-- 更新日期：2026-09-13
+- 更新日期：2026-09-14
 - 工作分支：`skill-ir-aot`
 - 当前路线：H0–H14 + R1–R7，“正常运行一次 → 自动采集 trace → 程序实施与验证 → 新 skill 包 → 自然消费”
-- 执行状态：`active-H12`（H0–H11 已完成；G0–G14 历史整体效果仍为 mixed）
+- 执行状态：`active-R1`（H0–H12 已完成；G0–G14 历史整体效果仍为 mixed）
 
 本页是 Skill IR 唯一实时状态入口。日期化任务书、历史计划和结果报告都不是“当前状态”。
 
@@ -49,7 +49,9 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 
 ## 3. 当前计划
 
-本轮继续共享实现，依据[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 2、spec 14.31：
+本轮继续共享实现，依据[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 3、spec 14.31：
+
+当前 machine status 已进入 R1，H12 的 Env 单次尝试保留合理 no-change。revision 3 将 V1–V6 审查问题纳入原 R 队列，不重跑已完成 H。优先修复“只引用旧 passed criterion、空程序 exit 0 也可被提升为独立通过”的已复现路径，并补输入同名覆盖、修复观察失效、局部案例缺失及失败产物恢复。此处为待修问题，不表示已完成；H8/H9 的独立变化检查不因此被抹除。
 
 运行中追加决定：H0–H11 成果保留，当前 H12 之后执行 R1–R7，再进入 H13/适用 Y/H14。新增默认体验为用户选择 skill、说明任务并运行一次，系统自动捕获/关联 trace，再优化和导出；无需用户提供 logs、locator 或评分文件。新增能力仍待执行，不是当前已支持功能；机器状态由执行任务维护，不能仅按旧 H 条件关闭总目标。
 

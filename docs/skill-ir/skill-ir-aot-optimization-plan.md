@@ -1,10 +1,10 @@
 # Skill IR AOT 当前执行计划
 
-- 更新日期：2026-09-13
+- 更新日期：2026-09-14
 - 路线：H0–H14 + R1–R7，自动采集真实运行的 skill 优化生产链
-- 状态：`active-H12`；H0–H11 已完成，恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
+- 状态：`active-R1`；H0–H12 已完成，恢复入口为 `results/skill-ir/skill-optimization-production-closure-20260913/status.json`
 - 唯一实时状态：[current-status.md](current-status.md)
-- 详细任务书：[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 2
+- 详细任务书：[生产链持续任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md) revision 3
 - 方法依据：spec 14.31
 
 本页只维护当前待执行任务。G0–G14 已完成，历史机器结果见 `results/skill-ir/general-skill-optimization-20260913/final-report.json`，整体效果 mixed。U/G 与早期受保护结果不改写。
@@ -31,7 +31,7 @@ H0 启动时的验证接线、待验证依赖和最终包状态缺口已由 H3�
 | H9 现成程序复用 | completed | Law 真实 0.7 trace 产生 reuse-script；修订包、12/12 变化检查和自然 read/exec/复核通过 |
 | H10 条件变化与降级 | completed | 5/5 预登记条件通过；8 条 acquisition 整命令误分类由共享解析器修复，历史报告不回写 |
 | H11 实际使用开销 | completed | 常规入口策略与 general-skill gzip trace 接入完成；同任务配对质量通过、discovery 2→1、tool 11→9，完整指标与 unknown USD 并列 |
-| H12 过程复用 | active | 后加入 development 结构实际尝试，无名称特判 |
+| H12 过程复用 | completed | Env 同入口单次尝试为合理 no-change，未制造程序或包 |
 | H13 工程使用 | pending | 研究 runner 外的正常入口、可搬运包与真实命令 |
 | H14 验证与交付 | pending | 有限回归、文档、精确提交并推用户 origin |
 
@@ -39,13 +39,15 @@ H0 启动时的验证接线、待验证依赖和最终包状态缺口已由 H3�
 
 | 新增阶段 | 状态 | 交付与验收 |
 | --- | --- | --- |
-| R1 自动采集 | pending | 本次 run/skill/task/trace 唯一关联；异常与不完整状态准确 |
+| R1 自动采集 | active | 本次 run/skill/task/trace 唯一关联；异常与不完整状态准确 |
 | R2 自然任务入口 | pending | 正常运行一次后自动优化，无需 task.json/logs/locator |
 | R3 无人工评分文件 | pending | 自动利用 source 规则/现成检查，未知与自检不伪装独立正确性 |
 | R4 生成过程改进 | pending | 动作落到程序，输入映射由框架处理，避免无信息反复抽样 |
 | R5 可用与恢复 | pending | 新包易调用、原成果保留、失败有具体下一动作 |
 | R6 多结构实用 | pending | 两种结构同入口真实尝试，至少一条原/变化任务完整通过 |
 | R7 整体验收 | pending | 无人工接线命令、故障与恢复测试、准确支持矩阵 |
+
+revision 3 在现有阶段补充 V1–V6：R1 保护同名资源/执行前输入；R3 实际执行输出断言并局部处理缺失案例；R4 处理修复后观察失效与参数适用边界；R5 避免半成品和重复副作用；R7 运行相应反例。V1 已临时实测空程序被旧 criterion 引用误提升，必须修复，不能只降低文档措辞。其余按代码定位写有针对性的回归，不新增大队列或审计协议。
 
 Y1 多程序接力、Y2 缺信息可用性只在包含 R 队列的主链达标且收尾窗口前有明确问题时执行，不能替代主链或用于凑时长。
 
