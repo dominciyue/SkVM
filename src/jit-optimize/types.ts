@@ -555,6 +555,8 @@ export interface ExecutionLogInput {
   path: string
   /** Optional JSON file with EvidenceCriterion[] (since logs alone don't carry eval results) */
   criteriaPath?: string
+  /** Optional adapter record locators to select from a multi-record source. */
+  recordLocators?: string[]
 }
 
 // ---------------------------------------------------------------------------

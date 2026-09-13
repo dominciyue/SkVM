@@ -51,6 +51,7 @@ export async function runOptimizer(
     workspace.optimizeDir,
     input.evidences,
     input.history ?? [],
+    { skillDir: workspace.dir },
   )
 
   // 3. Build the prompt

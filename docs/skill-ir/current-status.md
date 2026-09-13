@@ -3,7 +3,7 @@
 - 更新日期：2026-09-13
 - 工作分支：`skill-ir-aot`
 - 当前路线：G0–G14，“单次真实 trace → 通用优化过程 → 新 skill 包 → 自然消费”
-- 执行状态：`active`（G0 completed，G1 corpus evidence completed / implementation commitment open，G2 active）
+- 执行状态：`active`（G0/G2 completed，G1 implementation commitment open，G3 active）
 
 本页是 Skill IR 唯一实时状态入口。日期化任务书、历史计划和结果报告都不是“当前状态”。
 
@@ -47,7 +47,7 @@ trace 优化闭环已完成。最窄证据入口见[证据索引](evidence-index
 4. G10–G13：自然消费、共享上下文优化、少量多结构案例与后加入 development 成员检查。
 5. G14：有限验证和交付；主链提前达标且窗口允许时执行 X1–X3。
 
-任务级细节见[当前计划](skill-ir-aot-optimization-plan.md)与[持续开发任务书](../superpowers/plans/2026-09-13-general-skill-optimization-deepening.md)。G0 基线为 9/9 tests、31 assertions。G1 已广读 30 份、深读 10 份 development skill，形成 `corpus-review.json` 与 8 项可测试实现积压；其中至少 3 项落入生产代码的承诺仍开放。机器恢复入口为 `results/skill-ir/general-skill-optimization-20260913/status.json`；当前进入 G2 单次真实 trace 与可重建上下文。下方命令仍只描述已交付能力，未通过对应阶段前不宣称新通用包入口存在。
+任务级细节见[当前计划](skill-ir-aot-optimization-plan.md)与[持续开发任务书](../superpowers/plans/2026-09-13-general-skill-optimization-deepening.md)。G0 基线为 9/9 tests、31 assertions。G1 已广读 30 份、深读 10 份 development skill，形成 8 项可测试实现积压；其中至少 3 项落入生产代码的承诺仍开放。G2 已精确选择一条真实 Law To Markdown 非 API 成功运行，按 source digest + record locator 去重，并生成完整 skill 资源导航；该记录没有独立质量绑定，仍为 unassessed。机器恢复入口为 `results/skill-ir/general-skill-optimization-20260913/status.json`；当前进入 G3 可实施动作合同。下方命令仍只描述已交付能力，未通过对应阶段前不宣称新通用包入口存在。
 
 ## 4. 直接运行
 

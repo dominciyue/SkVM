@@ -264,4 +264,85 @@ describe("loadEvidencesFromLogs adapter integration", () => {
     expect(evidence[0]!.trace?.inputSha256).toMatch(/^[a-f0-9]{64}$/)
     expect(evidence[0]!.workDirSnapshot?.files.get("artifact.txt")).toBe("evidence")
   })
+
+  test("keeps one successful trace analyzable when usage is unavailable", async () => {
+    const dir = await tempDir()
+    const taskPath = path.join(dir, "task.json")
+    const logPath = path.join(dir, "successful-run.jsonl")
+    await writeFile(taskPath, JSON.stringify({ prompt: "convert the visible document" }))
+    await writeFile(logPath, JSON.stringify({
+      caseId: "law-to-markdown:agent:windows:clean:document",
+      system: "original",
+      adapter: "local-agent",
+      runIndex: 1,
+      taskPath,
+      exitCode: 0,
+      runStatus: "ok",
+      durationMs: 20,
+      stdout: "Final output:\ncreated markdown/document.md",
+      stderr: "",
+      successSource: "execution-only",
+    }) + "\n")
+
+    const evidence = await loadEvidencesFromLogs({
+      kind: "execution-log",
+      logs: [{ path: logPath }],
+    })
+
+    expect(evidence).toHaveLength(1)
+    expect(evidence[0]!.trace?.runStatus).toBe("ok")
+    expect(evidence[0]!.trace?.usage).toBeUndefined()
+    expect(evidence[0]!.trace?.unknownFields).toContain("usage")
+    expect(evidence[0]!.taskPrompt).toBe("convert the visible document")
+  })
+
+  test("does not count a byte-identical copied source record as another run", async () => {
+    const dir = await tempDir()
+    const firstPath = path.join(dir, "first.jsonl")
+    const copiedPath = path.join(dir, "copied.jsonl")
+    const record = [
+      JSON.stringify({ type: "request", ts: "2026-09-13T00:00:00Z", text: "inspect one document" }),
+      JSON.stringify({ type: "response", ts: "2026-09-13T00:00:01Z", text: "done" }),
+    ].join("\n") + "\n"
+    await Promise.all([writeFile(firstPath, record), writeFile(copiedPath, record)])
+
+    const evidence = await loadEvidencesFromLogs({
+      kind: "execution-log",
+      logs: [{ path: firstPath }, { path: copiedPath }],
+    })
+
+    expect(evidence).toHaveLength(1)
+    expect(evidence[0]!.trace?.inputSha256).toMatch(/^[a-f0-9]{64}$/)
+    expect(evidence[0]!.trace?.recordLocator).toBe("lines:1-2")
+  })
+
+  test("can select exactly one located record from a genuine multi-run source", async () => {
+    const dir = await tempDir()
+    const taskPath = path.join(dir, "task.json")
+    const logPath = path.join(dir, "runs.jsonl")
+    await writeFile(taskPath, JSON.stringify({ prompt: "process the document" }))
+    const row = (caseId: string, runIndex: number) => JSON.stringify({
+      caseId,
+      system: "original",
+      adapter: "local-agent",
+      runIndex,
+      taskPath,
+      exitCode: 0,
+      runStatus: "ok",
+      durationMs: 20,
+      stdout: `Tokens: in=10 out=2\nFinal output:\nrun ${runIndex} complete`,
+      stderr: "",
+      successSource: "execution-only",
+    })
+    await writeFile(logPath, `${row("document:first", 1)}\n${row("document:second", 2)}\n`)
+
+    const evidence = await loadEvidencesFromLogs({
+      kind: "execution-log",
+      logs: [{ path: logPath, recordLocators: ["line:2"] }],
+    })
+
+    expect(evidence).toHaveLength(1)
+    expect(evidence[0]!.taskId).toBe("document:second")
+    expect(evidence[0]!.trace?.recordLocator).toBe("line:2")
+  })
 })

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { mkdtemp, readFile, readdir, rm, stat } from "node:fs/promises"
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { serializeContext } from "../../src/jit-optimize/workspace.ts"
@@ -365,6 +365,33 @@ describe("workdir snapshot placement", () => {
       expect(await pathExists(workdirFile)).toBe(true)
       const content = await readFile(workdirFile, "utf-8")
       expect(content).toBe("hello")
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+})
+
+describe("source skill resource navigation", () => {
+  test("indexes the complete configured skill so rules not exercised by the trace stay readable", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "workspace-resource-index-"))
+    const optimizeDir = path.join(dir, ".optimize")
+    try {
+      await mkdir(path.join(dir, "scripts"), { recursive: true })
+      await mkdir(optimizeDir)
+      await writeFile(path.join(dir, "SKILL.md"), "# Skill\n\nAlways preserve the original file.\n")
+      await writeFile(path.join(dir, "scripts", "unused-rule.py"), "print('unrun rule remains available')\n")
+
+      const evidence = ev("one-real-run", "process one file", [])
+      evidence.criteria = undefined
+      evidence.runMeta = undefined
+      await serializeContext(optimizeDir, [evidence], [], { skillDir: dir })
+
+      const index = await readFile(path.join(optimizeDir, "SKILL_RESOURCE_INDEX.md"), "utf-8")
+      const readme = await readFile(path.join(optimizeDir, "README.md"), "utf-8")
+      expect(index).toContain("`SKILL.md`")
+      expect(index).toContain("`scripts/unused-rule.py`")
+      expect(index).toContain("not evidence that the rule is unused")
+      expect(readme).toContain("SKILL_RESOURCE_INDEX.md")
     } finally {
       await rm(dir, { recursive: true, force: true })
     }

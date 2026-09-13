@@ -110,6 +110,8 @@ export async function createWorkspace(skillDir: string): Promise<Workspace> {
 export interface SerializeOptions {
   maxConvLogEntries?: number
   maxFileInlineChars?: number
+  /** Explicit skill root copied into the optimizer workspace. */
+  skillDir?: string
 }
 
 const DEFAULT_MAX_CONV_LOG = 400
@@ -165,8 +167,16 @@ export async function serializeContext(
 
   const groups = groupEvidencesByTask(evidences)
 
+  const hasSkillResourceIndex = opts.skillDir !== undefined
+  if (opts.skillDir) {
+    await Bun.write(
+      path.join(optimizeDir, "SKILL_RESOURCE_INDEX.md"),
+      await renderSkillResourceIndex(opts.skillDir, evidences),
+    )
+  }
+
   // README: navigation guide
-  const readme = buildReadme(groups, history.length)
+  const readme = buildReadme(groups, history.length, hasSkillResourceIndex)
   await Bun.write(path.join(optimizeDir, "README.md"), readme)
 
   // Top-level PER_TASK_SUMMARY.md. This is the anchor the optimizer prompt
@@ -280,6 +290,85 @@ export async function serializeContext(
       renderHistoryMarkdown(history),
     )
   }
+}
+
+interface IndexedSkillResource {
+  path: string
+  bytes: number
+  sha256: string
+}
+
+async function* walkSkillResources(
+  root: string,
+  base: string = root,
+): AsyncGenerator<{ rel: string; abs: string }> {
+  let entries: import("node:fs").Dirent[]
+  try {
+    entries = await readdir(base, { withFileTypes: true })
+  } catch {
+    return
+  }
+  entries.sort((a, b) => a.name.localeCompare(b.name))
+  for (const entry of entries) {
+    if (entry.name === ".optimize" || entry.name === ".git" || entry.name === "node_modules") continue
+    const full = path.join(base, entry.name)
+    if (entry.isDirectory()) {
+      yield* walkSkillResources(root, full)
+    } else if (entry.isFile()) {
+      yield {
+        rel: path.relative(root, full).split(path.sep).join("/"),
+        abs: full,
+      }
+    }
+  }
+}
+
+async function indexSkillResources(skillDir: string): Promise<IndexedSkillResource[]> {
+  const root = path.resolve(skillDir)
+  const resources: IndexedSkillResource[] = []
+  for await (const file of walkSkillResources(root)) {
+    const bytes = new Uint8Array(await Bun.file(file.abs).arrayBuffer())
+    resources.push({
+      path: file.rel,
+      bytes: bytes.byteLength,
+      sha256: new Bun.CryptoHasher("sha256").update(bytes).digest("hex"),
+    })
+  }
+  return resources
+}
+
+async function renderSkillResourceIndex(skillDir: string, evidences: Evidence[]): Promise<string> {
+  const root = path.resolve(skillDir)
+  const resources = await indexSkillResources(root)
+  const parts = [
+    "# Skill Resource Index",
+    "",
+    `Configured skill root: \`${root}\``,
+    "",
+    "This is a navigation index of the complete configured skill copy. A file or rule not observed in the trace remains readable here; absence from one run is not evidence that the rule is unused or safe to remove.",
+    "",
+    "| Path | Bytes | SHA-256 |",
+    "| --- | ---: | --- |",
+  ]
+  for (const resource of resources) {
+    parts.push(`| \`${resource.path.replace(/\|/g, "\\|")}\` | ${resource.bytes} | \`${resource.sha256}\` |`)
+  }
+  if (resources.length === 0) parts.push("| (no readable files) | 0 | n/a |")
+  parts.push("", "## Explicit Trace Bindings", "")
+  const bound = evidences
+    .map((evidence, evidenceIndex) => ({ evidenceIndex, trace: evidence.trace }))
+    .filter((item): item is { evidenceIndex: number; trace: NonNullable<Evidence["trace"]> } => item.trace !== undefined)
+  if (bound.length === 0) {
+    parts.push("No external trace binding was supplied. This index does not infer one.")
+  } else {
+    for (const item of bound) {
+      parts.push(`- Evidence ${item.evidenceIndex}: \`${item.trace.sourcePath}\` at \`${item.trace.recordLocator}\``)
+      parts.push(`  - trace-declared skill: ${item.trace.skillPath ? `\`${item.trace.skillPath}\`` : "unknown"}`)
+      parts.push(`  - configured optimization skill: \`${root}\``)
+    }
+  }
+  parts.push("")
+  return parts.join("\n")
 }
 
 /**
@@ -715,7 +804,7 @@ function renderHistoryMarkdown(history: HistoryEntry[]): string {
   return parts.join("\n")
 }
 
-function buildReadme(groups: TaskGroup[], historyCount: number): string {
+function buildReadme(groups: TaskGroup[], historyCount: number, hasSkillResourceIndex: boolean): string {
   const taskCount = groups.length
   const runCount = groups.reduce((n, g) => n + g.runs.length, 0)
   const failing = groups.filter((g) => g.status === "FAILING").length
@@ -752,7 +841,7 @@ of this skill.
 
   Directories for this session:
 ${dirListing}
-${historyCount > 0 ? `- \`.optimize/history.md\` — **${historyCount} previous optimization round(s)** with their diagnoses, changes, and whether they improved the score. READ THIS before proposing changes — do not repeat diagnoses that did not work.\n` : ""}- \`.optimize/submission.template.json\` — the output format you must follow.
+${hasSkillResourceIndex ? "- `.optimize/SKILL_RESOURCE_INDEX.md` — complete configured skill-file navigation plus explicit trace-to-skill bindings. Read relevant resources before deciding an unobserved rule is removable.\n" : ""}${historyCount > 0 ? `- \`.optimize/history.md\` — **${historyCount} previous optimization round(s)** with their diagnoses, changes, and whether they improved the score. READ THIS before proposing changes — do not repeat diagnoses that did not work.\n` : ""}- \`.optimize/submission.template.json\` — the output format you must follow.
 
 ## What to do
 

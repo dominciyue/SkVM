@@ -44,6 +44,21 @@ proposedCheck / recovery / schema / template
 confidence
 ```
 
+### 3.0 单次外部 trace 的通用加载边界
+
+G 路线允许把一条已暴露的真实非 API 执行记录作为 development 优化输入，但不会把 `runStatus=ok` 当作质量
+通过。`execution-log` 输入可用 `recordLocators` 从多记录文件精确选择一条；记录身份由原文件 SHA-256 与适配器
+记录定位共同确定，字节相同的文件副本不会被计成第二次独立运行，同一文件的不同定位仍保持独立。
+
+优化工作区新增 `.optimize/SKILL_RESOURCE_INDEX.md`，列出显式配置 skill 副本的完整文件、字节数和摘要，并把
+trace 声明的 `skillPath` 与本次配置路径并列。这样单次运行没有触发的脚本和规则仍可按需读取；“trace 未出现”
+不等于可删除。缺少完整会话、工具调用、usage 或 quality 时继续标 unknown/unassessed，不从摘要补猜。
+
+首条实际证据是 Law To Markdown 的一条历史 development `original` 成功运行，精确选择 `line:3`，只恢复 2 条
+摘要级会话和 9 个 workdir 文件；完整会话与费用仍未知，也没有绑定独立评分。因此它只证明通用优化入口能分析
+一条真实非 API 记录，不证明优化效果。机器绑定见
+`results/skill-ir/general-skill-optimization-20260913/g2-trace-evidence.json`。
+
 当前使用双源：original 证明失败 lineage 是否持续，ir-static 提供 schema/location 等静态残差。只在
 original 与 static 均失败、证据公开且可复现时生成 repair；static regression 直接阻断。
 

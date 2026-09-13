@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-13
 - 路线：G0–G14，单次真实 trace 驱动的通用 skill 优化
-- 状态：`active`（G0 completed，G1 语料证据完成但生产落地承诺开放，G2 active）
+- 状态：`active`（G0/G2 completed，G1 生产落地承诺开放，G3 active）
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[持续开发任务书](../superpowers/plans/2026-09-13-general-skill-optimization-deepening.md)
 
@@ -18,8 +18,8 @@
 | --- | --- | --- |
 | G0 现场与基线 | completed | 确认归属，建立机器恢复入口；规定的单次基线 9/9 tests、31 assertions |
 | G1 语料驱动诊断 | evidence-completed | 30 份广读、10 份深读、8 项积压已绑定；至少三项进入生产实现后才终态 completed |
-| G2 单次 trace | active | 真实记录、任务资源与未知信息分开，后续验证不冒充优化输入 |
-| G3 可执行动作 | planned | 复用机会/历史，动作依赖、参数与残余职责可表达 |
+| G2 单次 trace | completed | 精确选择一条真实非 API 记录；摘要、资源和 unknown 分开，复制记录不重复计数 |
+| G3 可执行动作 | active | 复用机会/历史，动作依赖、参数与残余职责可表达 |
 | G4 模型优化 | planned | 解除普遍缺陷/重复次数/行数门槛，依据行为保留质量 |
 | G5 实现选择 | planned | 原脚本、领域组件、生成程序、文档重组按需选择 |
 | G6 程序运行 | planned | 参数化脚本通过原/变化输入检查，错误可反馈 |

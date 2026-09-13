@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 headless-agent/provider/trace adapters、proposal storage、Skill IR 与已有领域 checker；按原 skill 需要使用 Python/Node 等已有运行时。
 
-**状态：** revision 1，`active`，2026-09-13。G0 completed，G1 corpus evidence completed / implementation commitment open，G2 active。U0–U7 已完成且结果保持 mixed；本轮为新的 development 工作，不是 prospective 或 held-out。
+**状态：** revision 1，`active`，2026-09-13。G0/G2 completed，G1 implementation commitment open，G3 active。U0–U7 已完成且结果保持 mixed；本轮为新的 development 工作，不是 prospective 或 held-out。
 
 **队列：** G0–G14 主队列；X1–X3 为主链达到要求后、交付窗口前自动选择的有限深化队列。工作量按约 16–24 小时的连续开发范围设计，实际时间由故障和已有能力决定，不承诺靠任务文字保证运行时长。
 
@@ -103,11 +103,11 @@
 
 **修改：** `src/jit-optimize/trace-adapters.ts`、`evidence.ts`、`workspace.ts`；对应已有 adapter/workspace 测试。
 
-- [ ] 为首个非 API 工程案例选择一份真实完整运行；不足时用授权 agent 正常执行明确公开任务采集一次，注明 developer-generated。不要把 synthetic parser fixture 算成真实运行。
-- [ ] 先写测试：一个成功 trace 可以进入优化；没有 usage 仍可分析；原 skill 中未运行的规则仍可读取；同一记录复制两次不成为两次独立运行。
-- [ ] 保留任务资源、可见工具调用与结果、源定位和缺项。无法重建环境时可先生成修改，效果标为未测；不得猜成功结果。
-- [ ] trace 与原 skill 的关系按文件、命令和用户声明记录，不靠摘要推导真实性。只读取本任务相关资源，不扫描用户全部私人会话。
-- [ ] 变化输入留给后续验证，不能把第二条执行记录偷偷喂回仍声称“单次 trace”的优化。
+- [x] 为首个非 API 工程案例选择一份真实完整成功运行：Law To Markdown historical development original run 1；精确使用源文件 `line:3`，未把 synthetic fixture 算作真实运行。
+- [x] 测试覆盖：成功 trace 可进入、无 usage 仍可分析、未运行规则通过资源索引可读、同一记录的字节副本不成为第二次独立运行。
+- [x] 保留任务/skill/workdir 摘要、可见结果、源定位和缺项；工具调用不可见、完整会话与费用未知均显式记录，效果未测。
+- [x] trace 与原 skill 的关系按 taskPath/skillPath/workDir、捕获命令和任务声明绑定；只读取本条任务资源。
+- [x] 只向优化加载 `line:3`；未把同文件其它运行或变化输入喂回单次 trace。
 
 **运行：** `bun test ./test/jit-optimize/trace-adapters.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/task-source-criteria.test.ts`。
 

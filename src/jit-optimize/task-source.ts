@@ -159,6 +159,11 @@ export async function resolveTrainTestTasks(
 export async function loadEvidencesFromLogs(source: TaskSource): Promise<Evidence[]> {
   if (source.kind !== "execution-log") return []
   const out: Evidence[] = []
+  // A copied log file is still the same observed run. Use the immutable input
+  // digest plus the adapter's within-file locator as the record identity. This
+  // deliberately keeps distinct rows from one multi-record file while making
+  // byte-identical file copies idempotent.
+  const observedRecords = new Set<string>()
   // Log source has no RunnableTask — each log file IS one evidence. Derive a
   // stable taskId from the log file's basename (sans extension) so downstream
   // per-task grouping in avgScore / pickBestRound still works. Collisions
@@ -167,6 +172,10 @@ export async function loadEvidencesFromLogs(source: TaskSource): Promise<Evidenc
   for (const inp of source.logs) {
     try {
       const adapted = await adaptTraceFile(inp.path)
+      const requestedLocators = inp.recordLocators === undefined
+        ? undefined
+        : new Set(inp.recordLocators)
+      const foundLocators = new Set<string>()
       let suppliedCriteria: EvidenceCriterion[] | undefined
       if (inp.criteriaPath) {
         try {
@@ -178,9 +187,22 @@ export async function loadEvidencesFromLogs(source: TaskSource): Promise<Evidenc
         }
       }
       for (const item of adapted.diagnostics) {
+        if (requestedLocators && ![...requestedLocators].some(
+          (locator) => item.locator === locator || item.locator.startsWith(`${locator}:`),
+        )) continue
         log.warn(`Trace ${inp.path} ${item.locator} [${item.code}]: ${item.message}`)
       }
       for (const record of adapted.records) {
+        if (requestedLocators && !requestedLocators.has(record.source.recordLocator)) continue
+        foundLocators.add(record.source.recordLocator)
+        const recordIdentity = `${record.source.inputSha256}\0${record.source.recordLocator}`
+        if (observedRecords.has(recordIdentity)) {
+          log.warn(
+            `Trace ${inp.path} ${record.source.recordLocator} duplicates an already loaded source record; skipping`,
+          )
+          continue
+        }
+        observedRecords.add(recordIdentity)
         let taskId = record.taskId
         if (record.source.taskIdSource === "file-basename") {
           const count = (seen.get(taskId) ?? 0) + 1
@@ -195,6 +217,13 @@ export async function loadEvidencesFromLogs(source: TaskSource): Promise<Evidenc
           workDirSnapshot: record.workDirPath ? await snapshotWorkDir(record.workDirPath) : undefined,
           trace: record.source,
         })
+      }
+      if (requestedLocators) {
+        for (const locator of requestedLocators) {
+          if (!foundLocators.has(locator)) {
+            log.warn(`Trace ${inp.path} requested record locator ${locator} was not found`)
+          }
+        }
       }
     } catch (err) {
       log.warn(`Failed to load execution log ${inp.path}: ${err}`)
