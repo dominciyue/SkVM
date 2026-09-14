@@ -1,0 +1,458 @@
+{
+  "schemaVersion": "skill-ir-general-generation-pattern-to-code/v1",
+  "identity": "general-generation-reinforcement-20260914-f1.1-patterns-001",
+  "exposure": "development",
+  "createdAt": "2026-09-14",
+  "sourceReview": {
+    "path": "results/skill-ir/general-skill-optimization-20260913/corpus-review.json",
+    "sha256": "f575bf7ef78da2e106e8ca01b9f057762f3afa0ee41f778d741e3258b5f92a55",
+    "selection": {
+      "selectedMembers": 5,
+      "selectionRule": "five deep-read public development members with distinct mechanical structures; no held-out or Q1 material",
+      "members": [
+        "pilot:zh-readme",
+        "pilot:i18n-helper",
+        "pilot:law-to-markdown",
+        "pilot:experimental-design",
+        "pilot:env-manager"
+      ]
+    }
+  },
+  "interpretation": {
+    "sourceAuthority": "SKILL.md rules, declared resources and source-program files are the authority for what a workflow requires",
+    "traceAuthority": "trace and report locators record what was actually observed and never fill an absent source or execution field",
+    "instructionVsTrace": "A fixed step is a source-backed workflow obligation; an observed step is a tool call or produced file bound to a located trace. Missing or partial traces remain unknown.",
+    "claimBoundary": "This is a pattern-to-code planning and evidence index. It does not claim that the current engine can implement every listed branch or that any skill-wide quality/effect result is positive."
+  },
+  "members": [
+    {
+      "id": "pilot:zh-readme",
+      "resourceForm": "single instruction document",
+      "source": {
+        "path": "benchmarks/skill-ir/pilots/zh-readme/source/SKILL.md",
+        "sha256": "e30e84d26619413df6e2f5a02c0392f54f027acb7d8333545e62c336551be85b",
+        "locators": [
+          "SKILL.md:12-21",
+          "SKILL.md:46-83",
+          "SKILL.md:86-103"
+        ]
+      },
+      "trace": {
+        "status": "not-found-in-selected-development-evidence",
+        "locators": [],
+        "note": "The corpus review binds the source body but no actual run record for this member. No command, file write or quality result is inferred."
+      },
+      "fixedSteps": [
+        "inspect repository structure, package manifests, entrypoints, tests and existing documentation",
+        "extract real install, quick-start and usage commands from repository files",
+        "write a Chinese README with value proposition, audience, installation, usage, structure and contribution sections",
+        "check that examples are copyable and required sections are present"
+      ],
+      "variables": [
+        { "name": "repositoryRoot", "origin": "task-workdir", "required": true },
+        { "name": "existingReadme", "origin": "observed-value-or-optional", "required": false },
+        { "name": "packageManifestCandidates", "origin": "source-fixed", "required": false },
+        { "name": "audienceAndValueProposition", "origin": "unknown-judgment", "required": true },
+        { "name": "commandsAndPaths", "origin": "observed-value", "required": true }
+      ],
+      "environmentDeps": [
+        "readable repository tree",
+        "package.json, pyproject.toml, Makefile or Cargo.toml when present",
+        "no executable helper declared by the source"
+      ],
+      "agentBranches": [
+        "existing README: preserve valid information and fill missing structure",
+        "missing real command: inspect repository manifests before writing an example",
+        "website, badges or external docs present: keep claims and links consistent",
+        "audience or marketing claim cannot be established: retain as judgment work"
+      ],
+      "engineSupport": {
+        "candidateActionKinds": ["restructure-docs"],
+        "supportedByCurrentEvidence": [
+          "deterministic package diff can preserve a documentation-only change",
+          "source coverage can bind the declared README path"
+        ],
+        "gaps": [
+          "no source-provided executable program",
+          "audience, value proposition and unsupported-claim decisions require an agent",
+          "no actual trace is available to parameterize a generated workflow"
+        ]
+      },
+      "productionSymbols": {
+        "sourceSymbols": [],
+        "engineSymbols": [
+          "src/jit-optimize/action-plan.ts: normalizeActionPlan",
+          "src/jit-optimize/package.ts: exportOptimizationPackage"
+        ],
+        "tests": [
+          "test/jit-optimize/action-plan.test.ts",
+          "test/jit-optimize/package.test.ts"
+        ]
+      }
+    },
+    {
+      "id": "pilot:i18n-helper",
+      "resourceForm": "single instruction document with language-file examples",
+      "source": {
+        "path": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+        "sha256": "7f7310b78d076d53111580b02f4a3f9e2086323108520e9b684218032b9a3729",
+        "locators": [
+          "SKILL.md:15-25",
+          "SKILL.md:27-48",
+          "SKILL.md:67-80"
+        ]
+      },
+      "trace": {
+        "status": "partial-observation",
+        "locators": [
+          "results/skill-ir/i18n-helper-v3-execution-observable-calibration-v3/run/raw-runs.jsonl#line:3",
+          "results/skill-ir/general-skill-optimization-20260913/g12-i18n-helper/matched-source-original-input-001/agent-events.json.gz:/513/message/content/0/arguments"
+        ],
+        "rawRunSha256": "f6fe7771d5d3f32bc74d865b41297dd69134f6cdb96807cc6505613081e63f8b",
+        "observed": [
+          "runStatus=ok",
+          "exitCode=0",
+          "the independent command checked JSON/report shape and locale key sets",
+          "the trace does not establish that all semantic translation judgments were automated"
+        ]
+      },
+      "fixedSteps": [
+        "detect project language and i18n framework, then scan source extensions",
+        "extract user-visible literals while excluding imports, URLs, regexes and logs",
+        "generate locale files in the framework-appropriate format",
+        "replace literals with i18n calls while preserving interpolation and formatting",
+        "compare locale key sets and report missing keys and completion counts"
+      ],
+      "variables": [
+        { "name": "sourceRoot", "origin": "task-workdir", "required": true },
+        { "name": "sourceExtensions", "origin": "source-fixed-or-observed", "required": true },
+        { "name": "framework", "origin": "observed-value", "required": true },
+        { "name": "localeNames", "origin": "task-variable-or-observed-value", "required": true },
+        { "name": "extractedKeys", "origin": "observed-value", "required": true },
+        { "name": "interpolationAndPluralForms", "origin": "unknown-judgment", "required": false }
+      ],
+      "environmentDeps": [
+        "readable source files",
+        "framework-specific locale convention",
+        "JSON/YAML/PO/Properties serialization according to the detected framework",
+        "independent key-set checker"
+      ],
+      "agentBranches": [
+        "framework detection chooses the output serialization",
+        "literal is UI text versus import, regex or log",
+        "interpolation, plural or gender semantics require preservation evidence",
+        "missing locale key is a reportable defect, not a reason to invent a translation"
+      ],
+      "engineSupport": {
+        "candidateActionKinds": ["restructure-docs", "generate-script"],
+        "supportedByCurrentEvidence": [
+          "documentation package export and independent source/output coverage",
+          "a declared deterministic checker can validate key sets"
+        ],
+        "gaps": [
+          "the public source declares no executable helper",
+          "literal classification and interpolation semantics are not safely reducible to a generic regex",
+          "trace coverage is a single development task, not a universal framework contract"
+        ]
+      },
+      "productionSymbols": {
+        "sourceSymbols": [],
+        "engineSymbols": [
+          "src/jit-optimize/implementations.ts: selectImplementationForAction",
+          "src/jit-optimize/package-validation.ts: validateOptimizationPackage"
+        ],
+        "tests": [
+          "test/jit-optimize/implementations.test.ts",
+          "test/jit-optimize/package-validation.test.ts",
+          "test/jit-optimize/general-skill-development.test.ts"
+        ]
+      }
+    },
+    {
+      "id": "pilot:law-to-markdown",
+      "resourceForm": "instruction document plus three Python modules, requirements and runtime metadata",
+      "source": {
+        "path": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+        "sha256": "1baed0abb5a4695924761924127e26ff155d1c1ad2e32665f8a557c8768607f0",
+        "locators": [
+          "SKILL.md:10-20",
+          "SKILL.md:40-72",
+          "SKILL.md:74-86"
+        ]
+      },
+      "trace": {
+        "status": "partial-observation",
+        "locators": [
+          "results/skill-ir/law-to-markdown-validated-artifact-development-run-2026-07-24/raw-runs.jsonl#line:3",
+          "results/skill-ir/general-skill-optimization-20260913/g2-trace-evidence.json"
+        ],
+        "rawRunSha256": "8a9d3103b54d6a12291948e0de0acbb963f23254af729d6998f35a23955201b8",
+        "observed": [
+          "runStatus=ok",
+          "exitCode=0",
+          "the selected record binds scripts/law_to_markdown.py, cn_law_normalizer.py and stage3_checker.py in its resource closure",
+          "g2 reports two generated Markdown files and an unchanged input; quality remains unknown without an independent score"
+        ]
+      },
+      "fixedSteps": [
+        "accept txt, docx or pdf and choose the corresponding conversion path",
+        "normalize headings and preserve character fidelity",
+        "run the stage-3 checker and retain audit/process artifacts when required",
+        "write the final result and review report under the derived output directory"
+      ],
+      "variables": [
+        { "name": "inputPath", "origin": "task-workdir", "required": true },
+        { "name": "inputExtension", "origin": "observed-value", "required": true },
+        { "name": "lawDecision", "origin": "task-variable-or-source-default", "required": true },
+        { "name": "allowFallback", "origin": "task-variable", "required": false },
+        { "name": "artifactLevel", "origin": "source-fixed-or-task-variable", "required": false },
+        { "name": "outputDirectory", "origin": "source-derived", "required": true }
+      ],
+      "environmentDeps": [
+        "Python runtime",
+        "python-docx and pdfplumber for local fallback",
+        "optional MinerU OCR route when explicitly available",
+        "the three source scripts and their requirements"
+      ],
+      "agentBranches": [
+        "txt versus docx/pdf conversion",
+        "legal versus non-legal decision and strict versus non-strict checking",
+        "explicitly authorized fallback versus unavailable OCR/dependency",
+        "minimal, standard or debug artifact retention"
+      ],
+      "engineSupport": {
+        "candidateActionKinds": ["reuse-script"],
+        "supportedByCurrentEvidence": [
+          "source-script reuse is directly bound by the trace resource closure",
+          "input and output paths can be parameterized without changing the converter semantics",
+          "the existing checker remains an independent validation step"
+        ],
+        "gaps": [
+          "OCR and legal classification remain conditional branches",
+          "dependency installation and model-provided law decisions are external to a generic package",
+          "the selected trace is summary-level and has no recovered visible tool calls"
+        ]
+      },
+      "productionSymbols": {
+        "sourceSymbols": [
+          "scripts/law_to_markdown.py: _convert_txt",
+          "scripts/law_to_markdown.py: _convert_docx",
+          "scripts/law_to_markdown.py: _convert_pdf_pdfplumber",
+          "scripts/law_to_markdown.py: _run_stage2_stage3_pipeline",
+          "scripts/law_to_markdown.py: main",
+          "scripts/stage3_checker.py: run_stage3_checks"
+        ],
+        "sourceEvidencePath": "results/skill-ir/general-skill-optimization-20260913/g4-real-proposal/optimizer/optimize-context/tasks/law-to-markdown-skvm-windows-clean-law-to-markdown-statute-dev-001/run-0-workdir/scripts",
+        "tests": [
+          "test/jit-optimize/implementations.test.ts",
+          "test/jit-optimize/package-validation.test.ts",
+          "results/skill-ir/general-skill-optimization-20260913/g6-program-validation/report.json"
+        ]
+      }
+    },
+    {
+      "id": "pilot:experimental-design",
+      "resourceForm": "long instruction document, two Python programs and four on-demand references",
+      "source": {
+        "path": "benchmarks/skill-ir/pilots/experimental-design/source/SKILL.md",
+        "sha256": "f8a3c3022cc8ddf37cca9ec03df032ce1cdaf149d5974166dd2d2a480124f093",
+        "locators": [
+          "SKILL.md:78-90",
+          "SKILL.md:92-147",
+          "SKILL.md:183-219"
+        ]
+      },
+      "trace": {
+        "status": "observed-with-failure-boundary",
+        "locators": [
+          "results/skill-ir/experimental-design-v2-source-route-diagnostic-calibration-2026-07-28/run/raw-runs.jsonl#line:3",
+          "results/skill-ir/general-skill-optimization-20260913/g10-experimental-design/original-input-001/agent-events.json.gz:/81/message/content/0/arguments",
+          "results/skill-ir/general-skill-optimization-20260913/g10-experimental-design/original-input-001/agent-events.json.gz:/995/message/content/4/arguments"
+        ],
+        "rawRunSha256": "a6d71fa217a09a371d055d3853633c9059c091aab87e5031a9c2d3f2c5cced29",
+        "observed": [
+          "runStatus=ok",
+          "exitCode=3; this is retained as a failed/non-passing execution boundary",
+          "an observed command imported randomization.stratified_block_randomization with seed=37",
+          "a later independent command checked study, contract, plan and allocation artifacts",
+          "the trace supports program/resource presence but not every design-family branch"
+        ]
+      },
+      "fixedSteps": [
+        "state the question, unit, response and nuisance factors",
+        "select a design family and read only the applicable reference branch",
+        "call a seeded randomization or DOE generator",
+        "randomize run order and write a reproducible CSV layout",
+        "retain design metadata and analysis handoff"
+      ],
+      "variables": [
+        { "name": "designFamily", "origin": "unknown-judgment", "required": true },
+        { "name": "factorsOrArms", "origin": "task-variable", "required": true },
+        { "name": "unitsOrClusters", "origin": "task-variable", "required": true },
+        { "name": "strataAndNuisanceFactors", "origin": "task-variable-or-unknown", "required": false },
+        { "name": "seed", "origin": "task-variable-or-source-default", "required": true },
+        { "name": "outputCsv", "origin": "source-derived-or-task-variable", "required": true }
+      ],
+      "environmentDeps": [
+        "Python >=3.10",
+        "numpy, pandas and pyDOE3",
+        "scripts/randomization.py and scripts/doe_designs.py",
+        "four reference files selected by the applicable branch"
+      ],
+      "agentBranches": [
+        "simple, blocked, stratified or cluster randomization",
+        "full/fractional factorial, screening, response-surface or Latin-hypercube DOE",
+        "unit-level versus cluster-level randomization",
+        "reference lookup and analysis handoff according to the chosen design"
+      ],
+      "engineSupport": {
+        "candidateActionKinds": ["reuse-script", "generate-script"],
+        "supportedByCurrentEvidence": [
+          "two source Python modules expose deterministic seeded functions",
+          "the action contract can preserve scripts, references, inputs, outputs and verification",
+          "a CSV-producing workflow is a candidate for F6.1 execution scaffolding"
+        ],
+        "gaps": [
+          "design selection and nuisance-factor reasoning are not mechanical",
+          "dependency availability must be checked in a clean environment",
+          "the selected source-route trace has exitCode=3 and cannot be used as a positive quality result"
+        ]
+      },
+      "productionSymbols": {
+        "sourceSymbols": [
+          "scripts/randomization.py: stratified_block_randomization",
+          "scripts/randomization.py: block_randomization",
+          "scripts/randomization.py: cluster_randomization",
+          "scripts/randomization.py: assign_factorial_runs",
+          "scripts/doe_designs.py: two_level_factorial",
+          "scripts/doe_designs.py: plackett_burman",
+          "scripts/doe_designs.py: central_composite",
+          "scripts/doe_designs.py: latin_hypercube"
+        ],
+        "sourceEvidencePath": "results/skill-ir/general-skill-optimization-20260913/g10-experimental-design/original-input-001/work/skill/scripts",
+        "tests": [
+          "test/jit-optimize/implementations.test.ts",
+          "test/jit-optimize/package-validation.test.ts",
+          "results/skill-ir/general-skill-optimization-20260913/g10-experimental-design/original-input-001/report.json"
+        ]
+      }
+    },
+    {
+      "id": "pilot:env-manager",
+      "resourceForm": "instruction-only source with known optional domain backend",
+      "source": {
+        "path": "benchmarks/skill-ir/pilots/env-manager/source/SKILL.md",
+        "sha256": "1da53ec17fadccd3f72644cb4e0b8db1cc250ce01c414aa125ed6cd6e76dad6c",
+        "locators": [
+          "SKILL.md:13-35",
+          "SKILL.md:37-72",
+          "SKILL.md:74-87",
+          "SKILL.md:96-104"
+        ]
+      },
+      "trace": {
+        "status": "partial-observation",
+        "locators": [
+          "results/skill-ir/env-manager-v3-validated-artifact-development-v1/raw-runs.jsonl#line:3",
+          "results/skill-ir/general-skill-optimization-20260913/g13-env-manager/first-attempt-report.json"
+        ],
+        "rawRunSha256": "7daf2ce0f979c5a88945ead1b566bc327e8105ea810bfa40877289bdabae87b5",
+        "observed": [
+          "runStatus=ok",
+          "exitCode=0",
+          "the first attempt exported a documentation package and retained a submission metadata diagnostic",
+          "no source-provided executable scanner is bound by the selected source body"
+        ]
+      },
+      "fixedSteps": [
+        "enumerate .env variants and code references without exposing secret values",
+        "classify defined, unused and missing variables and validate URL, port and boolean formats",
+        "detect hard-coded sensitive material and compare .env.example with actual .env",
+        "generate a redacted .env.example, schema and framework-specific configuration",
+        "preserve dynamic, CI, container and deployment references as unresolved/advisory work"
+      ],
+      "variables": [
+        { "name": "repositoryRoot", "origin": "task-workdir", "required": true },
+        { "name": "envFilePatterns", "origin": "source-fixed", "required": true },
+        { "name": "framework", "origin": "observed-value-or-unknown", "required": false },
+        { "name": "requiredVariableRules", "origin": "task-contract-or-source-example", "required": false },
+        { "name": "outputPaths", "origin": "source-derived-or-task-variable", "required": true },
+        { "name": "secretRedactionPolicy", "origin": "source-fixed", "required": true }
+      ],
+      "environmentDeps": [
+        "filesystem access to .env* names and source files",
+        "language-specific environment access patterns",
+        "framework conventions for public prefixes and loading",
+        "optional domain backend only when an explicit contract supplies it"
+      ],
+      "agentBranches": [
+        "static no-reference versus confirmed unused variable",
+        "missing definition versus dynamically accessed/CI/deployment variable",
+        "Next.js, Vite, CRA, Nuxt or Vue CLI prefix rules",
+        "monorepo synchronization and Docker/CI output requests",
+        "hard-coded secret finding requires remediation advice, not silent rewriting"
+      ],
+      "engineSupport": {
+        "candidateActionKinds": ["restructure-docs", "generate-script", "domain-backend"],
+        "supportedByCurrentEvidence": [
+          "documentation package export can preserve the source policy and examples",
+          "an independent package checker can verify declared report/schema files",
+          "action-local diagnostics can keep unsupported dynamic checks unresolved"
+        ],
+        "gaps": [
+          "no executable scanner is present in the public source body",
+          "unused-variable deletion and dynamic access require human judgment",
+          "secret values must never become parameters or package content",
+          "the observed first attempt includes a declaration mismatch diagnostic"
+        ]
+      },
+      "productionSymbols": {
+        "sourceSymbols": [],
+        "engineSymbols": [
+          "src/jit-optimize/implementations.ts: selectImplementationForAction",
+          "src/jit-optimize/package-validation.ts: validateOptimizationPackage",
+          "src/jit-optimize/loop.ts: constrained repair path"
+        ],
+        "tests": [
+          "test/jit-optimize/implementations.test.ts",
+          "test/jit-optimize/package-validation.test.ts",
+          "results/skill-ir/general-skill-optimization-20260913/g13-env-manager/first-attempt-report.json"
+        ]
+      }
+    }
+  ],
+  "crossMemberPatterns": {
+    "sourceProvidedPrograms": [
+      "pilot:law-to-markdown",
+      "pilot:experimental-design"
+    ],
+    "instructionOnlyOrMostlyInstruction": [
+      "pilot:zh-readme",
+      "pilot:i18n-helper",
+      "pilot:env-manager"
+    ],
+    "reusableMechanicalShapes": [
+      "scan -> classify -> write report",
+      "select branch -> invoke a declared program -> write an artifact",
+      "read source/resource index -> preserve residual judgment duties",
+      "independent checker consumes declared output rather than constructor-owned success list"
+    ],
+    "parameterizationRules": [
+      "bind paths and observed values by locator; never substitute a skill name or repository path into a success branch",
+      "keep source-fixed constants, task variables, observed values and unknown judgments distinct",
+      "keep optional branch absence advisory when the source contract permits it",
+      "record exit status and partial traces without upgrading them to quality passes"
+    ],
+    "nextImplementationUse": [
+      "F2: derive parameter provenance from actual operation context",
+      "F6.1: evaluate the two-step execution scaffold against the experimental-design and law-to-markdown shapes",
+      "F9: choose structurally different ordinary development skills without adding hidden inputs"
+    ]
+  },
+  "accounting": {
+    "projectModelCalls": 0,
+    "projectApiCalls": 0,
+    "projectPaidCalls": 0,
+    "developerAgentCost": "not-measured-by-project-runtime"
+  }
+}

@@ -109,6 +109,12 @@ revision-2 F1 新增 `src/jit-optimize/operation-context.ts`，从标准化 `Age
 
 `serializeContext` 将每条 evidence 的 `operations` 与 `operationSummary` 写入 `IMPLEMENTATION_CONTEXT.json`，同时声明操作记录仅来自实际调用。summary 分开记录观察数、未知数、重复入口、先写后执行和 source entry 未调用；`existing-entry`、`written-entry` 与 `unknown` 关系不等同于可泛化机会，仍由 optimizer 结合语义判断。验证入口为 `bun test ./test/jit-optimize/operation-context.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/trace-adapters.test.ts` 与 `bun run typecheck`。
 
+### 3.0.6 F1.1 语料到代码模式索引（development）
+
+F1.1 将五个已暴露的深读成员映射为可审计的 `pattern-to-code.json`：zh-readme、i18n-helper、law-to-markdown、experimental-design 和 env-manager。每个成员分别记录源 `SKILL.md` 摘要与行定位、固定机械步骤、变量来源、环境依赖、分支判断、当前动作类型候选、生产符号/测试及仍不支持的缺口；不会把 skill 名、特定仓库路径或历史成功数量写成实现条件。
+
+该索引把指令依据与实际 trace 分栏。Law、i18n、Experimental 和 Env 绑定了已有 development run 的摘要/事件定位；zh-readme 没有可绑定的执行 trace，因此明确标为 source-only。Experimental 的 `runStatus=ok` 与 `exitCode=3` 也保留为非通过边界。该文件只用于 F2–F9 的共享模式设计，不改变旧结果、readiness 或任何 prospective/held-out 输入。机器验证入口为 `results/skill-ir/general-generation-reinforcement-20260914/f1.1/verification.json`。
+
 ### 3.0.2.1 生产链接线边界（H0–H14 + R1–R7，completed-development）
 
 普通 execution-log loop 已调用 program validator 和 action resolver，在选轮前完成局部验证、最多一次定向修复与依赖/共享文件回退。

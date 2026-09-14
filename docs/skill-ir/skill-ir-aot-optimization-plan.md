@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-14
 - 路线：F0–F11，通用生成流程补牢
-- 状态：`active`（F0 completed、F1 active）；C0–C10 已交付，本轮结果根与恢复入口已建立
+- 状态：`active`（F0、F1、F1.1 completed；F2 active）；C0–C10 已交付，本轮结果根与恢复入口已建立
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[通用生成流程补牢](../superpowers/plans/2026-09-14-general-generation-reinforcement.md) revision 2
 - 方法依据：spec 14.33；既有生产链依据 spec 14.32
@@ -16,7 +16,9 @@ revision 2 明确增加 F1.1 语料/trace→模式→生产符号/测试映射�
 | 阶段 | 状态 | 下一交付 |
 | --- | --- | --- |
 | F0 | completed | 已确认 C8/CSV 基线、Method 张力并建立执行状态 |
-| F1–F2 | active/ planned | 真实操作与参数来源索引，接入已有模型上下文 |
+| F1 | completed | 实际操作来源索引接入 IMPLEMENTATION_CONTEXT；39/39 focused tests |
+| F1.1 | completed | 五成员 source/trace→pattern-to-code 映射；四份部分 trace、一份 source-only，缺口显式保留 |
+| F2 | active | 真实操作参数来源索引，接入已有模型上下文 |
 | F3–F4 | planned | 验证骨架自动补全，可修缺口共用一次局部 repair |
 | F5–F6 | planned | 参数变化检查、可用命令与局部程序包 |
 | F7–F8 | planned | 普通程序消费观察，默认入口连续集成 |
