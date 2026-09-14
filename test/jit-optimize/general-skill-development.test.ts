@@ -215,6 +215,32 @@ describe("general skill development consumption", () => {
     expect(report.consumption).toMatchObject({ documentationOnly: true, helperInvoked: false, consumptionComplete: true })
   })
 
+  test("recognizes absolute paths only for the actual deployed package", async () => {
+    const { packageDir, base } = await makePackage("program")
+    const agentRunner: GeneralSkillAgentRunner = async (options) => {
+      await put(options.cwd, "result.json", "{}")
+      await put(options.cwd, "summary.md", "Reviewed result.")
+      return {
+        result: runResult(),
+        steps: [{ role: "assistant", timestamp: 1, toolCalls: [
+          { id: "read-absolute", name: "read_file", input: { path: path.join(options.cwd, "skill/SKILL.md") }, exitCode: 0 },
+          { id: "wrong-root", name: "exec", input: { argv: ["node", path.join(base, "other/skill/tools/transform.mjs")] }, exitCode: 0 },
+          { id: "run-absolute", name: "exec", input: { argv: ["node", path.join(options.cwd, "skill/tools/transform.mjs")] }, exitCode: 0 },
+        ] }],
+      }
+    }
+    const report = await runGeneralSkillDevelopment({
+      skillDir: packageDir, runDir: path.join(base, "absolute-run"),
+      task: "Transform and review the result.", resources: [],
+      expectedFiles: [{ path: "result.json" }], residualEvidenceFiles: ["summary.md"],
+      model: "provider/model", agentRunner,
+    })
+    expect(report.consumption.skillRead).toBe(true)
+    expect(report.consumption.helperInvoked).toBe(true)
+    expect(report.consumption.helperToolCallIds).toEqual(["run-absolute"])
+    expect(report.status).toBe("passed")
+  })
+
   test("fails the task boundary when execution mutates the copied skill package", async () => {
     const { packageDir, base } = await makePackage("docs")
     const agentRunner: GeneralSkillAgentRunner = async (options) => {

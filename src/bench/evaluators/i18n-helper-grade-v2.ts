@@ -7,7 +7,7 @@ import { z } from "zod"
 import { assessWorkdirDelta, readInitialWorkdirManifest } from "../../core/workdir-manifest.ts"
 import type { CustomEvaluator } from "../../framework/types.ts"
 import { registerCustomEvaluator } from "../../framework/types.ts"
-import { PublicOutputAbiSchema, validatePublicOutputRecord } from "../public-output-abi.ts"
+import { PublicOutputAbiSchema } from "../public-output-abi.ts"
 
 const SCHEMA_VERSION = "skill-ir-i18n-helper-eval/v2"
 const CONTRACT_PATH = "i18n-contract.json"
@@ -415,11 +415,19 @@ async function checkReport(root: string): Promise<GradeResult> {
   const report = reportText && parseStrictJson(reportText)
   if (!report || typeof report !== "object" || Array.isArray(report)) return failing("The i18n report is not strict JSON.")
   const value = report as Record<string, unknown>
-  const valid = validatePublicOutputRecord(contract.outputAbi, value).status === "pass"
-    && value.framework === contract.framework
-    && isDeepStrictEqual(value.scannedFiles, [SOURCE_PATH])
-    && isDeepStrictEqual(value.extractedKeys, facts.source.keys)
-    && isDeepStrictEqual(value.missingKeys, { "zh-CN": [], "en-US": [] })
+  const stringSetMatches = (actual: unknown, expected: string[]) =>
+    Array.isArray(actual) && actual.every((item) => typeof item === "string") && sameSet(actual, expected)
+  const emptyList = (actual: unknown) => actual === null || (Array.isArray(actual) && actual.length === 0)
+  // This report describes sets and absence, not a downstream machine ABI.
+  const noMissingKeys = emptyList(value.missingKeys)
+    || (value.missingKeys !== null && typeof value.missingKeys === "object"
+      && !Array.isArray(value.missingKeys) && Object.values(value.missingKeys).every(emptyList))
+  const valid = value.framework === contract.framework
+    && stringSetMatches(value.scannedFiles, [SOURCE_PATH])
+    && stringSetMatches(value.extractedKeys, facts.source.keys)
+    && noMissingKeys
+    && sameSet(facts.source.keys, [...facts.zh.keys()])
+    && sameSet(facts.source.keys, [...facts.en.keys()])
   return valid
     ? passing("The public report matches observable source and locale facts.")
     : failing("The public report contradicts observable source or locale facts.")

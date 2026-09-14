@@ -18,6 +18,7 @@ import type {
 } from "./types.ts"
 import { OptimizeSubmissionSchema } from "./types.ts"
 import { runHeadlessAgent } from "../core/headless-agent/index.ts"
+import { HeadlessAgentError } from "../core/headless-agent/shared.ts"
 import { createLogger } from "../core/logger.ts"
 import {
   createWorkspace,
@@ -79,6 +80,7 @@ export async function runOptimizer(
     model: config.model,
     timeoutMs,
     driver: config.driver,
+    throwOnError: false,
   })
 
   // 5. Persist the agent's stdout/stderr at the head of the step record.
@@ -93,12 +95,26 @@ export async function runOptimizer(
       await Bun.write(path.join(config.recordDir, "stderr.log"), run.rawStderr)
     }
     await Bun.write(path.join(config.recordDir, "prompt.md"), prompt)
+    await Bun.write(path.join(config.recordDir, "run-result.json"), JSON.stringify({
+      exitCode: run.exitCode,
+      timedOut: run.timedOut,
+      durationMs: run.durationMs,
+      driver: run.driver,
+      tokens: run.tokens,
+      reportedCostUsd: run.cost,
+      usageScope: "observed-events-only",
+    }, null, 2) + "\n")
   }
 
-  // Non-zero exit / timeout already threw a HeadlessAgentError inside
-  // runHeadlessAgent — if we reach here the subprocess succeeded. A missing
-  // or malformed submission.json below is still a legitimate "agent ran
-  // normally but didn't follow the output contract" case.
+  // Preserve partial events/usage before rejecting a failed run. Never adopt
+  // a timeout's unfinished workspace as a candidate or a no-change result.
+  if (run.exitCode !== 0 || run.timedOut) {
+    throw new HeadlessAgentError(
+      run.timedOut ? `optimizer session timed out after ${timeoutMs}ms`
+        : `optimizer session failed with exit=${run.exitCode}: ${run.rawStderr.slice(0, 500)}`,
+      run.driver, run.exitCode, run.timedOut, run.rawStderr,
+    )
+  }
 
   // 6. Read submission.json
   let submission: OptimizeSubmission
@@ -178,6 +194,9 @@ export async function runOptimizer(
 
   // 10. Strip .optimize/ so the workspace becomes a clean snapshot candidate
   await stripOptimizeDir(absWorkspace)
+  if (config.recordDir) {
+    await copySkillDir(absWorkspace, path.join(config.recordDir, "candidate"))
+  }
 
   return {
     changed,
@@ -510,15 +529,30 @@ ${repairMode ? `This is the single repair attempt for an already-validated candi
    translations, user decisions, input bytes, or expected answers. Prefer the smallest
    executable boundary supported by source instructions, with a current validation
    case and residual duties, over documenting those same mechanical steps as complete.
+   Designing a new program's argv is allowed: it is a proposed interface, not an
+   observed invocation. Declare the options you implement and bind validation values
+   to actual captured files. Select an available ordinary runtime and verify it
+   locally; a missing source executable does not mean no runtime is available.
+   An unscored fidelity reference is sufficient to run a bounded candidate, but
+   not sufficient to claim independent task correctness. Submit that reference
+   case and preserve the draft/fidelity boundary instead of suppressing execution.
 3. ${historyCount > 0 ? "Read history.md. Do not repeat diagnoses that previous rounds tried and failed to improve. If previous rounds clarified something and it didn't help, the problem is elsewhere — look harder." : "Read the skill files you need to understand (SKILL.md is the entry point)."}
 4. Inventory every evidence-backed opportunity before choosing edits. Use
    these exact categories in the submission: \`instruction-clarity\`,
-   \`input-parameterization\`, \`repeated-transformation\`, \`verification\`,
+   \`input-parameterization\`, \`repeated-transformation\`, \`artifact-production\`, \`verification\`,
    \`environment-dependency\`, and \`residual-duty\`. For each category, cite
    the Evidence Indices, decide implemented/retained/not-applicable, and state
    any residual agent duty. Do not treat an absent score or absent criterion as
    a failure. Passing evidence can still support an optimization; repeated
    transformations and avoidable verification work are positive evidence.
+   Do not mark artifact-production implemented for a checker or a documentation
+   route. Give it its own disposition: name the files produced, the consecutive
+   mechanical steps, and the semantic values the consumer supplies before execution.
+   Separating judgment from execution does not require an independent oracle for
+   those judgments: a consumer-confirmed mapping can be read, structurally checked,
+   and serialized by the program while meaning remains the consumer's duty.
+   For a captured validation case, reuse actual recorded values or resource bytes;
+   do not fabricate a mapping or hard-code that case into the implementation.
    Keep professional judgment, policy choices and context-dependent decisions
    in \`residualDuties\`: those responsibilities must remain with the agent unless
    the source and a checker make their replacement explicit and testable.
@@ -685,6 +719,11 @@ Write \`.optimize/submission.json\` with these fields (see
   \`inputSource\` \`pre-run-input-snapshot\` and the exact locator under
   \`.optimize/tasks/<safeTaskId>/run-N-pre-run-inputs/\`. This namespace is
   distinct from trace-bound task fixtures and observed post-run workdir files.
+  A case that needs both before and after bytes may list exact projected locators
+  from multiple sources of the same evidence. Make every input explicit in that
+  case: explicit projection argv retains separate directories. Ordinary relative
+  argv materializes a common root only when relative input paths do not collide;
+  same-named baseline/output files require distinct explicit projection arguments.
   A historical passed criterion is not itself a current assertion: the engine
   will re-run a contained deterministic task check against the candidate output.
   If the original source skill already contains \`.skvm-validation.json\`, its
@@ -695,7 +734,9 @@ Write \`.optimize/submission.json\` with these fields (see
   status/output and list \`expectedAbsentFiles\` so the engine verifies rejection
   before writing outputs. Exercise changed values and parameters when the evidence
   permits; selecting an entry never proves all declared inputs or preconditions.
-  Do not invent task files, expected bytes, credentials, runtimes, or arguments.
+  Do not fabricate source facts, input bytes, expected answers, credentials, or
+  claims that a runtime/argv was observed. New interfaces and dependencies may be
+  designed and explicitly declared; verify availability before relying on them.
   Use
   \`reuse-script\`, \`domain-backend\`, \`generate-script\`, or
   \`restructure-docs\`. Do not invent empty values for unknown required facts;
@@ -713,6 +754,12 @@ Write \`.optimize/submission.json\` with these fields (see
   copy-ready common-path command beside its applicability rule and name the required
   and common optional arguments; routine consumers must not need to enumerate package files,
   invoke \`--help\`, or inspect program source merely to begin that documented path.
+  Resolve bundled entries relative to the directory containing SKILL.md, never a
+  captured deployment prefix such as .skvm/skills/source. Validation reports,
+  manifests and hash audits are diagnostic evidence, not routine prerequisites.
+  Do not turn harmless presentation differences into task failures: preserve
+  semantic values, required outputs and actual downstream interfaces, without
+  inventing stricter key ordering, empty-value shapes or additional schema gates.
   Keep \`--help\` stable for uncommon arguments and diagnosis. Have the executable keep
   large results in files and emit a concise structured completion summary on stdout with
   status, output paths, necessary errors, and the residual next step.

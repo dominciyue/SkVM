@@ -623,7 +623,7 @@ console.log(JSON.stringify({ status: "success", output: args[outAt + 1] }));
     expect(scenario.report.actions.find((item: { actionId: string }) => item.actionId === "b"))
       .toEqual(expect.objectContaining({ validationSource: "reused-initial-observation" }))
     expect(await readFile(path.join(scenario.proposal.dir, "round-1-validation", "initial-report.json"), "utf8"))
-      .toContain("digest mismatch")
+      .toContain("output JSON value mismatch")
     expect(await readFile(path.join(scenario.packageDir, "scripts", "a.mjs"), "utf8")).toContain("\\\"A\\\"")
     expect(await readFile(path.join(scenario.packageDir, "scripts", "b.mjs"), "utf8")).toContain("\\\"B\\\"")
   })

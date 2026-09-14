@@ -4,7 +4,6 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import {
   resolveActionValidation,
-  resolveValidationRuntimeCommand,
   validateOptimizationProgram,
 } from "../../src/jit-optimize/package-validation.ts"
 import type { ImplementationSelection } from "../../src/jit-optimize/implementations.ts"
@@ -23,12 +22,77 @@ afterEach(async () => {
 })
 
 describe("validateOptimizationProgram", () => {
-  test("uses a portable node command when the discovered absolute path is unavailable", () => {
-    expect(resolveValidationRuntimeCommand("node", "entry.mjs", {
-      discoveredPath: "C:\\missing\\node.exe",
-      currentRuntime: "C:\\runtime\\bun.exe",
-      pathCommand: "node",
-    })).toEqual(["node", "entry.mjs"])
+  test("compares JSON references by value without imposing serialization or object key order", async () => {
+    const packageDir = await tempDir("validation-json-reference-")
+    const cwd = await tempDir("validation-json-output-")
+    await writeFile(path.join(packageDir, "write.mjs"), `
+import { writeFileSync } from "node:fs";
+writeFileSync("out.json", process.argv[2]);
+`)
+    const reference = '{"a":1,"b":null,"items":["one","two"]}'
+    const result = await validateOptimizationProgram({
+      packageDir,
+      implementation: {
+        actionId: "json-reference", kind: "generate-script", status: "selected",
+        entry: "write.mjs", runtime: "node",
+        inputs: [], outputs: [], preconditions: [], residualDuties: [], verification: [],
+      },
+      cases: [
+        '{\n "items": ["one", "two"], "b": null, "a": 1.0\n}\n',
+        '{"a":2,"b":null,"items":["one","two"]}',
+        '{"a":"1","b":null,"items":["one","two"]}',
+        '{"a":1,"b":null,"items":["two","one"]}',
+        '{"a":1,"items":["one","two"]}',
+        'not-json',
+      ].map((output, index) => ({
+        id: `json-${index}`, cwd, args: [output], expectedFiles: ["out.json"],
+        expectedFileSha256: { "out.json": new Bun.CryptoHasher("sha256").update(reference).digest("hex") },
+        expectedFileJson: { "out.json": JSON.parse(reference) },
+      })),
+    })
+    expect(result.cases.map((item) => item.status)).toEqual([
+      "passed", "failed", "failed", "failed", "failed", "failed",
+    ])
+  })
+
+  test("executes a long validation cwd without changing inputs or losing failed assertions", async () => {
+    const packageDir = await tempDir("validation-long-cwd-")
+    let workDir = path.join(packageDir, "cases")
+    while (workDir.length < 300) workDir = path.join(workDir, "nested-validation")
+    await mkdir(workDir, { recursive: true })
+    await writeFile(path.join(workDir, "input.txt"), "original")
+    await writeFile(path.join(packageDir, "process.mjs"), `
+import { readFileSync, writeFileSync } from "node:fs";
+writeFileSync("out.txt", readFileSync("input.txt"));
+`)
+    const result = await validateOptimizationProgram({
+      packageDir,
+      implementation: {
+        actionId: "long-cwd", kind: "generate-script", status: "selected",
+        entry: "process.mjs", runtime: "node",
+        inputs: [], outputs: [], preconditions: [], residualDuties: [], verification: [],
+      },
+      cases: [
+        { id: "success", cwd: workDir, args: [], expectedFiles: ["out.txt"] },
+        {
+          id: "wrong-output", cwd: workDir, args: [], expectedFiles: ["out.txt"],
+          expectedFileSha256: { "out.txt": new Bun.CryptoHasher("sha256").update("different").digest("hex") },
+        },
+      ],
+    })
+    expect(result.cases.map((item) => item.exitCode)).toEqual([0, 0])
+    expect(result.cases.map((item) => item.status)).toEqual(["passed", "failed"])
+    expect(result.cases[1]?.failureKind).toBe("result-mismatch")
+    expect(await readFile(path.join(workDir, "input.txt"), "utf8")).toBe("original")
+    expect(await readFile(path.join(workDir, "out.txt"), "utf8")).toBe("original")
+    expect(result.cases[0]?.cwd).toBe(workDir)
+    if (process.platform === "win32") {
+      for (const item of result.cases) {
+        expect(item.executionCwd).toBeDefined()
+        expect(item.executionCwd!.length).toBeLessThan(260)
+        expect(await Bun.file(path.join(item.executionCwd!, "input.txt")).exists()).toBe(false)
+      }
+    }
   })
 
   test("runs help, changed inputs, a legal empty input, and an explicit missing-resource error", async () => {
@@ -84,7 +148,7 @@ try {
 
     expect(result.status).toBe("passed")
     expect(result.help?.status).toBe("passed")
-    expect(result.help?.command[0]).toBe("node")
+    expect(result.help?.command[0]).toBe(Bun.which("node") ?? process.execPath)
     expect(result.cases.map((item) => item.status)).toEqual(["passed", "passed", "passed", "passed"])
     expect(await readFile(path.join(firstWorkDir, "out.json"), "utf8"))
       .not.toBe(await readFile(path.join(secondWorkDir, "out.json"), "utf8"))

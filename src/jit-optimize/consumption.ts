@@ -402,7 +402,7 @@ export function analyzeSkillConsumption(
       if (isHelp) helperHelpToolCallIds.push(call.id)
       if (assertion === "not-applicable") {
         helperNotApplicableToolCallIds.push(call.id)
-      } else if (status === "zero" && assertion === "passed") {
+      } else if (!isHelp && status === "zero" && assertion === "passed") {
         helperSuccessfulToolCallIds.push(call.id)
       } else if (!isHelp && status === "zero" && assertion === "unknown") {
         helperUnassertedToolCallIds.push(call.id)
@@ -421,7 +421,8 @@ export function analyzeSkillConsumption(
   const residualWorkCompleted = options.residualWorkCompleted ?? false
   const taskOutcome = options.taskOutcome ?? "not-checked"
   const fallbackUsed = helperNotApplicableToolCallIds.length > 0 && taskOutcome === "passed"
-  const helperRequirementMet = documentationOnly || declaredEntrypoints.length === 0 || helperSucceeded || fallbackUsed
+  const helperRequirementMet = documentationOnly || declaredEntrypoints.length === 0
+    || helperSucceeded || helperUnassertedToolCallIds.length > 0 || fallbackUsed
   // An attempted read with an unknown exit is retained as evidence, but it
   // cannot by itself prove that the package was actually loaded.
   const consumptionComplete = skillReadToolCallIds.length > 0

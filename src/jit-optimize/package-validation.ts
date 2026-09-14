@@ -1,6 +1,7 @@
 import path from "node:path"
-import { existsSync } from "node:fs"
-import { stat } from "node:fs/promises"
+import { mkdtemp, rmdir, stat, symlink, unlink } from "node:fs/promises"
+import { tmpdir } from "node:os"
+import { isDeepStrictEqual } from "node:util"
 import { emptyTokenUsage, type EvalCriterion } from "../core/types.ts"
 import { evaluate } from "../framework/evaluator.ts"
 import type { ImplementationSelection } from "./implementations.ts"
@@ -28,6 +29,8 @@ export interface ProgramValidationCase extends ProgramValidationExpectation {
   expectedAbsentFiles?: string[]
   /** Engine-derived reference digests; optimizer suggestions cannot supply these directly. */
   expectedFileSha256?: Record<string, string>
+  /** Parsed JSON from engine-owned references; serialization is not a behavioral requirement. */
+  expectedFileJson?: Record<string, unknown>
   /** Engine-resolved assertions from an authority outside the candidate program. */
   assertions?: ProgramValidationAssertion[]
 }
@@ -59,6 +62,8 @@ export interface ProgramRunValidation {
   status: "passed" | "failed"
   command: string[]
   cwd: string
+  /** Short-lived Windows junction used only for process launch; cwd remains the evidence location. */
+  executionCwd?: string
   exitCode: number
   stdout: string
   stderr: string
@@ -149,31 +154,9 @@ async function pathExists(filePath: string): Promise<boolean> {
   }
 }
 
-export function resolveValidationRuntimeCommand(
-  runtime: ImplementationSelection["runtime"],
-  entry: string,
-  options: {
-    discoveredPath?: string
-    currentRuntime?: string
-    pathCommand?: string
-  } = {},
-): string[] | undefined {
-  if (runtime === "node") {
-    if (options.pathCommand) return [options.pathCommand, entry]
-    if (options.discoveredPath && existsSync(options.discoveredPath)) return [options.discoveredPath, entry]
-    if (options.currentRuntime) return [options.currentRuntime, entry]
-    return undefined
-  }
-  return undefined
-}
-
 function runtimeCommand(implementation: ImplementationSelection, entry: string): string[] | undefined {
   switch (implementation.runtime) {
-    case "node": return resolveValidationRuntimeCommand("node", entry, {
-      discoveredPath: Bun.which("node") ?? undefined,
-      currentRuntime: process.execPath,
-      pathCommand: "node",
-    })
+    case "node": return [Bun.which("node") ?? process.execPath, entry]
     case "python": return [process.env.PYTHON_EXECUTABLE ?? (process.platform === "win32" ? "python" : "python3"), entry]
     case "shell": return ["sh", entry]
     case "powershell": return ["pwsh", "-NoProfile", "-File", entry]
@@ -218,6 +201,35 @@ async function runValidation(
   expectation: ProgramValidationExpectation & { expectedFiles?: string[]; expectedAbsentFiles?: string[] },
   timeoutMs: number,
 ): Promise<ProgramRunValidation> {
+  const resolvedCwd = path.resolve(cwd)
+  if (process.platform !== "win32" || resolvedCwd.length < 260
+    || !(await stat(resolvedCwd).catch(() => undefined))?.isDirectory()) {
+    return runValidationAtCwd(id, commandBase, cwd, expectation, timeoutMs)
+  }
+  // Windows process launch can reject a long cwd even when its files are readable.
+  // A junction preserves the case bytes and relative paths without moving evidence.
+  const aliasRoot = await mkdtemp(path.join(tmpdir(), "skvm-validation-"))
+  const executionCwd = path.join(aliasRoot, "cwd")
+  let linked = false
+  try {
+    await symlink(resolvedCwd, executionCwd, "junction")
+    linked = true
+    const result = await runValidationAtCwd(id, commandBase, cwd, expectation, timeoutMs, executionCwd)
+    return { ...result, executionCwd }
+  } finally {
+    if (linked) await unlink(executionCwd)
+    await rmdir(aliasRoot)
+  }
+}
+
+async function runValidationAtCwd(
+  id: string,
+  commandBase: string[],
+  cwd: string,
+  expectation: ProgramValidationExpectation & { expectedFiles?: string[]; expectedAbsentFiles?: string[] },
+  timeoutMs: number,
+  executionCwd = cwd,
+): Promise<ProgramRunValidation> {
   const command = [...commandBase, ...expectation.args]
   const resolvedCwd = path.resolve(cwd)
   try {
@@ -255,7 +267,7 @@ async function runValidation(
   }
   let processHandle: ReturnType<typeof Bun.spawn>
   try {
-    processHandle = Bun.spawn(command, { cwd, stdout: "pipe", stderr: "pipe" })
+    processHandle = Bun.spawn(command, { cwd: executionCwd, stdout: "pipe", stderr: "pipe" })
   } catch (error) {
     return {
       id,
@@ -337,7 +349,22 @@ async function runValidation(
       const expectedSha256 = "expectedFileSha256" in expectation
         ? (expectation as ProgramValidationCase).expectedFileSha256?.[evidence.path]
         : undefined
-      if (expectedSha256 && evidence.sha256 !== expectedSha256) {
+      const expectedJson = (expectation as ProgramValidationCase).expectedFileJson
+      if (expectedJson && Object.hasOwn(expectedJson, evidence.path)) {
+        let matches = false
+        try {
+          matches = isDeepStrictEqual(
+            await Bun.file(resolveContained(cwd, outputPath)!).json(),
+            expectedJson[evidence.path],
+          )
+        } catch {
+          // Invalid JSON is not equivalent to a parsed reference.
+        }
+        if (!matches) {
+          diagnostics.push(`output JSON value mismatch for ${evidence.path}`)
+          failureKind ??= "result-mismatch"
+        }
+      } else if (expectedSha256 && evidence.sha256 !== expectedSha256) {
         diagnostics.push(`output file digest mismatch for ${evidence.path}: expected ${expectedSha256}, received ${evidence.sha256}`)
         failureKind ??= "result-mismatch"
       }

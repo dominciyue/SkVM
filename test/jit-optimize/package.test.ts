@@ -359,6 +359,8 @@ describe("buildOptimizedSkillPackage", () => {
     expect(guide).toContain("## Use this package")
     expect(guide).toContain("node bin/render.mjs")
     expect(guide).toContain("review unsupported input shapes")
+    expect(guide).toContain("relative to the directory containing SKILL.md")
+    expect(guide).not.toContain("Exit code 2 means")
   })
 
   test("derives a copy-ready command template from validation parameters", async () => {

@@ -33,6 +33,7 @@ import {
   type ValidationCompletionStatus,
 } from "./validation-completion.ts"
 import type { OperationParameterRule } from "./operation-context.ts"
+import { groupEvidencesByTask } from "./workspace.ts"
 
 export const OPTIMIZATION_VALIDATION_REPORT_SCHEMA_VERSION = "jit-optimize-validation-lifecycle/v1"
 
@@ -335,6 +336,13 @@ function rewriteBoundValidationPath(
 
 type ValidationInputSource = OptimizationValidationCaseSuggestion["inputSource"]
 
+function projectedInputSource(value: string): ValidationInputSource | undefined {
+  const match = /^\.optimize\/tasks\/[^/]+\/run-\d+-(task-fixtures|pre-run-inputs|workdir)\/.+$/u.exec(value.replaceAll("\\", "/"))
+  return match?.[1] === "task-fixtures" ? "task-fixtures"
+    : match?.[1] === "pre-run-inputs" ? "pre-run-input-snapshot"
+      : match?.[1] === "workdir" ? "workdir-snapshot" : undefined
+}
+
 /**
  * The optimizer sees evidence files through .optimize/tasks/... projections,
  * while the validator materializes only the selected source-relative files in
@@ -488,6 +496,15 @@ async function evidenceBinding(action: OptimizationAction, evidences: readonly E
     const evidence = evidences[Number(evidenceId)]
     if (!evidence) continue
     let taskSha256: string | null = null
+    let preRunIntegrity: "verified" | "unavailable" | null = null
+    if (evidence.inputResources?.preRun) {
+      try {
+        await preRunInputs(evidence)
+        preRunIntegrity = "verified"
+      } catch {
+        preRunIntegrity = "unavailable"
+      }
+    }
     if (evidence.trace?.taskPath) {
       try {
         const taskPath = path.isAbsolute(evidence.trace.taskPath)
@@ -505,6 +522,8 @@ async function evidenceBinding(action: OptimizationAction, evidences: readonly E
       criteria: evidence.criteria ?? [],
       trace: evidence.trace ?? null,
       taskSha256,
+      inputResources: evidence.inputResources ?? null,
+      preRunIntegrity,
       workDirSnapshot: [...(evidence.workDirSnapshot?.files ?? new Map<string, string>())]
         .map(([filePath, content]) => ({ path: filePath.replaceAll("\\", "/"), sha256: sha256(content) }))
         .sort((left, right) => left.path.localeCompare(right.path, "en")),
@@ -834,10 +853,29 @@ async function materializeCase(options: {
     return undefined
   }
 
-  const fixtures = suggestion.inputSource === "task-fixtures"
+  const sourcePaths = suggestion.inputFiles.map((inputPath) => (
+    options.variation?.inputBindings.find((binding) => normalizeValidationPath(binding.targetPath) === normalizeValidationPath(inputPath))?.sourcePath ?? inputPath
+  ))
+  const projectedSources = sourcePaths.map(projectedInputSource)
+  // Mixed sources are unambiguous only with explicit locators for every input.
+  // Keep their projection directories so before/after files cannot overwrite.
+  const mixedProjections = projectedSources.every(Boolean) && new Set(projectedSources).size > 1
+  const inputSources = mixedProjections ? projectedSources as ValidationInputSource[] : sourcePaths.map(() => suggestion.inputSource)
+  const preserveProjections = mixedProjections && suggestion.args.some((arg) => normalizeValidationPath(arg).includes(".optimize/tasks/"))
+  if (mixedProjections && !preserveProjections) {
+    const relativePaths = sourcePaths.map((value, index) => sourceRelativeEvidenceLocator(value, inputSources[index]!).relative?.toLowerCase())
+    if (new Set(relativePaths).size !== relativePaths.length) {
+      options.diagnostics.push({
+        code: "validation-input-source-mismatch", caseId: suggestion.id,
+        message: "Mixed input sources contain same-named files but argv declares no separate projection roots; explicit before/after arguments are required.",
+      })
+      return undefined
+    }
+  }
+  const fixtures = inputSources.includes("task-fixtures")
     ? await taskFixtures(options.evidence)
     : undefined
-  if (suggestion.inputSource === "task-fixtures" && !fixtures) {
+  if (inputSources.includes("task-fixtures") && !fixtures) {
     options.diagnostics.push({
       code: "validation-task-source-unavailable",
       caseId: suggestion.id,
@@ -847,7 +885,7 @@ async function materializeCase(options: {
   }
 
   let savedPreRunInputs: PreRunInputLookup | undefined
-  if (suggestion.inputSource === "pre-run-input-snapshot") {
+  if (inputSources.includes("pre-run-input-snapshot")) {
     if (!options.evidence.inputResources?.preRun) {
       options.diagnostics.push({
         code: "validation-pre-run-source-unavailable",
@@ -868,12 +906,12 @@ async function materializeCase(options: {
     }
   }
 
-  if (suggestion.inputSource === "task-fixtures" && options.evidence.inputResources?.preRun) {
+  if (inputSources.includes("task-fixtures") && options.evidence.inputResources?.preRun) {
     try {
       const saved = await preRunInputs(options.evidence)
-      const requested = suggestion.inputFiles
-        .map((inputPath) => options.variation?.inputBindings.find((binding) => normalizeValidationPath(binding.targetPath) === normalizeValidationPath(inputPath))?.sourcePath ?? inputPath)
-        .map((inputPath) => sourceRelativeEvidenceLocator(inputPath, suggestion.inputSource).relative)
+      const requested = sourcePaths
+        .filter((_, index) => inputSources[index] === "task-fixtures")
+        .map((inputPath) => sourceRelativeEvidenceLocator(inputPath, "task-fixtures").relative)
         .filter((relative): relative is string => relative !== undefined)
       const stale = requested.filter((relative) => {
         if (saved?.omitted.has(relative)) return true
@@ -914,14 +952,15 @@ async function materializeCase(options: {
   await mkdir(executionRoot, { recursive: true })
   const inputs: Array<{ relative: string; content: Uint8Array }> = []
   const argumentRewrites = new Map<string, string>()
-  for (const inputPath of suggestion.inputFiles) {
-    const sourceInputPath = options.variation?.inputBindings.find((binding) => normalizeValidationPath(binding.targetPath) === normalizeValidationPath(inputPath))?.sourcePath ?? inputPath
-    const located = sourceRelativeEvidenceLocator(sourceInputPath, suggestion.inputSource)
+  for (const [inputIndex, inputPath] of suggestion.inputFiles.entries()) {
+    const sourceInputPath = sourcePaths[inputIndex]!
+    const inputSource = inputSources[inputIndex]!
+    const located = sourceRelativeEvidenceLocator(sourceInputPath, inputSource)
     if (located.diagnostic) {
       options.diagnostics.push({ ...located.diagnostic, caseId: suggestion.id })
       return undefined
     }
-    const relative = options.variation ? portableRelative(inputPath) : located.relative
+    const relative = options.variation || preserveProjections ? portableRelative(inputPath) : located.relative
     if (!relative) {
       options.diagnostics.push({
         code: "validation-input-path-invalid",
@@ -933,19 +972,19 @@ async function materializeCase(options: {
     if (!options.variation && inputPath.replaceAll("\\", "/") !== relative) {
       argumentRewrites.set(inputPath, relative)
     }
-    const textContent = suggestion.inputSource === "task-fixtures"
+    const textContent = inputSource === "task-fixtures"
       ? fixtures?.[located.relative ?? sourceInputPath.replaceAll("\\", "/")]
-      : suggestion.inputSource === "workdir-snapshot"
+      : inputSource === "workdir-snapshot"
         ? snapshotContent(options.evidence, located.relative ?? sourceInputPath.replaceAll("\\", "/"))
         : undefined
-    const content = suggestion.inputSource === "pre-run-input-snapshot"
+    const content = inputSource === "pre-run-input-snapshot"
       ? savedPreRunInputs?.files.get(located.relative ?? sourceInputPath.replaceAll("\\", "/"))
       : textContent === undefined ? undefined : new TextEncoder().encode(textContent)
     if (content === undefined) {
       options.diagnostics.push({
         code: "validation-input-missing",
         caseId: suggestion.id,
-        message: `Validation input ${relative} is unavailable from ${suggestion.inputSource} for evidence ${suggestion.evidenceId}.`,
+        message: `Validation input ${relative} is unavailable from ${inputSource} for evidence ${suggestion.evidenceId}.`,
       })
       return undefined
     }
@@ -954,6 +993,7 @@ async function materializeCase(options: {
 
   const expectedFiles: string[] = []
   const expectedFileSha256: Record<string, string> = {}
+  const expectedFileJson: Record<string, unknown> = {}
   for (const expected of suggestion.expectedFiles ?? []) {
     const outputPath = portableRelative(expected.path)
     if (!outputPath) {
@@ -990,6 +1030,13 @@ async function materializeCase(options: {
       return undefined
     }
     expectedFileSha256[outputPath] = sha256(reference)
+    if (path.posix.extname(outputPath).toLowerCase() === ".json") {
+      try {
+        expectedFileJson[outputPath] = JSON.parse(reference)
+      } catch {
+        // Non-JSON references retain the existing byte comparison.
+      }
+    }
   }
   if (suggestion.basis === "reference-output" && Object.keys(expectedFileSha256).length === 0) {
     options.diagnostics.push({
@@ -1049,6 +1096,7 @@ async function materializeCase(options: {
       ...(expectedFiles.length > 0 ? { expectedFiles } : {}),
       ...(expectedAbsentFiles.length > 0 ? { expectedAbsentFiles } : {}),
       ...(Object.keys(expectedFileSha256).length > 0 ? { expectedFileSha256 } : {}),
+      ...(Object.keys(expectedFileJson).length > 0 ? { expectedFileJson } : {}),
       ...(assertions.length > 0 ? { assertions } : {}),
     },
     evidence: {
@@ -1193,6 +1241,9 @@ export async function deriveProgramValidationPlan(
   const cases: ProgramValidationCase[] = []
   const caseEvidence: ProgramValidationCaseEvidence[] = []
   const variations = options.derivedVariations ?? []
+  const projectionPrefixes = new Map(groupEvidencesByTask(options.evidences).flatMap((group) => (
+    group.runs.map((run) => [String(run.globalIndex), `.optimize/tasks/${group.safeId}/run-${run.localIndex}`] as const)
+  )))
   const variationById = new Map(variations.map((item) => [item.id, item]))
   const suggestions = [
     ...suggestion.cases,
@@ -1210,6 +1261,22 @@ export async function deriveProgramValidationPlan(
     seenIds.add(item.id)
     const evidence = evidenceAt(item, options.action, options.evidences, diagnostics)
     if (!evidence) continue
+    const variation = variationById.get(item.id)
+    const locators = [
+      ...item.inputFiles.map((inputPath) => variation?.inputBindings.find((binding) => binding.targetPath === inputPath)?.sourcePath ?? inputPath),
+      ...(item.expectedFiles ?? []).flatMap((file) => file.referencePath ? [file.referencePath] : []),
+    ]
+    const wrongProjection = locators.find((locator) => {
+      const match = /^(\.optimize\/tasks\/[^/]+\/run-\d+)-(?:task-fixtures|pre-run-inputs|workdir)\//u.exec(normalizeValidationPath(locator))
+      return match && match[1] !== projectionPrefixes.get(item.evidenceId)
+    })
+    if (wrongProjection) {
+      diagnostics.push({
+        code: "validation-evidence-invalid", caseId: item.id,
+        message: `Validation locator ${wrongProjection} does not belong to declared evidence ${item.evidenceId}.`,
+      })
+      continue
+    }
     const materialized = await materializeCase({
       action: options.action,
       suggestion: item,
@@ -1218,7 +1285,7 @@ export async function deriveProgramValidationPlan(
       sourceSkillDir: options.sourceSkillDir,
       index,
       diagnostics,
-      variation: variationById.get(item.id),
+      variation,
     })
     if (!materialized) continue
     cases.push(materialized.validationCase)
@@ -1524,17 +1591,24 @@ export async function runOptimizationValidationLifecycle(
         diagnostics,
         ...(program.nextAction ? { nextAction: program.nextAction } : {}),
       })
-    } else if (program.status === "passed" && plan.status === "ready" && plan.independentCaseIds.length > 0) {
-      observations.push({ actionId: action.id, status: "passed", diagnostics })
+    } else if (program.status === "passed" && plan.status === "ready") {
+      observations.push({
+        actionId: action.id,
+        status: "passed",
+        diagnostics: [
+          ...diagnostics,
+          ...(plan.independentCaseIds.length === 0
+            ? ["Executed cases passed; independent task quality remains unverified."]
+            : []),
+        ],
+      })
     } else {
       observations.push({
         actionId: action.id,
         status: "not-run",
         diagnostics: [
           ...diagnostics,
-          plan.independentCaseIds.length === 0
-            ? "Only self-check, unscored fidelity-reference, or externally-unbound cases ran; no current task/source assertion established task behavior."
-            : plan.status !== "ready"
+          plan.status !== "ready"
               ? "Some task-behavior cases ran, but unresolved case obligations remain and the full declared action scope is unassessed."
               : "No applicable task-behavior case completed.",
         ],

@@ -402,6 +402,8 @@ function renderUserGuide(summary: OptimizedSkillPackageUserSummary): string {
     "",
     "## Optimized steps",
     "",
+    "Resolve executable paths relative to the directory containing SKILL.md; pass task input/output paths from the project directory or as absolute paths.",
+    "",
   ]
   if (summary.steps.length === 0) lines.push("No executable step was selected; follow `SKILL.md`.")
   for (const step of summary.steps) {
@@ -419,7 +421,7 @@ function renderUserGuide(summary: OptimizedSkillPackageUserSummary): string {
   if (summary.residualDuties.length === 0) lines.push("No residual duty was declared for the selected steps.")
   else for (const duty of summary.residualDuties) lines.push(`- ${duty}`)
   lines.push("", "## Failure and fallback", "", summary.fallback, "")
-  lines.push("Exit code 2 means the helper is not applicable to that input. Exit code 1 means a required input, dependency, binding, or program condition failed and should be fixed before retrying the helper.", "")
+  lines.push("Use each program's documented exit codes and diagnostics; this package does not impose a shared exit-code convention. Manifests and validation reports are for diagnosis, not routine prerequisites.", "")
   return `${lines.join("\n")}\n`
 }
 

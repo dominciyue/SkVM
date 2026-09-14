@@ -169,7 +169,7 @@ describe("i18n-helper v2 public semantic evaluator", () => {
     }
   })
 
-  test("rejects the predecessor array report shape under the public ABI", async () => {
+  test.each([[], null, {}, { "zh-CN": null, "en-US": [] }].map((missingKeys) => ({ missingKeys })))("accepts an empty missing-key representation without changing observable facts: %j", async ({ missingKeys }) => {
     const run = await makeRun("export function App() { return <h1 data-i18n-key=\"home.welcome\">欢迎</h1>; }\n")
     await writeOutputs({
       workDir: run.workDir,
@@ -180,10 +180,33 @@ describe("i18n-helper v2 public semantic evaluator", () => {
         framework: "react-i18next",
         scannedFiles: ["src/App.tsx"],
         extractedKeys: ["home.welcome"],
-        missingKeys: [],
+        missingKeys,
       },
     })
-    expect(await grade("report", run.result)).toMatchObject({ pass: false, score: 0 })
+    expect(await grade("report", run.result)).toMatchObject({ pass: true, score: 1 })
+  })
+
+  test("compares report key sets without imposing order while rejecting missing or invented keys", async () => {
+    const run = await makeRun('export function App() { return <><h1 data-i18n-key="z.title">Title</h1><p data-i18n-key="a.body">Body</p></>; }\n')
+    for (const [extractedKeys, missingKeys, pass] of [
+      [["z.title", "a.body"], { "zh-CN": [], "en-US": [] }, true],
+      [["z.title"], {}, false],
+      [["z.title", "a.body", "invented"], {}, false],
+      [["z.title", "a.body"], { "en-US": ["a.body"] }, false],
+      [["z.title", "a.body"], "none", false],
+    ] as const) {
+      await writeOutputs({
+        workDir: run.workDir,
+        source: 'import { useTranslation } from "react-i18next"; export function App() { const { t } = useTranslation(); return <><h1 data-i18n-key="z.title">{t("z.title")}</h1><p data-i18n-key="a.body">{t("a.body")}</p></>; }\n',
+        zh: { "z.title": "Title", "a.body": "Body" },
+        en: { "z.title": "Title", "a.body": "Body" },
+        report: {
+          framework: "react-i18next", scannedFiles: ["src/App.tsx"], extractedKeys, missingKeys,
+          note: "Additional report commentary does not change the localization result.",
+        },
+      })
+      expect(await grade("report", run.result)).toMatchObject({ pass })
+    }
   })
 
   test("rejects an i18n setup that only contains expected words but is not valid TypeScript", async () => {

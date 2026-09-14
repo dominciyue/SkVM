@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { buildOptimizerPrompt } from "../../src/jit-optimize/optimizer.ts"
 import { pickBestRound } from "../../src/jit-optimize/loop.ts"
 import type { RoundResult } from "../../src/jit-optimize/types.ts"
+import { OptimizationOpportunitySchema } from "../../src/jit-optimize/types.ts"
 
 /**
  * Prompt contract tests. These assert that specific load-bearing phrases the
@@ -10,6 +11,22 @@ import type { RoundResult } from "../../src/jit-optimize/types.ts"
  * regressions when the prompt is edited.
  */
 describe("buildOptimizerPrompt", () => {
+  test("represents artifact production independently of verification in the submitted inventory", () => {
+    expect(OptimizationOpportunitySchema.safeParse({
+      category: "artifact-production", summary: "Read confirmed records and serialize target files",
+      evidenceIds: ["0"], disposition: "retained", residualDuty: "Agent confirms semantic values",
+    }).success).toBe(true)
+    const prompt = buildOptimizerPrompt(1, 0)
+    expect(prompt).toContain("`artifact-production`")
+    expect(prompt).toContain("Do not mark artifact-production implemented for a checker")
+  })
+  test("distinguishes new interface design and fidelity checks from invented source facts", () => {
+    const prompt = buildOptimizerPrompt(1, 0)
+    expect(prompt).toContain("Designing a new program's argv is allowed")
+    expect(prompt).toContain("unscored fidelity reference is sufficient to run")
+    expect(prompt).toContain("not sufficient to claim independent task correctness")
+    expect(prompt).not.toContain("Do not invent task files, expected bytes, credentials, runtimes, or arguments.")
+  })
   test("hands off unimplemented workflow slots without treating missing source interfaces as a veto", () => {
     const prompt = buildOptimizerPrompt(1, 0)
     expect(prompt).toContain("workflowScaffolds")
@@ -251,6 +268,9 @@ describe("buildOptimizerPrompt", () => {
     expect(p).toContain("routine consumers")
     expect(p).toContain("large results in files")
     expect(p).toContain("residual next step")
+    expect(p).toContain("relative to the directory containing SKILL.md")
+    expect(p).toContain("not routine prerequisites")
+    expect(p).toContain("presentation differences")
   })
 
   test("asks the optimizer for evidence-bound executable validation suggestions", () => {

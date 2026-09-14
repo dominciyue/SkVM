@@ -1,0 +1,217 @@
+{
+  "rootCause": "The bounded contract finalizer assumed every declared source and locale file would be projected directly beneath --root and emitted generic pretty-printed JSON, but validation preserves captured inputs in separate projection directories and compares the report to the observed contract output bytes; consequently the tool could not locate transformed files in the validation layout and, even in a merged layout, did not reproduce the report's compact-array serialization.",
+  "reasoning": "Evidence 0 is UNASSESSED rather than failing, but it cleanly exposes repeated contract-driven extraction, locale parity checking, ABI validation, and report writing. REPAIR_FEEDBACK narrows this attempt to the generated finalizer and its dependent SKILL.md route: validation exited 1 and produced no report. The declared validation case combines a pre-run contract with workdir-snapshot transformed files, and the optimizer explicitly preserves separate projection directories, so resolving only root/src/App.tsx and root/src/locales/* was an unsupported layout assumption. The observed report also establishes exact reference bytes, including compact one-line arrays. The repair keeps direct project-relative paths as the normal path, then uses a unique relative-suffix lookup only when a declared input is absent directly under --root; ambiguity is rejected rather than guessed. Report serialization remains parameterized by computed values while matching the captured ABI representation. Local checks now pass for both an ordinary merged project and a validator-style separated projection, and both reports byte-match the observed reference. Pre-edit checklist: (a) Generality: another React v2 contract task with different declared source paths, keys, locale contents, or separated captured-input projections benefits from the same resolver and serializer; no evidence-specific key, translation, or absolute path is embedded. (b) Rewrite-in-place: this is a repair of the existing finalizer's input resolution and report-writing routines, not an appended competing workflow; the existing SKILL.md route remains unchanged. (c) Coherent scope: only scripts/i18n-contract-tool.mjs was repaired, retaining its Node-only interface, contract validation, extraction, parity check, report production, and concise stdout summary. (d) No-trade-off: PER_TASK_SUMMARY.md contains no PASSING tasks. The sole UNASSESSED task's supported contract remains intact, while direct-layout behavior was explicitly re-tested, so the fallback does not narrow the skill or displace unsupported frameworks. Expected impact is improved deterministic completion and lower repeated verification effort for the bounded React v2 path; translation quality, interpolation correctness, runtime wiring, and protected-file preservation remain agent duties rather than inferred successes.",
+  "confidence": 0.96,
+  "changedFiles": [
+    "SKILL.md",
+    "scripts/i18n-contract-tool.mjs"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "工作流程 / 项目分析与完整性检查",
+      "description": "Routes supported React v2 contract work through the bundled finalizer after semantic edits while preserving the original workflow for all other formats and frameworks.",
+      "generality": "A different localization task that supplies a React react-i18next v2 contract with different files and keys benefits from the same contract-first routing and copy-ready command."
+    },
+    {
+      "file": "scripts/i18n-contract-tool.mjs",
+      "section": "declared-input resolution and report serialization",
+      "description": "Repairs the finalizer to resolve uniquely projected contract-declared inputs and deterministically serialize the computed report in the contract evidence's compact-array form.",
+      "generality": "A different captured React v2 validation case with transformed files under another projection directory, or with more source files and keys, benefits from the same parameterized lookup and serialization."
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "Delegated steps: select contract-first processing and run the finalizer after edits; variable parameters: contract path and project root; required resources: a supported contract and bundled Node script; check source: contract schema plus tool help; implemented because SKILL.md provides applicability and a copy-ready command.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent selects applicability and follows the original workflow for unsupported contracts or frameworks."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "Delegated steps: read declared sources/locales and choose the report path; variable parameters: --contract, --root, and all contract-declared paths; required resources: contract JSON and completed project files; check source: the captured v2 contract; implemented without fixed task keys or paths.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must supply the correct project contract and root and reject ambiguous project organization."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "Delegated consecutive steps: extract confirmed keys, check t() calls, compare locale keys, construct missing-key arrays, validate the closed ABI, and serialize the report; variable parameters: declared files/locales and their contents; required resources: transformed source and locale JSON; check source: contract rules and observed workflow; implemented as one ordinary command.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "Classification, key selection, translations, and interpolation conversion remain semantic agent work before execution."
+    },
+    {
+      "category": "artifact-production",
+      "summary": "Produced file: contract.report.path; delegated steps: compute report fields from completed files, validate them against outputAbi, and write deterministic JSON; semantic values supplied beforehand: translated locale values and transformed source calls; required resources: contract and project files; check source: observed i18n-report.json reference; implemented by the finalizer.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent creates and reviews source, config, and locale artifacts; the command produces only the report."
+    },
+    {
+      "category": "verification",
+      "summary": "Delegated checks: contract/framework support, required-file presence, key uniqueness, t() coverage, locale key parity, missing-key computation, and exact closed report ABI; variable parameters: current contract and files; required resources: Node and project bytes; check source: contract outputAbi and captured reference report; implemented and locally rerun in direct and separated-projection layouts.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent verifies semantic translation quality, interpolation behavior, framework initialization/runtime behavior, and protected-file byte preservation."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "Required runtime: Node.js with built-in modules only; variable environment input: filesystem layout beneath --root; check source: executable runtime and local runs; retained as an explicit precondition because the skill cannot guarantee Node availability in every target environment.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent confirms Node.js is available or uses the original manual workflow."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Semantic translation meaning, placeholder conversion, framework wiring, runtime behavior, and protected-file preservation cannot be inferred from key/report parity; required resources and check source vary by project; retained because neither the contract nor the deterministic report establishes these judgments.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent performs and reports these professional and project-context checks."
+    }
+  ],
+  "actions": [
+    {
+      "id": "generate-react-v2-contract-finalizer",
+      "kind": "generate-script",
+      "evidenceIds": [
+        "0"
+      ],
+      "sourceRefs": [
+        ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json",
+        ".optimize/tasks/natural-60c9e27d4f8b/run-0.md#Conversation-Log-77-78"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "--contract path to a skill-ir-i18n-helper-public-contract/v2 JSON file",
+        "--root project directory containing the contract-declared transformed sources, config, and locale JSON files"
+      ],
+      "outputs": [
+        "the JSON file at contract.report.path",
+        "a concise JSON completion summary on stdout"
+      ],
+      "preconditions": [
+        "Node.js is available",
+        "contract.framework is react-i18next",
+        "the agent has already completed and reviewed source, config, and locale files"
+      ],
+      "constraints": [
+        {
+          "description": "Preserve placeholders and use locale-aware handling for plural, gender, date, number, and currency semantics.",
+          "scope": "skill",
+          "sourceRef": "SKILL.md#注意事项"
+        },
+        {
+          "description": "Allowed, required, protected paths and the exact report ABI are supplied by the current project contract rather than promoted to skill-wide constants.",
+          "scope": "task",
+          "sourceRef": ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json"
+        }
+      ],
+      "validation": {
+        "help": {
+          "args": [
+            "--help"
+          ],
+          "stdoutIncludes": [
+            "finalize --contract <file> --root <dir>"
+          ]
+        },
+        "cases": [
+          {
+            "args": [
+              "finalize",
+              "--contract",
+              "i18n-contract.json",
+              "--root",
+              "."
+            ],
+            "id": "captured-react-v2-output",
+            "evidenceId": "0",
+            "inputSource": "pre-run-input-snapshot",
+            "inputFiles": [
+              ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json",
+              ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/src/App.tsx",
+              ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/src/i18n.ts",
+              ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/src/locales/zh-CN.json",
+              ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/src/locales/en-US.json"
+            ],
+            "expectedFiles": [
+              {
+                "path": "i18n-report.json",
+                "referencePath": ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/i18n-report.json"
+              }
+            ],
+            "applicability": "supported",
+            "basis": "reference-output",
+            "sourceRefs": [
+              ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json#outputAbi",
+              ".optimize/tasks/natural-60c9e27d4f8b/run-0.md#Conversation-Log-77-78"
+            ]
+          }
+        ]
+      },
+      "changedPaths": [
+        "scripts/i18n-contract-tool.mjs"
+      ],
+      "residualDuties": [
+        "confirm translation meaning and interpolation conversion",
+        "verify framework initialization and runtime behavior",
+        "compare protected-file bytes or version-control diff"
+      ],
+      "verification": [
+        "run --help",
+        "run finalize on the captured contract and transformed files",
+        "compare the generated report to the observed fidelity reference"
+      ]
+    },
+    {
+      "id": "route-supported-contract-workflow",
+      "kind": "restructure-docs",
+      "evidenceIds": [
+        "0"
+      ],
+      "sourceRefs": [
+        "SKILL.md#工作流程",
+        ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json"
+      ],
+      "dependsOn": [
+        "generate-react-v2-contract-finalizer"
+      ],
+      "inputs": [
+        "project localization request and any project-supplied contract"
+      ],
+      "outputs": [
+        "contract-first workflow and copy-ready finalizer command"
+      ],
+      "preconditions": [
+        "inspect the project before selecting the bounded command"
+      ],
+      "changedPaths": [
+        "SKILL.md"
+      ],
+      "residualDuties": [
+        "use the original workflow for unsupported contracts and frameworks"
+      ],
+      "verification": [
+        "confirm the documented command matches the generated script interface"
+      ]
+    }
+  ],
+  "actionDiagnostics": [],
+  "noChanges": false
+}

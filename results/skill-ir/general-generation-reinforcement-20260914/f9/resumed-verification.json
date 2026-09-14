@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "skill-ir-development-verification/v1",
+  "date": "2026-09-15",
+  "scope": "F9 shared runtime, failure accounting, consumption, explicit mixed-source materialization and artifact-production inventory",
+  "red": [
+    { "case": "mixed baseline/output projections", "actual": "unresolved", "expected": "ready" },
+    { "case": "wrong run locator", "actual": "ready", "expected": "unresolved" },
+    { "case": "artifact-production opportunity schema", "actual": "rejected", "expected": "accepted" }
+  ],
+  "verification": [
+    { "command": "bun test ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/validation-completion.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/action-plan.test.ts ./test/jit-optimize/optimizer-prompt.test.ts", "exitCode": 0, "pass": 105, "fail": 0, "assertions": 396 },
+    { "command": "bun test ./test/run ./src/run/index.test.ts ./test/cli/run.test.ts ./test/cli/run-optimize.test.ts ./test/cli/run-failure-exit.test.ts ./test/jit-optimize ./test/proposals/storage.test.ts", "exitCode": 0, "pass": 443, "fail": 0, "assertions": 1506, "log": "resumed-mainline-regression.log" },
+    { "command": "bun test ./test/core/headless-agent-pi.test.ts", "exitCode": 0, "pass": 9, "fail": 0, "assertions": 44, "note": "Separate process because this suite mocks Pi provider globally." },
+    { "command": "bun run typecheck", "exitCode": 0 },
+    { "command": "python scripts/check_skill_ir_doc_links_test.py", "exitCode": 0, "pass": 12 },
+    { "command": "git diff --check", "exitCode": 0 }
+  ],
+  "realOfflineRevalidation": {
+    "evidence": "i18n-f9-8-revalidated/verification.json",
+    "candidateModified": false,
+    "sourceReplayed": false,
+    "paidCalls": 0,
+    "helpPassed": 1,
+    "casePassed": 1,
+    "independentCases": 0,
+    "claim": "Checker-only execution, not artifact-producing completion."
+  },
+  "engineeringStatus": "verified-local-increment",
+  "realUseStatus": "partial",
+  "effectStatus": "unknown",
+  "actualUsd": null
+}

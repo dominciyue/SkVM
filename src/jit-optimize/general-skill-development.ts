@@ -306,7 +306,7 @@ export async function runGeneralSkillDevelopment(
   const residualWorkCompleted = !residualWorkRequired
     || (residualEvidenceFiles.length > 0 && residualEvidenceFiles.every((item) => item.exists))
   const consumption = analyzeSkillConsumption(execution.steps, {
-    skillPaths: ["skill/SKILL.md"],
+    skillPaths: ["skill/SKILL.md", path.join(skillWorkDir, "SKILL.md")],
     executableEntries: selectedEntrypoints,
     documentationOnly,
     residualWorkRequired,

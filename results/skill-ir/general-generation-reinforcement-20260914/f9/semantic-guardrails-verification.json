@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "skill-ir-development-verification/v1",
+  "date": "2026-09-15",
+  "scope": "User-authorized minimum semantic gates and F9/F10 feedback",
+  "red": [
+    { "case": "JSON formatting and engine reference wiring", "pass": 0, "fail": 2 },
+    { "case": "report empty representations and set order", "pass": 0, "fail": 5 },
+    { "case": "executed fidelity/self-check status", "pass": 1, "fail": 2 },
+    { "case": "portable usage and no universal exit convention", "pass": 0, "fail": 2 },
+    { "case": "pre-run reference changed but old pass reused", "actual": "programRuns=0/reused=1", "expected": "reexecute" }
+  ],
+  "green": [
+    { "command": "bun test ./src/bench/evaluators/i18n-helper-grade-v2.test.ts ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/production-closure.test.ts", "pass": 55, "fail": 0, "assertions": 248, "exitCode": 0 },
+    { "command": "bun test ./test/jit-optimize/optimizer-prompt.test.ts ./test/jit-optimize/package.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/continuous-production-closure.test.ts ./test/jit-optimize/effect.test.ts ./src/bench/evaluators/i18n-helper-grade-v2.test.ts", "pass": 101, "fail": 0, "assertions": 491, "exitCode": 0 },
+    { "command": "bun run typecheck", "exitCode": 0 },
+    { "command": "python scripts/check_skill_ir_doc_links_test.py", "pass": 12, "exitCode": 0 },
+    { "command": "git diff --check", "exitCode": 0 },
+    { "command": "git -c core.whitespace=-blank-at-eof diff --cached --check", "exitCode": 0, "note": "Unmodified consumed package usage has one blank EOF line. Preserve its exact tested bytes; do not treat artifact formatting as a release gate." }
+  ],
+  "finiteMainlineRegression": "resumed-verification.json records the earlier single full regression: 443 pass, 1506 assertions. Subsequent changes were tested in affected suites only.",
+  "realRevalidation": { "evidence": "i18n-f9-9-semantic-revalidated/verification.json", "programRuns": 1, "helpRuns": 1, "caseRuns": 1, "status": "passed", "independentCaseRuns": 0, "candidateModified": false, "paidCalls": 0 },
+  "consumption": { "units": 8, "effect": "negative", "report": "consumption-effect.json" },
+  "safetyRetained": ["contained paths", "original input protection", "source and validation-cache identity", "actual downstream semantics", "honest independent-quality status"],
+  "actualUsd": null
+}

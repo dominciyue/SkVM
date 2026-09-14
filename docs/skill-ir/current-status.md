@@ -1,10 +1,10 @@
 # Skill IR 当前状态
 
-- 更新日期：2026-09-14
-- F9 恢复进度：I18n F9.3 实际为 `actions=[]` 的文档包，不能计程序完成。已补共享 F6.1 model-processor 候选、无关脚本兼容、单 evidence 隔离及 optimizer/README 交接；72/72 回归与类型检查通过。当前命名尝试 `f9/i18n-f9-4/` 复用 F9.3 原 capture，只重跑修复后的优化链，不重放 source。历史 F9 实际费用仍需从运行记录汇总，旧 status 的零费用不能代表本轮总费用。具体证据见 `results/skill-ir/general-generation-reinforcement-20260914/f9/shared-generation-repair-verification.json`。
+- 更新日期：2026-09-15
+- F9/F10 当前：F9.9 模型报告 finalizer 已按原事件精确恢复，同一包完成两个模型×原/变化任务×source/optimized 的八单元消费；当前共享离线验证 help/case 通过、独立 case=0。用户确认最小语义门禁后，JSON 排版/对象键序、报告集合顺序和无影响空表示不再误拒绝，历史结果保留。新口径原/新各 4/4，但总体效果 negative：工具调用 90→99、input +104.4%、duration +98.4%，实际美元未知。证据见 `f9/consumption-effect.json` 与 `f9/attempt-reconciliation-through-f9-10.json`。最新受影响回归 101/101、491 assertions、typecheck 与文档测试通过。
 - 工作分支：`skill-ir-aot`
-- 下一路线：F0–F11，通用生成流程补牢；[任务书](../superpowers/plans/2026-09-14-general-generation-reinforcement.md) revision 2、spec 14.33。含 F1.1 语料到代码、F6.1 执行型流程骨架、F9.1 同包跨模型/环境比较。
-- 执行状态：`active`。F0、F1、F1.1、F2、F3、F4、F5、F6 与 F6.1 已完成（F5 保留 partial 边界）；F3 在现有生命周期前增加了证据约束的 validation completion，F4 将带有明确来源的空 validation 元数据分类为 repairable，并把候选、缺字段和局部范围合并进既有一次 repair；F5 通过普通 validation cases 生成路径/cwd 变化、记录已有参数成对覆盖，并对固定路径候选 fail closed。F6 让实现选择与 optimizer gate 对齐，按实际 validation 参数生成命令模板；F6.1 物化单输入/多输入普通 Node/Python 执行骨架，保留步骤依赖、框架/source/model 贡献和 residual duties，并在 workspace context 中登记观察到的候选。无依据、未执行和程序失败仍分别保留。当前进入 F7 消费观察。尚未启动本轮真实项目/付费运行；不重做已有验证器，不手修个别成品代替共享能力。
+- 本轮交付：F0–F11，通用生成流程补牢；[任务书](../superpowers/plans/2026-09-14-general-generation-reinforcement.md) revision 2、spec 14.33。含 F1.1 语料到代码、F6.1 执行型流程骨架、F9.1 同包跨模型/环境比较。
+- 执行状态：`completed-development`。F5 剩余边界补齐，F9.1/F10/F11 有限工作完成；工程、真实报告产出链和效果分列，效果为 negative。本轮程序经过精确恢复，共享内部验证及同包原/变化自然消费有证据；不声称首次无需恢复，也不新增该验收门槛。用户授权修复的是本任务书此前 F1–F9，并放宽无实质影响的门禁；原技能、历史证据和其他线程改动保留。当前交接报告与总结，不再扩建接口或追加抽样。
 - 已交付基线：C0–C10 `completed-development`，对应 spec 14.32；最近证据同步为 `4b31862`。新程序链已有 development 结果，但 C8 包内部仍为 `not-run/draft`，不能用后续消费覆盖该缺口。`15b5d51` 另修 CLI 失败退出码和原任务超时提示；计划形成时该提交仅在本地，实际同步以 Git 为准。
 
 2026-09-14 二次复核：上一轮 H/R 报告原样保留，其组件与局部程序结果有效；但 R6 新优化 no-change 后使用旧 H8/H9 包，R7 输入本身为 H9 包，默认新程序生产闭环仍为 partial。新计划修复原始内容未传入验证、普通脚本修改被误送 domain backend、修复动作未采纳和候选/no-change 判断问题；旧包不能替代本次产物。
@@ -53,7 +53,7 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 
 ## 3. 当前计划与上一阶段基线
 
-当前执行为 [F0–F11](../superpowers/plans/2026-09-14-general-generation-reinforcement.md)。F0 已建立结果根，F1 已将实际操作接入 workspace，F1.1 已建立 `results/skill-ir/general-generation-reinforcement-20260914/f1.1/pattern-to-code.json` 与验证报告，F2 已完成参数来源 TDD，F3 已完成 validation completion TDD，F4 已把可修接线缺口接入既有一次 repair，F5 已完成保守的路径/cwd/参数变化审计（证据见 `f5/verification.json`）。F6 已完成 Method 矛盾解析、实际参数命令模板、package 指南参数来源及兼容回归；F6.1 已完成共享单/多输入 workflow scaffold、失败隔离、贡献清单和 workspace 物化（证据见 `f6/verification.json`、`f6.1/verification.json`）。F7 已完成精确结构化 argv/路径消费匹配、无隐含 API 入口、调用/退出/输出断言/任务质量/residual 分离及实际读取/重写/执行计数（证据见 `f7/verification.json`）；当前进入 F8 active。F5 明确不猜测单一参数值，参数“未生效”语义反例仍是后续真实结构回归的开放边界；F7 的未知退出和模糊 shell 仍保留 unknown，不作为通过或失败。工程、真实使用与效果分列；缺 validation 元数据不应在有来源可补时无声停留 draft，无依据则仍保留未知。参数化与真实消费检查服务通用职责，不要求所有 skill 统一格式或输出 ABI。
+当前执行为 [F0–F11](../superpowers/plans/2026-09-14-general-generation-reinforcement.md)。F0 已建立结果根，F1 已将实际操作接入 workspace，F1.1 已建立 `results/skill-ir/general-generation-reinforcement-20260914/f1.1/pattern-to-code.json` 与验证报告，F2 已完成参数来源 TDD，F3 已完成 validation completion TDD，F4 已把可修接线缺口接入既有一次 repair，F5 已完成保守的路径/cwd/参数变化审计（证据见 `f5/verification.json`）。F6 已完成 Method 矛盾解析、实际参数命令模板、package 指南参数来源及兼容回归；F6.1 已完成共享单/多输入 workflow scaffold、失败隔离、贡献清单和 workspace 物化（证据见 `f6/verification.json`、`f6.1/verification.json`）。F7 已完成精确结构化 argv/路径消费匹配、无隐含 API 入口、调用/退出/输出断言/任务质量/residual 分离及实际读取/重写/执行计数（证据见 `f7/verification.json`）；F8 集成已完成。F5 不猜测单一参数值，后继补测已覆盖有来源关系的参数未生效、可选字段与固定常量反例；F7 的未知退出和模糊 shell 仍保留 unknown，不作为通过或失败。工程、真实使用与效果分列；缺 validation 元数据不应在有来源可补时无声停留 draft，无依据则仍保留未知。参数化与真实消费检查服务通用职责，不要求所有 skill 统一格式或输出 ABI。
 
 revision 2 增加：从已有 skill/trace 对照追踪共同模式到生产代码与测试；小型流程骨架实际接管产物处理，不能仅用 checker 计流程自动化；同一包在两个消费模型和隔离环境中比较。F6.1 现已提供单/多输入的执行 plumbing，但尚无本轮真实模型生成的跨结构成品；当前跨模型稳定性增益仍未建立，同宿主路径/环境复现不叫跨平台证明。现有程序生成通道和特定后端继续复用，不表示领域算法已由脚手架自动实现。
 

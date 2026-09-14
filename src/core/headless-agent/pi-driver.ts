@@ -36,7 +36,6 @@ import {
   type HeadlessAgentRunOptions,
   type HeadlessAgentRunResult,
 } from "./shared.ts"
-import { emptyTokenUsage } from "../types.ts"
 import { createLogger } from "../logger.ts"
 
 const log = createLogger("headless-agent")
@@ -137,10 +136,11 @@ export async function runPiDriver(
           "pi", 1, timedOut, String((err as Error).stack ?? ""),
         )
       }
+      const runStats = piEventsToRunRecord(events as unknown as PiEvent[]).finish({ workDir: cwd, durationMs })
       return {
         exitCode: 1, durationMs, timedOut,
-        cost: 0, tokens: emptyTokenUsage(),
-        rawStdout: "", rawStderr: String(err), driver: "pi",
+        cost: runStats.cost, tokens: runStats.tokens,
+        rawStdout: JSON.stringify(events), rawStderr: String(err), driver: "pi",
       }
     }
 

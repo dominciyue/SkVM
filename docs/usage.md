@@ -140,6 +140,8 @@ skvm run --prompt="<task>" --skill=./skill --workdir=./project --model=<id> --op
 
 SkVM materializes the internal task, runs it once, binds that run's capture, passes the evidence to the existing optimizer, and exports any resulting package under the run session. Users do not provide a task JSON, log path, record locator, validation plan, criteria file, action mapping, or package destination. `--optimizer-model=<id>` and `--package-out=<new-empty-directory>` are optional advanced overrides. Manual `jit-optimize --task-source=log` remains an advanced compatibility path.
 
+JSON reference checks compare parsed values, not formatting or object key order. A passed local case means it executed successfully; without independent task checks the package remains a usable draft, not an independently validated recommendation. Resolve bundled scripts relative to their `SKILL.md` directory. Manifests, validation reports and hashes are diagnostic evidence, not routine steps for consuming a skill; follow the program's own exit-code convention.
+
 Automatic run-scoped capture is currently verified only for the default `bare-agent` adapter. The other registered adapters may have manual trace readers, but that does not make automatic capture supported; `run --optimize` rejects them before source execution. The target model must match a `providers.routes` entry in the active `skvm.config.json`. Missing configuration produces a concrete route error instead of silently selecting another provider.
 
 If source execution finished and a known atomic package-export step failed, resume that session without rerunning the task or optimizer:

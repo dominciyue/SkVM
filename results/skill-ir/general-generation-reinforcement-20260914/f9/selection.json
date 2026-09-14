@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "skill-ir-general-generation-reinforcement-f9-selection/v1",
+  "identity": "general-generation-reinforcement-20260914",
+  "stage": "F9",
+  "exposure": "development",
+  "selectionBasis": "Choose structures before observing this stage's result; do not select by success outcome.",
+  "cases": [
+    {
+      "id": "law-to-markdown-v2-standard-dev-002",
+      "structure": "document-plus-contract-to-nested-markdown-artifacts",
+      "sourceSkill": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+      "publicInput": "benchmarks/skill-ir/pilots/law-to-markdown/v2/audit-initial-fixtures/law-to-markdown-v2-standard-dev-002/{document.txt,law-contract.json}",
+      "reason": "Exercises a text/document processor with explicit classification, protected inputs, exact output-set policy, nested output paths and an existing multi-stage Python source implementation.",
+      "naturalTaskBoundary": "Read the two public files, apply the skill within the public contract, preserve both inputs, and write only the declared review output for the non-law document.",
+      "heldoutOrProspective": false
+    },
+    {
+      "id": "i18n-helper-v2-react-basic-dev-001",
+      "structure": "multi-file-react-source-to-locale-and-report-artifacts",
+      "sourceSkill": "benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md",
+      "publicInput": "benchmarks/skill-ir/pilots/i18n-helper/v2/audit-initial-fixtures/i18n-helper-v2-react-basic-dev-001/{package.json,tsconfig.json,src/App.tsx,i18n-contract.json}",
+      "reason": "Exercises a multi-file source transformation with framework/config detection, locale generation, interpolation/key preservation and a strict JSON report ABI; no existing executable helper is assumed.",
+      "naturalTaskBoundary": "Read the public React files and contract, modify only the declared source, create exactly the declared locale/config/report outputs, and preserve protected files.",
+      "heldoutOrProspective": false
+    }
+  ],
+  "commonCommandShape": "bun ./src/index.ts run --prompt=<natural task> --skill=<source skill> --workdir=<new ordinary directory> --model=xty/gpt-5.6-sol --optimize --package-out=<new package directory>",
+  "guardrails": [
+    "No held-out, Q1 reserve or prospective inputs.",
+    "No historical optimized package is used as the source input or package output.",
+    "No freeze/readiness or old v1/v2 candidate execution surface is modified.",
+    "Provider cost and optimizer/developer cost remain separate; actual USD is reported only if the route binds it."
+  ]
+}

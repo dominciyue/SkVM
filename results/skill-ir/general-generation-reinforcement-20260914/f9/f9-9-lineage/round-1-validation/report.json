@@ -1,0 +1,403 @@
+{
+  "schemaVersion": "jit-optimize-validation-lifecycle/v1",
+  "createdAt": "2026-09-14T16:26:50.201Z",
+  "round": 1,
+  "sourceMode": "execution-log-local-validation",
+  "sourceTaskReplayed": false,
+  "actions": [],
+  "resolution": {
+    "status": "not-run",
+    "retainedActionIds": [],
+    "unvalidatedActionIds": [],
+    "rejected": [],
+    "feedback": [],
+    "rollbackGroups": []
+  },
+  "execution": {
+    "programRuns": 0,
+    "helpRuns": 0,
+    "caseRuns": 0,
+    "independentCaseRuns": 0,
+    "reusedActionObservations": 0
+  },
+  "rollback": {
+    "actionIds": [
+      "generate-react-v2-contract-finalizer",
+      "route-supported-contract-workflow"
+    ],
+    "changedPaths": [
+      "SKILL.md",
+      "scripts/i18n-contract-tool.mjs"
+    ],
+    "reason": "repair-still-failed"
+  },
+  "repair": {
+    "attempted": true,
+    "attemptCount": 1,
+    "actionIds": [
+      "generate-react-v2-contract-finalizer",
+      "route-supported-contract-workflow"
+    ],
+    "changedPaths": [
+      "scripts/i18n-contract-tool.mjs"
+    ],
+    "revalidatedActionIds": [
+      "generate-react-v2-contract-finalizer",
+      "route-supported-contract-workflow"
+    ],
+    "reusedActionIds": [],
+    "feedback": [
+      {
+        "actionId": "generate-react-v2-contract-finalizer",
+        "failureKind": "script-execution-error",
+        "diagnostics": [
+          "expected exit 0, received 1",
+          "expected output file is missing or outside cwd: i18n-report.json"
+        ],
+        "relevantFiles": [
+          ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json",
+          ".optimize/tasks/natural-60c9e27d4f8b/run-0.md",
+          "scripts/i18n-contract-tool.mjs"
+        ],
+        "baselineAction": {
+          "id": "generate-react-v2-contract-finalizer",
+          "kind": "generate-script",
+          "evidenceIds": [
+            "0"
+          ],
+          "sourceRefs": [
+            ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json",
+            ".optimize/tasks/natural-60c9e27d4f8b/run-0.md#Conversation-Log-77-78"
+          ],
+          "dependsOn": [],
+          "inputs": [
+            "--contract path to a skill-ir-i18n-helper-public-contract/v2 JSON file",
+            "--root project directory containing the contract-declared transformed sources, config, and locale JSON files"
+          ],
+          "outputs": [
+            "the JSON file at contract.report.path",
+            "a concise JSON completion summary on stdout"
+          ],
+          "preconditions": [
+            "Node.js is available",
+            "contract.framework is react-i18next",
+            "the agent has already completed and reviewed source, config, and locale files"
+          ],
+          "constraints": [
+            {
+              "description": "Preserve placeholders and use locale-aware handling for plural, gender, date, number, and currency semantics.",
+              "scope": "skill",
+              "sourceRef": "SKILL.md#注意事项"
+            },
+            {
+              "description": "Allowed, required, protected paths and the exact report ABI are supplied by the current project contract rather than promoted to skill-wide constants.",
+              "scope": "task",
+              "sourceRef": ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json"
+            }
+          ],
+          "validation": {
+            "help": {
+              "args": [
+                "--help"
+              ],
+              "stdoutIncludes": [
+                "finalize --contract <file> --root <dir>"
+              ]
+            },
+            "cases": [
+              {
+                "args": [
+                  "finalize",
+                  "--contract",
+                  "i18n-contract.json",
+                  "--root",
+                  "."
+                ],
+                "id": "captured-react-v2-output",
+                "evidenceId": "0",
+                "inputSource": "pre-run-input-snapshot",
+                "inputFiles": [
+                  ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json",
+                  ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/src/App.tsx",
+                  ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/src/i18n.ts",
+                  ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/src/locales/zh-CN.json",
+                  ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/src/locales/en-US.json"
+                ],
+                "expectedFiles": [
+                  {
+                    "path": "i18n-report.json",
+                    "referencePath": ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/i18n-report.json"
+                  }
+                ],
+                "applicability": "supported",
+                "basis": "reference-output",
+                "sourceRefs": [
+                  ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json#outputAbi",
+                  ".optimize/tasks/natural-60c9e27d4f8b/run-0.md#Conversation-Log-77-78"
+                ]
+              }
+            ]
+          },
+          "changedPaths": [
+            "scripts/i18n-contract-tool.mjs"
+          ],
+          "residualDuties": [
+            "confirm translation meaning and interpolation conversion",
+            "verify framework initialization and runtime behavior",
+            "compare protected-file bytes or version-control diff"
+          ],
+          "verification": [
+            "run --help",
+            "run finalize on the captured contract and transformed files",
+            "compare the generated report to the observed fidelity reference"
+          ]
+        },
+        "candidateAction": {
+          "id": "generate-react-v2-contract-finalizer",
+          "kind": "generate-script",
+          "evidenceIds": [
+            "0"
+          ],
+          "sourceRefs": [
+            ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json",
+            ".optimize/tasks/natural-60c9e27d4f8b/run-0.md#Conversation-Log-77-78"
+          ],
+          "dependsOn": [],
+          "inputs": [
+            "--contract path to a skill-ir-i18n-helper-public-contract/v2 JSON file",
+            "--root project directory containing the contract-declared transformed sources, config, and locale JSON files"
+          ],
+          "outputs": [
+            "the JSON file at contract.report.path",
+            "a concise JSON completion summary on stdout"
+          ],
+          "preconditions": [
+            "Node.js is available",
+            "contract.framework is react-i18next",
+            "the agent has already completed and reviewed source, config, and locale files"
+          ],
+          "constraints": [
+            {
+              "description": "Preserve placeholders and use locale-aware handling for plural, gender, date, number, and currency semantics.",
+              "scope": "skill",
+              "sourceRef": "SKILL.md#注意事项"
+            },
+            {
+              "description": "Allowed, required, protected paths and the exact report ABI are supplied by the current project contract rather than promoted to skill-wide constants.",
+              "scope": "task",
+              "sourceRef": ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json"
+            }
+          ],
+          "validation": {
+            "help": {
+              "args": [
+                "--help"
+              ],
+              "stdoutIncludes": [
+                "finalize --contract <file> --root <dir>"
+              ]
+            },
+            "cases": [
+              {
+                "args": [
+                  "finalize",
+                  "--contract",
+                  "i18n-contract.json",
+                  "--root",
+                  "."
+                ],
+                "id": "captured-react-v2-output",
+                "evidenceId": "0",
+                "inputSource": "pre-run-input-snapshot",
+                "inputFiles": [
+                  ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json",
+                  ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/src/App.tsx",
+                  ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/src/i18n.ts",
+                  ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/src/locales/zh-CN.json",
+                  ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/src/locales/en-US.json"
+                ],
+                "expectedFiles": [
+                  {
+                    "path": "i18n-report.json",
+                    "referencePath": ".optimize/tasks/natural-60c9e27d4f8b/run-0-workdir/i18n-report.json"
+                  }
+                ],
+                "applicability": "supported",
+                "basis": "reference-output",
+                "sourceRefs": [
+                  ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json#outputAbi",
+                  ".optimize/tasks/natural-60c9e27d4f8b/run-0.md#Conversation-Log-77-78"
+                ]
+              }
+            ]
+          },
+          "changedPaths": [
+            "scripts/i18n-contract-tool.mjs"
+          ],
+          "residualDuties": [
+            "confirm translation meaning and interpolation conversion",
+            "verify framework initialization and runtime behavior",
+            "compare protected-file bytes or version-control diff"
+          ],
+          "verification": [
+            "run --help",
+            "run finalize on the captured contract and transformed files",
+            "compare the generated report to the observed fidelity reference"
+          ]
+        },
+        "candidateDiff": [
+          "SKILL.md",
+          "scripts/i18n-contract-tool.mjs"
+        ],
+        "originalIntent": {
+          "kind": "generate-script",
+          "sourceRefs": [
+            ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json",
+            ".optimize/tasks/natural-60c9e27d4f8b/run-0.md#Conversation-Log-77-78"
+          ],
+          "inputs": [
+            "--contract path to a skill-ir-i18n-helper-public-contract/v2 JSON file",
+            "--root project directory containing the contract-declared transformed sources, config, and locale JSON files"
+          ],
+          "outputs": [
+            "the JSON file at contract.report.path",
+            "a concise JSON completion summary on stdout"
+          ],
+          "preconditions": [
+            "Node.js is available",
+            "contract.framework is react-i18next",
+            "the agent has already completed and reviewed source, config, and locale files"
+          ],
+          "changedPaths": [
+            "scripts/i18n-contract-tool.mjs"
+          ],
+          "residualDuties": [
+            "confirm translation meaning and interpolation conversion",
+            "verify framework initialization and runtime behavior",
+            "compare protected-file bytes or version-control diff"
+          ],
+          "verification": [
+            "run --help",
+            "run finalize on the captured contract and transformed files",
+            "compare the generated report to the observed fidelity reference"
+          ]
+        }
+      },
+      {
+        "actionId": "route-supported-contract-workflow",
+        "failureKind": "dependency-rejected",
+        "diagnostics": [
+          "dependency rejected: generate-react-v2-contract-finalizer"
+        ],
+        "relevantFiles": [
+          ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json",
+          "SKILL.md"
+        ],
+        "baselineAction": {
+          "id": "route-supported-contract-workflow",
+          "kind": "restructure-docs",
+          "evidenceIds": [
+            "0"
+          ],
+          "sourceRefs": [
+            "SKILL.md#工作流程",
+            ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json"
+          ],
+          "dependsOn": [
+            "generate-react-v2-contract-finalizer"
+          ],
+          "inputs": [
+            "project localization request and any project-supplied contract"
+          ],
+          "outputs": [
+            "contract-first workflow and copy-ready finalizer command"
+          ],
+          "preconditions": [
+            "inspect the project before selecting the bounded command"
+          ],
+          "changedPaths": [
+            "SKILL.md"
+          ],
+          "residualDuties": [
+            "use the original workflow for unsupported contracts and frameworks"
+          ],
+          "verification": [
+            "confirm the documented command matches the generated script interface"
+          ]
+        },
+        "candidateAction": {
+          "id": "route-supported-contract-workflow",
+          "kind": "restructure-docs",
+          "evidenceIds": [
+            "0"
+          ],
+          "sourceRefs": [
+            "SKILL.md#工作流程",
+            ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json"
+          ],
+          "dependsOn": [
+            "generate-react-v2-contract-finalizer"
+          ],
+          "inputs": [
+            "project localization request and any project-supplied contract"
+          ],
+          "outputs": [
+            "contract-first workflow and copy-ready finalizer command"
+          ],
+          "preconditions": [
+            "inspect the project before selecting the bounded command"
+          ],
+          "changedPaths": [
+            "SKILL.md"
+          ],
+          "residualDuties": [
+            "use the original workflow for unsupported contracts and frameworks"
+          ],
+          "verification": [
+            "confirm the documented command matches the generated script interface"
+          ]
+        },
+        "candidateDiff": [
+          "SKILL.md",
+          "scripts/i18n-contract-tool.mjs"
+        ],
+        "originalIntent": {
+          "kind": "restructure-docs",
+          "sourceRefs": [
+            "SKILL.md#工作流程",
+            ".optimize/tasks/natural-60c9e27d4f8b/run-0-pre-run-inputs/i18n-contract.json"
+          ],
+          "inputs": [
+            "project localization request and any project-supplied contract"
+          ],
+          "outputs": [
+            "contract-first workflow and copy-ready finalizer command"
+          ],
+          "preconditions": [
+            "inspect the project before selecting the bounded command"
+          ],
+          "changedPaths": [
+            "SKILL.md"
+          ],
+          "residualDuties": [
+            "use the original workflow for unsupported contracts and frameworks"
+          ],
+          "verification": [
+            "confirm the documented command matches the generated script interface"
+          ]
+        }
+      }
+    ],
+    "optimizerRecordPath": "round-1-repair-1-optimizer",
+    "initialReportPath": "round-1-validation/initial-report.json",
+    "repairReportPath": "round-1-validation/repair-report.json",
+    "costUsd": 0,
+    "tokens": {
+      "input": 81215,
+      "output": 13019,
+      "cacheRead": 1033856,
+      "cacheWrite": 0
+    },
+    "outcome": "rolled-back"
+  }
+}

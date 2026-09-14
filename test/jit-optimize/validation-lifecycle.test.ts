@@ -8,6 +8,7 @@ import {
 } from "../../src/jit-optimize/validation-lifecycle.ts"
 import type { ImplementationSelection } from "../../src/jit-optimize/implementations.ts"
 import type { Evidence, OptimizationAction } from "../../src/jit-optimize/types.ts"
+import { writePreRunInputSnapshot } from "../../src/run/pre-run-input-snapshot.ts"
 
 const dirs: string[] = []
 
@@ -79,6 +80,71 @@ async function evidenceWithFixture(options: {
 }
 
 describe("deriveProgramValidationPlan", () => {
+  test("keeps an ordinary root interface when mixed explicit inputs have unique relative paths", async () => {
+    const validationRoot = await tempDir("validation-mixed-root-")
+    const evidence = await evidenceWithFixture({
+      taskId: "finalize", inputPath: "contract.json", input: "{}",
+      referencePath: "src/data.txt", reference: "confirmed",
+    })
+    const action: OptimizationAction = {
+      id: "finalize", kind: "generate-script", evidenceIds: ["0"], sourceRefs: [],
+      dependsOn: [], inputs: [], outputs: [], preconditions: [],
+      changedPaths: ["scripts/convert.mjs"], residualDuties: [], verification: [],
+      validation: { cases: [{
+        id: "ordinary-root", evidenceId: "0", inputSource: "task-fixtures",
+        inputFiles: [".optimize/tasks/finalize/run-0-task-fixtures/contract.json", ".optimize/tasks/finalize/run-0-workdir/src/data.txt"],
+        args: ["--contract", "contract.json", "--root", "."], basis: "self-check", sourceRefs: [],
+      }] },
+    }
+    const plan = await deriveProgramValidationPlan({
+      action, implementation: implementation(action.id), evidences: [evidence], validationRoot,
+    })
+    expect(plan.status).toBe("ready")
+    expect(await Bun.file(path.join(plan.cases[0]!.cwd, "contract.json")).exists()).toBe(true)
+    expect(await readFile(path.join(plan.cases[0]!.cwd, "src/data.txt"), "utf8")).toBe("confirmed")
+  })
+  test("materializes explicit baseline and observed projections without aliasing same-named files", async () => {
+    const validationRoot = await tempDir("validation-mixed-projections-")
+    const evidence = await evidenceWithFixture({
+      taskId: "compare", inputPath: "same.txt", input: "before",
+      referencePath: "same.txt", reference: "after",
+    })
+    const before = ".optimize/tasks/compare/run-0-task-fixtures"
+    const after = ".optimize/tasks/compare/run-0-workdir"
+    const action: OptimizationAction = {
+      id: "compare", kind: "generate-script", evidenceIds: ["0"], sourceRefs: [],
+      dependsOn: [], inputs: [], outputs: [], preconditions: [],
+      changedPaths: ["scripts/convert.mjs"], residualDuties: [], verification: [],
+      validation: { cases: [{
+        id: "before-after", evidenceId: "0", inputSource: "task-fixtures",
+        inputFiles: [`${before}/same.txt`, `${after}/same.txt`],
+        args: ["--baseline", before, "--root", after], basis: "self-check", sourceRefs: [],
+      }] },
+    }
+    const plan = await deriveProgramValidationPlan({
+      action, implementation: implementation(action.id), evidences: [evidence], validationRoot,
+    })
+    expect(plan.status).toBe("ready")
+    expect(plan.cases[0]!.args).toEqual(action.validation!.cases[0]!.args)
+    expect(await readFile(path.join(plan.cases[0]!.cwd, before, "same.txt"), "utf8")).toBe("before")
+    expect(await readFile(path.join(plan.cases[0]!.cwd, after, "same.txt"), "utf8")).toBe("after")
+    expect(Object.keys(plan.caseEvidence[0]!.inputDigests)).toHaveLength(2)
+    expect(plan.independentCaseIds).toEqual([])
+    action.validation!.cases[0]!.inputFiles[1] = `${after.replace("run-0", "run-1")}/same.txt`
+    const wrongRun = await deriveProgramValidationPlan({
+      action, implementation: implementation(action.id), evidences: [evidence], validationRoot,
+    })
+    expect(wrongRun.status).toBe("unresolved")
+    expect(wrongRun.diagnostics.some((item) => item.code === "validation-evidence-invalid")).toBe(true)
+    action.validation!.cases[0]!.inputFiles[1] = `${after}/same.txt`
+    action.validation!.cases[0]!.args = ["--root", "."]
+    const ambiguousMerge = await deriveProgramValidationPlan({
+      action, implementation: implementation(action.id), evidences: [evidence], validationRoot,
+    })
+    expect(ambiguousMerge.status).toBe("unresolved")
+    expect(ambiguousMerge.diagnostics.some((item) => item.code === "validation-input-source-mismatch")).toBe(true)
+  })
+
   test("materializes the saved pre-run bytes after the live workdir is gone", async () => {
     const validationRoot = await tempDir("validation-lifecycle-pre-run-inputs-")
     const root = await tempDir("validation-lifecycle-pre-run-source-")
@@ -345,6 +411,7 @@ describe("deriveProgramValidationPlan", () => {
       .toBe("{\"value\":\"beta\"}\n")
     expect(Bun.file(path.join(plan.cases[0]!.cwd, "out/result.json")).size).toBe(0)
     expect(plan.cases[0]!.expectedFileSha256?.["out/result.json"]).toMatch(/^[a-f0-9]{64}$/)
+    expect(plan.cases[0]!.expectedFileJson?.["out/result.json"]).toEqual({ value: "ALPHA" })
     expect(plan.cases[1]!.expectedFileSha256?.["out/changed.json"]).not
       .toBe(plan.cases[0]!.expectedFileSha256?.["out/result.json"])
     expect(plan.independentCaseIds).toEqual(["original", "variation"])
@@ -571,6 +638,48 @@ describe("deriveProgramValidationPlan", () => {
 })
 
 describe("runOptimizationValidationLifecycle — parameter capability boundary", () => {
+  test("checks optional-field absence and source-fixed rules without inventing task requirements", async () => {
+    const evidence = await evidenceWithFixture({
+      taskId: "optional-and-fixed",
+      inputPath: "input.json",
+      input: '{"amount":2,"currency":"EUR"}',
+      referencePath: "observed.txt",
+      reference: "2 USD",
+      eval: [{ id: "reference-output", method: "file-check", path: "result.txt", mode: "exact", expected: "2 USD" }],
+    })
+    for (const defect of ["none", "optional-required", "fixed-replaced"]) {
+      const proposalDir = await tempDir("optional-fixed-proposal-")
+      const skillDir = await tempDir("optional-fixed-skill-")
+      await writeFile(path.join(skillDir, "SKILL.md"), "# Formatter\nThe amount is variable; note is optional. Always use the source-fixed USD suffix, not the task currency field.\n")
+      await writeFile(path.join(skillDir, "format.mjs"), `
+import { readFileSync, writeFileSync } from "node:fs";
+const value = JSON.parse(readFileSync(process.argv[2], "utf8"));
+${defect === "optional-required" ? 'if (value.note === undefined) throw new Error("missing optional note");' : ""}
+const suffix = ${defect === "fixed-replaced" ? 'value.currency' : '"USD"'};
+writeFileSync(process.argv[3], value.amount + " " + suffix);
+`)
+      const result = await runOptimizationValidationLifecycle({
+        proposalDir, round: 1, skillDir, sourceSkillDir: skillDir,
+        actions: [{
+          id: "format", kind: "generate-script", evidenceIds: ["0"], sourceRefs: ["SKILL.md"],
+          dependsOn: [], inputs: ["amount; optional note"], outputs: ["formatted amount"],
+          preconditions: [], changedPaths: ["format.mjs"], residualDuties: [], verification: [],
+          validation: { cases: [{
+            id: "optional-absent-fixed-preserved", evidenceId: "0", inputSource: "task-fixtures",
+            inputFiles: ["input.json"], args: ["input.json", "result.txt"],
+            expectedFiles: [{ path: "result.txt" }], basis: "task-contract",
+            sourceRefs: ["evidence:0#criteria/reference-output"],
+          }] },
+        }],
+        evidences: [evidence],
+      })
+      expect(result.summary.status).toBe(defect === "none" ? "passed" : "failed")
+      expect(result.report.actions[0]?.program?.cases[0]?.failureKind).toBe(
+        defect === "none" ? undefined : defect === "optional-required" ? "script-execution-error" : "result-mismatch",
+      )
+    }
+  })
+
   async function capabilityScenario(writeBeforeReject: boolean, ignoreField = false) {
     const proposalDir = await tempDir("validation-capability-proposal-")
     const skillDir = await tempDir("validation-capability-skill-")
@@ -744,7 +853,7 @@ await writeFile(output, values[columns.indexOf(field)] + "\\n");
 })
 
 describe("runOptimizationValidationLifecycle — prior observation binding", () => {
-  test.each(["entry", "parameters", "task-resource", "assertion"] as const)(
+  test.each(["entry", "parameters", "task-resource", "assertion", "pre-run-resource"] as const)(
     "re-executes a prior pass when its %s binding changes",
     async (changedBinding) => {
       const proposalDir = await tempDir(`validation-binding-${changedBinding}-proposal-`)
@@ -807,6 +916,15 @@ await writeFile("out/result.txt", "ALPHA\\n");
         }] },
       })
       const initialAction = action([])
+      const preRunWork = await tempDir("validation-binding-pre-run-work-")
+      if (changedBinding === "pre-run-resource") {
+        await writeFile(path.join(preRunWork, "input.txt"), "first\n")
+        evidence.inputResources = { preRun: {
+          source: "pre-run-input-snapshot",
+          reference: await writePreRunInputSnapshot({ workDir: preRunWork, manifestPath: path.join(evidenceRoot, "before", "manifest.json") }),
+        } }
+        initialAction.validation!.cases[0]!.inputSource = "pre-run-input-snapshot"
+      }
       const initial = await runOptimizationValidationLifecycle({
         proposalDir,
         round: 1,
@@ -825,6 +943,11 @@ await writeFile("out/result.txt", "ALPHA\\n");
         currentAction = action(["--mode", "bounded"])
       } else if (changedBinding === "task-resource") {
         await writeFile(taskPath, JSON.stringify(task("second\n", "ALPHA\n")))
+      } else if (changedBinding === "pre-run-resource") {
+        await writeFile(path.join(preRunWork, "input.txt"), "second\n")
+        evidence.inputResources!.preRun!.reference = await writePreRunInputSnapshot({
+          workDir: preRunWork, manifestPath: path.join(evidenceRoot, "after", "manifest.json"),
+        })
       } else {
         await writeFile(taskPath, JSON.stringify(task("first\n", "DIFFERENT\n")))
       }
@@ -1089,7 +1212,7 @@ fs.writeFileSync(output, fs.readFileSync(input));
     expect(result.summary.rejectedActionIds).toEqual([])
   })
 
-  test("retains a selected documentation route only through its independently validated dependency", async () => {
+  test.each(["task-contract", "reference-output", "self-check"] as const)("records executed %s cases without confusing independent quality with execution", async (basis) => {
     const proposalDir = await tempDir("validation-lifecycle-proposal-")
     const skillDir = await tempDir("validation-lifecycle-skill-")
     await writeFile(path.join(skillDir, "SKILL.md"), "# Checker\n\nUse the generated checker.\n")
@@ -1107,13 +1230,13 @@ process.stdout.write(JSON.stringify(value) + "\\n");
       input: "{\"value\":\"alpha\"}\n",
       referencePath: "reference.json",
       reference: "{\"value\":\"alpha\"}\n",
-      eval: [{
+      eval: basis === "task-contract" ? [{
         id: "reference-output",
         method: "file-check",
         path: "result.json",
         mode: "exact",
         expected: "{\"value\":\"alpha\"}\n",
-      }],
+      }] : [],
     })
     const checker = {
       id: "checker",
@@ -1128,10 +1251,10 @@ process.stdout.write(JSON.stringify(value) + "\\n");
           inputSource: "task-fixtures",
           inputFiles: ["input.json"],
           args: ["input.json"],
-          expectedFiles: [{ path: "result.json" }],
+          expectedFiles: [{ path: "result.json", ...(basis === "reference-output" ? { referencePath: "reference.json" } : {}) }],
           stdoutIncludes: ["alpha"],
-          basis: "task-contract",
-          sourceRefs: ["evidence:0#criteria/reference-output"],
+          basis,
+          sourceRefs: basis === "task-contract" ? ["evidence:0#criteria/reference-output"] : ["SKILL.md"],
         }],
       },
     } as OptimizationAction
@@ -1151,6 +1274,7 @@ process.stdout.write(JSON.stringify(value) + "\\n");
     })
 
     expect(result.summary.status).toBe("passed")
+    expect(result.summary.independentCaseRuns > 0).toBe(basis === "task-contract")
     expect(result.summary.retainedActionIds).toEqual(["checker", "route-docs"])
     expect(result.report.actions.find((item) => item.actionId === "route-docs")).toMatchObject({
       planStatus: "not-applicable",

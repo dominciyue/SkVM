@@ -14,6 +14,8 @@ let lastPromptText: string | null = null
 let promptDelayMs = 0
 let abortCalled = false
 let promptShouldError = false
+let promptThrowsAfterEvents = false
+let promptFileEdit: ((cwd: string) => Promise<void>) | undefined
 // Captures the raw models.json string that pi-driver wrote to disk, read at
 // ModelRegistry.create() time (the driver writes models.json just before
 // calling create). null means no file was written (or create was not called).
@@ -35,6 +37,7 @@ mock.module("@mariozechner/pi-coding-agent", () => {
           },
           prompt: async (text: string) => {
             lastPromptText = text
+            await promptFileEdit?.(opts.cwd)
             if (promptDelayMs > 0) {
               await new Promise(r => setTimeout(r, promptDelayMs))
             }
@@ -73,6 +76,7 @@ mock.module("@mariozechner/pi-coding-agent", () => {
                 }],
               })
             }
+            if (promptThrowsAfterEvents) throw new Error("transport interrupted after response")
           },
           abort: async () => { abortCalled = true },
           dispose: () => { /* noop */ },
@@ -122,6 +126,7 @@ mock.module("@mariozechner/pi-coding-agent", () => {
 // Import-under-test must come AFTER mock.module setup.
 import { runHeadlessAgent } from "../../src/core/headless-agent/index.ts"
 import { invalidateConfigCache } from "../../src/core/config.ts"
+import { runOptimizer } from "../../src/jit-optimize/optimizer.ts"
 
 const SKVM_CACHE = process.env.SKVM_CACHE!
 const CONFIG_PATH = path.join(SKVM_CACHE, "skvm.config.json")
@@ -151,6 +156,8 @@ beforeEach(() => {
   promptDelayMs = 0
   abortCalled = false
   promptShouldError = false
+  promptThrowsAfterEvents = false
+  promptFileEdit = undefined
   capturedModelsJson = null
   catalogued.clear()
 })
@@ -240,6 +247,74 @@ describe("runHeadlessAgent (driver=pi, library mode)", () => {
       ).rejects.toThrow(/stopReason=error: fake provider 5xx/)
     } finally {
       rmSync(workDir, { recursive: true, force: true })
+    }
+  })
+
+  test("retains observed usage and events when a session throws after a response", async () => {
+    promptThrowsAfterEvents = true
+    const workDir = mkdtempSync(path.join(tmpdir(), "skvm-pi-partial-test-"))
+    try {
+      const result = await runHeadlessAgent({
+        cwd: workDir, prompt: "x", model: "anthropic/claude-sonnet-4.6", throwOnError: false,
+      })
+      expect(result.exitCode).toBe(1)
+      expect(result.tokens.input).toBe(10)
+      expect(result.tokens.output).toBe(20)
+      expect(result.cost).toBeCloseTo(0.0042)
+      expect(JSON.parse(result.rawStdout)).toHaveLength(1)
+      expect(result.rawStderr).toContain("transport interrupted")
+    } finally {
+      rmSync(workDir, { recursive: true, force: true })
+    }
+  })
+
+  test("optimizer preserves timeout evidence before rejecting the candidate", async () => {
+    promptDelayMs = 60
+    const workDir = mkdtempSync(path.join(tmpdir(), "skvm-optimizer-timeout-test-"))
+    const skillDir = path.join(workDir, "skill")
+    const recordDir = path.join(workDir, "record")
+    try {
+      await Bun.write(path.join(skillDir, "SKILL.md"), "# Example\nTransform user inputs.\n")
+      await expect(runOptimizer({ skillDir, evidences: [] }, {
+        model: "anthropic/claude-sonnet-4.6", driver: "pi", timeoutMs: 10, recordDir,
+      })).rejects.toThrow(/timed out/)
+      expect(JSON.parse(await Bun.file(path.join(recordDir, "stdout.log")).text())).toHaveLength(1)
+      const terminal = await Bun.file(path.join(recordDir, "run-result.json")).json()
+      expect(terminal.exitCode).toBe(1)
+      expect(terminal.timedOut).toBe(true)
+      expect(terminal.tokens.input).toBe(10)
+      expect(terminal.reportedCostUsd).toBeCloseTo(0.0042)
+      expect(terminal.usageScope).toBe("observed-events-only")
+      expect(await Bun.file(path.join(recordDir, "submission.json")).exists()).toBe(false)
+    } finally {
+      rmSync(workDir, { recursive: true, force: true })
+    }
+  })
+
+  test("optimizer retains candidate bytes before downstream rollback can remove them", async () => {
+    const root = mkdtempSync(path.join(tmpdir(), "skvm-candidate-record-"))
+    const skillDir = path.join(root, "skill")
+    const recordDir = path.join(root, "record")
+    let workspace: string | undefined
+    try {
+      await Bun.write(path.join(skillDir, "SKILL.md"), "# Original\n")
+      promptFileEdit = async (cwd) => {
+        await Bun.write(path.join(cwd, "SKILL.md"), "# Revised\n")
+        await Bun.write(path.join(cwd, "scripts/process.mjs"), "console.log('candidate')\n")
+        await Bun.write(path.join(cwd, ".optimize/submission.json"), JSON.stringify({
+          changedFiles: ["SKILL.md", "scripts/process.mjs"], changes: [], actions: [], noChanges: false,
+        }))
+      }
+      const result = await runOptimizer({ skillDir, evidences: [] }, {
+        model: "anthropic/claude-sonnet-4.6", driver: "pi", recordDir,
+      })
+      workspace = result.workspaceDir
+      expect(await Bun.file(path.join(recordDir, "candidate/scripts/process.mjs")).text()).toBe("console.log('candidate')\n")
+      expect(await Bun.file(path.join(recordDir, "candidate/SKILL.md")).text()).toBe("# Revised\n")
+      expect(await Bun.file(path.join(recordDir, "candidate/.optimize/submission.json")).exists()).toBe(false)
+    } finally {
+      if (workspace) rmSync(workspace, { recursive: true, force: true })
+      rmSync(root, { recursive: true, force: true })
     }
   })
 

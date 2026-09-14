@@ -2,6 +2,25 @@ import { describe, expect, test } from "bun:test"
 import { analyzeSkillConsumption } from "../../src/jit-optimize/consumption.ts"
 
 describe("analyzeSkillConsumption", () => {
+  test("completes a plain exit-zero invocation only with independent task and residual completion", () => {
+    const inspect = (args: string[], output: string, exitCode: number | undefined, taskOutcome: "passed" | "failed" = "passed") => analyzeSkillConsumption([{
+      role: "assistant", timestamp: 1, toolCalls: [
+        { id: "read", name: "read", input: { path: "skill/SKILL.md" }, exitCode: 0 },
+        { id: "run", name: "exec", input: { argv: ["node", "skill/tools/transform.mjs", ...args] }, output, exitCode },
+      ],
+    }], {
+      executableEntries: ["tools/transform.mjs"], taskOutcome,
+      residualWorkRequired: true, residualWorkCompleted: true,
+    })
+    const plain = inspect(["input.txt"], "wrote result.txt", 0)
+    expect(plain.consumptionComplete).toBe(true)
+    expect(plain.helperSucceeded).toBe(false)
+    expect(plain.helperOutputAssertion.unknown).toEqual(["run"])
+    expect(inspect(["input.txt"], "wrote result.txt", 0, "failed").consumptionComplete).toBe(false)
+    expect(inspect(["--help"], '{"status":"passed"}', 0).consumptionComplete).toBe(false)
+    expect(inspect(["input.txt"], '{"ok":false}', 0).consumptionComplete).toBe(false)
+    expect(inspect(["input.txt"], "unknown exit", undefined).consumptionComplete).toBe(false)
+  })
   test("requires tool evidence for the skill read and helper invocation", () => {
     const analysis = analyzeSkillConsumption([
       {

@@ -1241,7 +1241,7 @@ function allocateSafeId(base: string, claimed: Set<string>): string {
  * helpers need downstream. Preserves the original flat index as
  * `globalIndex` so `blockedEvidenceIds` keeps working.
  */
-function groupEvidencesByTask(evidences: Evidence[]): TaskGroup[] {
+export function groupEvidencesByTask(evidences: readonly Evidence[]): TaskGroup[] {
   const order: string[] = []
   const byId = new Map<string, TaskGroup>()
   const worstByGroup = new Map<string, { score: number; label: string }>()

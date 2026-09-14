@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "skvm-optimized-skill-package/v2",
+  "identity": "skill:i18n-f9-9-repair-recovered:round-1",
+  "exposure": "development",
+  "proposal": {
+    "dirName": "i18n-f9-9-repair-recovered",
+    "bestRound": 1,
+    "meta": {
+      "path": "meta.json",
+      "bytes": 722,
+      "sha256": "ffe34d715c22d95648d08e89ce0ba1897e6c9c9f8709f5bc8590b0ad903c2111"
+    },
+    "submission": {
+      "path": "round-1-optimizer/submission.json",
+      "bytes": 13045,
+      "sha256": "f8524f96f9a31db67ceeb34339f3072a4d68a07dde243f149bd8d452ab3ff6a5"
+    }
+  },
+  "snapshots": {
+    "originalClosureSha256": "7d8ab2a927185c40c73d9fae376df557ace4420906352bad5845beb3b577e143",
+    "selectedClosureSha256": "ec814d6c6857708754a4a6f5c6e25ccf68246de40614ce7df3427b5c77ff65d2"
+  },
+  "actualDiff": {
+    "added": [
+      "scripts/i18n-contract-tool.mjs"
+    ],
+    "modified": [
+      "SKILL.md"
+    ],
+    "deleted": [],
+    "moved": []
+  },
+  "files": [
+    {
+      "path": "LICENSE.upstream",
+      "bytes": 1069,
+      "sha256": "0137c0bf5ebe749bb97f8af36adbae05ed9bd19cc1f01ff30553173adb0544f7"
+    },
+    {
+      "path": "OPTIMIZATION-USAGE.md",
+      "bytes": 2545,
+      "sha256": "eb73cea545a9d3afcffb709e9eec300ccb98b7974af7a45796a41b63a6212123"
+    },
+    {
+      "path": "optimization-validation-report.json",
+      "bytes": 10748,
+      "sha256": "3ded75ef4ad74c74b29f88f55da60530d567688dee9addef60aa1c69d05b0187"
+    },
+    {
+      "path": "scripts/i18n-contract-tool.mjs",
+      "bytes": 9132,
+      "sha256": "1a3acb6843b0624b82f3f18eeeda776a0e6d48e777c1a5db82cca5e1e82e6ddb"
+    },
+    {
+      "path": "SKILL.md",
+      "bytes": 3250,
+      "sha256": "e2971dcd69e6f1f5e387a2b8d3a761645e67797f03d8a14af34597ca5c7cafc7"
+    }
+  ],
+  "implementations": [
+    {
+      "actionId": "generate-react-v2-contract-finalizer",
+      "kind": "generate-script",
+      "status": "selected",
+      "entry": "scripts/i18n-contract-tool.mjs",
+      "runtime": "node",
+      "inputs": [
+        "--contract path to a skill-ir-i18n-helper-public-contract/v2 JSON file",
+        "--root project directory containing the contract-declared transformed sources, config, and locale JSON files"
+      ],
+      "outputs": [
+        "the JSON file at contract.report.path",
+        "a concise JSON completion summary on stdout"
+      ],
+      "preconditions": [
+        "Node.js is available",
+        "contract.framework is react-i18next",
+        "the agent has already completed and reviewed source, config, and locale files"
+      ],
+      "residualDuties": [
+        "confirm translation meaning and interpolation conversion",
+        "verify framework initialization and runtime behavior",
+        "compare protected-file bytes or version-control diff"
+      ],
+      "verification": [
+        "run --help",
+        "run finalize on the captured contract and transformed files",
+        "compare the generated report to the observed fidelity reference"
+      ],
+      "commandTemplate": "node scripts/i18n-contract-tool.mjs <arg-1> --contract <contract> --root <root>",
+      "parameterSources": [
+        "--contract path to a skill-ir-i18n-helper-public-contract/v2 JSON file",
+        "--root project directory containing the contract-declared transformed sources, config, and locale JSON files",
+        "the JSON file at contract.report.path",
+        "a concise JSON completion summary on stdout",
+        "skill: Preserve placeholders and use locale-aware handling for plural, gender, date, number, and currency semantics.",
+        "task: Allowed, required, protected paths and the exact report ABI are supplied by the current project contract rather than promoted to skill-wide constants."
+      ]
+    },
+    {
+      "actionId": "route-supported-contract-workflow",
+      "kind": "restructure-docs",
+      "status": "selected",
+      "inputs": [
+        "project localization request and any project-supplied contract"
+      ],
+      "outputs": [
+        "contract-first workflow and copy-ready finalizer command"
+      ],
+      "preconditions": [
+        "inspect the project before selecting the bounded command"
+      ],
+      "residualDuties": [
+        "use the original workflow for unsupported contracts and frameworks"
+      ],
+      "verification": [
+        "confirm the documented command matches the generated script interface"
+      ]
+    }
+  ],
+  "runtime": {
+    "runtimes": [
+      "node"
+    ],
+    "dependencyFiles": []
+  },
+  "claimBoundary": "Development package export. Package file closure passed. Behavior status covers only the listed action-local program cases; whole-skill correctness, source-task replay, agent consumption and optimization effect require separate evidence.",
+  "validation": {
+    "status": "passed",
+    "scope": "package-file-closure",
+    "behaviorStatus": "not-run",
+    "behaviorScope": "action-local-program-cases",
+    "deliveryStatus": "draft",
+    "report": {
+      "path": "optimization-validation-report.json",
+      "bytes": 10748,
+      "sha256": "3ded75ef4ad74c74b29f88f55da60530d567688dee9addef60aa1c69d05b0187"
+    },
+    "retainedActionIds": [],
+    "unvalidatedActionIds": [
+      "generate-react-v2-contract-finalizer",
+      "route-supported-contract-workflow"
+    ],
+    "rejectedActionIds": [],
+    "programRuns": 1,
+    "caseRuns": 1,
+    "independentCaseRuns": 0
+  }
+}

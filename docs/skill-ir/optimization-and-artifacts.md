@@ -131,9 +131,27 @@ F9 回查修正了 F6.1 的已执行脚本限制：实际 read/write 操作也�
 
 `analyzeSkillConsumption` 现在从 `AgentStep` 的结构化 `argv`、`program + args` 或保守解析的单一 shell 命令中识别入口。它只剥离已知 skill 根前缀并比较规范化完整路径；echo/cat 提及、同名异目录和带管道/重定向/嵌套 shell 的模糊字符串不会成为已执行证据，而会保留未知 tool-call ID。入口集合来自优化 package 的 selected implementations；未声明入口时集合为空，不隐含 `api-task-solidify.js`。
 
+F9 消费前复核补修：development runner 同时传入实际部署包的绝对 SKILL 路径与相对路径，避免绝对 argv 被漏判，其他目录的同名程序仍不匹配。普通非 help 的 exit-zero 调用可以在独立任务检查与 residual completion 通过时满足消费条件，不再强制 stdout 成功 JSON；`helperSucceeded` 仍专指显式输出断言通过，unknown assertion 不被伪装成 passed。help 即便打印成功 JSON 也不能代替任务执行。
+
+F9.7 暴露的新接口提示冲突已局部修正：模型可以设计并声明普通程序 argv/依赖，不能伪称它们在源 trace 出现；有来源的无评分保真案例足以实际执行候选，但不足以独立任务正确性推荐。缺现成脚本不等于缺运行时。仍不得制造输入、译文或标准答案。
+
+F9.8 的 before/after 案例暴露单来源物化限制。`materializeCase` 对全部输入均为显式 workspace locator、且确实含不同来源的案例，从同一已声明 evidence 分别读 task/pre-run/workdir 字节，保留各 projection 目录及目录 argv，避免同名文件覆盖；单来源仍沿用旧相对路径重写，task fixture 漂移检查不放宽。原 F9.8 提交无需修改即通过一次 help 和一次程序自检；没有独立 assertion，仍为 draft，且 checker 不计产物流。回归入口为 validation-lifecycle 的 mixed projections 案例。
+
+机会 schema 兼容增加 `artifact-production`，要求与 `verification` 独立给出 disposition、连续机械步骤、实际产物和 agent 提供的语义值。生成指令允许消费方确认语义值后由普通程序读入、结构检查和序列化；并不授权生成器伪造验证输入或把自检当 oracle。实际生成能力仍由后续命名尝试判断，不能由提示字符串测试宣称成功。
+
+F9.9 修正上述布局边界：只有 argv 明确使用 projection 路径时才保留命名空间；普通相对 argv 且各来源相对路径不冲突时物化共同根，保持原程序接口。同名冲突又无显式 before/after argv 时 unresolved，不能猜测覆盖顺序。此次首轮生成报告 finalizer，但错误布局导致 repair 去给业务程序增加研究目录搜索，最终回退；该失败说明验证接线问题必须在共享实现修复，不能要求程序适配研究路径。新增 ordinary-root 红例和受影响 79/79 回归已验证，真实后继结果另存。
+
+优化器在清除 `.optimize/` 后把当前完整候选保存到该轮 `recordDir/candidate/`，使后续 repair/rollback 不会丢失模型实际产物字节；超时仍不提升为候选。旧 F9.9 仅能从已成功的 write/edit 事件精确恢复，每份恢复文件均匹配当时 validation binding 的摘要，不能插入开发者编写内容。其首轮报告仅格式保真失败，完整模型 repair 版本经共享布局修复后 help/case 通过，并由现有 exporter 导出 draft。该恢复不回写原 proposal，也不计新增模型生成成功。
+
 报告把 helper invocation、exit status（zero/non-zero/unknown）、output assertion（passed/failed/not-applicable/unknown）、task quality 和 residual completion 分开。exit 0 但没有结构化成功断言的普通脚本记录为正常退出/未断言，不冒充失败或质量通过；未知退出保留 unknown。另行统计 skill read、help、entrypoint discovery、program rewrite 和 program execution 的实际 tool-call ID，便于解释机械工作与残余职责。普通 source/optimized runner 继续只把独立任务检查传给 `taskOutcome`，不从最终文字自证。机器验证见 `results/skill-ir/general-generation-reinforcement-20260914/f7/verification.json`。
 
 ### 3.0.5.2 F8 默认入口连续集成（development）
+
+**最小语义验证（2026-09-15）：** 引擎在 `materializeCase` 从观察输出解析 `.json`，通过内部 `expectedFileJson` 交给既有程序验证器，比较 JSON 值而非排版或对象键序；旧仅摘要调用及非 JSON 仍兼容。未授权猜测数组顺序或任意值/类型等价。完整案例执行通过即记录 passed，无独立断言时仍为 draft；未运行和不完整案例继续单列。前运行输入引用与可用性进入已有缓存绑定，防止变化输入复用旧结论。测试入口是 package-validation、validation-lifecycle、production-closure。
+
+消费反馈中发现错误部署前缀与例行清单审阅；共享 prompt 和新导出 usage 明确脚本相对 SKILL.md 所在目录，不要求正常消费者读取 manifest/validation report 或重复 hash 审计，不再假定每个程序 exit 2 都是不适用。旧包不回写。F9 同一报告 finalizer 四次任务调用成功，八个单元语义复评通过，但总体开销增加，效果为 negative；该结论不外推为生成能力或普遍优化收益。
+
+F9 恢复修复：Windows 超长 validation cwd 可导致 `uv_spawn` 对实际存在的 Node 报 ENOENT；同一运行的 help/短 cwd 成功不能被解释为运行时缺失。验证器仅在长 cwd 启动时使用临时 junction，证据路径、输入字节和断言仍绑定原目录，结束后移除链接而不移动证据。优化器以 `throwOnError=false` 接收已结束的失败结果，先保存 stdout/stderr、prompt 和 `run-result.json`（退出状态、耗时、observed token、reported cost），再抛失败，绝不采纳超时的候选。Pi 会话抛异常时也保留已观察事件；未返回调用的费用仍 unknown，reported zero 不等于实际免费。历史丢失事件无法由此追补。
 
 F8 将上述操作索引、validation completion、单次 metadata repair、程序检查、包导出和消费观察保持在同一默认
 `run --prompt --skill --workdir --model --optimize` 链路中。自然任务闭环测试使用真实临时文件和临时工作目录；确定性

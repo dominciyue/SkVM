@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "skill-ir-development-verification/v1",
+  "stage": "F9-shared-runtime-and-failure-evidence-repair",
+  "date": "2026-09-14",
+  "exposure": "development",
+  "rootCause": {
+    "previousAttribution": "F9.5 Node executable unavailable",
+    "correctedAttribution": "Windows process launch rejects long cwd; the same executable succeeds for help and the first two cases",
+    "reproduction": {
+      "cwdLength": 311,
+      "nodeExists": true,
+      "absoluteCommand": "ENOENT uv_spawn",
+      "pathCommand": "ENOENT uv_spawn"
+    },
+    "failureAccounting": "runOptimizer previously threw before persisting timeout events; Pi thrown sessions returned empty usage even after observed responses"
+  },
+  "verification": [
+    {
+      "command": "bun test ./test/core/headless-agent-pi.test.ts",
+      "phase": "red",
+      "exitCode": 1,
+      "passed": 7,
+      "failed": 2,
+      "failures": ["observed input token count lost: expected 10 received 0", "optimizer timeout stdout.log missing"]
+    },
+    {
+      "command": "bun test ./test/core/headless-agent-pi.test.ts",
+      "phase": "green",
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0,
+      "assertions": 44
+    },
+    {
+      "command": "bun test ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/validation-completion.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/continuous-production-closure.test.ts ./test/jit-optimize/optimizer-prompt.test.ts",
+      "phase": "regression",
+      "exitCode": 0,
+      "passed": 95,
+      "failed": 0,
+      "assertions": 463
+    },
+    { "command": "bun run typecheck", "exitCode": 0 },
+    { "command": "git diff --check", "exitCode": 0 }
+  ],
+  "behavior": [
+    "Long Windows cwd uses a temporary junction; recorded cwd and output assertions remain bound to original evidence bytes; alias is removed without moving evidence.",
+    "Optimizer persists returned events and run-result.json before rejecting timeout/nonzero results; unfinished candidates are not adopted.",
+    "Pi throwOnError=false retains observed response usage on session exceptions; missing responses and actual USD remain unknown."
+  ],
+  "successor": "i18n-f9-7/commands.json",
+  "sourceRunReplayed": false,
+  "historicalPackageMutated": false,
+  "actualUsd": null,
+  "claimBoundary": "Engineering regressions only; not evidence of a model-generated artifact-producing workflow or savings."
+}

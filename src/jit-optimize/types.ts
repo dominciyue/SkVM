@@ -744,6 +744,7 @@ export type OptimizationOpportunityCategory =
   | "instruction-clarity"
   | "input-parameterization"
   | "repeated-transformation"
+  | "artifact-production"
   | "verification"
   | "environment-dependency"
   | "residual-duty"
@@ -761,6 +762,7 @@ export const OptimizationOpportunitySchema = z.object({
     "instruction-clarity",
     "input-parameterization",
     "repeated-transformation",
+    "artifact-production",
     "verification",
     "environment-dependency",
     "residual-duty",
