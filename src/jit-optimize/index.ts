@@ -126,6 +126,18 @@ export {
   runOptimizationValidationLifecycle,
   OPTIMIZATION_VALIDATION_REPORT_SCHEMA_VERSION,
 } from "./validation-lifecycle.ts"
+export {
+  completeValidationSuggestion,
+} from "./validation-completion.ts"
+export type {
+  CompleteValidationSuggestionOptions,
+  ValidationCompletionResult,
+  ValidationCompletionStatus,
+  ValidationCompletionDiagnostic,
+  ValidationCompletionDiagnosticCode,
+  ValidationCompletionProvenance,
+  ValidationCompletionFieldProvenance,
+} from "./validation-completion.ts"
 export type {
   DerivedProgramValidationPlan,
   DerivedProgramValidationPlanStatus,

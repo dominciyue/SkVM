@@ -126,15 +126,15 @@ revision 2 加强第 4 项：目标中的程序必须包含一个实际生成/�
 
 ## F3 — 引擎补齐可确定的验证骨架
 
-- [ ] 红例：可执行 action 无 `validation`，但原始输入、已声明入口/参数映射和来源检查齐全；最终必须调用现有程序验证器。对照例只有输入没有输出规则，则不能凭空产生语义通过。
-- [ ] 在 `deriveProgramValidationPlan` 前调用小型 `validation-completion.ts`，输出现有 validation suggestion 加补全 provenance/diagnostics。优先使用模型已提交且有效的计划，不重复生成第二份。
-- [ ] 引擎可填写 evidenceId、可物化 inputFiles、已确认 argv、sourceRefs，以及已有检查的资源引用；语义含糊的命令或断言不能自动填写。新入口参数不同于原 trace 时，不把旧 argv 硬套上去。
-- [ ] 来源依次使用：原 task/source 可执行断言、原包明确检查、原输出保真参考、程序自检。各自保留不同 authority；原输出不自动变成正确答案，模型新写的检查不自动获得“独立”身份。
-- [ ] 原输出只支持 fidelity 时，实际运行并记录 fidelity 结果；不因没有外部 oracle 把可做的验证全部取消，也不把 fidelity 升级为完整任务正确性。
-- [ ] 复用 `readPreRunInputSnapshotContents`、现有资源物化与校验，不增加新快照/摘要链。一个动作缺资源不影响独立动作。
-- [ ] 运行 `bun test ./test/jit-optimize/validation-completion.test.ts ./test/jit-optimize/validation-lifecycle.test.ts`。
+- [x] 红例：可执行 action 无 `validation`，但原始输入、已声明入口/参数映射和来源检查齐全；最终必须调用现有程序验证器。对照例只有输入没有输出规则，则不能凭空产生语义通过。
+- [x] 在 `deriveProgramValidationPlan` 前调用小型 `validation-completion.ts`，输出现有 validation suggestion 加补全 provenance/diagnostics。优先使用模型已提交且有效的计划，不重复生成第二份。
+- [x] 引擎可填写 evidenceId、可物化 inputFiles、已确认 argv、sourceRefs，以及已有检查的资源引用；语义含糊的命令或断言不能自动填写。新入口参数不同于原 trace 时，不把旧 argv 硬套上去。
+- [x] 来源依次使用：原 task/source 可执行断言、原包明确检查、原输出保真参考、程序自检。各自保留不同 authority；原输出不自动变成正确答案，模型新写的检查不自动获得“独立”身份。
+- [x] 原输出只支持 fidelity 时，实际运行并记录 fidelity 结果；不因没有外部 oracle 把可做的验证全部取消，也不把 fidelity 升级为完整任务正确性。
+- [x] 复用 `readPreRunInputSnapshotContents`、现有资源物化与校验，不增加新快照/摘要链。一个动作缺资源不影响独立动作。
+- [x] 运行 `bun test ./test/jit-optimize/validation-completion.test.ts ./test/jit-optimize/validation-lifecycle.test.ts`（24/24，99 assertions）及 `bun run typecheck`。
 
-**验收：** missing suggestion 不再一律等于没有案例；引擎补的是可确定接线，不是自动编造评价标准。
+**验收：** missing suggestion 不再一律等于没有案例；引擎补的是可确定接线，不是自动编造评价标准。F3 已完成；机器证据为 `results/skill-ir/general-generation-reinforcement-20260914/f3/verification.json`。
 
 ## F4 — 可修接线缺口进入既有一次 repair
 

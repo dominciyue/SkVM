@@ -21,6 +21,12 @@ import type {
   OptimizationValidationBasis,
   OptimizationValidationCaseSuggestion,
 } from "./types.ts"
+import {
+  completeValidationSuggestion,
+  type ValidationCompletionDiagnostic,
+  type ValidationCompletionProvenance,
+  type ValidationCompletionStatus,
+} from "./validation-completion.ts"
 
 export const OPTIMIZATION_VALIDATION_REPORT_SCHEMA_VERSION = "jit-optimize-validation-lifecycle/v1"
 
@@ -121,6 +127,12 @@ export interface OptimizationActionValidationRecord {
   selfCheckCaseIds: string[]
   programStatus: OptimizationProgramValidationResult["status"] | "not-run"
   program?: OptimizationProgramValidationResult
+  /** Deterministic validation metadata completion performed before plan derivation. */
+  validationCompletion?: {
+    status: ValidationCompletionStatus
+    diagnostics: ValidationCompletionDiagnostic[]
+    provenance: ValidationCompletionProvenance
+  }
   capabilityBoundary?: OptimizationCapabilityBoundary
   validationBinding?: OptimizationValidationBinding
   validationSource?: "executed" | "reused-initial-observation"
@@ -1116,9 +1128,16 @@ export async function runOptimizationValidationLifecycle(
 
   for (const action of options.actions) {
     const implementation = byActionId.get(action.id)!
+    const completion = await completeValidationSuggestion({
+      action,
+      implementation,
+      evidences: options.evidences,
+      sourceSkillDir: options.sourceSkillDir,
+    })
+    const effectiveAction = completion.action
     const validationBinding = await deriveValidationBinding({
       skillDir: options.skillDir,
-      action,
+      action: effectiveAction,
       implementation,
       evidences: options.evidences,
     })
@@ -1158,6 +1177,13 @@ export async function runOptimizationValidationLifecycle(
           selfCheckCaseIds: [],
           programStatus: "not-run" as const,
         }),
+        ...(completion.status === "unchanged" ? {} : {
+          validationCompletion: {
+            status: completion.status,
+            diagnostics: completion.diagnostics,
+            provenance: completion.provenance,
+          },
+        }),
         validationBinding,
         validationSource: "reused-initial-observation",
       })
@@ -1186,6 +1212,13 @@ export async function runOptimizationValidationLifecycle(
         independentCaseIds: [],
         selfCheckCaseIds: [],
         programStatus: "not-run",
+        ...(completion.status === "unchanged" ? {} : {
+          validationCompletion: {
+            status: completion.status,
+            diagnostics: completion.diagnostics,
+            provenance: completion.provenance,
+          },
+        }),
         validationBinding,
         validationSource: "executed",
       })
@@ -1210,6 +1243,13 @@ export async function runOptimizationValidationLifecycle(
         independentCaseIds: [],
         selfCheckCaseIds: [],
         programStatus: "not-run",
+        ...(completion.status === "unchanged" ? {} : {
+          validationCompletion: {
+            status: completion.status,
+            diagnostics: completion.diagnostics,
+            provenance: completion.provenance,
+          },
+        }),
         validationBinding,
         validationSource: "executed",
       })
@@ -1217,7 +1257,7 @@ export async function runOptimizationValidationLifecycle(
     }
 
     const plan = await deriveProgramValidationPlan({
-      action,
+      action: effectiveAction,
       implementation,
       evidences: options.evidences,
       validationRoot,
@@ -1227,7 +1267,10 @@ export async function runOptimizationValidationLifecycle(
       observations.push({
         actionId: action.id,
         status: "not-run",
-        diagnostics: plan.diagnostics.map((item) => `${item.code}: ${item.message}`),
+        diagnostics: [
+          ...completion.diagnostics.map((item) => `${item.code}: ${item.message}`),
+          ...plan.diagnostics.map((item) => `${item.code}: ${item.message}`),
+        ],
       })
       records.push({
         actionId: action.id,
@@ -1238,6 +1281,13 @@ export async function runOptimizationValidationLifecycle(
         independentCaseIds: plan.independentCaseIds,
         selfCheckCaseIds: plan.selfCheckCaseIds,
         programStatus: "not-run",
+        ...(completion.status === "unchanged" ? {} : {
+          validationCompletion: {
+            status: completion.status,
+            diagnostics: completion.diagnostics,
+            provenance: completion.provenance,
+          },
+        }),
         validationBinding,
         validationSource: "executed",
       })
@@ -1292,7 +1342,14 @@ export async function runOptimizationValidationLifecycle(
       selfCheckCaseIds: plan.selfCheckCaseIds,
       programStatus: program.status,
       program,
-      capabilityBoundary: deriveCapabilityBoundary(action, plan, program),
+      ...(completion.status === "unchanged" ? {} : {
+        validationCompletion: {
+          status: completion.status,
+          diagnostics: completion.diagnostics,
+          provenance: completion.provenance,
+        },
+      }),
+      capabilityBoundary: deriveCapabilityBoundary(effectiveAction, plan, program),
       validationBinding,
       validationSource: "executed",
     })

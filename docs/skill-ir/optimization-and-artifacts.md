@@ -111,6 +111,8 @@ revision-2 F1 新增 `src/jit-optimize/operation-context.ts`，从标准化 `Age
 
 F2 在同一操作记录上补充参数来源索引。`OperationParameter` 区分 `observed-value`、`task-variable`、`source-fixed` 和 `unknown`，同时保留 `argv`、`config-field`、`env`、`path` 绑定、`present` 状态、提示偏移、配置路径/字段及必要的 redaction。位置参数和无歧义 flag 来自实际 argv；配置字段只从 evidence 已绑定的 snapshot 或显式输入对象展开，环境变量只记名称而不复制值。显式来源规则优先于保守的字面 source-fixed 推断；未知或缺失可选值不被猜测为默认值。优化提示要求把替换绑定到精确 token/字段/路径，禁止把一次观察字符串全局替换到源文件的所有副本。F2 回归为 `bun test ./test/jit-optimize/operation-context.test.ts ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/optimizer-prompt.test.ts`（46/46，176 assertions），机器证据为 `results/skill-ir/general-generation-reinforcement-20260914/f2/verification.json`。
 
+F3 新增 `validation-completion.ts`，在 `deriveProgramValidationPlan` 前从实际操作、可读的 digest-bound 资源和已存在的 source/task checks 确定性补齐 validation suggestion。它只使用已确认的 executable entry、argv 尾部参数、观察到且实际快照存在的输入/输出路径，并在 provenance 中记录每个字段来源；输入资源按 workdir snapshot、pre-run snapshot、bound task fixtures 的顺序选择。缺输出、缺资源、未观察入口和歧义 shell 命令返回 unresolved，不生成语义 oracle；已有模型 suggestion 原样保留。补全后的 case 继续经过既有 `deriveProgramValidationPlan` 与 `validateOptimizationProgram`，reference-output、task/source assertion 和 self-check authority 不混淆。机器验证为 `results/skill-ir/general-generation-reinforcement-20260914/f3/verification.json`，聚焦套件 24/24、99 assertions。
+
 ### 3.0.6 F1.1 语料到代码模式索引（development）
 
 F1.1 将五个已暴露的深读成员映射为可审计的 `pattern-to-code.json`：zh-readme、i18n-helper、law-to-markdown、experimental-design 和 env-manager。每个成员分别记录源 `SKILL.md` 摘要与行定位、固定机械步骤、变量来源、环境依赖、分支判断、当前动作类型候选、生产符号/测试及仍不支持的缺口；不会把 skill 名、特定仓库路径或历史成功数量写成实现条件。

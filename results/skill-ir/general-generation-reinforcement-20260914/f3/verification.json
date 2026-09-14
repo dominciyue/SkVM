@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "skill-ir-general-generation-reinforcement-f3-verification/v1",
+  "identity": "general-generation-reinforcement-20260914",
+  "stage": "F3",
+  "status": "passed",
+  "red": {
+    "command": "bun test ./test/jit-optimize/validation-completion.test.ts",
+    "result": "failed-before-module",
+    "reason": "The validation-completion module did not exist; the new tests could not import it."
+  },
+  "green": {
+    "command": "bun test ./test/jit-optimize/validation-completion.test.ts ./test/jit-optimize/validation-lifecycle.test.ts",
+    "tests": 24,
+    "failed": 0,
+    "assertions": 99
+  },
+  "typecheck": {
+    "command": "bun run typecheck",
+    "status": "passed"
+  },
+  "deterministicCompletion": {
+    "completedCases": 1,
+    "programValidatorRuns": 1,
+    "programCaseRuns": 1,
+    "existingSuggestionDuplicated": false,
+    "semanticOracleInvented": false,
+    "ambiguousOperationAccepted": false,
+    "missingOutputAccepted": false
+  },
+  "authority": [
+    "Observed argv, input paths and post-run output paths come from actual normalized operation records.",
+    "Input bytes are selected only from workdir snapshots, digest-bound pre-run snapshots or readable bound task fixtures.",
+    "Reference-output cases preserve fidelity authority; source/task checks remain separate and can promote a case only through the existing lifecycle.",
+    "Existing optimizer validation suggestions are returned unchanged and are not regenerated."
+  ],
+  "claimBoundary": "Deterministic completion wires resources and commands; it does not infer semantic expected answers. Missing or ambiguous facts remain unresolved and available for a bounded repair decision. The integration test uses a synthetic local program and does not count as a real model run, real-skill success, readiness change or prospective/held-out evidence.",
+  "nextStage": "F4 bounded validation-connection repair"
+}
