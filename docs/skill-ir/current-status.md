@@ -52,7 +52,7 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 
 ## 3. 当前计划与上一阶段基线
 
-当前执行为 [F0–F11](../superpowers/plans/2026-09-14-general-generation-reinforcement.md)。F0 已建立结果根，F1 已将实际操作接入 workspace，F1.1 已建立 `results/skill-ir/general-generation-reinforcement-20260914/f1.1/pattern-to-code.json` 与验证报告，F2 已完成参数来源 TDD，F3 已完成 validation completion TDD，F4 已把可修接线缺口接入既有一次 repair，F5 已完成保守的路径/cwd/参数变化审计（证据见 `f5/verification.json`）。F6 已完成 Method 矛盾解析、实际参数命令模板、package 指南参数来源及兼容回归；F6.1 已完成共享单/多输入 workflow scaffold、失败隔离、贡献清单和 workspace 物化（证据见 `f6/verification.json`、`f6.1/verification.json`）；当前进入 F7 active。F5 明确不猜测单一参数值，参数“未生效”语义反例仍是后续真实结构回归的开放边界。工程、真实使用与效果分列；缺 validation 元数据不应在有来源可补时无声停留 draft，无依据则仍保留未知。参数化与真实消费检查服务通用职责，不要求所有 skill 统一格式或输出 ABI。
+当前执行为 [F0–F11](../superpowers/plans/2026-09-14-general-generation-reinforcement.md)。F0 已建立结果根，F1 已将实际操作接入 workspace，F1.1 已建立 `results/skill-ir/general-generation-reinforcement-20260914/f1.1/pattern-to-code.json` 与验证报告，F2 已完成参数来源 TDD，F3 已完成 validation completion TDD，F4 已把可修接线缺口接入既有一次 repair，F5 已完成保守的路径/cwd/参数变化审计（证据见 `f5/verification.json`）。F6 已完成 Method 矛盾解析、实际参数命令模板、package 指南参数来源及兼容回归；F6.1 已完成共享单/多输入 workflow scaffold、失败隔离、贡献清单和 workspace 物化（证据见 `f6/verification.json`、`f6.1/verification.json`）。F7 已完成精确结构化 argv/路径消费匹配、无隐含 API 入口、调用/退出/输出断言/任务质量/residual 分离及实际读取/重写/执行计数（证据见 `f7/verification.json`）；当前进入 F8 active。F5 明确不猜测单一参数值，参数“未生效”语义反例仍是后续真实结构回归的开放边界；F7 的未知退出和模糊 shell 仍保留 unknown，不作为通过或失败。工程、真实使用与效果分列；缺 validation 元数据不应在有来源可补时无声停留 draft，无依据则仍保留未知。参数化与真实消费检查服务通用职责，不要求所有 skill 统一格式或输出 ABI。
 
 revision 2 增加：从已有 skill/trace 对照追踪共同模式到生产代码与测试；小型流程骨架实际接管产物处理，不能仅用 checker 计流程自动化；同一包在两个消费模型和隔离环境中比较。F6.1 现已提供单/多输入的执行 plumbing，但尚无本轮真实模型生成的跨结构成品；当前跨模型稳定性增益仍未建立，同宿主路径/环境复现不叫跨平台证明。现有程序生成通道和特定后端继续复用，不表示领域算法已由脚手架自动实现。
 

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "skill-ir-general-generation-reinforcement-f7-verification/v1",
+  "identity": "general-generation-reinforcement-20260914",
+  "stage": "F7",
+  "status": "passed",
+  "red": {
+    "falseMention": "The pre-change analyzer used substring matching, so echo/cat mentions and same-name directories were accepted as helper execution.",
+    "implicitApi": "The pre-change analyzer inserted api-task-solidify.js when no entrypoint was declared.",
+    "exitAndAssertion": "The pre-change analyzer treated a non-structured exit-zero output as helper failure instead of separating normal exit from output assertion.",
+    "ambiguousShell": "The pre-change analyzer accepted a helper path inside a compound shell command; the red case requires an unknown result."
+  },
+  "green": {
+    "command": "bun test ./test/jit-optimize/consumption.test.ts ./test/jit-optimize/general-skill-development.test.ts ./test/jit-optimize/effect.test.ts",
+    "tests": 22,
+    "failed": 0,
+    "assertions": 70
+  },
+  "typecheck": {
+    "command": "bun run typecheck",
+    "status": "passed"
+  },
+  "matching": {
+    "structuredInputs": ["argv", "program+args", "command object"],
+    "shellPolicy": "Only a single unambiguous command is matched; pipes, redirects, command separators, eval flags and nested shells remain unknown.",
+    "pathPolicy": "Compare canonical complete paths after stripping only declared/conventional skill roots; arbitrary directory prefixes are never collapsed.",
+    "entrypointSource": "Selected package implementation entries; an absent declaration yields an empty set, not an API-specific default."
+  },
+  "separation": {
+    "invocation": "invocations and helperToolCallIds",
+    "exitStatus": "helperExitStatus with zero/nonZero/unknown",
+    "outputAssertion": "helperOutputAssertion with passed/failed/notApplicable/unknown",
+    "taskQuality": "taskQuality/taskOutcome supplied by independent task checks",
+    "residual": "residualCompletion and legacy residual fields",
+    "mechanicalCounts": "skill read, help, entrypoint discovery, program rewrite, and program execution IDs/counts"
+  },
+  "unknownPolicy": "Unknown exit or ambiguous invocation is retained by tool-call ID and cannot prove helper success; a plain exit-zero output is normal exit plus unknown assertion, not failure or quality pass.",
+  "claimBoundary": "F7 is deterministic local development evidence. It improves observation of ordinary non-API consumption but does not establish model behavior, whole-skill correctness, effect, readiness, human savings, prospective eligibility, or held-out performance.",
+  "costs": {
+    "optimizerAgentRuns": 0,
+    "targetAgentRuns": 0,
+    "paidCalls": 0,
+    "actualUsd": null,
+    "developerAgentCost": "not-measured-by-project-runtime"
+  },
+  "nextStage": "F8 default-chain integration"
+}

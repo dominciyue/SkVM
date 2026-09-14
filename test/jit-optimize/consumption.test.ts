@@ -32,23 +32,51 @@ describe("analyzeSkillConsumption", () => {
           exitCode: 0,
         }],
       },
-    ])
+    ], {
+      skillPaths: ["skill/SKILL.md"],
+      executableEntries: ["scripts/api-task-solidify.js"],
+    })
     expect(analysis).toEqual({
       skillRead: true,
       helperInvoked: true,
       helperSucceeded: true,
       skillReadToolCallIds: ["read-1"],
+      skillReadUnknownToolCallIds: [],
       helperToolCallIds: ["bash-1"],
       helperSuccessfulToolCallIds: ["bash-1"],
       helperHelpToolCallIds: [],
       helperFailedToolCallIds: [],
       helperNotApplicableToolCallIds: [],
+      helperUnassertedToolCallIds: [],
+      helperUnknownToolCallIds: [],
+      entrypointDiscoveryToolCallIds: [],
+      programRewriteToolCallIds: [],
+      programExecutionToolCallIds: ["bash-1"],
+      helperExitStatus: { zero: ["bash-1"], nonZero: [], unknown: [] },
+      helperOutputAssertion: { passed: ["bash-1"], failed: [], notApplicable: [], unknown: [] },
+      invocations: [{
+        toolCallId: "bash-1",
+        entry: "scripts/api-task-solidify.js",
+        match: "shell-command",
+        exitStatus: "zero",
+        outputAssertion: "passed",
+      }],
+      observations: {
+        skillReadCount: 1,
+        helperInvocationCount: 1,
+        helperHelpCount: 0,
+        entrypointDiscoveryCount: 0,
+        programRewriteCount: 0,
+        programExecutionCount: 1,
+      },
       fallbackUsed: false,
-      declaredEntrypoints: ["api-task-solidify.js"],
+      declaredEntrypoints: ["scripts/api-task-solidify.js"],
       documentationOnly: false,
       residualWorkRequired: false,
       residualWorkCompleted: false,
       taskOutcome: "not-checked",
+      taskQuality: { status: "not-checked", passed: false },
+      residualCompletion: { required: false, completed: false },
       consumptionComplete: false,
     })
   })
@@ -74,7 +102,7 @@ describe("analyzeSkillConsumption", () => {
         output: "binding missing",
         exitCode: 1,
       }],
-    }])
+    }], { executableEntries: ["scripts/api-task-solidify.js"] })
     expect(analysis).toMatchObject({ helperInvoked: true, helperSucceeded: false })
   })
 
@@ -155,10 +183,157 @@ describe("analyzeSkillConsumption", () => {
       helperHelpToolCallIds: ["help"],
       helperFailedToolCallIds: ["failed"],
       helperSuccessfulToolCallIds: ["success"],
+      helperUnassertedToolCallIds: [],
       residualWorkCompleted: true,
       taskOutcome: "passed",
       consumptionComplete: true,
     })
+  })
+
+  test("matches structured argv exactly and ignores echo/cat mentions and same-name directories", () => {
+    const analysis = analyzeSkillConsumption([{
+      role: "tool",
+      timestamp: 1,
+      toolCalls: [{
+        id: "echo-mention",
+        name: "execute_command",
+        input: { command: "echo node skill/tools/convert.mjs" },
+        output: "node skill/tools/convert.mjs",
+        exitCode: 0,
+      }, {
+        id: "cat-mention",
+        name: "execute_command",
+        input: { command: "cat other/tools/convert.mjs" },
+        output: "...",
+        exitCode: 0,
+      }, {
+        id: "structured-run",
+        name: "execute_command",
+        input: { program: "node", args: ["skill/tools/convert.mjs", "--input", "rows.json"] },
+        output: "{\"status\":\"success\"}",
+        exitCode: 0,
+      }],
+    }], {
+      skillPaths: ["skill/SKILL.md"],
+      executableEntries: ["tools/convert.mjs"],
+    })
+
+    expect(analysis.helperToolCallIds).toEqual(["structured-run"])
+    expect(analysis.helperUnknownToolCallIds).toEqual([])
+    expect(analysis.invocations).toEqual([expect.objectContaining({
+      toolCallId: "structured-run",
+      match: "structured-argv",
+      entry: "tools/convert.mjs",
+    })])
+  })
+
+  test("does not assume the API helper when no entrypoint is declared", () => {
+    const analysis = analyzeSkillConsumption([{
+      role: "tool",
+      timestamp: 1,
+      toolCalls: [{
+        id: "api-implicit",
+        name: "execute_command",
+        input: { command: "node skill/api-task-solidify.js" },
+        output: "{\"status\":\"passed\"}",
+        exitCode: 0,
+      }],
+    }])
+
+    expect(analysis.declaredEntrypoints).toEqual([])
+    expect(analysis.helperInvoked).toBe(false)
+    expect(analysis.helperToolCallIds).toEqual([])
+  })
+
+  test("keeps a normal exit separate from output assertion and task quality", () => {
+    const analysis = analyzeSkillConsumption([{
+      role: "tool",
+      timestamp: 1,
+      toolCalls: [{
+        id: "plain-success",
+        name: "execute_command",
+        input: { argv: ["python", "skill/tools/convert.py", "rows.json"] },
+        output: "completed without a structured result",
+        exitCode: 0,
+      }],
+    }], {
+      skillPaths: ["skill/SKILL.md"],
+      executableEntries: ["tools/convert.py"],
+      taskOutcome: "not-checked",
+    })
+
+    expect(analysis.helperInvoked).toBe(true)
+    expect(analysis.helperSucceeded).toBe(false)
+    expect(analysis.helperFailedToolCallIds).toEqual([])
+    expect(analysis.helperUnassertedToolCallIds).toEqual(["plain-success"])
+    expect(analysis.helperExitStatus).toEqual({ zero: ["plain-success"], nonZero: [], unknown: [] })
+    expect(analysis.helperOutputAssertion).toEqual({ passed: [], failed: [], notApplicable: [], unknown: ["plain-success"] })
+    expect(analysis.taskQuality).toEqual({ status: "not-checked", passed: false })
+  })
+
+  test("retains unknown exits and reports entry discovery, rewrite, and execution separately", () => {
+    const analysis = analyzeSkillConsumption([{
+      role: "tool",
+      timestamp: 1,
+      toolCalls: [{
+        id: "read-skill",
+        name: "read_file",
+        input: { path: "skill/SKILL.md" },
+        exitCode: 0,
+      }, {
+        id: "read-entry",
+        name: "read_file",
+        input: { path: "skill/tools/convert.py" },
+        exitCode: 0,
+      }, {
+        id: "rewrite-entry",
+        name: "write_file",
+        input: { path: "skill/tools/convert.py", content: "print('new')" },
+        exitCode: 0,
+      }, {
+        id: "unknown-run",
+        name: "execute_command",
+        input: { argv: ["python", "skill/tools/convert.py"] },
+        output: "finished",
+      }],
+    }], {
+      skillPaths: ["skill/SKILL.md"],
+      executableEntries: ["tools/convert.py"],
+    })
+
+    expect(analysis.helperUnknownToolCallIds).toEqual(["unknown-run"])
+    expect(analysis.helperFailedToolCallIds).toEqual([])
+    expect(analysis.observations).toEqual({
+      skillReadCount: 1,
+      helperInvocationCount: 1,
+      helperHelpCount: 0,
+      entrypointDiscoveryCount: 1,
+      programRewriteCount: 1,
+      programExecutionCount: 1,
+    })
+    expect(analysis.entrypointDiscoveryToolCallIds).toEqual(["read-entry"])
+    expect(analysis.programRewriteToolCallIds).toEqual(["rewrite-entry"])
+  })
+
+  test("marks an ambiguous shell mention unknown without proving execution", () => {
+    const analysis = analyzeSkillConsumption([{
+      role: "tool",
+      timestamp: 1,
+      toolCalls: [{
+        id: "ambiguous",
+        name: "execute_command",
+        input: { command: "node skill/tools/convert.py && echo done" },
+        output: "done",
+        exitCode: 0,
+      }],
+    }], {
+      skillPaths: ["skill/SKILL.md"],
+      executableEntries: ["tools/convert.py"],
+    })
+
+    expect(analysis.helperInvoked).toBe(false)
+    expect(analysis.helperToolCallIds).toEqual([])
+    expect(analysis.helperUnknownToolCallIds).toEqual(["ambiguous"])
   })
 
   test("allows a documentation-only package to complete through a real read and independently checked task result", () => {

@@ -123,6 +123,12 @@ F6 将 optimizer Method 的 no-trade-off 语言与实际逐任务回归门对齐
 
 F6.1 新增 `src/jit-optimize/workflow-scaffold.ts`，只提供普通 Node/Python 脚本的机械 plumbing：单输入读取→调用已声明 source processor→检查产物，或多输入逐项调用→汇总每项状态与输出 manifest。处理器通过 argv 直接启动，不经过 shell；输入原件不覆盖，已有输出/manifest 不覆盖，exit 2 表示该项不适用，缺产物或非零失败保持可定位诊断。`buildWorkflowScaffoldManifest` 明确步骤、依赖、framework/source/model 贡献和 residual duties；`serializeContext` 将从真实 observed operations 推导的候选物化到 `.optimize/workflow-scaffolds/`，但不读取或执行 source 来制造候选，也不把框架代码计为模型生成的领域算法。当前测试覆盖单/多输入、部分不适用、checker-only 无产物、共享物化器和 workspace 接线；真实模型决定的处理逻辑与跨结构自然消费仍留在 F9。机器证据分别见 `results/skill-ir/general-generation-reinforcement-20260914/f6/verification.json` 与 `f6.1/verification.json`。
 
+### 3.0.5.1 F7 普通消费观察（development）
+
+`analyzeSkillConsumption` 现在从 `AgentStep` 的结构化 `argv`、`program + args` 或保守解析的单一 shell 命令中识别入口。它只剥离已知 skill 根前缀并比较规范化完整路径；echo/cat 提及、同名异目录和带管道/重定向/嵌套 shell 的模糊字符串不会成为已执行证据，而会保留未知 tool-call ID。入口集合来自优化 package 的 selected implementations；未声明入口时集合为空，不隐含 `api-task-solidify.js`。
+
+报告把 helper invocation、exit status（zero/non-zero/unknown）、output assertion（passed/failed/not-applicable/unknown）、task quality 和 residual completion 分开。exit 0 但没有结构化成功断言的普通脚本记录为正常退出/未断言，不冒充失败或质量通过；未知退出保留 unknown。另行统计 skill read、help、entrypoint discovery、program rewrite 和 program execution 的实际 tool-call ID，便于解释机械工作与残余职责。普通 source/optimized runner 继续只把独立任务检查传给 `taskOutcome`，不从最终文字自证。机器验证见 `results/skill-ir/general-generation-reinforcement-20260914/f7/verification.json`。
+
 ### 3.0.6 F1.1 语料到代码模式索引（development）
 
 F1.1 将五个已暴露的深读成员映射为可审计的 `pattern-to-code.json`：zh-readme、i18n-helper、law-to-markdown、experimental-design 和 env-manager。每个成员分别记录源 `SKILL.md` 摘要与行定位、固定机械步骤、变量来源、环境依赖、分支判断、当前动作类型候选、生产符号/测试及仍不支持的缺口；不会把 skill 名、特定仓库路径或历史成功数量写成实现条件。

@@ -236,7 +236,15 @@ export type {
   TraceGuidedSkillPackageManifest,
 } from "./solidification.ts"
 export { analyzeSkillConsumption } from "./consumption.ts"
-export type { SkillConsumptionAnalysis, AnalyzeSkillConsumptionOptions } from "./consumption.ts"
+export type {
+  SkillConsumptionAnalysis,
+  AnalyzeSkillConsumptionOptions,
+  SkillConsumptionInvocation,
+  ConsumptionMatch,
+  ConsumptionExitStatus,
+  ConsumptionOutputAssertion,
+  ConsumptionTaskOutcome,
+} from "./consumption.ts"
 export {
   buildGeneralSkillTaskPrompt,
   runGeneralSkillDevelopment,

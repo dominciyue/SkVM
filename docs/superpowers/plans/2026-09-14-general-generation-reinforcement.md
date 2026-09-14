@@ -187,14 +187,14 @@ revision 2 加强第 4 项：目标中的程序必须包含一个实际生成/�
 
 ## F7 — 真实消费观察摆脱 API 特例
 
-- [ ] 红例：echo/cat 命令提到 helper 不算执行；普通脚本退出 0 但无 `ok=true`，仍应记录正常退出；调用失败后调用成功两者保留；同名不同目录不能混用。
-- [ ] 从 package/action 获取入口集合；没有声明入口时不默认 `api-task-solidify.js`。复用 AgentStep 和已存在 Pi 事件归一化，支持 bare-agent 的同类事件。
-- [ ] 对结构化 exec argv 使用解析后的程序/脚本路径匹配；shell 字符串只识别支持的明确调用，模糊情况标未知而不拿子串证明。保留实际 tool-call ID。
-- [ ] 分开 invocation、exit status、output assertion、task quality 和 residual completion。退出 0 不必有固定 JSON，仍不等于质量通过；未知退出不能直接标失败。
-- [ ] 基于现有事件统计实际读取、help、入口发现、程序重写/执行；仅“重复读取次数”是观测，是否多余需要相同任务语境判断，不把必要检查罚成浪费。
-- [ ] 运行 `bun test ./test/jit-optimize/consumption.test.ts ./test/jit-optimize/general-skill-development.test.ts ./test/jit-optimize/effect.test.ts`。
+- [x] 红例：echo/cat 命令提到 helper 不算执行；普通脚本退出 0 但无 `ok=true`，仍应记录正常退出；调用失败后调用成功两者保留；同名不同目录不能混用。
+- [x] 从 package/action 获取入口集合；没有声明入口时不默认 `api-task-solidify.js`。复用 AgentStep 和已存在 Pi 事件归一化，支持 bare-agent 的同类事件。
+- [x] 对结构化 exec argv 使用解析后的程序/脚本路径匹配；shell 字符串只识别支持的明确调用，模糊情况标未知而不拿子串证明。保留实际 tool-call ID。
+- [x] 分开 invocation、exit status、output assertion、task quality 和 residual completion。退出 0 不必有固定 JSON，仍不等于质量通过；未知退出不能直接标失败。
+- [x] 基于现有事件统计实际读取、help、入口发现、程序重写/执行；仅“重复读取次数”是观测，是否多余需要相同任务语境判断，不把必要检查罚成浪费。
+- [x] 运行 `bun test ./test/jit-optimize/consumption.test.ts ./test/jit-optimize/general-skill-development.test.ts ./test/jit-optimize/effect.test.ts`（22/22，70 assertions）。
 
-**验收：** 非 API、普通文本输出程序能被准确观察；无法证明的调用不编造成功，也不阻止用户继续完成任务。
+**验收：** 消费分析现在只按声明入口和精确 argv/路径匹配普通程序；echo/cat、同名异目录和模糊 shell 保持未证实。调用、退出、输出断言、任务质量与 residual completion 分字段报告，unknown exit 不直接变成失败。机器证据见 `results/skill-ir/general-generation-reinforcement-20260914/f7/verification.json`。
 
 ## F8 — 默认入口连续集成
 
