@@ -100,6 +100,69 @@ function action(actionId: string, entry = "scripts/convert.py", validation?: Opt
 }
 
 describe("completeValidationSuggestion", () => {
+  test("varies declared new-program paths without inventing an observed invocation", async () => {
+    const observed = evidence({ entry: "scripts/old.mjs" })
+    ;(observed as Evidence & { steps: AgentStep[] }).steps = [{
+      role: "assistant", timestamp: 1000, toolCalls: [
+        { id: "read", name: "read_file", input: { path: "input.txt" } },
+        { id: "write", name: "write_file", input: { path: "out/report.txt", content: "REPORT\n" } },
+      ],
+    }]
+    const candidate = action("new-entry", "scripts/new.mjs", { cases: [{
+      id: "declared-new-interface", evidenceId: "0", inputSource: "workdir-snapshot",
+      inputFiles: ["input.txt"], args: ["--input", "input.txt", "--output", "out/report.txt"],
+      expectedFiles: [{ path: "out/report.txt", referencePath: "out/report.txt" }],
+      basis: "task-contract", sourceRefs: ["task:conversion-rule"],
+    }] })
+    candidate.kind = "generate-script"
+    const result = await deriveValidationVariations({
+      action: candidate, implementation: implementation("new-entry", "scripts/new.mjs"), evidences: [observed],
+    })
+    expect(result.generated.map((item) => item.kind)).toEqual(["path", "cwd"])
+    expect(result.generated[0]?.sourceRefs).toContain("validation-case:declared-new-interface#args")
+    expect(result.generated[0]?.sourceRefs.some((ref) => ref.includes("tool-call"))).toBe(false)
+    expect(result.covered).toEqual([])
+    expect(result.skipped).toContainEqual(expect.objectContaining({ kind: "parameter" }))
+  })
+
+  test("offers bounded argv repair for an unobserved entry with captured read/write evidence", async () => {
+    const observed = evidence()
+    ;(observed as Evidence & { steps: AgentStep[] }).steps = [{
+      role: "assistant",
+      timestamp: 1000,
+      toolCalls: [
+        { id: "read-input", name: "read_file", input: { path: "input.txt" } },
+        { id: "write-output", name: "write_file", input: { path: "out/report.txt", content: "REPORT\n" } },
+      ],
+    }]
+    const candidate = action("new-entry")
+    const result = await completeValidationSuggestion({
+      action: candidate,
+      implementation: implementation("new-entry"),
+      evidences: [observed],
+    })
+    expect(result.status).toBe("repairable")
+    expect(result.action).toBe(candidate)
+    expect(result.action.validation).toBeUndefined()
+    expect(result.repairable?.fields).toContain("validation.cases.args")
+    expect(result.suggestion?.cases[0]).toMatchObject({
+      inputFiles: ["input.txt"],
+      args: [],
+      expectedFiles: [{ path: "out/report.txt", referencePath: "out/report.txt" }],
+      basis: "reference-output",
+    })
+    expect(result.provenance.fields.args?.source).toBe("unresolved-requires-repair")
+
+    observed.workDirSnapshot!.files.delete("out/report.txt")
+    const withoutOutput = await completeValidationSuggestion({
+      action: candidate,
+      implementation: implementation("new-entry"),
+      evidences: [observed],
+    })
+    expect(withoutOutput.status).toBe("unresolved")
+    expect(withoutOutput.repairable).toBeUndefined()
+  })
+
   test("fills a missing case from an observed executable, input and output", async () => {
     const result = await completeValidationSuggestion({
       action: action("convert"),
@@ -124,6 +187,50 @@ describe("completeValidationSuggestion", () => {
       args: expect.objectContaining({ source: "observed-operation.argv" }),
       expectedFiles: expect.objectContaining({ source: "observed-operation.writeFiles" }),
     })
+  })
+
+  test("does not execute an unwired candidate until repaired argv reaches the real validator", async () => {
+    const sourceDir = await tempDir("unobserved-entry-source-")
+    const candidateDir = await tempDir("unobserved-entry-candidate-")
+    const proposalDir = await tempDir("unobserved-entry-proposal-")
+    await writeFile(path.join(sourceDir, "SKILL.md"), "# Converter\n")
+    await writeFile(path.join(candidateDir, "SKILL.md"), "# Converter\n")
+    await mkdir(path.join(candidateDir, "scripts"))
+    await writeFile(path.join(candidateDir, "scripts", "convert.mjs"), [
+      "import { readFile, writeFile, mkdir } from 'node:fs/promises'",
+      "const [input, output] = process.argv.slice(2)",
+      "if (!input || !output) process.exit(2)",
+      "await mkdir('out', { recursive: true })",
+      "await writeFile(output, (await readFile(input, 'utf8')).toUpperCase())",
+    ].join("\n"))
+    const observed = evidence()
+    ;(observed as Evidence & { steps: AgentStep[] }).steps = [{
+      role: "assistant", timestamp: 1000, toolCalls: [
+        { id: "read", name: "read_file", input: { path: "input.txt" } },
+        { id: "write", name: "write_file", input: { path: "out/report.txt", content: "REPORT\n" } },
+      ],
+    }]
+    const candidate: OptimizationAction = {
+      ...action("new-program", "scripts/convert.mjs"),
+      kind: "generate-script",
+      changedPaths: ["scripts/convert.mjs"],
+    }
+    const options = { proposalDir, round: 1, skillDir: candidateDir, sourceSkillDir: sourceDir, baselineSkillDir: sourceDir, evidences: [observed] }
+    const initial = await runOptimizationValidationLifecycle({ ...options, actions: [candidate] })
+    expect(initial.report.execution.programRuns).toBe(0)
+    expect(initial.report.repairable?.actionIds).toEqual(["new-program"])
+    const suggestion = initial.report.repairable!.feedback[0]!.suggestion
+    const repaired = await runOptimizationValidationLifecycle({
+      ...options,
+      round: 2,
+      actions: [{
+        ...candidate,
+        validation: { cases: suggestion.cases.map((item) => ({ ...item, args: ["input.txt", "out/report.txt"] })) },
+      }],
+    })
+    expect(repaired.report.execution.programRuns).toBe(1)
+    expect(repaired.report.actions[0]?.programStatus).toBe("passed")
+    expect(repaired.report.execution.independentCaseRuns).toBe(0)
   })
 
   test("keeps an existing validation suggestion unchanged", async () => {

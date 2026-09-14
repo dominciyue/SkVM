@@ -18,7 +18,9 @@ let optimizerHandler: (input: OptimizeInput, config: OptimizeConfig) => Promise<
   throw new Error("continuous production test optimizer handler was not configured")
 }
 
+const optimizerExports = await import("../../src/jit-optimize/optimizer.ts")
 mock.module("../../src/jit-optimize/optimizer.ts", () => ({
+  ...optimizerExports,
   runOptimizer: (input: OptimizeInput, config: OptimizeConfig) => optimizerHandler(input, config),
 }))
 
@@ -527,7 +529,7 @@ describe("continuous production closure", () => {
       actionId: "convert-json",
       validationSource: "executed",
       programStatus: "passed",
-      independentCaseIds: ["source-owned-output"],
+      independentCaseIds: ["source-owned-output", "variation-path-source-owned-output", "variation-cwd-source-owned-output"],
     }))
     expect(history.entries[0].actions[0]).toEqual(expect.objectContaining({ id: "convert-json", changedPaths: ["scripts/convert.mjs"] }))
 
@@ -536,7 +538,7 @@ describe("continuous production closure", () => {
       behaviorStatus: "passed",
       deliveryStatus: "validated-recommendation",
       retainedActionIds: ["convert-json"],
-      independentCaseRuns: 1,
+      independentCaseRuns: 3,
     }))
     expect(await readFile(path.join(packageDir, "scripts", "convert.mjs"), "utf8")).toContain("toUpperCase")
 

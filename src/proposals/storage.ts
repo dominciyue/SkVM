@@ -159,8 +159,23 @@ export interface CreateProposalResult {
 // Path helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Proposal layout keys are single path segments. Callers normally provide a
+ * logical skill name, but CLI and programmatic integrations may pass a
+ * Windows absolute skill directory. Normalize both slash styles before using
+ * the value in a filesystem path or serialized proposal id.
+ */
+export function normalizeSkillName(skillName: string): string {
+  const normalized = skillName.replaceAll("\\", "/").replace(/\/+$/, "")
+  const base = normalized.split("/").filter(Boolean).pop() ?? ""
+  if (!base || base === "." || base === "..") {
+    throw new Error(`Invalid skill name: ${JSON.stringify(skillName)}`)
+  }
+  return base
+}
+
 function skillProposalsDir(harness: string, targetModel: string, skillName: string): string {
-  return path.join(JIT_OPTIMIZE_DIR, harness, safeModelName(targetModel), skillName)
+  return path.join(JIT_OPTIMIZE_DIR, harness, safeModelName(targetModel), normalizeSkillName(skillName))
 }
 
 export function proposalDirFromId(id: string): string {
@@ -171,7 +186,7 @@ function makeProposalId(harness: string, targetModel: string, skillName: string,
   // Proposal ids are serialized identifiers, not host filesystem paths.
   // Keep their representation stable across Windows and POSIX; consumers
   // convert the canonical slash-separated id back through path.join.
-  return path.posix.join(harness, safeModelName(targetModel), skillName, timestamp)
+  return path.posix.join(harness, safeModelName(targetModel), normalizeSkillName(skillName), timestamp)
 }
 
 function tsString(d: Date = new Date()): string {
@@ -191,7 +206,8 @@ export async function createProposal(opts: CreateProposalOptions): Promise<Creat
   // concurrent detached workers can still hit the same ms. mkdir without
   // `recursive` lets EEXIST surface; we retry with -1, -2, ... suffix so
   // each worker ends up with a distinct dir.
-  const parentDir = skillProposalsDir(opts.harness, opts.targetModel, opts.skillName)
+  const skillName = normalizeSkillName(opts.skillName)
+  const parentDir = skillProposalsDir(opts.harness, opts.targetModel, skillName)
   await mkdir(parentDir, { recursive: true })
   const baseTimestamp = tsString()
   let timestamp = baseTimestamp
@@ -217,7 +233,7 @@ export async function createProposal(opts: CreateProposalOptions): Promise<Creat
 
   const meta: ProposalMeta = {
     schemaVersion: PROPOSAL_SCHEMA_VERSION,
-    skillName: opts.skillName,
+    skillName,
     skillDir: path.resolve(opts.skillDir),
     harness: opts.harness,
     optimizerModel: opts.optimizerModel,
@@ -234,7 +250,7 @@ export async function createProposal(opts: CreateProposalOptions): Promise<Creat
 
   await Bun.write(path.join(dir, "meta.json"), JSON.stringify(meta, null, 2))
 
-  const id = makeProposalId(opts.harness, opts.targetModel, opts.skillName, timestamp)
+  const id = makeProposalId(opts.harness, opts.targetModel, skillName, timestamp)
   log.info(`Created proposal ${id}`)
   return { id, dir, meta }
 }

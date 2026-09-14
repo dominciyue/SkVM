@@ -482,6 +482,34 @@ ${repairMode ? `This is the single repair attempt for an already-validated candi
    name, or path locator that supports it. Do not globally replace every copy
    of an observed string in a source file; preserve unrelated occurrences and
    report an unresolved mapping when the binding cannot be proved.
+   Inspect \`workflowScaffolds\` as well. A \`requires-model-processor\`
+   candidate is optional framework plumbing with an unimplemented processor,
+   not evidence that a working source program exists. Missing source scripts
+   do not veto an artifact-producing opportunity supported by actual file
+   reads/writes and source instructions. Select the mechanical boundary first;
+   when supported, implement at least two consecutive mechanical steps in one
+   ordinary parameterized command. Task-scoped values are parameters, not a
+   reason to discard the reusable operation. Keep semantic choices with the agent.
+   Reuse a sufficient source command directly; otherwise generate its missing
+   processor using ordinary code, adopting the scaffold only when it removes
+   useful plumbing. Copy adopted files outside \`.optimize/\`, correct their
+   package-root binding, and declare the real framework/source/model contributions.
+   Keep scratch evidence unchanged. Declare a \`generate-script\` action with
+   exact argv and captured input/output references so the default validator
+   can run it. An observed output is only a fidelity reference, not an oracle.
+   A checker remains useful, but checker-only is not an artifact-producing workflow;
+   documentation of unimplemented processing does not count as its implementation.
+   Account for artifact production separately from verification in the existing
+   opportunity inventory. For each candidate's \`observedFileWork\`, inspect
+   the bound pre-run inputs and post-run outputs and identify which read/transform/
+   write steps can be parameterized. A parity checker does not justify retaining
+   the file-production work; give that work its own concrete disposition and
+   evidence-based reason. When semantic decisions are needed, the agent may supply
+   confirmed mappings or values to an ordinary processor that performs the remaining
+   mechanical transformation and writes outputs; this is not permission to invent
+   translations, user decisions, input bytes, or expected answers. Prefer the smallest
+   executable boundary supported by source instructions, with a current validation
+   case and residual duties, over documenting those same mechanical steps as complete.
 3. ${historyCount > 0 ? "Read history.md. Do not repeat diagnoses that previous rounds tried and failed to improve. If previous rounds clarified something and it didn't help, the problem is elsewhere — look harder." : "Read the skill files you need to understand (SKILL.md is the entry point)."}
 4. Inventory every evidence-backed opportunity before choosing edits. Use
    these exact categories in the submission: \`instruction-clarity\`,

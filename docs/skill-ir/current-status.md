@@ -1,6 +1,7 @@
 # Skill IR 当前状态
 
 - 更新日期：2026-09-14
+- F9 恢复进度：I18n F9.3 实际为 `actions=[]` 的文档包，不能计程序完成。已补共享 F6.1 model-processor 候选、无关脚本兼容、单 evidence 隔离及 optimizer/README 交接；72/72 回归与类型检查通过。当前命名尝试 `f9/i18n-f9-4/` 复用 F9.3 原 capture，只重跑修复后的优化链，不重放 source。历史 F9 实际费用仍需从运行记录汇总，旧 status 的零费用不能代表本轮总费用。具体证据见 `results/skill-ir/general-generation-reinforcement-20260914/f9/shared-generation-repair-verification.json`。
 - 工作分支：`skill-ir-aot`
 - 下一路线：F0–F11，通用生成流程补牢；[任务书](../superpowers/plans/2026-09-14-general-generation-reinforcement.md) revision 2、spec 14.33。含 F1.1 语料到代码、F6.1 执行型流程骨架、F9.1 同包跨模型/环境比较。
 - 执行状态：`active`。F0、F1、F1.1、F2、F3、F4、F5、F6 与 F6.1 已完成（F5 保留 partial 边界）；F3 在现有生命周期前增加了证据约束的 validation completion，F4 将带有明确来源的空 validation 元数据分类为 repairable，并把候选、缺字段和局部范围合并进既有一次 repair；F5 通过普通 validation cases 生成路径/cwd 变化、记录已有参数成对覆盖，并对固定路径候选 fail closed。F6 让实现选择与 optimizer gate 对齐，按实际 validation 参数生成命令模板；F6.1 物化单输入/多输入普通 Node/Python 执行骨架，保留步骤依赖、框架/source/model 贡献和 residual duties，并在 workspace context 中登记观察到的候选。无依据、未执行和程序失败仍分别保留。当前进入 F7 消费观察。尚未启动本轮真实项目/付费运行；不重做已有验证器，不手修个别成品代替共享能力。

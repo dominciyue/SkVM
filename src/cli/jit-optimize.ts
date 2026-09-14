@@ -447,10 +447,12 @@ function stripSuffix(kind: TaskSource["kind"]): string {
   return "log"
 }
 
-function deriveSkillName(skillDir: string): string {
-  const base = skillDir.split("/").filter(Boolean).pop() ?? ""
+export function deriveSkillName(skillDir: string): string {
+  const normalized = skillDir.replaceAll("\\", "/")
+  const parts = normalized.split("/").filter(Boolean)
+  const base = parts.pop() ?? ""
   if (/^v\d/.test(base)) {
-    const parent = skillDir.split("/").filter(Boolean).slice(-2, -1)[0] ?? ""
+    const parent = parts.pop() ?? ""
     return parent
   }
   return base

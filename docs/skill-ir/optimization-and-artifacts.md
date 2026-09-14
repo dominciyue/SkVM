@@ -119,11 +119,15 @@ F5 在同一 validation case 接口上增加保守的变化审计。`deriveValid
 
 ### 3.0.5 F6/F6.1 普通程序入口与执行骨架（development）
 
+F9 修正 F5 对新生成入口的限制：有来源输出关系和明确 validation argv 的新程序也接受 path/cwd 变化；不存在 observed invocation 时使用 `validation-case:<id>#args` 定位，不伪造执行记录或参数来源。迁移根目录输出保留原 cwd 已存在的父目录条件；真实检查仍由同一程序验证器执行。声明业务参数不生效由独立成对案例检出，无来源新参数继续跳过。
+
 F6 将 optimizer Method 的 no-trade-off 语言与实际逐任务回归门对齐：通过任务不是无条件否决，候选仍必须有来源、精确接口、明确范围和可验证的非回退行为；真实回归由选择门最终拒绝。实现选择继续按 action kind、声明路径和可见文件路由，保留 `reuse-script`、`generate-script`、`restructure-docs` 与注册 `domain-backend` 的边界。对带 validation case 的可执行动作，`selectOptimizationImplementation` 从实际 argv 生成可复制的 `commandTemplate`，把输入、输出和其他 flag 转成占位符，并在 package user summary/guide 中列出参数来源；没有明确 case 时不猜任务值，只保留入口命令。旧 v1/v2 manifest reader 仍兼容且不回写历史文件。
 
 F6.1 新增 `src/jit-optimize/workflow-scaffold.ts`，只提供普通 Node/Python 脚本的机械 plumbing：单输入读取→调用已声明 source processor→检查产物，或多输入逐项调用→汇总每项状态与输出 manifest。处理器通过 argv 直接启动，不经过 shell；输入原件不覆盖，已有输出/manifest 不覆盖，exit 2 表示该项不适用，缺产物或非零失败保持可定位诊断。`buildWorkflowScaffoldManifest` 明确步骤、依赖、framework/source/model 贡献和 residual duties；`serializeContext` 将从真实 observed operations 推导的候选物化到 `.optimize/workflow-scaffolds/`，但不读取或执行 source 来制造候选，也不把框架代码计为模型生成的领域算法。当前测试覆盖单/多输入、部分不适用、checker-only 无产物、共享物化器和 workspace 接线；真实模型决定的处理逻辑与跨结构自然消费仍留在 F9。机器证据分别见 `results/skill-ir/general-generation-reinforcement-20260914/f6/verification.json` 与 `f6.1/verification.json`。
 
 ### 3.0.5.1 F7 普通消费观察（development）
+
+F9 回查修正了 F6.1 的已执行脚本限制：实际 read/write 操作也可提供 `requires-model-processor` 骨架，处理器缺失时直接执行失败，不预填领域算法或伪造 source 贡献。无关 source executable 不抑制该候选；每份 evidence 独立推导并附 `evidenceIndex`，不把不同运行拼成一个流程。模型须按来源选择边界、生成处理器，并把采用的普通脚本移出只读 `.optimize/` 后修正 package-root 绑定，再提交动作和验证。新入口未观察到 argv、但输入及输出有捕获来源时，validation completion 只提供待修 args 的保真候选，通过既有一次 repair 补接口；空 args 不自动执行。缺省 `validation.cases` 按空列表保留待修元数据，不吞掉整个动作。证据见 `results/skill-ir/general-generation-reinforcement-20260914/f9/shared-generation-repair-verification.json`；这些局部回归仍不能替代真实程序生成或自然消费。
 
 `analyzeSkillConsumption` 现在从 `AgentStep` 的结构化 `argv`、`program + args` 或保守解析的单一 shell 命令中识别入口。它只剥离已知 skill 根前缀并比较规范化完整路径；echo/cat 提及、同名异目录和带管道/重定向/嵌套 shell 的模糊字符串不会成为已执行证据，而会保留未知 tool-call ID。入口集合来自优化 package 的 selected implementations；未声明入口时集合为空，不隐含 `api-task-solidify.js`。
 

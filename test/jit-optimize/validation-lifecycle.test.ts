@@ -571,7 +571,7 @@ describe("deriveProgramValidationPlan", () => {
 })
 
 describe("runOptimizationValidationLifecycle — parameter capability boundary", () => {
-  async function capabilityScenario(writeBeforeReject: boolean) {
+  async function capabilityScenario(writeBeforeReject: boolean, ignoreField = false) {
     const proposalDir = await tempDir("validation-capability-proposal-")
     const skillDir = await tempDir("validation-capability-skill-")
     const evidenceRoot = await tempDir("validation-capability-evidence-")
@@ -583,7 +583,7 @@ import path from "node:path";
 const args = process.argv.slice(2);
 const input = args[args.indexOf("--input") + 1];
 const output = args[args.indexOf("--out") + 1];
-const field = args[args.indexOf("--field") + 1];
+const field = ${ignoreField ? '"name"' : 'args[args.indexOf("--field") + 1]'};
 const reject = async () => {
   ${writeBeforeReject ? "await mkdir(path.dirname(output), { recursive: true }); await writeFile(output, 'partial\\n');" : ""}
   console.error("not-applicable: expected flat CSV with name and code columns");
@@ -708,7 +708,12 @@ await writeFile(output, values[columns.indexOf(field)] + "\\n");
     expect(result.summary.status).toBe("passed")
     expect(result.report.actions[0]?.capabilityBoundary).toEqual({
       selectionMeaning: "entry-found-only",
-      supportedCaseIds: ["base", "changed-input", "changed-parameter"],
+      supportedCaseIds: [
+        "base", "changed-input", "changed-parameter",
+        "variation-path-base", "variation-cwd-base",
+        "variation-path-changed-input", "variation-cwd-changed-input",
+        "variation-path-changed-parameter", "variation-cwd-changed-parameter",
+      ],
       notApplicableCaseIds: ["missing-column", "nested-structure", "wrong-format"],
       inputVariationAffectsOutput: true,
       parameterVariationAffectsOutput: true,
@@ -728,6 +733,13 @@ await writeFile(output, values[columns.indexOf(field)] + "\\n");
         status: "failed",
         diagnostics: ["file must remain absent for not-applicable handling: out/value.txt"],
       }))
+  })
+
+  test("rejects a generated program that ignores its declared field parameter", async () => {
+    const result = await capabilityScenario(false, true)
+    expect(result.summary.status).toBe("failed")
+    expect(result.report.actions[0]?.program?.cases.find((item) => item.id === "changed-parameter")?.status).toBe("failed")
+    expect(result.report.actions[0]?.program?.cases.find((item) => item.id === "base")?.status).toBe("passed")
   })
 })
 
@@ -1066,11 +1078,11 @@ fs.writeFileSync(output, fs.readFileSync(input));
       evidences: [ready],
     })
 
-    expect(result.report.execution.caseRuns).toBe(2)
+    expect(result.report.execution.caseRuns).toBe(6)
     expect(result.report.actions.find((item) => item.actionId === "partial")).toMatchObject({
       planStatus: "unresolved",
       programStatus: "passed",
-      planDiagnostics: [expect.objectContaining({ code: "validation-input-missing", caseId: "missing-case" })],
+      planDiagnostics: expect.arrayContaining([expect.objectContaining({ code: "validation-input-missing", caseId: "missing-case" })]),
     })
     expect(result.summary.retainedActionIds).toEqual(["independent"])
     expect(result.summary.unvalidatedActionIds).toEqual(["partial"])

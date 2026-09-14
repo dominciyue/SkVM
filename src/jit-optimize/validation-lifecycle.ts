@@ -1031,6 +1031,13 @@ async function materializeCase(options: {
     await mkdir(path.dirname(target), { recursive: true })
     await writeFile(target, input.content)
   }
+  // A root-level output originally had an existing parent (the case cwd).
+  // Relocation must preserve that condition, not require new mkdir behavior.
+  for (const binding of outputBindings) {
+    if (path.posix.dirname(binding.sourcePath.replaceAll("\\", "/")) !== ".") continue
+    const target = contained(executionRoot, binding.targetPath)
+    if (target) await mkdir(path.dirname(target), { recursive: true })
+  }
   return {
     validationCase: {
       id: suggestion.id,

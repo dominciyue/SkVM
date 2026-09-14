@@ -1,4 +1,5 @@
 import path from "node:path"
+import { existsSync } from "node:fs"
 import { stat } from "node:fs/promises"
 import { emptyTokenUsage, type EvalCriterion } from "../core/types.ts"
 import { evaluate } from "../framework/evaluator.ts"
@@ -148,9 +149,31 @@ async function pathExists(filePath: string): Promise<boolean> {
   }
 }
 
+export function resolveValidationRuntimeCommand(
+  runtime: ImplementationSelection["runtime"],
+  entry: string,
+  options: {
+    discoveredPath?: string
+    currentRuntime?: string
+    pathCommand?: string
+  } = {},
+): string[] | undefined {
+  if (runtime === "node") {
+    if (options.pathCommand) return [options.pathCommand, entry]
+    if (options.discoveredPath && existsSync(options.discoveredPath)) return [options.discoveredPath, entry]
+    if (options.currentRuntime) return [options.currentRuntime, entry]
+    return undefined
+  }
+  return undefined
+}
+
 function runtimeCommand(implementation: ImplementationSelection, entry: string): string[] | undefined {
   switch (implementation.runtime) {
-    case "node": return [Bun.which("node") ?? process.execPath, entry]
+    case "node": return resolveValidationRuntimeCommand("node", entry, {
+      discoveredPath: Bun.which("node") ?? undefined,
+      currentRuntime: process.execPath,
+      pathCommand: "node",
+    })
     case "python": return [process.env.PYTHON_EXECUTABLE ?? (process.platform === "win32" ? "python" : "python3"), entry]
     case "shell": return ["sh", entry]
     case "powershell": return ["pwsh", "-NoProfile", "-File", entry]

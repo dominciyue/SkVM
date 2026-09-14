@@ -90,6 +90,20 @@ describe("validateOptimizationActions", () => {
       locator: "actions[0]",
     }))
   })
+
+  test("keeps an action with a partial validation declaration for lifecycle repair", () => {
+    const candidate = {
+      ...action("missing-validation-cases"),
+      validation: {},
+    }
+    const result = validateOptimizationActions([candidate])
+
+    expect(result.actions).toEqual([{
+      ...candidate,
+      validation: { cases: [] },
+    }])
+    expect(result.diagnostics).toEqual([])
+  })
 })
 
 describe("action declaration diagnostics", () => {

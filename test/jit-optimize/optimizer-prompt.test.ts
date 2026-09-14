@@ -10,6 +10,17 @@ import type { RoundResult } from "../../src/jit-optimize/types.ts"
  * regressions when the prompt is edited.
  */
 describe("buildOptimizerPrompt", () => {
+  test("hands off unimplemented workflow slots without treating missing source interfaces as a veto", () => {
+    const prompt = buildOptimizerPrompt(1, 0)
+    expect(prompt).toContain("workflowScaffolds")
+    expect(prompt).toContain("requires-model-processor")
+    expect(prompt).toContain("at least two consecutive mechanical steps")
+    expect(prompt).toContain("Task-scoped values are parameters")
+    expect(prompt).toContain("checker-only is not an artifact-producing workflow")
+    expect(prompt).toContain("observedFileWork")
+    expect(prompt).toContain("Account for artifact production separately from verification")
+    expect(prompt).toMatch(/not justify retaining\s+the file-production work/u)
+  })
   test("references the task-first workspace layout", () => {
     const p = buildOptimizerPrompt(4, 0)
     expect(p).toContain("PER_TASK_SUMMARY.md")

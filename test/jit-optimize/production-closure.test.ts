@@ -13,7 +13,9 @@ let optimizerHandler: (input: OptimizeInput, config: OptimizeConfig) => Promise<
   throw new Error("test optimizer handler was not configured")
 }
 
+const optimizerExports = await import("../../src/jit-optimize/optimizer.ts")
 mock.module("../../src/jit-optimize/optimizer.ts", () => ({
+  ...optimizerExports,
   runOptimizer: (input: OptimizeInput, config: OptimizeConfig) => optimizerHandler(input, config),
 }))
 
@@ -569,7 +571,7 @@ console.log(JSON.stringify({ status: "success", output: args[outAt + 1] }));
     expect(result.bestRound).toBe(1)
     expect(result.validation?.status).toBe("passed")
     expect(report.execution.programRuns).toBe(1)
-    expect(report.execution.caseRuns).toBe(1)
+    expect(report.execution.caseRuns).toBe(3)
     expect(report.resolution).toEqual(expect.objectContaining({
       status: "passed",
       retainedActionIds: ["generate-converter"],
@@ -578,7 +580,7 @@ console.log(JSON.stringify({ status: "success", output: args[outAt + 1] }));
     expect(report.actions[0]).toEqual(expect.objectContaining({
       actionId: "generate-converter",
       planStatus: "ready",
-      independentCaseIds: ["observed"],
+      independentCaseIds: ["observed", "variation-path-observed", "variation-cwd-observed"],
       programStatus: "passed",
     }))
 

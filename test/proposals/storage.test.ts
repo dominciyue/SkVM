@@ -155,6 +155,18 @@ describe("proposals storage — target-model keying", () => {
     }
   })
 
+  test("lock paths normalize Windows absolute skill paths to one safe skill segment", async () => {
+    const windowsSkillPath = String.raw`D:\skill优化\SkVM\benchmarks\skill-ir\pilots\law-to-markdown`
+    const targetModel = "openrouter/qwen/qwen3-30b-a3b"
+    const got = await storage.acquireOptimizeLock("bare-agent", targetModel, windowsSkillPath)
+    try {
+      expect(got).toBe(true)
+      expect(storage.normalizeSkillName(windowsSkillPath)).toBe("law-to-markdown")
+    } finally {
+      await storage.releaseOptimizeLock("bare-agent", targetModel, windowsSkillPath)
+    }
+  })
+
   test("getLatestBestRoundDir skips infra-blocked proposals", async () => {
     // Two proposals for the same (harness, target, skill). Newest is
     // infra-blocked; older is a normal finished proposal. getLatestBestRoundDir

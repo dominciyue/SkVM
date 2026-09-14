@@ -4,6 +4,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import {
   resolveActionValidation,
+  resolveValidationRuntimeCommand,
   validateOptimizationProgram,
 } from "../../src/jit-optimize/package-validation.ts"
 import type { ImplementationSelection } from "../../src/jit-optimize/implementations.ts"
@@ -22,6 +23,14 @@ afterEach(async () => {
 })
 
 describe("validateOptimizationProgram", () => {
+  test("uses a portable node command when the discovered absolute path is unavailable", () => {
+    expect(resolveValidationRuntimeCommand("node", "entry.mjs", {
+      discoveredPath: "C:\\missing\\node.exe",
+      currentRuntime: "C:\\runtime\\bun.exe",
+      pathCommand: "node",
+    })).toEqual(["node", "entry.mjs"])
+  })
+
   test("runs help, changed inputs, a legal empty input, and an explicit missing-resource error", async () => {
     const packageDir = await tempDir("package-validation-skill-")
     const firstWorkDir = await tempDir("package-validation-first-")
@@ -75,7 +84,7 @@ try {
 
     expect(result.status).toBe("passed")
     expect(result.help?.status).toBe("passed")
-    expect(result.help?.command[0]).toBe(Bun.which("node") ?? process.execPath)
+    expect(result.help?.command[0]).toBe("node")
     expect(result.cases.map((item) => item.status)).toEqual(["passed", "passed", "passed", "passed"])
     expect(await readFile(path.join(firstWorkDir, "out.json"), "utf8"))
       .not.toBe(await readFile(path.join(secondWorkDir, "out.json"), "utf8"))

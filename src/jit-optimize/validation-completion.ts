@@ -317,14 +317,14 @@ function replaceArgumentPath(args: readonly string[], replacements: ReadonlyMap<
 
 function variationSourceRefs(
   parent: OptimizationValidationCaseSuggestion,
-  operation: OperationRecord,
+  operation: OperationRecord | undefined,
   kind: ValidationVariationKind,
 ): string[] {
   return unique([
     ...parent.sourceRefs,
     `variation:${kind}:parent=${parent.id}`,
-    operation.sourceLocator,
-    ...operation.parameters
+    operation?.sourceLocator ?? `validation-case:${parent.id}#args`,
+    ...(operation?.parameters ?? [])
       .filter((parameter) => parameter.origin !== "unknown" && parameter.originLocator)
       .map((parameter) => parameter.originLocator!),
   ])
@@ -443,9 +443,9 @@ export async function deriveValidationVariations(
 
   for (const item of suggestion.cases) {
     const context = contexts.get(item.evidenceId)
-    if (!context?.operation) {
+    if (!context) {
       for (const kind of ["path", "cwd"] as const) {
-        skipped.push({ parentCaseId: item.id, kind, reason: "no unambiguous observed invocation is available", sourceRefs: [...item.sourceRefs] })
+        skipped.push({ parentCaseId: item.id, kind, reason: "no bound evidence is available", sourceRefs: [...item.sourceRefs] })
       }
       skipped.push({ parentCaseId: item.id, kind: "parameter", reason: "no observed parameter binding is available", sourceRefs: [...item.sourceRefs] })
       continue
@@ -650,6 +650,8 @@ export async function completeValidationSuggestion(
   }
 
   const completedCases: OptimizationValidationCaseSuggestion[] = []
+  const unwiredCases: OptimizationValidationCaseSuggestion[] = []
+  let unwiredProvenance: ValidationCompletionProvenance | undefined
   let firstProvenance: ValidationCompletionProvenance | undefined
   for (const { evidenceId, index } of candidateEvidence) {
     const evidence = options.evidences[index]!
@@ -675,6 +677,38 @@ export async function completeValidationSuggestion(
           evidenceId,
           field: "entry",
         }))
+        const capturedFiles = snapshotPaths(evidence)
+        const writes = context.operations.filter((item) => item.kind === "write" && item.status === "observed")
+        const reads = context.operations.filter((item) => item.kind === "read" && item.status === "observed")
+        const outputFiles = unique(writes.flatMap((item) => item.writeFiles.map(normalize)))
+          .filter((item) => capturedFiles.has(item) && item !== normalizeEntry(implementation.entry!))
+        const inputFiles = unique(reads.flatMap((item) => item.readFiles.map(normalize)))
+          .filter((item) => !outputFiles.includes(item) && item !== normalizeEntry(implementation.entry!))
+        const resources = inputFiles.length > 0 ? await resourceView(evidence, inputFiles) : undefined
+        if (resources && outputFiles.length > 0) {
+          // Empty argv is a repair placeholder, never an executable default.
+          unwiredCases.push({
+            id: `repair-${safeSegment(action.id)}-${evidenceId}`,
+            evidenceId,
+            inputSource: resources.source,
+            inputFiles,
+            args: [],
+            expectedFiles: outputFiles.map((filePath) => ({ path: filePath, referencePath: filePath })),
+            basis: "reference-output",
+            sourceRefs: unique([...reads, ...writes].map((item) => item.sourceLocator)),
+          })
+          unwiredProvenance ??= {
+            mode: "deterministic",
+            evidenceId,
+            fields: {
+              inputFiles: { source: "observed-operation.readFiles" },
+              inputSource: { source: "digest-bound-resource", detail: resources.source },
+              expectedFiles: { source: "observed-operation.writeFiles" },
+              args: { source: "unresolved-requires-repair" },
+              basis: { source: "observed-output-fidelity" },
+            },
+          }
+        }
       }
       continue
     }
@@ -771,6 +805,27 @@ export async function completeValidationSuggestion(
   }
 
   if (completedCases.length === 0) {
+    if (unwiredCases.length > 0) {
+      const suggestion = { cases: unwiredCases }
+      return {
+        status: "repairable",
+        action,
+        suggestion,
+        repairable: {
+          fields: ["validation.cases.args"],
+          evidenceIds: unique(unwiredCases.map((item) => item.evidenceId)),
+          relevantFiles: unique([normalizeEntry(implementation.entry), ...action.changedPaths.map(normalize)]),
+          suggestion,
+        },
+        diagnostics: [...diagnostics, makeDiagnostic(
+          action,
+          "validation-completion-argv-unresolved",
+          "Captured reads and writes support a fidelity candidate, but the selected entry has no observed invocation. Resolve argv from the candidate interface in the existing bounded repair; empty args are not a confirmed command.",
+          { field: "validation.cases.args" },
+        )],
+        provenance: unwiredProvenance!,
+      }
+    }
     return noSuggestionResult(action, "unresolved", diagnostics, firstProvenance ?? {
       mode: "deterministic",
       fields: { evidenceId: { source: "action.evidenceIds" } },

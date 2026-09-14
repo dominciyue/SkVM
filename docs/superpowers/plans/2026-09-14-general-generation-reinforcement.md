@@ -160,6 +160,8 @@ revision 2 加强第 4 项：目标中的程序必须包含一个实际生成/�
 
 **验收：** 已检出一条写死路径反例，并以同一输入的成对参数案例证明参数变化被记录而不重复生成；单值参数不猜测。参数“未生效”语义反例尚未由本阶段独立生成，故该边界保持 partial，不将 F5 误报为全项完成。机器证据见 `results/skill-ir/general-generation-reinforcement-20260914/f5/verification.json`。
 
+F9 回查补修：新程序的显式 validation argv 也可作为路径/cwd 变化绑定，不要求该新入口已在原 trace 中执行；来源记录为 `validation-case:<id>#args`，不伪造 tool call。业务参数仍只采用已有可检查案例，不猜新值。根目录输出迁移时保留其原本存在的父目录条件，不额外要求源程序创建目录。新增声明 `--field` 未生效反例通过既有 task assertions 检出；缺必要列/不支持格式/部分写出拒绝继续保留，未覆盖的可选值与固定常量边界不虚报完成。
+
 ## F6 — 新包让常规工作有明确入口
 
 - [x] 消除 optimizer Method 的矛盾指令：可提出来源支持、范围明确的候选；已知会损害原职责的变更不得推荐，不确定但可测试的局部变更先验证。保留实际回归检查，不能以抽象的“也许回归”直接否决全部程序机会，也不把潜在风险全部忽略。
@@ -184,6 +186,8 @@ revision 2 加强第 4 项：目标中的程序必须包含一个实际生成/�
 - [x] 运行 `bun test ./test/jit-optimize/workflow-scaffold.test.ts ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/continuous-production-closure.test.ts`（17/17，96 assertions）。
 
 **验收：** 已交付单输入与多输入的共同物化器、步骤依赖/贡献清单、产物存在性检查和不适用隔离；它是来源处理器的执行 plumbing，不是领域算法或真实模型正例。机器证据见 `results/skill-ir/general-generation-reinforcement-20260914/f6.1/verification.json`。
+
+F9 回查补修：此前仅从已执行脚本推导骨架，未覆盖 agent 直接读写文件。当前共享实现提供明确未实现的 model processor 候选，不因存在无关 source 脚本而抑制；候选按单份 evidence 推导，不能拼接不同运行的读写。优化提示要求模型选择有来源的机械职责、实现处理器、修正移出 `.optimize` 后的根路径并申报真实动作与验证；框架候选不计领域实现，文档或 checker 不计产物流。工作区 README 的旧 blanket veto 同步删除。恢复验证见 `f9/shared-generation-repair-verification.json`，后续复用 F9.3 原 capture 的命名尝试，不重放 source。
 
 ## F7 — 真实消费观察摆脱 API 特例
 

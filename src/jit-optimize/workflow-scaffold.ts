@@ -2,7 +2,7 @@
  * Small execution-oriented workflow skeletons for ordinary local programs.
  *
  * The scaffold owns plumbing only: argument parsing, input iteration, calling
- * an already declared source processor, output existence checks, and a concise
+ * a source or model-provided processor, output existence checks, and a concise
  * machine-readable summary. It deliberately does not contain domain
  * transformation logic, a scheduler, a DSL, or a second runtime.
  */
@@ -30,6 +30,8 @@ export interface WorkflowScaffoldSpec {
   kind: WorkflowScaffoldKind
   runtime: WorkflowScaffoldRuntime
   processor: WorkflowScaffoldProcessor
+  /** A model processor is a missing implementation slot, not source reuse. */
+  processorContributor?: "source" | "model"
   inputFlag?: string
   outputFlag?: string
   outputExtension?: string
@@ -96,6 +98,12 @@ export interface DerivedWorkflowScaffoldCandidate {
   spec: WorkflowScaffoldSpec
   operationIds: string[]
   sourceRefs: string[]
+  diagnostic?: string
+  observedFileWork?: {
+    readFiles: string[]
+    writeFiles: string[]
+    mapping: "unresolved-model-selection-required"
+  }
 }
 
 export interface DeriveWorkflowScaffoldCandidatesOptions {
@@ -194,15 +202,16 @@ function validateSpec(options: MaterializeWorkflowScaffoldOptions): Omit<Derived
 
 function manifestFor(options: DerivedScaffoldOptions): WorkflowScaffoldManifest {
   const { spec, entryRelative, manifestRelative, packageRootRelative, inputFlag, outputFlag, outputExtension: outputExt } = options
+  const processorContributor = spec.processorContributor ?? "source"
   const steps: WorkflowScaffoldStep[] = spec.kind === "single-input"
     ? [
         { id: "read-input", reads: [inputFlag], writes: [], dependsOn: [], contributor: "framework" },
-        { id: "invoke-source", reads: ["input"], writes: ["output"], dependsOn: ["read-input"], contributor: "source" },
+        { id: "invoke-source", reads: ["input"], writes: ["output"], dependsOn: ["read-input"], contributor: processorContributor },
         { id: "verify-output", reads: ["output"], writes: [], dependsOn: ["invoke-source"], contributor: "framework" },
       ]
     : [
         { id: "read-inputs", reads: [inputFlag], writes: [], dependsOn: [], contributor: "framework" },
-        { id: "invoke-source", reads: ["each input"], writes: ["each item output"], dependsOn: ["read-inputs"], contributor: "source" },
+        { id: "invoke-source", reads: ["each input"], writes: ["each item output"], dependsOn: ["read-inputs"], contributor: processorContributor },
         { id: "aggregate", reads: ["each item output"], writes: [outputFlag, "workflow-manifest.json"], dependsOn: ["invoke-source"], contributor: "framework" },
         { id: "verify-output", reads: [outputFlag], writes: [], dependsOn: ["aggregate"], contributor: "framework" },
       ]
@@ -218,7 +227,7 @@ function manifestFor(options: DerivedScaffoldOptions): WorkflowScaffoldManifest 
     steps,
     contributions: {
       frameworkFiles: [entryRelative, manifestRelative],
-      sourceFiles: [normalizeRelative(spec.processor.entry)],
+      sourceFiles: processorContributor === "source" ? [normalizeRelative(spec.processor.entry)] : [],
       modelFiles: [...new Set((spec.modelFiles ?? []).map(normalizeRelative))].sort((left, right) => left.localeCompare(right, "en")),
     },
     sourceRefs: [...new Set((spec.sourceRefs ?? []).map(String))].sort((left, right) => left.localeCompare(right, "en")),
@@ -648,6 +657,42 @@ export function deriveWorkflowScaffoldCandidates(
       operationIds: operations.map((operation) => operation.id),
       sourceRefs: operations.map((operation) => operation.sourceLocator),
     })
+  }
+  {
+    const coveredOutputs = new Set([...groups.values()].flatMap((items) => items.flatMap((item) => item.writeFiles.map(normalizeRelative))))
+    const reads = options.operations.filter((item) => item.kind === "read" && item.status === "observed" && item.readFiles.length > 0)
+    const writes = options.operations.filter((item) => item.kind === "write" && item.status === "observed"
+      && item.writeFiles.some((file) => !coveredOutputs.has(normalizeRelative(file))))
+    if (reads.length > 0 && writes.length > 0) {
+      const sourceRefs = [...new Set([...reads, ...writes].map((item) => item.sourceLocator))]
+      const kinds: WorkflowScaffoldKind[] = ["single-input"]
+      if (new Set(reads.flatMap((item) => item.readFiles)).size > 1) kinds.push("multi-input")
+      for (const kind of kinds) {
+        candidates.push({
+          spec: {
+            id: `model-processor-${kind}`,
+            kind,
+            runtime: "node",
+            processor: { runtime: "node", entry: "scripts/process-input.mjs", args: ["--input", "{input}", "--output", "{output}"] },
+            processorContributor: "model",
+            sourceRefs,
+            residualDuties: [
+              "Select a source-supported mechanical boundary and implement the missing processor before use.",
+              "Keep classification, translation and other unresolved semantic decisions with the agent.",
+              "This is optional framework plumbing, not an observed source interface or a working program.",
+            ],
+          },
+          operationIds: [...reads, ...writes].map((item) => item.id),
+          sourceRefs,
+          observedFileWork: {
+            readFiles: [...new Set(reads.flatMap((item) => item.readFiles))],
+            writeFiles: [...new Set(writes.flatMap((item) => item.writeFiles))],
+            mapping: "unresolved-model-selection-required",
+          },
+          diagnostic: "requires-model-processor: scripts/process-input.mjs is not implemented; adapt the scaffold and its package-root binding when adopting it outside .optimize, declare actual model files, and validate the resulting artifact-producing command.",
+        })
+      }
+    }
   }
   return candidates
 }

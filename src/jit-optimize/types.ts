@@ -451,7 +451,10 @@ export const OptimizationValidationCaseSuggestionSchema = OptimizationValidation
 
 export const OptimizationProgramValidationSuggestionSchema = z.object({
   help: OptimizationValidationExpectationSuggestionSchema.optional(),
-  cases: z.array(OptimizationValidationCaseSuggestionSchema),
+  // A partially declared validation object is still an actionable repair
+  // candidate. The lifecycle distinguishes an empty case list from a valid
+  // plan and can connect deterministic evidence or request the bounded repair.
+  cases: z.array(OptimizationValidationCaseSuggestionSchema).default([]),
 })
 
 export interface OptimizationRoundValidationSummary {

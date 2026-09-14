@@ -668,7 +668,10 @@ async function buildImplementationContext(
     parameterTokens: string[]
     referencedBySkill: boolean
   }> = []
-  const allOperations: import("./operation-context.ts").OperationRecord[] = []
+  const operationGroups: Array<{
+    evidenceIndex: number
+    operations: import("./operation-context.ts").OperationRecord[]
+  }> = []
   if (skillDir) {
     for (const resource of await indexSkillResources(skillDir)) {
       const runtime = sourceRuntime(resource.path)
@@ -770,7 +773,7 @@ async function buildImplementationContext(
         sourceEntries: sourceInterfaces.map((source) => source.path),
         sourceText: skillText,
       })
-      allOperations.push(...operationContext.operations)
+      operationGroups.push({ evidenceIndex: run.globalIndex, operations: operationContext.operations })
       evidence.push({
         evidenceIndex: run.globalIndex,
         taskId: group.taskId,
@@ -796,6 +799,7 @@ async function buildImplementationContext(
   }
   const workflowScaffolds: Array<{
     id: string
+    evidenceIndex: number
     kind: "single-input" | "multi-input"
     runtime: "node" | "python"
     entry: string
@@ -809,15 +813,17 @@ async function buildImplementationContext(
     }
     residualDuties: string[]
     diagnostic?: string
+    observedFileWork?: DerivedWorkflowScaffoldCandidate["observedFileWork"]
   }> = []
   if (skillDir) {
-    const candidates: DerivedWorkflowScaffoldCandidate[] = deriveWorkflowScaffoldCandidates({
-      operations: allOperations,
+    const candidates = operationGroups.flatMap(({ evidenceIndex, operations }) =>
+      deriveWorkflowScaffoldCandidates({
+      operations,
       sourceInterfaces: sourceInterfaces.map(({ path: sourcePath, runtime }): WorkflowScaffoldSourceInterface => ({
         path: sourcePath,
         runtime,
       })),
-    })
+    }).map((candidate: DerivedWorkflowScaffoldCandidate) => ({ ...candidate, evidenceIndex })))
     for (const [index, candidate] of candidates.entries()) {
       const extension = candidate.spec.runtime === "python" ? "py" : "mjs"
       const slug = safeTaskSlug(candidate.spec.id)
@@ -830,6 +836,7 @@ async function buildImplementationContext(
         })
         workflowScaffolds.push({
           id: candidate.spec.id,
+          evidenceIndex: candidate.evidenceIndex,
           kind: candidate.spec.kind,
           runtime: candidate.spec.runtime,
           entry: path.relative(path.dirname(optimizeDir), materialized.entryPath).split(path.sep).join("/"),
@@ -838,10 +845,13 @@ async function buildImplementationContext(
           sourceRefs: [...candidate.sourceRefs],
           contributions: materialized.manifest.contributions,
           residualDuties: [...materialized.manifest.residualDuties],
+          ...(candidate.diagnostic ? { diagnostic: candidate.diagnostic } : {}),
+          ...(candidate.observedFileWork ? { observedFileWork: candidate.observedFileWork } : {}),
         })
       } catch (error) {
         workflowScaffolds.push({
           id: candidate.spec.id,
+          evidenceIndex: candidate.evidenceIndex,
           kind: candidate.spec.kind,
           runtime: candidate.spec.runtime,
           entry: entryRelative,
@@ -850,7 +860,7 @@ async function buildImplementationContext(
           sourceRefs: [...candidate.sourceRefs],
           contributions: {
             frameworkFiles: [entryRelative, `${path.posix.dirname(entryRelative)}/workflow.manifest.json`],
-            sourceFiles: [candidate.spec.processor.entry],
+            sourceFiles: candidate.spec.processorContributor === "model" ? [] : [candidate.spec.processor.entry],
             modelFiles: [...(candidate.spec.modelFiles ?? [])],
           },
           residualDuties: [...(candidate.spec.residualDuties ?? [])],
@@ -877,7 +887,7 @@ async function buildImplementationContext(
     },
     workflowScaffolds: {
       schemaVersion: WORKFLOW_SCAFFOLD_SCHEMA_VERSION,
-      source: "engine-materialized plumbing around an observed source processor",
+      source: "engine-materialized plumbing for observed source processors or explicitly unimplemented model processor slots",
       modelContribution: "none unless explicitly listed by the optimizer",
       candidates: workflowScaffolds,
     },
@@ -1733,6 +1743,7 @@ of this skill.
 ${dirListing}
 ${hasSkillResourceIndex ? "- `.optimize/SKILL_RESOURCE_INDEX.md` — complete configured skill-file navigation plus explicit trace-to-skill bindings. Read relevant resources before deciding an unobserved rule is removable.\n" : ""}- \`.optimize/CONSTRAINT_SOURCES.json\` — structured provenance buckets for permanent skill rules, current task conditions, observed environment facts, and unknown scope. Do not promote a task or environment value to a skill-wide rule.
 - \`.optimize/IMPLEMENTATION_CONTEXT.json\` — engine-built source interfaces, normalized input/output locators, observed format shapes, actual operation records, and available checks for executable work. Operation records come only from real tool calls; prose mentions and ambiguous commands remain non-authoritative.
+  Its \`workflowScaffolds\` are optional ordinary-script plumbing, including explicitly missing model processor slots. Use their evidenceIndex and operationIds to inspect the source-supported boundary; implement and validate the processor before treating a scaffold as usable. The optimizer prompt describes adoption and contribution accounting.
 ${historyCount > 0 ? `- \`.optimize/history.md\` — **${historyCount} previous optimization round(s)** with their diagnoses, changes, and whether they improved the score. READ THIS before proposing changes — do not repeat diagnoses that did not work.\n` : ""}- \`.optimize/submission.template.json\` — the output format you must follow.
 
 ## What to do
@@ -1779,8 +1790,9 @@ diagnostic and does not treat the round as no-change.
   into the skill. Fixes must generalize.
 - **No task trade-off**: a fix that improves a FAILING task by regressing a
   PASSING task is NOT an improvement. The selection engine's per-task gate
-  will reject the round. Before each edit, check \`PER_TASK_SUMMARY.md\` and
-  ask "could this plausibly lower any PASSING task's score?" If yes, stop.
+  will reject the round. Before each edit, check the concrete affected contract
+  in \`PER_TASK_SUMMARY.md\`. Narrow and validate uncertain local changes;
+  stop only when no supported scope avoids the actual trade-off.
 - **Preserve scope**: do not narrow the skill's capabilities to "just pass
   these tasks". You are fixing a tool, not overfitting to a test set.
 - **Keep it concise**: every instruction the agent reads costs tokens and

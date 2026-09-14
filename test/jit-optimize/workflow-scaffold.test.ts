@@ -56,6 +56,47 @@ const transformingSource = [
 ].join("\n") + "\n"
 
 describe("workflow scaffolds", () => {
+  test("offers a fail-closed generation scaffold for observed file work without a source program", async () => {
+    const root = await tempRoot("skvm-scaffold-generation-")
+    const skill = path.join(root, "skill")
+    const optimize = path.join(root, ".optimize")
+    await put(skill, "SKILL.md", "Read the requested input and produce the transformed output.\n")
+    const evidence: Evidence = {
+      taskId: "manual-file-work",
+      taskPrompt: "Transform the supplied file.",
+      conversationLog: [{
+        type: "response", ts: "2026-09-14T00:00:00Z", text: "done",
+        toolCalls: [
+          { id: "read-input", name: "read_file", input: { path: "input.txt" } },
+          { id: "write-output", name: "write_file", input: { path: "out.txt", content: "RESULT" } },
+        ],
+      }],
+      workDirSnapshot: { files: new Map([["input.txt", "input"], ["out.txt", "RESULT"]]) },
+    }
+    await serializeContext(optimize, [evidence], [], { skillDir: skill })
+    const context = JSON.parse(await readFile(path.join(optimize, "IMPLEMENTATION_CONTEXT.json"), "utf8"))
+    const candidate = context.workflowScaffolds.candidates[0]
+    expect(candidate).toMatchObject({
+      kind: "single-input",
+      evidenceIndex: 0,
+      observedFileWork: {
+        readFiles: ["input.txt"],
+        writeFiles: ["out.txt"],
+        mapping: "unresolved-model-selection-required",
+      },
+      diagnostic: expect.stringContaining("requires-model-processor"),
+      contributions: { sourceFiles: [], modelFiles: [] },
+    })
+    const entry = path.join(root, candidate.entry)
+    await put(root, "input.txt", "input")
+    const child = Bun.spawn(["node", entry, "--input", "input.txt", "--output", "out.txt"], { cwd: root, stdout: "pipe", stderr: "pipe" })
+    await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text()])
+    expect(await child.exited).not.toBe(0)
+    expect(await Bun.file(path.join(root, "out.txt")).exists()).toBe(false)
+    const manifest = JSON.parse(await readFile(path.join(root, candidate.manifest), "utf8"))
+    expect(manifest.steps.find((step: { id: string }) => step.id === "invoke-source").contributor).toBe("model")
+  })
+
   test("materializes a single-input executable that produces an artifact", async () => {
     const root = await tempRoot("skvm-scaffold-single-")
     await put(root, "source.mjs", transformingSource)
@@ -92,6 +133,54 @@ describe("workflow scaffolds", () => {
       sourceFiles: ["source.mjs"],
       modelFiles: [],
     }))
+  })
+
+  test("keeps manual file-work candidates when an unrelated source executable exists", async () => {
+    const root = await tempRoot("skvm-scaffold-unrelated-")
+    const skill = path.join(root, "skill")
+    const optimize = path.join(root, ".optimize")
+    await put(skill, "SKILL.md", "Transform input files; scripts/version.mjs prints the version.\n")
+    await put(skill, "scripts/version.mjs", "console.log('1')\n")
+    const evidence: Evidence = {
+      taskId: "file-work",
+      taskPrompt: "Transform input.txt to out.txt.",
+      conversationLog: [{
+        type: "response", ts: "2026-09-14T00:00:00Z", text: "done",
+        toolCalls: [
+          { id: "read-input", name: "read_file", input: { path: "input.txt" } },
+          { id: "write-output", name: "write_file", input: { path: "out.txt", content: "RESULT" } },
+        ],
+      }],
+    }
+    await serializeContext(optimize, [evidence], [], { skillDir: skill })
+    const context = JSON.parse(await readFile(path.join(optimize, "IMPLEMENTATION_CONTEXT.json"), "utf8"))
+    expect(context.workflowScaffolds.candidates).toContainEqual(expect.objectContaining({
+      diagnostic: expect.stringContaining("requires-model-processor"),
+      contributions: { frameworkFiles: expect.any(Array), sourceFiles: [], modelFiles: [] },
+    }))
+    const readme = await readFile(path.join(optimize, "README.md"), "utf8")
+    expect(readme).not.toContain('If yes, stop.')
+    expect(readme).toContain("workflowScaffolds")
+  })
+
+  test("does not combine a read in one evidence with a write in another into a workflow", async () => {
+    const root = await tempRoot("skvm-scaffold-evidence-isolation-")
+    const skill = path.join(root, "skill")
+    const optimize = path.join(root, ".optimize")
+    await put(skill, "SKILL.md", "Inspect or write files as requested.\n")
+    const evidences: Evidence[] = [
+      { taskId: "read-only", taskPrompt: "Read input.txt.", conversationLog: [{
+        type: "response", ts: "2026-09-14T00:00:00Z", text: "done",
+        toolCalls: [{ id: "read", name: "read_file", input: { path: "input.txt" } }],
+      }] },
+      { taskId: "write-only", taskPrompt: "Write a note.", conversationLog: [{
+        type: "response", ts: "2026-09-14T00:00:00Z", text: "done",
+        toolCalls: [{ id: "write", name: "write_file", input: { path: "note.txt", content: "note" } }],
+      }] },
+    ]
+    await serializeContext(optimize, evidences, [], { skillDir: skill })
+    const context = JSON.parse(await readFile(path.join(optimize, "IMPLEMENTATION_CONTEXT.json"), "utf8"))
+    expect(context.workflowScaffolds.candidates).toEqual([])
   })
 
   test("materializes a multi-input executable that continues after one input is not applicable", async () => {
