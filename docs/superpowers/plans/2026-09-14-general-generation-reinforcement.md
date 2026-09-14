@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 bare-agent/provider、Python/Node 本地程序、已有来源检查与程序验证器。
 
-**状态：** revision 1，planned-not-started。计划形成基线 `15b5d51`，分支 `skill-ir-aot`。本任务书形成不代表启动执行，也不代表创建持续目标。旧 C0–C10 保持 completed-development；其成果是本轮基础。
+**状态：** revision 2，planned-not-started。初版形成基线 `15b5d51`，本次审查基线 `1fe064a`，分支 `skill-ir-aot`。新增语料到实现的追踪、执行型流程骨架和跨模型/环境比较。本任务书形成不代表启动执行，也不代表创建持续目标。旧 C0–C10 保持 completed-development；其成果是本轮基础。
 
 **工作目录：** `D:\skill优化\SkVM`。结果目录为 `results/skill-ir/general-generation-reinforcement-20260914/`；仅在 F0 启动时建立 `status.json`。每次实际尝试单独保存，阶段日志不另建 Markdown。
 
@@ -44,6 +44,10 @@ CSV 首跑约 117.5 秒耗在第二次 provider 请求，原任务 120 秒超时
 5. 原任务与变化任务的关键质量不回退，记录程序是否被调用、重复探索/重复写代码是否减少。至少取得一项可解释的局部改善，或明确交付“工程已补牢，收益仍未证明”。不得保证预定节省比例。
 6. 有可运行包、复现命令、实际限制和针对性回归；不以旧包、文档包、包闭包或测试总数替代程序链。
 
+revision 2 加强第 4 项：目标中的程序必须包含一个实际生成/转换/整理产物的执行型流程，至少把两个来源明确且可连续执行的机械步骤接管到同一普通命令中。仅 checker、自检、空 wrapper 或文档导航不满足这项加强条件。若本轮只得到 checker，按实际可用成果交付，但明确“执行型流程尚未达成”，不能把检查能力等同流程自动化。
+
+跨模型与环境的条件见 F9.1；跨模型收益不是预设成功条件，但必须执行有条件可做的比较并保留失败/不可用，不以理论上的确定性代替实测。
+
 完成状态分开：`engineeringStatus`、`realUseStatus`、`effectStatus`。所有阶段进入终态不自动满足最低条件。若实际只完成组件，交付 partial 和明确后续动作；持续目标不得按完整目标标完成。所有明确可修主线已处理仍无收益时，允许诚实结束有限实验并交接，不能无限抽样直到得到正数。
 
 ### 2.3 执行纪律
@@ -55,7 +59,7 @@ CSV 首跑约 117.5 秒耗在第二次 provider 请求，原任务 120 秒超时
 - 捕获失败、原任务失败、优化失败、合理 no-change、程序不适用分别处理。原任务 timeout 不能靠包恢复命令续跑；未知完成状态的外部业务操作不自动重放。本轮默认用隔离本地任务。
 - 不新建哈希链、额外审批层、全量审计或 HTML 展示层；复用已有来源和包绑定。保护原输入、源 skill、外部副作用及真实检查依据。
 - 本轮仅 development，不使用 held-out/Q1 reserve，不改历史 readiness、prospective 或旧结果。公开新 skill 可以作为明确标记的开发案例，不冒称 untouched prospective。
-- 工作量预计约 8–14 小时，依实际根因调整；不睡眠、重复验证或无目的联网凑时长。完成则交付；有明确可修根因则继续主线。用户新消息按最新指示处理，历史转述的“已停止”不是当前停止命令。
+- revision 2 工作量预计约 10–18 小时，依实际根因调整；不睡眠、重复验证或无目的联网凑时长。完成则交付；有明确可修根因则继续主线。用户新消息按最新指示处理，历史转述的“已停止”不是当前停止命令。
 
 ## 3. 文件职责与队列
 
@@ -69,7 +73,7 @@ CSV 首跑约 117.5 秒耗在第二次 provider 请求，原任务 120 秒超时
 | F3 验证骨架 | `validation-lifecycle.ts`；新增 `validation-completion.ts` | 新增 `test/jit-optimize/validation-completion.test.ts` |
 | F4 缺口修复 | `loop.ts`、`validation-lifecycle.ts`、`optimizer.ts` | production-closure、validation-lifecycle tests |
 | F5 参数变化检查 | `validation-completion.ts`、`package-validation.ts` | validation-completion、package-validation tests |
-| F6 生成与导出 | `optimizer.ts`、`implementations.ts`、`package.ts` | optimizer-prompt、implementations、package tests |
+| F6 生成与导出 | `optimizer.ts`、`implementations.ts`、`package.ts`；新增 `workflow-scaffold.ts` | optimizer-prompt、implementations、package；新增 workflow-scaffold tests |
 | F7 消费观察 | `consumption.ts`、`general-skill-development.ts`、必要时 `core/pi-runtime.ts` | consumption、general-skill-development tests |
 | F8 默认链集成 | `run/optimization-handoff.ts`、`cli/run.ts`、`loop.ts` | continuous-production-closure、optimization-handoff tests |
 | F9 多结构实用 | 普通 CLI、development 输入与结果 | 实际 source → 新包 → 原/变化任务 |
@@ -82,6 +86,7 @@ CSV 首跑约 117.5 秒耗在第二次 provider 请求，原任务 120 秒超时
 
 - [ ] 核对 HEAD、工作树和模型配置来源，只登记路由名及运行时，不输出密钥。登记本轮归属文件和结果 status。
 - [ ] 在 C8 命名记录中核实 missing-validation 的动作与现有 repair 结果；CSV 失败只读诊断与对应 session。生成短 `baseline.json`，记录每个问题是已修、当前可复现或尚待核实。
+- [ ] 核实 `optimizer.ts` Method 中允许 passing-task 候选与后文 No-trade-off 的 yes/maybe stop 是否冲突；这是当前代码事实，不直接宣称造成某次历史 no-change。F6 修改应以行为试验判断，不能只增加正向提示字符串。
 - [ ] 执行一次 `bun test ./test/cli/run-failure-exit.test.ts ./test/jit-optimize/production-closure.test.ts`。Bun 不在 PATH 时使用已安装可执行文件并为子进程补 PATH，不把环境找不到命令当逻辑失败。
 - [ ] 输出 `status.json` 的 `currentStage/currentAction/attempts/nextAction/costs`。以实际完成条件推进，不维护第二套冻结锁。
 
@@ -97,6 +102,16 @@ CSV 首跑约 117.5 秒耗在第二次 provider 请求，原任务 120 秒超时
 - [ ] 运行 `bun test ./test/jit-optimize/operation-context.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/trace-adapters.test.ts`，提交该独立增量。
 
 **验收：** 引擎能指出做过什么以及证据在哪里；不会仅因 skill 名称推导机会，也不会自动认定临时代码可泛化。
+
+### F1.1 — 把 skill 深读变成共享实现输入
+
+- [ ] 从已有 30 个广读/10 个深读记录选 4–6 个结构差异明确的成员，覆盖已有脚本、没有脚本但有固定步骤、多文件条件分支、主要语义判断四种情况。10 是子集，不当作新增样本；已读不等于已运行。
+- [ ] 每个选中成员读完与目标职责相关的 SKILL 正文、直接脚本/资源及可用真实 trace。形成一份 `pattern-to-code.json`：source/trace 定位、固定步骤、变量、环境依赖、必须由 agent 判断的分支、当前引擎支持、缺口、对应生产符号与回归测试。
+- [ ] 区分“指令要求这么做”和“trace 实际这么做”。没有真实 trace 的成员可以帮助理解结构，不能计执行或效果证据。正文中的安装/联网要求不是自动执行授权。
+- [ ] 从对比中提炼跨成员共用的机制；至少选一个两种结构共同暴露的问题进入 F2–F8 的实际代码与回归。已覆盖的模式只补关联，不重复开发。无可复用实现的语义职责明确保留。
+- [ ] 若现有语料缺一个明确模式，再定向获取 2–4 个公开来源正文及直接依赖；使用认证 gh 和缓存，不恢复大规模搜索抓取队列。读取数量不是验收目标。
+
+**验收：** 任何声称“通过调研补强项目”的条目都能追到源码事实、生产修改或明确不做的边界；不交一张与实现无关的分类表。
 
 ## F2 — 明确参数来自哪里
 
@@ -147,6 +162,7 @@ CSV 首跑约 117.5 秒耗在第二次 provider 请求，原任务 120 秒超时
 
 ## F6 — 新包让常规工作有明确入口
 
+- [ ] 消除 optimizer Method 的矛盾指令：可提出来源支持、范围明确的候选；已知会损害原职责的变更不得推荐，不确定但可测试的局部变更先验证。保留实际回归检查，不能以抽象的“也许回归”直接否决全部程序机会，也不把潜在风险全部忽略。
 - [ ] 复用已有 `reuse-script/generate-script/restructure-docs`。当源程序已经覆盖职责，优先复用；必要修改在同一动作注明。原程序已足够且无改进依据时合法 no-change。
 - [ ] 模型生成的常用命令从实际 action/参数绑定形成，文档给出任务参数如何填；不把捕获目录、研究路径和一月/某法律名称写进通用默认值。
 - [ ] 在现有 package 使用指南中展示实际验证范围、缺条件及 residual duties。普通程序可以输出文本、文件或 JSON；新增 helper 鼓励短摘要，但不以统一 stdout 格式为可用前提。
@@ -155,6 +171,19 @@ CSV 首跑约 117.5 秒耗在第二次 provider 请求，原任务 120 秒超时
 - [ ] 运行 `bun test ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/optimizer-prompt.test.ts ./test/jit-optimize/package.test.ts`。
 
 **验收：** 生成的使用路径来自本次实际程序与参数，不能只增加一篇泛泛说明。
+
+### F6.1 — 用轻量流程骨架承接真正的执行工作
+
+- [ ] 先检查现有 source 程序能否直接复用；不为已有完备入口套额外一层。没有合适入口时，依据 F1.1 共有模式实现一个小型 `src/jit-optimize/workflow-scaffold.ts`，配套 `test/jit-optimize/workflow-scaffold.test.ts`。它负责普通脚本的参数入口、输入遍历、错误处理和产物交接，不实现所有领域算法。
+- [ ] 首版只支持两个可组合的机械骨架：单输入读入→调用来源支持的处理→写出产物；多输入逐项处理→汇总状态/产物。具体转换函数由原脚本复用或模型实现，使用普通 Python/Node 文件及现有 action；不增加自定义 workflow DSL、调度服务或第二运行时。
+- [ ] 骨架由引擎物化为候选资源，通过已有 workspace/optimizer 接口被选用。统计哪些文件来自框架、哪些由模型新增/修改、哪些来自 source；框架骨架不能计为模型独立生成业务算法。
+- [ ] 明确每步读什么、输出什么、依赖谁，以及需要语义判断的暂停/交接位置。未固化步骤由原 agent 流程接续；不能用“默认通过”跳过分类、翻译或专业判断，也不能默默增加新的模型/API调用。
+- [ ] 不强制事务、缓存、并发、配置系统或统一 stdout；只保留当前流程需要的参数、必要错误信息和输出定位。写入采用可验证的局部策略，避免先写一半再谎称成功；输入原件保护沿用已有规则。
+- [ ] 红例：只生成检查结果但未产出目标文件不能计执行型流程；两个相邻步骤之间传错路径必须检出；某输入不适用时其他独立输入仍可处理；相同输入不因原观察目录存在而侥幸通过。
+- [ ] 在两种结构的确定性集成案例上复用同一骨架选择/物化代码；真实模型在 F9 中决定和实现处理逻辑，不由开发者提前写好成品。测调用步骤和结果，不把生成代码行数当优化量。
+- [ ] 运行 `bun test ./test/jit-optimize/workflow-scaffold.test.ts ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/continuous-production-closure.test.ts`。
+
+**验收：** 一个普通命令实际承接多个固定步骤并产生任务产物；框架、模型、原脚本各自贡献可分辨。不能仅用 Law checker 或 submission.template.json 证明完成脚手架固化。
 
 ## F7 — 真实消费观察摆脱 API 特例
 
@@ -190,6 +219,18 @@ CSV 首跑约 117.5 秒耗在第二次 provider 请求，原任务 120 秒超时
 
 **验收：** 每次结果有清楚来源与实际产物；至少一个本次程序经过默认内部行为验证且自然调用。只有一个结构成功就只报告该结构已走通。
 
+### F9.1 — 同一包的跨模型与跨环境使用
+
+- [ ] 分清优化模型、消费模型和程序运行环境三个变量。本轮先固定优化得到的同一最终包，改变消费模型/环境；不为每个模型重新生成专属包再称迁移稳定。
+- [ ] 从现有可用配置选两个实际不同的消费模型并记录解析后的身份；仅换 provider 路由而实际模型相同不计跨模型。沿用已有获授权付费路由；不可用则记 unavailable，不无限换到通过。
+- [ ] 对一个已完成执行型链的包，比较两个模型 × 原任务/变化任务 × source/optimized，最多八个消费单元，复用 F9/F10 已有且可比的单元，不重复运行凑矩阵。每个模型内部配对使用同任务、输入和环境，记录先后与缓存条件。
+- [ ] 分别看程序调用率、参数使用、程序执行结果、残余职责、整体任务质量和成本。source 本来就通过的任务不凭一次优化包通过声称稳定性提高。初次小矩阵只给兼容性和配对观察，不推导总体故障概率下降。
+- [ ] 环境比较先离线直接运行同一包：当前工作环境与新的隔离依赖环境，改变安装位置、cwd 和输入路径。按包声明准备实际依赖，禁用对源码仓库/宿主缓存的隐藏依赖；保存版本与命令，不制造庞大归档链。
+- [ ] 缺可选依赖只影响相应步骤；缺必要运行时/依赖给清楚诊断与 fallback。只换 cwd 不叫跨操作系统；同宿主 venv/干净目录只证明相应隔离范围。已有另一 OS/runtime 可用时做一次相关检查，不为完整平台矩阵大规模安装环境。
+- [ ] 迁移失败先分包可移植性、模型发现/传参、残余语义质量、基础设施。修共享机制后得到新包，旧矩阵保留；只复测受影响单元，新包未测部分不能继承旧包通过。
+
+**验收：** 报告 `modelConsumption`、`environmentPortability` 和 `optimizerGeneration` 三个范围；实际未测或不稳定如实保留。跨环境的程序通过不替代跨模型自然消费，跨模型调用通过也不替代整个任务质量。
+
 ## F10 — 用效果反馈修共享机制
 
 - [ ] 沿用 `analyzeMatchedConsumptionPairs` 和 F7 事件分析。原/新包对比使用相同输入、任务、模型与运行时；变化任务的原/新另成一对，不拿不同输入互相比。
@@ -221,4 +262,4 @@ python scripts/check_skill_ir_doc_links_test.py
 
 ## 4. 可复制的持续执行指令
 
-执行 `D:\skill优化\SkVM\docs\superpowers\plans\2026-09-14-general-generation-reinforcement.md` revision 1 的 F0–F11，并设为持续目标。目标是补牢已有通用生成流程，不是继续压缩 SKILL.md 或手工打磨个别包。直接在 skill-ir-aot 连续开发，仅推用户 origin，不新开分支。优先实现真实操作/参数来源索引、引擎验证骨架补全、可修缺验证进入同一次局部 repair、参数变化检查、普通程序消费观察，再用不同结构真实 skill 的默认入口验证同一新包。用户只给 skill、自然任务、工作目录与模型，系统处理 trace 和接线。遵循任务书的最小守护、付费授权、一次修复与失败处理规则；不在常规检查点等待，不读受保护输入，不新增冻结/哈希协议，不靠旧包、模拟成功或测试数量替代真实程序链。发现共享根因继续修生产代码，不能针对 skill 名称加成功分支。用实际机械工作和完整成本字段解释效果，mixed/unknown 如实保留；没有明确新根因不反复抽样求正数。完成条件按第 2.2 节逐项判断，未达标保留 partial 和恢复入口；不等待、重复测试或联网凑时长。最后有限验证、同步必要文档、提交推送并准确交付。
+执行 `D:\skill优化\SkVM\docs\superpowers\plans\2026-09-14-general-generation-reinforcement.md` revision 2 的 F0–F11（含 F1.1、F6.1、F9.1），并设为持续目标。目标是补牢已有通用生成流程，不是继续压缩 SKILL.md 或手工打磨个别包。直接在 skill-ir-aot 连续开发，仅推用户 origin，不新开分支。以 skill 正文和真实 trace 的结构对照指导共享实现，补操作/参数来源、验证骨架、一次缺口修复、参数变化和普通程序消费观察；消除候选提示矛盾，交付真正处理产物的轻量流程骨架，不能只交 checker。不同结构真实 skill 通过默认入口生成和消费同一新包，并做有界的跨模型/环境比较。用户只给 skill、自然任务、工作目录与模型，系统处理 trace 和接线。遵循任务书的最小守护、付费授权、一次修复与失败处理规则；常规检查点继续，不读受保护输入，不新增冻结/哈希协议，不靠旧包、模拟成功或测试数量替代真实程序链。发现共享根因继续修生产代码，不针对 skill 名称加成功分支。按范围报告程序可移植性、模型消费、实际机械工作和完整成本；mixed/unknown 如实保留，没有新根因不反复抽样求正数。按第 2.2 节判断完成，未达标保留 partial 和恢复入口；不等待、重复测试或联网凑时长。最后有限验证、同步必要文档、提交推送并准确交付。

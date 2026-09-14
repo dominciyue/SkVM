@@ -4,10 +4,12 @@
 - 路线：F0–F11，通用生成流程补牢
 - 状态：`planned-not-started`；C0–C10 已交付，本次仅登记下一任务书
 - 唯一实时状态：[current-status.md](current-status.md)
-- 详细任务书：[通用生成流程补牢](../superpowers/plans/2026-09-14-general-generation-reinforcement.md) revision 1
+- 详细任务书：[通用生成流程补牢](../superpowers/plans/2026-09-14-general-generation-reinforcement.md) revision 2
 - 方法依据：spec 14.33；既有生产链依据 spec 14.32
 
 本轮完善已有默认生产链，不重新建设独立编译器，不靠单独修改 SKILL.md 或个别 skill 成品代替共享生成能力。C8 已生成一个局部程序并在 C9 消费，但默认内部行为仍 not-run/draft；本轮解决可确定接线未被自动补齐的问题。
+
+revision 2 明确增加 F1.1 语料/trace→模式→生产符号/测试映射、F6.1 实际处理产物的轻量流程骨架、F9.1 同包跨消费模型和隔离环境比较。检查型程序与执行型流程分别验收，不能混算；当前跨模型稳定性收益仍 unknown/not-established。
 
 ## 当前待执行队列
 
