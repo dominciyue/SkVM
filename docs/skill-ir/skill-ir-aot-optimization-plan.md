@@ -1,28 +1,27 @@
 # Skill IR AOT 当前执行计划
 
 - 更新日期：2026-09-14
-- 路线：C0–C10，原始输入内容、本地程序动作、元数据修复与同一新包消费
-- 状态：`active`；C0–C1 已完成，C2 正在执行；本轮尚未启动模型
+- 路线：F0–F11，通用生成流程补牢
+- 状态：`planned-not-started`；C0–C10 已交付，本次仅登记下一任务书
 - 唯一实时状态：[current-status.md](current-status.md)
-- 详细任务书：[单次真实运行到新程序包](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1
-- 方法依据：spec 14.32
+- 详细任务书：[通用生成流程补牢](../superpowers/plans/2026-09-14-general-generation-reinforcement.md) revision 1
+- 方法依据：spec 14.33；既有生产链依据 spec 14.32
 
-本页以 C 队列为当前计划，下方 H/R 内容为保留的历史阶段摘要。二次复核确认默认新程序生产闭环仍为 partial：R6 新尝试 no-change 后消费旧 H8/H9 包，R7 从旧 H9 包得到文档候选；历史报告原样保留，不再将这些分段结果拼接成新闭环成功。
+本轮完善已有默认生产链，不重新建设独立编译器，不靠单独修改 SKILL.md 或个别 skill 成品代替共享生成能力。C8 已生成一个局部程序并在 C9 消费，但默认内部行为仍 not-run/draft；本轮解决可确定接线未被自动补齐的问题。
 
 ## 当前待执行队列
 
 | 阶段 | 状态 | 下一交付 |
 | --- | --- | --- |
-| C0 | completed | 已创建 status/diagnosis；命名根因已分层；基线 12/12、48 assertions |
-| C1 | completed | 运行前字节快照、逐项 omission、session 摘要绑定；14/14、68 assertions + typecheck |
-| C2 | active | 同一份保存内容接入 Evidence/workspace/验证器，旧日志兼容 |
-| C3–C4 | planned | 本地脚本修改、动作声明诊断、修复元数据采纳及最终一致性 |
-| C5–C6 | planned | 局部机会判断、无人工评分文件的来源检查和正确推荐边界 |
-| C7 | planned | 自动输入到同一新程序包的连续集成测试及旧包替换反例 |
-| C8–C9 | planned | 原始 Law/I18n 的新真实尝试，同新包自然消费及少量成对效果 |
-| C10 | planned | 一次相关回归、文档、精确提交并推用户 origin |
+| F0 | planned | 确认已修与当前缺口，建立执行状态 |
+| F1–F2 | planned | 真实操作与参数来源索引，接入已有模型上下文 |
+| F3–F4 | planned | 验证骨架自动补全，可修缺口共用一次局部 repair |
+| F5–F6 | planned | 参数变化检查、可用命令与局部程序包 |
+| F7–F8 | planned | 普通程序消费观察，默认入口连续集成 |
+| F9–F10 | planned | 不同结构真实使用、同包消费与共享机制反馈 |
+| F11 | planned | 有限回归、准确交付、提交推送 |
 
-至少一条本次生成非 API 参数化程序的普通链必须完整通过原/变化任务；现成脚本路线另有真实尝试。no-change、文档候选、旧包成功和测试数不能替代。模型/网络/付费授权继续有效；只在 C0 启动时创建 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/status.json`，本次仅制定计划。
+完成条件以 F 任务书第 2.2 节为准。至少覆盖不同结构的真实尝试，目标取得经过默认内部验证且自然使用的新程序包，并给出局部改善或收益未证明的准确结果；不承诺预定成功比例。模型/网络/付费授权继续有效；仅在 F0 创建本轮运行状态。本次没有运行模型。C0–C10 详细完成记录保留在[上一任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md)和 current-status，不以原计划页滞后的 C2 active 为实际状态。
 
 ## 上一轮目标与执行记录（历史）
 

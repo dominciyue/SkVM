@@ -2,8 +2,9 @@
 
 - 更新日期：2026-09-14
 - 工作分支：`skill-ir-aot`
-- 当前路线：C0–C10，“原始输入内容 → 本地程序动作 → 元数据修复 → 同一个新包的自然消费”
-- 执行状态：`completed-development`；[新任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1、spec 14.32。C0–C10 已完成；本轮得到一个真实 optimizer-generated、非 API 的局部 checker 包并完成同包自然消费验证，结论仍限于 development 边界。交付最终提交为 `8071eae`，已推送并与 `origin/skill-ir-aot` 对齐；五个归档包的生成指南摘要已复核一致。
+- 下一路线：F0–F11，通用生成流程补牢；[任务书](../superpowers/plans/2026-09-14-general-generation-reinforcement.md) revision 1、spec 14.33。
+- 执行状态：`planned-not-started`。本次仅登记任务书，没有启动 F0、付费实验或持续目标。下一步补操作/参数来源、验证骨架与缺口修复、变化检查、通用消费观察；不重做已有验证器，不手修个别成品代替共享能力。
+- 已交付基线：C0–C10 `completed-development`，对应 spec 14.32；最近证据同步为 `4b31862`。新程序链已有 development 结果，但 C8 包内部仍为 `not-run/draft`，不能用后续消费覆盖该缺口。`15b5d51` 另修 CLI 失败退出码和原任务超时提示；计划形成时该提交仅在本地，实际同步以 Git 为准。
 
 2026-09-14 二次复核：上一轮 H/R 报告原样保留，其组件与局部程序结果有效；但 R6 新优化 no-change 后使用旧 H8/H9 包，R7 输入本身为 H9 包，默认新程序生产闭环仍为 partial。新计划修复原始内容未传入验证、普通脚本修改被误送 domain backend、修复动作未采纳和候选/no-change 判断问题；旧包不能替代本次产物。
 
@@ -49,7 +50,11 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 并促成 `.optimize/submission.json` 不得冒充 skill 变更的共享提示修复。机器入口仍为
 `results/skill-ir/general-skill-optimization-20260913/status.json`。
 
-## 3. 当前计划
+## 3. 当前计划与上一阶段基线
+
+当前待执行为 [F0–F11](../superpowers/plans/2026-09-14-general-generation-reinforcement.md)。结果根 `results/skill-ir/general-generation-reinforcement-20260914/` 仅在 F0 启动时建立。工程、真实使用与效果分列；缺 validation 元数据不应在有来源可补时无声停留 draft，无依据则仍保留未知。参数化与真实消费检查服务通用职责，不要求所有 skill 统一格式或输出 ABI。
+
+以下为已完成 C0–C10 的阶段记录；其中执行时的“当前”和远端状态均为历史记录，不表示 F 队列已启动。
 
 当前执行的是[单次真实运行到新程序包任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1、spec 14.32。C0 已完成命名诊断和 12/12 基线。C1 新增 session 外、业务目录外的 `skvm-pre-run-input-snapshot/v1`：在 fixture 物化后、skill/adapter 之前有界保存原始字节，binary 作为原始字节保存，大小/总量/不可读/不支持逐项 omission；旧初始 manifest schema 不变。C1 红例分别为 1/2 与 8/9，最终 14/14、68 assertions 及 typecheck 通过。C2 已将同一引用接入 Evidence 的 `inputResources.preRun`、workspace 的独立 `run-N-pre-run-inputs/` 投影和 validation 的 `pre-run-input-snapshot` 来源；二进制按原始字节物化，同名且漂移的 task-fixture 绑定 fail closed。C2 focused suite 90/90、358 assertions，typecheck 通过。C3 已将误声明的可执行动作路由到通用 `reuse-script`/`generate-script`，保留 registered-only `domain-backend`，并写入可修的 `action-kind-mismatch` 诊断；focused suite 66/66、210 assertions，package/production regression 27/27、135 assertions，typecheck 通过。C4 已完成单次约束修复：反馈携带 action snapshots、实际候选 diff、原动作意图和失败诊断；仅合并失败动作的已校验元数据，`changedPaths=[]` 仍执行修复动作，独立动作保留；combined suite 36/36、188 assertions，prompt suite 26/26、103 assertions，typecheck 通过。C5 已完成候选尝试与推荐分离：passing evidence 可提出有界机械机会，confidence 改为证据/边界/可行性语义，机会摘要保留接管步骤、参数、资源、检查和残余职责；合法 no-change 与 malformed/implemented-without-artifact 诊断分开。C5 focused 43/43、159 assertions，含 production closure 为 49/49、209 assertions，typecheck 通过；机器证据见 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c5/verification.json`。C6 已确认无评分输入仍可在隔离目录复用原 skill 的 `.skvm-validation.json`，并从绑定 task source 重读 contained file-check；source-derived、task requirement、self-check、保真引用和模型评价分开记录，错误输出/空程序/仅 stdout 均被检出。C6 套件 53/53、197 assertions，typecheck 通过；机器证据见 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c6/verification.json`。C7、C8、C9、C10 均已完成；提交 `8071eae` 已推送，远端 `origin/skill-ir-aot` 当前 0 ahead / 0 behind。随后对五个归档包重新运行严格闭包验证，均为 `passed`。
 
