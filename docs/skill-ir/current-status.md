@@ -4,9 +4,9 @@
 - F10 后继完成：模型使用已消费包与两份真实消费日志产出修订包；3/3 自然消费、15/15 结构检查通过，同宿主隔离通过。共享修复 Pi 操作识别、部署根匹配及局部 IO 归属后，一次仅元数据修复使同一包内部 2/2 案例通过，独立案例仍为 0。新配对 effect=negative（工具 62→64，input 58828→190516），不继承旧效果。完整入口：本轮结果根 `completion-audit.json`、`final-report.json`、`final-costs.json`。
 - F9/F10 当前：F9.9 模型报告 finalizer 已按原事件精确恢复，同一包完成两个模型×原/变化任务×source/optimized 的八单元消费；当前共享离线验证 help/case 通过、独立 case=0。用户确认最小语义门禁后，JSON 排版/对象键序、报告集合顺序和无影响空表示不再误拒绝，历史结果保留。新口径原/新各 4/4，但总体效果 negative：工具调用 90→99、input +104.4%、duration +98.4%，实际美元未知。证据见 `f9/consumption-effect.json` 与 `f9/attempt-reconciliation-through-f9-10.json`。最新受影响回归 101/101、491 assertions、typecheck 与文档测试通过。
 - 工作分支：`skill-ir-aot`
-- 本轮实现与证据提交：`8fb3bce`，已推送用户 `origin/skill-ir-aot`。报告入口：`results/skill-ir/general-generation-reinforcement-20260914/final-report.json`。
+- 本轮最新实现与证据提交：`3539a5a`，已推送用户 `origin/skill-ir-aot`；此前实现为 `8fb3bce`。报告入口：`results/skill-ir/general-generation-reinforcement-20260914/final-report.json`。
 - 本轮交付：F0–F11，通用生成流程补牢；[任务书](../superpowers/plans/2026-09-14-general-generation-reinforcement.md) revision 2、spec 14.33。含 F1.1 语料到代码、F6.1 执行型流程骨架、F9.1 同包跨模型/环境比较。
-- 执行状态：`verified-pending-publication`。复核曾撤回过早的完整完成结论；遗漏的 F10 模型修订包、受影响消费与共享缺陷修复现已补齐。F11 正在同步最终文档并推送。旧八单元效果不转移给后继包；精确恢复、独立案例缺口和其他限制继续保留。
+- 执行状态：`completed-development`。复核曾撤回过早的完整完成结论；遗漏的 F10 模型修订包、受影响消费与共享缺陷修复现已补齐，F11 验证与发布完成。旧八单元效果不转移给后继包；精确恢复、独立案例缺口和其他限制继续保留。工程完成，收益未证明。
 - 已交付基线：C0–C10 `completed-development`，对应 spec 14.32；最近证据同步为 `4b31862`。新程序链已有 development 结果，但 C8 包内部仍为 `not-run/draft`，不能用后续消费覆盖该缺口。`15b5d51` 另修 CLI 失败退出码和原任务超时提示；计划形成时该提交仅在本地，实际同步以 Git 为准。
 
 2026-09-14 二次复核：上一轮 H/R 报告原样保留，其组件与局部程序结果有效；但 R6 新优化 no-change 后使用旧 H8/H9 包，R7 输入本身为 H9 包，默认新程序生产闭环仍为 partial。新计划修复原始内容未传入验证、普通脚本修改被误送 domain backend、修复动作未采纳和候选/no-change 判断问题；旧包不能替代本次产物。
