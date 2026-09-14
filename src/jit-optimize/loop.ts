@@ -1115,7 +1115,7 @@ function repairOriginalIntent(action: OptimizationAction): OptimizationRepairFee
   }
 }
 
-function buildRepairFeedback(
+export function buildRepairFeedback(
   resolutionFeedback: OptimizationValidationLifecycleReport["resolution"]["feedback"],
   actions: readonly OptimizationAction[],
   candidateDiff: readonly string[],
@@ -1178,7 +1178,7 @@ function buildRepairFeedback(
  * set, root cause and file-change summary remain authoritative; a repair may
  * not add, remove or rewrite an independent action through this merge.
  */
-function mergeRepairSubmission(
+export function mergeRepairSubmission(
   base: OptimizeSubmission,
   repair: OptimizeSubmission,
   repairActionIds: readonly string[],

@@ -1,0 +1,215 @@
+{
+  "rootCause": "The skill's supported-contract workflow gave a deployment-specific helper path and did not define the boundary between an unsupported contract, an explicitly inapplicable invocation, and a real helper failure, so agents could waste time searching for a nonexistent fixed path or overclaim verification after a failed command.",
+  "reasoning": "Both clean runs passed (Evidence 0 and 1, mean 1.000), so there is no scored defect to repair; the useful opportunity is a general workflow-contract clarification that preserves the passing transformation while making the already bundled verifier portable and honest. The source skill already requires contract-first processing, and the bundled script plus traces show the actual executable is relative to the skill package (Evidence 0/1, Conversation Log tool reads and finalizer invocation), while the first run also demonstrates that the documented .skvm deployment path may not exist. The edit rewrites that existing finalizer instruction in place rather than appending an overlapping rule. Generality test: the same rule benefits any future localization task using a copied skill package, including a Vue or another React contract where the package is mounted under a different directory. Coherent scope: one small documentation edit is sufficient because the executable already accepts parameterized --contract and --root inputs and produces the report; no script change is needed. No-trade-off check: the only PASSING task is skill:i18n-f9-9-repair-recovered:round-1 (Evidence 0,1); the change preserves its contract-first React workflow, exact report generation, locale parity check, and residual human review, while preventing only an invalid fixed-path invocation. Expected impact is improved portability and reduced wasted discovery, with no semantic narrowing. Remaining judgment stays with the agent for translation meaning, interpolation, framework wiring, protected files, and fallback work when the contract or framework is unsupported.",
+  "confidence": 0.96,
+  "changedFiles": [
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "工作流程 / 5. 完整性检查",
+      "description": "Replaced the fixed deployment-prefix finalizer command with a package-relative command and explicitly distinguished not-applicable exit 2 from real failures that must not be claimed as successful verification.",
+      "generality": "Any localization task run from a relocated or vendored copy of this skill, such as a different React contract or a Vue project using the fallback workflow, benefits from portable path resolution and explicit failure handling.",
+      "linesDelta": 2
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "Clarify contract-first finalizer applicability, package-relative invocation, and failure semantics; parameters are the contract and project-root paths; resources are the bundled script and Node runtime; the check source is the contract ABI and finalizer result.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must still select the applicable framework/contract and perform semantic translation, interpolation, wiring, and protected-file review."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "Retain parameterized --contract and --root inputs and document that they must be filled from the current project rather than a deployment prefix; the bundled script already supports these paths.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent supplies valid project-specific paths and confirms that declared files are present."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "The finalizer deterministically repeats key extraction, t() checking, locale parity checking, and report serialization for supported React contracts; the evidence shows this work succeeds in both runs.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent performs the source transformation and translation decisions before invoking the checker."
+    },
+    {
+      "category": "artifact-production",
+      "summary": "The bundled finalizer produces the contract-declared JSON report after reading transformed source and locale files; the two-step read/check then write boundary is already implemented and is retained.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent creates source, config, and locale artifacts and supplies semantic translations; the finalizer only writes the report."
+    },
+    {
+      "category": "verification",
+      "summary": "The documentation now makes the successful finalizer check and its fallback semantics explicit; the executable independently checks confirmed keys, t() calls, locale keys, required files, and the closed report ABI.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must inspect the final report, translation meaning, runtime wiring, and protected-file preservation; a helper error is not success."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "Remove dependence on the observed .skvm/skills/source deployment prefix by resolving the script relative to the skill directory and stating Node.js as the runtime requirement.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent checks runtime availability and uses the original workflow when the bundled helper is unavailable or unsupported."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Preserve explicit human responsibilities for semantic translation, interpolation, framework initialization/runtime behavior, protected files, and unsupported-contract fallback instead of automating them from the passing evidence.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "retained",
+      "residualDuty": "Those context-dependent decisions remain with the agent and must be reported honestly."
+    }
+  ],
+  "actions": [
+    {
+      "id": "portable-contract-finalizer-route",
+      "kind": "reuse-script",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "sourceRefs": [
+        "SKILL.md#工作流程 / 5. 完整性检查",
+        "scripts/i18n-contract-tool.mjs",
+        "evidence:0#Conversation-Log-23-24",
+        "evidence:1#Conversation-Log-36"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "--contract path supplied by the current project",
+        "--root project directory supplied by the current project"
+      ],
+      "outputs": [
+        "contract.report.path JSON report",
+        "concise JSON completion summary on stdout"
+      ],
+      "preconditions": [
+        "Node.js is available",
+        "the contract is skill-ir-i18n-helper-public-contract/v2 with framework react-i18next",
+        "source and locale files have been reviewed and created"
+      ],
+      "constraints": [
+        {
+          "description": "The helper is bounded to the public React react-i18next v2 contract.",
+          "scope": "skill",
+          "sourceRef": "scripts/i18n-contract-tool.mjs#finalize"
+        },
+        {
+          "description": "Contract-declared allowed, required, protected, and report paths come from the current project contract.",
+          "scope": "task",
+          "sourceRef": "evidence:0#taskPrompt"
+        }
+      ],
+      "validation": {
+        "cases": [
+          {
+            "args": [
+              "finalize",
+              "--contract",
+              "./i18n-contract.json",
+              "--root",
+              "."
+            ],
+            "id": "repair-output-portable-contract-finalizer-route-0-1",
+            "evidenceId": "0",
+            "inputSource": "workdir-snapshot",
+            "inputFiles": [
+              "i18n-contract.json",
+              "src/App.tsx",
+              "src/i18n.ts",
+              "src/locales/zh-CN.json",
+              "src/locales/en-US.json"
+            ],
+            "expectedFiles": [
+              {
+                "path": "i18n-report.json",
+                "referencePath": ".optimize/tasks/skill-i18n-f9-9-repair-recovered-round-1/run-0-workdir/i18n-report.json"
+              }
+            ],
+            "basis": "reference-output",
+            "sourceRefs": [
+              "gzip-pi-events:tool-call:call_8T9Wervyv90kZZyNH1ZjXnhu#tool-call/unknown-0",
+              ".optimize/tasks/skill-i18n-f9-9-repair-recovered-round-1/run-0-workdir/i18n-report.json",
+              "SKILL.md#工作流程 / 5. 完整性检查",
+              "scripts/i18n-contract-tool.mjs"
+            ]
+          },
+          {
+            "args": [
+              "finalize",
+              "--contract",
+              "./i18n-contract.json",
+              "--root",
+              "."
+            ],
+            "id": "repair-output-portable-contract-finalizer-route-1-1",
+            "evidenceId": "1",
+            "inputSource": "workdir-snapshot",
+            "inputFiles": [
+              "i18n-contract.json",
+              "src/App.tsx",
+              "src/i18n.ts",
+              "src/locales/zh-CN.json",
+              "src/locales/en-US.json"
+            ],
+            "expectedFiles": [
+              {
+                "path": "i18n-report.json",
+                "referencePath": ".optimize/tasks/skill-i18n-f9-9-repair-recovered-round-1/run-1-workdir/i18n-report.json"
+              }
+            ],
+            "basis": "reference-output",
+            "sourceRefs": [
+              "gzip-pi-events:tool-call:call_DFjC7ZID5jzxerNYJ0js8Yub#tool-call/unknown-0",
+              ".optimize/tasks/skill-i18n-f9-9-repair-recovered-round-1/run-1-workdir/i18n-report.json",
+              "SKILL.md#工作流程 / 5. 完整性检查",
+              "scripts/i18n-contract-tool.mjs"
+            ]
+          }
+        ]
+      },
+      "changedPaths": [
+        "SKILL.md"
+      ],
+      "residualDuties": [
+        "choose applicability",
+        "review semantic translation and framework wiring",
+        "preserve protected files",
+        "continue fallback workflow after exit 2 or unsupported input"
+      ],
+      "verification": [
+        "invoke the script using a path relative to the directory containing SKILL.md",
+        "treat exit 2 as not-applicable and other failures as errors",
+        "inspect the generated report and remaining required outputs"
+      ]
+    }
+  ],
+  "actionDiagnostics": [],
+  "noChanges": false
+}

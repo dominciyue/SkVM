@@ -36,6 +36,46 @@ function evidenceFromSteps(steps: AgentStep[]): Evidence {
 }
 
 describe("operation context", () => {
+  test("recognizes Pi file and bash events without confusing searches with execution", () => {
+    const context = buildOperationContext([{
+      role: "assistant", timestamp: 1000,
+      toolCalls: [
+        { id: "pi-read", name: "read", input: { path: "./input.json" } },
+        { id: "pi-edit", name: "edit", input: { path: "./input.json", edits: [] } },
+        { id: "pi-write", name: "write", input: { path: "./out.json", content: "{}" } },
+        { id: "pi-run", name: "bash", input: { command: "node ./skill/scripts/convert.mjs --input input.json --out out.json" }, exitCode: 0 },
+        { id: "pi-find", name: "find", input: { pattern: "scripts/convert.mjs", path: "." } },
+      ],
+    }], { sourceEntries: ["scripts/convert.mjs"] })
+    expect(context.operations.map((item) => item.kind)).toEqual(["read", "write", "write", "execute", "other"])
+    expect(context.operations[3]).toMatchObject({
+      toolCallId: "pi-run", toolName: "bash", entry: "skill/scripts/convert.mjs", exitCode: 0,
+    })
+    expect(context.operations[4]?.entry).toBeUndefined()
+    expect(context.summary.sourceEntriesNotCalled).toEqual([])
+    expect(context.operations[3]?.executionRelation).toBe("existing-entry")
+  })
+
+  test("retains the real call ID from a bound Pi conversation locator", () => {
+    const observed = evidenceFromSteps([])
+    observed.conversationLog = [{
+      type: "tool", ts: "2026-09-14T00:00:01Z", name: "read",
+      input: { path: "input.json" }, sourceLocator: "gzip-pi-events:tool-call:call_real",
+    }]
+    expect(buildOperationContext(observed).operations[0]?.toolCallId).toBe("call_real")
+  })
+
+  test("keeps written-entry history when a deployed entry also matches a source entry", () => {
+    const context = buildOperationContext([{
+      role: "assistant", timestamp: 1000, toolCalls: [
+        { id: "write-program", name: "write", input: { path: "skill/scripts/convert.mjs", content: "" } },
+        { id: "run-program", name: "bash", input: { command: "node skill/scripts/convert.mjs" } },
+      ],
+    }], { sourceEntries: ["scripts/convert.mjs"] })
+    expect(context.summary.writtenThenExecuted).toEqual(["skill/scripts/convert.mjs"])
+    expect(context.summary.sourceEntriesNotCalled).toEqual([])
+  })
+
   test("records only actual read, execute, and write calls with locators and raw argv", () => {
     const steps: AgentStep[] = [{
       role: "assistant",

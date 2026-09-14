@@ -13,8 +13,10 @@ import path from "node:path"
 import { readPreRunInputSnapshotContents } from "../run/pre-run-input-snapshot.ts"
 import type { AgentStep } from "../core/types.ts"
 import type { ImplementationSelection } from "./implementations.ts"
+import { matchesSkillEntrypoint } from "./consumption.ts"
 import {
   buildOperationContext,
+  evidenceSkillPaths,
   type OperationParameterRule,
   type OperationRecord,
 } from "./operation-context.ts"
@@ -169,10 +171,13 @@ function evidenceWithSteps(evidence: Evidence): Evidence | (Evidence & { steps: 
   return evidence as Evidence & { steps: readonly AgentStep[] }
 }
 
-function operationArgs(operation: OperationRecord, entry: string): { args?: string[]; locator?: string } {
+function matchesEntry(value: string, entry: string, evidence: Evidence): boolean {
+  return matchesSkillEntrypoint(value, entry, evidenceSkillPaths(evidence))
+}
+
+function operationArgs(operation: OperationRecord, entry: string, evidence: Evidence): { args?: string[]; locator?: string } {
   if (!operation.argv || operation.argv.length === 0) return { locator: operation.sourceLocator }
-  const target = normalizeEntry(entry)
-  const entryIndex = operation.argv.findIndex((token) => normalizeEntry(token) === target)
+  const entryIndex = operation.argv.findIndex((token) => matchesEntry(token, entry, evidence))
   if (entryIndex < 0) return { locator: operation.sourceLocator }
   return { args: operation.argv.slice(entryIndex + 1), locator: operation.sourceLocator }
 }
@@ -345,11 +350,11 @@ function operationForCase(
     && operation.status === "observed"
     && operation.entry !== undefined
     && implementation.entry !== undefined
-    && normalizeEntry(operation.entry) === normalizeEntry(implementation.entry)
+    && matchesEntry(operation.entry, implementation.entry, evidence)
   ))
   if (operations.length === 0) return { context }
   const exact = operations.find((operation) => {
-    const args = operationArgs(operation, implementation.entry!)
+    const args = operationArgs(operation, implementation.entry!, evidence)
     return args.args !== undefined && JSON.stringify(args.args.map(normalize)) === JSON.stringify(suggestion.args.map(normalize))
   })
   return { operation: exact ?? operations[0], context }
@@ -651,6 +656,7 @@ export async function completeValidationSuggestion(
 
   const completedCases: OptimizationValidationCaseSuggestion[] = []
   const unwiredCases: OptimizationValidationCaseSuggestion[] = []
+  const unwiredFields = new Set<string>()
   let unwiredProvenance: ValidationCompletionProvenance | undefined
   let firstProvenance: ValidationCompletionProvenance | undefined
   for (const { evidenceId, index } of candidateEvidence) {
@@ -662,7 +668,7 @@ export async function completeValidationSuggestion(
       operation.kind === "execute"
       && operation.status === "observed"
       && operation.entry !== undefined
-      && normalizeEntry(operation.entry) === normalizeEntry(implementation.entry!)
+      && matchesEntry(operation.entry, implementation.entry!, evidence)
     ))
     const ambiguous = context.operations.filter((operation) => operation.kind === "execute" && operation.status === "unknown")
     if (matching.length === 0) {
@@ -697,6 +703,7 @@ export async function completeValidationSuggestion(
             basis: "reference-output",
             sourceRefs: unique([...reads, ...writes].map((item) => item.sourceLocator)),
           })
+          unwiredFields.add("validation.cases.args")
           unwiredProvenance ??= {
             mode: "deterministic",
             evidenceId,
@@ -714,7 +721,7 @@ export async function completeValidationSuggestion(
     }
 
     for (const [operationIndex, operation] of matching.entries()) {
-      const argsResult = operationArgs(operation, implementation.entry)
+      const argsResult = operationArgs(operation, implementation.entry, evidence)
       if (!argsResult.args) {
         diagnostics.push(makeDiagnostic(action, "validation-completion-argv-unresolved", `Could not locate the confirmed executable entry inside argv for ${implementation.entry}.`, {
           evidenceId,
@@ -731,16 +738,40 @@ export async function completeValidationSuggestion(
         ...operation.readFiles.map(normalize),
         ...context.operations.filter((item) => item.kind === "read").flatMap((item) => item.readFiles.map(normalize)),
       ])
-      const outputFiles = allWrites.filter((item) => item !== normalizeEntry(implementation.entry!))
+      const outputFiles = unique(operation.writeFiles.map(normalize))
+        .filter((item) => observedPostRunFiles.has(item) && !matchesEntry(item, implementation.entry!, evidence))
       if (outputFiles.length === 0) {
-        diagnostics.push(makeDiagnostic(action, "validation-completion-output-unresolved", `No observed output write is available for operation ${operation.sourceLocator}; semantic output rules will not be invented.`, {
+        diagnostics.push(makeDiagnostic(action, "validation-completion-output-unresolved", `No output is attributable to operation ${operation.sourceLocator}; other trace writes are not this program's outputs. Resolve the local input/output mapping from the candidate and captured resources.`, {
           evidenceId,
           locator: operation.sourceLocator,
           field: "expectedFiles",
         }))
+        const candidateFiles = unique([...allReads, ...allWrites])
+          .filter((item) => observedPostRunFiles.has(item) && !matchesEntry(item, implementation.entry!, evidence))
+        const resources = allWrites.length > 0 && candidateFiles.length > 0
+          ? await resourceView(evidence, candidateFiles)
+          : undefined
+        if (resources) {
+          unwiredCases.push({
+            id: `repair-output-${safeSegment(action.id)}-${evidenceId}-${operationIndex + 1}`,
+            evidenceId, inputSource: resources.source, inputFiles: candidateFiles,
+            args: argsResult.args, expectedFiles: [], basis: "reference-output",
+            sourceRefs: unique([operation.sourceLocator, ...action.sourceRefs]),
+          })
+          unwiredFields.add("validation.cases.inputFiles")
+          unwiredFields.add("validation.cases.expectedFiles")
+          unwiredProvenance ??= {
+            mode: "deterministic", evidenceId, operationId: operation.toolCallId ?? operation.id,
+            fields: {
+              args: { source: "observed-operation.argv", locator: operation.sourceLocator },
+              inputFiles: { source: "captured-resource-candidates-requires-repair" },
+              expectedFiles: { source: "unresolved-requires-repair" },
+            },
+          }
+        }
         continue
       }
-      const inputFiles = allReads.filter((item) => (
+      const inputFiles = (operation.readFiles.length > 0 ? unique(operation.readFiles.map(normalize)) : allReads).filter((item) => (
         item !== normalizeEntry(implementation.entry!) && !outputFiles.includes(item)
       ))
       if (inputFiles.length === 0) {
@@ -812,16 +843,16 @@ export async function completeValidationSuggestion(
         action,
         suggestion,
         repairable: {
-          fields: ["validation.cases.args"],
+          fields: [...unwiredFields],
           evidenceIds: unique(unwiredCases.map((item) => item.evidenceId)),
           relevantFiles: unique([normalizeEntry(implementation.entry), ...action.changedPaths.map(normalize)]),
           suggestion,
         },
         diagnostics: [...diagnostics, makeDiagnostic(
           action,
-          "validation-completion-argv-unresolved",
-          "Captured reads and writes support a fidelity candidate, but the selected entry has no observed invocation. Resolve argv from the candidate interface in the existing bounded repair; empty args are not a confirmed command.",
-          { field: "validation.cases.args" },
+          "validation-completion-metadata-missing",
+          "Captured resources support a local validation candidate, but command or input/output attribution is incomplete. Resolve only the listed mappings in the existing bounded repair; placeholder fields are not executable assertions.",
+          { field: "validation.cases" },
         )],
         provenance: unwiredProvenance!,
       }

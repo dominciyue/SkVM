@@ -8,6 +8,7 @@
 
 import type { AgentStep, ToolCall } from "../core/types.ts"
 import type { ConversationLogEntry, Evidence } from "./types.ts"
+import { matchesSkillEntrypoint } from "./consumption.ts"
 
 export type OperationKind = "read" | "write" | "execute" | "other"
 export type OperationStatus = "observed" | "unknown"
@@ -464,7 +465,8 @@ function normalizedCall(value: unknown, sourceLocator: string, timestamp?: numbe
   if (!isRecord(value)) return undefined
   const name = stringValue(value.name) ?? stringValue(value.toolName)
   if (!name) return undefined
-  const id = stringValue(value.id) ?? stringValue(value.toolCallId) ?? null
+  const id = stringValue(value.id) ?? stringValue(value.toolCallId)
+    ?? sourceLocator.match(/^gzip-pi-events:tool-call:([^/#\s]+)/u)?.[1] ?? null
   const input = normalizeToolInput(value.input ?? value.arguments ?? value.args)
   const exitCode = numberValue(value.exitCode)
   const durationMs = numberValue(value.durationMs)
@@ -579,9 +581,9 @@ function mergeCalls(conversationCalls: RawOperationCall[], stepCalls: RawOperati
 }
 
 function kindFor(name: string): OperationKind {
-  if (name === "read_file") return "read"
-  if (name === "write_file") return "write"
-  if (name === "execute_command") return "execute"
+  if (name === "read_file" || name === "read") return "read"
+  if (name === "write_file" || name === "write" || name === "edit") return "write"
+  if (name === "execute_command" || name === "bash") return "execute"
   return "other"
 }
 
@@ -891,7 +893,15 @@ function buildRecord(
   return base
 }
 
-function assignRelations(records: OperationRecord[], sourceEntries: readonly string[]): {
+export function evidenceSkillPaths(evidence: Evidence | undefined): string[] {
+  const skillPaths = evidence?.trace?.skillPath ? [evidence.trace.skillPath] : []
+  if (evidence?.trace?.format === "skill-ir-general-skill-development/v1" && evidence.trace.workDirPath) {
+    skillPaths.push(`${normalizePath(evidence.trace.workDirPath)}/skill/SKILL.md`)
+  }
+  return skillPaths
+}
+
+function assignRelations(records: OperationRecord[], sourceEntries: readonly string[], skillPaths: readonly string[]): {
   repeated: string[]
   writtenThenExecuted: string[]
   executed: Set<string>
@@ -903,13 +913,15 @@ function assignRelations(records: OperationRecord[], sourceEntries: readonly str
     for (const file of record.writeFiles) written.add(file)
     if (record.kind !== "execute" || !record.entry) continue
     const entry = normalizePath(record.entry)
+    const sourceEntry = sourceEntries.find((candidate) => matchesSkillEntrypoint(entry, candidate, skillPaths))
     record.entry = entry
     record.executionRelation = written.has(entry)
       ? "written-entry"
-      : sourceEntries.some((candidate) => normalizePath(candidate) === entry)
+      : sourceEntry !== undefined
         ? "existing-entry"
         : "unknown"
     executed.add(entry)
+    if (sourceEntry) executed.add(normalizePath(sourceEntry))
     entryCounts.set(entry, (entryCounts.get(entry) ?? 0) + 1)
   }
   const repeated = [...entryCounts.entries()]
@@ -930,7 +942,7 @@ export function buildOperationContext(
   const evidenceCwd = normalized.evidence?.trace?.workDirPath
   const provenance = provenanceContext(normalized.evidence, options)
   const operations = calls.map((call, index) => buildRecord(call, evidenceCwd, index, provenance))
-  const internal = assignRelations(operations, options.sourceEntries ?? [])
+  const internal = assignRelations(operations, options.sourceEntries ?? [], evidenceSkillPaths(normalized.evidence))
   const sourceEntries = [...new Set((options.sourceEntries ?? []).map(normalizePath))].sort((left, right) => left.localeCompare(right, "en"))
   const executed = internal?.executed ?? new Set<string>()
   return {

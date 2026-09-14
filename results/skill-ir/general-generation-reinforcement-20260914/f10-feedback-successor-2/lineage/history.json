@@ -1,0 +1,189 @@
+{
+  "entries": [
+    {
+      "timestamp": "2026-09-14T17:52:37.630Z",
+      "round": 1,
+      "rootCause": "The skill's supported-contract workflow gave a deployment-specific helper path and did not define the boundary between an unsupported contract, an explicitly inapplicable invocation, and a real helper failure, so agents could waste time searching for a nonexistent fixed path or overclaim verification after a failed command.",
+      "reasoning": "Both clean runs passed (Evidence 0 and 1, mean 1.000), so there is no scored defect to repair; the useful opportunity is a general workflow-contract clarification that preserves the passing transformation while making the already bundled verifier portable and honest. The source skill already requires contract-first processing, and the bundled script plus traces show the actual executable is relative to the skill package (Evidence 0/1, Conversation Log tool reads and finalizer invocation), while the first run also demonstrates that the documented .skvm deployment path may not exist. The edit rewrites that existing finalizer instruction in place rather than appending an overlapping rule. Generality test: the same rule benefits any future localization task using a copied skill package, including a Vue or another React contract where the package is mounted under a different directory. Coherent scope: one small documentation edit is sufficient because the executable already accepts parameterized --contract and --root inputs and produces the report; no script change is needed. No-trade-off check: the only PASSING task is skill:i18n-f9-9-repair-recovered:round-1 (Evidence 0,1); the change preserves its contract-first React workflow, exact report generation, locale parity check, and residual human review, while preventing only an invalid fixed-path invocation. Expected impact is improved portability and reduced wasted discovery, with no semantic narrowing. Remaining judgment stays with the agent for translation meaning, interpolation, framework wiring, protected files, and fallback work when the contract or framework is unsupported.",
+      "changes": [
+        {
+          "file": "SKILL.md",
+          "section": "工作流程 / 5. 完整性检查",
+          "description": "Replaced the fixed deployment-prefix finalizer command with a package-relative command and explicitly distinguished not-applicable exit 2 from real failures that must not be claimed as successful verification.",
+          "generality": "Any localization task run from a relocated or vendored copy of this skill, such as a different React contract or a Vue project using the fallback workflow, benefits from portable path resolution and explicit failure handling.",
+          "linesDelta": 2
+        }
+      ],
+      "changedFiles": [
+        "SKILL.md"
+      ],
+      "actions": [
+        {
+          "id": "portable-contract-finalizer-route",
+          "kind": "reuse-script",
+          "evidenceIds": [
+            "0",
+            "1"
+          ],
+          "sourceRefs": [
+            "SKILL.md#工作流程 / 5. 完整性检查",
+            "scripts/i18n-contract-tool.mjs",
+            "evidence:0#Conversation-Log-23-24",
+            "evidence:1#Conversation-Log-36"
+          ],
+          "dependsOn": [],
+          "inputs": [
+            "--contract path supplied by the current project",
+            "--root project directory supplied by the current project"
+          ],
+          "outputs": [
+            "contract.report.path JSON report",
+            "concise JSON completion summary on stdout"
+          ],
+          "preconditions": [
+            "Node.js is available",
+            "the contract is skill-ir-i18n-helper-public-contract/v2 with framework react-i18next",
+            "source and locale files have been reviewed and created"
+          ],
+          "constraints": [
+            {
+              "description": "The helper is bounded to the public React react-i18next v2 contract.",
+              "scope": "skill",
+              "sourceRef": "scripts/i18n-contract-tool.mjs#finalize"
+            },
+            {
+              "description": "Contract-declared allowed, required, and protected paths come from the current project contract.",
+              "scope": "task",
+              "sourceRef": "evidence:0#taskPrompt"
+            }
+          ],
+          "changedPaths": [
+            "SKILL.md"
+          ],
+          "residualDuties": [
+            "choose applicability",
+            "review semantic translation and framework wiring",
+            "preserve protected files",
+            "continue fallback workflow after exit 2 or unsupported input"
+          ],
+          "verification": [
+            "invoke the script using a path relative to the directory containing SKILL.md",
+            "treat exit 2 as not-applicable and other failures as errors",
+            "inspect the generated report and remaining required outputs"
+          ]
+        }
+      ],
+      "actionDiagnostics": [],
+      "validation": {
+        "status": "not-run",
+        "reportPath": "round-1-validation/report.json",
+        "retainedActionIds": [],
+        "unvalidatedActionIds": [
+          "portable-contract-finalizer-route"
+        ],
+        "rejectedActionIds": [],
+        "programRuns": 0,
+        "caseRuns": 0,
+        "independentCaseRuns": 0
+      },
+      "confidence": 0.96,
+      "trainScore": null,
+      "testScore": null,
+      "improved": null
+    }
+  ],
+  "bestRound": 1,
+  "bestRoundReason": "optimized draft has no concrete local program failure but remains partially or wholly unvalidated",
+  "rounds": [
+    {
+      "round": 0,
+      "isBaseline": true,
+      "trainScore": null,
+      "testScore": null,
+      "trainPassed": 0,
+      "trainTotal": 0,
+      "testPassed": 0,
+      "testTotal": 0,
+      "perTaskTrainScores": {},
+      "perTaskTestScores": {},
+      "targetAgent": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "runs": 0,
+        "durationMs": 0
+      },
+      "evalJudge": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "calls": 0
+      },
+      "optimizer": null,
+      "historyEntry": null
+    },
+    {
+      "round": 1,
+      "isBaseline": false,
+      "trainScore": null,
+      "testScore": null,
+      "trainPassed": 0,
+      "trainTotal": 0,
+      "testPassed": 0,
+      "testTotal": 0,
+      "perTaskTrainScores": {},
+      "perTaskTestScores": {},
+      "targetAgent": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "runs": 0,
+        "durationMs": 0
+      },
+      "evalJudge": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "calls": 0
+      },
+      "optimizer": {
+        "tokens": {
+          "input": 380478,
+          "output": 11033,
+          "cacheRead": 218624,
+          "cacheWrite": 0
+        },
+        "costUsd": 0
+      },
+      "historyEntry": null,
+      "validation": {
+        "status": "not-run",
+        "reportPath": "round-1-validation/report.json",
+        "retainedActionIds": [],
+        "unvalidatedActionIds": [
+          "portable-contract-finalizer-route"
+        ],
+        "rejectedActionIds": [],
+        "programRuns": 0,
+        "caseRuns": 0,
+        "independentCaseRuns": 0
+      }
+    }
+  ]
+}

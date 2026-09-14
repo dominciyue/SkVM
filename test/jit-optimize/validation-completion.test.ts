@@ -100,6 +100,52 @@ function action(actionId: string, entry = "scripts/convert.py", validation?: Opt
 }
 
 describe("completeValidationSuggestion", () => {
+  test("does not assign another trace step's artifacts to the observed program", async () => {
+    const observed = evidence()
+    observed.workDirSnapshot!.files.set("agent-note.txt", "manual")
+    ;(observed as Evidence & { steps: AgentStep[] }).steps[0]!.toolCalls.push({
+      id: "manual-output", name: "write", input: { path: "agent-note.txt", content: "manual" },
+    }, {
+      id: "manual-read", name: "read", input: { path: "unrelated-reference.md" },
+    })
+    const result = await completeValidationSuggestion({
+      action: action("local-output"), implementation: implementation("local-output"), evidences: [observed],
+    })
+    expect(result.status).toBe("completed")
+    expect(result.suggestion?.cases[0]?.expectedFiles).toEqual([{ path: "out/report.txt", referencePath: "out/report.txt" }])
+    expect(result.suggestion?.cases[0]?.inputFiles).toEqual(["input.txt"])
+  })
+
+  test("requests output mapping instead of claiming all trace writes belong to an opaque command", async () => {
+    const observed = evidence()
+    const steps = (observed as Evidence & { steps: AgentStep[] }).steps
+    steps[0]!.toolCalls[0]!.input = { command: "python scripts/convert.py --input input.txt" }
+    steps[0]!.toolCalls.push({ id: "manual-output", name: "write", input: { path: "out/report.txt", content: "REPORT" } })
+    const result = await completeValidationSuggestion({
+      action: action("opaque-output"), implementation: implementation("opaque-output"), evidences: [observed],
+    })
+    expect(result.status).toBe("repairable")
+    expect(result.repairable?.fields).toContain("validation.cases.expectedFiles")
+    expect(result.suggestion?.cases[0]?.expectedFiles).toEqual([])
+    expect(result.action.validation).toBeUndefined()
+  })
+
+  test("matches deployed skill roots but not a same-named foreign program", async () => {
+    for (const entry of ["./skill/scripts/convert.py", "D:/work/skill/scripts/convert.py", "other/scripts/convert.py"]) {
+      const observed = evidence({ entry })
+      observed.trace!.format = "skill-ir-general-skill-development/v1"
+      observed.trace!.workDirPath = "D:/work"
+      observed.trace!.skillPath = "D:/source/SKILL.md"
+      const result = await completeValidationSuggestion({
+        action: action("deployed"), implementation: implementation("deployed"), evidences: [observed],
+      })
+      expect(result.status).toBe(entry.startsWith("other") ? "unresolved" : "completed")
+      if (!entry.startsWith("other")) {
+        expect(result.suggestion?.cases[0]?.args).toEqual(["--input", "input.txt", "--output", "out/report.txt"])
+      }
+    }
+  })
+
   test("varies declared new-program paths without inventing an observed invocation", async () => {
     const observed = evidence({ entry: "scripts/old.mjs" })
     ;(observed as Evidence & { steps: AgentStep[] }).steps = [{

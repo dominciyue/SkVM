@@ -130,6 +130,11 @@ function canonicalPath(value: string, roots: readonly string[]): string {
   return result.toLowerCase()
 }
 
+export function matchesSkillEntrypoint(value: string, entry: string, skillPaths: readonly string[]): boolean {
+  const roots = packageRoots(skillPaths)
+  return canonicalPath(value, roots) === canonicalPath(entry, roots)
+}
+
 function parseShell(command: string): ParsedShell {
   const tokens: string[] = []
   let current = ""

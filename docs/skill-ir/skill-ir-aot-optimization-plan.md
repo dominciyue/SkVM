@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-14
 - 路线：F0–F11，通用生成流程补牢
-- 状态：`active`（F0、F1、F1.1 completed；F2 active）；C0–C10 已交付，本轮结果根与恢复入口已建立
+- 状态：`verified-pending-publication`；F0–F10 的适用工作已核对，F11 正在同步最终交付。此前本页滞留的 F2 active 不再作为进度。
 - 唯一实时状态：[current-status.md](current-status.md)
 - 详细任务书：[通用生成流程补牢](../superpowers/plans/2026-09-14-general-generation-reinforcement.md) revision 2
 - 方法依据：spec 14.33；既有生产链依据 spec 14.32
@@ -11,21 +11,21 @@
 
 revision 2 明确增加 F1.1 语料/trace→模式→生产符号/测试映射、F6.1 实际处理产物的轻量流程骨架、F9.1 同包跨消费模型和隔离环境比较。检查型程序与执行型流程分别验收，不能混算；当前跨模型稳定性收益仍 unknown/not-established。
 
-## 当前待执行队列
+## 本轮交付队列
 
 | 阶段 | 状态 | 下一交付 |
 | --- | --- | --- |
 | F0 | completed | 已确认 C8/CSV 基线、Method 张力并建立执行状态 |
 | F1 | completed | 实际操作来源索引接入 IMPLEMENTATION_CONTEXT；39/39 focused tests |
 | F1.1 | completed | 五成员 source/trace→pattern-to-code 映射；四份部分 trace、一份 source-only，缺口显式保留 |
-| F2 | active | 真实操作参数来源索引，接入已有模型上下文 |
-| F3–F4 | planned | 验证骨架自动补全，可修缺口共用一次局部 repair |
-| F5–F6 | planned | 参数变化检查、可用命令与局部程序包 |
-| F7–F8 | planned | 普通程序消费观察，默认入口连续集成 |
-| F9–F10 | planned | 不同结构真实使用、同包消费与共享机制反馈 |
-| F11 | planned | 有限回归、准确交付、提交推送 |
+| F2 | completed | 操作参数来源、位置/配置绑定与未知边界 |
+| F3–F4 | completed | 自动验证接线与一次局部补全；F10 修复操作 IO 归属并完成真实 metadata repair |
+| F5–F6 | completed-bounded | 路径/cwd/参数反例、普通入口及单/多输入流程骨架；未知语义不猜测 |
+| F7–F8 | completed | 普通程序消费观察及默认入口连续集成 |
+| F9–F10 | completed-with-limits | 原八单元矩阵及后继三单元消费；同包内部验证通过；仅一结构成功，效果 negative |
+| F11 | verified-pending-publication | 有限回归、逐项审计、准确总结及 origin 推送 |
 
-完成条件以 F 任务书第 2.2 节为准。至少覆盖不同结构的真实尝试，目标取得经过默认内部验证且自然使用的新程序包，并给出局部改善或收益未证明的准确结果；不承诺预定成功比例。模型/网络/付费授权继续有效；仅在 F0 创建本轮运行状态。本次没有运行模型。C0–C10 详细完成记录保留在[上一任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md)和 current-status，不以原计划页滞后的 C2 active 为实际状态。
+完成条件以 F 任务书第 2.2 节为准。本轮完成不同结构的真实尝试，F9 模型报告 finalizer 经精确恢复、共享验证和同包消费；F10 模型修订入口说明、复用该程序，三个消费单元通过，随后一次 metadata-only repair 使同包两个内部案例通过。内部独立案例为 0，保持 draft；两个版本均未证明收益。逐项依据见结果根 `completion-audit.json`，完整费用见 `final-costs.json`。C0–C10 记录保留在[上一任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md)和 current-status。
 
 ## 上一轮目标与执行记录（历史）
 

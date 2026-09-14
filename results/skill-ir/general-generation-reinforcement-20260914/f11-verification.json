@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "skill-ir-reinforcement-final-verification/v1",
+  "date": "2026-09-14",
+  "timezone": "UTC",
+  "status": "verified-pending-publication",
+  "redCases": [
+    "Pi read/write/edit/bash operations were all classified as other.",
+    "A deployed skill entry was incorrectly reported unobserved.",
+    "Bound Pi call IDs and deployed source-entry relations were lost.",
+    "Whole-trace manual outputs were attributed to one program.",
+    "An unrelated read made a correctly bound program unresolved.",
+    "Deployed source matching lost written-then-executed history."
+  ],
+  "verifiedCommands": [
+    {
+      "command": "bun test ./test/jit-optimize/operation-context.test.ts ./test/jit-optimize/validation-completion.test.ts ./test/jit-optimize/consumption.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/workflow-scaffold.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/continuous-production-closure.test.ts ./test/jit-optimize/package.test.ts ./test/jit-optimize/effect.test.ts",
+      "exitCode": 0, "pass": 128, "fail": 0, "assertions": 556
+    },
+    {
+      "command": "bun test ./test/jit-optimize/validation-completion.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/production-closure.test.ts",
+      "exitCode": 0, "pass": 51, "fail": 0, "assertions": 245,
+      "scope": "After the final operation-local input binding adjustment."
+    },
+    {
+      "command": "bun test ./test/jit-optimize/operation-context.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/workflow-scaffold.test.ts",
+      "exitCode": 0, "pass": 42, "fail": 0, "assertions": 141,
+      "scope": "After preserving deployed written-entry history."
+    },
+    { "command": "bun run typecheck", "exitCode": 0 },
+    { "command": "python scripts/check_skill_ir_doc_links_test.py", "exitCode": 0, "pass": 12 },
+    { "command": "git diff --check", "exitCode": 0 }
+  ],
+  "historicalFullRegression": {
+    "evidence": "f9/resumed-verification.json",
+    "pass": 443, "fail": 0, "assertions": 1506,
+    "note": "The taskbook's full combined regression ran once earlier. Later scoped results overlap and must not be summed as distinct tests."
+  },
+  "freshArtifactChecks": {
+    "stageEvidencePathsFound": 27,
+    "packageIdentity": "i18n-f9-recovered-package:20260914T174439356Z:round-1",
+    "packageVerification": "passed",
+    "metadataRepairChangedFiles": [],
+    "internalCaseRuns": 2,
+    "internalCaseStatus": "passed",
+    "independentInternalCases": 0,
+    "naturalConsumptionUnits": 3,
+    "naturalProgramExitZero": 3,
+    "structuralChecksPassed": 15,
+    "sameHostIsolation": "f10-isolation/verification.json",
+    "effect": "negative"
+  },
+  "scope": "Development only. No candidate program edits, no new held-out/Q1 input, no historical result rewrite, no new hash protocol. Publication is recorded separately."
+}

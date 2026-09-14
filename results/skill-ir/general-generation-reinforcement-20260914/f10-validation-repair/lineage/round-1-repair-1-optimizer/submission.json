@@ -1,0 +1,205 @@
+{
+  "rootCause": "The bounded finalizer action's validation cases did not identify the report written by the program and over-attributed the whole workdir, so validation could not connect the observed finalize operation to its generated report even though the executable's direct reads, write path, and captured report are available.",
+  "reasoning": "Evidence Indices 0 and 1 are both clean, independently scored runs (runStatus=ok, score 1.00), and both show the same executable invocation: node ./skill/scripts/i18n-contract-tool.mjs finalize --contract ./i18n-contract.json --root . The source interface and execution trace establish the direct inputs: the contract, the declared React source, the generated i18n module, and the two declared locale JSON files. The finalizer reads those files, checks the contract-declared source and locale invariants, and writes only the contract report; package metadata, the skill documentation, the pre-existing report, and the other agent-created files are not outputs of this invocation. I therefore repaired only the requested validation metadata in this submission: each case now lists the five direct input files and attributes i18n-report.json to the exact observed workdir report for its evidence run. The candidate program, skill instructions, source references, residual duties, and reference expectations are otherwise preserved. Expected impact is limited to allowing the already passing bounded action to complete validation and make its report output attributable; it does not change runtime behavior or the natural task result. Pre-edit checklist: (a) Generality: any future contract-driven localization task using this finalizer and a different contract root, source set, locale set, or report path benefits from the same direct-input/output attribution rule. (b) Rewrite-in-place: no vague skill section is being appended or rewritten in this repair; the requested defect is validation metadata, so the existing candidate action is kept and only its listed case fields are corrected. (c) Coherent scope: the smallest complete repair is two evidence-bound case mappings, one per clean run, with no package or skill-file edits. (d) The only PASSING task is skill:i18n-f9-9-repair-recovered:round-1 (Evidence 0 and 1, mean 1.000); this scoped metadata-only change preserves its exact source transformation, required outputs, protected-file handling, and semantic residual duties, so it cannot plausibly lower that task's score. The finalizer remains bounded to the public React react-i18next v2 contract; unsupported contracts, semantic translation, interpolation judgment, runtime wiring, protected-file preservation, and fallback workflow remain agent responsibilities.",
+  "confidence": 0.99,
+  "changedFiles": [],
+  "changes": [],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "Delegate the bounded contract-finalizer route with contract and project-root parameters, require Node.js and the bundled script, use the contract ABI and observed report as the check source, and keep semantic translation, wiring, and protected-file review with the agent; implemented because the existing action and documented route are retained and its validation attribution is repaired.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "Choose applicability, review translation meaning and interpolation, verify framework initialization/runtime behavior, preserve protected files, and use the original workflow for unsupported or failed inputs."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "Parameterize --contract and --root and derive source, locale, required-file, and report locations from the supplied contract rather than fixed project names; check against the contract and captured resources; implemented because both observed runs use the same portable interface and the repaired cases bind only its direct files.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "Supply valid project-specific paths and ensure the contract's declared files and ABI are appropriate before invoking the helper."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "Perform confirmed-key extraction, t()-call checking, locale-key parity checking, closed-ABI validation, and report serialization in one reusable command; check source is the contract plus the finalizer's observed successful operation; implemented because the script already provides this consecutive mechanical boundary and the repair now attributes its output correctly.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "Make semantic translation and interpolation decisions before execution and interpret any non-success without claiming completion."
+    },
+    {
+      "category": "artifact-production",
+      "summary": "Produce the contract-declared JSON report after extracting and validating keys, with report path supplied by the contract and the captured i18n-report.json as the fidelity reference; implemented because the action writes a real report and each repaired case names that output rather than treating the checker as the whole workflow.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "Provide and review the transformed source, initialization, and locale artifacts; the report does not replace semantic translation or runtime review."
+    },
+    {
+      "category": "verification",
+      "summary": "Verify confirmed keys, t() calls, locale parity, required files, closed report ABI, and the generated report through the finalizer; check sources are the contract, script, successful operations, and exact captured report references; implemented because input/output attribution is now executable for both clean cases.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "Do not treat the bounded report check as proof of translation quality, interpolation correctness, framework runtime behavior, or protected-file preservation."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "Retain Node.js as the runtime precondition and use a package-relative script path rather than a deployment-specific prefix; check source is the Node source interface and the skill's finalizer instruction; retained because the existing portable route already states this dependency and the repair does not alter it.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "retained",
+      "residualDuty": "Confirm Node.js availability and continue the fallback workflow when the runtime, input, or contract is unsupported."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Keep semantic translation, interpolation conversion, framework initialization/runtime behavior, applicability, protected-file preservation, and fallback handling with the agent; check source is the skill's explicit finalizer next-step and residual-duty instructions; retained because the executable only enforces the source-established structural boundary.",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must perform every listed judgment and must not claim success when the helper exits nonzero or is not applicable."
+    }
+  ],
+  "actions": [
+    {
+      "id": "portable-contract-finalizer-route",
+      "kind": "reuse-script",
+      "evidenceIds": [
+        "0",
+        "1"
+      ],
+      "sourceRefs": [
+        "SKILL.md#工作流程 / 5. 完整性检查",
+        "scripts/i18n-contract-tool.mjs",
+        "evidence:0#Conversation-Log-23-24",
+        "evidence:1#Conversation-Log-36"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "--contract path supplied by the current project",
+        "--root project directory supplied by the current project"
+      ],
+      "outputs": [
+        "contract.report.path JSON report",
+        "concise JSON completion summary on stdout"
+      ],
+      "preconditions": [
+        "Node.js is available",
+        "the contract is skill-ir-i18n-helper-public-contract/v2 with framework react-i18next",
+        "source and locale files have been reviewed and created"
+      ],
+      "constraints": [
+        {
+          "description": "The helper is bounded to the public React react-i18next v2 contract.",
+          "scope": "skill",
+          "sourceRef": "scripts/i18n-contract-tool.mjs#finalize"
+        },
+        {
+          "description": "Contract-declared allowed, required, protected, and report paths come from the current project contract.",
+          "scope": "task",
+          "sourceRef": "evidence:0#taskPrompt"
+        }
+      ],
+      "validation": {
+        "cases": [
+          {
+            "args": [
+              "finalize",
+              "--contract",
+              "./i18n-contract.json",
+              "--root",
+              "."
+            ],
+            "id": "repair-output-portable-contract-finalizer-route-0-1",
+            "evidenceId": "0",
+            "inputSource": "workdir-snapshot",
+            "inputFiles": [
+              "i18n-contract.json",
+              "src/App.tsx",
+              "src/i18n.ts",
+              "src/locales/zh-CN.json",
+              "src/locales/en-US.json"
+            ],
+            "expectedFiles": [
+              {
+                "path": "i18n-report.json",
+                "referencePath": ".optimize/tasks/skill-i18n-f9-9-repair-recovered-round-1/run-0-workdir/i18n-report.json"
+              }
+            ],
+            "basis": "reference-output",
+            "sourceRefs": [
+              "gzip-pi-events:tool-call:call_8T9Wervyv90kZZyNH1ZjXnhu#tool-call/unknown-0",
+              ".optimize/tasks/skill-i18n-f9-9-repair-recovered-round-1/run-0-workdir/i18n-report.json",
+              "SKILL.md#工作流程 / 5. 完整性检查",
+              "scripts/i18n-contract-tool.mjs"
+            ]
+          },
+          {
+            "args": [
+              "finalize",
+              "--contract",
+              "./i18n-contract.json",
+              "--root",
+              "."
+            ],
+            "id": "repair-output-portable-contract-finalizer-route-1-1",
+            "evidenceId": "1",
+            "inputSource": "workdir-snapshot",
+            "inputFiles": [
+              "i18n-contract.json",
+              "src/App.tsx",
+              "src/i18n.ts",
+              "src/locales/zh-CN.json",
+              "src/locales/en-US.json"
+            ],
+            "expectedFiles": [
+              {
+                "path": "i18n-report.json",
+                "referencePath": ".optimize/tasks/skill-i18n-f9-9-repair-recovered-round-1/run-1-workdir/i18n-report.json"
+              }
+            ],
+            "basis": "reference-output",
+            "sourceRefs": [
+              "gzip-pi-events:tool-call:call_DFjC7ZID5jzxerNYJ0js8Yub#tool-call/unknown-0",
+              ".optimize/tasks/skill-i18n-f9-9-repair-recovered-round-1/run-1-workdir/i18n-report.json",
+              "SKILL.md#工作流程 / 5. 完整性检查",
+              "scripts/i18n-contract-tool.mjs"
+            ]
+          }
+        ]
+      },
+      "changedPaths": [
+        "SKILL.md"
+      ],
+      "residualDuties": [
+        "choose applicability",
+        "review semantic translation and framework wiring",
+        "preserve protected files",
+        "continue fallback workflow after exit 2 or unsupported input"
+      ],
+      "verification": [
+        "invoke the script using a path relative to the directory containing SKILL.md",
+        "treat exit 2 as not-applicable and other failures as errors",
+        "inspect the generated report and remaining required outputs"
+      ]
+    }
+  ],
+  "actionDiagnostics": [],
+  "noChanges": false
+}

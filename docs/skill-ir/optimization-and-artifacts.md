@@ -105,6 +105,10 @@ C9 使用精确同一 Law batch package，在固定 Python 3.12.13 与归档依�
 
 ### 3.0.5 F1 实际操作来源索引（development）
 
+F10 真实消费回流另补齐 Pi 的 `read/write/edit/bash` 操作名称，并从绑定的事件 locator 保留实际 call ID。操作索引和验证补全复用消费层的已知技能根路径匹配，支持相对 `skill/` 与报告声明工作目录下的部署路径，不用任意文件名后缀匹配。原始 argv 和工具名称保持可追踪。
+
+自动验证的输入/输出归属以该次程序调用的明确绑定为先，不能把整段 trace 中 agent 编写的源码、配置、翻译都算作 finalizer 的输出，也不能因为其他步骤读取了无关参考文件而拒绝该程序。已有资源但局部输出映射未知时，只生成不执行的 metadata repair 候选，明确缺 `inputFiles/expectedFiles`；由现有一次 repair 补全。`buildRepairFeedback` 与 `mergeRepairSubmission` 可复用同一局部约束，不另增修复服务或 CLI。回归见 operation-context、validation-completion 和 production-closure tests。
+
 revision-2 F1 新增 `src/jit-optimize/operation-context.ts`，从标准化 `AgentStep[]` 或 `Evidence.conversationLog` 中整理实际 tool-call。它只保留真实的 `toolCallId`、调用定位、原始命令/路径、可无歧义解析的 argv、cwd、读写文件、退出状态和工具报告耗时；正文提及的脚本不会成为操作。嵌套 shell、管道、重定向、动态命令和缺少必要入口保留为 `unknown`，并携带完整 source locator。可选的 source-entry 集合只用于报告未调用事实，不用于访问宿主文件或推导成功。
 
 `serializeContext` 将每条 evidence 的 `operations` 与 `operationSummary` 写入 `IMPLEMENTATION_CONTEXT.json`，同时声明操作记录仅来自实际调用。summary 分开记录观察数、未知数、重复入口、先写后执行和 source entry 未调用；`existing-entry`、`written-entry` 与 `unknown` 关系不等同于可泛化机会，仍由 optimizer 结合语义判断。验证入口为 `bun test ./test/jit-optimize/operation-context.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/trace-adapters.test.ts` 与 `bun run typecheck`。

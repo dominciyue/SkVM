@@ -1,30 +1,37 @@
 {
   "schemaVersion": "skill-ir-general-generation-reinforcement-report/v1",
-  "date": "2026-09-15",
-  "status": "completed-development",
+  "date": "2026-09-14",
+  "timezone": "UTC",
+  "status": "verified-pending-publication",
   "engineeringStatus": "completed-bounded",
   "realUseStatus": "completed-with-recorded-recovery-and-limited-scope",
   "effectStatus": "negative",
-  "fullGoalComplete": true,
+  "fullGoalComplete": false,
   "implementationCommit": "8fb3bce",
   "publishedTo": "origin/skill-ir-aot",
   "package": {
-    "path": "f9/i18n-f9-recovered-package",
-    "origin": "Exact successful model write/edit events from F9.9 and its single model repair; no manual program edits",
+    "path": "f10-feedback-successor-2/package",
+    "origin": "Model revised the actually consumed F9.9 package using two real consumption traces. It changed SKILL.md entry guidance and reused the exact F9.9 model-generated program. No manual candidate edits.",
     "command": ["node", "<package>/scripts/i18n-contract-tool.mjs", "finalize", "--contract", "<project>/i18n-contract.json", "--root", "<project>"],
     "mechanicalSteps": ["extract confirmed source keys", "compare locale key coverage", "write the task-required report"],
     "remainingDuties": ["translation meaning", "source interpolation conversion", "locale/config creation", "framework runtime review"],
-    "currentSharedValidation": "f9/i18n-f9-9-semantic-revalidated/verification.json",
+    "currentSharedValidation": "f10-validation-repair/verification.json",
     "independentInternalCases": 0,
     "delivery": "draft",
-    "immutableManifestCaveat": "Consumed package preserves the old not-run summary; the later shared status fix is recorded separately without mutating it."
+    "immutableManifestCaveat": "The exact consumed package retains its original not-run manifest. One metadata-only model repair then passed two current shared cases without changing any package file. This receipt does not promote independent quality.",
+    "priorPackage": "f9/i18n-f9-recovered-package"
   },
   "evidence": {
-    "attemptsAndCosts": "f9/attempt-reconciliation-through-f9-10.json",
-    "consumptionAndEffect": "f9/consumption-effect.json",
-    "sameHostIsolation": "f9/isolation/verification.json",
+    "attemptsAndCosts": "final-costs.json",
+    "attemptDetails": "f10-attempt-reconciliation.json",
+    "consumptionAndEffect": "f10-effect.json",
+    "priorEightUnitMatrix": "f9/consumption-effect.json",
+    "sameHostIsolation": "f10-isolation/verification.json",
     "modelLineage": "f9/f9-9-lineage/index.json",
-    "verification": "f9/semantic-guardrails-verification.json"
+    "successorModelLineage": "f10-feedback-successor-2/lineage/index.json",
+    "verification": "f11-verification.json",
+    "taskbookAudit": "completion-audit.json",
+    "summary": "completion-summary.md"
   },
   "minimumConditions": {
     "sharedDefaultWiring": "covered by production integration tests",
@@ -45,7 +52,7 @@
     "optimizedPassed": 4,
     "scope": "Report sets ignore ordering; harmless empty representations/commentary accepted. Source, locale and interpolation checks unchanged. Translation meaning is not mechanically proven."
   },
-  "effect": {
+  "priorPackageEffect": {
     "toolCalls": { "original": 90, "optimized": 99 },
     "inputTokens": { "original": 103071, "optimized": 210716 },
     "outputTokens": { "original": 12245, "optimized": 14247 },
@@ -54,10 +61,31 @@
     "actualUsd": null,
     "warning": "Observed tokens are not USD; concurrent provider/cache conditions prevent stable latency claims."
   },
+  "effect": {
+    "pairs": 3,
+    "quality": { "originalPassed": 3, "optimizedPassed": 3 },
+    "toolCalls": { "original": 62, "optimized": 64 },
+    "inputTokens": { "original": 58828, "optimized": 190516 },
+    "outputTokens": { "original": 8371, "optimized": 13689 },
+    "cacheReadTokens": { "original": 44032, "optimized": 98048 },
+    "durationMs": { "original": 338934, "optimized": 504774 },
+    "programRewrites": { "original": 0, "optimized": 0 },
+    "actualUsd": null,
+    "scope": "Three preselected successor units matched to existing source baselines; same input/task/model/runtime, later cache/provider conditions. Not a new complete matrix or stable speed estimate."
+  },
+  "f10Closure": {
+    "originalCaptureRegeneration": "f10-successor: docs-only, retained and not counted as program revision",
+    "preModelFailure": "f10-feedback-successor: CLI record-count mismatch, zero model calls",
+    "feedbackSuccessor": "f10-feedback-successor-2: model revised guidance and retained executable program",
+    "naturalUse": "3/3 units invoked the program with exit zero; 15/15 structural checks passed",
+    "sharedRepairs": ["Pi operation aliases and call IDs", "known deployed entry matching", "operation-local input/output ownership instead of whole-trace writes"],
+    "metadataRepair": "Exactly one real runOptimizer repair reused shared feedback, merge and validation; actualChangedFiles=[], 2/2 cases passed, independent=0"
+  },
   "remaining": [
     "The successful program required recovery after shared wiring fixes; do not claim first-pass success. First-pass success is not an added taskbook gate.",
     "Only report production succeeded; second structure and whole-skill transformation are not proven.",
-    "Shared root-relative/minimal-audit guidance is implemented but no benefit is attributed to an untested successor package.",
-    "No new model sampling without a concrete shared cause; preserve missing historical costs as unknown."
+    "The successor is tested on three selected units only; gpt-5.5 changed-task use and cross-OS use are untested.",
+    "Internal validation is fidelity/self-check, not an independent semantic oracle. The preserved manifest remains draft/not-run; the later validation receipt is separate.",
+    "No optimization benefit established for either package. Preserve missing historical costs as unknown; no repeated sampling for positive results."
   ]
 }
