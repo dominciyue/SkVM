@@ -1,0 +1,204 @@
+{
+  "schemaVersion": "jit-optimize-validation-lifecycle/v1",
+  "createdAt": "2026-09-14T00:54:29.950Z",
+  "round": 1,
+  "sourceMode": "execution-log-local-validation",
+  "sourceTaskReplayed": false,
+  "actions": [
+    {
+      "actionId": "route-contract-bound-work",
+      "kind": "restructure-docs",
+      "implementation": {
+        "actionId": "route-contract-bound-work",
+        "kind": "restructure-docs",
+        "inputs": [
+          "task-supplied machine-readable contract path",
+          "source document path"
+        ],
+        "outputs": [
+          "only outputs declared by the active task contract"
+        ],
+        "preconditions": [
+          "the task actually supplies a readable machine-readable contract",
+          "the agent can determine whether the bundled CLI is compatible with that contract"
+        ],
+        "residualDuties": [
+          "interpret contract semantics and classify the document",
+          "manually satisfy contract-only output/report requirements when the CLI is incompatible"
+        ],
+        "verification": [
+          "confirm the instructions preserve default behavior when no contract is supplied",
+          "for contract-bound work, re-read protected inputs and all declared outputs and compare them with the contract"
+        ],
+        "status": "selected"
+      },
+      "planStatus": "not-applicable",
+      "planDiagnostics": [
+        {
+          "code": "implementation-not-executable",
+          "message": "Documentation-only action has no program behavior to execute and no declared validated dependency."
+        }
+      ],
+      "independentCaseIds": [],
+      "selfCheckCaseIds": [],
+      "programStatus": "not-run",
+      "validationBinding": {
+        "sha256": "aa473b96f17877efefc2dbc2e8d122ed9c6db37d032180b4a79fc2bedc0c8cb7",
+        "dependencyAnalysis": "conservative",
+        "candidateFiles": [
+          {
+            "path": "SKILL.md",
+            "sha256": "5b820732cc21b62ce6fa9934c9edbb7443adf98981213a5c6559458dc70ad1ae"
+          }
+        ],
+        "evidenceSha256": "e5c4e278a78b75844b1ee4a11464018011e9005d46310c04a4df8befde63a9d4"
+      },
+      "validationSource": "executed"
+    },
+    {
+      "actionId": "make-common-cli-independent-of-unused-fallbacks",
+      "kind": "reuse-script",
+      "implementation": {
+        "actionId": "make-common-cli-independent-of-unused-fallbacks",
+        "kind": "reuse-script",
+        "inputs": [
+          "input path supplied by the user",
+          "optional law decision and artifact level"
+        ],
+        "outputs": [
+          "review report and conditionally a final Markdown deliverable"
+        ],
+        "preconditions": [
+          "Python is available",
+          "format-specific packages are installed only when the corresponding local fallback is selected"
+        ],
+        "residualDuties": [
+          "select the correct classification parameter",
+          "obtain consent and ensure dependencies exist before PDF/DOCX fallback"
+        ],
+        "verification": [
+          "run `python scripts/law_to_markdown.py --help` without optional DOCX/PDF packages",
+          "run a TXT conversion and confirm minimal artifacts contain only review and deliverable"
+        ],
+        "status": "selected",
+        "entry": "scripts/law_to_markdown.py",
+        "runtime": "python"
+      },
+      "planStatus": "ready",
+      "planDiagnostics": [],
+      "independentCaseIds": [],
+      "selfCheckCaseIds": [
+        "txt-law-default-pipeline"
+      ],
+      "programStatus": "passed",
+      "program": {
+        "status": "passed",
+        "actionId": "make-common-cli-independent-of-unused-fallbacks",
+        "entry": "scripts/law_to_markdown.py",
+        "help": {
+          "id": "help",
+          "status": "passed",
+          "command": [
+            "python",
+            "D:\\skill优化\\SkVM\\.tmp-c8-cache\\tmp\\jit-optimize-D3euPs\\scripts\\law_to_markdown.py",
+            "--help"
+          ],
+          "cwd": "D:\\skill优化\\SkVM\\.tmp-c8-cache\\tmp\\jit-optimize-D3euPs",
+          "exitCode": 0,
+          "stdout": "usage: law_to_markdown.py [-h] [--out OUT] [--out-dir OUT_DIR]\r\n                          [--allow-fallback]\r\n                          [--docx-engine {auto,mineru,python-docx}]\r\n                          [--pdf-engine {auto,mineru,pdfplumber}]\r\n                          [--skip-mineru-ocr-skill]\r\n                          [--law-decision {auto,law,non-law}]\r\n                          [--skip-stage3-check]\r\n                          [--stage3-max-retries STAGE3_MAX_RETRIES]\r\n                          [--stage3-strict] [--no-stage3-strict]\r\n                          [--artifact-level {minimal,standard,debug}]\r\n                          input\r\n\r\nConvert law text files (.txt/.docx/.pdf) to Markdown.\r\n\r\npositional arguments:\r\n  input                 Input file path (.txt/.docx/.pdf)\r\n\r\noptions:\r\n  -h, --help            show this help message and exit\r\n  --out OUT             Output .md file path (overrides --out-dir)\r\n  --out-dir OUT_DIR     Output directory (default: create \"markdown/\" under\r\n                        input file directory)\r\n  --allow-fallback      Allow local fallback engines when mineru-ocr is\r\n                        unavailable or fails.\r\n  --docx-engine {auto,mineru,python-docx}\r\n                        DOCX extraction engine (default: auto = mineru-ocr\r\n                        skill; fallback needs --allow-fallback)\r\n  --pdf-engine {auto,mineru,pdfplumber}\r\n                        PDF extraction engine (default: auto = mineru-ocr\r\n                        skill; fallback needs --allow-fallback)\r\n  --skip-mineru-ocr-skill\r\n                        Skip calling installed mineru-ocr skill and use local\r\n                        fallback engines.\r\n  --law-decision {auto,law,non-law}\r\n                        Stage2 document type decision from caller (auto=rule\r\n                        fallback).\r\n  --skip-stage3-check   Skip Stage3 checking/report generation.\r\n  --stage3-max-retries STAGE3_MAX_RETRIES\r\n                        Maximum Stage3-driven retry count (default: 2).\r\n  --stage3-strict       Fail the run when Stage3 does not pass after retries.\r\n  --no-stage3-strict    Do not fail the run when Stage3 fails.\r\n  --artifact-level {minimal,standard,debug}\r\n                        Output artifact level: minimal|standard|debug\r\n                        (default: minimal).\r\n",
+          "stderr": "",
+          "outputFiles": [],
+          "assertions": [],
+          "diagnostics": []
+        },
+        "cases": [
+          {
+            "id": "txt-law-default-pipeline",
+            "status": "passed",
+            "command": [
+              "python",
+              "D:\\skill优化\\SkVM\\.tmp-c8-cache\\tmp\\jit-optimize-D3euPs\\scripts\\law_to_markdown.py",
+              "document.txt",
+              "--law-decision",
+              "law",
+              "--artifact-level",
+              "minimal"
+            ],
+            "cwd": "D:\\skill优化\\SkVM\\.tmp-c8-cache\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\skill\\20260914T005133846Z\\round-1-validation\\cases\\make-common-cli-independent-of-unused-fallbacks\\01-txt-law-default-pipeline",
+            "exitCode": 0,
+            "stdout": "Stage2 Retry: attempt=0 profile=default\r\nStage2 Classifier: law (provided-by-caller)\r\nStage2: applied (title=1, part=0, chapter=1, section=0, article=2, item_split=1, space_cleanup=2)\r\nStage3: attempt=0 A=PASS B=PASS overall=PASS\r\nSaved stage3 report: D:\\skill�Ż�\\SkVM\\.tmp-c8-cache\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\skill\\20260914T005133846Z\\round-1-validation\\cases\\make-common-cli-independent-of-unused-fallbacks\\01-txt-law-default-pipeline\\markdown\\document\\document.stage3-check.md\r\nSaved review report: D:\\skill�Ż�\\SkVM\\.tmp-c8-cache\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\skill\\20260914T005133846Z\\round-1-validation\\cases\\make-common-cli-independent-of-unused-fallbacks\\01-txt-law-default-pipeline\\markdown\\document\\document+��˱���.md\r\nSaved deliverable: D:\\skill�Ż�\\SkVM\\.tmp-c8-cache\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\skill\\20260914T005133846Z\\round-1-validation\\cases\\make-common-cli-independent-of-unused-fallbacks\\01-txt-law-default-pipeline\\markdown\\document\\document+���ճɹ�.md\r\nResult: APPROVED\r\n",
+            "stderr": "",
+            "outputFiles": [
+              {
+                "path": "markdown/document/document+审核报告.md",
+                "bytes": 2890,
+                "sha256": "5a74b491d726c5a2f18c6deeff54e021dd626e9e6ce3ace82ecf76440257786a"
+              },
+              {
+                "path": "markdown/document/document+最终成果.md",
+                "bytes": 248,
+                "sha256": "4205f5e7bf8b2b736feb6a6a8aa005035e5ba999355b3b4327b88da05e771d70"
+              }
+            ],
+            "assertions": [],
+            "diagnostics": []
+          }
+        ],
+        "diagnostics": []
+      },
+      "capabilityBoundary": {
+        "selectionMeaning": "entry-found-only",
+        "supportedCaseIds": [
+          "txt-law-default-pipeline"
+        ],
+        "notApplicableCaseIds": [],
+        "inputVariationAffectsOutput": false,
+        "parameterVariationAffectsOutput": false,
+        "rejectedBeforeWriteCaseIds": [],
+        "unverifiedInputs": [
+          "input path supplied by the user",
+          "optional law decision and artifact level"
+        ],
+        "unverifiedPreconditions": [
+          "Python is available",
+          "format-specific packages are installed only when the corresponding local fallback is selected"
+        ],
+        "residualAgentDuty": "Declared inputs and preconditions outside the executed cases remain unverified and must be handled by the agent."
+      },
+      "validationBinding": {
+        "sha256": "28e669bcff2d968202d2de8d156e0e4a2469432cb9677b6c7383eb623d8dc246",
+        "dependencyAnalysis": "conservative",
+        "candidateFiles": [
+          {
+            "path": "scripts/law_to_markdown.py",
+            "sha256": "b08800236f7da8dd260b98fe9ed1348769ced82176cb20a9edf5e189aa5a29fb"
+          },
+          {
+            "path": "SKILL.md",
+            "sha256": "5b820732cc21b62ce6fa9934c9edbb7443adf98981213a5c6559458dc70ad1ae"
+          }
+        ],
+        "evidenceSha256": "e5c4e278a78b75844b1ee4a11464018011e9005d46310c04a4df8befde63a9d4"
+      },
+      "validationSource": "executed"
+    }
+  ],
+  "resolution": {
+    "status": "not-run",
+    "retainedActionIds": [],
+    "unvalidatedActionIds": [
+      "route-contract-bound-work",
+      "make-common-cli-independent-of-unused-fallbacks"
+    ],
+    "rejected": [],
+    "feedback": [],
+    "rollbackGroups": []
+  },
+  "execution": {
+    "programRuns": 1,
+    "helpRuns": 1,
+    "caseRuns": 1,
+    "independentCaseRuns": 0,
+    "reusedActionObservations": 0
+  }
+}

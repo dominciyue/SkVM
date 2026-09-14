@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-14
 
-**当前已确认路线：** 第 14.32 节与[单次真实运行到新程序包任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1，状态 `active`。沿用已实现的采集、JIT 优化和导出组件，补原始输入内容、本地程序修改、修复动作采纳和同一新包的连续消费。U/G/H/R 历史结果原样保留；上一轮阶段收口不等于默认新程序生产闭环完成。Q1/held-out、旧 0/6、readiness 与冻结结果不变。
+**当前已确认路线：** 第 14.32 节与[单次真实运行到新程序包任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1，状态 `completed-development`。沿用已实现的采集、JIT 优化和导出组件，已补齐原始输入内容、本地程序修改、修复动作采纳和同一新包的连续消费。U/G/H/R 历史结果原样保留；本轮结论仍限于一个有界新程序职责。Q1/held-out、旧 0/6、readiness 与冻结结果不变。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
@@ -2386,9 +2386,13 @@ H 路线优先将现有组件接入真实日志优化路径：动作实施后执
 
 ## 14.32 原始输入、动作修复与同一新包的生产闭环
 
-2026-09-14 二次复核及执行合同，状态 active。执行依据为[新任务书 C0–C10](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md)。C0–C2 已完成：运行前用户文件现有界保存为 session 外部内容快照并与旧摘要 manifest 分开绑定；同一份副本现通过 Evidence 的 `inputResources.preRun` 进入 workspace 和验证器，旧 trace 继续兼容。C3 已完成：现成脚本按真实路径进入通用本地动作，`domain-backend` 保持 registered-only，误声明输出可修的 `action-kind-mismatch` 诊断，并由实现上下文明确 `reuse-script`、`generate-script` 与 `changedPaths` 语义；TXT 可执行，DOCX 缺依赖仍显式失败。C4 已完成：一次约束修复输入携带 baseline/candidate action、实际候选 diff、original intent 和失败诊断；只合并失败 action 的结构化元数据，metadata-only repair 仍执行，独立动作和最终 package/history/validation 绑定保留。C5 已完成：passing evidence 可提出有界的重复 I/O、脚本复用、参数化和确定检查机会；候选尝试与推荐分离，confidence 表示证据/边界/可行性，机会摘要必须说明接管步骤、参数、资源、检查与残余职责；合法 no-change 与 malformed/implemented-without-artifact 诊断分开。C6 已完成：无评分输入仍可在隔离候选根复用原 skill 的 `.skvm-validation.json`，并从绑定 task source 重读 contained file-check；source-derived、task requirement、self-check、保真引用和模型评价分开记录，错误输出、空程序和仅 stdout 均不能伪装成通过。C7 正在执行连续生产集成测试。
+2026-09-14 二次复核及执行合同，状态 completed-development。执行依据为[新任务书 C0–C10](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md)。C0–C2 已完成：运行前用户文件现有界保存为 session 外部内容快照并与旧摘要 manifest 分开绑定；同一份副本现通过 Evidence 的 `inputResources.preRun` 进入 workspace 和验证器，旧 trace 继续兼容。C3 已完成：现成脚本按真实路径进入通用本地动作，`domain-backend` 保持 registered-only，误声明输出可修的 `action-kind-mismatch` 诊断，并由实现上下文明确 `reuse-script`、`generate-script` 与 `changedPaths` 语义；TXT 可执行，DOCX 缺依赖仍显式失败。C4 已完成：一次约束修复输入携带 baseline/candidate action、实际候选 diff、original intent 和失败诊断；只合并失败 action 的结构化元数据，metadata-only repair 仍执行，独立动作和最终 package/history/validation 绑定保留。C5 已完成：passing evidence 可提出有界的重复 I/O、脚本复用、参数化和确定检查机会；候选尝试与推荐分离，confidence 表示证据/边界/可行性，机会摘要必须说明接管步骤、参数、资源、检查与残余职责；合法 no-change 与 malformed/implemented-without-artifact 诊断分开。C6 已完成：无评分输入仍可在隔离候选根复用原 skill 的 `.skvm-validation.json`，并从绑定 task source 重读 contained file-check；source-derived、task requirement、self-check、保真引用和模型评价分开记录，错误输出、空程序和仅 stdout 均不能伪装成通过。C7、C8、C9、C10 已完成；C10 合并回归、typecheck 和文档链接检查均通过。
 
 C7 已完成一条确定性生产集成链：自然任务和原始 skill 临时副本经过 run/session、Evidence/workspace、候选程序、独立检查、metadata-only repair、最终 snapshot、导出，并由同一包在原任务和语义变化任务中消费。旧包替换、空 actions 文档包和“任务完成但未调用 helper”三类反例由独立分析分别检出。4 个文件 26/26 tests、166 assertions，typecheck 通过；机器证据为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c7/verification.json`。由于 provider/optimizer 为进程内确定性替身，该结果仅证明工程接线，不计真实模型成功或产品闭环。
+
+C8 已完成五次真实 development 默认入口尝试，保持 Law/I18n 原始 source skill、输入摘要和 no-change/文档候选边界。Law batch 的 proposal `20260914T011753250Z` 由优化器生成非 API `scripts/contract_checker.py`，包文件闭包通过，内部 lifecycle 仍诚实标记 `behaviorStatus=not-run`、`deliveryStatus=draft`。Law single 的现成脚本复用也有真实尝试；I18n 两个 no-change 与一个文档候选没有被计为程序成功。机器证据为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c8/report.json`，精简 proposal 证据按 identity 归档。
+
+C9 已完成同一 Law batch 包的自然消费：在固定 Python 3.12.13 与声明依赖的 clean 环境中，普通 agent 只收到任务和 skill，在 original 与语义变化任务各处理 standard/statute 两个目录。optimized 两次运行各实际调用 `contract_checker.py` 两次并全部 exit 0；独立 checker 共 16 次报告 15 pass、1 fail，唯一失败是 source variation 证据路径绑定错误，因而也保留为可检出的 baseline 缺陷。早期无 `python-docx` 的失败/手工回退日志未覆盖，耗时与 token/tool-call 效果为 mixed，USD unknown。机器证据为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9/verification.json`。
 
 14.31 的历史基础设施和局部程序结果有效，但不能拼接为默认生产闭环成功：R6 当前候选最终 no-change 后消费历史 H8/H9 包，R7 从已优化 H9 包得到零程序动作的文档候选。新路线要求同一个原始 skill 的本次 capture、proposal、最终 snapshot、导出包和自然消费保持连续；旧包仅作回归对照。
 

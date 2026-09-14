@@ -1,0 +1,182 @@
+{
+  "entries": [
+    {
+      "timestamp": "2026-09-14T00:59:03.461Z",
+      "round": 1,
+      "rootCause": "The skill's generic workflow did not explain how an agent should treat a project-supplied i18n contract as the authoritative boundary for extraction, keys, interpolation, file scope, and reporting, so contract-driven tasks depended on the agent independently discovering and correctly coordinating those constraints rather than following an explicit skill procedure.",
+      "reasoning": "Evidence 0 is UNASSESSED, not failing, and runStatus=ok; therefore it supports visible workflow facts but no quality claim. The run shows a public contract containing exact scan, mutation, key, interpolation, exclusion, and report rules, while the baseline skill only advised broad project scanning, suggested keys, generic replacement, and key-difference checks. The agent successfully inferred the task-specific contract, but the gap is general: other contract- or manifest-driven React, Vue, Angular, gettext, Java, or Go localization tasks need the same precedence and verification discipline. The edit rewrites the existing workflow steps in place rather than appending overlapping guidance. It keeps the broad fallback workflow when no contract exists, so scope is preserved. Coherent scope: this is a documentation-only improvement because the evidence provides one React fixture and no independent check; generating a transformer or checker would overclaim parsing and correctness support. No-trade-off test: PER_TASK_SUMMARY.md contains no PASSING tasks, so there is no passing-task regression risk; the bounded contract-first branch also leaves unconstrained tasks on the original framework-detection path. Generality test: a Vue task with an extraction manifest or a gettext task with an exact POT/report contract would benefit from the same contract-first ordering, exact-field discipline, and final parity checks. Expected impact is reduced guessing, accidental over-scanning, unauthorized file edits, key drift, and placeholder/report inconsistency on future constrained tasks; no numeric score improvement is asserted because Evidence 0 has no evaluator score.",
+      "changes": [
+        {
+          "file": "SKILL.md",
+          "section": "工作流程（项目分析、扫描、生成、替换、完整性检查）",
+          "description": "Rewrites the existing workflow to give project contracts precedence, parameterize scope and exact fields, preserve key/interpolation identity, and perform contract-aware file, key, placeholder, and parseability checks.",
+          "generality": "A different Vue localization task driven by a manifest, or a gettext task with an exact report contract, would use the same contract-first boundaries and parity verification without relying on React-specific values.",
+          "linesDelta": 0
+        }
+      ],
+      "changedFiles": [
+        "SKILL.md"
+      ],
+      "actions": [
+        {
+          "id": "clarify-contract-first-workflow",
+          "kind": "restructure-docs",
+          "evidenceIds": [
+            "0"
+          ],
+          "sourceRefs": [
+            "SKILL.md#工作流程",
+            ".optimize/tasks/natural-f57610890e79/run-0-pre-run-inputs/i18n-contract.json",
+            ".optimize/tasks/natural-f57610890e79/run-0.md#Conversation-Log"
+          ],
+          "dependsOn": [],
+          "inputs": [
+            "an optional project-supplied i18n contract, manifest, or configuration",
+            "the user-declared or discovered source files and existing project metadata"
+          ],
+          "outputs": [
+            "a contract-bounded extraction, replacement, locale-generation, reporting, and verification procedure in SKILL.md"
+          ],
+          "preconditions": [
+            "the agent can read the project instructions and relevant local files"
+          ],
+          "constraints": [
+            {
+              "description": "The skill supports multiple frameworks and output formats and must retain a discovery fallback when no contract is present.",
+              "scope": "skill",
+              "sourceRef": "SKILL.md#支持的-i18n-框架"
+            },
+            {
+              "description": "Evidence 0's exact paths, framework, no-network rule, and report fields are task-scoped examples rather than permanent defaults.",
+              "scope": "task",
+              "sourceRef": ".optimize/tasks/natural-f57610890e79/run-0.md#Task"
+            }
+          ],
+          "changedPaths": [
+            "SKILL.md"
+          ],
+          "residualDuties": [
+            "interpret semantic user-visible text when no exact confirmation rule exists",
+            "produce accurate translations and preserve behavior",
+            "select and run project-appropriate validation where available"
+          ],
+          "verification": [
+            "confirm the rewritten workflow preserves the no-contract fallback and all previously supported frameworks",
+            "confirm the instructions distinguish exact contract fields from fallback heuristics and include key, placeholder, path, exclusion, and parseability checks"
+          ]
+        }
+      ],
+      "actionDiagnostics": [],
+      "validation": {
+        "status": "not-run",
+        "reportPath": "round-1-validation/report.json",
+        "retainedActionIds": [],
+        "unvalidatedActionIds": [
+          "clarify-contract-first-workflow"
+        ],
+        "rejectedActionIds": [],
+        "programRuns": 0,
+        "caseRuns": 0,
+        "independentCaseRuns": 0
+      },
+      "confidence": 0.88,
+      "trainScore": null,
+      "testScore": null,
+      "improved": null
+    }
+  ],
+  "bestRound": 1,
+  "bestRoundReason": "optimized draft has no concrete local program failure but remains partially or wholly unvalidated",
+  "rounds": [
+    {
+      "round": 0,
+      "isBaseline": true,
+      "trainScore": null,
+      "testScore": null,
+      "trainPassed": 0,
+      "trainTotal": 0,
+      "testPassed": 0,
+      "testTotal": 0,
+      "perTaskTrainScores": {},
+      "perTaskTestScores": {},
+      "targetAgent": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "runs": 0,
+        "durationMs": 0
+      },
+      "evalJudge": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "calls": 0
+      },
+      "optimizer": null,
+      "historyEntry": null
+    },
+    {
+      "round": 1,
+      "isBaseline": false,
+      "trainScore": null,
+      "testScore": null,
+      "trainPassed": 0,
+      "trainTotal": 0,
+      "testPassed": 0,
+      "testTotal": 0,
+      "perTaskTrainScores": {},
+      "perTaskTestScores": {},
+      "targetAgent": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "runs": 0,
+        "durationMs": 0
+      },
+      "evalJudge": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "calls": 0
+      },
+      "optimizer": {
+        "tokens": {
+          "input": 70029,
+          "output": 6878,
+          "cacheRead": 252800,
+          "cacheWrite": 0
+        },
+        "costUsd": 0
+      },
+      "historyEntry": null,
+      "validation": {
+        "status": "not-run",
+        "reportPath": "round-1-validation/report.json",
+        "retainedActionIds": [],
+        "unvalidatedActionIds": [
+          "clarify-contract-first-workflow"
+        ],
+        "rejectedActionIds": [],
+        "programRuns": 0,
+        "caseRuns": 0,
+        "independentCaseRuns": 0
+      }
+    }
+  ]
+}

@@ -93,7 +93,13 @@ G4 的 optimizer 合同允许从一次成功但未评分的运行中提出有依
 
 本轮 C7 的确定性集成测试以普通自然任务目录和原始 skill 临时副本为输入，调用现有 run/session、Evidence/workspace、优化候选、独立验证、metadata-only repair、最终 snapshot 与包导出路径；同一导出包随后在原输入和语义变化输入中消费。测试还独立注入历史包替换、空 actions 文档包和未调用声明 helper 的反例，分别保持连续性、可执行程序存在性和 helper 消费结论的边界。
 
-该测试使用进程内 provider/optimizer 替身，只证明生产对象之间的接线和失败隔离，不计真实模型成功、自然语言质量、效果、readiness 或人工节省。机器证据见 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c7/verification.json`；后续 C8 必须通过普通 `run --prompt --skill --workdir --model --optimize` 入口验证真实源 skill。
+该测试使用进程内 provider/optimizer 替身，只证明生产对象之间的接线和失败隔离，不计真实模型成功、自然语言质量、效果、readiness 或人工节省。机器证据见 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c7/verification.json`；C8/C9 随后通过普通 `run --prompt --skill --workdir --model --optimize` 入口验证了真实源 skill 与同一新包的自然消费。
+
+### 3.0.4 C8/C9 真实默认入口与同包消费（development）
+
+C8 对 Law To Markdown 与 I18n Helper 的原始 source skill 各执行已暴露 development 输入的普通入口尝试，共 5 次 source capture/proposal。Law single 保留现成脚本复用候选；两个 I18n 贡献任务为 no-change，I18n basic 为文档候选；Law batch proposal `20260914T011753250Z` 由本轮优化器实际生成非 API `scripts/contract_checker.py`。该程序只接管公开契约的机械边界（受保护输入存在、审核证据结构、产物一致性、字符流、列举项换行和 exact output set），分类、输入前后摘要和语义质量仍由 agent 承担。包闭包通过但内部行为状态诚实保持 `not-run`/`draft`，不以包清单替代独立行为证据。C8 机器报告为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c8/report.json`。
+
+C9 使用精确同一 Law batch package，在固定 Python 3.12.13 与归档依赖锁的 clean 环境中运行原任务和修改条款/新增条款的语义变化任务。普通 agent 的 prompt 没有泄露 helper 路径；execution log 显示 optimized 两组各实际调用 `contract_checker.py` 两次并以 exit 0 返回。独立 checker 对四个 primary roots 的 16 次检查为 15 pass、1 fail；唯一失败是 source variation 报告把 deliverable 写成了错误的带目录前缀路径，属于被检出的 baseline 绑定缺陷，optimized variation 通过并保留语义变更。早期无 `python-docx` 的 clean 缺依赖尝试原样保留，不能被手工补写产物冒充程序成功。耗时、token 和 tool-call 成对指标为 mixed，provider USD unknown；结果不构成总体优化收益、人工节省或 readiness。C9 机器报告为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9/verification.json`。
 
 无人工评分文件时，`runOptimizationValidationLifecycle` 仍可在隔离候选根执行有界检查：它从绑定 task source 重读 contained `file-check`，并从原始 source skill 的 `skvm-skill-validation/v1` `.skvm-validation.json` 派生 `source-derived` 断言。source manifest 只从 `sourceSkillDir` 读取，候选副本不能把自写规则提升为权威；source/task assertion、self-check、保真引用和模型评价在报告中分开。空程序、仅 help/exit 0/stdout “PASS” 或错误文件会被当前断言拒绝，缺输入只使关联动作 unresolved/unassessed，独立动作仍可运行。该来源检查只覆盖声明的局部文件不变量，不能代表整个 skill 或专业质量。C6 机器证据为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c6/verification.json`。
 

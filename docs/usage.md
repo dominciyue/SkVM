@@ -174,6 +174,14 @@ python -B .\optimized-skill\scripts\law_to_markdown.py .\project\document.txt --
 
 H13 verified that command after a single copy to a fresh Windows temporary directory: package closure passed before and after, Stage3 A/B/overall passed, the input and package digests were unchanged, and no research-root path was embedded. This covers TXT only. PDF/DOCX still follow `SKILL.md`: use the configured `mineru-ocr` route, or install `python-docx>=1.1.0` and `pdfplumber>=0.11.0` only for an explicitly authorized local fallback.
 
+The current C8/C9 development package is a bounded contract checker rather than a whole-skill replacement. Its shortest local invocation is:
+
+```powershell
+python -B .\law-batch-package\scripts\contract_checker.py --root .\case --contract .\case\law-contract.json --source .\case\document.txt
+```
+
+The package was naturally consumed through the ordinary `run --prompt --skill --workdir --model` entry on an original and a semantic-variation Law task. A clean reproduction used Python 3.12.13 and the pinned dependency record at `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9/dependencies.lock.txt`; the generated checker itself uses only the Python standard library. The checker covers protected-input presence, review-evidence shape/consistency, character-stream preservation, enumerated-item lines, and exact output sets. Classification, pre/post input hashes, and semantic quality remain agent duties. See the C8/C9 reports before treating a package as a validated recommendation.
+
 ## `bench`
 
 Runs benchmark conditions over tasks, skills, and models. Logs and reports land under `~/.skvm/log/bench/{sessionId}/`.

@@ -1,0 +1,199 @@
+{
+  "schemaVersion": "skill-ir-skill-optimization-c9-natural-consumption/v1",
+  "identity": "skill-optimization-end-to-end-repair-20260914",
+  "stage": "C9",
+  "date": "2026-09-14",
+  "exposure": "development",
+  "packageBinding": {
+    "package": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c8/law-batch-package",
+    "packageIdentity": "skill:20260914T011753250Z:round-1",
+    "selectedClosureSha256": "1aa8d12f07e4aec7b09813a3a37e3a3766db7d7d16ae234ad221cedb8559ae8c",
+    "sourceSkill": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+    "optimizerProposal": "20260914T011753250Z",
+    "agentPromptDisclosure": "The prompt described the task and public contract only; it did not name contract_checker.py or require a helper call.",
+    "localProgramDuty": "contract_checker.py checks only declared mechanical contract invariants; classification, protected-input pre/post comparison, and semantic quality remain agent duties."
+  },
+  "cleanEnvironment": {
+    "python": "3.12.13",
+    "dependencyLock": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9/dependencies.lock.txt",
+    "preparation": "A fresh .tmp-c9-clean-venv was prepared once before the runs; the natural tasks were instructed not to install packages or use the network.",
+    "runtimePath": ".tmp-c9-clean-venv/Scripts/python.exe",
+    "logCache": ".tmp-c8-cache",
+    "sessionArchives": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9/sessions/"
+  },
+  "preCleanRuns": [
+    {
+      "run": "optimized-original-preclean",
+      "log": ".tmp-c8-cache/log/20260914-092607-run/conv-001-natural-ad0a448be57f.jsonl",
+      "logSha256": "d41b845ddbd6e329ed8c1d1ce781f1807d990d557616672c35a417230052a53b",
+      "observation": "The package checker was invoked and passed, but the package conversion-script help probe failed with ModuleNotFoundError: No module named 'docx'; the agent then completed outputs manually. This run is retained as failure evidence and is not counted as program completion."
+    },
+    {
+      "run": "optimized-variation-preclean",
+      "log": ".tmp-c8-cache/log/20260914-092840-run/conv-001-natural-ad0a448be57f.jsonl",
+      "logSha256": "f0477d8b314c50ef8e80a7c07c8c5c5c02e0f5ea3b7731b430f343f50e1cca28",
+      "observation": "The conversion script failed on the missing docx import; the agent manually wrote outputs and then the generated checker passed. This run is retained and not counted as the clean primary comparison."
+    },
+    {
+      "run": "source-original-preclean",
+      "log": ".tmp-c8-cache/log/20260914-092420-run/conv-001-natural-ad0a448be57f.jsonl",
+      "logSha256": "23589c59638c3fbca72e7b8cbe3a79b265ac8d4534cc36fc41644746aac73cd7",
+      "observation": "Source task completed with manual/source checks and no generated-package helper call."
+    },
+    {
+      "run": "source-variation-preclean",
+      "log": ".tmp-c8-cache/log/20260914-092720-run/conv-001-natural-ad0a448be57f.jsonl",
+      "logSha256": "2b6fdfc5bcd53db3ec4618e0e7d7f2bae94fd68b36e5bae7ae6542f0ff1d49fa",
+      "observation": "Source task completed with manual/source checks and no generated-package helper call."
+    }
+  ],
+  "primaryRuns": [
+    {
+      "id": "source-original",
+      "runId": "natural-ad0a448be57f",
+      "skill": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+      "workdir": ".tmp-c9-clean-source-original",
+      "session": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9/sessions/source-original.json",
+      "log": ".tmp-c8-cache/log/20260914-093609-run/conv-001-natural-ad0a448be57f.jsonl",
+      "logSha256": "16a9648d7f5860a4a974a94ce747cb75ccb79ee584bd88e77afb0d7fc5cf9b7e",
+      "durationMs": 65800,
+      "usage": { "input": 35308, "output": 2389, "cacheRead": 28672, "cacheWrite": 0 },
+      "modelToolCalls": 34,
+      "generatedHelperCalls": 0,
+      "taskStatus": "ok",
+      "independentChecker": { "standard": "passed", "statute": "passed" }
+    },
+    {
+      "id": "optimized-original",
+      "runId": "natural-ad0a448be57f",
+      "skill": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c8/law-batch-package/SKILL.md",
+      "workdir": ".tmp-c9-clean-optimized-original",
+      "session": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9/sessions/optimized-original.json",
+      "log": ".tmp-c8-cache/log/20260914-093724-run/conv-001-natural-ad0a448be57f.jsonl",
+      "logSha256": "d5628cd6524fee4aa62a369d723194293f0ecc773fa338bf8ece7bd5b18c2114",
+      "durationMs": 58800,
+      "usage": { "input": 36377, "output": 1909, "cacheRead": 43264, "cacheWrite": 0 },
+      "modelToolCalls": 25,
+      "generatedHelperCalls": 2,
+      "helperEvidence": [
+        { "logRow": 20, "toolCallId": "call_q42fGZdUkcjgUxdOAd7U0Ghs", "case": "standard", "exitCode": 0, "status": "passed" },
+        { "logRow": 20, "toolCallId": "call_7ozgW2XGfobbUyaeqRUFyg0a", "case": "statute", "exitCode": 0, "status": "passed" }
+      ],
+      "taskStatus": "ok",
+      "independentChecker": { "standard": "passed", "statute": "passed" }
+    },
+    {
+      "id": "source-variation",
+      "runId": "natural-ad0a448be57f",
+      "skill": "benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md",
+      "workdir": ".tmp-c9-clean-source-variation",
+      "session": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9/sessions/source-variation.json",
+      "log": ".tmp-c8-cache/log/20260914-093838-run/conv-001-natural-ad0a448be57f.jsonl",
+      "logSha256": "42bc7a727fae4a2d13a41b59ae198c3d498085048469ffa44609178c0d18813d",
+      "durationMs": 82600,
+      "usage": { "input": 39084, "output": 2976, "cacheRead": 47488, "cacheWrite": 0 },
+      "modelToolCalls": 44,
+      "generatedHelperCalls": 0,
+      "taskStatus": "ok",
+      "independentChecker": { "standard": "passed", "statute": "failed" },
+      "detectedBaselineDefect": {
+        "codes": ["review-deliverable-path-mismatch", "exact-output-set-mismatch"],
+        "detail": "The source review evidence named statute/markdown/document/document+最终成果.md instead of the contract-relative markdown/document/document+最终成果.md; the independent checker rejected the binding even though the final document's canonical character stream was preserved."
+      }
+    },
+    {
+      "id": "optimized-variation",
+      "runId": "natural-ad0a448be57f",
+      "skill": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c8/law-batch-package/SKILL.md",
+      "workdir": ".tmp-c9-clean-optimized-variation",
+      "session": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9/sessions/optimized-variation.json",
+      "log": ".tmp-c8-cache/log/20260914-094012-run/conv-001-natural-ad0a448be57f.jsonl",
+      "logSha256": "e2578e5486f766f5bef6f7e419873dca5a764a58ea2872d41d85955ded9ea1a7",
+      "durationMs": 70000,
+      "usage": { "input": 26512, "output": 2355, "cacheRead": 36224, "cacheWrite": 0 },
+      "modelToolCalls": 26,
+      "generatedHelperCalls": 2,
+      "helperEvidence": [
+        { "logRow": 16, "toolCallId": "call_pKFE5W3BZk2yPuwbE5sTFOpd", "case": "standard", "exitCode": 0, "status": "passed" },
+        { "logRow": 16, "toolCallId": "call_0WHFJFB6xyymNweoO4iyGIm5", "case": "statute", "exitCode": 0, "status": "passed" }
+      ],
+      "taskStatus": "ok",
+      "independentChecker": { "standard": "passed", "statute": "passed" }
+    }
+  ],
+  "inputRelation": {
+    "parentDocument": "statute/document.txt",
+    "parentSha256": "482ae0b61e044af93b7f096b329a549aa04ffae375a02ca5f971caefa5c258de",
+    "variationSha256": "c8d0da84d5a9eb7207dbb6d1a89cab60a5a771a9587a0581ac0cb4b85ca8a3d1",
+    "transformation": "Changed 第二条 from 公开、公平 to 公开、公平、审慎 and appended 第三条 监管应当依法进行; standard input and both contracts were unchanged.",
+    "semanticCheck": "The optimized variation deliverable preserved the changed phrase and added article; its canonical source-character stream matched the variation source."
+  },
+  "independentVerification": {
+    "checkerEntry": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c8/law-batch-package/scripts/contract_checker.py",
+    "cases": 8,
+    "caseRoots": 8,
+    "contractChecks": 16,
+    "passed": 15,
+    "failed": 1,
+    "failureIs": "source baseline binding defect, not an optimized-package failure",
+    "protectedInputRoots": "4/4 primary roots retained all four protected files with the expected parent or variation digests",
+    "optimizedRoots": "4/4 contract checks passed across original and variation roots",
+    "sourceRoots": "3/4 contract checks passed; the sole failure is the source variation evidence-path defect recorded above"
+  },
+  "effectComparison": {
+    "metricSelected": "actual generated-helper tool calls plus wall duration, model token fields, and total model tool-call count; selected to measure routine contract checking without claiming quality or savings",
+    "sameModel": true,
+    "samePrompt": true,
+    "sameContractAndRuntime": true,
+    "pairs": [
+      {
+        "case": "original",
+        "sourceDurationMs": 65800,
+        "optimizedDurationMs": 58800,
+        "durationDeltaMs": -7000,
+        "sourceInput": 35308,
+        "optimizedInput": 36377,
+        "sourceOutput": 2389,
+        "optimizedOutput": 1909,
+        "sourceToolCalls": 34,
+        "optimizedToolCalls": 25,
+        "optimizedHelperCalls": 2,
+        "classification": "mixed"
+      },
+      {
+        "case": "semantic-variation",
+        "sourceDurationMs": 82600,
+        "optimizedDurationMs": 70000,
+        "durationDeltaMs": -12600,
+        "sourceInput": 39084,
+        "optimizedInput": 26512,
+        "sourceOutput": 2976,
+        "optimizedOutput": 2355,
+        "sourceToolCalls": 44,
+        "optimizedToolCalls": 26,
+        "optimizedHelperCalls": 2,
+        "classification": "mixed-positive-bounded"
+      }
+    ],
+    "interpretation": "The optimized package was naturally invoked and reduced tool-call count and wall time in these two runs while adding two deterministic checker calls. Token fields are mixed and model runs are stochastic; no causal or USD savings claim is made."
+  },
+  "cost": {
+    "targetModelCalls": 4,
+    "route": "xty/gpt-5.6-sol via openai-compatible https://svip.xty.app/v1",
+    "reportedProjectCostUsd": 0,
+    "actualProjectCostUsd": null,
+    "unknownReason": "The provider did not expose a reliable USD price in run results; optimizer-reported zero is retained separately.",
+    "developerAgentCost": "not-measured-by-project-runtime"
+  },
+  "claimBoundary": "Development evidence only. This proves one optimizer-generated contract checker was naturally called on one original and one semantic variation task in a clean declared environment, and that it caught a source baseline binding defect. It does not prove whole-skill correctness, general API behavior, stable optimization benefit, human savings, readiness, prospective eligibility, or held-out performance.",
+  "readiness": {
+    "status": "not-ready-for-new-prospective",
+    "missingConditions": [
+      "package manifest still reports behaviorStatus=not-run and deliveryStatus=draft because the optimizer lifecycle had no authored independent case",
+      "classification and protected-input pre/post checks remain agent residual duties",
+      "effect evidence is bounded and mixed with unknown USD cost",
+      "no prospective or held-out input has been selected or read"
+    ],
+    "nextStep": "Freeze this development package and method; if a later review authorizes it, separately preregister an unseen-input validation design without selecting or executing it in this stage."
+  }
+}

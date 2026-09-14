@@ -1,0 +1,269 @@
+{
+  "entries": [
+    {
+      "timestamp": "2026-09-14T00:54:29.960Z",
+      "round": 1,
+      "rootCause": "The skill documents its default conversion pipeline but does not tell the agent how to reconcile a task-supplied machine-readable contract with those defaults, so the agent must infer precedence, closed output/schema boundaries, and post-write checks; in the observed run this also led to avoidable full-source inspection before manually producing outputs. Separately, the documented common CLI path could not even display help in an environment lacking optional DOCX/PDF packages because those dependencies were imported eagerly.",
+      "reasoning": "Evidence 0 is UNASSESSED, not a failure, so the change targets visible workflow inefficiency and a general contract gap rather than claiming bad output quality. The run successfully read a public contract and produced plausible declared artifacts, but it first attempted a literal non-existent filename, read all three bundled scripts, and then manually wrote outputs because the skill had no contract-handling rule. The contract itself exposes a reusable boundary: exact output set, protected inputs, conditional deliverable, closed evidence fields, and deterministic post-write checks. Pre-edit checklist: (a) Generality—another plausible task supplies a different law conversion contract with custom output paths or a non-law conditional deliverable; it benefits from the same contract-first precedence and verification rule. A normal TXT-only conversion on a machine without python-docx/pdfplumber also benefits from lazy optional imports. (b) Rewrite-in-place—the contract workflow was inserted at the start of the existing numbered processing rules, with subsequent numbering adjusted; no overlapping appendix was added. The import fix changes the existing executable in place. (c) Coherent scope—the documentation delegates only contract parsing, compatibility routing, and deterministic boundary checks while retaining classification/semantic judgment; the script change only defers format-specific imports until those fallbacks are actually used. (d) No-trade-off—PER_TASK_SUMMARY.md contains no PASSING tasks, and the existing TXT/PDF/DOCX behavior and default output rules remain intact. Expected impact is reduced tool I/O and fewer schema/output mistakes on contract-bound tasks, plus a usable documented CLI/help and TXT path when unrelated optional packages are absent; no score improvement is asserted from the unassessed run. Verification: `python scripts/law_to_markdown.py --help` now succeeds without python-docx installed, `py_compile` passed, and a TXT law conversion from the digest-bound pre-run input produced only the default review and deliverable under minimal artifacts. The historical contract-specific output is not used as a current reference-output assertion because no independent task checker is available.",
+      "changes": [
+        {
+          "file": "SKILL.md",
+          "section": "处理规则",
+          "description": "Add a contract-first branch that makes task-contract precedence, closed schemas/output sets, compatibility routing, and post-write verification explicit before the existing default conversion workflow.",
+          "generality": "A different task that supplies a machine-readable contract for a non-law standard or custom output directory benefits from the same precedence and exact-boundary workflow.",
+          "linesDelta": 4
+        },
+        {
+          "file": "scripts/law_to_markdown.py",
+          "section": "optional converter imports",
+          "description": "Load python-docx and pdfplumber only inside their fallback converters so help and TXT conversion do not require unrelated optional dependencies.",
+          "generality": "Any TXT-only law conversion or CLI discovery task running without DOCX/PDF fallback packages benefits from the executable remaining usable.",
+          "linesDelta": 2
+        }
+      ],
+      "changedFiles": [
+        "scripts/law_to_markdown.py",
+        "SKILL.md"
+      ],
+      "actions": [
+        {
+          "id": "route-contract-bound-work",
+          "kind": "restructure-docs",
+          "evidenceIds": [
+            "0"
+          ],
+          "sourceRefs": [
+            "SKILL.md#处理规则",
+            ".optimize/tasks/natural-3f9ebdb140e1/run-0-pre-run-inputs/law-contract.json"
+          ],
+          "dependsOn": [],
+          "inputs": [
+            "task-supplied machine-readable contract path",
+            "source document path"
+          ],
+          "outputs": [
+            "only outputs declared by the active task contract"
+          ],
+          "preconditions": [
+            "the task actually supplies a readable machine-readable contract",
+            "the agent can determine whether the bundled CLI is compatible with that contract"
+          ],
+          "constraints": [
+            {
+              "description": "Default law conversion rules and the mineru-first consent policy remain skill-wide.",
+              "scope": "skill",
+              "sourceRef": "SKILL.md#处理规则"
+            },
+            {
+              "description": "Exact paths, protected inputs, field names and artifact restrictions come from the current task contract only.",
+              "scope": "task",
+              "sourceRef": ".optimize/tasks/natural-3f9ebdb140e1/run-0-pre-run-inputs/law-contract.json"
+            }
+          ],
+          "changedPaths": [
+            "SKILL.md"
+          ],
+          "residualDuties": [
+            "interpret contract semantics and classify the document",
+            "manually satisfy contract-only output/report requirements when the CLI is incompatible"
+          ],
+          "verification": [
+            "confirm the instructions preserve default behavior when no contract is supplied",
+            "for contract-bound work, re-read protected inputs and all declared outputs and compare them with the contract"
+          ]
+        },
+        {
+          "id": "make-common-cli-independent-of-unused-fallbacks",
+          "kind": "reuse-script",
+          "evidenceIds": [
+            "0"
+          ],
+          "sourceRefs": [
+            "scripts/law_to_markdown.py",
+            "SKILL.md#常用命令"
+          ],
+          "dependsOn": [],
+          "inputs": [
+            "input path supplied by the user",
+            "optional law decision and artifact level"
+          ],
+          "outputs": [
+            "review report and conditionally a final Markdown deliverable"
+          ],
+          "preconditions": [
+            "Python is available",
+            "format-specific packages are installed only when the corresponding local fallback is selected"
+          ],
+          "validation": {
+            "help": {
+              "args": [
+                "--help"
+              ],
+              "stdoutIncludes": [
+                "Convert law text files",
+                "--law-decision",
+                "--artifact-level"
+              ]
+            },
+            "cases": [
+              {
+                "args": [
+                  ".optimize/tasks/natural-3f9ebdb140e1/run-0-pre-run-inputs/document.txt",
+                  "--law-decision",
+                  "law",
+                  "--artifact-level",
+                  "minimal"
+                ],
+                "id": "txt-law-default-pipeline",
+                "evidenceId": "0",
+                "inputSource": "pre-run-input-snapshot",
+                "inputFiles": [
+                  ".optimize/tasks/natural-3f9ebdb140e1/run-0-pre-run-inputs/document.txt"
+                ],
+                "expectedFiles": [
+                  {
+                    "path": "markdown/document/document+审核报告.md"
+                  },
+                  {
+                    "path": "markdown/document/document+最终成果.md"
+                  }
+                ],
+                "applicability": "supported",
+                "basis": "task-contract",
+                "sourceRefs": [
+                  "SKILL.md#输出规则",
+                  ".optimize/tasks/natural-3f9ebdb140e1/run-0-pre-run-inputs/law-contract.json#classification",
+                  ".optimize/tasks/natural-3f9ebdb140e1/run-0-pre-run-inputs/law-contract.json#contentRules"
+                ]
+              }
+            ]
+          },
+          "changedPaths": [
+            "scripts/law_to_markdown.py"
+          ],
+          "residualDuties": [
+            "select the correct classification parameter",
+            "obtain consent and ensure dependencies exist before PDF/DOCX fallback"
+          ],
+          "verification": [
+            "run `python scripts/law_to_markdown.py --help` without optional DOCX/PDF packages",
+            "run a TXT conversion and confirm minimal artifacts contain only review and deliverable"
+          ]
+        }
+      ],
+      "actionDiagnostics": [],
+      "validation": {
+        "status": "not-run",
+        "reportPath": "round-1-validation/report.json",
+        "retainedActionIds": [],
+        "unvalidatedActionIds": [
+          "route-contract-bound-work",
+          "make-common-cli-independent-of-unused-fallbacks"
+        ],
+        "rejectedActionIds": [],
+        "programRuns": 1,
+        "caseRuns": 1,
+        "independentCaseRuns": 0
+      },
+      "confidence": 0.88,
+      "trainScore": null,
+      "testScore": null,
+      "improved": null
+    }
+  ],
+  "bestRound": 1,
+  "bestRoundReason": "optimized draft has no concrete local program failure but remains partially or wholly unvalidated",
+  "rounds": [
+    {
+      "round": 0,
+      "isBaseline": true,
+      "trainScore": null,
+      "testScore": null,
+      "trainPassed": 0,
+      "trainTotal": 0,
+      "testPassed": 0,
+      "testTotal": 0,
+      "perTaskTrainScores": {},
+      "perTaskTestScores": {},
+      "targetAgent": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "runs": 0,
+        "durationMs": 0
+      },
+      "evalJudge": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "calls": 0
+      },
+      "optimizer": null,
+      "historyEntry": null
+    },
+    {
+      "round": 1,
+      "isBaseline": false,
+      "trainScore": null,
+      "testScore": null,
+      "trainPassed": 0,
+      "trainTotal": 0,
+      "testPassed": 0,
+      "testTotal": 0,
+      "perTaskTrainScores": {},
+      "perTaskTestScores": {},
+      "targetAgent": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "runs": 0,
+        "durationMs": 0
+      },
+      "evalJudge": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "calls": 0
+      },
+      "optimizer": {
+        "tokens": {
+          "input": 120760,
+          "output": 8953,
+          "cacheRead": 645376,
+          "cacheWrite": 0
+        },
+        "costUsd": 0
+      },
+      "historyEntry": null,
+      "validation": {
+        "status": "not-run",
+        "reportPath": "round-1-validation/report.json",
+        "retainedActionIds": [],
+        "unvalidatedActionIds": [
+          "route-contract-bound-work",
+          "make-common-cli-independent-of-unused-fallbacks"
+        ],
+        "rejectedActionIds": [],
+        "programRuns": 1,
+        "caseRuns": 1,
+        "independentCaseRuns": 0
+      }
+    }
+  ]
+}

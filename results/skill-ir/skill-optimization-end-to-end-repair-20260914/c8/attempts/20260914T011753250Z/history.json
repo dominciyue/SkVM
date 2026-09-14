@@ -1,0 +1,240 @@
+{
+  "entries": [
+    {
+      "timestamp": "2026-09-14T01:21:43.040Z",
+      "round": 1,
+      "rootCause": "The skill exposes a conversion script and prose invariants but does not provide a contract-aware, parameterized verification path or clearly anchor routine commands to the declared skill resource root, so agents handling contract-governed or batched inputs must rediscover resources, manually reproduce exact output/evidence checks, and risk treating unsupported contract cases as ordinary conversions.",
+      "reasoning": "Evidence 0 is clean (run status ok) but unassessed, so it does not prove a quality defect. It does show a general workflow gap: the agent first guessed a nonexistent nested resource path, then read the full conversion script, manually interpreted two identical JSON contracts, manually authored three files, and reread inputs, contracts, outputs, and directory listings to verify them. The visible contract and observed positive law/non-law outputs establish a bounded deterministic boundary: exact declared output set, one evidence block with an exact field set, review/deliverable consistency, source-character preservation after removing Markdown heading markers and whitespace, and enumerated-item line separation. The new checker delegates only those mechanical checks and accepts arbitrary root, contract, and source paths; classification correctness and pre/post protected-input hash comparison remain residual judgment/evidence duties. Expected score impact is primarily lower tool-discovery and verification risk on future contract-governed tasks; no score claim is made for this unassessed run. Pre-edit checklist: (a) Generality: a single PDF conversion accompanied by a JSON delivery contract, or a batch of DOCX matters with per-directory contracts, benefits from the same resource-root guidance and checker. (b) Rewrite in place: the ambiguous common-command section was tightened where it already existed rather than adding a competing workflow elsewhere; the checker is a cohesive new bundle resource. (c) Coherent scope: the checker covers only source-established contract invariants and leaves broad conversion behavior unchanged as fallback; it has three required path parameters, standard-library-only runtime, concise JSON stdout, and was syntax-checked plus exercised against both observed law and non-law cases using temporary roots containing the digest-bound protected inputs and observed outputs. (d) No-trade-off: PER_TASK_SUMMARY.md contains no PASSING tasks. The existing TXT/PDF/DOCX conversion commands and fallback policy remain available, so the change does not narrow scope. The initial direct checks against output-only snapshots correctly failed because those snapshots omit protected inputs; combined temporary test roots then passed both cases, confirming the checker requires the complete contract root as documented.",
+      "changes": [
+        {
+          "file": "SKILL.md",
+          "section": "常用命令",
+          "description": "Anchor copy-ready commands to the skill resource root and route JSON-contract tasks through an explicit per-input contract workflow and bounded checker.",
+          "generality": "A future PDF or DOCX conversion with a caller-supplied output contract benefits from the same unambiguous resource path and contract-precedence guidance.",
+          "linesDelta": 12
+        },
+        {
+          "file": "scripts/contract_checker.py",
+          "section": "new contract verification CLI",
+          "description": "Add a standard-library checker for exact output sets, exact review-evidence fields, deliverable consistency, character-stream preservation, and enumerated-item line separation using arbitrary declared paths.",
+          "generality": "A future batch containing different directory names, source names, and contract-declared output paths can reuse the same parameterized checker without embedding any evidence fixture values.",
+          "linesDelta": 211
+        }
+      ],
+      "changedFiles": [
+        "scripts/contract_checker.py",
+        "SKILL.md"
+      ],
+      "actions": [
+        {
+          "id": "generate-contract-checker",
+          "kind": "generate-script",
+          "evidenceIds": [
+            "0"
+          ],
+          "sourceRefs": [
+            "SKILL.md#输出规则",
+            ".optimize/tasks/natural-ad0a448be57f/run-0-pre-run-inputs/standard/law-contract.json",
+            ".optimize/tasks/natural-ad0a448be57f/run-0-pre-run-inputs/statute/law-contract.json",
+            ".optimize/tasks/natural-ad0a448be57f/run-0-workdir/standard/markdown/document/document+审核报告.md",
+            ".optimize/tasks/natural-ad0a448be57f/run-0-workdir/statute/markdown/document/document+审核报告.md",
+            ".optimize/tasks/natural-ad0a448be57f/run-0-workdir/statute/markdown/document/document+最终成果.md"
+          ],
+          "dependsOn": [],
+          "inputs": [
+            "--root: completed per-input root containing protected inputs and outputs",
+            "--contract: JSON contract path",
+            "--source: original source document path"
+          ],
+          "outputs": [
+            "concise JSON completion summary on stdout",
+            "exit status 0 only when all supported checks pass"
+          ],
+          "preconditions": [
+            "Python 3 is available",
+            "the contract uses the observed object shape for protectedInputs, outputs, reviewEvidence, and exactOutputSet",
+            "the completed root contains the contract-relative protected inputs and outputs"
+          ],
+          "constraints": [
+            {
+              "description": "Markdown conversion preserves source characters except heading markers and whitespace normalization.",
+              "scope": "skill",
+              "sourceRef": "SKILL.md#处理规则"
+            },
+            {
+              "description": "The observed contract declares exact output paths and an exact review-evidence field list.",
+              "scope": "task",
+              "sourceRef": ".optimize/tasks/natural-ad0a448be57f/run-0-pre-run-inputs/statute/law-contract.json"
+            },
+            {
+              "description": "No network or package installation was allowed in the observed run.",
+              "scope": "task",
+              "sourceRef": ".optimize/tasks/natural-ad0a448be57f/run-0.md#Task"
+            }
+          ],
+          "changedPaths": [
+            "scripts/contract_checker.py"
+          ],
+          "residualDuties": [
+            "classify the document under the supplied contract",
+            "compare protected-input hashes before and after processing when snapshots are available",
+            "review semantic quality not declared as a deterministic invariant"
+          ],
+          "verification": [
+            "python scripts/contract_checker.py --help",
+            "python -m py_compile scripts/contract_checker.py",
+            "exercise the checker on complete temporary roots assembled from each digest-bound pre-run input pair and its observed outputs; both law and non-law cases return status passed"
+          ]
+        },
+        {
+          "id": "document-contract-workflow",
+          "kind": "restructure-docs",
+          "evidenceIds": [
+            "0"
+          ],
+          "sourceRefs": [
+            "SKILL.md#常用命令",
+            ".optimize/tasks/natural-ad0a448be57f/run-0.md#Conversation Log"
+          ],
+          "dependsOn": [
+            "generate-contract-checker"
+          ],
+          "inputs": [
+            "skill resource root",
+            "input document path",
+            "optional JSON contract and per-input root"
+          ],
+          "outputs": [
+            "copy-ready conversion and contract-check commands"
+          ],
+          "preconditions": [
+            "the agent is operating from the declared skill resource root"
+          ],
+          "changedPaths": [
+            "SKILL.md"
+          ],
+          "residualDuties": [
+            "select the contract path only when the task supplies one",
+            "retain the original broad workflow for inputs without the supported contract shape"
+          ],
+          "verification": [
+            "inspect SKILL.md common commands for required positional and contract-check arguments"
+          ]
+        }
+      ],
+      "actionDiagnostics": [],
+      "validation": {
+        "status": "not-run",
+        "reportPath": "round-1-validation/report.json",
+        "retainedActionIds": [],
+        "unvalidatedActionIds": [
+          "generate-contract-checker",
+          "document-contract-workflow"
+        ],
+        "rejectedActionIds": [],
+        "programRuns": 0,
+        "caseRuns": 0,
+        "independentCaseRuns": 0
+      },
+      "confidence": 0.88,
+      "trainScore": null,
+      "testScore": null,
+      "improved": null
+    }
+  ],
+  "bestRound": 1,
+  "bestRoundReason": "optimized draft has no concrete local program failure but remains partially or wholly unvalidated",
+  "rounds": [
+    {
+      "round": 0,
+      "isBaseline": true,
+      "trainScore": null,
+      "testScore": null,
+      "trainPassed": 0,
+      "trainTotal": 0,
+      "testPassed": 0,
+      "testTotal": 0,
+      "perTaskTrainScores": {},
+      "perTaskTestScores": {},
+      "targetAgent": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "runs": 0,
+        "durationMs": 0
+      },
+      "evalJudge": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "calls": 0
+      },
+      "optimizer": null,
+      "historyEntry": null
+    },
+    {
+      "round": 1,
+      "isBaseline": false,
+      "trainScore": null,
+      "testScore": null,
+      "trainPassed": 0,
+      "trainTotal": 0,
+      "testPassed": 0,
+      "testTotal": 0,
+      "perTaskTrainScores": {},
+      "perTaskTestScores": {},
+      "targetAgent": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "runs": 0,
+        "durationMs": 0
+      },
+      "evalJudge": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "calls": 0
+      },
+      "optimizer": {
+        "tokens": {
+          "input": 55783,
+          "output": 12464,
+          "cacheRead": 557568,
+          "cacheWrite": 0
+        },
+        "costUsd": 0
+      },
+      "historyEntry": null,
+      "validation": {
+        "status": "not-run",
+        "reportPath": "round-1-validation/report.json",
+        "retainedActionIds": [],
+        "unvalidatedActionIds": [
+          "generate-contract-checker",
+          "document-contract-workflow"
+        ],
+        "rejectedActionIds": [],
+        "programRuns": 0,
+        "caseRuns": 0,
+        "independentCaseRuns": 0
+      }
+    }
+  ]
+}

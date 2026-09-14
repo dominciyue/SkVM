@@ -1,0 +1,171 @@
+{
+  "schemaVersion": "skvm-optimized-skill-package/v2",
+  "identity": "skill:20260914T011753250Z:round-1",
+  "exposure": "development",
+  "proposal": {
+    "dirName": "20260914T011753250Z",
+    "bestRound": 1,
+    "meta": {
+      "path": "meta.json",
+      "bytes": 623,
+      "sha256": "2d787de5d9e38ba2d7b4112b59fbf0777e1ff2187fc3773f0aae94d3fb93adf3"
+    },
+    "submission": {
+      "path": "round-1-optimizer/submission.json",
+      "bytes": 12039,
+      "sha256": "dfbf6af367c926276333b64d1b3dad725dbe201ff16241b11ffd1ebfb1709fcb"
+    }
+  },
+  "snapshots": {
+    "originalClosureSha256": "c5c5cae308c84f95cc54ad4020ca982f9e687eb1d0567518e5caa40db0f6df14",
+    "selectedClosureSha256": "1aa8d12f07e4aec7b09813a3a37e3a3766db7d7d16ae234ad221cedb8559ae8c"
+  },
+  "actualDiff": {
+    "added": [
+      "scripts/contract_checker.py"
+    ],
+    "modified": [
+      "SKILL.md"
+    ],
+    "deleted": [],
+    "moved": []
+  },
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 40,
+      "sha256": "e2a5eb44cf2c61a7c54100dc0aceb5b3151f662bf2bdaee4ed9166bc55293867"
+    },
+    {
+      "path": "agents/openai.yaml",
+      "bytes": 181,
+      "sha256": "ef9b3a8dbe86fcd642e1e91928fd91c9f67c0d515c29b9abd20812b79ef52ef7"
+    },
+    {
+      "path": "OPTIMIZATION-USAGE.md",
+      "bytes": 2092,
+      "sha256": "c555cb67fc14690a76e5603692fff27482b9b8ece67c719834593c94d23112c4"
+    },
+    {
+      "path": "optimization-validation-report.json",
+      "bytes": 4969,
+      "sha256": "8af515dc4901ddca0503c579188d46f0dca1601ab2bd3c32224b3d4d92d25259"
+    },
+    {
+      "path": "scripts/cn_law_normalizer.py",
+      "bytes": 10090,
+      "sha256": "89150d769de67a3e682de9675f64f863f4238fd66a8c128ec50751c471ce056a"
+    },
+    {
+      "path": "scripts/contract_checker.py",
+      "bytes": 9610,
+      "sha256": "dc36f2bc7d8b291c77b304b183d821772d8a8584a10fb7566bb4ca7fdfea8e46"
+    },
+    {
+      "path": "scripts/law_to_markdown.py",
+      "bytes": 32308,
+      "sha256": "4fec14c7f947769daa6d801817727e9ae7fb1839b5eb15c8a1c5ea631a89dd7c"
+    },
+    {
+      "path": "scripts/requirements.txt",
+      "bytes": 40,
+      "sha256": "e0452219dc7859b40a49032864673d9f10f8b1e8f149237d2530fcaed1c7b337"
+    },
+    {
+      "path": "scripts/stage3_checker.py",
+      "bytes": 15912,
+      "sha256": "865345bddfaa469f5f4082f81ab1cfe91ab8911353b244860b632e2dab007605"
+    },
+    {
+      "path": "SKILL.md",
+      "bytes": 4997,
+      "sha256": "fa10eea6b486396e47541c79ee64486189a4dcdea373883175e1ca050e3f8e6c"
+    }
+  ],
+  "implementations": [
+    {
+      "actionId": "generate-contract-checker",
+      "kind": "generate-script",
+      "status": "selected",
+      "entry": "scripts/contract_checker.py",
+      "runtime": "python",
+      "inputs": [
+        "--root: completed per-input root containing protected inputs and outputs",
+        "--contract: JSON contract path",
+        "--source: original source document path"
+      ],
+      "outputs": [
+        "concise JSON completion summary on stdout",
+        "exit status 0 only when all supported checks pass"
+      ],
+      "preconditions": [
+        "Python 3 is available",
+        "the contract uses the observed object shape for protectedInputs, outputs, reviewEvidence, and exactOutputSet",
+        "the completed root contains the contract-relative protected inputs and outputs"
+      ],
+      "residualDuties": [
+        "classify the document under the supplied contract",
+        "compare protected-input hashes before and after processing when snapshots are available",
+        "review semantic quality not declared as a deterministic invariant"
+      ],
+      "verification": [
+        "python scripts/contract_checker.py --help",
+        "python -m py_compile scripts/contract_checker.py",
+        "exercise the checker on complete temporary roots assembled from each digest-bound pre-run input pair and its observed outputs; both law and non-law cases return status passed"
+      ]
+    },
+    {
+      "actionId": "document-contract-workflow",
+      "kind": "restructure-docs",
+      "status": "selected",
+      "inputs": [
+        "skill resource root",
+        "input document path",
+        "optional JSON contract and per-input root"
+      ],
+      "outputs": [
+        "copy-ready conversion and contract-check commands"
+      ],
+      "preconditions": [
+        "the agent is operating from the declared skill resource root"
+      ],
+      "residualDuties": [
+        "select the contract path only when the task supplies one",
+        "retain the original broad workflow for inputs without the supported contract shape"
+      ],
+      "verification": [
+        "inspect SKILL.md common commands for required positional and contract-check arguments"
+      ]
+    }
+  ],
+  "runtime": {
+    "runtimes": [
+      "python"
+    ],
+    "dependencyFiles": [
+      "scripts/requirements.txt"
+    ]
+  },
+  "claimBoundary": "Development package export. Package file closure passed. Behavior status covers only the listed action-local program cases; whole-skill correctness, source-task replay, agent consumption and optimization effect require separate evidence.",
+  "validation": {
+    "status": "passed",
+    "scope": "package-file-closure",
+    "behaviorStatus": "not-run",
+    "behaviorScope": "action-local-program-cases",
+    "deliveryStatus": "draft",
+    "report": {
+      "path": "optimization-validation-report.json",
+      "bytes": 4969,
+      "sha256": "8af515dc4901ddca0503c579188d46f0dca1601ab2bd3c32224b3d4d92d25259"
+    },
+    "retainedActionIds": [],
+    "unvalidatedActionIds": [
+      "generate-contract-checker",
+      "document-contract-workflow"
+    ],
+    "rejectedActionIds": [],
+    "programRuns": 0,
+    "caseRuns": 0,
+    "independentCaseRuns": 0
+  }
+}

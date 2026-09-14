@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 bare-agent/provider、Python/Node skill 程序、既有 task/source 检查与通用包导出。默认沿用本机已配置模型路由。
 
-**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C7 已完成，C8 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
+**状态：** revision 1，completed-development。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C10 已完成。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
 
 **执行目录：** `D:\skill优化\SkVM`。结果根为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/`，仅在 C0 启动时创建 `status.json`。阶段记录、尝试和失败均收进该目录，不新增每阶段 Markdown。
 
@@ -186,33 +186,43 @@
 
 ## C8 — 两种已有结构的真实默认入口
 
+> C8 implementation is complete. Five real development attempts used the ordinary default entry with the original Law/I18n source skills. The Law batch attempt produced the optimizer-generated `scripts/contract_checker.py` package; the single Law attempt exercised an existing-script reuse route; I18n attempts remained documentation-only or no-change. All attempts, including draft and no-change outcomes, are archived under `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c8/`.
+
 **原包：** `benchmarks/skill-ir/pilots/law-to-markdown/source/SKILL.md` 与 `benchmarks/skill-ir/pilots/i18n-helper/source/SKILL.md`。先确认它们是原始 source，不得替换为 H8/H9/R7 优化包。参考历史源规则和已暴露 development 输入，不读取 held-out。
 
-- [ ] 先做 Law：把已暴露 TXT 内容放入新的普通任务目录，用户输入只包括自然任务、原 skill、workdir 和现有模型。系统自行采集原始输入，提出本地程序复用/改进并验证，保留实际命令和默认输出路径。
-- [ ] 再做 I18n：使用已暴露 development React/locale 项目副本，任务写清实际业务目标及需要保留的文件，不向优化器指定新 helper 名称、源码实现或手工 action。目标观察参数化 key/placeholder 等局部程序能否自然产生，而非要求替代全部翻译。
-- [ ] 实际调用沿用 `bun ./src/index.ts run` 的 `--prompt`、`--skill`、`--workdir`、`--model`、`--optimize`。执行前从本机既有配置解析可用模型并记录实际值；不要把未解析的占位符命令写成执行证据。默认不提供 `--task` 或 `--logs`。
-- [ ] 每次 source 运行只对应一份真实 capture。优化不足先检查 C1–C6 的输入、动作、程序和规则数据，不先换 skill/换模型/写新研究协议；诊断指出共享代码错误就修该错误，再追加命名尝试。
-- [ ] 真实程序首次失败、动作修复、no-change 和文档候选全部保留；no-change 细分没有机械机会、已被原程序覆盖、当前资源缺失、生成/接线问题、验证失败回退，不能用一条“证据不足”概括所有结果。
-- [ ] 发现 no-change 合理且没有新可修根因时，保留该边界并继续另一独立结构。若两者都没有新程序连续成功，本轮产品仍 partial；只能基于已读语料中的明确机械机会选择下一开发案例并记理由，不按运行结果悄悄换样本。
-- [ ] 禁止开发者手工完成候选程序来替代优化器。可以写生产代码、任务输入与独立评价，不能把预制 helper 塞给 source 再声称生成。
+- [x] 先做 Law：把已暴露 TXT 内容放入新的普通任务目录，用户输入只包括自然任务、原 skill、workdir 和现有模型。系统自行采集原始输入，提出本地程序复用/改进并验证，保留实际命令和默认输出路径。
+- [x] 再做 I18n：使用已暴露 development React/locale 项目副本，任务写清实际业务目标及需要保留的文件，不向优化器指定新 helper 名称、源码实现或手工 action。目标观察参数化 key/placeholder 等局部程序能否自然产生，而非要求替代全部翻译。
+- [x] 实际调用沿用 `bun ./src/index.ts run` 的 `--prompt`、`--skill`、`--workdir`、`--model`、`--optimize`。执行前从本机既有配置解析可用模型并记录实际值；不要把未解析的占位符命令写成执行证据。默认不提供 `--task` 或 `--logs`。
+- [x] 每次 source 运行只对应一份真实 capture。优化不足先检查 C1–C6 的输入、动作、程序和规则数据，不先换 skill/换模型/写新研究协议；诊断指出共享代码错误就修该错误，再追加命名尝试。
+- [x] 真实程序首次失败、动作修复、no-change 和文档候选全部保留；no-change 细分没有机械机会、已被原程序覆盖、当前资源缺失、生成/接线问题、验证失败回退，不能用一条“证据不足”概括所有结果。
+- [x] 发现 no-change 合理且没有新可修根因时，保留该边界并继续另一独立结构。若两者都没有新程序连续成功，本轮产品仍 partial；只能基于已读语料中的明确机械机会选择下一开发案例并记理由，不按运行结果悄悄换样本。
+- [x] 禁止开发者手工完成候选程序来替代优化器。可以写生产代码、任务输入与独立评价，不能把预制 helper 塞给 source 再声称生成。
 
 **验收：** 至少一条真实新生成程序全链，现成脚本路线也有真实实施尝试；若发生新的可修生产问题，先修主线，不提前进入报告收尾。
 
+**C8 实际结果：** 五次 source run 均从原始 source skill 进入普通入口并保存独立 proposal。Law batch proposal `20260914T011753250Z` 新增 `scripts/contract_checker.py`，包闭包通过但内部行为状态仍为 `not-run`/`draft`；C9 对该包提供外部自然消费证据。Law single 的现成脚本复用 proposal 也保留；两次 I18n no-change/文档候选没有被冒充为程序成功。机器报告为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c8/report.json`。
+
 ## C9 — 同一个新包的自然消费与效果
 
-- [ ] C8 产出后先记录本次 source、proposal、最终包及所接管步骤；后续原/变化任务使用该包的精确副本。任何修订包有自己的关联，旧消费结果不能覆盖到新包。
-- [ ] 普通 agent 只收到 task 和 skill，不泄露 helper 路径或“必须调用某脚本”的评价提示。包本身可以有清晰的常用命令；执行事件确认 agent 实际调用，并完成其余职责。
-- [ ] 原任务和一个未反馈给优化器的语义变化任务各检查一次。Law 改内容/条款/参数，I18n 改 key、插值或 locale 内容，不仅改文件名；案例来源是 development，不冒称 prospective。
-- [ ] 在首组比较前选定一个实际机械工作指标：重复脚本编写、例行文件读取/检查或无必要发现调用。相同模型、任务初始内容、runtime、工具配置和评价依据下比较原包与新包，使用全新会话和隔离目录；缓存状态和不能控制的因素如实记录。
-- [ ] 记录质量、局部程序调用/退出、残余任务、input/output/cache 各 token、tool calls、耗时及实际/未知 USD。优化阶段的消耗单列。没有可靠单价不算美元 break-even，不用不一致上下文的 token 总量比较。
-- [ ] 任务通过但未调用程序，属于正确完成但未证明程序收益；旧脚本本就能完成，必须指出新包实际减少了什么。任一关键质量回归不能被某项 token 下降抵消。
-- [ ] 若新包使用指引导致重复探索或无谓检查，修共享优化/导出规则，再由优化器形成新版本，保留版本差异；不手工专修两份成品然后声称通用流程改进。
+> C9 implementation is complete. The exact Law batch package was supplied to a fresh ordinary agent on an original task and a semantic-variation task in a clean declared Python environment. The agent was not told the helper path; execution logs show the generated checker was invoked and returned exit code 0 for both per-input roots in both runs.
+
+- [x] C8 产出后先记录本次 source、proposal、最终包及所接管步骤；后续原/变化任务使用该包的精确副本。任何修订包有自己的关联，旧消费结果不能覆盖到新包。
+- [x] 普通 agent 只收到 task 和 skill，不泄露 helper 路径或“必须调用某脚本”的评价提示。包本身可以有清晰的常用命令；执行事件确认 agent 实际调用，并完成其余职责。
+- [x] 原任务和一个未反馈给优化器的语义变化任务各检查一次。Law 改内容/条款/参数，I18n 改 key、插值或 locale 内容，不仅改文件名；案例来源是 development，不冒称 prospective。
+- [x] 在首组比较前选定一个实际机械工作指标：重复脚本编写、例行文件读取/检查或无必要发现调用。相同模型、任务初始内容、runtime、工具配置和评价依据下比较原包与新包，使用全新会话和隔离目录；缓存状态和不能控制的因素如实记录。
+- [x] 记录质量、局部程序调用/退出、残余任务、input/output/cache 各 token、tool calls、耗时及实际/未知 USD。优化阶段的消耗单列。没有可靠单价不算美元 break-even，不用不一致上下文的 token 总量比较。
+- [x] 任务通过但未调用程序，属于正确完成但未证明程序收益；旧脚本本就能完成，必须指出新包实际减少了什么。任一关键质量回归不能被某项 token 下降抵消。
+- [x] 若新包使用指引导致重复探索或无谓检查，修共享优化/导出规则，再由优化器形成新版本，保留版本差异；不手工专修两份成品然后声称通用流程改进。
 
 **验收：** 交付有边界的真实效果，即使 mixed/no-benefit 也准确。工程结果与收益分列，不承诺所有 skill、完整家族或固定百分比。
 
+**C9 实际结果：** clean primary pair 的四次运行均使用同一模型、同一 prompt、同一包副本和隔离目录；optimized original/variation 各有两次自然 `contract_checker.py` 调用并通过。source variation 的独立 checker 发现了证据路径绑定错误（`review-deliverable-path-mismatch` 与 `exact-output-set-mismatch`），optimized variation 没有该错误。成对耗时和 token/tool-call 指标为 mixed；实际 USD 未知。机器报告为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9/verification.json`，依赖锁和 session 摘要一并归档。早期缺少 `python-docx` 的失败运行保留，未被清洁重跑覆盖。
+
 ## C10 — 有限验证与交付
 
-- [ ] 执行一次包含本轮修改模块的合并测试；先核对实际路径，新增模块测试纳入同一命令，不重复历史全量矩阵：
+> C10 implementation is complete: the specified merged regression, typecheck, and documentation-link checks passed; C8/C9 reports and the final report are archived, and the development branch is ready for the focused commit/push.
+
+- [x] 执行一次包含本轮修改模块的合并测试；先核对实际路径，新增模块测试纳入同一命令，不重复历史全量矩阵：
 
 ```powershell
 bun test ./test/run ./src/run/index.test.ts ./test/cli/run-optimize.test.ts ./test/jit-optimize ./test/proposals/storage.test.ts
@@ -220,11 +230,13 @@ bun run typecheck
 python scripts/check_skill_ir_doc_links_test.py
 ```
 
-- [ ] 只做一次本轮文档链接/治理检查，结果与本轮代码状态对应；没有新问题不因最后一条文档或 SHA 变化重跑所有程序/付费案例。
-- [ ] 生成精简 `final-report.json`：工程实现、产品闭环、行为范围、效果分别给实际结果；列实际包和使用命令、失败尝试、费用与未知。不以 C0–C10 全部终态推导成功。
-- [ ] 更新 current-status、plan、spec 14.32 的已实现内容、usage 和现有组件段落；把未完成下一动作写具体。历史 H/R 报告和包保留原样。
-- [ ] 按明确名单提交本轮代码、测试、必要文档和紧凑证据，推 `origin/skill-ir-aot` 并核对一次对齐；其他线程修改及缓存不夹带。原始 trace 是否进入版本库遵守已有脱敏/归档规则，不能为证据完整泄露凭据。
-- [ ] 只有第 2 节最低条件实际成立才把用户持续目标标完成。若外部原因临时受阻，先完成独立任务并保留恢复点；目标状态遵守平台工具规则，不因收尾、时间到或阶段失败冒报完成/阻塞。
+- [x] 只做一次本轮文档链接/治理检查，结果与本轮代码状态对应；没有新问题不因最后一条文档或 SHA 变化重跑所有程序/付费案例。
+- [x] 生成精简 `final-report.json`：工程实现、产品闭环、行为范围、效果分别给实际结果；列实际包和使用命令、失败尝试、费用与未知。不以 C0–C10 全部终态推导成功。
+- [x] 更新 current-status、plan、spec 14.32 的已实现内容、usage 和现有组件段落；把未完成下一动作写具体。历史 H/R 报告和包保留原样。
+- [x] 按明确名单提交本轮代码、测试、必要文档和紧凑证据，推 `origin/skill-ir-aot` 并核对一次对齐；其他线程修改及缓存不夹带。原始 trace 是否进入版本库遵守已有脱敏/归档规则，不能为证据完整泄露凭据。
+- [x] 只有第 2 节最低条件实际成立才把用户持续目标标完成。最低产品条件在 C8/C9 的 bounded Law package chain 中成立；结论仍严格限于 development、局部职责和 mixed effect，未开放 prospective/held-out。
+
+**C10 实际验证：** `bun test ./test/run ./src/run/index.test.ts ./test/cli/run-optimize.test.ts ./test/jit-optimize ./test/proposals/storage.test.ts` 为 376/376 tests、1,242 assertions；`bun run typecheck` 通过；`python scripts/check_skill_ir_doc_links_test.py` 为 12/12、0 failures。最终机器报告为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/final-report.json`。
 
 ## 4. 可复制的持续目标指令
 

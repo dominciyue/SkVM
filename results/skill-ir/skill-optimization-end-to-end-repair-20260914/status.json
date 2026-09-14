@@ -2,12 +2,12 @@
   "schemaVersion": "skill-ir-skill-optimization-end-to-end-repair-status/v1",
   "identity": "skill-optimization-end-to-end-repair-20260914",
   "exposure": "development",
-  "updatedAt": "2026-09-14T08:30:00+08:00",
+  "updatedAt": "2026-09-14T10:29:10+08:00",
   "branch": "skill-ir-aot",
   "headAtStart": "d619ee915e33fc1e93489a02e987f4d78222969e",
   "originAtStart": "d619ee915e33fc1e93489a02e987f4d78222969e",
-  "currentStage": "C8",
-  "deliveryStatus": "in-progress",
+  "currentStage": "C10",
+  "deliveryStatus": "completed-development",
   "stages": {
     "C0": "completed",
     "C1": "completed",
@@ -17,14 +17,17 @@
     "C5": "completed",
     "C6": "completed",
     "C7": "completed",
-    "C8": "in-progress",
-    "C9": "planned",
-    "C10": "planned"
+    "C8": "completed",
+    "C9": "completed",
+    "C10": "completed"
   },
-  "lastSuccessfulAction": "Completed C7: a deterministic production integration test ran a natural task and original skill through capture, Evidence/workspace, candidate program, independent check, metadata-only repair, final snapshot, export and same-package original/variation consumption. Historical-package replacement, documentation-only empty actions and task-output-without-helper counterexamples were independently detected. The combined C7 suite passed 26/26 tests (166 assertions) and typecheck passed.",
-  "nextAction": "Run C8 for Law and I18n from their original source skills through the ordinary run --prompt --skill --workdir --model --optimize entry, using only exposed development inputs; preserve every failure/no-change/advisory and record model/cost facts.",
+  "lastSuccessfulAction": "Completed C10: merged regression passed 376/376 tests with 1,242 assertions, typecheck passed, documentation-link checks passed 12/12, package closure re-verified, and final reports/docs were synchronized.",
+  "nextAction": "Review the focused development commit after push; do not select or read prospective/held-out inputs from this identity.",
   "currentCommand": null,
-  "attemptDirectories": [],
+  "attemptDirectories": [
+    "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c8",
+    "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9"
+  ],
   "failures": [
     "C1 red integration: sourceBytesVisibleBeforeRun was false because executeRun ignored the requested content snapshot path (1 pass, 1 fail).",
     "C1 red capture gate: a digest-only initial manifest was incorrectly accepted as complete source inputs (8 pass, 1 fail).",
@@ -126,6 +129,35 @@
       "assertions": 166,
       "typecheck": "passed",
       "evidence": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c7/verification.json"
+    },
+    "C8": {
+      "command": "bun ./src/index.ts run --prompt=<natural task> --skill=<original source skill> --workdir=<ordinary task directory> --model=xty/gpt-5.6-sol --optimize --package-out=<new package>",
+      "sourceRuns": 5,
+      "proposals": 5,
+      "programsGenerated": 1,
+      "optimizerTokens": { "input": 380576, "output": 36616, "cacheRead": 2147456, "cacheWrite": 0 },
+      "reportedOptimizerCostUsd": 0,
+      "actualProjectCostUsd": null,
+      "status": "completed-with-bounded-real-evidence",
+      "evidence": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c8/report.json"
+    },
+    "C9": {
+      "cleanRuns": 4,
+      "optimizedHelperCalls": 4,
+      "independentContractChecks": { "passed": 15, "failed": 1, "total": 16 },
+      "primaryEffect": "mixed-bounded",
+      "actualProjectCostUsd": null,
+      "evidence": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9/verification.json"
+    },
+    "C10": {
+      "command": "bun test ./test/run ./src/run/index.test.ts ./test/cli/run-optimize.test.ts ./test/jit-optimize ./test/proposals/storage.test.ts",
+      "passed": 376,
+      "failed": 0,
+      "assertions": 1242,
+      "typecheck": "passed",
+      "documentationCheck": { "command": "python scripts/check_skill_ir_doc_links_test.py", "passed": 12, "failed": 0 },
+      "packageClosure": "passed",
+      "evidence": "results/skill-ir/skill-optimization-end-to-end-repair-20260914/final-report.json"
     }
   },
   "evidencePaths": [
@@ -139,6 +171,11 @@
     "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c5/verification.json",
     "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c6/verification.json",
     "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c7/verification.json",
+    "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c8/report.json",
+    "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c8/law-batch-package/optimization-manifest.json",
+    "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9/verification.json",
+    "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9/dependencies.lock.txt",
+    "results/skill-ir/skill-optimization-end-to-end-repair-20260914/c9/sessions/",
     "src/run/pre-run-input-snapshot.ts",
     "src/jit-optimize/trace-adapters.ts",
     "src/jit-optimize/workspace.ts",
@@ -146,17 +183,17 @@
     "results/skill-ir/skill-optimization-production-closure-20260913/r6/"
   ],
   "accounting": {
-    "sourceAgentRuns": 0,
-    "optimizerAgentRunsAttempted": 0,
-    "optimizerAgentRunsCompletedWithUsage": 0,
-    "optimizerTokens": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+    "sourceAgentRuns": 9,
+    "optimizerAgentRunsAttempted": 5,
+    "optimizerAgentRunsCompletedWithUsage": 5,
+    "optimizerTokens": { "input": 380576, "output": 36616, "cacheRead": 2147456, "cacheWrite": 0 },
     "repairAgentRuns": 0,
-    "targetAgentRuns": 0,
-    "targetAgentTokens": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+    "targetAgentRuns": 4,
+    "targetAgentTokens": { "input": 137281, "output": 9629, "cacheRead": 155648, "cacheWrite": 0 },
     "evaluatorModelCalls": 0,
     "reportedProjectCostUsd": 0,
     "actualProjectCostUsd": null,
-    "actualProjectCostMissingReason": null,
+    "actualProjectCostMissingReason": "The openai-compatible route did not expose a reliable USD price; optimizer-reported zero is retained separately.",
     "developerAgentCost": "not-measured-by-project-runtime"
   },
   "workingTreeOwnership": {
@@ -172,5 +209,5 @@
     ],
     "command": "Resume from nextAction and currentStage; do not substitute historical H8/H9/R7 packages for this identity's required same-new-package chain."
   },
-  "claimBoundary": "Development only. C7 proves deterministic production-object continuity and counterexample detection, but its in-process provider/optimizer substitute does not establish real model behavior, a new real-source program, effect improvement, cost benefit, prospective readiness, held-out performance or human savings. C8 must supply the real default-entry evidence."
+  "claimBoundary": "Development only. C8 supplies five real source/proposal attempts and one optimizer-generated non-API checker package; C9 shows the same package was naturally invoked on an original and semantic-variation task and caught a baseline binding defect. The package remains bounded/draft with residual classification, hash and semantic duties; effect is mixed, USD unknown, and there is no prospective, held-out, readiness or human-savings claim."
 }
