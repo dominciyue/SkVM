@@ -760,6 +760,7 @@ async function buildImplementationContext(
       const operationContext = buildOperationContext(run.evidence, {
         evidenceIndex: run.globalIndex,
         sourceEntries: sourceInterfaces.map((source) => source.path),
+        sourceText: skillText,
       })
       evidence.push({
         evidenceIndex: run.globalIndex,

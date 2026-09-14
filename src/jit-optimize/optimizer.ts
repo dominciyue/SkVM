@@ -441,6 +441,12 @@ Then read \`.optimize/README.md\` — it explains the full layout. In short:
   not a skill-wide rule.
 - \`.optimize/IMPLEMENTATION_CONTEXT.json\` — engine-built source interfaces,
   normalized input locators, observed format shapes, and available checks.
+  Operation records also carry parameter provenance: \`observed-value\`,
+  \`task-variable\`, \`source-fixed\`, or \`unknown\`, plus the binding
+  (argv/config-field/env/path), presence, and exact prompt/source locators.
+  Treat task-variable and observed-value fields as candidate inputs only;
+  preserve source-fixed values, and leave unknown or missing values as residual
+  duties rather than guessing.
   Read this before implementing an executable opportunity; it is an index of
   observed facts, not proof that every declared parameter is supported.
 ${historyCount > 0 ? `- \`.optimize/history.md\` — ${historyCount} previous optimization round(s) with their root causes and whether they improved scores. READ THIS BEFORE PROPOSING CHANGES.` : ""}
@@ -469,9 +475,13 @@ ${repairMode ? `This is the single repair attempt for an already-validated candi
    support the proposed boundary.
    For executable work, read \`.optimize/IMPLEMENTATION_CONTEXT.json\` before
    searching individual files. Start from its source interfaces, normalized
-   input locators, observed format shapes, parameter tokens and available checks;
-   follow the linked source when the index is insufficient instead of guessing a
-   research-directory mapping.
+   input locators, observed format shapes, parameter tokens, provenance bindings
+   and available checks; follow the linked source when the index is insufficient
+   instead of guessing a research-directory mapping.
+   Bind each replacement to the exact argv token, config field, environment
+   name, or path locator that supports it. Do not globally replace every copy
+   of an observed string in a source file; preserve unrelated occurrences and
+   report an unresolved mapping when the binding cannot be proved.
 3. ${historyCount > 0 ? "Read history.md. Do not repeat diagnoses that previous rounds tried and failed to improve. If previous rounds clarified something and it didn't help, the problem is elsewhere — look harder." : "Read the skill files you need to understand (SKILL.md is the entry point)."}
 4. Inventory every evidence-backed opportunity before choosing edits. Use
    these exact categories in the submission: \`instruction-clarity\`,

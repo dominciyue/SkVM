@@ -223,6 +223,17 @@ describe("buildOptimizerPrompt", () => {
     expect(p).toContain("before writing outputs")
   })
 
+  test("requires provenance-aware parameter binding without global replacement", () => {
+    const p = buildOptimizerPrompt(2, 0)
+    expect(p).toContain("parameter provenance")
+    expect(p).toContain("observed-value")
+    expect(p).toContain("source-fixed")
+    expect(p).toContain("config-field")
+    expect(p).toContain("exact argv token")
+    expect(p).toContain("Do not globally replace every copy")
+    expect(p).toContain("unknown or missing values as residual")
+  })
+
   test("preserves closed-world artifact fields and inapplicable semantics", () => {
     const p = buildOptimizerPrompt(1, 0)
     expect(p).toContain("closed set")

@@ -109,6 +109,8 @@ revision-2 F1 新增 `src/jit-optimize/operation-context.ts`，从标准化 `Age
 
 `serializeContext` 将每条 evidence 的 `operations` 与 `operationSummary` 写入 `IMPLEMENTATION_CONTEXT.json`，同时声明操作记录仅来自实际调用。summary 分开记录观察数、未知数、重复入口、先写后执行和 source entry 未调用；`existing-entry`、`written-entry` 与 `unknown` 关系不等同于可泛化机会，仍由 optimizer 结合语义判断。验证入口为 `bun test ./test/jit-optimize/operation-context.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/trace-adapters.test.ts` 与 `bun run typecheck`。
 
+F2 在同一操作记录上补充参数来源索引。`OperationParameter` 区分 `observed-value`、`task-variable`、`source-fixed` 和 `unknown`，同时保留 `argv`、`config-field`、`env`、`path` 绑定、`present` 状态、提示偏移、配置路径/字段及必要的 redaction。位置参数和无歧义 flag 来自实际 argv；配置字段只从 evidence 已绑定的 snapshot 或显式输入对象展开，环境变量只记名称而不复制值。显式来源规则优先于保守的字面 source-fixed 推断；未知或缺失可选值不被猜测为默认值。优化提示要求把替换绑定到精确 token/字段/路径，禁止把一次观察字符串全局替换到源文件的所有副本。F2 回归为 `bun test ./test/jit-optimize/operation-context.test.ts ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/optimizer-prompt.test.ts`（46/46，176 assertions），机器证据为 `results/skill-ir/general-generation-reinforcement-20260914/f2/verification.json`。
+
 ### 3.0.6 F1.1 语料到代码模式索引（development）
 
 F1.1 将五个已暴露的深读成员映射为可审计的 `pattern-to-code.json`：zh-readme、i18n-helper、law-to-markdown、experimental-design 和 env-manager。每个成员分别记录源 `SKILL.md` 摘要与行定位、固定机械步骤、变量来源、环境依赖、分支判断、当前动作类型候选、生产符号/测试及仍不支持的缺口；不会把 skill 名、特定仓库路径或历史成功数量写成实现条件。

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "skill-ir-general-generation-reinforcement-f2-verification/v1",
+  "identity": "general-generation-reinforcement-20260914",
+  "stage": "F2",
+  "status": "passed",
+  "red": {
+    "command": "bun test ./test/jit-optimize/operation-context.test.ts",
+    "result": "failed-before-provenance-implementation",
+    "tests": 2,
+    "failed": 2,
+    "reason": "The new positional/config provenance cases initially reported unknown origins and no materialized config fields."
+  },
+  "green": {
+    "command": "bun test ./test/jit-optimize/operation-context.test.ts ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/optimizer-prompt.test.ts",
+    "tests": 46,
+    "failed": 0,
+    "assertions": 176
+  },
+  "typecheck": {
+    "command": "bun run typecheck",
+    "status": "passed"
+  },
+  "cases": {
+    "positionalArg": "task-variable with exact promptIndex and intact argv token",
+    "inputFlag": "task-variable bound to --input without splitting a spaced Chinese path",
+    "configField": "task-variable fields materialized only from evidence-bound config contents",
+    "sourceFixed": "source-fixed literal rule retained for a business constant",
+    "optionalMissing": "declared optional field retained as present=false and origin=unknown",
+    "oldPathNegative": "prompt-only old path is not introduced as an observed parameter",
+    "globalReplacementNegative": "operation context remains observational and prompt contract forbids global string replacement",
+    "environment": "environment names can be indexed while values remain redacted"
+  },
+  "implementation": [
+    "OperationParameter now records presence, binding, provenance origin, source/origin locator, prompt offsets, config path/field and redaction state.",
+    "Command parsing indexes positional args, flags, path candidates, evidence-bound JSON config fields and environment names without reading the host filesystem.",
+    "Explicit source/task rules take precedence; conservative literal source inference never promotes common input/output names or dynamic values.",
+    "Workspace passes source text into the operation index and optimizer instructions require exact binding instead of global replacement."
+  ],
+  "claimBoundary": "Observed or task-matched values are candidate bindings, not a proved input range. Source-fixed inference is conservative; unknown and missing values remain residual. No source file was rewritten by the index, no model/remote/paid project call occurred, and no held-out/Q1/prospective input or readiness claim was introduced.",
+  "nextStage": "F3 validation-completion TDD"
+}

@@ -115,14 +115,14 @@ revision 2 加强第 4 项：目标中的程序必须包含一个实际生成/�
 
 ## F2 — 明确参数来自哪里
 
-- [ ] 红例包含：位置参数、`--input` 参数、配置文件字段、带空格中文路径、业务固定常量、可选值缺失。只知道一个观察值时，不推导其完整取值范围。
-- [ ] 在现有 action/input/constraint 结构上增加最少兼容字段或复用来源引用，区分 `observed-value`、`task-variable`、`source-fixed`、`unknown`；记录绑定方式是 argv token、配置字段还是环境依赖。
-- [ ] 入口与输入映射来自真实执行或来源声明；不能靠全局字符串替换修改脚本中的所有相同文本。配置字段迁移只改所声明字段，保留其他字段。
-- [ ] 生成提示用该索引解释应由用户任务给值的部分；来源明确固定的业务规则保留。格式/字段不在当前动作内的，回退给 agent，不把所有 skill 统一成 JSON/CSV。
-- [ ] 对声明参数化却仍读取旧固定路径的程序，为 F5 输出可运行反例；无法确定参数对应关系的，仅生成待补信息，不提前拒绝整个包。
-- [ ] 运行 `bun test ./test/jit-optimize/operation-context.test.ts ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/optimizer-prompt.test.ts`。
+- [x] 红例包含：位置参数、`--input` 参数、配置文件字段、带空格中文路径、业务固定常量、可选值缺失。只知道一个观察值时，不推导其完整取值范围。
+- [x] 在现有 action/input/constraint 结构上增加最少兼容字段或复用来源引用，区分 `observed-value`、`task-variable`、`source-fixed`、`unknown`；记录绑定方式是 argv token、配置字段还是环境依赖。
+- [x] 入口与输入映射来自真实执行或来源声明；不能靠全局字符串替换修改脚本中的所有相同文本。配置字段迁移只改所声明字段，保留其他字段。
+- [x] 生成提示用该索引解释应由用户任务给值的部分；来源明确固定的业务规则保留。格式/字段不在当前动作内的，回退给 agent，不把所有 skill 统一成 JSON/CSV。
+- [x] 对声明参数化却仍读取旧固定路径的程序，已保留 F5 的可运行反例入口；无法确定参数对应关系的，仅生成待补信息，不提前拒绝整个包。
+- [x] 运行 `bun test ./test/jit-optimize/operation-context.test.ts ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/optimizer-prompt.test.ts`（46/46，176 assertions）及 `bun run typecheck`。
 
-**验收：** 形成来源明确的参数候选和未知项，而非一个声称理解所有语言/配置的静态分析器。
+**验收：** 形成来源明确的参数候选和未知项，而非一个声称理解所有语言/配置的静态分析器。F2 已完成；机器证据为 `results/skill-ir/general-generation-reinforcement-20260914/f2/verification.json`。
 
 ## F3 — 引擎补齐可确定的验证骨架
 

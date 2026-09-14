@@ -122,4 +122,166 @@ describe("operation context", () => {
     expect(context.operations[0]?.argv).toBeUndefined()
     expect(context.operations[0]?.sourceLocator).toContain("call-ambiguous")
   })
+
+  test("binds positional and --input values to the task prompt without splitting a spaced Chinese path", () => {
+    const taskPrompt = "把 数据/原始 文档.txt 转成 Markdown，输入文件就是这个带空格的路径。"
+    const context = buildOperationContext({
+      taskId: "provenance-path",
+      taskPrompt,
+      conversationLog: [],
+      trace: {
+        format: "test",
+        representation: "conversation-trace",
+        sourcePath: "trace.jsonl",
+        inputSha256: "b".repeat(64),
+        recordLocator: "record:1",
+        taskIdSource: "source",
+        unknownFields: [],
+        diagnostics: [],
+      },
+      steps: [{
+        role: "assistant",
+        timestamp: 1000,
+        toolCalls: [{
+          id: "call-path",
+          name: "execute_command",
+          input: {
+            command: "python scripts/convert.py \"数据/原始 文档.txt\" --input \"数据/原始 文档.txt\"",
+          },
+          exitCode: 0,
+        }],
+      }],
+    } as Evidence & { steps: AgentStep[] }, {
+      sourceEntries: ["scripts/convert.py"],
+    })
+
+    const parameters = context.operations[0]?.parameters ?? []
+    expect(parameters).toContainEqual(expect.objectContaining({
+      name: "arg0",
+      binding: "argv",
+      value: "数据/原始 文档.txt",
+      origin: "task-variable",
+      present: true,
+    }))
+    expect(parameters).toContainEqual(expect.objectContaining({
+      name: "input",
+      binding: "argv",
+      value: "数据/原始 文档.txt",
+      origin: "task-variable",
+      present: true,
+    }))
+    expect(parameters.find((parameter) => parameter.name === "input")?.promptIndex).toBeGreaterThanOrEqual(0)
+  })
+
+  test("marks source-fixed constants, config fields and missing optional values separately", () => {
+    const context = buildOperationContext({
+      taskId: "provenance-config",
+      taskPrompt: "生成配置驱动的报告。输入文件由任务提供。",
+      conversationLog: [],
+      workDirSnapshot: {
+        files: new Map([
+          ["config.json", JSON.stringify({ input: "数据/原始 文档.txt", mode: "strict" })],
+        ]),
+      },
+      trace: {
+        format: "test",
+        representation: "conversation-trace",
+        sourcePath: "trace.jsonl",
+        inputSha256: "c".repeat(64),
+        recordLocator: "record:2",
+        taskIdSource: "source",
+        unknownFields: [],
+        diagnostics: [],
+      },
+      steps: [{
+        role: "assistant",
+        timestamp: 1000,
+        toolCalls: [{
+          id: "call-config",
+          name: "execute_command",
+          input: {
+            command: "python scripts/convert.py --config config.json --seed 42",
+            configPath: "config.json",
+          },
+          exitCode: 0,
+        }],
+      }],
+    } as Evidence & { steps: AgentStep[] }, {
+      sourceEntries: ["scripts/convert.py"],
+      sourceParameterRules: [
+        { name: "seed", binding: "argv", origin: "source-fixed", values: ["42"], sourceLocator: "SKILL.md:88" },
+        { name: "input", binding: "config-field", origin: "task-variable", sourceLocator: "SKILL.md:12", required: true },
+        { name: "output", binding: "config-field", origin: "task-variable", sourceLocator: "SKILL.md:13", optional: true },
+      ],
+    })
+
+    const parameters = context.operations[0]?.parameters ?? []
+    expect(parameters).toContainEqual(expect.objectContaining({
+      name: "seed",
+      binding: "argv",
+      value: "42",
+      origin: "source-fixed",
+      present: true,
+    }))
+    expect(parameters).toContainEqual(expect.objectContaining({
+      name: "input",
+      binding: "config-field",
+      value: "数据/原始 文档.txt",
+      origin: "task-variable",
+      configField: "input",
+      present: true,
+    }))
+    expect(parameters).toContainEqual(expect.objectContaining({
+      name: "output",
+      binding: "config-field",
+      origin: "unknown",
+      configField: "output",
+      present: false,
+      optional: true,
+    }))
+  })
+
+  test("does not bind an old prompt path or globally rewrite an observed path", () => {
+    const oldPath = "数据/旧 文档.txt"
+    const newPath = "数据/新 文档.txt"
+    const taskPrompt = `迁移 ${oldPath} 的处理流程，当前实际输入改为 ${newPath}。`
+    const context = buildOperationContext({
+      taskId: "provenance-old-path",
+      taskPrompt,
+      conversationLog: [],
+      trace: {
+        format: "test",
+        representation: "conversation-trace",
+        sourcePath: "trace.jsonl",
+        inputSha256: "d".repeat(64),
+        recordLocator: "record:3",
+        taskIdSource: "source",
+        unknownFields: [],
+        diagnostics: [],
+      },
+      steps: [{
+        role: "assistant",
+        timestamp: 1000,
+        toolCalls: [{
+          id: "call-new-path",
+          name: "execute_command",
+          input: { command: `python scripts/convert.py --input "${newPath}"` },
+          exitCode: 0,
+        }],
+      }],
+    } as Evidence & { steps: AgentStep[] }, {
+      sourceEntries: ["scripts/convert.py"],
+    })
+
+    const parameters = context.operations[0]?.parameters ?? []
+    expect(parameters).toContainEqual(expect.objectContaining({
+      name: "input",
+      value: newPath,
+      origin: "task-variable",
+      present: true,
+    }))
+    expect(parameters.some((parameter) => parameter.value === oldPath)).toBe(false)
+    expect(context.operations[0]?.rawCommand).toContain(newPath)
+    expect(context.operations[0]?.rawCommand).not.toContain(`${newPath.replace("新", "旧")}`)
+  })
 })
