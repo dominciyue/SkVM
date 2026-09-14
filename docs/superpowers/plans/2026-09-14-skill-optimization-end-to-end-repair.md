@@ -236,7 +236,7 @@ python scripts/check_skill_ir_doc_links_test.py
 - [x] 按明确名单提交本轮代码、测试、必要文档和紧凑证据，推 `origin/skill-ir-aot` 并核对一次对齐；其他线程修改及缓存不夹带。原始 trace 是否进入版本库遵守已有脱敏/归档规则，不能为证据完整泄露凭据。
 - [x] 只有第 2 节最低条件实际成立才把用户持续目标标完成。最低产品条件在 C8/C9 的 bounded Law package chain 中成立；结论仍严格限于 development、局部职责和 mixed effect，未开放 prospective/held-out。
 
-**C10 实际验证：** `bun test ./test/run ./src/run/index.test.ts ./test/cli/run-optimize.test.ts ./test/jit-optimize ./test/proposals/storage.test.ts` 为 376/376 tests、1,242 assertions；`bun run typecheck` 通过；`python scripts/check_skill_ir_doc_links_test.py` 为 12/12、0 failures。最终机器报告为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/final-report.json`。交付提交 `33e5ac2051a1d1c543e8fc4bd59fea95c1e0491e` 已推送至 `origin/skill-ir-aot`，对齐为 0 ahead / 0 behind。
+**C10 实际验证：** `bun test ./test/run ./src/run/index.test.ts ./test/cli/run-optimize.test.ts ./test/jit-optimize ./test/proposals/storage.test.ts` 为 376/376 tests、1,242 assertions；`bun run typecheck` 通过；`python scripts/check_skill_ir_doc_links_test.py` 为 12/12、0 failures。最终机器报告为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/final-report.json`。交付最终提交 `8071eae` 已推送至 `origin/skill-ir-aot`，对齐为 0 ahead / 0 behind；五个归档 package 的严格闭包验证均为 `passed`。
 
 ## 4. 可复制的持续目标指令
 
