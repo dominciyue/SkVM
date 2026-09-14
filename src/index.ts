@@ -133,7 +133,9 @@ Use --help with any command for details.`)
       process.exit(1)
   }
 
-  process.exit(0)
+  // Handlers may finish recording evidence before reporting a failure.
+  // Preserve their exit code for shells and launchers.
+  process.exit(process.exitCode ?? 0)
 }
 
 main().catch((err) => {

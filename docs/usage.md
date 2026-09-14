@@ -13,6 +13,8 @@ skvm --verbose <command>           # enable debug logging
 
 Flags use `--key=value` format (no space-separated form). `bun run skvm ...` works interchangeably with the installed `skvm` binary — all examples below use `skvm` for brevity.
 
+For multi-step tasks, set an appropriate execution budget, for example `run --timeout-ms=900000` (15 minutes). This budget covers the source task, not subsequent optimization. A timed-out source task may have complete logs but incomplete outputs; `run --optimize` does not enter optimization in that case. Failed optimization handoffs return a nonzero process exit code, including through the top-level CLI. Increasing the budget starts a new attempt; package-export recovery does not resume a timed-out source task.
+
 Model-id placeholders. `<id>` below is shorthand for `<provider>/<model-id>` — every CLI model id must carry a `<provider>/` prefix that matches a route in `providers.routes`. OpenRouter targets use three segments (e.g. `openrouter/qwen/qwen3.5-35b-a3b`); native-SDK targets use two (e.g. `anthropic/claude-sonnet-4.6`). See [providers.md](providers.md) for the full rule.
 
 Top-level commands:

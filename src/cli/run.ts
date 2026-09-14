@@ -245,8 +245,13 @@ async function printOptimizationHandoff(options: {
     console.log(`This recovery does not rerun the source task or optimizer.`)
   } else if (phase === "optimizer") {
     console.log(`Next: inspect the saved session and provider error. Do not replay the source task automatically; start a new run only when its external effects are known safe.`)
+  } else if (session.sourceRun.status === "failed") {
+    console.log(`Next: the source task did not finish (${session.sourceRun.runStatus}). Inspect the preserved partial results; they are not a completed deliverable.`)
+    if (session.sourceRun.runStatus === "timeout") {
+      console.log(`For a new attempt, increase --timeout-ms or use a faster model. The optimizer has not run; package-export recovery cannot resume this source task.`)
+    }
   } else {
-    console.log(`Next: inspect the session capture diagnostics. The source result remains usable, but optimization cannot continue without complete capture evidence.`)
+    console.log(`Next: inspect the session capture diagnostics. Preserved source files are available for inspection; optimization requires complete capture evidence.`)
   }
 }
 
