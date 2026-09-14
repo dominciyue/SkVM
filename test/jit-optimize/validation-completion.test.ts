@@ -147,6 +147,41 @@ describe("completeValidationSuggestion", () => {
     expect(result.diagnostics).toEqual([])
   })
 
+  test("classifies an empty existing validation declaration as repairable without mutating the candidate", async () => {
+    const validation = { cases: [] }
+    const candidate = action("repairable", "scripts/convert.py", validation)
+    const result = await completeValidationSuggestion({
+      action: candidate,
+      implementation: implementation("repairable"),
+      evidences: [evidence()],
+    })
+
+    expect(result.status).toBe("repairable")
+    expect(result.action).toBe(candidate)
+    expect(result.action.validation).toEqual(validation)
+    expect(result.suggestion?.cases).toHaveLength(1)
+    expect(result.repairable).toEqual(expect.objectContaining({
+      fields: expect.arrayContaining(["validation.cases"]),
+      evidenceIds: ["0"],
+      suggestion: expect.objectContaining({ cases: expect.any(Array) }),
+    }))
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({
+      code: "validation-completion-metadata-missing",
+    }))
+  })
+
+  test("does not request metadata repair when an empty validation declaration has no deterministic basis", async () => {
+    const result = await completeValidationSuggestion({
+      action: action("repairable-unknown", "scripts/convert.py", { cases: [] }),
+      implementation: implementation("repairable-unknown"),
+      evidences: [evidence({ withOutput: false })],
+    })
+
+    expect(result.status).toBe("unresolved")
+    expect(result.repairable).toBeUndefined()
+    expect(result.action.validation?.cases).toEqual([])
+  })
+
   test("does not invent an output rule when only an input is observable", async () => {
     const result = await completeValidationSuggestion({
       action: action("no-output"),

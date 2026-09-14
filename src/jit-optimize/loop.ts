@@ -56,6 +56,7 @@ import {
 import { computeDiff, removeWorkspace } from "./workspace.ts"
 import {
   runOptimizationValidationLifecycle,
+  type OptimizationValidationRepairableFeedback,
   type OptimizationValidationLifecycleReport,
 } from "./validation-lifecycle.ts"
 import { writeEvidenceSidecar, runRecordDir, recordConversationPath, resolveSafeTaskIds } from "./record.ts"
@@ -1118,13 +1119,23 @@ function buildRepairFeedback(
   resolutionFeedback: OptimizationValidationLifecycleReport["resolution"]["feedback"],
   actions: readonly OptimizationAction[],
   candidateDiff: readonly string[],
+  repairableFeedback: readonly OptimizationValidationRepairableFeedback[] = [],
 ): OptimizationRepairFeedbackItem[] {
   const byId = new Map(actions.map((action) => [action.id, action]))
   const declaredByOther = new Map<string, Set<string>>()
   for (const action of actions) {
     declaredByOther.set(action.id, new Set(actionDeclaredPaths(action)))
   }
-  return resolutionFeedback.map((item) => {
+  const seen = new Set<string>()
+  const sources = [
+    ...resolutionFeedback,
+    ...repairableFeedback,
+  ].filter((item) => {
+    if (seen.has(item.actionId)) return false
+    seen.add(item.actionId)
+    return true
+  })
+  return sources.map((item) => {
     const action = byId.get(item.actionId)
     if (!action) {
       throw new Error(`Validation feedback names an unknown action: ${item.actionId}`)
@@ -1135,6 +1146,9 @@ function buildRepairFeedback(
         .flatMap((candidate) => [...(declaredByOther.get(candidate.id) ?? [])]),
     )
     const unclaimedCandidateDiff = candidateDiff.filter((candidatePath) => !otherDeclared.has(candidatePath))
+    const candidateAction = "suggestion" in item
+      ? { ...action, validation: item.suggestion }
+      : action
     const relevantFiles = [...new Set([
       ...item.relevantFiles,
       ...actionDeclaredPaths(action),
@@ -1143,10 +1157,16 @@ function buildRepairFeedback(
     return {
       actionId: item.actionId,
       failureKind: item.failureKind,
-      diagnostics: [...item.diagnostics],
+      diagnostics: [
+        ...item.diagnostics,
+        ...( "fields" in item && item.fields.length > 0
+          ? [`Repairable metadata fields: ${item.fields.join(", ")}`]
+          : []),
+      ],
       relevantFiles,
+      ...( "fields" in item ? { fields: [...item.fields] } : {}),
       baselineAction: structuredClone(action),
-      candidateAction: structuredClone(action),
+      candidateAction: structuredClone(candidateAction),
       candidateDiff: [...candidateDiff],
       originalIntent: repairOriginalIntent(action),
     }
@@ -1252,7 +1272,13 @@ async function runLogOnly(
       })
     : undefined
 
-  if (validationLifecycle && validationLifecycle.summary.rejectedActionIds.length > 0) {
+  if (
+    validationLifecycle
+    && (
+      validationLifecycle.summary.rejectedActionIds.length > 0
+      || (validationLifecycle.report.repairable?.actionIds.length ?? 0) > 0
+    )
+  ) {
     const validationDir = path.join(proposal.dir, "round-1-validation")
     await copyFile(path.join(validationDir, "report.json"), path.join(validationDir, "initial-report.json"))
     const initialLifecycle = validationLifecycle
@@ -1260,6 +1286,7 @@ async function runLogOnly(
       initialLifecycle.report.resolution.feedback,
       candidateSubmission.actions ?? [],
       initialCandidateChangedPaths,
+      initialLifecycle.report.repairable?.feedback ?? [],
     )
     const repairActionIds = repairFeedback.map((item) => item.actionId)
     const allowedRepairPaths = new Set(repairFeedback.flatMap((item) => item.relevantFiles))
@@ -1323,7 +1350,9 @@ async function runLogOnly(
           .filter((item) => item.validationSource === "reused-initial-observation")
           .map((item) => item.actionId)
           .sort()
-        repairOutcome = validationLifecycle.summary.rejectedActionIds.length === 0 ? "passed" : "rolled-back"
+        repairOutcome = validationLifecycle.summary.rejectedActionIds.length === 0
+          ? ((validationLifecycle.report.repairable?.actionIds.length ?? 0) === 0 ? "passed" : "unresolved")
+          : "rolled-back"
       }
     } catch (error) {
       repairFailure = error instanceof Error ? error.message : String(error)
@@ -1343,30 +1372,37 @@ async function runLogOnly(
       const rollbackPaths = [...new Set((candidateSubmission.actions ?? [])
         .filter((action) => rollbackIdSet.has(action.id))
         .flatMap((action) => action.changedPaths))].sort()
-      await copyFile(path.join(validationDir, "report.json"), path.join(validationDir, "repair-report.json"))
-      await restoreChangedPaths(skillDir, candidateWorkspace, rollbackPaths)
-      const survivingActions = (candidateSubmission.actions ?? []).filter((action) => !rollbackIdSet.has(action.id))
-      validationLifecycle = await runOptimizationValidationLifecycle({
-        proposalDir: proposal.dir,
-        round: 1,
-        skillDir: candidateWorkspace,
-        sourceSkillDir: skillDir,
-        baselineSkillDir: skillDir,
-        actions: survivingActions,
-        evidences: preEvidences,
-        executeActionIds: [],
-        changedPathsSincePrior: rollbackPaths,
-        priorReport: failedLifecycle.report,
-      })
-      candidateSubmission = { ...candidateSubmission, actions: survivingActions }
-      validationLifecycle.report.rollback = {
-        actionIds: [...rollbackActionIds].sort(),
-        changedPaths: rollbackPaths,
-        reason: repairOutcome === "scope-violation"
-          ? "repair-scope-violation"
-          : repairOutcome === "optimizer-failed"
-            ? "repair-optimizer-failed"
-            : "repair-still-failed",
+      if (rollbackActionIds.length > 0) {
+        await copyFile(path.join(validationDir, "report.json"), path.join(validationDir, "repair-report.json"))
+        await restoreChangedPaths(skillDir, candidateWorkspace, rollbackPaths)
+        const survivingActions = (candidateSubmission.actions ?? []).filter((action) => !rollbackIdSet.has(action.id))
+        validationLifecycle = await runOptimizationValidationLifecycle({
+          proposalDir: proposal.dir,
+          round: 1,
+          skillDir: candidateWorkspace,
+          sourceSkillDir: skillDir,
+          baselineSkillDir: skillDir,
+          actions: survivingActions,
+          evidences: preEvidences,
+          executeActionIds: [],
+          changedPathsSincePrior: rollbackPaths,
+          priorReport: failedLifecycle.report,
+        })
+        candidateSubmission = { ...candidateSubmission, actions: survivingActions }
+        validationLifecycle.report.rollback = {
+          actionIds: [...rollbackActionIds].sort(),
+          changedPaths: rollbackPaths,
+          reason: repairOutcome === "scope-violation"
+            ? "repair-scope-violation"
+            : repairOutcome === "optimizer-failed"
+              ? "repair-optimizer-failed"
+              : "repair-still-failed",
+        }
+      } else if (repairOutcome !== "unresolved") {
+        // A failed/scope-violating repair with no concrete rejected action has
+        // already left the initial candidate workspace in place. Preserve its
+        // unvalidated status; never manufacture a rejection or rollback path.
+        validationLifecycle = failedLifecycle
       }
     }
     validationLifecycle.report.repair = {

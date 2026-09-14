@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, mock, test } from "bun:test"
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
+import { gzipSync } from "node:zlib"
 import path from "node:path"
 import type { OptimizeConfig, OptimizeInput, OptimizeResult, OptimizeSubmission } from "../../src/jit-optimize/types.ts"
 import { buildOptimizedSkillPackage } from "../../src/jit-optimize/package.ts"
@@ -217,7 +218,7 @@ await writeFile(out, JSON.stringify({ value: rules[${JSON.stringify(id)}] }) + "
   return { skillDir, baselineSkill, proposal, packageDir, result, report, exported, calls, repairFeedback }
 }
 
-async function metadataRepairScenario(options: { changeFile: boolean }) {
+async function metadataRepairScenario(options: { changeFile: boolean; missingValidation?: boolean }) {
   const skillDir = await tempDir("metadata-repair-skill-")
   const taskDir = await tempDir("metadata-repair-task-")
   const evidenceWorkDir = await tempDir("metadata-repair-evidence-")
@@ -242,17 +243,79 @@ async function metadataRepairScenario(options: { changeFile: boolean }) {
   for (const id of ids) {
     await writeFile(path.join(evidenceWorkDir, "reference", `${id}.json`), `${JSON.stringify({ value: id.toUpperCase() })}\n`)
   }
-  const logPath = path.join(logDir, "raw-runs.jsonl")
-  await writeFile(logPath, `${JSON.stringify({
-    caseId: "metadata-repair:development",
-    system: "original",
-    stdout: "Tokens: in=1 out=1\n\nFinal output:\ncompleted",
-    successSource: "execution-only",
-    taskPath,
-    skillPath: path.join(skillDir, "SKILL.md"),
-    workDir: evidenceWorkDir,
-    runStatus: "ok",
-  })}\n`)
+  const logPath = path.join(logDir, options.missingValidation ? "report.json" : "raw-runs.jsonl")
+  const recordLocators = options.missingValidation ? undefined : ["line:1"]
+  if (options.missingValidation) {
+    await mkdir(path.join(evidenceWorkDir, "inputs"), { recursive: true })
+    await mkdir(path.join(evidenceWorkDir, "out"), { recursive: true })
+    await writeFile(path.join(evidenceWorkDir, "inputs", "a.json"), '{"value":"a"}\n')
+    await writeFile(path.join(evidenceWorkDir, "out", "a.json"), '{"value":"A"}\n')
+    await mkdir(path.join(skillDir, "reference"), { recursive: true })
+    await writeFile(path.join(skillDir, "reference", "a.json"), '{"value":"A"}\n')
+    await writeFile(path.join(skillDir, ".skvm-validation.json"), JSON.stringify({
+      schemaVersion: "skvm-skill-validation/v1",
+      fileChecks: [{
+        id: "output-a",
+        path: "out/a.json",
+        mode: "exact",
+        expected: '{"value":"A"}\n',
+        sourceRef: "reference/a.json",
+      }],
+    }))
+    const rawEvents = JSON.stringify([
+      { type: "message_end", message: { role: "user", content: [{ type: "text", text: "Run the bounded converter." }], timestamp: 1 } },
+      { type: "message_end", message: {
+        role: "assistant",
+        content: [{ type: "toolCall", id: "call-a", name: "execute_command", arguments: { command: "node scripts/a.mjs --input inputs/a.json --out out/a.json" } }],
+        api: "openai-completions",
+        provider: "test",
+        model: "test",
+        usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0, totalTokens: 2, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } },
+        stopReason: "toolUse",
+        timestamp: 2,
+      } },
+      { type: "message_end", message: { role: "toolResult", toolCallId: "call-a", toolName: "execute_command", content: [{ type: "text", text: "done" }], isError: false, timestamp: 3 } },
+    ])
+    const compressed = gzipSync(rawEvents)
+    await writeFile(path.join(logDir, "agent-events.json.gz"), compressed)
+    await writeFile(logPath, JSON.stringify({
+      schemaVersion: "skill-ir-general-skill-development/v1",
+      status: "passed",
+      exposure: "development",
+      prompt: "Run the bounded converter.",
+      package: { kind: "optimized", path: skillDir, manifestIdentity: "test:metadata-repair", selectedEntrypoints: ["scripts/a.mjs"] },
+      runtime: {
+        runDir: logDir,
+        workDir: evidenceWorkDir,
+        model: "test/optimizer",
+        driver: "pi",
+        exitCode: 0,
+        timedOut: false,
+        durationMs: 1,
+        tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 },
+        agentEvents: {
+          path: "agent-events.json.gz",
+          format: "gzip",
+          bytes: compressed.byteLength,
+          sha256: new Bun.CryptoHasher("sha256").update(compressed).digest("hex"),
+          rawBytes: Buffer.byteLength(rawEvents),
+          rawSha256: new Bun.CryptoHasher("sha256").update(rawEvents).digest("hex"),
+        },
+      },
+      verification: { taskPassed: true, skillPackagePreserved: true, protectedResourcesPreserved: true, expectedFiles: [], residualEvidenceFiles: [] },
+    }))
+  } else {
+    await writeFile(logPath, `${JSON.stringify({
+      caseId: "metadata-repair:development",
+      system: "original",
+      stdout: "Tokens: in=1 out=1\n\nFinal output:\ncompleted",
+      successSource: "execution-only",
+      taskPath,
+      skillPath: path.join(skillDir, "SKILL.md"),
+      workDir: evidenceWorkDir,
+      runStatus: "ok",
+    })}\n`)
+  }
 
   const source = (id: string, value: string) => `
 import { mkdir, writeFile } from "node:fs/promises";
@@ -270,30 +333,34 @@ await writeFile(out, ${JSON.stringify(`${JSON.stringify({ value })}\n`)});
       id,
       kind: "generate-script" as const,
       evidenceIds: ["0"],
-      sourceRefs: wrongMetadata && id === "a"
+      sourceRefs: wrongMetadata && id === "a" && !options.missingValidation
         ? ["scripts/missing.mjs"]
         : [`scripts/${id}.mjs`],
       dependsOn: [],
       inputs: [`inputs/${id}.json`],
       outputs: [`out/${id}.json`],
       preconditions: ["Node.js is available"],
-      changedPaths: wrongMetadata && id === "a"
+      changedPaths: wrongMetadata && id === "a" && !options.missingValidation
         ? ["scripts/missing.mjs"]
         : [`scripts/${id}.mjs`],
       residualDuties: [],
       verification: ["reference output digest"],
-      validation: {
-        cases: [{
-          id,
-          evidenceId: "0",
-          inputSource: "task-fixtures" as const,
-          inputFiles: [`inputs/${id}.json`],
-          args: ["--out", `out/${id}.json`],
-          expectedFiles: [{ path: `out/${id}.json`, referencePath: `reference/${id}.json` }],
-          basis: "task-contract" as const,
-          sourceRefs: [`evidence:0#criteria/output-${id}`, `evidence:0#reference/${id}.json`],
-        }],
-      },
+      validation: options.missingValidation && wrongMetadata && id === "a"
+        ? { cases: [] }
+        : {
+            cases: [{
+              id,
+              evidenceId: "0",
+              inputSource: options.missingValidation ? "workdir-snapshot" as const : "task-fixtures" as const,
+              inputFiles: [`inputs/${id}.json`],
+              args: ["--out", `out/${id}.json`],
+              expectedFiles: [{ path: `out/${id}.json`, referencePath: `reference/${id}.json` }],
+              basis: "task-contract" as const,
+              sourceRefs: options.missingValidation
+                ? ["reference/a.json"]
+                : [`evidence:0#criteria/output-${id}`, `evidence:0#reference/${id}.json`],
+            }],
+          },
     }))
     return {
       rootCause: "The bounded converter action has incorrect executable metadata.",
@@ -315,7 +382,7 @@ await writeFile(out, ${JSON.stringify(`${JSON.stringify({ value })}\n`)});
     await cp(input.skillDir, workspaceDir, { recursive: true })
     await mkdir(path.join(workspaceDir, "scripts"), { recursive: true })
     if (calls === 1) {
-      await writeFile(path.join(workspaceDir, "scripts", "a.mjs"), source("a", options.changeFile ? "WRONG" : "A"))
+      await writeFile(path.join(workspaceDir, "scripts", "a.mjs"), source("a", options.changeFile && !options.missingValidation ? "WRONG" : "A"))
       if (options.changeFile) await writeFile(path.join(workspaceDir, "scripts", "b.mjs"), source("b", "B"))
     } else {
       repairFeedback.push((input as OptimizeInput & { repairFeedback?: unknown }).repairFeedback)
@@ -350,7 +417,7 @@ await writeFile(out, ${JSON.stringify(`${JSON.stringify({ value })}\n`)});
   const result = await runLoop({
     skillDir,
     optimizer: { model: "test/optimizer" },
-    taskSource: { kind: "execution-log", logs: [{ path: logPath, recordLocators: ["line:1"] }] },
+    taskSource: { kind: "execution-log", logs: [{ path: logPath, ...(recordLocators ? { recordLocators } : {}) }] },
     targetAdapter: { model: "test/target", harness: "pi" },
     delivery: { keepAllRounds: true, autoApply: false },
     evalProvider: {
@@ -619,6 +686,37 @@ console.log(JSON.stringify({ status: "success", output: args[outAt + 1] }));
       expect.objectContaining({ id: "a", changedPaths: ["scripts/a.mjs"] }),
     ])
     expect(await readFile(path.join(scenario.packageDir, "scripts", "a.mjs"), "utf8")).toContain("\\\"A\\\"")
+  })
+
+  test("routes a deterministic validation completion gap through the bounded repair pass", async () => {
+    const scenario = await metadataRepairScenario({ changeFile: false, missingValidation: true })
+
+    expect(scenario.calls).toBe(2)
+    expect(scenario.result.bestRound).toBe(1)
+    expect(scenario.result.validation?.status).toBe("passed")
+    expect(scenario.report.repair).toEqual(expect.objectContaining({
+      outcome: "passed",
+      changedPaths: [],
+      actionIds: ["a"],
+      revalidatedActionIds: ["a"],
+    }))
+    expect(scenario.report.actions[0]).toEqual(expect.objectContaining({
+      actionId: "a",
+      validationSource: "executed",
+      programStatus: "passed",
+    }))
+    expect(scenario.report.repairable).toBeUndefined()
+    expect(scenario.repairFeedback[0]).toEqual(expect.objectContaining({
+      actionIds: ["a"],
+      feedback: [expect.objectContaining({
+        actionId: "a",
+        failureKind: "validation-metadata-missing",
+        fields: ["validation.cases"],
+        candidateAction: expect.objectContaining({
+          validation: expect.objectContaining({ cases: expect.any(Array) }),
+        }),
+      })],
+    }))
   })
 
   test("merges file and metadata repair into the final snapshot while preserving an independent action", async () => {

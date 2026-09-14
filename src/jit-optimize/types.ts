@@ -647,6 +647,8 @@ export interface OptimizationRepairFeedbackItem {
   failureKind: string
   diagnostics: string[]
   relevantFiles: string[]
+  /** Metadata fields that a bounded repair may reconnect without changing intent. */
+  fields?: string[]
   /** Action declaration before the repair pass. */
   baselineAction: OptimizationAction
   /** Current candidate declaration presented to the repair pass. */

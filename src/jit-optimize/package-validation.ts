@@ -89,7 +89,7 @@ export interface ActionValidationObservation {
 
 export interface ActionValidationFeedback {
   actionId: string
-  failureKind: ProgramValidationFailureKind | "not-applicable" | "dependency-rejected" | "shared-change-group-rejected"
+  failureKind: ProgramValidationFailureKind | "not-applicable" | "dependency-rejected" | "shared-change-group-rejected" | "validation-metadata-missing"
   diagnostics: string[]
   relevantFiles: string[]
   nextAction?: string

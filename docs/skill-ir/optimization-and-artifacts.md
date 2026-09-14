@@ -113,6 +113,8 @@ F2 在同一操作记录上补充参数来源索引。`OperationParameter` 区�
 
 F3 新增 `validation-completion.ts`，在 `deriveProgramValidationPlan` 前从实际操作、可读的 digest-bound 资源和已存在的 source/task checks 确定性补齐 validation suggestion。它只使用已确认的 executable entry、argv 尾部参数、观察到且实际快照存在的输入/输出路径，并在 provenance 中记录每个字段来源；输入资源按 workdir snapshot、pre-run snapshot、bound task fixtures 的顺序选择。缺输出、缺资源、未观察入口和歧义 shell 命令返回 unresolved，不生成语义 oracle；已有模型 suggestion 原样保留。补全后的 case 继续经过既有 `deriveProgramValidationPlan` 与 `validateOptimizationProgram`，reference-output、task/source assertion 和 self-check authority 不混淆。机器验证为 `results/skill-ir/general-generation-reinforcement-20260914/f3/verification.json`，聚焦套件 24/24、99 assertions。
 
+F4 将这条 completion 结果接入既有的一次 repair budget：已有但为空的 `validation.cases` 只有在观察到明确 executable、输入/输出资源和来源检查时才标为 `repairable`，原 action 不被静默改写。反馈同时携带确定性候选 validation、缺字段、实际候选差异、原始意图和局部文件范围，并与真实程序失败合并；无资源、歧义操作、未执行和程序失败仍分别记录，不能把 `unvalidated` 统称为 rejected。修复后的 action 通过 `mergeRepairSubmission`、`executeActionIds`、`priorReport` 和 validation binding 重验；metadata-only 增量也会实际执行。若一次修复仍无依据，结果保留 draft/unvalidated，不伪造 rollback 或通过。机器验证为 `results/skill-ir/general-generation-reinforcement-20260914/f4/verification.json`；该阶段只使用确定性本地替身，不建立真实模型、整 skill、readiness 或 prospective 结论。
+
 ### 3.0.6 F1.1 语料到代码模式索引（development）
 
 F1.1 将五个已暴露的深读成员映射为可审计的 `pattern-to-code.json`：zh-readme、i18n-helper、law-to-markdown、experimental-design 和 env-manager。每个成员分别记录源 `SKILL.md` 摘要与行定位、固定机械步骤、变量来源、环境依赖、分支判断、当前动作类型候选、生产符号/测试及仍不支持的缺口；不会把 skill 名、特定仓库路径或历史成功数量写成实现条件。

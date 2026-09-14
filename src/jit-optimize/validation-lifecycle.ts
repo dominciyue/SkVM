@@ -18,6 +18,7 @@ import type {
   OptimizationAction,
   OptimizationRoundValidationSummary,
   OptimizationRepairFeedbackItem,
+  OptimizationProgramValidationSuggestion,
   OptimizationValidationBasis,
   OptimizationValidationCaseSuggestion,
 } from "./types.ts"
@@ -138,6 +139,16 @@ export interface OptimizationActionValidationRecord {
   validationSource?: "executed" | "reused-initial-observation"
 }
 
+/** A concrete validation metadata gap that the single bounded repair may fill. */
+export interface OptimizationValidationRepairableFeedback {
+  actionId: string
+  failureKind: "validation-metadata-missing"
+  diagnostics: string[]
+  relevantFiles: string[]
+  fields: string[]
+  suggestion: OptimizationProgramValidationSuggestion
+}
+
 export interface OptimizationValidationLifecycleReport {
   schemaVersion: typeof OPTIMIZATION_VALIDATION_REPORT_SCHEMA_VERSION
   createdAt: string
@@ -146,6 +157,10 @@ export interface OptimizationValidationLifecycleReport {
   sourceTaskReplayed: false
   actions: OptimizationActionValidationRecord[]
   resolution: ActionValidationResolution
+  repairable?: {
+    actionIds: string[]
+    feedback: OptimizationValidationRepairableFeedback[]
+  }
   execution: {
     programRuns: number
     helpRuns: number
@@ -166,7 +181,7 @@ export interface OptimizationValidationLifecycleReport {
     repairReportPath?: string
     costUsd: number | null
     tokens?: { input: number; output: number; cacheRead: number; cacheWrite: number }
-    outcome: "passed" | "rolled-back" | "optimizer-failed" | "scope-violation"
+    outcome: "passed" | "unresolved" | "rolled-back" | "optimizer-failed" | "scope-violation"
     failure?: string
   }
   rollback?: {
@@ -1124,6 +1139,7 @@ export async function runOptimizationValidationLifecycle(
   let caseRuns = 0
   let independentCaseRuns = 0
   let reusedActionObservations = 0
+  const repairableFeedback: OptimizationValidationRepairableFeedback[] = []
   const executeActionIds = options.executeActionIds ? new Set(options.executeActionIds) : undefined
 
   for (const action of options.actions) {
@@ -1135,6 +1151,16 @@ export async function runOptimizationValidationLifecycle(
       sourceSkillDir: options.sourceSkillDir,
     })
     const effectiveAction = completion.action
+    if (completion.status === "repairable" && completion.repairable) {
+      repairableFeedback.push({
+        actionId: action.id,
+        failureKind: "validation-metadata-missing",
+        diagnostics: completion.diagnostics.map((item) => `${item.code}: ${item.message}`),
+        relevantFiles: [...completion.repairable.relevantFiles].sort(),
+        fields: [...completion.repairable.fields],
+        suggestion: completion.repairable.suggestion,
+      })
+    }
     const validationBinding = await deriveValidationBinding({
       skillDir: options.skillDir,
       action: effectiveAction,
@@ -1364,6 +1390,12 @@ export async function runOptimizationValidationLifecycle(
     sourceTaskReplayed: false,
     actions: records,
     resolution,
+    ...(repairableFeedback.length > 0 ? {
+      repairable: {
+        actionIds: [...new Set(repairableFeedback.map((item) => item.actionId))],
+        feedback: repairableFeedback,
+      },
+    } : {}),
     execution: { programRuns, helpRuns, caseRuns, independentCaseRuns, reusedActionObservations },
   }
   await Bun.write(path.join(reportDir, "report.json"), `${JSON.stringify(report, null, 2)}\n`)

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "skill-ir-general-generation-reinforcement-f4-verification/v1",
+  "identity": "general-generation-reinforcement-20260914",
+  "stage": "F4",
+  "status": "passed",
+  "red": {
+    "command": "bun test ./test/jit-optimize/validation-completion.test.ts",
+    "result": "failed-before-repairable-classification",
+    "tests": 2,
+    "failed": 2,
+    "reason": "The new empty-existing-validation cases initially returned unchanged and had no repairable suggestion or metadata scope."
+  },
+  "green": {
+    "command": "bun test ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/continuous-production-closure.test.ts",
+    "tests": 29,
+    "failed": 0,
+    "assertions": 187
+  },
+  "unit": {
+    "command": "bun test ./test/jit-optimize/validation-completion.test.ts",
+    "tests": 7,
+    "failed": 0,
+    "assertions": 28
+  },
+  "typecheck": {
+    "command": "bun run typecheck",
+    "status": "passed"
+  },
+  "repairRouting": {
+    "repairableStatus": "Source-backed empty validation metadata is reported as repairable while the original action remains unchanged.",
+    "feedback": "The bounded repair input carries candidate validation metadata, validation.cases as the missing field, operation/evidence diagnostics, original intent and local file scope.",
+    "metadataOnly": {
+      "optimizerCalls": 2,
+      "repairChangedPaths": [],
+      "revalidatedActionIds": ["a"],
+      "finalProgramStatus": "passed"
+    },
+    "existingRejectedRepair": "Existing concrete program failures still use the same repair and dependency/shared-file rollback behavior.",
+    "noBasis": "An empty declaration without observable output/resource authority remains unresolved and does not trigger a repairable feedback item."
+  },
+  "authority": [
+    "Only observed executable operations, digest-bound resource snapshots and original source-owned checks can produce a repair candidate.",
+    "The repair pass is still single-budget and receives no whole-opportunity re-analysis request.",
+    "A repairable wiring gap is not a program failure; unvalidated actions remain explicitly unvalidated until a re-run establishes a result.",
+    "Metadata-only changes are revalidated through executeActionIds, priorReport and validation binding; independent actions remain isolated."
+  ],
+  "costs": {
+    "optimizerAgentRuns": 0,
+    "targetAgentRuns": 0,
+    "paidCalls": 0,
+    "actualUsd": null,
+    "developerAgentCost": "not-measured-by-project-runtime"
+  },
+  "claimBoundary": "F4 is deterministic local engineering evidence using in-process substitutes and synthetic evidence. It does not establish real model behavior, whole-skill/API correctness, readiness, human savings, prospective eligibility or held-out performance.",
+  "nextStage": "F5 parameter and path variation checks"
+}

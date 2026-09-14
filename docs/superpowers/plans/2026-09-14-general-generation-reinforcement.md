@@ -138,15 +138,15 @@ revision 2 加强第 4 项：目标中的程序必须包含一个实际生成/�
 
 ## F4 — 可修接线缺口进入既有一次 repair
 
-- [ ] 红例：首轮程序正确、缺 argv 或 validation；确定性补全不足，但有明确来源可请求模型局部补齐。首轮无源码 diff 的 metadata repair 必须实际被采用与验证。
-- [ ] 将诊断区分为可补接线、真实缺依据、未执行、程序失败；不要把所有 unvalidated 改成 rejected。只有具体且有来源的缺口加入 repair scope。
-- [ ] 与现有 rejected repair 合并为同一次请求。传入当前候选、相关操作记录、缺字段、允许修改范围和不可改检查依据；不再次要求全量机会分析。
-- [ ] 修复允许补 action 的实现/参数/验证元数据；不能删义务、改预期答案、吞独立动作或放宽来源。使用已有约束合并器、`executeActionIds/priorReport/validationBinding` 复验相关动作。
-- [ ] 真正没有检查依据时保留局部 draft/unknown，跳过无意义修复调用；确定性补全成功的动作也不调用模型修复。
-- [ ] 回归混合动作：一个补全成功、一个资源不足、一个程序错误；前者可用，中者未知，后者修复或回退，依赖/共享文件传播保持。
-- [ ] 运行 `bun test ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/continuous-production-closure.test.ts`。
+- [x] 红例：首轮程序正确、缺 argv 或 validation；确定性补全不足，但有明确来源可请求模型局部补齐。首轮无源码 diff 的 metadata repair 必须实际被采用与验证。
+- [x] 将诊断区分为可补接线、真实缺依据、未执行、程序失败；不要把所有 unvalidated 改成 rejected。只有具体且有来源的缺口加入 repair scope。
+- [x] 与现有 rejected repair 合并为同一次请求。传入当前候选、相关操作记录、缺字段、允许修改范围和不可改检查依据；不再次要求全量机会分析。
+- [x] 修复允许补 action 的实现/参数/验证元数据；不能删义务、改预期答案、吞独立动作或放宽来源。使用已有约束合并器、`executeActionIds/priorReport/validationBinding` 复验相关动作。
+- [x] 真正没有检查依据时保留局部 draft/unknown，跳过无意义修复调用；确定性补全成功的动作也不调用模型修复。
+- [x] 回归混合动作：一个补全成功、一个资源不足、一个程序错误；前者可用，中者未知，后者修复或回退，依赖/共享文件传播保持。
+- [x] 运行 `bun test ./test/jit-optimize/production-closure.test.ts ./test/jit-optimize/validation-lifecycle.test.ts ./test/jit-optimize/continuous-production-closure.test.ts`（29/29，187 assertions）及 `bun run typecheck`；另行运行 validation-completion 单测（7/7，28 assertions）。
 
-**验收：** “可修但未提交验证”不会无声停留 draft；无依据时不强制额外模型调用。
+**验收：** “可修但未提交验证”不会无声停留 draft；无依据时不强制额外模型调用。F4 已完成；机器证据见 `results/skill-ir/general-generation-reinforcement-20260914/f4/verification.json`。
 
 ## F5 — 用变化检查参数化，不要求统一输入
 

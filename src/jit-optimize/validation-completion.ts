@@ -21,7 +21,7 @@ import type {
   OptimizationValidationCaseSuggestion,
 } from "./types.ts"
 
-export type ValidationCompletionStatus = "unchanged" | "completed" | "unresolved" | "not-applicable"
+export type ValidationCompletionStatus = "unchanged" | "completed" | "repairable" | "unresolved" | "not-applicable"
 
 export type ValidationCompletionDiagnosticCode =
   | "validation-completion-evidence-unavailable"
@@ -30,6 +30,7 @@ export type ValidationCompletionDiagnosticCode =
   | "validation-completion-argv-unresolved"
   | "validation-completion-input-unresolved"
   | "validation-completion-output-unresolved"
+  | "validation-completion-metadata-missing"
   | "validation-completion-source-check-unavailable"
 
 export interface ValidationCompletionDiagnostic {
@@ -59,6 +60,13 @@ export interface ValidationCompletionResult {
   status: ValidationCompletionStatus
   action: OptimizationAction
   suggestion?: OptimizationProgramValidationSuggestion
+  /** A deterministic candidate the bounded repair pass may adopt. */
+  repairable?: {
+    fields: string[]
+    evidenceIds: string[]
+    relevantFiles: string[]
+    suggestion: OptimizationProgramValidationSuggestion
+  }
   diagnostics: ValidationCompletionDiagnostic[]
   provenance: ValidationCompletionProvenance
 }
@@ -250,7 +258,9 @@ export async function completeValidationSuggestion(
   options: CompleteValidationSuggestionOptions,
 ): Promise<ValidationCompletionResult> {
   const { action, implementation } = options
-  if (action.validation) {
+  const existingValidation = action.validation
+  const existingValidationIsIncomplete = existingValidation !== undefined && existingValidation.cases.length === 0
+  if (existingValidation && !existingValidationIsIncomplete) {
     return {
       status: "unchanged",
       action,
@@ -413,7 +423,37 @@ export async function completeValidationSuggestion(
     })
   }
 
-  const suggestion: OptimizationProgramValidationSuggestion = { cases: completedCases }
+  const suggestion: OptimizationProgramValidationSuggestion = {
+    ...(existingValidation?.help ? { help: existingValidation.help } : {}),
+    cases: completedCases,
+  }
+  if (existingValidationIsIncomplete) {
+    const metadataDiagnostic = makeDiagnostic(
+      action,
+      "validation-completion-metadata-missing",
+      "The action declared validation metadata but supplied no executable cases; a bounded repair may connect the deterministic candidate without changing the action intent.",
+      { field: "validation.cases" },
+    )
+    const repairDiagnostics = [metadataDiagnostic, ...diagnostics]
+    const relevantFiles = unique([
+      normalizeEntry(implementation.entry!),
+      ...action.changedPaths.map(normalize),
+      ...action.sourceRefs.map(normalize).filter((item) => !item.startsWith("evidence:")),
+    ])
+    return {
+      status: "repairable",
+      action,
+      suggestion,
+      repairable: {
+        fields: ["validation.cases"],
+        evidenceIds: unique(completedCases.map((item) => item.evidenceId)),
+        relevantFiles,
+        suggestion,
+      },
+      diagnostics: repairDiagnostics,
+      provenance: firstProvenance!,
+    }
+  }
   const completedAction: OptimizationAction = { ...action, validation: suggestion }
   return {
     status: "completed",
