@@ -150,15 +150,15 @@ revision 2 加强第 4 项：目标中的程序必须包含一个实际生成/�
 
 ## F5 — 用变化检查参数化，不要求统一输入
 
-- [ ] 从 F2 已声明的参数绑定生成隔离案例：移动输入与输出目录、改变 cwd、改变一个来源允许的参数值。只选择对该动作语义合法的变化。
-- [ ] 路径变化必须清理案例对旧绝对路径的依赖；在测试中让原观察位置不可访问，检出“新参数存在但程序仍读旧文件”。不移动或删除用户真实源文件。
-- [ ] 输入值变化只有在来源给出可检查关系时才生成期望；不能把旧输出原样当新输入的正确答案。例如顺序不影响集合校验必须有集合语义依据，顺序敏感转换不能套用。
-- [ ] 红例包括：忽略声明参数、错用原 cwd、把缺失可选字段当致命错误、缺必要输入仍写成功结果、固定业务常量被错误替换。保留正确且来源要求的拒绝。
-- [ ] 不适用时先解释/返回给 agent，支持动作继续；未声明统一退出码的原程序不被强改成退出码 2 才能使用。
-- [ ] 新案例通过 existing validation cases/args/cwd/expectedFiles 表达，不建立变形测试 DSL。检查来源与范围写入现有报告。
-- [ ] 运行 `bun test ./test/jit-optimize/validation-completion.test.ts ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/validation-lifecycle.test.ts`。
+- [x] 从 F2 已声明的参数绑定生成隔离案例：移动输入与输出目录、改变 cwd、改变一个来源允许的参数值。只选择对该动作语义合法的变化。路径/cwd 变化由 `deriveValidationVariations` 生成；参数值不猜测，只把同一 evidence 的已存在成对案例记为 covered。
+- [x] 路径变化必须清理案例对旧绝对路径的依赖；在测试中让原观察位置不可访问，检出“新参数存在但程序仍读旧文件”。不移动或删除用户真实源文件。固定路径候选在 relocated case 上被拒绝。
+- [x] 输入值变化只有在来源给出可检查关系时才生成期望；不能把旧输出原样当新输入的正确答案。例如顺序不影响集合校验必须有集合语义依据，顺序敏感转换不能套用。无独立关系时保持 skipped，并保留 sourceRefs。
+- [ ] 红例包括：忽略声明参数、错用原 cwd、把缺失可选字段当致命错误、缺必要输入仍写成功结果、固定业务常量被错误替换。保留正确且来源要求的拒绝。当前已覆盖固定路径与不可用 cwd；其余红例留给后续真实结构回归，不能用未测项冒充完成。
+- [x] 不适用时先解释/返回给 agent，支持动作继续；未声明统一退出码的原程序不被强改成退出码 2 才能使用。无依据参数变化明确 skipped。
+- [x] 新案例通过 existing validation cases/args/cwd/expectedFiles 表达，不建立变形测试 DSL。检查来源与范围写入现有报告。
+- [x] 运行 `bun test ./test/jit-optimize/validation-completion.test.ts ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/validation-lifecycle.test.ts`（44/44，171 assertions）。
 
-**验收：** 至少一条写死路径反例和一条参数未生效反例被检出，正确的原程序接口保持可用；通过只覆盖实际检查的变化。
+**验收：** 已检出一条写死路径反例，并以同一输入的成对参数案例证明参数变化被记录而不重复生成；单值参数不猜测。参数“未生效”语义反例尚未由本阶段独立生成，故该边界保持 partial，不将 F5 误报为全项完成。机器证据见 `results/skill-ir/general-generation-reinforcement-20260914/f5/verification.json`。
 
 ## F6 — 新包让常规工作有明确入口
 

@@ -196,6 +196,40 @@ async function runValidation(
   timeoutMs: number,
 ): Promise<ProgramRunValidation> {
   const command = [...commandBase, ...expectation.args]
+  const resolvedCwd = path.resolve(cwd)
+  try {
+    if (!(await stat(resolvedCwd)).isDirectory()) {
+      return {
+        id,
+        status: "failed",
+        command,
+        cwd: resolvedCwd,
+        exitCode: -1,
+        stdout: "",
+        stderr: "",
+        outputFiles: [],
+        assertions: [],
+        diagnostics: [`variation cwd is unavailable: ${resolvedCwd}`],
+        failureKind: "environment-not-reconstructable",
+        nextAction: nextActionForFailure("environment-not-reconstructable"),
+      }
+    }
+  } catch {
+    return {
+      id,
+      status: "failed",
+      command,
+      cwd: resolvedCwd,
+      exitCode: -1,
+      stdout: "",
+      stderr: "",
+      outputFiles: [],
+      assertions: [],
+      diagnostics: [`variation cwd is unavailable: ${resolvedCwd}`],
+      failureKind: "environment-not-reconstructable",
+      nextAction: nextActionForFailure("environment-not-reconstructable"),
+    }
+  }
   let processHandle: ReturnType<typeof Bun.spawn>
   try {
     processHandle = Bun.spawn(command, { cwd, stdout: "pipe", stderr: "pipe" })

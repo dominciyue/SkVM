@@ -13,7 +13,11 @@ import path from "node:path"
 import { readPreRunInputSnapshotContents } from "../run/pre-run-input-snapshot.ts"
 import type { AgentStep } from "../core/types.ts"
 import type { ImplementationSelection } from "./implementations.ts"
-import { buildOperationContext, type OperationRecord } from "./operation-context.ts"
+import {
+  buildOperationContext,
+  type OperationParameterRule,
+  type OperationRecord,
+} from "./operation-context.ts"
 import type {
   Evidence,
   OptimizationAction,
@@ -69,6 +73,60 @@ export interface ValidationCompletionResult {
   }
   diagnostics: ValidationCompletionDiagnostic[]
   provenance: ValidationCompletionProvenance
+}
+
+export type ValidationVariationKind = "path" | "cwd" | "parameter"
+
+export interface ValidationVariationInputBinding {
+  sourcePath: string
+  targetPath: string
+}
+
+/**
+ * An engine-derived case.  The embedded suggestion is still an ordinary
+ * validation case; the extra bindings are kept outside the optimizer-facing
+ * action schema so relocation never becomes a user-authored DSL.
+ */
+export interface ValidationVariationCase {
+  id: string
+  parentCaseId: string
+  kind: ValidationVariationKind
+  changedBindings: string[]
+  sourceRefs: string[]
+  rationale: string
+  suggestion: OptimizationValidationCaseSuggestion
+  inputBindings: ValidationVariationInputBinding[]
+  outputBindings: ValidationVariationInputBinding[]
+  cwdRelative?: string
+}
+
+export interface ValidationVariationSkip {
+  parentCaseId: string
+  kind: ValidationVariationKind
+  reason: string
+  sourceRefs: string[]
+}
+
+export interface ValidationVariationCoverage {
+  kind: "parameter"
+  caseIds: string[]
+  changedBindings: string[]
+  sourceRefs: string[]
+  rationale: string
+}
+
+export interface ValidationVariationAudit {
+  generated: ValidationVariationCase[]
+  covered: ValidationVariationCoverage[]
+  skipped: ValidationVariationSkip[]
+}
+
+export interface DeriveValidationVariationsOptions {
+  action: OptimizationAction
+  implementation: ImplementationSelection
+  evidences: readonly Evidence[]
+  sourceSkillDir?: string
+  sourceParameterRules?: readonly OperationParameterRule[]
 }
 
 export interface CompleteValidationSuggestionOptions {
@@ -214,6 +272,302 @@ async function matchingTaskCriteria(evidence: Evidence, outputFiles: readonly st
   } catch {
     return []
   }
+}
+
+function portableRelative(value: string): string | undefined {
+  if (value.includes("\0") || /^[A-Za-z]:[\\/]/u.test(value) || path.posix.isAbsolute(value.replaceAll("\\", "/"))) {
+    return undefined
+  }
+  const normalized = path.posix.normalize(value.replaceAll("\\", "/"))
+  if (normalized === "." || normalized === ".." || normalized.startsWith("../")) return undefined
+  return normalized
+}
+
+function basenamePortable(value: string): string {
+  const normalized = normalize(value)
+  const last = normalized.lastIndexOf("/")
+  return last >= 0 ? normalized.slice(last + 1) : normalized
+}
+
+function replaceArgumentPath(args: readonly string[], replacements: ReadonlyMap<string, string>): {
+  args: string[]
+  replaced: Set<string>
+} {
+  const ordered = [...replacements.entries()]
+    .sort(([left], [right]) => right.length - left.length)
+    .map(([source, target]) => [normalize(source), target] as const)
+  const replaced = new Set<string>()
+  const rewritten = args.map((argument) => {
+    const normalizedArgument = normalize(argument)
+    for (const [source, target] of ordered) {
+      if (normalizedArgument === source) {
+        replaced.add(source)
+        return target
+      }
+      const equalIndex = argument.indexOf("=")
+      if (equalIndex >= 0 && normalize(argument.slice(equalIndex + 1)) === source) {
+        replaced.add(source)
+        return `${argument.slice(0, equalIndex + 1)}${target}`
+      }
+    }
+    return argument
+  })
+  return { args: rewritten, replaced }
+}
+
+function variationSourceRefs(
+  parent: OptimizationValidationCaseSuggestion,
+  operation: OperationRecord,
+  kind: ValidationVariationKind,
+): string[] {
+  return unique([
+    ...parent.sourceRefs,
+    `variation:${kind}:parent=${parent.id}`,
+    operation.sourceLocator,
+    ...operation.parameters
+      .filter((parameter) => parameter.origin !== "unknown" && parameter.originLocator)
+      .map((parameter) => parameter.originLocator!),
+  ])
+}
+
+function operationForCase(
+  evidence: Evidence,
+  implementation: ImplementationSelection,
+  suggestion: OptimizationValidationCaseSuggestion,
+  sourceParameterRules: readonly OperationParameterRule[],
+): { operation?: OperationRecord; context: ReturnType<typeof buildOperationContext> } {
+  const context = buildOperationContext(evidenceWithSteps(evidence), {
+    sourceEntries: implementation.entry ? [implementation.entry] : [],
+    sourceParameterRules,
+  })
+  const operations = context.operations.filter((operation) => (
+    operation.kind === "execute"
+    && operation.status === "observed"
+    && operation.entry !== undefined
+    && implementation.entry !== undefined
+    && normalizeEntry(operation.entry) === normalizeEntry(implementation.entry)
+  ))
+  if (operations.length === 0) return { context }
+  const exact = operations.find((operation) => {
+    const args = operationArgs(operation, implementation.entry!)
+    return args.args !== undefined && JSON.stringify(args.args.map(normalize)) === JSON.stringify(suggestion.args.map(normalize))
+  })
+  return { operation: exact ?? operations[0], context }
+}
+
+function hasSnapshotFile(evidence: Evidence, relative: string): boolean {
+  const target = normalize(relative)
+  return [...(evidence.workDirSnapshot?.files ?? new Map<string, string>())]
+    .some(([filePath]) => normalize(filePath) === target)
+}
+
+async function hasCheckableVariationRelation(
+  suggestion: OptimizationValidationCaseSuggestion,
+  evidence: Evidence,
+  sourceSkillDir: string | undefined,
+): Promise<{ ok: true; outputRefs: string[] } | { ok: false; reason: string }> {
+  const expected = suggestion.expectedFiles ?? []
+  if (expected.length === 0) return { ok: false, reason: "the parent case declares no output relation" }
+  const outputRefs = expected.map((item) => normalize(item.referencePath ?? item.path))
+  if (suggestion.basis !== "task-contract" && outputRefs.some((item) => !hasSnapshotFile(evidence, item))) {
+    return { ok: false, reason: "the observed output reference is unavailable for a relocated case" }
+  }
+  const sourceChecks = await sourceCheckView(sourceSkillDir, expected.map((item) => normalize(item.path)))
+  if (suggestion.basis !== "task-contract" && sourceChecks.refs.length === 0) {
+    return { ok: false, reason: "only one observed fidelity value is available; no source or task relation proves the variation" }
+  }
+  return { ok: true, outputRefs }
+}
+
+function parameterDifference(
+  left: OptimizationValidationCaseSuggestion,
+  right: OptimizationValidationCaseSuggestion,
+  operation: OperationRecord | undefined,
+): string[] {
+  if (left.inputFiles.map(normalize).join("\0") !== right.inputFiles.map(normalize).join("\0")) return []
+  const differences: number[] = []
+  const length = Math.max(left.args.length, right.args.length)
+  for (let index = 0; index < length; index += 1) {
+    if (normalize(left.args[index] ?? "") !== normalize(right.args[index] ?? "")) differences.push(index)
+  }
+  if (differences.length === 0) return []
+  const names = new Set<string>()
+  for (const index of differences) {
+    const token = left.args[index] ?? right.args[index] ?? ""
+    const previous = left.args[index - 1] ?? right.args[index - 1] ?? ""
+    const flag = token.startsWith("-") ? token.split("=", 1)[0]! : previous.startsWith("-") ? previous : `arg${index}`
+    const normalizedFlag = flag.replace(/^-+/u, "")
+    const matched = operation?.parameters.find((parameter) => (
+      parameter.binding === "argv" && normalize(parameter.name) === normalize(normalizedFlag)
+    ))
+    names.add(matched?.name ?? normalizedFlag)
+  }
+  return [...names].filter(Boolean)
+}
+
+/**
+ * Derive conservative path/cwd checks from existing validation cases and the
+ * F2 operation index.  Parameter values are never guessed: an existing pair
+ * of cases is reported as covered, otherwise the audit records why it was
+ * skipped.  The returned cases are ordinary suggestions plus engine-only
+ * source/target bindings used during materialization.
+ */
+export async function deriveValidationVariations(
+  options: DeriveValidationVariationsOptions,
+): Promise<ValidationVariationAudit> {
+  const generated: ValidationVariationCase[] = []
+  const covered: ValidationVariationCoverage[] = []
+  const skipped: ValidationVariationSkip[] = []
+  const coveredPairKeys = new Set<string>()
+  const suggestion = options.action.validation
+  if (!suggestion || suggestion.cases.length === 0 || options.implementation.status !== "selected" || !options.implementation.entry) {
+    return { generated, covered, skipped }
+  }
+
+  const contexts = new Map<string, { evidence: Evidence; operation?: OperationRecord; context: ReturnType<typeof buildOperationContext> }>()
+  for (const item of suggestion.cases) {
+    const index = /^\d+$/u.test(item.evidenceId) ? Number(item.evidenceId) : -1
+    const evidence = index >= 0 ? options.evidences[index] : undefined
+    if (!evidence) {
+      for (const kind of ["path", "cwd", "parameter"] as const) {
+        skipped.push({ parentCaseId: item.id, kind, reason: `evidence ${item.evidenceId} is unavailable`, sourceRefs: [...item.sourceRefs] })
+      }
+      continue
+    }
+    const key = item.evidenceId
+    const existing = contexts.get(key)
+    if (existing) continue
+    const located = operationForCase(evidence, options.implementation, item, options.sourceParameterRules ?? [])
+    contexts.set(key, { evidence, operation: located.operation, context: located.context })
+  }
+
+  for (const item of suggestion.cases) {
+    const context = contexts.get(item.evidenceId)
+    if (!context?.operation) {
+      for (const kind of ["path", "cwd"] as const) {
+        skipped.push({ parentCaseId: item.id, kind, reason: "no unambiguous observed invocation is available", sourceRefs: [...item.sourceRefs] })
+      }
+      skipped.push({ parentCaseId: item.id, kind: "parameter", reason: "no observed parameter binding is available", sourceRefs: [...item.sourceRefs] })
+      continue
+    }
+    const relation = await hasCheckableVariationRelation(item, context.evidence, options.sourceSkillDir)
+    if (!relation.ok) {
+      for (const kind of ["path", "cwd"] as const) {
+        skipped.push({ parentCaseId: item.id, kind, reason: relation.reason, sourceRefs: variationSourceRefs(item, context.operation, kind) })
+      }
+    } else {
+      const inputPaths = item.inputFiles.map(normalize)
+      const outputPaths = (item.expectedFiles ?? []).map((expected) => normalize(expected.path))
+      const allPaths = [...inputPaths, ...outputPaths]
+      const relativePaths = allPaths.every((value) => portableRelative(value) !== undefined)
+      if (!relativePaths) {
+        for (const kind of ["path", "cwd"] as const) {
+          skipped.push({ parentCaseId: item.id, kind, reason: "absolute or escaping paths cannot be relocated safely", sourceRefs: variationSourceRefs(item, context.operation, kind) })
+        }
+      } else {
+        const root = `__skvm_variations/${safeSegment(item.id)}`
+        const inputBindings = inputPaths.map((sourcePath, index) => ({
+          sourcePath,
+          targetPath: `${root}/path/input-${index + 1}/${basenamePortable(sourcePath)}`,
+        }))
+        const outputBindings = outputPaths.map((sourcePath, index) => ({
+          sourcePath,
+          targetPath: `${root}/path/output-${index + 1}/${basenamePortable(sourcePath)}`,
+        }))
+        const replacements = new Map<string, string>([
+          ...inputBindings.map((binding) => [binding.sourcePath, binding.targetPath] as const),
+          ...outputBindings.map((binding) => [binding.sourcePath, binding.targetPath] as const),
+        ])
+        const rewritten = replaceArgumentPath(item.args, replacements)
+        const requiredPaths = [...new Set([...inputPaths, ...outputPaths])]
+        if (requiredPaths.some((value) => !rewritten.replaced.has(value))) {
+          skipped.push({
+            parentCaseId: item.id,
+            kind: "path",
+            reason: "input or output path is not an explicit argv binding; refusing to rewrite implicit behavior",
+            sourceRefs: variationSourceRefs(item, context.operation, "path"),
+          })
+        } else {
+          const pathId = `variation-path-${safeSegment(item.id)}`
+          generated.push({
+            id: pathId,
+            parentCaseId: item.id,
+            kind: "path",
+            changedBindings: [
+              ...inputBindings.map((binding) => `${binding.sourcePath}->${binding.targetPath}`),
+              ...outputBindings.map((binding) => `${binding.sourcePath}->${binding.targetPath}`),
+            ],
+            sourceRefs: variationSourceRefs(item, context.operation, "path"),
+            rationale: "Relocate explicit input/output argv paths while preserving the source-backed output relation.",
+            suggestion: {
+              ...item,
+              id: pathId,
+              inputFiles: inputBindings.map((binding) => binding.targetPath),
+              args: rewritten.args,
+              expectedFiles: (item.expectedFiles ?? []).map((expected, index) => ({
+                ...expected,
+                path: outputBindings[index]?.targetPath ?? expected.path,
+                ...(expected.referencePath ? {} : item.basis === "task-contract" ? {} : { referencePath: expected.path }),
+              })),
+              sourceRefs: variationSourceRefs(item, context.operation, "path"),
+            },
+            inputBindings,
+            outputBindings,
+          })
+        }
+
+        const cwdId = `variation-cwd-${safeSegment(item.id)}`
+        generated.push({
+          id: cwdId,
+          parentCaseId: item.id,
+          kind: "cwd",
+          changedBindings: [`cwd->${root}/cwd`],
+          sourceRefs: variationSourceRefs(item, context.operation, "cwd"),
+          rationale: "Run the same relative interface from a fresh nested working directory.",
+          suggestion: {
+            ...item,
+            id: cwdId,
+            sourceRefs: variationSourceRefs(item, context.operation, "cwd"),
+          },
+          inputBindings: inputPaths.map((sourcePath) => ({ sourcePath, targetPath: sourcePath })),
+          outputBindings: outputPaths.map((sourcePath) => ({ sourcePath, targetPath: sourcePath })),
+          cwdRelative: `${root}/cwd`,
+        })
+      }
+    }
+
+    const sameEvidenceCases = suggestion.cases.filter((candidate) => candidate.evidenceId === item.evidenceId && candidate.id !== item.id)
+    const paired = sameEvidenceCases
+      .map((candidate) => ({ candidate, names: parameterDifference(item, candidate, context.operation) }))
+      .find((pair) => pair.names.length > 0)
+    if (paired) {
+      const caseIds = [item.id, paired.candidate.id].sort()
+      const pairKey = caseIds.join("|")
+      if (!coveredPairKeys.has(pairKey)) {
+        coveredPairKeys.add(pairKey)
+        covered.push({
+          kind: "parameter",
+          caseIds,
+          changedBindings: paired.names,
+          sourceRefs: unique([
+            ...item.sourceRefs,
+            ...paired.candidate.sourceRefs,
+            ...variationSourceRefs(item, context.operation, "parameter"),
+          ]),
+          rationale: "A same-input pair already exercises a distinct argv value; no duplicate case is generated.",
+        })
+      }
+    } else {
+      skipped.push({
+        parentCaseId: item.id,
+        kind: "parameter",
+        reason: "only one observed value is available or no independently checkable relation exists",
+        sourceRefs: variationSourceRefs(item, context.operation, "parameter"),
+      })
+    }
+  }
+
+  return { generated, covered, skipped }
 }
 
 function sourceRefsFor(

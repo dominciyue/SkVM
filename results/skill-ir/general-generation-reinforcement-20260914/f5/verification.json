@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "skill-ir-general-generation-reinforcement-f5-verification/v1",
+  "identity": "general-generation-reinforcement-20260914",
+  "stage": "F5",
+  "status": "passed",
+  "red": {
+    "completionTest": "The new variation API was initially absent; the focused import failed before implementation.",
+    "fixedPathCase": "A candidate that ignored relocated --input/--output values left the target output absent and was rejected as result-mismatch.",
+    "missingCwdCase": "The checker initially surfaced an opaque spawn error; the red test required a stable variation-cwd diagnostic."
+  },
+  "green": {
+    "command": "bun test ./test/jit-optimize/validation-completion.test.ts ./test/jit-optimize/package-validation.test.ts ./test/jit-optimize/validation-lifecycle.test.ts",
+    "tests": 44,
+    "failed": 0,
+    "assertions": 171
+  },
+  "typecheck": {
+    "command": "bun run typecheck",
+    "status": "passed"
+  },
+  "variationDesign": {
+    "generatedKinds": ["path", "cwd"],
+    "parameterPolicy": "Only paired same-input observations are marked covered; a single observed value or missing semantic relation is skipped with source references.",
+    "caseInterface": "Derived checks use ordinary validation cases (inputFiles, args, expectedFiles, and an isolated cwd); source-to-target bindings remain engine-internal.",
+    "authority": "Task-contract or source-owned output checks are required for relocation; fidelity-only output is never promoted to task correctness."
+  },
+  "errorDetection": {
+    "fixedPathDetected": true,
+    "parameterPairRecorded": true,
+    "unavailableCwdDiagnostic": true,
+    "actionSchemaMutated": false
+  },
+  "costs": {
+    "optimizerAgentRuns": 0,
+    "targetAgentRuns": 0,
+    "paidCalls": 0,
+    "actualUsd": null,
+    "developerAgentCost": "not-measured-by-project-runtime"
+  },
+  "claimBoundary": "F5 is deterministic local development evidence with synthetic cases. It does not establish whole-skill correctness, real model behavior, readiness, human savings, prospective eligibility or held-out performance.",
+  "nextStage": "F6 generation and ordinary package entry"
+}

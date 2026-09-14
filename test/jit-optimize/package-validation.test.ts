@@ -195,6 +195,31 @@ await writeFile("out/result.json", "wrong");
     expect(result.failureKind).toBe("result-mismatch")
     expect(result.cases[0]?.diagnostics).toContainEqual(expect.stringContaining("digest mismatch"))
   })
+
+  test("reports an unavailable variation cwd with a stable environment diagnostic", async () => {
+    const packageDir = await tempDir("package-validation-cwd-")
+    await mkdir(path.join(packageDir, "scripts"))
+    await writeFile(path.join(packageDir, "scripts", "noop.mjs"), "console.log('ok')\n")
+    const missingCwd = path.join(packageDir, "cases", "does-not-exist")
+    const result = await validateOptimizationProgram({
+      packageDir,
+      implementation: {
+        actionId: "cwd",
+        kind: "reuse-script",
+        status: "selected",
+        entry: "scripts/noop.mjs",
+        runtime: "node",
+        inputs: [], outputs: [], preconditions: [], residualDuties: [], verification: [],
+      },
+      cases: [{ id: "missing-cwd", cwd: missingCwd, args: [] }],
+    })
+
+    expect(result.status).toBe("failed")
+    expect(result.failureKind).toBe("environment-not-reconstructable")
+    expect(result.cases[0]?.diagnostics).toEqual([
+      `variation cwd is unavailable: ${path.resolve(missingCwd)}`,
+    ])
+  })
 })
 
 function action(id: string, changedPaths: string[], dependsOn: string[] = []): OptimizationAction {

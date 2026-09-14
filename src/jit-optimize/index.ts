@@ -128,6 +128,7 @@ export {
 } from "./validation-lifecycle.ts"
 export {
   completeValidationSuggestion,
+  deriveValidationVariations,
 } from "./validation-completion.ts"
 export type {
   CompleteValidationSuggestionOptions,
@@ -137,6 +138,13 @@ export type {
   ValidationCompletionDiagnosticCode,
   ValidationCompletionProvenance,
   ValidationCompletionFieldProvenance,
+  ValidationVariationKind,
+  ValidationVariationInputBinding,
+  ValidationVariationCase,
+  ValidationVariationSkip,
+  ValidationVariationCoverage,
+  ValidationVariationAudit,
+  DeriveValidationVariationsOptions,
 } from "./validation-completion.ts"
 export type {
   DerivedProgramValidationPlan,
@@ -148,6 +156,7 @@ export type {
   OptimizationValidationLifecycleReport,
   RunOptimizationValidationLifecycleOptions,
   RunOptimizationValidationLifecycleResult,
+  OptimizationVariationReport,
 } from "./validation-lifecycle.ts"
 export {
   buildOptimizedSkillPackage,

@@ -115,6 +115,8 @@ F3 新增 `validation-completion.ts`，在 `deriveProgramValidationPlan` 前从�
 
 F4 将这条 completion 结果接入既有的一次 repair budget：已有但为空的 `validation.cases` 只有在观察到明确 executable、输入/输出资源和来源检查时才标为 `repairable`，原 action 不被静默改写。反馈同时携带确定性候选 validation、缺字段、实际候选差异、原始意图和局部文件范围，并与真实程序失败合并；无资源、歧义操作、未执行和程序失败仍分别记录，不能把 `unvalidated` 统称为 rejected。修复后的 action 通过 `mergeRepairSubmission`、`executeActionIds`、`priorReport` 和 validation binding 重验；metadata-only 增量也会实际执行。若一次修复仍无依据，结果保留 draft/unvalidated，不伪造 rollback 或通过。机器验证为 `results/skill-ir/general-generation-reinforcement-20260914/f4/verification.json`；该阶段只使用确定性本地替身，不建立真实模型、整 skill、readiness 或 prospective 结论。
 
+F5 在同一 validation case 接口上增加保守的变化审计。`deriveValidationVariations` 从 F2 的实际操作/参数绑定和来源约束派生普通 `path` 与 `cwd` cases：显式 argv 输入/输出路径被搬到 contained 的隔离目录，cwd 变化只进入新的嵌套执行根；源/task assertion、expected files 和依赖绑定随目标路径重写，原始 action schema 不被改写。参数值不由引擎猜测；只有同一 evidence 中已存在的不同 argv 值成对案例被记为 `covered`，单值或无可检查语义关系的参数记录 `skipped` 与 sourceRefs。`package-validation` 在 variation cwd 不可用时给稳定的环境诊断，固定路径程序在 relocated case 上会因缺少目标产物而失败。机器验证为 `results/skill-ir/general-generation-reinforcement-20260914/f5/verification.json`，所用命令通过 44/44 tests、171 assertions 与 typecheck；参数未生效的领域语义红例仍未被猜测为通过，保留为后续 F9/F10 的开放边界。
+
 ### 3.0.6 F1.1 语料到代码模式索引（development）
 
 F1.1 将五个已暴露的深读成员映射为可审计的 `pattern-to-code.json`：zh-readme、i18n-helper、law-to-markdown、experimental-design 和 env-manager。每个成员分别记录源 `SKILL.md` 摘要与行定位、固定机械步骤、变量来源、环境依赖、分支判断、当前动作类型候选、生产符号/测试及仍不支持的缺口；不会把 skill 名、特定仓库路径或历史成功数量写成实现条件。

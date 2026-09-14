@@ -24,10 +24,15 @@ import type {
 } from "./types.ts"
 import {
   completeValidationSuggestion,
+  deriveValidationVariations,
+  type ValidationVariationAudit,
+  type ValidationVariationCase,
+  type ValidationVariationKind,
   type ValidationCompletionDiagnostic,
   type ValidationCompletionProvenance,
   type ValidationCompletionStatus,
 } from "./validation-completion.ts"
+import type { OperationParameterRule } from "./operation-context.ts"
 
 export const OPTIMIZATION_VALIDATION_REPORT_SCHEMA_VERSION = "jit-optimize-validation-lifecycle/v1"
 
@@ -75,6 +80,36 @@ export interface ProgramValidationCaseEvidence {
   applicability: "supported" | "not-applicable"
   inputDigests: Record<string, string>
   expectedAbsentFiles: string[]
+  variation?: {
+    kind: ValidationVariationKind
+    parentCaseId: string
+    changedBindings: string[]
+    sourceRefs: string[]
+  }
+}
+
+export interface OptimizationVariationReport {
+  generated: Array<{
+    id: string
+    parentCaseId: string
+    kind: ValidationVariationKind
+    changedBindings: string[]
+    sourceRefs: string[]
+    rationale: string
+  }>
+  covered: Array<{
+    kind: "parameter"
+    caseIds: string[]
+    changedBindings: string[]
+    sourceRefs: string[]
+    rationale: string
+  }>
+  skipped: Array<{
+    parentCaseId: string
+    kind: ValidationVariationKind
+    reason: string
+    sourceRefs: string[]
+  }>
 }
 
 export interface OptimizationCapabilityBoundary {
@@ -106,6 +141,7 @@ export interface DerivedProgramValidationPlan {
   independentCaseIds: string[]
   selfCheckCaseIds: string[]
   diagnostics: ProgramValidationPlanDiagnostic[]
+  variations?: OptimizationVariationReport
 }
 
 export interface DeriveProgramValidationPlanOptions {
@@ -116,6 +152,10 @@ export interface DeriveProgramValidationPlanOptions {
   validationRoot: string
   /** Original, pre-edit skill root used only for source-owned checks. */
   sourceSkillDir?: string
+  /** Engine-derived ordinary validation cases for path/cwd checks. */
+  derivedVariations?: readonly ValidationVariationCase[]
+  /** Full audit retained for the machine-readable action report. */
+  variationAudit?: ValidationVariationAudit
 }
 
 export interface OptimizationActionValidationRecord {
@@ -137,6 +177,7 @@ export interface OptimizationActionValidationRecord {
   capabilityBoundary?: OptimizationCapabilityBoundary
   validationBinding?: OptimizationValidationBinding
   validationSource?: "executed" | "reused-initial-observation"
+  variationChecks?: OptimizationVariationReport
 }
 
 /** A concrete validation metadata gap that the single bounded repair may fill. */
@@ -206,6 +247,8 @@ export interface RunOptimizationValidationLifecycleOptions {
   /** Actual candidate paths changed since priorReport; unknown dependencies fail closed. */
   changedPathsSincePrior?: readonly string[]
   priorReport?: OptimizationValidationLifecycleReport
+  /** Optional structured source parameter declarations used for safe variation audits. */
+  sourceParameterRules?: readonly OperationParameterRule[]
 }
 
 export interface RunOptimizationValidationLifecycleResult {
@@ -219,6 +262,36 @@ function sha256(value: string | Uint8Array): string {
 
 function sha256Bytes(value: Uint8Array): string {
   return new Bun.CryptoHasher("sha256").update(value).digest("hex")
+}
+
+function hasVariationReport(audit: ValidationVariationAudit): boolean {
+  return audit.generated.length > 0 || audit.covered.length > 0 || audit.skipped.length > 0
+}
+
+function summarizeVariationAudit(audit: ValidationVariationAudit): OptimizationVariationReport {
+  return {
+    generated: audit.generated.map((item) => ({
+      id: item.id,
+      parentCaseId: item.parentCaseId,
+      kind: item.kind,
+      changedBindings: [...item.changedBindings],
+      sourceRefs: [...item.sourceRefs],
+      rationale: item.rationale,
+    })),
+    covered: audit.covered.map((item) => ({
+      kind: item.kind,
+      caseIds: [...item.caseIds],
+      changedBindings: [...item.changedBindings],
+      sourceRefs: [...item.sourceRefs],
+      rationale: item.rationale,
+    })),
+    skipped: audit.skipped.map((item) => ({
+      parentCaseId: item.parentCaseId,
+      kind: item.kind,
+      reason: item.reason,
+      sourceRefs: [...item.sourceRefs],
+    })),
+  }
 }
 
 function canonicalJson(value: unknown): string {
@@ -244,6 +317,20 @@ function portableRelative(value: string): string | undefined {
   const normalized = path.posix.normalize(value.replaceAll("\\", "/"))
   if (normalized === "." || normalized === ".." || normalized.startsWith("../")) return undefined
   return normalized
+}
+
+function normalizeValidationPath(value: string): string {
+  const normalized = value.trim().replaceAll("\\", "/")
+  return normalized.startsWith("./") ? normalized.slice(2) : normalized
+}
+
+function rewriteBoundValidationPath(
+  value: string,
+  bindings: readonly { sourcePath: string; targetPath: string }[],
+): string {
+  const normalized = normalizeValidationPath(value)
+  const binding = bindings.find((item) => normalizeValidationPath(item.sourcePath) === normalized)
+  return binding ? normalizeValidationPath(binding.targetPath) : normalized
 }
 
 type ValidationInputSource = OptimizationValidationCaseSuggestion["inputSource"]
@@ -549,6 +636,7 @@ async function taskAssertionBindings(
   suggestion: OptimizationValidationCaseSuggestion,
   evidence: Evidence,
   diagnostics: ProgramValidationPlanDiagnostic[],
+  outputBindings: readonly { sourcePath: string; targetPath: string }[] = [],
 ): Promise<NonNullable<ProgramValidationCase["assertions"]>> {
   if (suggestion.basis !== "task-contract") return []
   const prefix = `evidence:${suggestion.evidenceId}#criteria/`
@@ -591,7 +679,7 @@ async function taskAssertionBindings(
       })
       continue
     }
-    const relative = portableRelative(criterion.path)
+    const relative = portableRelative(rewriteBoundValidationPath(criterion.path, outputBindings))
     if (!relative) {
       diagnostics.push({
         code: "validation-task-criterion-path-invalid",
@@ -615,6 +703,7 @@ async function sourceAssertionBindings(options: {
   expectedFiles: readonly string[]
   caseId: string
   diagnostics: ProgramValidationPlanDiagnostic[]
+  outputBindings?: readonly { sourcePath: string; targetPath: string }[]
 }): Promise<NonNullable<ProgramValidationCase["assertions"]>> {
   if (!options.sourceSkillDir || options.expectedFiles.length === 0) return []
   const manifestPath = path.join(options.sourceSkillDir, ".skvm-validation.json")
@@ -642,7 +731,8 @@ async function sourceAssertionBindings(options: {
     })
     return []
   }
-  const expected = new Set(options.expectedFiles)
+  const expected = new Set(options.expectedFiles.map((item) => normalizeValidationPath(item)))
+  const outputBindings = options.outputBindings ?? []
   const assertions: NonNullable<ProgramValidationCase["assertions"]> = []
   const seenIds = new Set<string>()
   for (const item of (raw as { fileChecks: unknown[] }).fileChecks) {
@@ -678,7 +768,7 @@ async function sourceAssertionBindings(options: {
       continue
     }
     seenIds.add(check.id)
-    const relative = portableRelative(check.path)
+    const relative = portableRelative(rewriteBoundValidationPath(check.path, outputBindings))
     if (!relative) {
       options.diagnostics.push({
         code: "validation-source-checks-invalid",
@@ -730,6 +820,7 @@ async function materializeCase(options: {
   sourceSkillDir?: string
   index: number
   diagnostics: ProgramValidationPlanDiagnostic[]
+  variation?: ValidationVariationCase
 }): Promise<{ validationCase: ProgramValidationCase; evidence: ProgramValidationCaseEvidence } | undefined> {
   const { suggestion } = options
   const caseDirRelative = `${safeSegment(options.action.id, "action")}/${String(options.index + 1).padStart(2, "0")}-${safeSegment(suggestion.id, "case")}`
@@ -781,6 +872,7 @@ async function materializeCase(options: {
     try {
       const saved = await preRunInputs(options.evidence)
       const requested = suggestion.inputFiles
+        .map((inputPath) => options.variation?.inputBindings.find((binding) => normalizeValidationPath(binding.targetPath) === normalizeValidationPath(inputPath))?.sourcePath ?? inputPath)
         .map((inputPath) => sourceRelativeEvidenceLocator(inputPath, suggestion.inputSource).relative)
         .filter((relative): relative is string => relative !== undefined)
       const stale = requested.filter((relative) => {
@@ -808,15 +900,28 @@ async function materializeCase(options: {
     }
   }
 
+  const executionRoot = options.variation?.cwdRelative
+    ? contained(caseDir, options.variation.cwdRelative)
+    : caseDir
+  if (!executionRoot) {
+    options.diagnostics.push({
+      code: "validation-input-path-invalid",
+      caseId: suggestion.id,
+      message: `Variation cwd escapes the validation case: ${options.variation?.cwdRelative ?? "unknown"}`,
+    })
+    return undefined
+  }
+  await mkdir(executionRoot, { recursive: true })
   const inputs: Array<{ relative: string; content: Uint8Array }> = []
   const argumentRewrites = new Map<string, string>()
   for (const inputPath of suggestion.inputFiles) {
-    const located = sourceRelativeEvidenceLocator(inputPath, suggestion.inputSource)
+    const sourceInputPath = options.variation?.inputBindings.find((binding) => normalizeValidationPath(binding.targetPath) === normalizeValidationPath(inputPath))?.sourcePath ?? inputPath
+    const located = sourceRelativeEvidenceLocator(sourceInputPath, suggestion.inputSource)
     if (located.diagnostic) {
       options.diagnostics.push({ ...located.diagnostic, caseId: suggestion.id })
       return undefined
     }
-    const relative = located.relative
+    const relative = options.variation ? portableRelative(inputPath) : located.relative
     if (!relative) {
       options.diagnostics.push({
         code: "validation-input-path-invalid",
@@ -825,16 +930,16 @@ async function materializeCase(options: {
       })
       return undefined
     }
-    if (inputPath.replaceAll("\\", "/") !== relative) {
+    if (!options.variation && inputPath.replaceAll("\\", "/") !== relative) {
       argumentRewrites.set(inputPath, relative)
     }
     const textContent = suggestion.inputSource === "task-fixtures"
-      ? fixtures?.[relative]
+      ? fixtures?.[located.relative ?? sourceInputPath.replaceAll("\\", "/")]
       : suggestion.inputSource === "workdir-snapshot"
-        ? snapshotContent(options.evidence, relative)
+        ? snapshotContent(options.evidence, located.relative ?? sourceInputPath.replaceAll("\\", "/"))
         : undefined
     const content = suggestion.inputSource === "pre-run-input-snapshot"
-      ? savedPreRunInputs?.files.get(relative)
+      ? savedPreRunInputs?.files.get(located.relative ?? sourceInputPath.replaceAll("\\", "/"))
       : textContent === undefined ? undefined : new TextEncoder().encode(textContent)
     if (content === undefined) {
       options.diagnostics.push({
@@ -907,26 +1012,29 @@ async function materializeCase(options: {
     }
     expectedAbsentFiles.push(relative)
   }
-  const taskAssertions = await taskAssertionBindings(suggestion, options.evidence, options.diagnostics)
+  const outputBindings = options.variation?.outputBindings ?? []
+  const taskAssertions = await taskAssertionBindings(suggestion, options.evidence, options.diagnostics, outputBindings)
   const sourceAssertions = await sourceAssertionBindings({
     sourceSkillDir: options.sourceSkillDir,
     expectedFiles,
     caseId: suggestion.id,
     diagnostics: options.diagnostics,
+    outputBindings,
   })
   const assertions = [...taskAssertions, ...sourceAssertions]
 
   await rm(caseDir, { recursive: true, force: true })
   await mkdir(caseDir, { recursive: true })
+  await mkdir(executionRoot, { recursive: true })
   for (const input of inputs) {
-    const target = contained(caseDir, input.relative)!
+    const target = contained(executionRoot, input.relative)!
     await mkdir(path.dirname(target), { recursive: true })
     await writeFile(target, input.content)
   }
   return {
     validationCase: {
       id: suggestion.id,
-      cwd: caseDir,
+      cwd: executionRoot,
       args: rewriteProjectedArguments(suggestion.args, argumentRewrites),
       ...(suggestion.expectedExitCode === undefined ? {} : { expectedExitCode: suggestion.expectedExitCode }),
       ...(suggestion.stdoutIncludes ? { stdoutIncludes: [...suggestion.stdoutIncludes] } : {}),
@@ -951,6 +1059,14 @@ async function materializeCase(options: {
       applicability: suggestion.applicability ?? "supported",
       inputDigests: Object.fromEntries(inputs.map((item) => [item.relative, sha256Bytes(item.content)])),
       expectedAbsentFiles,
+      ...(options.variation ? {
+        variation: {
+          kind: options.variation.kind,
+          parentCaseId: options.variation.parentCaseId,
+          changedBindings: [...options.variation.changedBindings],
+          sourceRefs: [...options.variation.sourceRefs],
+        },
+      } : {}),
     },
   }
 }
@@ -1069,7 +1185,13 @@ export async function deriveProgramValidationPlan(
   const seenIds = new Set<string>()
   const cases: ProgramValidationCase[] = []
   const caseEvidence: ProgramValidationCaseEvidence[] = []
-  for (const [index, item] of suggestion.cases.entries()) {
+  const variations = options.derivedVariations ?? []
+  const variationById = new Map(variations.map((item) => [item.id, item]))
+  const suggestions = [
+    ...suggestion.cases,
+    ...variations.map((item) => item.suggestion),
+  ]
+  for (const [index, item] of suggestions.entries()) {
     if (seenIds.has(item.id)) {
       diagnostics.push({
         code: "validation-case-duplicate",
@@ -1089,6 +1211,7 @@ export async function deriveProgramValidationPlan(
       sourceSkillDir: options.sourceSkillDir,
       index,
       diagnostics,
+      variation: variationById.get(item.id),
     })
     if (!materialized) continue
     cases.push(materialized.validationCase)
@@ -1115,6 +1238,31 @@ export async function deriveProgramValidationPlan(
     independentCaseIds,
     selfCheckCaseIds,
     diagnostics,
+    ...(options.variationAudit ? {
+      variations: {
+        generated: options.variationAudit.generated.map((item) => ({
+          id: item.id,
+          parentCaseId: item.parentCaseId,
+          kind: item.kind,
+          changedBindings: [...item.changedBindings],
+          sourceRefs: [...item.sourceRefs],
+          rationale: item.rationale,
+        })),
+        covered: options.variationAudit.covered.map((item) => ({
+          kind: item.kind,
+          caseIds: [...item.caseIds],
+          changedBindings: [...item.changedBindings],
+          sourceRefs: [...item.sourceRefs],
+          rationale: item.rationale,
+        })),
+        skipped: options.variationAudit.skipped.map((item) => ({
+          parentCaseId: item.parentCaseId,
+          kind: item.kind,
+          reason: item.reason,
+          sourceRefs: [...item.sourceRefs],
+        })),
+      },
+    } : {}),
   }
 }
 
@@ -1151,6 +1299,19 @@ export async function runOptimizationValidationLifecycle(
       sourceSkillDir: options.sourceSkillDir,
     })
     const effectiveAction = completion.action
+    // F5 variations are derived from an optimizer-declared executable case.
+    // A F3 auto-wired baseline remains a single conservative check; callers
+    // can submit the case explicitly when they want relocation coverage.
+    const variationAction = action.validation?.cases.length && effectiveAction.validation?.cases.length
+      ? effectiveAction
+      : { ...effectiveAction, validation: undefined }
+    const variationAudit = await deriveValidationVariations({
+      action: variationAction,
+      implementation,
+      evidences: options.evidences,
+      sourceSkillDir: options.sourceSkillDir,
+      sourceParameterRules: options.sourceParameterRules,
+    })
     if (completion.status === "repairable" && completion.repairable) {
       repairableFeedback.push({
         actionId: action.id,
@@ -1161,9 +1322,17 @@ export async function runOptimizationValidationLifecycle(
         suggestion: completion.repairable.suggestion,
       })
     }
+    const bindingAction = variationAudit.generated.length > 0
+      ? {
+          ...effectiveAction,
+          validation: effectiveAction.validation
+            ? { ...effectiveAction.validation, cases: [...effectiveAction.validation.cases, ...variationAudit.generated.map((item) => item.suggestion)] }
+            : undefined,
+        }
+      : effectiveAction
     const validationBinding = await deriveValidationBinding({
       skillDir: options.skillDir,
-      action: effectiveAction,
+      action: bindingAction,
       implementation,
       evidences: options.evidences,
     })
@@ -1210,6 +1379,7 @@ export async function runOptimizationValidationLifecycle(
             provenance: completion.provenance,
           },
         }),
+        ...(hasVariationReport(variationAudit) ? { variationChecks: summarizeVariationAudit(variationAudit) } : {}),
         validationBinding,
         validationSource: "reused-initial-observation",
       })
@@ -1245,6 +1415,7 @@ export async function runOptimizationValidationLifecycle(
             provenance: completion.provenance,
           },
         }),
+        ...(hasVariationReport(variationAudit) ? { variationChecks: summarizeVariationAudit(variationAudit) } : {}),
         validationBinding,
         validationSource: "executed",
       })
@@ -1276,6 +1447,7 @@ export async function runOptimizationValidationLifecycle(
             provenance: completion.provenance,
           },
         }),
+        ...(hasVariationReport(variationAudit) ? { variationChecks: summarizeVariationAudit(variationAudit) } : {}),
         validationBinding,
         validationSource: "executed",
       })
@@ -1288,6 +1460,8 @@ export async function runOptimizationValidationLifecycle(
       evidences: options.evidences,
       validationRoot,
       sourceSkillDir: options.sourceSkillDir,
+      derivedVariations: variationAudit.generated,
+      variationAudit,
     })
     if (plan.cases.length === 0) {
       observations.push({
@@ -1314,6 +1488,7 @@ export async function runOptimizationValidationLifecycle(
             provenance: completion.provenance,
           },
         }),
+        ...(hasVariationReport(variationAudit) ? { variationChecks: summarizeVariationAudit(variationAudit) } : {}),
         validationBinding,
         validationSource: "executed",
       })
@@ -1375,6 +1550,7 @@ export async function runOptimizationValidationLifecycle(
           provenance: completion.provenance,
         },
       }),
+      ...(hasVariationReport(variationAudit) ? { variationChecks: summarizeVariationAudit(variationAudit) } : {}),
       capabilityBoundary: deriveCapabilityBoundary(effectiveAction, plan, program),
       validationBinding,
       validationSource: "executed",

@@ -4,7 +4,10 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import type { AgentStep } from "../../src/core/types.ts"
 import type { ImplementationSelection } from "../../src/jit-optimize/implementations.ts"
-import { completeValidationSuggestion } from "../../src/jit-optimize/validation-completion.ts"
+import {
+  completeValidationSuggestion,
+  deriveValidationVariations,
+} from "../../src/jit-optimize/validation-completion.ts"
 import { runOptimizationValidationLifecycle } from "../../src/jit-optimize/validation-lifecycle.ts"
 import type { Evidence, OptimizationAction } from "../../src/jit-optimize/types.ts"
 
@@ -251,5 +254,230 @@ describe("completeValidationSuggestion", () => {
     expect(result.report.actions[0]?.validationCompletion?.status).toBe("completed")
     expect(result.report.actions[0]?.programStatus).toBe("passed")
     expect(result.summary.retainedActionIds).toEqual(["convert"])
+  })
+
+  test("derives isolated path and cwd cases from an evidence-bound validation case", async () => {
+    const taskDir = await tempDir("variation-task-")
+    const taskPath = path.join(taskDir, "task.json")
+    await writeFile(taskPath, JSON.stringify({
+      fixtures: { "input.txt": "alpha\n" },
+      eval: [{ id: "output", method: "file-check", path: "out/report.txt", mode: "exact", expected: "ALPHA\n" }],
+    }))
+    const observed = evidence({ entry: "scripts/convert.mjs" })
+    observed.trace = { ...observed.trace!, taskPath }
+    observed.criteria = [{ id: "output", method: "file-check", weight: 1, score: 1, passed: true }]
+    const candidate: OptimizationAction = {
+      ...action("variation", "scripts/convert.mjs", {
+        cases: [{
+          id: "base",
+          evidenceId: "0",
+          inputSource: "task-fixtures",
+          inputFiles: ["input.txt"],
+          args: ["--input", "input.txt", "--output", "out/report.txt"],
+          expectedFiles: [{ path: "out/report.txt", referencePath: "out/report.txt" }],
+          basis: "task-contract",
+          sourceRefs: ["evidence:0#criteria/output"],
+        }],
+      }),
+      outputs: ["out/report.txt"],
+    }
+    const result = await deriveValidationVariations({
+      action: candidate,
+      implementation: implementation("variation", "scripts/convert.mjs"),
+      evidences: [observed],
+    })
+
+    expect(result.generated.map((item) => item.kind)).toEqual(["path", "cwd"])
+    expect(result.generated[0]).toEqual(expect.objectContaining({
+      parentCaseId: "base",
+      suggestion: expect.objectContaining({
+        inputFiles: [expect.stringContaining("__skvm_variations")],
+        args: expect.arrayContaining([expect.stringContaining("__skvm_variations")]),
+        expectedFiles: [expect.objectContaining({
+          referencePath: "out/report.txt",
+        })],
+      }),
+      inputBindings: [expect.objectContaining({ sourcePath: "input.txt" })],
+    }))
+    expect(result.generated[1]?.cwdRelative).toContain("__skvm_variations")
+  })
+
+  test("does not invent a parameter value or relation when only one value is observed", async () => {
+    const observed = evidence({ entry: "scripts/convert.mjs" })
+    const candidate: OptimizationAction = {
+      ...action("parameter-unknown", "scripts/convert.mjs", {
+        cases: [{
+          id: "base",
+          evidenceId: "0",
+          inputSource: "workdir-snapshot",
+          inputFiles: ["input.txt"],
+          args: ["--input", "input.txt", "--mode", "alpha", "--output", "out/report.txt"],
+          expectedFiles: [{ path: "out/report.txt" }],
+          basis: "reference-output",
+          sourceRefs: ["operation:call-convert"],
+        }],
+      }),
+      outputs: ["out/report.txt"],
+    }
+    const result = await deriveValidationVariations({
+      action: candidate,
+      implementation: implementation("parameter-unknown", "scripts/convert.mjs"),
+      evidences: [observed],
+    })
+
+    expect(result.generated.some((item) => item.kind === "parameter")).toBe(false)
+    expect(result.skipped).toContainEqual(expect.objectContaining({
+      kind: "parameter",
+      reason: expect.stringContaining("one observed value"),
+    }))
+  })
+
+  test("records an already-covered parameter variation without duplicating its case", async () => {
+    const observed = evidence({ entry: "scripts/convert.mjs" })
+    const baseCase = {
+      id: "base",
+      evidenceId: "0",
+      inputSource: "workdir-snapshot" as const,
+      inputFiles: ["input.txt"],
+      args: ["--input", "input.txt", "--mode", "alpha", "--output", "out/report.txt"],
+      expectedFiles: [{ path: "out/report.txt", referencePath: "out/report.txt" }],
+      basis: "reference-output" as const,
+      sourceRefs: ["operation:call-convert"],
+    }
+    const result = await deriveValidationVariations({
+      action: {
+        ...action("parameter-covered", "scripts/convert.mjs", { cases: [
+          baseCase,
+          { ...baseCase, id: "changed-mode", args: ["--input", "input.txt", "--mode", "beta", "--output", "out/report.txt"] },
+        ] }),
+        outputs: ["out/report.txt"],
+      },
+      implementation: implementation("parameter-covered", "scripts/convert.mjs"),
+      evidences: [observed],
+    })
+
+    expect(result.generated.filter((item) => item.kind === "parameter")).toHaveLength(0)
+    expect(result.covered).toContainEqual(expect.objectContaining({
+      kind: "parameter",
+      caseIds: ["base", "changed-mode"],
+      changedBindings: expect.arrayContaining(["mode"]),
+    }))
+  })
+
+  test("runs generated path and cwd cases through the lifecycle without changing the action schema", async () => {
+    const sourceDir = await tempDir("variation-lifecycle-source-")
+    const candidateDir = await tempDir("variation-lifecycle-candidate-")
+    const proposalDir = await tempDir("variation-lifecycle-proposal-")
+    const taskDir = await tempDir("variation-lifecycle-task-")
+    for (const root of [sourceDir, candidateDir]) await mkdir(path.join(root, "scripts"), { recursive: true })
+    const script = [
+      "import { mkdir, readFile, writeFile } from 'node:fs/promises'",
+      "import { dirname } from 'node:path'",
+      "const args = process.argv.slice(2)",
+      "const input = args[args.indexOf('--input') + 1]",
+      "const output = args[args.indexOf('--output') + 1]",
+      "if (!input || !output) process.exit(2)",
+      "await mkdir(dirname(output), { recursive: true })",
+      "await writeFile(output, (await readFile(input, 'utf8')).toUpperCase())",
+    ].join("\n") + "\n"
+    await writeFile(path.join(sourceDir, "scripts", "convert.mjs"), script)
+    await writeFile(path.join(candidateDir, "scripts", "convert.mjs"), script)
+    const taskPath = path.join(taskDir, "task.json")
+    await writeFile(taskPath, JSON.stringify({
+      fixtures: { "input.txt": "alpha\n" },
+      eval: [{ id: "output", method: "file-check", path: "out/report.txt", mode: "exact", expected: "ALPHA\n" }],
+    }))
+    const observed = evidence({ entry: "scripts/convert.mjs" })
+    observed.trace = { ...observed.trace!, taskPath }
+    observed.criteria = [{ id: "output", method: "file-check", weight: 1, score: 1, passed: true }]
+    const candidate: OptimizationAction = {
+      ...action("variation-lifecycle", "scripts/convert.mjs", {
+        cases: [{
+          id: "base",
+          evidenceId: "0",
+          inputSource: "task-fixtures",
+          inputFiles: ["input.txt"],
+          args: ["--input", "input.txt", "--output", "out/report.txt"],
+          expectedFiles: [{ path: "out/report.txt" }],
+          basis: "task-contract",
+          sourceRefs: ["evidence:0#criteria/output"],
+        }],
+      }),
+      outputs: ["out/report.txt"],
+    }
+
+    const result = await runOptimizationValidationLifecycle({
+      proposalDir,
+      round: 1,
+      skillDir: candidateDir,
+      sourceSkillDir: sourceDir,
+      baselineSkillDir: sourceDir,
+      actions: [candidate],
+      evidences: [observed],
+    })
+
+    expect(result.report.actions[0]?.programStatus).toBe("passed")
+    expect(result.report.execution.caseRuns).toBe(3)
+    expect(result.report.actions[0]?.variationChecks).toEqual(expect.objectContaining({
+      generated: expect.arrayContaining([
+        expect.objectContaining({ kind: "path" }),
+        expect.objectContaining({ kind: "cwd" }),
+      ]),
+    }))
+    expect(candidate.validation?.cases).toHaveLength(1)
+  })
+
+  test("detects a program that ignores relocated path parameters", async () => {
+    const sourceDir = await tempDir("fixed-path-source-")
+    const candidateDir = await tempDir("fixed-path-candidate-")
+    const proposalDir = await tempDir("fixed-path-proposal-")
+    const taskDir = await tempDir("fixed-path-task-")
+    for (const root of [sourceDir, candidateDir]) await mkdir(path.join(root, "scripts"), { recursive: true })
+    const fixed = [
+      "import { mkdir, readFile, writeFile } from 'node:fs/promises'",
+      "await mkdir('out', { recursive: true })",
+      "await writeFile('out/report.txt', (await readFile('input.txt', 'utf8')).toUpperCase())",
+    ].join("\n") + "\n"
+    await writeFile(path.join(sourceDir, "scripts", "convert.mjs"), fixed)
+    await writeFile(path.join(candidateDir, "scripts", "convert.mjs"), fixed)
+    const taskPath = path.join(taskDir, "task.json")
+    await writeFile(taskPath, JSON.stringify({
+      fixtures: { "input.txt": "alpha\n" },
+      eval: [{ id: "output", method: "file-check", path: "out/report.txt", mode: "exact", expected: "ALPHA\n" }],
+    }))
+    const observed = evidence({ entry: "scripts/convert.mjs" })
+    observed.trace = { ...observed.trace!, taskPath }
+    observed.criteria = [{ id: "output", method: "file-check", weight: 1, score: 1, passed: true }]
+    const candidate: OptimizationAction = {
+      ...action("fixed-path", "scripts/convert.mjs", {
+        cases: [{
+          id: "base",
+          evidenceId: "0",
+          inputSource: "task-fixtures",
+          inputFiles: ["input.txt"],
+          args: ["--input", "input.txt", "--output", "out/report.txt"],
+          expectedFiles: [{ path: "out/report.txt" }],
+          basis: "task-contract",
+          sourceRefs: ["evidence:0#criteria/output"],
+        }],
+      }),
+      outputs: ["out/report.txt"],
+    }
+    const result = await runOptimizationValidationLifecycle({
+      proposalDir,
+      round: 1,
+      skillDir: candidateDir,
+      sourceSkillDir: sourceDir,
+      baselineSkillDir: sourceDir,
+      actions: [candidate],
+      evidences: [observed],
+    })
+
+    expect(result.report.actions[0]?.programStatus).toBe("failed")
+    expect(result.report.actions[0]?.program?.cases.find((item) => item.id === "variation-path-base"))
+      .toEqual(expect.objectContaining({ status: "failed" }))
+    expect(result.report.actions[0]?.program?.cases.find((item) => item.id === "variation-path-base")?.diagnostics.join(" "))
+      .toContain("expected output file is missing")
+    expect(result.summary.rejectedActionIds).toEqual(["fixed-path"])
   })
 })
