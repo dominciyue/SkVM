@@ -3,6 +3,7 @@
 - 更新日期：2026-09-15
 - F9/F10 当前：F9.9 模型报告 finalizer 已按原事件精确恢复，同一包完成两个模型×原/变化任务×source/optimized 的八单元消费；当前共享离线验证 help/case 通过、独立 case=0。用户确认最小语义门禁后，JSON 排版/对象键序、报告集合顺序和无影响空表示不再误拒绝，历史结果保留。新口径原/新各 4/4，但总体效果 negative：工具调用 90→99、input +104.4%、duration +98.4%，实际美元未知。证据见 `f9/consumption-effect.json` 与 `f9/attempt-reconciliation-through-f9-10.json`。最新受影响回归 101/101、491 assertions、typecheck 与文档测试通过。
 - 工作分支：`skill-ir-aot`
+- 本轮实现与证据提交：`8fb3bce`，已推送用户 `origin/skill-ir-aot`。报告入口：`results/skill-ir/general-generation-reinforcement-20260914/final-report.json`。
 - 本轮交付：F0–F11，通用生成流程补牢；[任务书](../superpowers/plans/2026-09-14-general-generation-reinforcement.md) revision 2、spec 14.33。含 F1.1 语料到代码、F6.1 执行型流程骨架、F9.1 同包跨模型/环境比较。
 - 执行状态：`completed-development`。F5 剩余边界补齐，F9.1/F10/F11 有限工作完成；工程、真实报告产出链和效果分列，效果为 negative。本轮程序经过精确恢复，共享内部验证及同包原/变化自然消费有证据；不声称首次无需恢复，也不新增该验收门槛。用户授权修复的是本任务书此前 F1–F9，并放宽无实质影响的门禁；原技能、历史证据和其他线程改动保留。当前交接报告与总结，不再扩建接口或追加抽样。
 - 已交付基线：C0–C10 `completed-development`，对应 spec 14.32；最近证据同步为 `4b31862`。新程序链已有 development 结果，但 C8 包内部仍为 `not-run/draft`，不能用后续消费覆盖该缺口。`15b5d51` 另修 CLI 失败退出码和原任务超时提示；计划形成时该提交仅在本地，实际同步以 Git 为准。
