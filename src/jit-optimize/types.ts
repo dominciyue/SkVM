@@ -517,6 +517,8 @@ export type OptimizationActionDiagnosticCode =
   | "unknown-action-dependency"
   | "action-dependency-cycle"
   | "action-kind-mismatch"
+  | "invalid-submission"
+  | "implemented-opportunity-without-artifact"
 
 export interface OptimizationActionDiagnostic {
   code: OptimizationActionDiagnosticCode
@@ -541,6 +543,8 @@ export const OptimizationActionDiagnosticSchema = z.object({
     "unknown-action-dependency",
     "action-dependency-cycle",
     "action-kind-mismatch",
+    "invalid-submission",
+    "implemented-opportunity-without-artifact",
   ]),
   severity: z.literal("error"),
   actionId: z.string().optional(),

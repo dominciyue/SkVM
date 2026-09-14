@@ -855,10 +855,10 @@ export async function serializeContext(
         opportunities: [
           {
             category: "instruction-clarity",
-            summary: "Evidence-backed opportunity this edit addresses.",
+            summary: "Take over delegated steps: describe the bounded workflow; variable parameters: name the values/paths; required resources: name the files/runtime; check source: cite the independent rule; disposition reason: explain why this is implemented.",
             evidenceIds: ["0"],
             disposition: "implemented",
-            residualDuty: "What the agent must still decide or execute at runtime.",
+            residualDuty: "The agent still performs the context-dependent judgment and any steps not covered by the check.",
           },
         ],
         actions: [
@@ -907,7 +907,7 @@ export async function serializeContext(
       },
       _shape_2_no_changes: {
         noChanges: true,
-        rootCause: "The failure is specific to the task fixture under tasks/task-foo/; the skill correctly instructs the agent and no generalizable fix exists.",
+        rootCause: "The evidence was reviewed; no generalizable, checkable opportunity is available. State why the opportunity is retained or not-applicable rather than merely saying that no defect was observed.",
         opportunities: [],
       },
       _shape_3_infra_blocked: {
@@ -1575,10 +1575,11 @@ function renderHistoryMarkdown(history: HistoryEntry[]): string {
       parts.push("")
     }
     if ((entry.actionDiagnostics?.length ?? 0) > 0) {
-      parts.push(`### Rejected Action Diagnostics`)
+      parts.push(`### Engine Diagnostics`)
       parts.push("")
       for (const diagnostic of entry.actionDiagnostics ?? []) {
-        parts.push(`- ${diagnostic.code} at \`${diagnostic.locator}\`: ${diagnostic.message}`)
+        const owner = diagnostic.actionId ? ` (action ${diagnostic.actionId})` : ""
+        parts.push(`- ${diagnostic.code}${owner} at \`${diagnostic.locator}\`: ${diagnostic.message}`)
       }
       parts.push("")
     }
@@ -1652,6 +1653,30 @@ ${historyCount > 0 ? `- \`.optimize/history.md\` — **${historyCount} previous 
 4. Edit files in this workspace to fix the root cause.
 5. When done, write \`.optimize/submission.json\` with your structured summary
    (see \`submission.template.json\`).
+
+## Candidate attempt versus recommendation
+
+The workspace diff and action list describe a **candidate attempt**. A
+**recommendation** is only justified after the engine can run the declared
+checks and preserve the residual duties; a high quality score or an agent's
+self-check is not enough by itself. A missing score is evidence-thin, not a
+failure and not a reason to skip the optimizer.
+
+An opportunity may be useful even when the source task passed. Consider
+bounded reductions in repeated file I/O, tool discovery, or transformations,
+existing-script reuse, parameterized processing, and deterministic checks.
+For a localizable example, a source rule plus locale files can establish a
+local key-set/placeholder boundary without claiming to automate translation
+quality. Do not dismiss that opportunity solely because there was no defect,
+the whole skill is broader, or a regression is conceivable.
+
+Each opportunity summary should compactly state the delegated steps, variable
+parameters, required resources, check source, and the specific reason for its
+\`implemented\`, \`retained\`, or \`not-applicable\` disposition. Put duties that
+remain with the agent in \`residualDuty\`. If an opportunity is marked
+\`implemented\`, the submission must also name a corresponding changed file,
+change summary, or valid action; otherwise the engine records an explicit
+diagnostic and does not treat the round as no-change.
 
 ## Rules
 

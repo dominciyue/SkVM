@@ -1391,11 +1391,14 @@ async function runLogOnly(
   const candidateDiff = await computeDiff(candidateWorkspace, skillDir)
   const candidateActualChangedFiles = [...candidateDiff.added, ...candidateDiff.modified]
   const candidateChanged = candidateActualChangedFiles.length > 0 || candidateDiff.removed.length > 0
+  const candidateHasDiagnostics = (candidateSubmission.actionDiagnostics?.length ?? 0) > 0
   candidateSubmission = {
     ...candidateSubmission,
     changedFiles: candidateActualChangedFiles,
     changes: (candidateSubmission.changes ?? []).filter((change) => candidateActualChangedFiles.includes(change.file)),
-    ...(candidateChanged ? {} : { noChanges: true }),
+    ...(candidateChanged || candidateHasDiagnostics
+      ? { noChanges: false }
+      : { noChanges: true }),
   }
 
   // Persist round 0 (original) and round 1 (optimized)

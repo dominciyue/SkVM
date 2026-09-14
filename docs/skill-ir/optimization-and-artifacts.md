@@ -123,6 +123,8 @@ C3 将现成脚本动作接入通用本地实现选择：可解析的既有可�
 
 C4 修正一次约束修复只改文件、不改动作描述的问题。验证失败反馈现在同时绑定初始 action、当前 candidate action、引擎重算的候选差异路径、原动作意图、失败诊断和局部文件范围；范围允许失败动作的真实未归属候选路径，但不开放独立动作的路径。修复 submission 先按 action 结构/依赖校验，再只把失败 action 的有效元数据合并回完整原动作集合；metadata-only repair 即使增量 `changedPaths=[]` 也会强制重跑该 action，未受影响 action 复用 binding 相符的观察。最终 validation report、history 和 package 使用同一合并动作集；红绿证据与回归统计见 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c4/verification.json`。
 
+C5 将候选尝试与推荐结论分开。passing 或无评分证据仍可支持有界的重复 I/O、工具发现、已有脚本复用、参数化和确定检查机会，但不把分数当作唯一目标，也不把 `confidence` 解读为提高分数的概率。机会摘要必须说明接管步骤、可变参数、必要资源、检查来源、残余职责和 `implemented`/`retained`/`not-applicable` 的具体理由；passing localization 只在来源规则、locale 文件和独立检查确立局部 key/placeholder 边界时提出候选，不覆盖翻译质量。提交声明 `implemented` 却没有文件、change 或有效 action，或提交隐式空 edit 时，optimizer 保留候选声明并写入 `invalid-submission` / `implemented-opportunity-without-artifact` engine diagnostics，不把它折叠成合法 no-change。合法 no-change 仍需保留机会审计和原因。机器证据见 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c5/verification.json`。
+
 ### 3.0.3 通用包导出、自然消费与效果边界
 
 `buildOptimizedSkillPackage` 从 proposal 的 original 与 selected round 重新计算文件差异，复制完整选中闭包并写

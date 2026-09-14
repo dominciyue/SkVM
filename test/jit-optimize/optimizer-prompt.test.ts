@@ -229,4 +229,40 @@ describe("buildOptimizerPrompt", () => {
     expect(p).toContain("do not add plausible fields")
     expect(p).toContain("not applicable")
   })
+
+  test("separates evidence confidence from score-improvement confidence", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("confidence is not a probability of score improvement")
+    expect(p).toContain("quality score is not the only optimization objective")
+    expect(p).toContain("efficiency")
+  })
+
+  test("keeps a bounded I18n key and placeholder opportunity visible on a passing run", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("locale key")
+    expect(p).toContain("placeholder")
+    expect(p).toContain("local boundary")
+    expect(p).toContain("no defect")
+    expect(p).toContain("cannot cover the whole skill")
+    expect(p).toContain("does not by itself make the opportunity not-applicable")
+  })
+
+  test("requires compact opportunity records to state takeover and residual scope", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("delegated steps")
+    expect(p).toContain("variable parameters")
+    expect(p).toContain("required resources")
+    expect(p).toContain("check source")
+    expect(p).toContain("specific reason")
+    expect(p).toContain("residual duty")
+  })
+
+  test("distinguishes a candidate attempt from a recommendation", () => {
+    const p = buildOptimizerPrompt(1, 0)
+    expect(p).toContain("candidate attempt")
+    expect(p).toContain("recommendation")
+    expect(p).toContain("implemented")
+    expect(p).toContain("retained")
+    expect(p).toContain("not-applicable")
+  })
 })

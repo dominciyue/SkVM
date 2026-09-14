@@ -14,6 +14,7 @@ import type {
   OptimizeConfig,
   OptimizeResult,
   OptimizeSubmission,
+  OptimizationActionDiagnostic,
 } from "./types.ts"
 import { OptimizeSubmissionSchema } from "./types.ts"
 import { runHeadlessAgent } from "../core/headless-agent/index.ts"
@@ -120,6 +121,12 @@ export async function runOptimizer(
   const actualChangedFiles = [...diff.added, ...diff.modified]
   const changed = actualChangedFiles.length > 0 || diff.removed.length > 0
 
+  // Reconcile semantic claims with the actual candidate snapshot before any
+  // caller can classify the round as a legitimate no-change. A claimed
+  // implementation must have a corresponding artifact or valid action;
+  // contradictory declarations remain visible as diagnostics.
+  submission = reconcileSubmissionArtifacts(submission, actualChangedFiles, changed)
+
   // 8. Self-declared vs actual mismatch — warn but trust filesystem
   if (!submission.noChanges && !submission.infraBlocked && submission.changedFiles.length > 0) {
     const declared = new Set(submission.changedFiles)
@@ -186,8 +193,137 @@ export async function runOptimizer(
 // Submission helpers
 // ---------------------------------------------------------------------------
 
+function submissionDiagnostic(
+  code: OptimizationActionDiagnostic["code"],
+  locator: string,
+  message: string,
+): OptimizationActionDiagnostic {
+  return { code, severity: "error", locator, message }
+}
+
+function appendDiagnostic(
+  diagnostics: OptimizationActionDiagnostic[],
+  diagnostic: OptimizationActionDiagnostic,
+): void {
+  if (diagnostics.some((item) => item.code === diagnostic.code && item.locator === diagnostic.locator)) return
+  diagnostics.push(diagnostic)
+}
+
+function implementedOpportunityIndices(raw: Partial<OptimizeSubmission>): number[] {
+  return (raw.opportunities ?? [])
+    .map((opportunity, index) => opportunity?.disposition === "implemented" ? index : -1)
+    .filter((index) => index >= 0)
+}
+
+function hasDeclaredArtifact(raw: Partial<OptimizeSubmission>, validActionCount: number): boolean {
+  return (raw.changedFiles?.length ?? 0) > 0
+    || (raw.changes?.length ?? 0) > 0
+    || validActionCount > 0
+}
+
+function hasAnyArtifactClaim(raw: Partial<OptimizeSubmission>): boolean {
+  return (raw.changedFiles?.length ?? 0) > 0
+    || (raw.changes?.length ?? 0) > 0
+    || (raw.actions?.length ?? 0) > 0
+}
+
+function collectSubmissionDiagnostics(
+  raw: Partial<OptimizeSubmission>,
+  actionDiagnostics: OptimizationActionDiagnostic[],
+  validActionCount: number,
+): OptimizationActionDiagnostic[] {
+  const diagnostics = [...actionDiagnostics]
+  const implemented = implementedOpportunityIndices(raw)
+  const declaredArtifact = hasDeclaredArtifact(raw, validActionCount)
+  const anyArtifactClaim = hasAnyArtifactClaim(raw)
+
+  if (!raw.infraBlocked && raw.noChanges === true && (anyArtifactClaim || implemented.length > 0 || diagnostics.length > 0)) {
+    appendDiagnostic(
+      diagnostics,
+      submissionDiagnostic(
+        "invalid-submission",
+        "submission.noChanges",
+        "noChanges=true conflicts with an implementation, action, or validation diagnostic; preserve the candidate attempt instead of reporting convergence.",
+      ),
+    )
+  }
+
+  if (!raw.infraBlocked && implemented.length > 0 && !declaredArtifact) {
+    for (const index of implemented) {
+      appendDiagnostic(
+        diagnostics,
+        submissionDiagnostic(
+          "implemented-opportunity-without-artifact",
+          `opportunities[${index}]`,
+          "Opportunity is marked implemented but submission contains no corresponding changed file, change summary, or valid action.",
+        ),
+      )
+    }
+  }
+
+  // An edit-shaped response with no implementation claims must opt into the
+  // explicit noChanges form. This keeps missing or malformed submissions out
+  // of the legitimate no-change path while retaining the explanation.
+  if (!raw.infraBlocked && raw.noChanges !== true && !declaredArtifact && diagnostics.length === 0) {
+    appendDiagnostic(
+      diagnostics,
+      submissionDiagnostic(
+        "invalid-submission",
+        "submission",
+        "Submission has no changed files, changes, or valid actions and did not explicitly declare noChanges=true.",
+      ),
+    )
+  }
+
+  return diagnostics
+}
+
+function reconcileSubmissionArtifacts(
+  submission: OptimizeSubmission,
+  actualChangedFiles: readonly string[],
+  changed: boolean,
+): OptimizeSubmission {
+  if (submission.infraBlocked) return submission
+  const diagnostics = [...(submission.actionDiagnostics ?? [])]
+  const implemented = (submission.opportunities ?? [])
+    .map((opportunity, index) => opportunity.disposition === "implemented" ? index : -1)
+    .filter((index) => index >= 0)
+  const hasActualArtifact = changed || (submission.actions?.length ?? 0) > 0
+  if (implemented.length > 0 && !hasActualArtifact) {
+    for (const index of implemented) {
+      appendDiagnostic(
+        diagnostics,
+        submissionDiagnostic(
+          "implemented-opportunity-without-artifact",
+          `opportunities[${index}]`,
+          "Opportunity is marked implemented, but the candidate snapshot has no changed file and no executable action.",
+        ),
+      )
+    }
+  }
+  let noChanges = submission.noChanges
+  if (submission.noChanges && changed) {
+    appendDiagnostic(
+      diagnostics,
+      submissionDiagnostic(
+        "invalid-submission",
+        "submission.noChanges",
+        `noChanges=true conflicts with actual candidate changes: ${actualChangedFiles.join(", ") || "(removed files)"}.`,
+      ),
+    )
+    noChanges = false
+  }
+  if (diagnostics.length > 0) noChanges = false
+  return {
+    ...submission,
+    actionDiagnostics: diagnostics,
+    noChanges,
+  }
+}
+
 export function normalizeSubmission(raw: Partial<OptimizeSubmission>): OptimizeSubmission {
   const actionPlan = validateOptimizationActions(raw.actions ?? [])
+  const diagnostics = collectSubmissionDiagnostics(raw, actionPlan.diagnostics, actionPlan.actions.length)
   // infraBlocked is the strongest signal — if both it and noChanges are set,
   // infraBlocked wins (negative statement about evidence quality beats the
   // positive statement about skill quality). The two are mutually exclusive
@@ -204,14 +340,14 @@ export function normalizeSubmission(raw: Partial<OptimizeSubmission>): OptimizeS
       changes: [],
       opportunities: raw.opportunities ?? [],
       actions: actionPlan.actions,
-      actionDiagnostics: actionPlan.diagnostics,
+      actionDiagnostics: diagnostics,
       noChanges: false,
       infraBlocked: true,
       blockedEvidenceIds: raw.blockedEvidenceIds ?? [],
       blockedReason: raw.blockedReason ?? "",
     }
   }
-  if (raw.noChanges) {
+  if (raw.noChanges && diagnostics.length === 0) {
     return {
       rootCause: raw.rootCause ?? "",
       reasoning: raw.reasoning ?? "",
@@ -220,7 +356,7 @@ export function normalizeSubmission(raw: Partial<OptimizeSubmission>): OptimizeS
       changes: [],
       opportunities: raw.opportunities ?? [],
       actions: actionPlan.actions,
-      actionDiagnostics: actionPlan.diagnostics,
+      actionDiagnostics: diagnostics,
       noChanges: true,
     }
   }
@@ -232,7 +368,7 @@ export function normalizeSubmission(raw: Partial<OptimizeSubmission>): OptimizeS
     changes: raw.changes ?? [],
     opportunities: raw.opportunities ?? [],
     actions: actionPlan.actions,
-    actionDiagnostics: actionPlan.diagnostics,
+    actionDiagnostics: diagnostics,
     noChanges: false,
   }
 }
@@ -246,7 +382,7 @@ function emptySubmission(reason: string): OptimizeSubmission {
     changes: [],
     opportunities: [],
     actions: [],
-    actionDiagnostics: [],
+    actionDiagnostics: [submissionDiagnostic("invalid-submission", "submission", reason)],
     noChanges: false,
   }
 }
@@ -317,7 +453,9 @@ ${repairMode ? `This is the single repair attempt for an already-validated candi
 1. Read \`PER_TASK_SUMMARY.md\` to get the per-task landscape. Analyze every
    usable status: FAILING/MARGINAL for defects, UNASSESSED for visible workflow
    facts without a quality label, and PASSING for reusable quality, efficiency,
-   verification and clarity opportunities that must not regress.
+   verification and clarity opportunities that must not regress. The quality score is not the only optimization objective: reduced repeated I/O or tool
+   discovery, existing-script reuse, parameterized processing, and deterministic
+   checks can be useful opportunities even when the score is already perfect.
 2. Read the relevant task directories under \`.optimize/tasks/\` —
    **failing/marginal first, unassessed next, passing last**. Passing evidence
    can still support an optimization when repeated work or a general contract
@@ -370,6 +508,30 @@ ${repairMode ? `This is the single repair attempt for an already-validated candi
    and does not require a pre-existing checker. Generate the smallest checker that
    accepts arbitrary declared input paths instead of baking in evidence file names;
    keep every fact the sources do not establish as a residual duty.
+
+   A passing localization task can still expose a bounded verification or
+   parameterization opportunity. When the source rule, locale files and an
+   independent check establish a local boundary for locale key and placeholder
+   parity, record that opportunity even if the run has no defect. "No defect",
+   "cannot cover the whole skill", or "a regression is possible"
+   does not by itself make the opportunity not-applicable; keep translation quality and
+   other semantic judgment as residual duty.
+
+   Separate the candidate attempt from the recommendation. The candidate is
+   what the workspace diff and actions actually implement; the recommendation
+   is what survives the engine's checks and preserved residual duties. The
+   numeric \`confidence\` records confidence in the evidence, boundary and
+   feasibility of the candidate. confidence is not a probability of score improvement;
+   discuss expected score impact separately in \`reasoning\` and do not optimize
+   for score alone.
+
+   Every opportunity summary must compactly state delegated steps, variable parameters,
+   required resources, check source, residual duty, and a specific reason for its
+   \`implemented\`, \`retained\`, or \`not-applicable\`
+   disposition. An \`implemented\` opportunity must have a corresponding changed
+   file, change summary, or valid action in the submission. Otherwise the engine
+   records a diagnostic and treats the submission as malformed rather than as
+   an ordinary no-change result.
 
    Then identify the root cause of the selected opportunity. State it as an underlying gap in
    the skill's instructions or bundle, not as a list of changes. Good root causes are
@@ -436,8 +598,10 @@ Write \`.optimize/submission.json\` with these fields (see
 - \`reasoning\` (string, required): your full analysis. Explain why this root
   cause is the most likely one given the evidence, and why your fix addresses
   it without overfitting.
-- \`confidence\` (number 0-1, required): your confidence that the fix will
-  improve scores on similar tasks.
+- \`confidence\` (number 0-1, required): your confidence in the evidence,
+  applicability boundary and feasibility of the candidate. This is not a
+  probability that the quality score will improve; explain expected score
+  impact separately in \`reasoning\`.
 - \`changedFiles\` (array of string, required): list of skill files you edited
   (relative to workspace root). Do not include \`.optimize/submission.json\` in \`changedFiles\` or \`changes\`;
   it is optimizer metadata, not a skill change.
@@ -518,7 +682,10 @@ residual duty — write \`{"noChanges": true, "opportunities": [...]}\` to
 submission.json and do NOT edit any files. This is a
 legitimate outcome, not a failure: the Pre-Edit Checklist in step 4(a) is
 designed to surface task-specific failures that should NOT be patched into
-the skill.
+the skill. The opportunity audit and its concrete reasons still belong in the
+submission. Do not use noChanges to hide an implemented opportunity without a
+file/action or a malformed submission; the engine records an explicit
+diagnostic for those cases.
 
 ### Abstaining on infra-broken evidence — \`infraBlocked\`
 

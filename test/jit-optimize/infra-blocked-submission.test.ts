@@ -109,7 +109,7 @@ describe("normalizeSubmission", () => {
     expect(n.changedFiles).toEqual(["SKILL.md"])
   })
 
-  test("retains structured opportunity coverage for edit and no-change decisions", () => {
+  test("retains structured opportunity coverage for edit and legitimate no-change decisions", () => {
     const opportunity = {
       category: "repeated-transformation" as const,
       summary: "The same schema traversal was reimplemented in every run",
@@ -125,9 +125,60 @@ describe("normalizeSubmission", () => {
       changes: [{ file: "scripts/project.mjs", description: "share traversal", generality: "other OpenAPI tasks" }],
       opportunities: [opportunity],
     })
-    const unchanged = normalizeSubmission({ noChanges: true, opportunities: [opportunity] })
+    const unchangedOpportunity = { ...opportunity, disposition: "retained" as const }
+    const unchanged = normalizeSubmission({ noChanges: true, opportunities: [unchangedOpportunity] })
 
     expect(edited.opportunities).toEqual([opportunity])
-    expect(unchanged.opportunities).toEqual([opportunity])
+    expect(unchanged.opportunities).toEqual([unchangedOpportunity])
+    expect(unchanged.noChanges).toBe(true)
+  })
+
+  test("does not turn an implemented opportunity without a file or action into no-change", () => {
+    const n = normalizeSubmission({
+      noChanges: true,
+      opportunities: [{
+        category: "verification",
+        summary: "A locale key and placeholder comparison was implemented.",
+        evidenceIds: ["0"],
+        disposition: "implemented",
+        residualDuty: "Review translation quality.",
+      }],
+    })
+
+    expect(n.noChanges).toBe(false)
+    expect(n.actionDiagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: "implemented-opportunity-without-artifact",
+        locator: "opportunities[0]",
+      }),
+    ]))
+  })
+
+  test("diagnoses an implicit empty edit instead of treating it as a legitimate no-change", () => {
+    const n = normalizeSubmission({
+      rootCause: "a possible issue",
+      reasoning: "the evidence was reviewed",
+      confidence: 0.4,
+    })
+
+    expect(n.noChanges).toBe(false)
+    expect(n.actionDiagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "invalid-submission", locator: "submission" }),
+    ]))
+  })
+
+  test("diagnoses contradictory noChanges and implementation claims while preserving declarations", () => {
+    const n = normalizeSubmission({
+      noChanges: true,
+      changedFiles: ["SKILL.md"],
+      changes: [{ file: "SKILL.md", description: "clarify the bounded path", generality: "other tasks" }],
+    })
+
+    expect(n.noChanges).toBe(false)
+    expect(n.changedFiles).toEqual(["SKILL.md"])
+    expect(n.changes).toHaveLength(1)
+    expect(n.actionDiagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "invalid-submission", locator: "submission.noChanges" }),
+    ]))
   })
 })

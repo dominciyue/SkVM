@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 bare-agent/provider、Python/Node skill 程序、既有 task/source 检查与通用包导出。默认沿用本机已配置模型路由。
 
-**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C4 已完成，C5 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
+**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C5 已完成，C6 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
 
 **执行目录：** `D:\skill优化\SkVM`。结果根为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/`，仅在 C0 启动时创建 `status.json`。阶段记录、尝试和失败均收进该目录，不新增每阶段 Markdown。
 
@@ -142,16 +142,18 @@
 
 ## C5 — 优化正确流程，分开候选尝试和推荐
 
+> C5 implementation is complete: opportunity audits now distinguish candidate attempts from recommendations, preserve bounded passing-task opportunities and residual duties, and diagnose malformed or falsely implemented no-change submissions; C6 is the active stage.
+
 **修改与测试：** `optimizer.ts`、`workspace.ts`、action diagnostics；沿用 opportunities 字段，不建第二模型规划回路。
 
-- [ ] 用已归档 I18n no-change 推理建立方法回归案例：原任务全通过，locale key/placeholder 比较有明确局部边界。不能用“没 defect”“无法覆盖全部 skill”“也许回归”单独证明该机会不存在。
-- [ ] 改写相冲突的方法说明：机会可来自减少重复读写、工具发现、已有脚本复用、参数化处理和确定检查；质量分不再是唯一优化目标，候选 confidence 也不等同提高评分的信心。
-- [ ] 保留具体已知回归风险与原职责；用较窄适用条件、隔离试验和实际检查处理不确定性，不要求模型事先证明零可能风险。没有可验证依据的专业判断仍不能程序化冒充正确性。
-- [ ] 机会记录至少说明：接管的步骤、可变参数、必要资源、检查来源、未接管职责、implemented/retained/not-applicable 及具体理由。复用现有字段或最少兼容扩展，避免巨量模板输出。
-- [ ] 对“声称 implemented 却没有对应文件/动作”和格式无效 submission 给明确诊断，不能落成普通 no-change。对于合法但证据薄弱的 no-change 保留结果与原因，不自动无限重问；C8 以共享缺陷诊断决定是否需要新开发尝试。
-- [ ] 测试缺评分仍调用优化器、metadata-only repair 生效、文档候选仍可交付而不冒充程序；提示字符串测试只证明合同修改，真实模型行为由 C8 单独验证。
+- [x] 用已归档 I18n no-change 推理建立方法回归案例：原任务全通过，locale key/placeholder 比较有明确局部边界。不能用“没 defect”“无法覆盖全部 skill”“也许回归”单独证明该机会不存在。
+- [x] 改写相冲突的方法说明：机会可来自减少重复读写、工具发现、已有脚本复用、参数化处理和确定检查；质量分不再是唯一优化目标，候选 confidence 也不等同提高评分的信心。
+- [x] 保留具体已知回归风险与原职责；用较窄适用条件、隔离试验和实际检查处理不确定性，不要求模型事先证明零可能风险。没有可验证依据的专业判断仍不能程序化冒充正确性。
+- [x] 机会记录至少说明：接管的步骤、可变参数、必要资源、检查来源、未接管职责、implemented/retained/not-applicable 及具体理由。复用现有字段或最少兼容扩展，避免巨量模板输出。
+- [x] 对“声称 implemented 却没有对应文件/动作”和格式无效 submission 给明确诊断，不能落成普通 no-change。对于合法但证据薄弱的 no-change 保留结果与原因，不自动无限重问；C8 以共享缺陷诊断决定是否需要新开发尝试。
+- [x] 测试缺评分仍调用优化器、metadata-only repair 生效、文档候选仍可交付而不冒充程序；提示字符串测试只证明合同修改，真实模型行为由 C8 单独验证。
 
-**验证：** `bun test ./test/jit-optimize/optimizer-prompt.test.ts ./test/jit-optimize/infra-blocked-submission.test.ts ./test/jit-optimize/production-closure.test.ts`。
+**验证：** 红例为 36 pass / 7 fail / 139 assertions；修订后 `bun test ./test/jit-optimize/optimizer-prompt.test.ts ./test/jit-optimize/infra-blocked-submission.test.ts` 为 43/43 tests、159 assertions，合并 production closure 为 49/49 tests、209 assertions，`bunx tsc --noEmit` 通过；机器证据为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c5/verification.json`。
 
 ## C6 — 无人工评分文件时也能检查局部产物
 
