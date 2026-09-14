@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 bare-agent/provider、Python/Node skill 程序、既有 task/source 检查与通用包导出。默认沿用本机已配置模型路由。
 
-**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C6 已完成，C7 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
+**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C7 已完成，C8 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
 
 **执行目录：** `D:\skill优化\SkVM`。结果根为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/`，仅在 C0 启动时创建 `status.json`。阶段记录、尝试和失败均收进该目录，不新增每阶段 Markdown。
 
@@ -174,15 +174,15 @@
 
 **测试：** 扩展 `test/run/optimization-handoff.test.ts`、`test/cli/run-optimize.test.ts`、`test/jit-optimize/production-closure.test.ts`。
 
-- [ ] 建立自然任务、原始文件和原始 skill；模拟 provider 仅代替付费生成，真实执行 capture、Evidence/workspace、程序、检查、动作修复、snapshot 和导出。不能为测试直接塞入完整研究 fixtures 绕开 C1/C2。
-- [ ] 首轮候选故意含一个可修动作字段，修复后导出真实程序包；从改变 cwd 的目录消费本次包，改变输入值会改变程序结果，原文件和原包不变。
-- [ ] 测试记录 `sourceRunId → proposalId → selected round/action → exportedPackage → consumedPackage`。复用已有标识及包闭包，不新增签名/多重哈希链。
-- [ ] 注入三个反例：消费 H8/H9 旧包而非本次包；空 actions 的文档包冒充程序；agent 完成任务但未调用声明 helper。分别标连续性不成立、无程序、未消费，不能因任务结果正确而消失。
-- [ ] 合并测试缺输入只影响关联动作、metadata 修复成功、保留基线、failed export 的既有恢复。无关失败用已存在测试引用，不重复搭建大矩阵。
+- [x] 建立自然任务、原始文件和原始 skill；模拟 provider 仅代替付费生成，真实执行 capture、Evidence/workspace、程序、检查、动作修复、snapshot 和导出。不能为测试直接塞入完整研究 fixtures 绕开 C1/C2。
+- [x] 首轮候选故意含一个可修动作字段，修复后导出真实程序包；从改变 cwd 的目录消费本次包，改变输入值会改变程序结果，原文件和原包不变。
+- [x] 测试记录 `sourceRunId → proposalId → selected round/action → exportedPackage → consumedPackage`。复用已有标识及包闭包，不新增签名/多重哈希链。
+- [x] 注入三个反例：消费 H8/H9 旧包而非本次包；空 actions 的文档包冒充程序；agent 完成任务但未调用声明 helper。分别标连续性不成立、无程序、未消费，不能因任务结果正确而消失。
+- [x] 合并测试缺输入只影响关联动作、metadata 修复成功、保留基线、failed export 的既有恢复。无关失败用已存在测试引用，不重复搭建大矩阵。
 
 **验收：** 同一新包的证据连续性由实际生产对象和执行记录证明。模拟 provider 的集成成功只计工程测试，不计真实优化成功。
 
-**验证：** `bun test ./test/run/optimization-handoff.test.ts ./test/cli/run-optimize.test.ts ./test/jit-optimize/production-closure.test.ts`。
+**验证：** `bun test ./test/jit-optimize/continuous-production-closure.test.ts ./test/run/optimization-handoff.test.ts ./test/cli/run-optimize.test.ts ./test/jit-optimize/production-closure.test.ts` 与 `bun run typecheck`；4 个文件 26/26 tests、166 assertions，C7 新测试 3/3、50 assertions，机器证据为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c7/verification.json`。
 
 ## C8 — 两种已有结构的真实默认入口
 

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "skill-ir-skill-optimization-c7-verification/v1",
+  "stage": "C7",
+  "date": "2026-09-14",
+  "exposure": "development",
+  "command": "bun test ./test/jit-optimize/continuous-production-closure.test.ts ./test/run/optimization-handoff.test.ts ./test/cli/run-optimize.test.ts ./test/jit-optimize/production-closure.test.ts",
+  "typecheckCommand": "bun run typecheck",
+  "result": {
+    "testFiles": 4,
+    "testsPassed": 26,
+    "testsFailed": 0,
+    "assertions": 166,
+    "typecheck": "passed"
+  },
+  "continuousClosure": {
+    "testFile": "test/jit-optimize/continuous-production-closure.test.ts",
+    "testsPassed": 3,
+    "testsFailed": 0,
+    "assertions": 50,
+    "provider": "deterministic in-process AgentAdapter/optimizer substitute; no remote or paid call",
+    "chain": [
+      "sourceRunId",
+      "proposalId",
+      "selected optimization round/action",
+      "exported package",
+      "same package consumed on original and semantic variation inputs"
+    ],
+    "checks": [
+      "pre-run input capture reaches Evidence and validation",
+      "candidate program is generated and independently checked",
+      "metadata-only repair is adopted and revalidated",
+      "final history and exported package retain corrected action metadata",
+      "package closure and source skill remain unchanged during consumption",
+      "original and changed inputs produce distinct bounded results"
+    ]
+  },
+  "counterexamples": [
+    {
+      "case": "historical-package-replacement",
+      "expectedDetection": "continuity binding is false when a different package identity/path is consumed",
+      "observed": "detected"
+    },
+    {
+      "case": "documentation-only-empty-actions-package",
+      "expectedDetection": "no executable program is reported and documentationOnly remains true",
+      "observed": "detected"
+    },
+    {
+      "case": "task-output-without-helper-call",
+      "expectedDetection": "task output alone cannot make package consumption complete",
+      "observed": "detected"
+    }
+  ],
+  "claimBoundary": "Engineering integration evidence only. The deterministic substitute does not count as a real model optimization success, a new prospective sample, a readiness result, a human-savings claim, or a general skill/API behavior claim.",
+  "nextAction": "Run C8 against the original Law and I18n source skills through the ordinary run --prompt --skill --workdir --model --optimize entry, using only exposed development inputs."
+}

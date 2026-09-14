@@ -89,6 +89,12 @@ G4 的 optimizer 合同允许从一次成功但未评分的运行中提出有依
 避免由转换器自证。机器报告位于
 `results/skill-ir/general-skill-optimization-20260913/g6-program-validation/report.json`。
 
+### 3.0.3 C7 连续生产闭环（development）
+
+本轮 C7 的确定性集成测试以普通自然任务目录和原始 skill 临时副本为输入，调用现有 run/session、Evidence/workspace、优化候选、独立验证、metadata-only repair、最终 snapshot 与包导出路径；同一导出包随后在原输入和语义变化输入中消费。测试还独立注入历史包替换、空 actions 文档包和未调用声明 helper 的反例，分别保持连续性、可执行程序存在性和 helper 消费结论的边界。
+
+该测试使用进程内 provider/optimizer 替身，只证明生产对象之间的接线和失败隔离，不计真实模型成功、自然语言质量、效果、readiness 或人工节省。机器证据见 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c7/verification.json`；后续 C8 必须通过普通 `run --prompt --skill --workdir --model --optimize` 入口验证真实源 skill。
+
 无人工评分文件时，`runOptimizationValidationLifecycle` 仍可在隔离候选根执行有界检查：它从绑定 task source 重读 contained `file-check`，并从原始 source skill 的 `skvm-skill-validation/v1` `.skvm-validation.json` 派生 `source-derived` 断言。source manifest 只从 `sourceSkillDir` 读取，候选副本不能把自写规则提升为权威；source/task assertion、self-check、保真引用和模型评价在报告中分开。空程序、仅 help/exit 0/stdout “PASS” 或错误文件会被当前断言拒绝，缺输入只使关联动作 unresolved/unassessed，独立动作仍可运行。该来源检查只覆盖声明的局部文件不变量，不能代表整个 skill 或专业质量。C6 机器证据为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c6/verification.json`。
 
 ### 3.0.2.1 生产链接线边界（H0–H14 + R1–R7，completed-development）
