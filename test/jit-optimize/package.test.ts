@@ -361,6 +361,54 @@ describe("buildOptimizedSkillPackage", () => {
     expect(guide).toContain("review unsupported input shapes")
   })
 
+  test("derives a copy-ready command template from validation parameters", async () => {
+    const generated = action("parameterized", "generate-script", {
+      changedPaths: ["bin/transform.mjs"],
+      inputs: ["task-selected input file"],
+      outputs: ["task-selected output file"],
+      validation: {
+        cases: [{
+          id: "base",
+          evidenceId: "0",
+          inputSource: "workdir-snapshot",
+          inputFiles: ["inputs/source.csv"],
+          args: ["--input", "inputs/source.csv", "--mode", "summary", "--output", "out/result.json"],
+          expectedFiles: [{ path: "out/result.json", referencePath: "out/result.json" }],
+          basis: "reference-output",
+          sourceRefs: ["evidence:0#output"],
+        }],
+      },
+    })
+    const { proposalDir, packageDir } = await makeProposal({
+      original: { "SKILL.md": "# Original\n" },
+      round: {
+        "SKILL.md": "# Optimized\n",
+        "bin/transform.mjs": "console.log('transform')\n",
+      },
+      actions: [generated],
+      finalActions: [generated],
+      validation: {
+        status: "passed",
+        retainedActionIds: ["parameterized"],
+        unvalidatedActionIds: [],
+        rejectedActionIds: [],
+        programRuns: 1,
+        caseRuns: 1,
+        independentCaseRuns: 1,
+      },
+    })
+
+    await buildOptimizedSkillPackage({ proposalDir, packageDir })
+    const summary = await readOptimizedSkillPackageUserSummary(packageDir)
+    const guide = await readFile(path.join(packageDir, OPTIMIZED_SKILL_PACKAGE_USER_GUIDE), "utf8")
+
+    expect(summary.steps[0]).toEqual(expect.objectContaining({
+      command: "node bin/transform.mjs --input <input> --mode <mode> --output <output>",
+      parameterSources: ["task-selected input file", "task-selected output file"],
+    }))
+    expect(guide).toContain("fill command placeholders from: task-selected input file; task-selected output file")
+  })
+
   test("excludes Python cache artifacts from proposal snapshots while rejecting them inside an exported package", async () => {
     const { proposalDir, packageDir } = await makeProposal({
       original: {

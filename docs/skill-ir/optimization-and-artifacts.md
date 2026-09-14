@@ -117,6 +117,12 @@ F4 将这条 completion 结果接入既有的一次 repair budget：已有但为
 
 F5 在同一 validation case 接口上增加保守的变化审计。`deriveValidationVariations` 从 F2 的实际操作/参数绑定和来源约束派生普通 `path` 与 `cwd` cases：显式 argv 输入/输出路径被搬到 contained 的隔离目录，cwd 变化只进入新的嵌套执行根；源/task assertion、expected files 和依赖绑定随目标路径重写，原始 action schema 不被改写。参数值不由引擎猜测；只有同一 evidence 中已存在的不同 argv 值成对案例被记为 `covered`，单值或无可检查语义关系的参数记录 `skipped` 与 sourceRefs。`package-validation` 在 variation cwd 不可用时给稳定的环境诊断，固定路径程序在 relocated case 上会因缺少目标产物而失败。机器验证为 `results/skill-ir/general-generation-reinforcement-20260914/f5/verification.json`，所用命令通过 44/44 tests、171 assertions 与 typecheck；参数未生效的领域语义红例仍未被猜测为通过，保留为后续 F9/F10 的开放边界。
 
+### 3.0.5 F6/F6.1 普通程序入口与执行骨架（development）
+
+F6 将 optimizer Method 的 no-trade-off 语言与实际逐任务回归门对齐：通过任务不是无条件否决，候选仍必须有来源、精确接口、明确范围和可验证的非回退行为；真实回归由选择门最终拒绝。实现选择继续按 action kind、声明路径和可见文件路由，保留 `reuse-script`、`generate-script`、`restructure-docs` 与注册 `domain-backend` 的边界。对带 validation case 的可执行动作，`selectOptimizationImplementation` 从实际 argv 生成可复制的 `commandTemplate`，把输入、输出和其他 flag 转成占位符，并在 package user summary/guide 中列出参数来源；没有明确 case 时不猜任务值，只保留入口命令。旧 v1/v2 manifest reader 仍兼容且不回写历史文件。
+
+F6.1 新增 `src/jit-optimize/workflow-scaffold.ts`，只提供普通 Node/Python 脚本的机械 plumbing：单输入读取→调用已声明 source processor→检查产物，或多输入逐项调用→汇总每项状态与输出 manifest。处理器通过 argv 直接启动，不经过 shell；输入原件不覆盖，已有输出/manifest 不覆盖，exit 2 表示该项不适用，缺产物或非零失败保持可定位诊断。`buildWorkflowScaffoldManifest` 明确步骤、依赖、framework/source/model 贡献和 residual duties；`serializeContext` 将从真实 observed operations 推导的候选物化到 `.optimize/workflow-scaffolds/`，但不读取或执行 source 来制造候选，也不把框架代码计为模型生成的领域算法。当前测试覆盖单/多输入、部分不适用、checker-only 无产物、共享物化器和 workspace 接线；真实模型决定的处理逻辑与跨结构自然消费仍留在 F9。机器证据分别见 `results/skill-ir/general-generation-reinforcement-20260914/f6/verification.json` 与 `f6.1/verification.json`。
+
 ### 3.0.6 F1.1 语料到代码模式索引（development）
 
 F1.1 将五个已暴露的深读成员映射为可审计的 `pattern-to-code.json`：zh-readme、i18n-helper、law-to-markdown、experimental-design 和 env-manager。每个成员分别记录源 `SKILL.md` 摘要与行定位、固定机械步骤、变量来源、环境依赖、分支判断、当前动作类型候选、生产符号/测试及仍不支持的缺口；不会把 skill 名、特定仓库路径或历史成功数量写成实现条件。

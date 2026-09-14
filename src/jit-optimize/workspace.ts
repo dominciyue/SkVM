@@ -12,6 +12,13 @@ import { getTmpDir } from "../core/config.ts"
 import { readPreRunInputSnapshotContents } from "../run/pre-run-input-snapshot.ts"
 import { scoreFromCriteria } from "./evidence.ts"
 import { buildOperationContext } from "./operation-context.ts"
+import {
+  deriveWorkflowScaffoldCandidates,
+  materializeWorkflowScaffold,
+  WORKFLOW_SCAFFOLD_SCHEMA_VERSION,
+  type DerivedWorkflowScaffoldCandidate,
+  type WorkflowScaffoldSourceInterface,
+} from "./workflow-scaffold.ts"
 import type { Evidence, EvidenceCriterion, EvidenceInputResources, HistoryEntry } from "./types.ts"
 
 /**
@@ -661,6 +668,7 @@ async function buildImplementationContext(
     parameterTokens: string[]
     referencedBySkill: boolean
   }> = []
+  const allOperations: import("./operation-context.ts").OperationRecord[] = []
   if (skillDir) {
     for (const resource of await indexSkillResources(skillDir)) {
       const runtime = sourceRuntime(resource.path)
@@ -762,6 +770,7 @@ async function buildImplementationContext(
         sourceEntries: sourceInterfaces.map((source) => source.path),
         sourceText: skillText,
       })
+      allOperations.push(...operationContext.operations)
       evidence.push({
         evidenceIndex: run.globalIndex,
         taskId: group.taskId,
@@ -785,6 +794,71 @@ async function buildImplementationContext(
       })
     }
   }
+  const workflowScaffolds: Array<{
+    id: string
+    kind: "single-input" | "multi-input"
+    runtime: "node" | "python"
+    entry: string
+    manifest: string
+    operationIds: string[]
+    sourceRefs: string[]
+    contributions: {
+      frameworkFiles: string[]
+      sourceFiles: string[]
+      modelFiles: string[]
+    }
+    residualDuties: string[]
+    diagnostic?: string
+  }> = []
+  if (skillDir) {
+    const candidates: DerivedWorkflowScaffoldCandidate[] = deriveWorkflowScaffoldCandidates({
+      operations: allOperations,
+      sourceInterfaces: sourceInterfaces.map(({ path: sourcePath, runtime }): WorkflowScaffoldSourceInterface => ({
+        path: sourcePath,
+        runtime,
+      })),
+    })
+    for (const [index, candidate] of candidates.entries()) {
+      const extension = candidate.spec.runtime === "python" ? "py" : "mjs"
+      const slug = safeTaskSlug(candidate.spec.id)
+      const entryRelative = `.optimize/workflow-scaffolds/${String(index + 1).padStart(2, "0")}-${slug}/workflow.${extension}`
+      try {
+        const materialized = await materializeWorkflowScaffold({
+          rootDir: path.dirname(optimizeDir),
+          entryRelative,
+          spec: candidate.spec,
+        })
+        workflowScaffolds.push({
+          id: candidate.spec.id,
+          kind: candidate.spec.kind,
+          runtime: candidate.spec.runtime,
+          entry: path.relative(path.dirname(optimizeDir), materialized.entryPath).split(path.sep).join("/"),
+          manifest: path.relative(path.dirname(optimizeDir), materialized.manifestPath).split(path.sep).join("/"),
+          operationIds: [...candidate.operationIds],
+          sourceRefs: [...candidate.sourceRefs],
+          contributions: materialized.manifest.contributions,
+          residualDuties: [...materialized.manifest.residualDuties],
+        })
+      } catch (error) {
+        workflowScaffolds.push({
+          id: candidate.spec.id,
+          kind: candidate.spec.kind,
+          runtime: candidate.spec.runtime,
+          entry: entryRelative,
+          manifest: `${path.posix.dirname(entryRelative)}/workflow.manifest.json`,
+          operationIds: [...candidate.operationIds],
+          sourceRefs: [...candidate.sourceRefs],
+          contributions: {
+            frameworkFiles: [entryRelative, `${path.posix.dirname(entryRelative)}/workflow.manifest.json`],
+            sourceFiles: [candidate.spec.processor.entry],
+            modelFiles: [...(candidate.spec.modelFiles ?? [])],
+          },
+          residualDuties: [...(candidate.spec.residualDuties ?? [])],
+          diagnostic: `workflow scaffold materialization failed: ${String(error)}`,
+        })
+      }
+    }
+  }
   return {
     schemaVersion: "jit-optimize-implementation-context/v1",
     note: "This is a navigation and observed-shape index, not proof that every declared input or precondition is supported. Use exact locators and retain untested conditions as residual duties.",
@@ -800,6 +874,12 @@ async function buildImplementationContext(
       source: "actual normalized tool calls only",
       proseMentions: "not operations",
       ambiguousCommands: "retained as unknown with a locator",
+    },
+    workflowScaffolds: {
+      schemaVersion: WORKFLOW_SCAFFOLD_SCHEMA_VERSION,
+      source: "engine-materialized plumbing around an observed source processor",
+      modelContribution: "none unless explicitly listed by the optimizer",
+      candidates: workflowScaffolds,
     },
     sourceInterfaces,
     evidence,

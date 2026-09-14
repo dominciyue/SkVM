@@ -127,6 +127,27 @@ export {
   OPTIMIZATION_VALIDATION_REPORT_SCHEMA_VERSION,
 } from "./validation-lifecycle.ts"
 export {
+  buildWorkflowScaffoldSource,
+  buildWorkflowScaffoldManifest,
+  materializeWorkflowScaffold,
+  deriveWorkflowScaffoldCandidates,
+  WORKFLOW_SCAFFOLD_SCHEMA_VERSION,
+} from "./workflow-scaffold.ts"
+export type {
+  WorkflowScaffoldKind,
+  WorkflowScaffoldRuntime,
+  WorkflowScaffoldContributor,
+  WorkflowScaffoldProcessor,
+  WorkflowScaffoldSpec,
+  WorkflowScaffoldStep,
+  WorkflowScaffoldManifest,
+  MaterializeWorkflowScaffoldOptions,
+  MaterializedWorkflowScaffold,
+  WorkflowScaffoldSourceInterface,
+  DerivedWorkflowScaffoldCandidate,
+  DeriveWorkflowScaffoldCandidatesOptions,
+} from "./workflow-scaffold.ts"
+export {
   completeValidationSuggestion,
   deriveValidationVariations,
 } from "./validation-completion.ts"

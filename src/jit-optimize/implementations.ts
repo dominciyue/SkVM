@@ -5,6 +5,7 @@ import type {
   OptimizationAction,
   OptimizationActionDiagnostic,
   OptimizationActionKind,
+  OptimizationValidationCaseSuggestion,
 } from "./types.ts"
 
 export type ImplementationSelectionStatus = "selected" | "not-applicable" | "failed"
@@ -22,6 +23,10 @@ export interface ImplementationSelection {
   preconditions: string[]
   residualDuties: string[]
   verification: string[]
+  /** Copy-ready command template derived from an explicit validation case. */
+  commandTemplate?: string
+  /** Human-readable parameter sources used to fill command placeholders. */
+  parameterSources?: string[]
   /** Repairable semantic declaration issues found while selecting a route. */
   actionDiagnostics?: OptimizationActionDiagnostic[]
 }
@@ -77,6 +82,76 @@ function runtimeFor(entry: string): ImplementationSelection["runtime"] {
     case ".ps1": return "powershell"
     default: return "unknown"
   }
+}
+
+function normalizeCommandPath(value: string): string {
+  return value.replaceAll("\\", "/").replace(/^\.\//u, "")
+}
+
+function commandPrefix(runtime: ImplementationSelection["runtime"], entry: string): string {
+  const quoted = /\s/u.test(entry) ? JSON.stringify(entry) : entry
+  switch (runtime) {
+    case "python": return `python -B ${quoted}`
+    case "node": return `node ${quoted}`
+    case "shell": return `sh ${quoted}`
+    case "powershell": return `pwsh -File ${quoted}`
+    case "unknown": return quoted
+    default: return quoted
+  }
+}
+
+function flagPlaceholder(flag: string): string {
+  const name = flag.replace(/^-+/u, "").replace(/[^A-Za-z0-9]+/gu, "-").toLowerCase()
+  return `<${name || "value"}>`
+}
+
+function commandTemplateFor(
+  action: OptimizationAction,
+  runtime: ImplementationSelection["runtime"],
+  entry: string,
+): string {
+  const suggestion: OptimizationValidationCaseSuggestion | undefined = action.validation?.cases[0]
+  if (!suggestion) return commandPrefix(runtime, entry)
+  const inputPaths = new Set(suggestion.inputFiles.map(normalizeCommandPath))
+  const outputPaths = new Set((suggestion.expectedFiles ?? []).map((item) => normalizeCommandPath(item.path)))
+  const args: string[] = []
+  const booleanFlags = new Set(["--help", "-h", "--verbose", "--quiet", "--strict", "--dry-run", "--force", "--json"])
+  for (let index = 0; index < suggestion.args.length; index += 1) {
+    const token = suggestion.args[index]!
+    const equal = token.indexOf("=")
+    if (token.startsWith("-") && equal > 0) {
+      const flag = token.slice(0, equal)
+      const value = token.slice(equal + 1)
+      const normalized = normalizeCommandPath(value)
+      args.push(`${flag}=${inputPaths.has(normalized) ? "<input>" : outputPaths.has(normalized) ? "<output>" : flagPlaceholder(flag)}`)
+      continue
+    }
+    if (token.startsWith("-") && !booleanFlags.has(token)) {
+      args.push(token)
+      const next = suggestion.args[index + 1]
+      if (next !== undefined && !next.startsWith("-")) {
+        const normalized = normalizeCommandPath(next)
+        args.push(inputPaths.has(normalized) ? "<input>" : outputPaths.has(normalized) ? "<output>" : flagPlaceholder(token))
+        index += 1
+      }
+      continue
+    }
+    if (token.startsWith("-")) {
+      args.push(token)
+      continue
+    }
+    const normalized = normalizeCommandPath(token)
+    args.push(inputPaths.has(normalized) ? "<input>" : outputPaths.has(normalized) ? "<output>" : `<arg-${args.filter((item) => item.startsWith("<arg-")).length + 1}>`)
+  }
+  return `${commandPrefix(runtime, entry)}${args.length > 0 ? ` ${args.join(" ")}` : ""}`
+}
+
+function parameterSourcesFor(action: OptimizationAction): string[] {
+  return [...new Set([
+    ...action.inputs,
+    ...action.outputs,
+    ...(action.constraints ?? []).map((constraint) => `${constraint.scope}: ${constraint.description}`),
+  ])]
 }
 
 function executableRef(refs: readonly string[]): string | undefined {
@@ -225,6 +300,8 @@ async function selectFileAction(
     status: "selected",
     entry: resolved.relative,
     runtime: runtimeFor(resolved.relative),
+    commandTemplate: commandTemplateFor(action, runtimeFor(resolved.relative), resolved.relative),
+    parameterSources: parameterSourcesFor(action),
   }
 }
 

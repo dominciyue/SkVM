@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "skill-ir-general-generation-reinforcement-f6.1-verification/v1",
+  "identity": "general-generation-reinforcement-20260914",
+  "stage": "F6.1",
+  "status": "passed",
+  "red": {
+    "missingModule": "The new workflow-scaffold test initially failed because the module did not exist.",
+    "checkerOnly": "A source processor exiting 0 without writing the declared artifact is rejected as missing output.",
+    "pathHandoff": "A processor writing a fixed observed path is rejected when the declared output path is absent.",
+    "partialInput": "A multi-input run preserves an exit-2 not-applicable item while continuing independent inputs."
+  },
+  "green": {
+    "command": "bun test ./test/jit-optimize/workflow-scaffold.test.ts ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/continuous-production-closure.test.ts",
+    "tests": 18,
+    "failed": 0,
+    "assertions": 102
+  },
+  "typecheck": {
+    "command": "bun run typecheck",
+    "status": "passed"
+  },
+  "structures": {
+    "singleInput": "read one input -> invoke declared Node/Python processor with direct argv -> require declared output",
+    "multiInput": "process each input independently -> retain passed/not-applicable/failed items -> write workflow manifest",
+    "sharedGenerator": true,
+    "sourceExecution": "No source is read or executed while deriving candidates; materialized scaffolds invoke only the declared processor.",
+    "contributions": "Manifest separates framework files, source files, model files, step dependencies, and residual semantic duties.",
+    "safety": ["contained relative paths", "no shell interpolation", "no input overwrite", "no output/manifest overwrite", "missing artifact fails closed"]
+  },
+  "workspaceIntegration": {
+    "contextField": "workflowScaffolds",
+    "materializationRoot": ".optimize/workflow-scaffolds/",
+    "candidateBasis": "observed execute operations with one explicit read, one write, an unambiguous entry, and direct argv bindings"
+  },
+  "claimBoundary": "F6.1 supplies execution plumbing around an observed source processor; it is not a domain algorithm, real model-generated workflow, whole-skill correctness proof, cross-model result, readiness change, or prospective/held-out evidence.",
+  "costs": {
+    "optimizerAgentRuns": 0,
+    "targetAgentRuns": 0,
+    "paidCalls": 0,
+    "actualUsd": null,
+    "developerAgentCost": "not-measured-by-project-runtime"
+  },
+  "nextStage": "F7 consumption observation"
+}

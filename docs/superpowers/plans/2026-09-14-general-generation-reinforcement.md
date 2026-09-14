@@ -162,28 +162,28 @@ revision 2 加强第 4 项：目标中的程序必须包含一个实际生成/�
 
 ## F6 — 新包让常规工作有明确入口
 
-- [ ] 消除 optimizer Method 的矛盾指令：可提出来源支持、范围明确的候选；已知会损害原职责的变更不得推荐，不确定但可测试的局部变更先验证。保留实际回归检查，不能以抽象的“也许回归”直接否决全部程序机会，也不把潜在风险全部忽略。
-- [ ] 复用已有 `reuse-script/generate-script/restructure-docs`。当源程序已经覆盖职责，优先复用；必要修改在同一动作注明。原程序已足够且无改进依据时合法 no-change。
-- [ ] 模型生成的常用命令从实际 action/参数绑定形成，文档给出任务参数如何填；不把捕获目录、研究路径和一月/某法律名称写进通用默认值。
-- [ ] 在现有 package 使用指南中展示实际验证范围、缺条件及 residual duties。普通程序可以输出文本、文件或 JSON；新增 helper 鼓励短摘要，但不以统一 stdout 格式为可用前提。
-- [ ] 防止“用一个新脚本包装原脚本却增加一步”“只改名字增加缓存和包体”被无依据称作优化。记录预计接管的操作，实际效果留 F10。
-- [ ] 测试带位置参数的旧程序、无 help 的程序、可选依赖、部分不适用及 docs-only 包。保留旧包读取兼容，不回写历史 manifest。
-- [ ] 运行 `bun test ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/optimizer-prompt.test.ts ./test/jit-optimize/package.test.ts`。
+- [x] 消除 optimizer Method 的矛盾指令：可提出来源支持、范围明确的候选；已知会损害原职责的变更不得推荐，不确定但可测试的局部变更先验证。保留实际回归检查，不能以抽象的“也许回归”直接否决全部程序机会，也不把潜在风险全部忽略。
+- [x] 复用已有 `reuse-script/generate-script/restructure-docs`。当源程序已经覆盖职责，优先复用；必要修改在同一动作注明。原程序已足够且无改进依据时合法 no-change。
+- [x] 模型生成的常用命令从实际 action/参数绑定形成，文档给出任务参数如何填；不把捕获目录、研究路径和一月/某法律名称写进通用默认值。
+- [x] 在现有 package 使用指南中展示实际验证范围、缺条件及 residual duties。普通程序可以输出文本、文件或 JSON；新增 helper 鼓励短摘要，但不以统一 stdout 格式为可用前提。
+- [x] 防止“用一个新脚本包装原脚本却增加一步”“只改名字增加缓存和包体”被无依据称作优化。记录预计接管的操作，实际效果留 F10。
+- [x] 测试带位置参数的旧程序、无 help 的程序、可选依赖、部分不适用及 docs-only 包。保留旧包读取兼容，不回写历史 manifest。
+- [x] 运行 `bun test ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/optimizer-prompt.test.ts ./test/jit-optimize/package.test.ts`（53/53，218 assertions）。
 
-**验收：** 生成的使用路径来自本次实际程序与参数，不能只增加一篇泛泛说明。
+**验收：** 已由实际 validation 参数生成可复制命令模板，并在使用指南中保留参数来源、验证范围和 residual duties；实现选择仍由动作与可见文件决定，不按 skill 名称路由。机器证据见 `results/skill-ir/general-generation-reinforcement-20260914/f6/verification.json`。
 
 ### F6.1 — 用轻量流程骨架承接真正的执行工作
 
-- [ ] 先检查现有 source 程序能否直接复用；不为已有完备入口套额外一层。没有合适入口时，依据 F1.1 共有模式实现一个小型 `src/jit-optimize/workflow-scaffold.ts`，配套 `test/jit-optimize/workflow-scaffold.test.ts`。它负责普通脚本的参数入口、输入遍历、错误处理和产物交接，不实现所有领域算法。
-- [ ] 首版只支持两个可组合的机械骨架：单输入读入→调用来源支持的处理→写出产物；多输入逐项处理→汇总状态/产物。具体转换函数由原脚本复用或模型实现，使用普通 Python/Node 文件及现有 action；不增加自定义 workflow DSL、调度服务或第二运行时。
-- [ ] 骨架由引擎物化为候选资源，通过已有 workspace/optimizer 接口被选用。统计哪些文件来自框架、哪些由模型新增/修改、哪些来自 source；框架骨架不能计为模型独立生成业务算法。
-- [ ] 明确每步读什么、输出什么、依赖谁，以及需要语义判断的暂停/交接位置。未固化步骤由原 agent 流程接续；不能用“默认通过”跳过分类、翻译或专业判断，也不能默默增加新的模型/API调用。
-- [ ] 不强制事务、缓存、并发、配置系统或统一 stdout；只保留当前流程需要的参数、必要错误信息和输出定位。写入采用可验证的局部策略，避免先写一半再谎称成功；输入原件保护沿用已有规则。
-- [ ] 红例：只生成检查结果但未产出目标文件不能计执行型流程；两个相邻步骤之间传错路径必须检出；某输入不适用时其他独立输入仍可处理；相同输入不因原观察目录存在而侥幸通过。
-- [ ] 在两种结构的确定性集成案例上复用同一骨架选择/物化代码；真实模型在 F9 中决定和实现处理逻辑，不由开发者提前写好成品。测调用步骤和结果，不把生成代码行数当优化量。
-- [ ] 运行 `bun test ./test/jit-optimize/workflow-scaffold.test.ts ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/continuous-production-closure.test.ts`。
+- [x] 先检查现有 source 程序能否直接复用；不为已有完备入口套额外一层。没有合适入口时，依据 F1.1 共有模式实现一个小型 `src/jit-optimize/workflow-scaffold.ts`，配套 `test/jit-optimize/workflow-scaffold.test.ts`。它负责普通脚本的参数入口、输入遍历、错误处理和产物交接，不实现所有领域算法。
+- [x] 首版只支持两个可组合的机械骨架：单输入读入→调用来源支持的处理→写出产物；多输入逐项处理→汇总状态/产物。具体转换函数由原脚本复用或模型实现，使用普通 Python/Node 文件及现有 action；不增加自定义 workflow DSL、调度服务或第二运行时。
+- [x] 骨架由引擎物化为候选资源，通过已有 workspace/optimizer 接口被选用。统计哪些文件来自框架、哪些由模型新增/修改、哪些来自 source；框架骨架不能计为模型独立生成业务算法。
+- [x] 明确每步读什么、输出什么、依赖谁，以及需要语义判断的暂停/交接位置。未固化步骤由原 agent 流程接续；不能用“默认通过”跳过分类、翻译或专业判断，也不能默默增加新的模型/API调用。
+- [x] 不强制事务、缓存、并发、配置系统或统一 stdout；只保留当前流程需要的参数、必要错误信息和输出定位。写入采用可验证的局部策略，避免先写一半再谎称成功；输入原件保护沿用已有规则。
+- [x] 红例：只生成检查结果但未产出目标文件不能计执行型流程；两个相邻步骤之间传错路径必须检出；某输入不适用时其他独立输入仍可处理；相同输入不因原观察目录存在而侥幸通过。
+- [x] 在两种结构的确定性集成案例上复用同一骨架选择/物化代码；真实模型在 F9 中决定和实现处理逻辑，不由开发者提前写好成品。测调用步骤和结果，不把生成代码行数当优化量。
+- [x] 运行 `bun test ./test/jit-optimize/workflow-scaffold.test.ts ./test/jit-optimize/implementations.test.ts ./test/jit-optimize/continuous-production-closure.test.ts`（17/17，96 assertions）。
 
-**验收：** 一个普通命令实际承接多个固定步骤并产生任务产物；框架、模型、原脚本各自贡献可分辨。不能仅用 Law checker 或 submission.template.json 证明完成脚手架固化。
+**验收：** 已交付单输入与多输入的共同物化器、步骤依赖/贡献清单、产物存在性检查和不适用隔离；它是来源处理器的执行 plumbing，不是领域算法或真实模型正例。机器证据见 `results/skill-ir/general-generation-reinforcement-20260914/f6.1/verification.json`。
 
 ## F7 — 真实消费观察摆脱 API 特例
 

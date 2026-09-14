@@ -43,6 +43,8 @@ const ImplementationSelectionSchema = z.object({
   preconditions: z.array(z.string()),
   residualDuties: z.array(z.string()),
   verification: z.array(z.string()),
+  commandTemplate: z.string().optional(),
+  parameterSources: z.array(z.string()).optional(),
   actionDiagnostics: z.array(OptimizationActionDiagnosticSchema).optional(),
 })
 
@@ -164,6 +166,7 @@ export interface OptimizedSkillPackageUserStep {
   kind: ImplementationSelection["kind"]
   status: ImplementationSelection["status"]
   command?: string
+  parameterSources?: string[]
   inputs: string[]
   outputs: string[]
   preconditions: string[]
@@ -363,7 +366,8 @@ function userSummary(
     actionId: item.actionId,
     kind: item.kind,
     status: item.status,
-    ...(implementationCommand(item) ? { command: implementationCommand(item) } : {}),
+    ...((item.commandTemplate ?? implementationCommand(item)) ? { command: item.commandTemplate ?? implementationCommand(item) } : {}),
+    ...(item.parameterSources ? { parameterSources: [...item.parameterSources] } : {}),
     inputs: [...item.inputs],
     outputs: [...item.outputs],
     preconditions: [...item.preconditions],
@@ -403,6 +407,7 @@ function renderUserGuide(summary: OptimizedSkillPackageUserSummary): string {
   for (const step of summary.steps) {
     lines.push(`- \`${step.actionId}\` (${step.kind}, ${step.status})${step.command ? `: \`${step.command}\`` : ""}`)
     if (step.inputs.length > 0) lines.push(`  - inputs/parameter sources: ${step.inputs.join("; ")}`)
+    if (step.parameterSources && step.parameterSources.length > 0) lines.push(`  - fill command placeholders from: ${step.parameterSources.join("; ")}`)
     if (step.outputs.length > 0) lines.push(`  - outputs: ${step.outputs.join("; ")}`)
     if (step.preconditions.length > 0) lines.push(`  - preconditions: ${step.preconditions.join("; ")}`)
     if (step.reason) lines.push(`  - status detail: ${step.reason}`)

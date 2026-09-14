@@ -3,7 +3,7 @@
 - 更新日期：2026-09-14
 - 工作分支：`skill-ir-aot`
 - 下一路线：F0–F11，通用生成流程补牢；[任务书](../superpowers/plans/2026-09-14-general-generation-reinforcement.md) revision 2、spec 14.33。含 F1.1 语料到代码、F6.1 执行型流程骨架、F9.1 同包跨模型/环境比较。
-- 执行状态：`active`。F0、F1、F1.1、F2、F3、F4 与 F5 已完成（F5 为 partial 边界完成）；F3 在现有生命周期前增加了证据约束的 validation completion，F4 将带有明确来源的空 validation 元数据分类为 repairable，并把候选、缺字段和局部范围合并进既有一次 repair；F5 通过普通 validation cases 生成路径/cwd 变化、记录已有参数成对覆盖，并对固定路径候选 fail closed。无依据、未执行和程序失败仍分别保留。当前进入 F6 生成与导出。尚未启动本轮真实项目/付费运行；不重做已有验证器，不手修个别成品代替共享能力。
+- 执行状态：`active`。F0、F1、F1.1、F2、F3、F4、F5、F6 与 F6.1 已完成（F5 保留 partial 边界）；F3 在现有生命周期前增加了证据约束的 validation completion，F4 将带有明确来源的空 validation 元数据分类为 repairable，并把候选、缺字段和局部范围合并进既有一次 repair；F5 通过普通 validation cases 生成路径/cwd 变化、记录已有参数成对覆盖，并对固定路径候选 fail closed。F6 让实现选择与 optimizer gate 对齐，按实际 validation 参数生成命令模板；F6.1 物化单输入/多输入普通 Node/Python 执行骨架，保留步骤依赖、框架/source/model 贡献和 residual duties，并在 workspace context 中登记观察到的候选。无依据、未执行和程序失败仍分别保留。当前进入 F7 消费观察。尚未启动本轮真实项目/付费运行；不重做已有验证器，不手修个别成品代替共享能力。
 - 已交付基线：C0–C10 `completed-development`，对应 spec 14.32；最近证据同步为 `4b31862`。新程序链已有 development 结果，但 C8 包内部仍为 `not-run/draft`，不能用后续消费覆盖该缺口。`15b5d51` 另修 CLI 失败退出码和原任务超时提示；计划形成时该提交仅在本地，实际同步以 Git 为准。
 
 2026-09-14 二次复核：上一轮 H/R 报告原样保留，其组件与局部程序结果有效；但 R6 新优化 no-change 后使用旧 H8/H9 包，R7 输入本身为 H9 包，默认新程序生产闭环仍为 partial。新计划修复原始内容未传入验证、普通脚本修改被误送 domain backend、修复动作未采纳和候选/no-change 判断问题；旧包不能替代本次产物。
@@ -52,9 +52,9 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 
 ## 3. 当前计划与上一阶段基线
 
-当前执行为 [F0–F11](../superpowers/plans/2026-09-14-general-generation-reinforcement.md)。F0 已建立结果根，F1 已将实际操作接入 workspace，F1.1 已建立 `results/skill-ir/general-generation-reinforcement-20260914/f1.1/pattern-to-code.json` 与验证报告，F2 已完成参数来源 TDD，F3 已完成 validation completion TDD，F4 已把可修接线缺口接入既有一次 repair，F5 已完成保守的路径/cwd/参数变化审计（证据见 `f5/verification.json`）；当前 F6 active。F5 明确不猜测单一参数值，参数“未生效”语义反例仍是后续真实结构回归的开放边界。工程、真实使用与效果分列；缺 validation 元数据不应在有来源可补时无声停留 draft，无依据则仍保留未知。参数化与真实消费检查服务通用职责，不要求所有 skill 统一格式或输出 ABI。
+当前执行为 [F0–F11](../superpowers/plans/2026-09-14-general-generation-reinforcement.md)。F0 已建立结果根，F1 已将实际操作接入 workspace，F1.1 已建立 `results/skill-ir/general-generation-reinforcement-20260914/f1.1/pattern-to-code.json` 与验证报告，F2 已完成参数来源 TDD，F3 已完成 validation completion TDD，F4 已把可修接线缺口接入既有一次 repair，F5 已完成保守的路径/cwd/参数变化审计（证据见 `f5/verification.json`）。F6 已完成 Method 矛盾解析、实际参数命令模板、package 指南参数来源及兼容回归；F6.1 已完成共享单/多输入 workflow scaffold、失败隔离、贡献清单和 workspace 物化（证据见 `f6/verification.json`、`f6.1/verification.json`）；当前进入 F7 active。F5 明确不猜测单一参数值，参数“未生效”语义反例仍是后续真实结构回归的开放边界。工程、真实使用与效果分列；缺 validation 元数据不应在有来源可补时无声停留 draft，无依据则仍保留未知。参数化与真实消费检查服务通用职责，不要求所有 skill 统一格式或输出 ABI。
 
-revision 2 增加：从已有 skill/trace 对照追踪共同模式到生产代码与测试；小型流程骨架实际接管产物处理，不能仅用 checker 计流程自动化；同一包在两个消费模型和隔离环境中比较。当前跨模型稳定性增益仍未建立，同宿主路径/环境复现不叫跨平台证明。现有程序生成通道和特定后端继续复用，不表示通用流程脚手架已实现。
+revision 2 增加：从已有 skill/trace 对照追踪共同模式到生产代码与测试；小型流程骨架实际接管产物处理，不能仅用 checker 计流程自动化；同一包在两个消费模型和隔离环境中比较。F6.1 现已提供单/多输入的执行 plumbing，但尚无本轮真实模型生成的跨结构成品；当前跨模型稳定性增益仍未建立，同宿主路径/环境复现不叫跨平台证明。现有程序生成通道和特定后端继续复用，不表示领域算法已由脚手架自动实现。
 
 以下为已完成 C0–C10 的阶段记录；其中执行时的“当前”和远端状态均为历史记录，不表示 F 队列已启动。
 

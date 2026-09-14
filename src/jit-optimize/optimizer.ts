@@ -578,20 +578,25 @@ ${repairMode ? `This is the single repair attempt for an already-validated candi
       not an approximate line-count threshold.
 
    d) **No-trade-off test.** List every task in \`PER_TASK_SUMMARY.md\` with
-      status \`PASSING\`. For each one, ask yourself: "Could the change I'm
-      about to make plausibly lower this task's score?" If the answer is
-      "yes" or "maybe" for even one PASSING task, **stop**. You are trading
-      one task for another, and the selection engine's per-task regression
-      gate will reject this round. Your options are:
-        (i) find a narrower framing that cannot hurt the passing tasks,
-        (ii) emit \`noChanges: true\` if no narrow framing exists,
-        (iii) if you believe the concern is a false alarm because the
-             passing task's requirements genuinely align with the fix,
-             say so explicitly in \`reasoning\` by naming the specific
-             passing task id and explaining why it will not regress.
+      status \`PASSING\`. A passing task is not a blanket veto: a bounded
+      opportunity supported by its source, exact interface and independent
+      checks may proceed when that interface preserves the passing task's
+      requirements. For each passing task, ask whether the *actual scoped
+      change* could plausibly lower its score. Treat "yes" or "maybe" as a
+      regression concern only after considering the concrete files, inputs and
+      behavior being changed—not merely because the opportunity cannot replace
+      the whole skill or because an untested format exists. If a real concern
+      remains, find a narrower framing and validate it; if no narrow framing can
+      avoid the trade-off, emit \`noChanges: true\`. If the passing task's
+      requirements genuinely align with the fix, say so explicitly in
+      \`reasoning\` by naming the task id and the preserved contract.
       Do NOT skip this check. The generality test (a) defends against
       hard-coding task content; this test (d) defends against semantic
-      trade-offs that hide behind content-agnostic edits.
+      trade-offs that hide behind content-agnostic edits. The engine's
+      per-task regression gate remains the final admission check: a candidate
+      that actually regresses a passing task will not ship, while a candidate
+      that clears the gate and preserves the contract is not rejected merely
+      for being bounded.
 
 6. Edit files in this workspace to fix the root cause. You can modify SKILL.md,
    scripts, references — anything under this directory. The diff between what

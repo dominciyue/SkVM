@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { buildOptimizerPrompt } from "../../src/jit-optimize/optimizer.ts"
+import { pickBestRound } from "../../src/jit-optimize/loop.ts"
+import type { RoundResult } from "../../src/jit-optimize/types.ts"
 
 /**
  * Prompt contract tests. These assert that specific load-bearing phrases the
@@ -30,6 +32,47 @@ describe("buildOptimizerPrompt", () => {
     // Language that should survive edits — it is what the rule is about.
     expect(p).toContain("PASSING")
     expect(p).toContain("per-task regression gate")
+  })
+
+  test("treats no-trade-off as a conditional admission rule, matching the selection gate", () => {
+    const p = buildOptimizerPrompt(2, 0)
+    expect(p).toContain("A passing task is not a blanket veto")
+    expect(p).toMatch(/actual scoped\s+change/u)
+    expect(p).toContain("clears the gate and preserves the contract")
+
+    const round = (score: number, taskScore: number, baseline = false): RoundResult => ({
+      round: baseline ? 0 : 1,
+      isBaseline: baseline,
+      trainScore: score,
+      testScore: score,
+      trainPassed: 0,
+      trainTotal: 0,
+      testPassed: 0,
+      testTotal: 0,
+      perTaskTrainScores: { "passing-task": taskScore },
+      perTaskTestScores: { "passing-task": taskScore },
+      targetAgent: {
+        tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 },
+        costUsd: 0,
+        runs: 1,
+        durationMs: 1,
+      },
+      evalJudge: {
+        tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        costUsd: 0,
+        calls: 0,
+      },
+      optimizer: null,
+      historyEntry: null,
+    })
+    const opts = {
+      hasTest: true as const,
+      trainScoresComparable: true as const,
+      convergenceThreshold: 0.99,
+      minImprovement: 0.02,
+    }
+    expect(pickBestRound([round(0.8, 0.8, true), round(0.84, 0.8)], opts).bestRound).toBe(1)
+    expect(pickBestRound([round(0.8, 0.8, true), round(0.84, 0.5)], opts).bestRound).toBe(0)
   })
 
   test("contains the Hard Rule 'No task trade-off' invoking Pareto-non-inferiority", () => {
