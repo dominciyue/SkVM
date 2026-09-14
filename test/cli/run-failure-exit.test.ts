@@ -29,6 +29,57 @@ function failedRecovery() {
   })
 }
 
+function ordinaryTimedOutRun() {
+  const script = `
+    import { mock } from "bun:test";
+    const root = ${JSON.stringify(root)};
+    mock.module(root + "/src/adapters/registry.ts", () => ({
+      ALL_ADAPTERS: ["bare-agent"],
+      createAdapter: () => ({ name: "bare-agent" })
+    }));
+    mock.module(root + "/src/core/run-session.ts", () => ({
+      shortModel: (model) => model,
+      RunSession: {
+        start: async () => ({
+          id: "cli-timeout-session",
+          async fail() {},
+          async complete() {}
+        })
+      }
+    }));
+    const skill = { skillId: "test-skill", skillPath: root + "/SKILL.md", skillDir: root, bundleFiles: [] };
+    const task = { id: "timeout-task", prompt: "timeout", eval: [], timeoutMs: 10, maxSteps: 1, taskPath: root + "/task.json" };
+    mock.module(root + "/src/run/index.ts", () => ({
+      loadRunSkill: async () => skill,
+      loadRunTask: async () => task,
+      executeRun: async () => ({
+        task,
+        skill,
+        workDir: root,
+        runResult: {
+          text: "partial",
+          steps: [],
+          tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+          cost: 0,
+          durationMs: 10,
+          llmDurationMs: 10,
+          workDir: root,
+          runStatus: "timeout",
+          statusDetail: "timed out in test",
+          usageAvailable: false
+        }
+      })
+    }));
+    process.argv = [process.execPath, "skvm", "run", "--task=task.json", "--skill=SKILL.md", "--model=test/model"];
+    const { RUN_FLAGS, runRun } = await import(root + "/src/cli/run.ts");
+    await runRun(RUN_FLAGS.parse(process.argv.slice(3)));
+  `
+  return spawnSync(process.execPath, ["--eval", script], {
+    cwd: root, encoding: "utf8", timeout: 20_000,
+    env: { ...process.env, SKVM_AUTO_PROBE: "0" },
+  })
+}
+
 test("real CLI preserves the nonzero exit code set by a failed optimization handler", () => {
   const result = failedRecovery()
   expect(result.error).toBeUndefined()
@@ -39,6 +90,16 @@ test("real CLI preserves the nonzero exit code set by a failed optimization hand
 test("complete capture with source timeout is not described as missing capture or usable output", () => {
   const result = failedRecovery()
   expect(result.stdout).toContain("source task did not finish")
+  expect(result.stdout).toContain("Source: failed (timeout)")
+  expect(result.stdout).toContain("Capture: complete")
+  expect(result.stdout).toContain("Optimization phase: capture")
   expect(result.stdout).not.toContain("source result remains usable")
   expect(result.stdout).not.toContain("cannot continue without complete capture evidence")
+})
+
+test("ordinary run preserves a nonzero exit code for a timed-out source", () => {
+  const result = ordinaryTimedOutRun()
+  expect(result.error).toBeUndefined()
+  expect(result.stdout).toContain("runStatus: timeout")
+  expect(result.status).toBe(1)
 })

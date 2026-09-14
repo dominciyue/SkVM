@@ -129,6 +129,20 @@ F6.1 新增 `src/jit-optimize/workflow-scaffold.ts`，只提供普通 Node/Pytho
 
 报告把 helper invocation、exit status（zero/non-zero/unknown）、output assertion（passed/failed/not-applicable/unknown）、task quality 和 residual completion 分开。exit 0 但没有结构化成功断言的普通脚本记录为正常退出/未断言，不冒充失败或质量通过；未知退出保留 unknown。另行统计 skill read、help、entrypoint discovery、program rewrite 和 program execution 的实际 tool-call ID，便于解释机械工作与残余职责。普通 source/optimized runner 继续只把独立任务检查传给 `taskOutcome`，不从最终文字自证。机器验证见 `results/skill-ir/general-generation-reinforcement-20260914/f7/verification.json`。
 
+### 3.0.5.2 F8 默认入口连续集成（development）
+
+F8 将上述操作索引、validation completion、单次 metadata repair、程序检查、包导出和消费观察保持在同一默认
+`run --prompt --skill --workdir --model --optimize` 链路中。自然任务闭环测试使用真实临时文件和临时工作目录；确定性
+测试覆盖无 validation 时只从完整观察补接线、模型才能决定的参数留在一次 repair、以及缺少输出/语义依据时保持
+`unresolved`。同一导出包在不同消费目录、cwd 和输入值中运行，旧包和历史结果不替代本轮产物。
+
+CLI 现在共同打印 source 状态（含 timeout/adapter failure）、capture 状态、optimization phase；已导出包还打印
+action-local program validation scope 与 program/case/independent-case 计数。`no-change`、接线不完整和程序检查失败
+不再折叠成同一“完成”。普通非 optimize 路径遇到 source timeout 或 adapter crash 会持久化失败 session 并返回非零退出码，
+即使适配器留下了部分输出。机器证据见 `results/skill-ir/general-generation-reinforcement-20260914/f8/verification.json`。
+这些测试的 provider 是本地替身，不计真实模型优化成功；仍不建立整 skill/API 正确性、效果、readiness、prospective、
+held-out 或人工节省主张。
+
 ### 3.0.6 F1.1 语料到代码模式索引（development）
 
 F1.1 将五个已暴露的深读成员映射为可审计的 `pattern-to-code.json`：zh-readme、i18n-helper、law-to-markdown、experimental-design 和 env-manager。每个成员分别记录源 `SKILL.md` 摘要与行定位、固定机械步骤、变量来源、环境依赖、分支判断、当前动作类型候选、生产符号/测试及仍不支持的缺口；不会把 skill 名、特定仓库路径或历史成功数量写成实现条件。

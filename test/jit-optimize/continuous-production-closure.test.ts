@@ -10,6 +10,7 @@ import { OptimizationSession, readOptimizationSession } from "../../src/run/opti
 import { analyzeSkillConsumption } from "../../src/jit-optimize/consumption.ts"
 import { runGeneralSkillDevelopment } from "../../src/jit-optimize/general-skill-development.ts"
 import { buildOptimizedSkillPackage, verifyOptimizedSkillPackage } from "../../src/jit-optimize/package.ts"
+import { completeValidationSuggestion } from "../../src/jit-optimize/validation-completion.ts"
 import { acquireOptimizeLock, releaseOptimizeLock } from "../../src/proposals/storage.ts"
 import type { OptimizeConfig, OptimizeInput, OptimizeResult, OptimizeSubmission } from "../../src/jit-optimize/types.ts"
 
@@ -174,6 +175,77 @@ function actionSubmission(phase: "candidate" | "repair"): OptimizeSubmission {
   }
 }
 
+function completionEvidence(options: {
+  entry?: string
+  output?: boolean
+  secondMode?: boolean
+} = {}): OptimizeInput["evidences"][number] {
+  const entry = options.entry ?? "scripts/convert.mjs"
+  const command = [
+    "node",
+    entry,
+    "--input",
+    "input.json",
+    ...(options.secondMode ? ["--mode", "strict"] : []),
+    "--out",
+    "out/result.json",
+  ]
+  const steps: AgentStep[] = [
+    {
+      role: "tool",
+      toolCalls: [{
+        id: "completion-exec",
+        name: "execute_command",
+        input: { argv: command },
+        output: "completed",
+        exitCode: 0,
+      }],
+      timestamp: Date.now(),
+    },
+  ]
+  return {
+    taskId: "completion-case",
+    taskPrompt: "Convert input.json to out/result.json.",
+    conversationLog: [],
+    workDirSnapshot: {
+      files: new Map([
+        ["input.json", "{\"value\":\"alpha\"}\n"],
+        ...(options.output === false ? [] : [["out/result.json", "{\"value\":\"ALPHA\"}\n"] as const]),
+      ]),
+    },
+    trace: {
+      format: "test",
+      representation: "conversation-trace",
+      sourcePath: "completion-trace.jsonl",
+      inputSha256: "c".repeat(64),
+      recordLocator: "record:0",
+      taskIdSource: "source",
+      unknownFields: [],
+      diagnostics: [],
+    },
+    steps,
+  } as OptimizeInput["evidences"][number]
+}
+
+type SubmissionAction = NonNullable<OptimizeSubmission["actions"]>[number]
+
+function completionAction(validation?: SubmissionAction["validation"]): SubmissionAction {
+  return {
+    id: "completion-action",
+    kind: "reuse-script",
+    evidenceIds: ["0"],
+    sourceRefs: ["scripts/convert.mjs"],
+    dependsOn: [],
+    inputs: ["input.json"],
+    outputs: ["out/result.json"],
+    preconditions: ["Node.js is available"],
+    changedPaths: ["scripts/convert.mjs"],
+    residualDuties: ["Review the conversion result."],
+    verification: ["Compare the result file."],
+    ...(validation ? { validation } : {}),
+  }
+}
+
 async function runNaturalConsumption(
   packageDir: string,
   root: string,
@@ -260,6 +332,75 @@ async function runNaturalConsumption(
 }
 
 describe("continuous production closure", () => {
+  test("auto-wires a missing validation case only from a complete observed source", async () => {
+    const result = await completeValidationSuggestion({
+      action: completionAction(),
+      implementation: {
+        actionId: "completion-action",
+        kind: "reuse-script",
+        status: "selected",
+        entry: "scripts/convert.mjs",
+        runtime: "node",
+        inputs: ["input.json"],
+        outputs: ["out/result.json"],
+        preconditions: ["Node.js is available"],
+        residualDuties: ["Review the conversion result."],
+        verification: ["Compare the result file."],
+      },
+      evidences: [completionEvidence()],
+    })
+    expect(result.status).toBe("completed")
+    expect(result.action.validation?.cases).toHaveLength(1)
+    expect(result.action.validation?.cases[0]).toEqual(expect.objectContaining({
+      inputFiles: ["input.json"],
+      expectedFiles: [{ path: "out/result.json", referencePath: "out/result.json" }],
+    }))
+  })
+
+  test("keeps a model-only parameter gap repairable without inventing its value", async () => {
+    const result = await completeValidationSuggestion({
+      action: completionAction({ cases: [] }),
+      implementation: {
+        actionId: "completion-action",
+        kind: "reuse-script",
+        status: "selected",
+        entry: "scripts/convert.mjs",
+        runtime: "node",
+        inputs: ["input.json"],
+        outputs: ["out/result.json"],
+        preconditions: ["Node.js is available"],
+        residualDuties: ["Review the conversion result."],
+        verification: ["Compare the result file."],
+      },
+      evidences: [completionEvidence({ secondMode: true })],
+    })
+    expect(result.status).toBe("repairable")
+    expect(result.action.validation?.cases).toEqual([])
+    expect(result.repairable?.suggestion.cases[0]?.args).toEqual(expect.arrayContaining(["--mode", "strict"]))
+  })
+
+  test("leaves a missing semantic rule unresolved when no source authority exists", async () => {
+    const result = await completeValidationSuggestion({
+      action: completionAction({ cases: [] }),
+      implementation: {
+        actionId: "completion-action",
+        kind: "reuse-script",
+        status: "selected",
+        entry: "scripts/convert.mjs",
+        runtime: "node",
+        inputs: ["input.json"],
+        outputs: ["out/result.json"],
+        preconditions: ["Node.js is available"],
+        residualDuties: ["Review the conversion result."],
+        verification: ["Compare the result file."],
+      },
+      evidences: [completionEvidence({ output: false, secondMode: true })],
+    })
+    expect(result.status).toBe("unresolved")
+    expect(result.repairable).toBeUndefined()
+    expect(result.diagnostics.length).toBeGreaterThan(0)
+  })
+
   test("captures a natural run, repairs action metadata, exports one package, and consumes that package on two inputs", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "skvm-continuous-"))
     roots.push(root)

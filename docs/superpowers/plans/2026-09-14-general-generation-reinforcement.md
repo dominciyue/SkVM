@@ -198,12 +198,12 @@ revision 2 加强第 4 项：目标中的程序必须包含一个实际生成/�
 
 ## F8 — 默认入口连续集成
 
-- [ ] 扩展 `continuous-production-closure.test.ts`：自然任务与真实临时文件输入，只替换付费 provider，真实执行 capture、操作索引、候选程序、自动验证补全、一次 metadata repair、导出和消费分析。
-- [ ] 案例一首轮不提供 validation，但有完整来源，F3 自动接线；案例二缺一项只能由模型决定的参数，F4 仅一次补全；案例三无规则，保持行为未知而不伪造 oracle。
-- [ ] 同包放在新路径、换 cwd 与输入后执行，覆盖 F5；不使用 H8/H9/C8 旧包代替本次产物。
-- [ ] CLI 分别表达 source timeout、capture 缺失、no-change、接线未完成、程序失败、已执行与局部验证范围。若普通非 optimize 路径仍把非 ok source 当成功退出，用实际子进程红例修复，不能只修显示颜色。
-- [ ] 保留原任务结果与失败尝试；包恢复不得重放原任务；不为了本轮增加新的公共参数或 UI。
-- [ ] 运行 `bun test ./test/run/optimization-handoff.test.ts ./test/cli/run-optimize.test.ts ./test/cli/run-failure-exit.test.ts ./test/jit-optimize/continuous-production-closure.test.ts`。
+- [x] 扩展 `continuous-production-closure.test.ts`：自然任务与真实临时文件输入，只替换付费 provider，真实执行 capture、操作索引、候选程序、自动验证补全、一次 metadata repair、导出和消费分析。
+- [x] 案例一首轮不提供 validation，但有完整来源，F3 自动接线；案例二缺一项只能由模型决定的参数，F4 仅一次补全；案例三无规则，保持行为未知而不伪造 oracle。
+- [x] 同包放在新路径、换 cwd 与输入后执行，覆盖 F5；不使用 H8/H9/C8 旧包代替本次产物。
+- [x] CLI 分别表达 source timeout、capture 缺失、no-change、接线未完成、程序失败、已执行与局部验证范围。若普通非 optimize 路径仍把非 ok source 当成功退出，用实际子进程红例修复，不能只修显示颜色。
+- [x] 保留原任务结果与失败尝试；包恢复不得重放原任务；不为了本轮增加新的公共参数或 UI。
+- [x] 运行 `bun test ./test/run/optimization-handoff.test.ts ./test/cli/run-optimize.test.ts ./test/cli/run-failure-exit.test.ts ./test/jit-optimize/continuous-production-closure.test.ts`（26/26，137 assertions）。
 
 **验收：** 生产入口实际调用新增模块；组件单测或模拟 provider 不计真实模型优化成功。
 

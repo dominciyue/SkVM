@@ -7,6 +7,7 @@
  * cross-flag rules are unit-testable without spawning the CLI.
  */
 
+import path from "node:path"
 import { defineFlags, UsageError, type ConfigOf } from "./flags.ts"
 import { ALL_ADAPTERS, createAdapter } from "../adapters/registry.ts"
 import { resolveAdapterConfigMode } from "../core/config.ts"
@@ -207,10 +208,42 @@ async function printOptimizationHandoff(options: {
   console.log(`\n=== Optimization Handoff ===`)
   console.log(`Session: ${options.manifestPath}`)
   const optimization = options.optimization
+  const { readOptimizationSession } = await import("../run/optimization-session.ts")
+  let session: Awaited<ReturnType<typeof readOptimizationSession>> | undefined
+  try {
+    session = await readOptimizationSession(options.manifestPath)
+    console.log(`Source: ${session.sourceRun.status}${session.sourceRun.runStatus ? ` (${session.sourceRun.runStatus})` : ""}`)
+    console.log(`Capture: ${session.capture.status}`)
+  } catch {
+    // A failed recovery may itself be unable to read the session. Preserve the
+    // original problem below instead of replacing it with a diagnostic error.
+  }
   if (optimization.status === "completed") {
     const { readOptimizedSkillPackageUserSummary } = await import("../jit-optimize/package.ts")
     const summary = await readOptimizedSkillPackageUserSummary(optimization.packageDir!)
     console.log(`Status: completed (${summary.deliveryStatus})`)
+    try {
+      const { readFile } = await import("node:fs/promises")
+      const manifest = JSON.parse(await readFile(path.join(optimization.packageDir!, "optimization-manifest.json"), "utf8")) as {
+        validation?: {
+          behaviorStatus?: string
+          behaviorScope?: string
+          programRuns?: number
+          caseRuns?: number
+          independentCaseRuns?: number
+        }
+      }
+      const validation = manifest.validation
+      if (validation) {
+        console.log(`Program validation: ${validation.behaviorStatus ?? "unknown"}`)
+        console.log(`Validation scope: ${validation.behaviorScope ?? "package-file-closure"}; programRuns=${validation.programRuns ?? 0}, caseRuns=${validation.caseRuns ?? 0}, independentCaseRuns=${validation.independentCaseRuns ?? 0}`)
+        if (validation.behaviorStatus !== "passed") {
+          console.log(`Wiring: incomplete for a full behavior recommendation; retain the documented residual scope`)
+        }
+      }
+    } catch {
+      console.log(`Program validation: unavailable (package manifest could not be read)`)
+    }
     console.log(`Package: ${optimization.packageDir}`)
     console.log(`Guide: ${summary.guidePath ?? "legacy package; read SKILL.md"}`)
     console.log(`Use: ${summary.useCommand}`)
@@ -228,6 +261,7 @@ async function printOptimizationHandoff(options: {
   }
   if (optimization.status === "no-change") {
     console.log(`Status: no-change`)
+    console.log(`Optimization phase: no-change`)
     console.log(`Package: not exported; the original skill and task result remain the supported path`)
     if (options.originalWorkDir) console.log(`Original result: preserved in ${options.originalWorkDir}`)
     return
@@ -236,9 +270,12 @@ async function printOptimizationHandoff(options: {
 
   console.log(c.yellow(`Status: ${optimization.status}`))
   console.log(`Problem: ${optimization.error}`)
+  console.log(`Optimization phase: ${session?.optimization?.status === "failed" ? session.optimization.phase : "capture"}`)
   if (options.originalWorkDir) console.log(`Original result: preserved in ${options.originalWorkDir}`)
-  const { readOptimizationSession } = await import("../run/optimization-session.ts")
-  const session = await readOptimizationSession(options.manifestPath)
+  if (!session) {
+    console.log(`Next: the optimization session could not be read; preserve the reported failure and inspect the supplied manifest path.`)
+    return
+  }
   const phase = session.optimization?.status === "failed" ? session.optimization.phase : "capture"
   if (phase === "package") {
     console.log(`Next: fix the package path/dependency problem, then run skvm run --resume-optimization=${JSON.stringify(options.manifestPath)}${session.optimization?.status === "failed" && session.optimization.packageDir ? ` --package-out=${JSON.stringify(session.optimization.packageDir)}` : ""}`)
@@ -474,6 +511,13 @@ export async function runRun(config: RunConfig): Promise<void> {
     }
     if (optimization && "error" in optimization) {
       await runSession.fail(`source completed; optimization ${optimization.status}: ${optimization.error}`)
+      process.exitCode = 1
+    } else if (result.runResult.runStatus !== "ok") {
+      // A source execution that timed out or crashed is not a successful CLI
+      // run, even when the adapter returned a partial transcript and output.
+      // Keep the ordinary path's diagnostics above, then persist the failure
+      // and let the top-level router preserve a non-zero exit code.
+      await runSession.fail(`source run ended with ${result.runResult.runStatus}${result.runResult.statusDetail ? `: ${result.runResult.statusDetail}` : ""}`)
       process.exitCode = 1
     } else {
       await runSession.complete(`${task.id}, ${(result.runResult.durationMs / 1000).toFixed(1)}s`)
