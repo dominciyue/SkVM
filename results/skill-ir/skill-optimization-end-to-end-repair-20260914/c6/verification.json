@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "skill-ir-skill-optimization-end-to-end-repair-c6-verification/v1",
+  "identity": "skill-optimization-end-to-end-repair-20260914",
+  "exposure": "development",
+  "stage": "C6",
+  "status": "passed",
+  "createdAt": "2026-09-14T08:01:00+08:00",
+  "scope": "No-score local validation and source-owned checks; no general scoring service was added.",
+  "verification": {
+    "command": "bun test ./test/jit-optimize/validation-lifecycle.test.ts ./test/run/optimization-handoff.test.ts ./test/jit-optimize/workspace.test.ts",
+    "passed": 53,
+    "failed": 0,
+    "assertions": 197,
+    "typecheck": {
+      "command": "bun run typecheck",
+      "status": "passed"
+    }
+  },
+  "cases": {
+    "naturalNoScore": {
+      "test": "runOptimizationValidationLifecycle > discovers a source-owned deterministic check when an ordinary run has no criteria",
+      "result": "passed",
+      "details": "An evidence record with criteria undefined was checked against the original source skill's .skvm-validation.json in an isolated validation root. The source-derived JSON-schema assertion passed for the correct output and rejected the wrong field type."
+    },
+    "taskAssertions": {
+      "test": "runOptimizationValidationLifecycle > executes current task assertions instead of accepting exit zero, a same-name wrong file, or printed ok",
+      "result": "passed",
+      "details": "Contained file-check assertions are re-read from the bound task source and executed against the candidate; empty, wrong-file and stdout-only programs fail even when the process exits zero."
+    },
+    "partialScope": {
+      "test": "runOptimizationValidationLifecycle > runs ready cases and independent actions while preserving a missing case as unassessed",
+      "result": "passed",
+      "details": "Ready cases execute, missing inputs remain action-local unresolved/unassessed, and independent actions are retained rather than being promoted by a partial result."
+    },
+    "sourceIsolation": {
+      "test": "source-owned checks use sourceSkillDir while candidate files run from skillDir",
+      "result": "passed",
+      "details": "The candidate cannot create or rewrite the source validation manifest to become its own authority; source-derived assertions retain their sourceRef and authority label."
+    },
+    "handoff": {
+      "test": "captured optimization handoff local-check and recovery regressions",
+      "result": "passed",
+      "details": "Natural handoff materializes only declared local checks, keeps evaluation separate from optimization, and resumes without replaying an external model call."
+    }
+  },
+  "authorityBoundary": {
+    "taskRequirement": "Re-read contained file-check criteria from the bound task source; prior pass labels alone are not executable assertions.",
+    "sourceDerived": "Read only the original source skill's validated .skvm-validation.json, require a contained sourceRef and supported file-check mode, and execute it in the isolated candidate validation root.",
+    "selfCheck": "Remain separately labeled and cannot alone promote an action to an independent passed recommendation.",
+    "fidelityReference": "Observed output bytes remain references unless a current task/source authority also passes.",
+    "modelEvaluation": "Not invoked by this C6 deterministic verification. Missing criteria limits the corresponding recommendation rather than erasing other runnable local checks."
+  },
+  "claimBoundary": "Development evidence only. C6 demonstrates bounded source/task local checks without a user-provided score file or a universal scoring service. It does not prove complete skill correctness, translation quality, professional judgment, real model behavior, natural package consumption, effect improvement, prospective readiness, held-out performance or human savings.",
+  "accounting": {
+    "optimizerModelCalls": 0,
+    "repairModelCalls": 0,
+    "remoteApiCalls": 0,
+    "paidCalls": 0,
+    "projectRuntimeCostUsd": 0,
+    "actualProjectCostUnknown": false,
+    "developerAgentCost": "not-measured-by-project-runtime"
+  }
+}

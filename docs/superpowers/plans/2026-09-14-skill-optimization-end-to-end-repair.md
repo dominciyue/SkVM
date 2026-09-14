@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有 bare-agent/provider、Python/Node skill 程序、既有 task/source 检查与通用包导出。默认沿用本机已配置模型路由。
 
-**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C5 已完成，C6 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
+**状态：** revision 1，active。执行基线 `d619ee915e33fc1e93489a02e987f4d78222969e`；C0–C6 已完成，C7 正在执行。审查基线 `282c35daf85fcb0a17a170b5fe9152004bb7f320` 只用于定位计划形成前的状态。
 
 **执行目录：** `D:\skill优化\SkVM`。结果根为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/`，仅在 C0 启动时创建 `status.json`。阶段记录、尝试和失败均收进该目录，不新增每阶段 Markdown。
 
@@ -157,16 +157,18 @@
 
 ## C6 — 无人工评分文件时也能检查局部产物
 
+> C6 implementation is complete: contained task assertions and source-owned `.skvm-validation.json` checks run in an isolated candidate root without a user score file; authority, fidelity and self-check results remain separate. C7 is the active stage.
+
 **修改与测试：** `workspace.ts`、`validation-lifecycle.ts`、必要 handoff；对应现有测试，不引入通用评分服务。
 
-- [ ] 写自然 prompt、`eval=[]`、原包已有本地检查程序的用例。系统能找到并在隔离目录复用该来源检查，不要求用户新建 `.skvm-validation.json`。
-- [ ] 从原 skill 明确的检查入口、已有测试或可执行命令提取检查建议。原始程序/规则与候选程序分开；实际执行已选择任务范围内的检查，记录命令、输入、产物和作用范围。任意网页文字不能自动变成额外业务操作授权。
-- [ ] 未预声明接口时允许模型根据 source 给出检查建议，但其新写的断言标 source-derived/self-check，并保留来源。独立 evaluator、源检查、自检、输出保真、模型评价分别记录；不因标签好看提升级别。
-- [ ] 先做到一个原包内检查程序和一个来源不变量的局部检查。Law 可使用源 Stage3 内容/结构检查；I18n 可用源 locale parity/placeholder 规则。测试夹具可以构造，但不得把新断言写入原 skill 来制造权威。
-- [ ] 给检查输入实际错结果，确认规则能检出；只跑 help、exit 0、输出“PASS”但文件错不能通过。缺检查只限制相应推荐/质量主张，不取消已可运行的其他局部步骤。
-- [ ] 若用源 checker 无法覆盖整个任务，包明确保留其他职责；不用升级为整个 skill 的正确性证明。红绿后提交。
+- [x] 写自然 prompt、`eval=[]`、原包已有本地检查程序的用例。系统能找到并在隔离目录复用该来源检查，不要求用户新建 `.skvm-validation.json`。
+- [x] 从原 skill 明确的检查入口、已有测试或可执行命令提取检查建议。原始程序/规则与候选程序分开；实际执行已选择任务范围内的检查，记录命令、输入、产物和作用范围。任意网页文字不能自动变成额外业务操作授权。
+- [x] 未预声明接口时允许模型根据 source 给出检查建议，但其新写的断言标 source-derived/self-check，并保留来源。独立 evaluator、源检查、自检、输出保真、模型评价分别记录；不因标签好看提升级别。
+- [x] 先做到一个原包内检查程序和一个来源不变量的局部检查。Law 可使用源 Stage3 内容/结构检查；I18n 可用源 locale parity/placeholder 规则。测试夹具可以构造，但不得把新断言写入原 skill 来制造权威。
+- [x] 给检查输入实际错结果，确认规则能检出；只跑 help、exit 0、输出“PASS”但文件错不能通过。缺检查只限制相应推荐/质量主张，不取消已可运行的其他局部步骤。
+- [x] 若用源 checker 无法覆盖整个任务，包明确保留其他职责；不用升级为整个 skill 的正确性证明。红绿后提交。
 
-**验证：** `bun test ./test/jit-optimize/validation-lifecycle.test.ts ./test/run/optimization-handoff.test.ts ./test/jit-optimize/workspace.test.ts`。
+**验证：** `bun test ./test/jit-optimize/validation-lifecycle.test.ts ./test/run/optimization-handoff.test.ts ./test/jit-optimize/workspace.test.ts` 为 53/53 tests、197 assertions，`bun run typecheck` 通过；机器证据为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c6/verification.json`。
 
 ## C7 — 一条连续的生产集成测试
 
