@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "skill-ir-general-generation-reinforcement-f1-verification/v1",
+  "identity": "general-generation-reinforcement-20260914",
+  "stage": "F1",
+  "status": "passed",
+  "red": {
+    "command": "bun test ./test/jit-optimize/operation-context.test.ts",
+    "result": "failed-before-implementation",
+    "reason": "Cannot find module src/jit-optimize/operation-context.ts"
+  },
+  "green": {
+    "command": "bun test ./test/jit-optimize/operation-context.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/trace-adapters.test.ts",
+    "tests": 39,
+    "failed": 0,
+    "assertions": 164
+  },
+  "typecheck": {
+    "command": "bun run typecheck",
+    "status": "passed"
+  },
+  "implemented": [
+    "Evidence/AgentStep operation extraction with actual tool-call IDs",
+    "read/write/execute records with raw command, parsed argv, cwd, files, exit status and duration provenance",
+    "ambiguous shell and missing command fields retained as unknown with source locators",
+    "written-then-executed, repeated-entry and source-entry-not-called facts",
+    "IMPLEMENTATION_CONTEXT integration for each evidence record"
+  ],
+  "claimBoundary": "The index is observational and does not prove semantic generality, parameter support or program correctness. It does not read arbitrary host paths or execute commands."
+}

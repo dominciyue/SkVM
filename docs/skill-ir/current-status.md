@@ -3,7 +3,7 @@
 - 更新日期：2026-09-14
 - 工作分支：`skill-ir-aot`
 - 下一路线：F0–F11，通用生成流程补牢；[任务书](../superpowers/plans/2026-09-14-general-generation-reinforcement.md) revision 2、spec 14.33。含 F1.1 语料到代码、F6.1 执行型流程骨架、F9.1 同包跨模型/环境比较。
-- 执行状态：`planned-not-started`。本次仅登记任务书，没有启动 F0、付费实验或持续目标。下一步补操作/参数来源、验证骨架与缺口修复、变化检查、通用消费观察；不重做已有验证器，不手修个别成品代替共享能力。
+- 执行状态：`active`。F0 已完成并建立 `results/skill-ir/general-generation-reinforcement-20260914/status.json`；当前进入 F1 操作来源索引。尚未启动真实项目/付费运行；下一步补操作/参数来源、验证骨架与缺口修复、变化检查、通用消费观察；不重做已有验证器，不手修个别成品代替共享能力。
 - 已交付基线：C0–C10 `completed-development`，对应 spec 14.32；最近证据同步为 `4b31862`。新程序链已有 development 结果，但 C8 包内部仍为 `not-run/draft`，不能用后续消费覆盖该缺口。`15b5d51` 另修 CLI 失败退出码和原任务超时提示；计划形成时该提交仅在本地，实际同步以 Git 为准。
 
 2026-09-14 二次复核：上一轮 H/R 报告原样保留，其组件与局部程序结果有效；但 R6 新优化 no-change 后使用旧 H8/H9 包，R7 输入本身为 H9 包，默认新程序生产闭环仍为 partial。新计划修复原始内容未传入验证、普通脚本修改被误送 domain backend、修复动作未采纳和候选/no-change 判断问题；旧包不能替代本次产物。
@@ -52,7 +52,7 @@ development skill 经广读、10 份经深读；实际对 Law To Markdown、Expe
 
 ## 3. 当前计划与上一阶段基线
 
-当前待执行为 [F0–F11](../superpowers/plans/2026-09-14-general-generation-reinforcement.md)。结果根 `results/skill-ir/general-generation-reinforcement-20260914/` 仅在 F0 启动时建立。工程、真实使用与效果分列；缺 validation 元数据不应在有来源可补时无声停留 draft，无依据则仍保留未知。参数化与真实消费检查服务通用职责，不要求所有 skill 统一格式或输出 ABI。
+当前执行为 [F0–F11](../superpowers/plans/2026-09-14-general-generation-reinforcement.md)。F0 已建立结果根 `results/skill-ir/general-generation-reinforcement-20260914/` 并记录基线；当前 F1 active。工程、真实使用与效果分列；缺 validation 元数据不应在有来源可补时无声停留 draft，无依据则仍保留未知。参数化与真实消费检查服务通用职责，不要求所有 skill 统一格式或输出 ABI。
 
 revision 2 增加：从已有 skill/trace 对照追踪共同模式到生产代码与测试；小型流程骨架实际接管产物处理，不能仅用 checker 计流程自动化；同一包在两个消费模型和隔离环境中比较。当前跨模型稳定性增益仍未建立，同宿主路径/环境复现不叫跨平台证明。现有程序生成通道和特定后端继续复用，不表示通用流程脚手架已实现。
 

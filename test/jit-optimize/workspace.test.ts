@@ -511,6 +511,59 @@ describe("workdir snapshot placement", () => {
 })
 
 describe("serializeContext — implementation context", () => {
+  test("includes an evidence-backed operation index without treating prose as execution", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "workspace-operation-context-"))
+    const optimizeDir = path.join(root, "optimize")
+    const skillDir = path.join(root, "skill")
+    try {
+      await mkdir(path.join(skillDir, "scripts"), { recursive: true })
+      await writeFile(path.join(skillDir, "SKILL.md"), "Run scripts/transform.py --input input.csv --out output.json.\n")
+      await writeFile(path.join(skillDir, "scripts", "transform.py"), "print('ok')\n")
+      const evidence: Evidence = {
+        taskId: "operation-task",
+        taskPrompt: "Run the transform and mention scripts/not-run.py in the explanation.",
+        conversationLog: [{
+          type: "response",
+          ts: "2026-09-14T00:00:01Z",
+          text: "I also ran scripts/not-run.py.",
+          toolCalls: [{
+            id: "call-transform",
+            name: "execute_command",
+            input: { command: "python scripts/transform.py --input input.csv --out output.json" },
+            output: "exit code: 0",
+            exitCode: 0,
+            durationMs: 4,
+          }],
+          sourceLocator: "trace:response-1",
+        }],
+        trace: {
+          format: "test",
+          representation: "conversation-trace",
+          sourcePath: path.join(root, "trace.jsonl"),
+          inputSha256: "b".repeat(64),
+          recordLocator: "record:0",
+          taskIdSource: "source",
+          workDirPath: path.join(root, "work"),
+          unknownFields: [],
+          diagnostics: [],
+        },
+      }
+
+      await serializeContext(optimizeDir, [evidence], [], { skillDir })
+      const context = JSON.parse(await readFile(path.join(optimizeDir, "IMPLEMENTATION_CONTEXT.json"), "utf8"))
+      expect(context.evidence[0].operations).toMatchObject([{
+        toolCallId: "call-transform",
+        entry: "scripts/transform.py",
+        argv: ["python", "scripts/transform.py", "--input", "input.csv", "--out", "output.json"],
+        sourceLocator: "trace:response-1#tool-call/call-transform",
+      }])
+      expect(context.evidence[0].operationSummary.sourceEntriesNotCalled).toEqual([])
+      expect(context.evidence[0].operations.some((operation: { entry?: string }) => operation.entry === "scripts/not-run.py")).toBe(false)
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
   test("organizes runnable source interfaces, shaped inputs, observed outputs, and checks without locator guessing", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "workspace-implementation-context-"))
     const optimizeDir = path.join(root, "optimize")

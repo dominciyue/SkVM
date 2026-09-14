@@ -11,6 +11,7 @@ import { copySkillDir } from "../core/fs-utils.ts"
 import { getTmpDir } from "../core/config.ts"
 import { readPreRunInputSnapshotContents } from "../run/pre-run-input-snapshot.ts"
 import { scoreFromCriteria } from "./evidence.ts"
+import { buildOperationContext } from "./operation-context.ts"
 import type { Evidence, EvidenceCriterion, EvidenceInputResources, HistoryEntry } from "./types.ts"
 
 /**
@@ -756,6 +757,10 @@ async function buildImplementationContext(
           }
         })
         .sort((left, right) => left.path.localeCompare(right.path, "en"))
+      const operationContext = buildOperationContext(run.evidence, {
+        evidenceIndex: run.globalIndex,
+        sourceEntries: sourceInterfaces.map((source) => source.path),
+      })
       evidence.push({
         evidenceIndex: run.globalIndex,
         taskId: group.taskId,
@@ -766,6 +771,8 @@ async function buildImplementationContext(
         },
         preRunInputs,
         observedOutputs,
+        operations: operationContext.operations,
+        operationSummary: operationContext.summary,
         checks: (run.evidence.criteria ?? []).map((criterion) => ({
           id: criterion.id,
           method: criterion.method,
@@ -786,6 +793,12 @@ async function buildImplementationContext(
       domainBackend: "registered-only",
       declarationMismatch: "repairable-action-diagnostic",
       changedPathsMeaning: "paths actually changed in the candidate; do not use them to turn a pre-existing script into a generated-program claim",
+    },
+    operationContext: {
+      schemaVersion: "jit-optimize-operation-context/v1",
+      source: "actual normalized tool calls only",
+      proseMentions: "not operations",
+      ambiguousCommands: "retained as unknown with a locator",
     },
     sourceInterfaces,
     evidence,
@@ -1638,7 +1651,7 @@ of this skill.
   Directories for this session:
 ${dirListing}
 ${hasSkillResourceIndex ? "- `.optimize/SKILL_RESOURCE_INDEX.md` — complete configured skill-file navigation plus explicit trace-to-skill bindings. Read relevant resources before deciding an unobserved rule is removable.\n" : ""}- \`.optimize/CONSTRAINT_SOURCES.json\` — structured provenance buckets for permanent skill rules, current task conditions, observed environment facts, and unknown scope. Do not promote a task or environment value to a skill-wide rule.
-- \`.optimize/IMPLEMENTATION_CONTEXT.json\` — engine-built source interfaces, normalized input/output locators, observed format shapes, and available checks for executable work. It is an index, not a claim that untested parameters are supported.
+- \`.optimize/IMPLEMENTATION_CONTEXT.json\` — engine-built source interfaces, normalized input/output locators, observed format shapes, actual operation records, and available checks for executable work. Operation records come only from real tool calls; prose mentions and ambiguous commands remain non-authoritative.
 ${historyCount > 0 ? `- \`.optimize/history.md\` — **${historyCount} previous optimization round(s)** with their diagnoses, changes, and whether they improved the score. READ THIS before proposing changes — do not repeat diagnoses that did not work.\n` : ""}- \`.optimize/submission.template.json\` — the output format you must follow.
 
 ## What to do

@@ -103,6 +103,12 @@ C9 使用精确同一 Law batch package，在固定 Python 3.12.13 与归档依�
 
 无人工评分文件时，`runOptimizationValidationLifecycle` 仍可在隔离候选根执行有界检查：它从绑定 task source 重读 contained `file-check`，并从原始 source skill 的 `skvm-skill-validation/v1` `.skvm-validation.json` 派生 `source-derived` 断言。source manifest 只从 `sourceSkillDir` 读取，候选副本不能把自写规则提升为权威；source/task assertion、self-check、保真引用和模型评价在报告中分开。空程序、仅 help/exit 0/stdout “PASS” 或错误文件会被当前断言拒绝，缺输入只使关联动作 unresolved/unassessed，独立动作仍可运行。该来源检查只覆盖声明的局部文件不变量，不能代表整个 skill 或专业质量。C6 机器证据为 `results/skill-ir/skill-optimization-end-to-end-repair-20260914/c6/verification.json`。
 
+### 3.0.5 F1 实际操作来源索引（development）
+
+revision-2 F1 新增 `src/jit-optimize/operation-context.ts`，从标准化 `AgentStep[]` 或 `Evidence.conversationLog` 中整理实际 tool-call。它只保留真实的 `toolCallId`、调用定位、原始命令/路径、可无歧义解析的 argv、cwd、读写文件、退出状态和工具报告耗时；正文提及的脚本不会成为操作。嵌套 shell、管道、重定向、动态命令和缺少必要入口保留为 `unknown`，并携带完整 source locator。可选的 source-entry 集合只用于报告未调用事实，不用于访问宿主文件或推导成功。
+
+`serializeContext` 将每条 evidence 的 `operations` 与 `operationSummary` 写入 `IMPLEMENTATION_CONTEXT.json`，同时声明操作记录仅来自实际调用。summary 分开记录观察数、未知数、重复入口、先写后执行和 source entry 未调用；`existing-entry`、`written-entry` 与 `unknown` 关系不等同于可泛化机会，仍由 optimizer 结合语义判断。验证入口为 `bun test ./test/jit-optimize/operation-context.test.ts ./test/jit-optimize/workspace.test.ts ./test/jit-optimize/trace-adapters.test.ts` 与 `bun run typecheck`。
+
 ### 3.0.2.1 生产链接线边界（H0–H14 + R1–R7，completed-development）
 
 普通 execution-log loop 已调用 program validator 和 action resolver，在选轮前完成局部验证、最多一次定向修复与依赖/共享文件回退。
