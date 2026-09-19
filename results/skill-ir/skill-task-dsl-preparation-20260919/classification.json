@@ -1,0 +1,1011 @@
+{
+  "schemaVersion": "skill-task-working-classification/v1",
+  "exposure": "development",
+  "purpose": "Select a task range that can share domain concepts and usage semantics and whose real effects are worth testing with a DSL.",
+  "claimBoundary": "Purpose-relative, revisable, non-exhaustive, and non-exclusive working classification. It is not an ecosystem taxonomy or an accuracy estimate.",
+  "metaCharacteristic": "Differences in task purpose, domain operations, rules, judgment, and observable completion that change whether tasks can share a DSL semantic model, runtime support, or fair evaluation.",
+  "approachComparison": [
+    {
+      "approach": "application topic",
+      "retainedAs": "auxiliary discovery and domain-vocabulary dimension",
+      "usefulFor": [
+        "finding sources",
+        "locating domain references and reviewers",
+        "spotting likely tool dependencies"
+      ],
+      "failureCases": [
+        "PDF extraction, offline PDF transformation, and interactive PDF markup share a topic but not runtime semantics",
+        "frontend design and webapp testing share a web topic but opposite purposes",
+        "two i18n-named skills transform different objects"
+      ]
+    },
+    {
+      "approach": "automation and verifiability",
+      "retainedAs": "auxiliary supportStatus and evaluationMode",
+      "usefulFor": [
+        "choosing agent/program/user responsibility",
+        "choosing validators and effect evidence",
+        "bounding implementation risk"
+      ],
+      "failureCases": [
+        "law conversion and workbook editing are both hybrid but share no domain model",
+        "instructions-only README authoring and contract review need different semantics",
+        "external tools span purchasing, PDF annotation, and agent configuration"
+      ]
+    },
+    {
+      "approach": "task purpose and operation semantics",
+      "retainedAs": "primaryRange plus secondarySemantics",
+      "usefulFor": [
+        "selecting shared DSL concepts",
+        "defining runtime meaning and failure handling",
+        "designing fair within-range examples and counterexamples"
+      ],
+      "failureCases": [
+        "broad labels such as create, analyze, or workflow remain too coarse; v1 narrows them with preservation, contract, evidence, policy, lifecycle, generator, feedback, and oracle semantics"
+      ]
+    }
+  ],
+  "versions": [
+    {
+      "version": "v0",
+      "derivedFrom": [
+        "pilot-law-convert-validate",
+        "anthropic-xlsx-create-edit-validate",
+        "fishzjp-exploratory-testing",
+        "mcp-use-purchasing-create-po",
+        "pilot-experimental-design-generate",
+        "anthropic-doc-coauthor"
+      ],
+      "ranges": [
+        "artifact-transform",
+        "artifact-construct",
+        "review-or-investigate",
+        "stateful-action",
+        "domain-design",
+        "co-create"
+      ],
+      "problem": "Interaction style and statefulness were treated as task purpose; transform/construct/review were too broad to predict shared invariants or validators."
+    },
+    {
+      "version": "v1",
+      "testedOn": [
+        "skill-i18n-translate-docs",
+        "pilot-env-generate-contracts",
+        "event4u-contract-review",
+        "anthropic-view-pdf-collaborate",
+        "vectara-auth-secrets-configure",
+        "pilot-experimental-design-sequential-plan"
+      ],
+      "changes": [
+        {
+          "from": "artifact-transform",
+          "to": [
+            "preservation-constrained-transform",
+            "constraint-backed-artifact"
+          ],
+          "trigger": "Skill translation and law conversion share protected-source invariants; XLSX/env templates create or repair artifacts under constraints instead."
+        },
+        {
+          "from": "stateful-action",
+          "to": [
+            "policy-gated-external-action",
+            "configuration-lifecycle"
+          ],
+          "trigger": "Purchase/refund produce one policy-gated transaction; Vectara/VS Code manage scoped versioned state with precedence and lifecycle."
+        },
+        {
+          "from": "co-create",
+          "to": "iterative-content-design plus interactionMode=feedback-centered",
+          "trigger": "Co-authoring, frontend design, and interactive PDF use feedback, but do not share one domain semantic model. Interaction is auxiliary."
+        },
+        {
+          "from": "domain-design",
+          "to": [
+            "domain-decision-plus-generator",
+            "judgment-guided-plan"
+          ],
+          "trigger": "Experimental matrix/allocation has bundled generators; sequential design is reference-only and expert-reviewed."
+        },
+        {
+          "from": "review-or-investigate",
+          "to": "evidence-backed-assessment with evaluationMode subtypes",
+          "trigger": "Security, contract, exploratory, env, and web research share evidence/uncertainty but require different domain claims and oracles."
+        },
+        {
+          "from": "implicit validation",
+          "to": [
+            "contract-enforcement",
+            "validation-and-behavior-test"
+          ],
+          "trigger": "Validation may enforce a declared data/secret contract or execute task behavior; neither is equivalent to artifact construction."
+        }
+      ]
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "primaryRange",
+      "role": "primary",
+      "question": "What purpose and operation semantics must be shared?",
+      "allowed": "one provisional primary range per task card; multi-task packages are split first"
+    },
+    {
+      "id": "secondarySemantics",
+      "role": "auxiliary multi-value",
+      "question": "What other semantic responsibility materially affects the DSL/runtime?"
+    },
+    {
+      "id": "supportStatus",
+      "role": "auxiliary",
+      "question": "What is currently implemented or external?",
+      "warning": "Support is not membership."
+    },
+    {
+      "id": "evaluationMode",
+      "role": "auxiliary",
+      "question": "What evidence can judge completion?",
+      "warning": "Evaluability is not membership or quality."
+    },
+    {
+      "id": "interactionMode",
+      "role": "derived auxiliary",
+      "question": "Is execution batch, feedback-centered, live-state, or externally authorized?",
+      "warning": "Interaction mode is not itself a domain."
+    },
+    {
+      "id": "topic",
+      "role": "discovery-only",
+      "question": "Which application vocabulary/source ecosystem applies?",
+      "warning": "Topic does not define shared runtime semantics."
+    }
+  ],
+  "ranges": [
+    {
+      "id": "preservation-constrained-transform",
+      "definition": "Map an existing artifact or selected units into a target representation while preserving named identity-bearing spans or relations and applying declared transformations.",
+      "include": [
+        "explicit source and target",
+        "one or more preservation/protection rules",
+        "observable transformed output",
+        "validation or review of preserved and changed parts"
+      ],
+      "exclude": [
+        "open-ended synthesis without source identity",
+        "interactive state editing as the main task",
+        "pure assessment with no target transformation"
+      ],
+      "positives": [
+        "pilot-law-convert-validate",
+        "skill-i18n-translate-docs",
+        "pilot-i18n-generate-and-check-locales",
+        "anthropic-pdf-extract-ocr"
+      ],
+      "nearCounterexamples": [
+        "pilot-zh-readme-author",
+        "anthropic-pptx-create-edit-qa",
+        "anthropic-view-pdf-collaborate"
+      ],
+      "designDecision": "Candidate DSL needs source/target, selection, protected spans, transform, output, invariants, ambiguity delegation, and failure policy."
+    },
+    {
+      "id": "constraint-backed-artifact",
+      "definition": "Create or repair a structured artifact under explicit structural, calculation, rendering, exposure, or package constraints.",
+      "include": [
+        "artifact deliverable",
+        "declared constraints",
+        "validation/render/recalculation or review loop"
+      ],
+      "exclude": [
+        "pure source-preserving conversion",
+        "assessment-only reports",
+        "unbounded aesthetic work with no reusable artifact semantics"
+      ],
+      "positives": [
+        "anthropic-xlsx-create-edit-validate",
+        "anthropic-pptx-create-edit-qa",
+        "pilot-env-generate-contracts",
+        "anthropic-skill-creator-author"
+      ],
+      "nearCounterexamples": [
+        "anthropic-frontend-design-build",
+        "pilot-law-convert-validate"
+      ],
+      "designDecision": "Candidate language would need artifact schema, constraints, validators, render/recalc stages, and human-quality checks."
+    },
+    {
+      "id": "evidence-backed-assessment",
+      "definition": "Inspect artifacts or live behavior, collect traceable evidence, form bounded claims with uncertainty/severity, and report rather than directly completing the target action.",
+      "include": [
+        "evidence collection",
+        "claim/status/uncertainty representation",
+        "report or handoff",
+        "stop/review rule"
+      ],
+      "exclude": [
+        "primary output is a transaction or configuration mutation",
+        "deterministic contract enforcement alone"
+      ],
+      "positives": [
+        "fishzjp-exploratory-testing",
+        "github-security-review",
+        "event4u-contract-review",
+        "web-research-synthesize",
+        "pilot-env-audit"
+      ],
+      "nearCounterexamples": [
+        "anthropic-webapp-test-local",
+        "vaquarkhan-data-validate-ingest"
+      ],
+      "designDecision": "Shared evidence vocabulary may be reusable, but domain finding types and validity rules may require separate DSLs."
+    },
+    {
+      "id": "policy-gated-external-action",
+      "definition": "Evaluate explicit eligibility or authorization, perform one external mutation, and return a receipt/confirmation.",
+      "include": [
+        "named precondition/policy",
+        "external side effect",
+        "no-action branch",
+        "receipt"
+      ],
+      "exclude": [
+        "multi-resource configuration lifecycle",
+        "offline artifact edit",
+        "advisory recommendation only"
+      ],
+      "positives": [
+        "mcp-use-purchasing-create-po",
+        "mcp-use-refunds-process"
+      ],
+      "nearCounterexamples": [
+        "anthropic-view-pdf-collaborate",
+        "vectara-auth-secrets-configure"
+      ],
+      "designDecision": "DSL would need policy predicates, required evidence, authorization, idempotency/side-effect semantics, tool binding, and receipt."
+    },
+    {
+      "id": "configuration-lifecycle",
+      "definition": "Resolve scoped configuration or credentials, mutate local/remote state under precedence and authorization, validate it, and preserve lifecycle/rollback semantics.",
+      "include": [
+        "configuration/state object",
+        "scope/precedence or lifecycle",
+        "mutation boundary",
+        "validation/failure state"
+      ],
+      "exclude": [
+        "one-shot transaction",
+        "content-only transformation"
+      ],
+      "positives": [
+        "vscode-configure-repair",
+        "vectara-agent-configure-use",
+        "vectara-auth-secrets-configure"
+      ],
+      "nearCounterexamples": [
+        "pilot-env-generate-contracts",
+        "mcp-use-purchasing-create-po"
+      ],
+      "designDecision": "DSL must model identity, scope, precedence, secret visibility, lifecycle, dry-run/rollback, and external version compatibility."
+    },
+    {
+      "id": "domain-decision-plus-generator",
+      "definition": "Use domain judgment to select a parameterized design, then invoke deterministic construction or allocation and check its structural properties.",
+      "include": [
+        "domain choice before generator",
+        "parameterized deterministic output",
+        "declared limitations"
+      ],
+      "exclude": [
+        "reference-only plan without executor",
+        "generic file generation"
+      ],
+      "positives": [
+        "pilot-experimental-design-generate",
+        "pilot-experimental-design-randomize"
+      ],
+      "nearCounterexamples": [
+        "pilot-experimental-design-sequential-plan"
+      ],
+      "designDecision": "DSL needs design choice rationale, parameters, generator binding, seed/reproducibility, and domain-validity review."
+    },
+    {
+      "id": "iterative-content-design",
+      "definition": "Create or edit content/design through repeated agent/user critique where reader, visual, or stakeholder judgment is part of completion.",
+      "include": [
+        "draft or design artifact",
+        "feedback-centered loop",
+        "human/reader/visual acceptance"
+      ],
+      "exclude": [
+        "source-to-target preservation mapping with a stable validator",
+        "assessment report without artifact co-creation"
+      ],
+      "positives": [
+        "anthropic-doc-coauthor",
+        "anthropic-frontend-design-build",
+        "pilot-zh-readme-author",
+        "anthropic-view-pdf-collaborate"
+      ],
+      "nearCounterexamples": [
+        "skill-i18n-translate-docs",
+        "github-security-review"
+      ],
+      "designDecision": "A common interaction protocol may help, but domain concepts are insufficiently shared for one DSL without narrower scope."
+    },
+    {
+      "id": "contract-enforcement",
+      "definition": "Evaluate data/configuration/artifact state against an explicit machine-checkable contract and block or diagnose violations.",
+      "include": [
+        "declared contract",
+        "deterministic checks",
+        "pass/fail/violation evidence"
+      ],
+      "exclude": [
+        "open-ended review",
+        "behavior test whose acceptance is authored ad hoc"
+      ],
+      "positives": [
+        "vaquarkhan-data-validate-ingest",
+        "pilot-law-convert-validate",
+        "vectara-auth-secrets-configure"
+      ],
+      "nearCounterexamples": [
+        "github-security-review"
+      ],
+      "designDecision": "Reuse validators and diagnostics; do not infer semantic adequacy beyond the encoded contract."
+    },
+    {
+      "id": "validation-and-behavior-test",
+      "definition": "Execute representative behavior or paired conditions and compare observed results to assertions or evaluation criteria.",
+      "include": [
+        "executable target/condition",
+        "observation",
+        "assertion or grader",
+        "result evidence"
+      ],
+      "exclude": [
+        "static evidence review without execution",
+        "contract enforcement without task behavior"
+      ],
+      "positives": [
+        "anthropic-webapp-test-local",
+        "anthropic-skill-creator-evaluate"
+      ],
+      "nearCounterexamples": [
+        "fishzjp-exploratory-testing",
+        "vaquarkhan-data-validate-ingest"
+      ],
+      "designDecision": "Test/eval harness concepts are reusable infrastructure, not automatically a domain DSL."
+    },
+    {
+      "id": "judgment-guided-plan",
+      "definition": "Produce a domain plan whose rules and acceptance depend on expert judgment and for which this corpus has no bundled executor.",
+      "include": [
+        "explicit domain decisions and tradeoffs",
+        "reviewable plan",
+        "no claimed deterministic implementation"
+      ],
+      "exclude": [
+        "bundled parameterized generator"
+      ],
+      "positives": [
+        "pilot-experimental-design-sequential-plan"
+      ],
+      "nearCounterexamples": [
+        "pilot-experimental-design-generate"
+      ],
+      "designDecision": "Do not treat documentation-only support as executable DSL readiness."
+    }
+  ],
+  "assignments": [
+    {
+      "cardId": "pilot-i18n-scan-hardcoded-text",
+      "primaryRange": "evidence-backed-assessment",
+      "secondarySemantics": [
+        "preservation-constrained-transform"
+      ],
+      "supportStatus": "instructions-only",
+      "evaluationMode": "partial-oracle",
+      "rationale": "Classifies source evidence before any transform.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "pilot-i18n-generate-and-check-locales",
+      "primaryRange": "preservation-constrained-transform",
+      "secondarySemantics": [
+        "constraint-backed-artifact"
+      ],
+      "supportStatus": "instructions-only",
+      "evaluationMode": "partial-oracle",
+      "rationale": "Source-to-target rewrite has protected placeholders and key completeness.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "pilot-law-convert-validate",
+      "primaryRange": "preservation-constrained-transform",
+      "secondarySemantics": [
+        "contract-enforcement"
+      ],
+      "supportStatus": "bundled-deterministic-hybrid",
+      "evaluationMode": "partial-oracle",
+      "rationale": "Explicit fidelity invariant and structural validator; applicability/OCR remain judgment.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "pilot-experimental-design-generate",
+      "primaryRange": "domain-decision-plus-generator",
+      "secondarySemantics": [],
+      "supportStatus": "bundled-deterministic-hybrid",
+      "evaluationMode": "partial-oracle",
+      "rationale": "Domain choice selects a parameterized matrix generator.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "pilot-experimental-design-randomize",
+      "primaryRange": "domain-decision-plus-generator",
+      "secondarySemantics": [],
+      "supportStatus": "bundled-deterministic-hybrid",
+      "evaluationMode": "deterministic-plus-domain-review",
+      "rationale": "Seeded allocation is deterministic after unit/method choice.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "pilot-experimental-design-sequential-plan",
+      "primaryRange": "judgment-guided-plan",
+      "secondarySemantics": [],
+      "supportStatus": "reference-only",
+      "evaluationMode": "expert-review",
+      "rationale": "No bundled executor; stopping/adaptation semantics require statistical judgment.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "pilot-env-audit",
+      "primaryRange": "evidence-backed-assessment",
+      "secondarySemantics": [
+        "configuration-lifecycle"
+      ],
+      "supportStatus": "instructions-only",
+      "evaluationMode": "partial-oracle",
+      "rationale": "Static inventory supports, but cannot settle, deployment-use claims.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "pilot-env-generate-contracts",
+      "primaryRange": "constraint-backed-artifact",
+      "secondarySemantics": [
+        "configuration-lifecycle"
+      ],
+      "supportStatus": "instructions-only",
+      "evaluationMode": "partial-oracle",
+      "rationale": "Creates schema/templates under exposure and secret constraints.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "pilot-zh-readme-author",
+      "primaryRange": "iterative-content-design",
+      "secondarySemantics": [],
+      "supportStatus": "instructions-only",
+      "evaluationMode": "reader-and-source-review",
+      "rationale": "Source-grounded synthesis, not a preservation mapping.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "event4u-contract-review",
+      "primaryRange": "evidence-backed-assessment",
+      "secondarySemantics": [],
+      "supportStatus": "instructions-only",
+      "evaluationMode": "professional-review",
+      "rationale": "Evidence/report shape is checkable; legal risk remains domain judgment.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "mcp-use-purchasing-create-po",
+      "primaryRange": "policy-gated-external-action",
+      "secondarySemantics": [],
+      "supportStatus": "external-tool",
+      "evaluationMode": "external-receipt-plus-policy",
+      "rationale": "Approval and quantity gate a side effect.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "mcp-use-refunds-process",
+      "primaryRange": "policy-gated-external-action",
+      "secondarySemantics": [],
+      "supportStatus": "external-tool",
+      "evaluationMode": "external-receipt-plus-policy",
+      "rationale": "Date eligibility and order identity gate a side effect.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "vaquarkhan-data-validate-ingest",
+      "primaryRange": "contract-enforcement",
+      "secondarySemantics": [
+        "validation-and-behavior-test"
+      ],
+      "supportStatus": "bundled-deterministic-hybrid",
+      "evaluationMode": "deterministic-plus-domain-review",
+      "rationale": "Executable schema expectations enforce a domain-authored contract.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "fishzjp-exploratory-testing",
+      "primaryRange": "evidence-backed-assessment",
+      "secondarySemantics": [],
+      "supportStatus": "live-environment-agent",
+      "evaluationMode": "professional-review",
+      "rationale": "Open-ended hypothesis loop and evidence status are central.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "anthropic-pdf-extract-ocr",
+      "primaryRange": "preservation-constrained-transform",
+      "secondarySemantics": [],
+      "supportStatus": "tool-guidance",
+      "evaluationMode": "partial-oracle",
+      "rationale": "Extraction preserves source meaning but OCR introduces uncertainty.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "anthropic-pdf-transform-form",
+      "primaryRange": "preservation-constrained-transform",
+      "secondarySemantics": [
+        "constraint-backed-artifact"
+      ],
+      "supportStatus": "tool-guidance",
+      "evaluationMode": "partial-oracle",
+      "rationale": "Operation-specific source-to-output invariants; broad package contains several tasks.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "anthropic-xlsx-create-edit-validate",
+      "primaryRange": "constraint-backed-artifact",
+      "secondarySemantics": [
+        "contract-enforcement"
+      ],
+      "supportStatus": "bundled-tools-hybrid",
+      "evaluationMode": "partial-oracle",
+      "rationale": "Recalc and file checks do not prove business formula semantics.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "anthropic-pptx-create-edit-qa",
+      "primaryRange": "constraint-backed-artifact",
+      "secondarySemantics": [
+        "iterative-content-design"
+      ],
+      "supportStatus": "bundled-tools-hybrid",
+      "evaluationMode": "structural-plus-visual-review",
+      "rationale": "Package checks and rendered visual review are separate.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "anthropic-view-pdf-collaborate",
+      "primaryRange": "iterative-content-design",
+      "secondarySemantics": [
+        "policy-gated-external-action"
+      ],
+      "supportStatus": "external-interactive-tool",
+      "evaluationMode": "user-approved-visual-result",
+      "rationale": "Feedback-centered content editing is primary; approval gates each external mutation, while viewUUID reuse is state identity rather than configuration semantics.",
+      "classificationStatus": "revised-in-S5-boundary-still-disputed"
+    },
+    {
+      "cardId": "anthropic-doc-coauthor",
+      "primaryRange": "iterative-content-design",
+      "secondarySemantics": [],
+      "supportStatus": "instructions-only",
+      "evaluationMode": "reader-and-user-review",
+      "rationale": "User curation and fresh-reader feedback define completion.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "anthropic-frontend-design-build",
+      "primaryRange": "iterative-content-design",
+      "secondarySemantics": [],
+      "supportStatus": "instructions-only",
+      "evaluationMode": "visual-and-user-review",
+      "rationale": "Aesthetic/contextual judgment dominates deterministic floors.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "anthropic-skill-creator-author",
+      "primaryRange": "constraint-backed-artifact",
+      "secondarySemantics": [
+        "iterative-content-design"
+      ],
+      "supportStatus": "bundled-tools-hybrid",
+      "evaluationMode": "trigger-and-task-evaluation",
+      "rationale": "The immediate deliverable is a structured skill package under disclosure, description, reference, and script constraints; iterative elicitation remains secondary and behavior still needs separate representative evaluation.",
+      "classificationStatus": "revised-in-S5"
+    },
+    {
+      "cardId": "anthropic-skill-creator-evaluate",
+      "primaryRange": "validation-and-behavior-test",
+      "secondarySemantics": [],
+      "supportStatus": "bundled-evaluation-harness",
+      "evaluationMode": "paired-mixed-oracle",
+      "rationale": "Paired runs, assertions, qualitative review, and cost metrics.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "vscode-configure-repair",
+      "primaryRange": "configuration-lifecycle",
+      "secondarySemantics": [],
+      "supportStatus": "bundled-tools-external-state",
+      "evaluationMode": "deterministic-plus-user-review",
+      "rationale": "Precedence, scope, dry-run, authorization, and rollback matter.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "skill-i18n-translate-docs",
+      "primaryRange": "preservation-constrained-transform",
+      "secondarySemantics": [],
+      "supportStatus": "instructions-only",
+      "evaluationMode": "partial-oracle",
+      "rationale": "Protected spans and source non-overwrite are explicit invariants.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "web-research-synthesize",
+      "primaryRange": "evidence-backed-assessment",
+      "secondarySemantics": [],
+      "supportStatus": "external-search-agent",
+      "evaluationMode": "source-and-reader-review",
+      "rationale": "Source authority/corroboration and diminishing returns drive completion.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "vectara-agent-configure-use",
+      "primaryRange": "configuration-lifecycle",
+      "secondarySemantics": [],
+      "supportStatus": "external-api-state",
+      "evaluationMode": "external-receipt-plus-behavior",
+      "rationale": "Versioned resource/session/event lifecycle.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "vectara-auth-secrets-configure",
+      "primaryRange": "configuration-lifecycle",
+      "secondarySemantics": [
+        "contract-enforcement"
+      ],
+      "supportStatus": "external-api-state",
+      "evaluationMode": "schema-security-and-external-receipt",
+      "rationale": "Secret ownership/masking and eager reference resolution.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "anthropic-webapp-test-local",
+      "primaryRange": "validation-and-behavior-test",
+      "secondarySemantics": [
+        "evidence-backed-assessment"
+      ],
+      "supportStatus": "bundled-tool-live-state",
+      "evaluationMode": "assertion-plus-agent-review",
+      "rationale": "Reconnaissance chooses the flow; browser assertions check it.",
+      "classificationStatus": "provisional"
+    },
+    {
+      "cardId": "github-security-review",
+      "primaryRange": "evidence-backed-assessment",
+      "secondarySemantics": [],
+      "supportStatus": "instructions-plus-references",
+      "evaluationMode": "professional-review",
+      "rationale": "Pattern support cannot replace exploitability/severity judgment.",
+      "classificationStatus": "provisional"
+    }
+  ],
+  "disputes": [
+    {
+      "id": "D1-pdf-ocr-boundary",
+      "status": "unresolved",
+      "cardIds": [
+        "anthropic-pdf-extract-ocr"
+      ],
+      "question": "Is OCR a preservation-constrained transform variant, or does recognition uncertainty require a narrower task/range?",
+      "currentTreatment": "Keep a provisional transform assignment but do not count it as an independent core member for the recommended range.",
+      "impact": "The primary range must be justified by the legal and i18n lineages without relying on OCR."
+    },
+    {
+      "id": "D2-pdf-operation-package",
+      "status": "unresolved-requires-task-split",
+      "cardIds": [
+        "anthropic-pdf-transform-form"
+      ],
+      "question": "Merge/split/rotate/watermark/fill preserve a source, while create may not; one package-level card is too coarse.",
+      "currentTreatment": "The assignment covers source-backed transforms only. A future corpus revision must split creation from transformation before using this package as range evidence.",
+      "impact": "Do not enlarge preservation-constrained-transform to absorb source-free creation."
+    },
+    {
+      "id": "D3-interactive-pdf-purpose",
+      "status": "unresolved-boundary",
+      "cardIds": [
+        "anthropic-view-pdf-collaborate"
+      ],
+      "question": "Feedback-centered editing is primary, but user-approved external mutations also carry policy-action semantics.",
+      "currentTreatment": "Retain iterative-content-design as primary and revise the secondary semantic to policy-gated-external-action.",
+      "impact": "Exclude it from the proposed offline transformation DSL even though it shares PDF edits and preservation concerns."
+    },
+    {
+      "id": "D4-cross-cutting-ranges",
+      "status": "unresolved-modeling-choice",
+      "cardIds": [
+        "pilot-law-convert-validate",
+        "vaquarkhan-data-validate-ingest",
+        "vectara-auth-secrets-configure",
+        "anthropic-webapp-test-local"
+      ],
+      "question": "Should contract-enforcement and evidence collection remain primary ranges or become reusable secondary/runtime capabilities?",
+      "currentTreatment": "Keep them as working primary ranges when they are the task purpose, and secondary semantics otherwise.",
+      "impact": "A future ontology may refactor these dimensions; the range recommendation does not depend on treating them as mutually exclusive classes."
+    }
+  ],
+  "validation": {
+    "status": "passed",
+    "checkedAt": "2026-09-19T23:27:57+08:00",
+    "taskCards": 30,
+    "assignments": 30,
+    "uniqueAssignmentIds": 30,
+    "missingTaskCards": [],
+    "extraAssignments": [],
+    "unknownPrimaryRanges": []
+  },
+  "challenge": {
+    "status": "completed-development",
+    "protocol": "Apply v1 from task cards and necessary cited source positions, then challenge the purpose/operation decision against completion, runtime responsibility, unread dependencies, and near counterexamples. This is agent-authored development analysis, not independent human labeling or a held-out accuracy study.",
+    "challengeSet": [
+      {
+        "cardId": "pilot-i18n-scan-hardcoded-text",
+        "whyHard": "The package and topic suggest transformation, but this task only reports evidence.",
+        "originalDecision": "evidence-backed-assessment",
+        "postChallengeDecision": "retained",
+        "reason": "Its observable completion is a bounded report; locale generation is a separate task card."
+      },
+      {
+        "cardId": "anthropic-view-pdf-collaborate",
+        "whyHard": "It combines feedback-centered editing, live state identity, user approval, and external mutations.",
+        "originalDecision": "iterative-content-design + configuration-lifecycle",
+        "postChallengeDecision": "iterative-content-design + policy-gated-external-action",
+        "reason": "viewUUID reuse does not establish configuration precedence or lifecycle; approval directly gates mutations. The primary boundary remains disputed."
+      },
+      {
+        "cardId": "pilot-experimental-design-sequential-plan",
+        "whyHard": "It shares scientific vocabulary with bundled design generators but has no executor.",
+        "originalDecision": "judgment-guided-plan",
+        "postChallengeDecision": "retained",
+        "reason": "Pre-registration and simulation requirements are reviewable, but no implementation supports deterministic generation or validation."
+      },
+      {
+        "cardId": "anthropic-skill-creator-author",
+        "whyHard": "Authoring mixes package constraints, elicitation, progressive disclosure, and later behavior quality.",
+        "originalDecision": "iterative-content-design + constraint-backed-artifact",
+        "postChallengeDecision": "constraint-backed-artifact + iterative-content-design",
+        "reason": "The immediate output is a structured package with explicit constraints; paired behavior evaluation is already a separate task card."
+      },
+      {
+        "cardId": "anthropic-skill-creator-evaluate",
+        "whyHard": "It lives in the authoring package but executes paired conditions and mixed oracles.",
+        "originalDecision": "validation-and-behavior-test",
+        "postChallengeDecision": "retained",
+        "reason": "Package lineage does not override the task's executable comparison purpose."
+      },
+      {
+        "cardId": "anthropic-pdf-extract-ocr",
+        "whyHard": "Extraction can preserve source meaning, but OCR adds recognition uncertainty and operation-specific dependencies.",
+        "originalDecision": "preservation-constrained-transform",
+        "postChallengeDecision": "retained-provisionally-with-unresolved-subtype",
+        "reason": "Source/target and fidelity remain central, but OCR is not counted as core independent evidence until split or tested."
+      },
+      {
+        "cardId": "anthropic-pdf-transform-form",
+        "whyHard": "One package/card combines source-backed edits with source-free creation.",
+        "originalDecision": "preservation-constrained-transform + constraint-backed-artifact",
+        "postChallengeDecision": "requires-task-split; assignment applies only to source-backed operations",
+        "reason": "Widening the transform definition to include creation would erase the source/preservation boundary."
+      },
+      {
+        "cardId": "vectara-auth-secrets-configure",
+        "whyHard": "Authorization and secret policy resemble a gated action, while scoped refs and sessions have precedence and lifecycle.",
+        "originalDecision": "configuration-lifecycle + contract-enforcement",
+        "postChallengeDecision": "retained",
+        "reason": "The task manages durable/scoped state and eager resolution, not one transaction with a receipt."
+      },
+      {
+        "cardId": "anthropic-webapp-test-local",
+        "whyHard": "Reconnaissance and evidence collection precede executable assertions; helper/example bodies were not read.",
+        "originalDecision": "validation-and-behavior-test + evidence-backed-assessment",
+        "postChallengeDecision": "retained-with-source-limit",
+        "reason": "Execution and assertions define completion, while the unread helper limits support-detail claims rather than the task-purpose decision."
+      }
+    ],
+    "outcomes": {
+      "challengeTasks": 9,
+      "retainedPrimaryAssignments": 8,
+      "revisedPrimaryAssignments": 1,
+      "revisedSecondaryAssignments": 1,
+      "unresolvedTasks": 3,
+      "taskSplitRequired": 1,
+      "note": "Counts describe this development challenge only and are not classification accuracy. Unresolved and split-required tasks overlap retained assignments."
+    },
+    "ambiguityCounts": [
+      {
+        "type": "semantic-boundary-ambiguity",
+        "count": 6,
+        "cardIds": [
+          "anthropic-view-pdf-collaborate",
+          "anthropic-skill-creator-author",
+          "anthropic-pdf-extract-ocr",
+          "anthropic-pdf-transform-form",
+          "vectara-auth-secrets-configure",
+          "anthropic-webapp-test-local"
+        ]
+      },
+      {
+        "type": "source-incomplete-for-support-detail",
+        "count": 5,
+        "cardIds": [
+          "anthropic-skill-creator-author",
+          "anthropic-skill-creator-evaluate",
+          "anthropic-pdf-extract-ocr",
+          "anthropic-pdf-transform-form",
+          "anthropic-webapp-test-local"
+        ]
+      },
+      {
+        "type": "one-skill-contains-multiple-tasks",
+        "packageCount": 2,
+        "taskCount": 4,
+        "cardIds": [
+          "anthropic-skill-creator-author",
+          "anthropic-skill-creator-evaluate",
+          "anthropic-pdf-extract-ocr",
+          "anthropic-pdf-transform-form"
+        ]
+      },
+      {
+        "type": "rule-granularity-mismatch",
+        "count": 5,
+        "cardIds": [
+          "anthropic-view-pdf-collaborate",
+          "anthropic-skill-creator-author",
+          "anthropic-pdf-extract-ocr",
+          "anthropic-pdf-transform-form",
+          "anthropic-webapp-test-local"
+        ]
+      }
+    ],
+    "unclassifiableOrUnresolved": [
+      {
+        "cardId": "anthropic-pdf-transform-form",
+        "state": "mixed card must be split before a package-wide primary assignment is meaningful"
+      },
+      {
+        "cardId": "anthropic-pdf-extract-ocr",
+        "state": "provisional transform member; OCR subtype unresolved"
+      },
+      {
+        "cardId": "anthropic-view-pdf-collaborate",
+        "state": "primary retained for working use; cross-range boundary unresolved"
+      }
+    ],
+    "effectOnRangeSelection": "The preservation-constrained-transform candidate remains viable only from the legal and two i18n task lineages. PDF examples are boundary evidence, not required support. Mixed packages must be split rather than absorbed by broader definitions."
+  },
+  "rangeRecommendation": {
+    "status": "provisional-method-recommendation",
+    "criteria": [
+      "real task demand",
+      "member-derived shared semantics",
+      "expressible within-range variation",
+      "coverage or competition from existing languages",
+      "effect evaluability",
+      "reuse of existing infrastructure",
+      "minimum implementation size"
+    ],
+    "candidates": [
+      {
+        "rangeId": "preservation-constrained-transform",
+        "realDemand": "Legal conversion, skill-document translation, locale generation/checking, and source-backed PDF operations all require a target artifact without silently losing protected source identity.",
+        "memberDerivedSharedSemantics": [
+          {
+            "members": [
+              "pilot-law-convert-validate",
+              "skill-i18n-translate-docs"
+            ],
+            "semantic": "source/target identity, explicit eligible units, protected content, non-overwrite output, and post-transform validation"
+          },
+          {
+            "members": [
+              "skill-i18n-translate-docs",
+              "pilot-i18n-generate-and-check-locales"
+            ],
+            "semantic": "agent-selected language transformation bounded by code/path/URL/placeholder protection and completeness checks"
+          },
+          {
+            "members": [
+              "pilot-law-convert-validate",
+              "pilot-i18n-generate-and-check-locales"
+            ],
+            "semantic": "deterministic validators can check encoded invariants while applicability and semantic adequacy remain explicit agent/reviewer judgments"
+          }
+        ],
+        "expressibleVariation": "Selectors, protection kinds, transform profiles, output policy, validator profiles, and agent-judgment contracts vary without changing the source-preservation lifecycle.",
+        "existingLanguageFit": "gettext, AST tools, Pandoc, PDF utilities, and workflow/config languages solve narrower mechanics; organized Markdown can state all obligations but cannot by itself type them, bind validators, or make rule mutation observable.",
+        "evaluability": "High for source identity, protected-span equality, non-overwrite, target completeness, and diagnostic behavior; bounded human or model review is still needed for legal applicability, translation quality, and OCR fidelity.",
+        "infrastructureReuse": "Can reuse parsing/validation patterns, natural task entry, input snapshots, portable package/evidence concepts, and selected validators, while requiring a new domain schema and adapters.",
+        "minimumImplementation": "One schema/loader, one agent-oriented plan renderer, reusable preservation/completeness validators, and three examples/tests across legal and i18n lineages.",
+        "verdict": "primary",
+        "strongestObjection": "The range may collapse into a generic transform wrapper because legal structure reconstruction, translation, locale-key migration, and OCR use different semantic operations. A next implementation must show that changing shared constructs changes diagnostics or results across at least two lineages."
+      },
+      {
+        "rangeId": "constraint-backed-artifact",
+        "realDemand": "Spreadsheet, presentation, environment-contract, and skill-package tasks all create or repair structured deliverables with explicit constraints and review loops.",
+        "memberDerivedSharedSemantics": [
+          {
+            "members": [
+              "anthropic-xlsx-create-edit-validate",
+              "anthropic-pptx-create-edit-qa",
+              "pilot-env-generate-contracts",
+              "anthropic-skill-creator-author"
+            ],
+            "semantic": "artifact kind, declared constraints, construction/editing, machine-checkable floor, and a separate semantic/visual/behavior review"
+          }
+        ],
+        "expressibleVariation": "Artifact-specific schemas and validator profiles could be variants, but formulas, rendering, secret exposure, and skill triggering are not a small common domain vocabulary.",
+        "existingLanguageFit": "JSON Schema, spreadsheet formulas, document APIs, presentation renderers, and Agent Skills packaging already cover large portions; a cross-artifact DSL risks duplicating them as a workflow shell.",
+        "evaluability": "Strong structural checks exist, but business formula, visual, deployment, and behavior quality require different oracles.",
+        "infrastructureReuse": "Artifact packaging and validators are reusable, but each artifact kind needs a substantial new adapter and dependency stack.",
+        "minimumImplementation": "Larger than the primary unless narrowed to one artifact family; a cross-family minimum would need at least three unrelated adapters.",
+        "verdict": "alternative-only-after-narrowing",
+        "strongestObjection": "The common layer may be only generic create/check orchestration, with the useful semantics residing in existing artifact-specific languages and tools."
+      },
+      {
+        "rangeId": "evidence-backed-assessment",
+        "realDemand": "Contract, security, environment, exploratory-testing, and research tasks all need traceable evidence, bounded claims, uncertainty, and stop/handoff rules.",
+        "memberDerivedSharedSemantics": [
+          {
+            "members": [
+              "event4u-contract-review",
+              "github-security-review",
+              "fishzjp-exploratory-testing",
+              "web-research-synthesize",
+              "pilot-env-audit"
+            ],
+            "semantic": "evidence item, source/location, claim or finding, uncertainty/severity/status, and review or stop condition"
+          }
+        ],
+        "expressibleVariation": "Finding taxonomies and evidence collectors can be plug-ins, but validity, severity, legal meaning, exploitability, and research sufficiency differ materially.",
+        "existingLanguageFit": "SARIF, test reports, review templates, and citation formats cover parts; a generic evidence schema is plausible infrastructure but not yet a domain DSL.",
+        "evaluability": "Traceability and completeness are checkable; professional semantic quality is expensive and often lacks a complete oracle.",
+        "infrastructureReuse": "Current evidence and validation infrastructure is relevant, but reusing it too early would bias the classification toward existing support.",
+        "minimumImplementation": "A schema is small, but proving domain value requires at least two professional finding vocabularies and reviewers or bounded reference cases.",
+        "verdict": "not-selected",
+        "strongestObjection": "Shared evidence fields may organize outputs without changing how a domain judgment is made, so the language could add formality but no task effect."
+      }
+    ],
+    "primary": {
+      "rangeId": "preservation-constrained-transform",
+      "recommendedScope": "Offline source-to-target transformations with explicit eligible units, named protected spans or relations, non-destructive output, declared transform profiles, observable checks, and explicit agent-judgment boundaries.",
+      "independentCoreEvidence": [
+        "pilot-law-convert-validate",
+        "skill-i18n-translate-docs",
+        "pilot-i18n-generate-and-check-locales"
+      ],
+      "memberNotCurrentlySupported": {
+        "cardId": "anthropic-pdf-extract-ocr",
+        "reason": "It fits source/target fidelity provisionally, but no proposed runtime yet binds OCR, confidence, page geometry, or recognition-quality handling; it is a boundary member, not implementation proof."
+      },
+      "notMinimumIntersection": "The scope retains domain obligations that a generic workflow would omit: eligible-unit selection, protected-span identity, transform intent, non-overwrite, completeness/fidelity validators, ambiguity policy, and an agent-judgment contract. Variants express legal hierarchy reconstruction, prose translation, and locale generation rather than discarding those differences.",
+      "outside": [
+        "source-free synthesis",
+        "interactive live-state editing",
+        "assessment-only tasks",
+        "policy-gated external transactions",
+        "artifact creation whose correctness is primarily rendering or business semantics"
+      ]
+    },
+    "alternative": {
+      "rangeId": "constraint-backed-artifact",
+      "condition": "Narrow first to one artifact family or demonstrate a cross-family construct with an observable effect beyond generic create/validate orchestration."
+    }
+  }
+}

@@ -97,3 +97,19 @@ Y1 多程序接力因当前真实最终选择没有双程序组合而 `not-appli
 - 一次生成/验证、明确错误时一次自动修复；有新根因可继续改共享工程，不无限抽样或补样。
 - 不启动 Q1/held-out/prospective、不修改 readiness 或历史证据；不重复历史全量审计、clean/摘要循环。
 - 按新 C0–C10 任务书连续推进，常规检查点不等确认；最低新程序闭环条件达成后交付。尚有可执行必需工作时不把持续目标标记为完成。
+
+## 2026-09-19 方法准备结论与下一执行队列
+
+S0–S11 已完成；本节是当前计划更新，覆盖上方较早阶段的状态。研究产物位于 [`skill-task-dsl-preparation-20260919`](../../results/skill-ir/skill-task-dsl-preparation-20260919/research-report.md)。结论是进入一个**有界方法原型**，不是提前实现生产 DSL。
+
+主选范围为离线保存约束转换，暂定语义为 `source`、`select`、`protect`、`transform`、`targets`、`checks`、bounded `judge`、`resources` 与 `on` policy。声明经解释形成有界 agent context，确定性逻辑负责 preflight/check/promotion，可选 operation adapter 只实现已声明的机械能力。整理 Markdown 必须保留为信息等价基线。
+
+下一轮严格按以下五项推进：
+
+1. 新建窄域 schema 与 semantic validator，不修改旧 `SkillIRSchema`；先覆盖 source/target 冲突、未知 protection/check、判断合同不完整。
+2. 实现 obligation ledger 与 agent-plan renderer；旧 skill 迁移有未处置必要义务时 fail closed，直接编写不依赖历史 trace。
+3. 实现 non-overwrite、protected equality、selected-unit coverage、placeholder/key parity；已有法律 checker 只能作为命名 adapter 绑定。
+4. 通过现有 natural task、pre-run snapshot、skill resource 与 adapter 路径消费一个直接编写包；同包处理原始和变化 Markdown 输入，禁止 skill-name 分支或任意命令回退。
+5. 先做确定性 mutation/failure tests，再按 O 原 skill、M 整理 Markdown、MH Markdown+同 helper、DH DSL+同 helper 运行小型 development 对照；语义质量与开发成本和运行成本分开。
+
+首个里程碑只要求：一个直接编写包走普通入口，两个输入成功，缺必要输入与 placeholder 破坏各有一次预期失败。若跨法律/i18n 的共同构造没有可观察作用，或 DH 不能在质量底线下优于 MH，则缩窄范围或继续用 Markdown，不扩建框架。

@@ -213,3 +213,15 @@ python scripts/check_skill_ir_doc_links.py
 - 开发和测试：[developer guide](developer-guide.md)
 - 组件接口：[IR](ir-core.md)、[优化与产物](optimization-and-artifacts.md)、[评价](evaluation-system.md)、
   [API 引擎](api-task-engine.md)、[分类与路由](classification-and-routing.md)
+
+## 8. 2026-09-19 方法准备完成（当前更新）
+
+S0–S11 已完成 development 方法准备；本节覆盖本页上方较早阶段的状态表述。完整结论见[研究报告](../../results/skill-ir/skill-task-dsl-preparation-20260919/research-report.md)，结构卡、分类、方法演练和来源均保存在同一结果目录。本轮未改生产代码，未执行 DSL 探针、模型效果实验或项目付费 API 调用。
+
+- **主选范围：** 离线保存约束转换。核心证据来自法律转换、公开 skill 文档翻译和本地 locale 生成/检查；共同语义为 source/target、eligible units、protected spans/relations、transform intent、non-overwrite、checks、ambiguity policy 与 bounded agent judgment。
+- **备选范围：** 约束产物，但必须先缩到单一 artifact family；跨 XLSX/PPTX/env/skill package 的共同层可能只是通用 create/check。
+- **方法判断：** 小型原型 `promising`，效果 `unproven`。建议 typed domain declaration 组织 agent，上下游用 deterministic preflight/validators，可选绑定 operation adapter；不先建通用执行器，不强制经过旧 Skill IR/action。
+- **最强反例：** 法律层级、翻译、locale migration 与 OCR 可能只共享通用转换外壳；整理 Markdown 配同一 helper 可能同样有效且更便宜。
+- **下一执行任务：** 仅做五项最小实现：窄 schema/semantic validator；obligation ledger/plan renderer；保存与完整性 checks；普通 natural-run 消费切片；rule-mutation tests 与 O/M/MH/DH development harness。先做无模型测试，再决定是否运行小配对面板。
+
+下一轮不含稳定语法、公共 CLI、完整编译器、自动迁移主张、OCR/交互 PDF 后端或跨 artifact 平台。历史冻结结果、Q1、held-out、readiness 与 prospective 状态不改变。
