@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**E0–E10 已完成；[T0–T10 授权领域证据与评价定向研究](../superpowers/plans/2026-09-20-authorization-domain-evidence-and-evaluation.md)已完成 T0–T9，当前执行 T10 归并发布。** 方法就绪建议为 `ready-with-bounded-questions`：真实案例、答案隔离、coverage/evidence 分母、评价协议和 fixed-context 消费路径足以支持一个窄原型，但尚无模型消费、跨项目复用或主动发现证据。配置可以承载领域语言；整体方法收益、额外表示收益和确定性一致性分开，旧 C/P parity 不再是默认下一步。I1、本地化实现、正式效果实验及生产开发均未启动。
+**E0–E10 与 [T0–T10 授权领域证据与评价定向研究](../superpowers/plans/2026-09-20-authorization-domain-evidence-and-evaluation.md)均已完成；T 状态为 `completed-with-open-questions`。** 方法就绪建议为 `ready-with-bounded-questions`：真实案例、答案隔离、coverage/evidence 分母、评价协议和 fixed-context 消费路径足以支持一个窄原型，但尚无模型消费、跨项目复用或主动发现证据。配置可以承载领域语言；整体方法收益、额外表示收益和确定性一致性分开，旧 C/P parity 不再是默认下一步。I1、本地化实现、正式效果实验及生产开发均未启动。
 
 已经站得住的判断：
 
@@ -711,7 +711,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 
 ### 2026-09-20 T10 归并验证与发布准备记录
 
-解析 15 个研究 JSON、40 条来源及 52 条既有 observation，确认 18 条 T1–T9 记录 ID 唯一；三个真实 case 的 8 个 exact input 与 5 个 evaluator-only 文件无交叉，关键 source trace 均能在裁剪输入定位。文档链接单测 12/12 通过；纳入本轮 staged 文件后的 9,310 文件扫描为 broken/legacy/governance error 各 0，三条 `technical-document-localization` 旧引用只按精确 source/target 记为 retired；cached diff check 通过。独立 default-agent 交付审阅 Critical 0，指出的 output index 已补齐，另两项明确要求保留到实际发布：不能提前标 T10 完成，且须披露 current-status、plan、spec 三个 T0 前已 dirty 的共享文件只做本地同步、不吞入本轮提交。该复核不是人工评审或效果证据；发布提交和远端核对仍待执行。
+解析 15 个研究 JSON、40 条来源及 52 条既有 observation，确认 18 条 T1–T9 记录 ID 唯一；三个真实 case 的 8 个 exact input 与 5 个 evaluator-only 文件无交叉，关键 source trace 均能在裁剪输入定位。文档链接单测 12/12 通过；纳入本轮 staged 文件后的 9,310 文件扫描为 broken/legacy/governance error 各 0，三条 `technical-document-localization` 旧引用只按精确 source/target 记为 retired；cached diff check 通过。独立 default-agent 交付审阅 Critical 0，指出的 output index 已补齐；该复核不是人工评审或效果证据。25 个归属文件已进入证据提交 `2118a7d`；current-status、plan、spec 三个 T0 前已 dirty 的共享文件只做本地同步，未吞入该提交。最终状态提交与 `origin/skill-ir-aot` 推送完成后，本轮停止，不自动启动原型。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 
