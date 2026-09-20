@@ -2460,7 +2460,7 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **已有基础。** 复用现有捕获、资源与参数索引、验证、局部修复、执行和包导出能力，但不强制新 DSL 先经过旧统一 IR 或既有 action 格式才能成立。保留通用基础设施与领域语义的区别；不预设新 CLI、文件扩展名、完整编译器或大规模框架迁移。旧 IR 和已发布接口继续兼容，历史研究结果不回写。
 
-**下一步。** T 与 V 已完成；[W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已制定，尚未执行。保持三个 fixed-context development 案例，先修复结果传输、引用、调用生命周期及评价分层，再完成新 B/D 配对。历史 held-out、冻结身份和 readiness 保持各自记录。
+**下一步。** T、V 及 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)的工程、真实配对与最终验证已完成，正在做发布收口。继续保持三个 fixed-context development 案例；下一轮只研究缺失的通用条件结果与身份 provisioning 关系，不自动扩入口发现或第二项目。历史 held-out、冻结身份和 readiness 保持各自记录。
 
 **已有研究。** S0–S11 方法准备、D0–D11 语义深化/探针与 E0–E10 外部类别研究已完成；分类、标准比较、候选设计、45 项旧探针边界、外部任务/反例、方法对照、消费设计、范围决定与复核发现统一维护在[研究总文档](skill-dsl-research.md)，旧来源和结果保持原件。D 阶段的 `proceed-narrow` 只表示当时对技术文档本地化候选的有界可实施性建议，未证明真实模型消费和效果。
 
@@ -2479,5 +2479,9 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **V 评价与实际结果。** initial 四个单元完成，仅 file 一组完整；revision pair 仍不完整，效果 `not-established`。file 两臂 final 的语义 review 均支持关键事实，B 的 partial 来自引用格式。完整数字由[研究总文档 §7.19–7.20](skill-dsl-research.md#719-v-开发合同与持续复盘)与原 summary 维护，不在 spec 另设重复结果表。V 归档调用是返回快照中的已记录量；9 月 21 日离线复核发现迟到 fallback 缺口，未知历史调用与费用不作推算。
 
 **W 最小实现合同。** 保留声明与旧 canonical result，模型 wire 单独版本化；请求元数据和 exact quote 由宿主绑定，模型返回义务判断、事实引用及必要 unknown 信息。全部允许源码使用共同编号目录，不按答案挑选。schema/fallback 共用合同；关闭后禁止新派发，逐请求事件计量，repair 失败保留 initial，迟到结算不改实验答案。评价分别给出语义正确、证据支持、传输有效和完整交付；旧评分按原版本回放。当前 B/D 共用源码、输出协议、deadline 和修复机会，领域组织差异明确记录。首先修复这些具体问题；第二项目由结果中的明确方法问题驱动。
+
+**W 实际结果与方法边界。** 三个 Open WebUI development 案例的六个 fresh-context 单元全部完成，传输、交付和语义判断均为 6/6；file 与 controlled-text 四单元证据完整，trusted-header 两臂都正确 abstain 但都漏掉严格条件关系。B 共 5 次 provider dispatch，D 共 3 次；D 少 8,853 input 和 2,814 output tokens，但两臂没有质量差异，样本不足以把开销差异推广为方法优势。实际 USD 均未报告。六个真实输出没有暴露可支持 revision 的共享缺陷，故 W8 不增加答案提示或放宽 rubric。W9 独立审查另发现 invalid wire 在有诊断时仍可生成 canonical result 的错误路径，已以确定性红绿测试改为 fail closed；存档六单元均为有效最终结果，因此没有重跑 provider。当前只证明有界工程可行；领域方法效果仍未建立，不能进入生产默认、跨项目或全安全任务主张。
+
+**下一轮最小合同。** 只为现有授权范围研究非案例化的 `control state → authentication outcome → identity provisioning → deployment boundary → protected effect` 条件关系如何在声明或方法中显式覆盖。最小实现必须沿用现有窄 wire、宿主引用、相同 B/D 公共事实和既有三案例；先以 trusted-header 的可选 signup、控制关闭、认证失败、安全代理和攻击者头可达为已知缺口验证关系覆盖，不把这些答案写成案例提示。只有同一小面板出现可复核的证据完整性提升，才决定第二项目或更广实现。
 
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。

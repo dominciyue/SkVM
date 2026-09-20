@@ -148,24 +148,35 @@ describe("AuthorizationWireResultV1", () => {
     }
   })
 
-  it("reports duplicate, foreign, and missing obligation IDs explicitly", () => {
+  it("refuses canonical results for duplicate, foreign, and missing obligation IDs", () => {
     const duplicate = wire()
     ;(duplicate.results as unknown[]).push(structuredClone((duplicate.results as unknown[])[0]))
     const foreign = wire()
     ;((foreign.results as Array<Record<string, unknown>>)[0]!).obligationId = "invented::save"
+    const missing = wire()
+    missing.results = []
 
     const duplicateResult = normalize(duplicate)
     expect(duplicateResult.status).toBe("invalid")
+    expect(duplicateResult.result).toBeUndefined()
     expect(duplicateResult.diagnostics.map(item => item.code)).toEqual(expect.arrayContaining([
       "duplicate-obligation-result",
     ]))
 
     const foreignResult = normalize(foreign)
     expect(foreignResult.status).toBe("invalid")
+    expect(foreignResult.result).toBeUndefined()
     expect(foreignResult.diagnostics.map(item => item.code)).toEqual(expect.arrayContaining([
       "foreign-obligation-result",
       "missing-obligation-result",
     ]))
+
+    const missingResult = normalize(missing)
+    expect(missingResult.status).toBe("invalid")
+    expect(missingResult.result).toBeUndefined()
+    expect(missingResult.diagnostics).toContainEqual(expect.objectContaining({
+      code: "missing-obligation-result",
+    }))
   })
 
   it("rejects stale source IDs, cross-source ranges, and a bundle from another ref", () => {
@@ -193,6 +204,7 @@ describe("AuthorizationWireResultV1", () => {
 
     const incomplete = normalize(candidate)
     expect(incomplete.status).toBe("invalid")
+    expect(incomplete.result).toBeUndefined()
     expect(incomplete.diagnostics).toContainEqual(expect.objectContaining({ code: "uninformative-unknown" }))
 
     result.decisiveMissingFacts = ["The deployment role mapping is absent."]

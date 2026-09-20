@@ -97,9 +97,7 @@ export function normalizeAuthorizationWireResult(input: {
   }
 
   const diagnostics: AuthorizationTransportDiagnostic[] = []
-  let bindingInvalid = false
   if (input.sourceBundle.repository !== input.compiled.task.repository) {
-    bindingInvalid = true
     diagnostics.push(transportDiagnostic(
       "repository-mismatch",
       "Declaration and exact source bundle must identify the same repository.",
@@ -107,7 +105,6 @@ export function normalizeAuthorizationWireResult(input: {
     ))
   }
   if (input.sourceBundle.sourceRef !== input.compiled.task.sourceRef) {
-    bindingInvalid = true
     diagnostics.push(transportDiagnostic(
       "source-ref-mismatch",
       "Declaration and exact source bundle must identify the same source ref.",
@@ -115,7 +112,6 @@ export function normalizeAuthorizationWireResult(input: {
     ))
   }
   if (input.sourceBundle.sourceMode !== input.compiled.task.sourceMode) {
-    bindingInvalid = true
     diagnostics.push(transportDiagnostic(
       "source-mode-mismatch",
       "Declaration and exact source bundle must use the same source mode.",
@@ -175,7 +171,6 @@ export function normalizeAuthorizationWireResult(input: {
     }
   }
 
-  let citationInvalid = false
   const canonicalResults: AuthorizationResultV0["results"] = wireResult.results.map((result, resultIndex) => ({
     obligationId: result.obligationId,
     conclusion: result.conclusion,
@@ -187,7 +182,6 @@ export function normalizeAuthorizationWireResult(input: {
         citations: fact.citations.flatMap((reference, citationIndex) => {
           const resolved = resolveAuthorizationSourceCitation(built.catalog, reference)
           if (!resolved.success) {
-            citationInvalid = true
             diagnostics.push(...resolved.diagnostics.map(item => transportDiagnostic(
               item.code,
               item.message,
@@ -196,7 +190,6 @@ export function normalizeAuthorizationWireResult(input: {
             return []
           }
           if (resolved.citation.quote.length === 0) {
-            citationInvalid = true
             diagnostics.push(transportDiagnostic(
               "empty-citation-quote",
               "A cited source range must contain retained text.",
@@ -212,7 +205,7 @@ export function normalizeAuthorizationWireResult(input: {
     suggestedObservations: result.suggestedObservations,
   }))
 
-  const canonicalResult: AuthorizationResultV0 | undefined = bindingInvalid || citationInvalid
+  const canonicalResult: AuthorizationResultV0 | undefined = diagnostics.length > 0
     ? undefined
     : {
       schemaVersion: "source-authorization-assessment-result/v0",

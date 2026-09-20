@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "authorization-semantic-review/v0",
+  "caseId": "owui-process-file-write",
+  "taskId": "owui-process-file-write",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "be43908e3a786420e596592bb152be46074fdae76477ead83ca51848d59f941f",
+  "rubricVersion": "owui-process-file-write-oracle/v1",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "codex-development-agent-w7"
+  },
+  "factReviews": [
+    {
+      "factId": "source-file-ownership-check",
+      "status": "supported",
+      "reason": "The answer states that the non-admin lookup binds file retrieval to both file ID and caller user ID, making the visible check a source-file ownership control.",
+      "answerLocation": "/results/0/facts/binding/0",
+      "sourceLocations": [
+        { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 40, "endLine": 44 }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/0"
+    },
+    {
+      "factId": "destination-is-distinct",
+      "status": "supported",
+      "reason": "The answer distinguishes binding to source-file ownership from authorization on the caller-selected destination knowledge base.",
+      "answerLocation": "/results/0/facts/binding/0",
+      "sourceLocations": [
+        { "path": "inputs/owui-process-file-write/task.json", "startLine": 6, "endLine": 8 },
+        { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 21, "endLine": 24 },
+        { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 45, "endLine": 50 }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/1"
+    },
+    {
+      "factId": "destination-write-control-absent",
+      "status": "supported",
+      "reason": "The answer explicitly says that the supplied complete crop shows no destination ownership or write-grant check before the save path.",
+      "answerLocation": "/results/0/facts/control",
+      "sourceLocations": [
+        { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 45, "endLine": 53 },
+        { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 55, "endLine": 74 }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/2"
+    },
+    {
+      "factId": "destination-reaches-insert",
+      "status": "supported",
+      "reason": "The answer traces collection_name into save_docs_to_vector_db and then into VECTOR_DB_CLIENT.insert.",
+      "answerLocation": "/results/0/facts/effect",
+      "sourceLocations": [
+        { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 14, "endLine": 18 },
+        { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 62, "endLine": 74 }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/3"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The answer reaches source_supported_failure from the complete entry-to-insert chain and the missing destination-specific write control.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 14, "endLine": 18 },
+      { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 40, "endLine": 50 },
+      { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 62, "endLine": 74 }
+    ],
+    "oracleRule": "oracles/owui-process-file-write.json#/disposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The scope claim remains limited to the declared runnable obligation and supplied fixed crops without repository-wide completeness claims.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      { "path": "inputs/owui-process-file-write/task.json", "startLine": 6, "endLine": 18 }
+    ],
+    "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0"
+  }
+}

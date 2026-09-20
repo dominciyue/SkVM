@@ -13,7 +13,7 @@
 
 ### 1.1 授权 DSL 开发原型
 
-[V0–V10 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)和[研究 §7.19](skill-dsl-research.md#719-v-开发合同与持续复盘)描述已实现接口。它处理单 repository/ref、fixed-context、source-visible authorization obligation。领域代码位于 `src/task-dsl/authorization/`，实验代码位于 `src/benchmarks/authorization-dsl/`；下一轮变更见 [W 任务书](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)。
+[V0–V10 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9 任务书](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)和[研究 §7.19–7.20](skill-dsl-research.md#719-v-开发合同与持续复盘)描述已实现接口。它处理单 repository/ref、fixed-context、source-visible authorization obligation。领域代码位于 `src/task-dsl/authorization/`，实验代码位于 `src/benchmarks/authorization-dsl/`。
 
 公开边界如下：
 
@@ -21,28 +21,28 @@
 - `compileAuthorizationTask(task)`：解析引用与政策状态，只把显式 obligation × entry 展开为稳定 `author::entry` ID。
 - `renderAuthorizationTask(compiled, "B" | "D")`：两臂共用同一 canonical declaration、result contract 与 source marker，只让方法说明不同；`measureAuthorizationPromptCharacters` 分节记录字符但不推算 token。
 - `buildAuthorizationSourceCatalog(bundle)` / `resolveAuthorizationSourceCitation(...)`：为全部 exact source 生成 ref-bound ID 与 crop 行标签，并由宿主派生 canonical path/quote。
-- `AuthorizationWireResultV1Schema` / `normalizeAuthorizationWireResult(...)`：解析不含请求元数据、path 或 quote 的窄模型 wire，显式绑定 canonical result v0；不猜 obligation、结论或缺失语义。
+- `AuthorizationWireResultV1Schema` / `normalizeAuthorizationWireResult(...)`：解析不含请求元数据、path 或 quote 的窄模型 wire，显式绑定 canonical result v0；不猜 obligation、结论或缺失语义，任一 error 级归一化诊断都不交付 canonical result。
 - `validateAuthorizationResult(compiled, answer, sourceBundle)`：分别检查结构、声明义务、引用存在、范围声明和依赖快照；语义支持仍为 `unreviewed`。
 - `runAuthorizationTask(...)`：在注入 provider、精确源码束和固定预算下生成；每次 dispatch 固定 phase，per-call/unit deadline、四次派发上限、closed state 和 JSONL lifecycle event 防止 timeout 后新 fallback；没有可执行工具。
 - `evaluateAuthorizationGeneration`、`summarizeAuthorizationRun` 与 `summarizeAuthorizationPair`：消费哈希绑定的 development-agent review，不能从关键词或 citation 存在性推断正确性；v1 单列 semantic decision、evidence semantics、transport 与 delivery，旧 `taskDecisionCorrect` 仍按 v0 口径保留。
 
 声明顶层字段为 `schemaVersion/taskId/request/repository/sourceRef/sourceMode/policySources/principals/resources/entries/obligations/scopeAssurance/requiredAnalysis/constraints`。每条 obligation 明确 `principalId/resourceId/relation/operation/expectation/conditions/policySourceId/entryIds`；`expectation` 是规范方向，不是源码观察。模型 wire 按 exact expanded ID 返回 `source_supported_failure | source_refuted | unknown`，并给出 entry、binding、control、effect、condition 事实、`sourceId/startLine/endLine`、缺失事实/最小观察和 bounded scope claim。宿主另存 canonical task/repository/ref/path/quote。
 
-在仓库根使用四条开发命令：
+在仓库根使用五条开发命令；当前 W 配置可直接复查，V 路径仅用于历史 replay：
 
 ```powershell
-bun ./src/benchmarks/authorization-dsl/run.ts check
-bun ./src/benchmarks/authorization-dsl/run.ts run --config=./results/skill-ir/skill-dsl-research/development/authorization-v0/comparison-config.json
-bun ./src/benchmarks/authorization-dsl/run.ts evaluate --run-dir=./results/skill-ir/skill-dsl-research/development/authorization-v0/runs/initial
+bun ./src/benchmarks/authorization-dsl/run.ts check --config=./results/skill-ir/skill-dsl-research/development/authorization-transport-v1/comparison-config.json
+bun ./src/benchmarks/authorization-dsl/run.ts run --config=./results/skill-ir/skill-dsl-research/development/authorization-transport-v1/comparison-config.json
+bun ./src/benchmarks/authorization-dsl/run.ts evaluate --run-dir=./results/skill-ir/skill-dsl-research/development/authorization-transport-v1/runs/initial-wire-v1 --config=./results/skill-ir/skill-dsl-research/development/authorization-transport-v1/comparison-config.json
 bun ./src/benchmarks/authorization-dsl/run.ts replay --run-dir=./results/skill-ir/skill-dsl-research/development/authorization-v0/runs/initial --output=./results/skill-ir/skill-dsl-research/development/authorization-transport-v1/v-replay-initial.json
-bun ./src/benchmarks/authorization-dsl/run.ts status
+bun ./src/benchmarks/authorization-dsl/run.ts status --run-dir=./results/skill-ir/skill-dsl-research/development/authorization-transport-v1/runs/initial-wire-v1
 ```
 
 只有 `run` 初始化并调用模型；help、check、evaluate、status 和离线 replay 都不调用 provider。check 写 previews；run 按 attempt 写 run metadata、index 及逐单元 declaration/source/prompt/dispatch、`events.jsonl`、run；evaluate 从事件归并迟到调用事实，再写 hash-bound review template、evaluation 和 summary。V 原件仍在 `authorization-v0`；W 新产物归 `authorization-transport-v1`。
 
-常见错误含：字段路径解析错误；`declaration-source-location-invalid`；`foreign-obligation-result`/`missing-obligation-result`；`unknown-source-id`/`citation-out-of-range`；`semantic-review-missing`；`timeout-unknown`。前四类按诊断修改输入、输出合同或本地结果；review 缺失时必须在全部生成结束后依据 evaluator-only rubric 填写，不能交还被测模型；timeout 表示已发请求的 completion/usage 可能未知，禁止自动重发。运行器在 provider 创建前设置 `SKVM_AUTO_PROBE=0` 和指定 cache；有 `run.json` 的终态及只有 dispatch 的 completion-unknown 单元都不会自动发送。确需新 revision 时使用新 attempt、明确原因和独立目录，保留旧结果。`replay` 只读旧 run/review，`--output` 必须指向新的派生位置；其中 v1 分解是再分析而不是新 review。
+常见错误含：字段路径解析错误；`declaration-source-location-invalid`；`foreign-obligation-result`/`missing-obligation-result`；`unknown-source-id`/`citation-out-of-range`；`semantic-review-missing`；`timeout-unknown`。前四类按诊断修改输入、输出合同或本地结果；wire 归一化为 invalid 时只保留原 wire 和诊断，一次 repair 后仍 invalid 则终态为 `transport-failed`，不得退回该带错结果。review 缺失时必须在全部生成结束后依据 evaluator-only rubric 填写，不能交还被测模型；timeout 表示已发请求的 completion/usage 可能未知，禁止自动重发。运行器在 provider 创建前设置 `SKVM_AUTO_PROBE=0` 和指定 cache；有 `run.json` 的终态及只有 dispatch 的 completion-unknown 单元都不会自动发送。确需新 revision 时使用新 attempt、明确原因和独立目录，保留旧结果。`replay` 只读旧 run/review，`--output` 必须指向新的派生位置；其中 v1 分解是再分析而不是新 review。
 
-9 月 21 日 W1–W5 已修复复核发现：超时在 wrapped provider 边界关闭生命周期，迟到 response/error 只结算原 attempt，不生成实验答案；repair 失败保留 initial。无 abort 接口的底层请求可能迟到，进程终止后仍无法取得的 usage/cost 必须保持 unknown，禁止自动重发。
+9 月 21 日 W1–W9 工程与验证已完成：超时在 wrapped provider 边界关闭生命周期，迟到 response/error 只结算原 attempt，不生成实验答案；repair 失败保留 initial。六个 W 真实单元全部完成，证明窄 wire、宿主引用绑定和分层评价可运行；trusted-header 的共同漏项仍限制方法结论。无 abort 接口的底层请求可能迟到，进程终止后仍无法取得的 usage/cost 必须保持 unknown，禁止自动重发。
 
 ## 2. 当前端到端流程
 

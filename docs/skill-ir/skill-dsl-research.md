@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**E/T/V 已完成，授权任务 DSL 当前为 `completed-development`、效果 `not-established`。** V 已交付“声明→义务→B/D→模型分析→检查→review→评价”闭环。9 月 21 日复核进一步确认：唯一完整 file pair 的两臂关键语义均获 review 支持，交付差异主要来自 B 的引用格式；另两对及 revision pair 不完整。下一轮 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)修复结果传输、调用生命周期及评价分层，然后在相同三个 development 案例复测；I1 暂缓。
+**E/T/V 已完成，W 已把授权任务 DSL 推进到稳定的有界 development 工程闭环；方法效果仍为 `not-established`。** W 用窄 wire、宿主引用绑定、关闭/迟到事件和分层评价消除了 V 的主要交付混淆，并完成相同三个 development 案例的三组新 B/D 配对。六单元传输、交付和语义判断均成功；两臂在 trusted-header 上仍有共同事实漏项，D 没有质量优势。W9 正在验证与发布，I1 和第二项目继续暂缓。
 
 已经站得住的判断：
 
@@ -12,8 +12,8 @@
 - 分类服务于范围选择。应区分任务类别、首版能力范围和实验输入，不要求先建立完整生态分类学。
 - DSL 允许组织 agent 判断，也允许调用程序；不局限于固化执行或节省 token。目标包括直接用 DSL 写所选范围的 skill。
 - 可以复用 SkVM 的运行、模型路由、记录、验证和包基础；现有 CLI 不需要重建。具体接入方式应后于语言使用方式的选择。
-- 已有窄域探针支持部分定位、回填与约束设计；V 又完成了授权原型的真实模型消费，提供了结果传输、推理遗漏及开销的具体观察。
-- 本地化候选的 Markdown/YAML 回填问题保留在 §8；当前授权路线的引用、迟到 fallback 与评价混合问题见 §7.20，分别维护处理状态。
+- 已有窄域探针支持部分定位、回填与约束设计；V/W 完成了授权原型的真实模型消费，提供了结果传输、共同条件漏项及开销的具体观察。
+- 本地化候选的 Markdown/YAML 回填问题保留在 §8；当前授权路线的引用、迟到 fallback 与评价混合问题已在 §7.20 记录为工程修复完成，剩余问题是领域关系表达。
 
 当前开发 **source-visible authorization/trust-boundary assessment**：固定项目版本，检查主体对资源执行操作时的权限关系与源码控制。T 已把 E9 的配置/profile 对照修订为 B/D 整体方法比较，首版实现单一声明与配套支持。文献综合、workbook/browser 和本地化保留比较结论；各路线的真实效果随各自运行记录更新。
 
@@ -585,21 +585,29 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 ### 7.20 W 复核结论与下一轮设计
 
-2026-09-21，复核 V 代码、原始输出和语义 review，并以注入 provider 的离线 mock 验证超时行为。证据见[复核记录](../../results/skill-ir/skill-dsl-research/development/review-20260921.json)，执行清单见 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)。本节区分已经测试或实现的事实与仍待实现的设计。
+2026-09-21，先复核 V 代码、原始输出和语义 review，再按 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)完成共享修复、离线演练和三组真实配对。前置证据见[复核记录](../../results/skill-ir/skill-dsl-research/development/review-20260921.json)，W 机器结果见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-transport-v1/summary.json)。本节区分已验证的工程能力、当前方法证据与下一轮最小假设。
 
 **研究基础的可用程度。** 外部任务研究已经给出可用的分类方法：由目标、领域对象、决定答案的关系、跨来源映射及反例确定范围。授权任务的 principal/resource/relation/operation/condition/policy/entry 已能表达三个真实条件，程序与模型分工也已运行。下一步所需信息主要来自消费失败，而非更多泛读数量。第二项目仍承担以后检验领域语义迁移的责任；当前三个条件均来自 Open WebUI。
 
 **引用问题与 W1 处理。** `renderSourceBundle` 原来只展示裁剪范围却要求模型复制 exact path、行号和 quote。现在 source catalog 以 repository/ref/path/content digest 生成稳定 ID，按 crop 行号显示全部允许源码；宿主从单一 source ID 和闭区间绑定 canonical path 与整行原文。目录顺序不影响 ID，相同字节的不同路径仍不同；重复路径、陌生/旧 ref ID、越界和跨来源范围 fail closed。原始文件位置只作 provenance，不混入 crop 行号。合法引用与 semantic review 仍分开，未用 oracle 选片段。
 
-**传输问题与 W2 处理。** revision B 既漏字段又在 `results` 混入字符串。新增 `source-authorization-assessment-wire/v1`：模型只写 exact obligation ID、结论、解释、五组事实、source ranges、unknown 信息和 scope；`authorization-wire-normalizer/v1` 绑定 task/repository/ref、canonical result v0 和 quote。明确结论可省略 missing/observation 并规范为 `[]`，unknown 缺两项仍报错。schema tool 与 prompt fallback 共用同一实测 schema；旧 `AuthorizationResultV0` parser/validator 未删除。归一化拒绝 malformed item、重复/陌生/missing obligation、错 ref 和无效引用，不猜答案字段。
+**传输问题与 W2/W9 处理。** revision B 既漏字段又在 `results` 混入字符串。新增 `source-authorization-assessment-wire/v1`：模型只写 exact obligation ID、结论、解释、五组事实、source ranges、unknown 信息和 scope；`authorization-wire-normalizer/v1` 绑定 task/repository/ref、canonical result v0 和 quote。明确结论可省略 missing/observation 并规范为 `[]`，unknown 缺两项仍报错。schema tool 与 prompt fallback 共用同一实测 schema；旧 `AuthorizationResultV0` parser/validator 未删除。归一化拒绝 malformed item、重复/陌生/missing obligation、错 ref 和无效引用，不猜答案字段。W9 审查进一步确认：任一 error 级归一化诊断都必须使 canonical result 不可交付，一次 repair 后仍 invalid 则返回 `transport-failed`。
 
 **生命周期问题与 W4 处理。** 根因不是计时数值，而是 phase 外层 `Promise.race` 返回后，底层 extraction 仍拥有派发 fallback 的能力。deadline 已移到每次 wrapped `provider.complete`：超时作为 provider 级 completion-unknown 错误关闭单元，因此解析链终止；每次派发前再检查 closed、整单元剩余时间和四次上限。attempt 在派发时固定 phase，事件记录 dispatch/response/error/timeout/late settlement/closed/rejected，并可追加 `events.jsonl`；离线评价从事件归并调用事实。迟到响应只补 usage/cost，不产生答案；repair 超时保留 initial。固定配置仍为 per-call 180 秒、unit 600 秒、6000 output tokens、最多四次派发和一次 repair。
 
 **评价问题与 W5 处理。** V 的 `taskDecisionCorrect` 原口径保留为 `authorization-evaluation/v0`。附加的 v1 分解单列 `semanticDecisionCorrect`（label 与有定位的 disposition review）、`evidenceSemanticSupport`（关键事实 review）、`transportValid`（结构、义务及引用可归一化）和 `deliveryComplete`（机械交付完整且 scope 可接受）。因此正确判断但坏引用不再被描述成语义错误，引用合法但论断矛盾也不能冒充成功。无答案或无有效 review 为 unknown；四种逻辑等价条件表述由 review 判因果，不按固定措辞。
 
-**开发与比较。** 顺序为引用目录→wire/归一化→精简 B/D 与 repair→关闭与事件→分层评价→离线演练→三个原案例的新六单元配对→一次有依据的共享修订。B/D 同模型、源码、输出接口和修复机会，源码只插入一次。历史 V 与新 W 分版本报告；跨轮开销为描述性观察，当前 B/D 承担方法比较。若两臂效果相当则保留领域模型与共同 helper、采用较简单表达；若 D 有具体增益，再筹备第二项目。W0–W6 已完成，授权回归 76/76、435 assertions 和 typecheck 通过；当前状态为 `active-W7`。
+**开发与比较。** 引用目录→wire/归一化→精简 B/D 与 repair→关闭与事件→分层评价→离线演练→三个原案例的新六单元配对均已完成。B/D 使用同一模型、源码、输出接口和修复机会，源码只插入一次；历史 V 与新 W 分版本报告。W8 的六个真实结果没有给出共享 revision 依据，故 revision 明确为 none，没有追加调用、答案提示或 rubric 放宽。W9 独立代码审查找到一个未在六份有效最终结果中触发的 invalid-wire 交付缺口，已修复并完成新鲜验证；当前只剩发布收口。
 
 **W0 反例基线。** 旧实现的授权回归 51/51、284 assertions 和主 typecheck 均通过；这只证明 V 合同自洽。随后四个新增 synthetic 测试分别准确失败于：源码没有稳定 source ID/逐行标签；实际 provider schema 仍要求任务元数据、path 与 quote；宿主 5 ms 截止后，25 ms 到达的无工具响应继续触发第二次 prompt fallback；评价对象没有独立的 `semanticDecisionCorrect` 等字段。该组红灯把 W 的四个共享缺口固定为可回归行为，未调用模型或目标。
+
+**W7 实际配对。** 固定 `xty/gpt-5.6-sol`、temperature 0、auto-probe off、per-call 180 秒、per-unit 600 秒、最多四次派发和一次 repair，按 B/D、D/B、B/D 完成 6/6 单元。file B 的首个 schema tool shape 无效后同一 phase fallback 成功；text B 首结果把两个 citation range 绑定到错误 source ID，一次 diagnostics-only repair 后成功；其余四单元首个 schema response 可归一化。最终 `transportValid=6/6`、`deliveryComplete=6/6`、`semanticDecisionCorrect=6/6`，file/text 四单元 evidence supported，trusted-header 两臂 evidence missing。B 为 5 次 dispatch、15,866 input、6,116 output、3,456 cache-read tokens；D 为 3 次、7,013、3,302、3,456。总已知调用时长 460,574.8948 ms，8 次调用实际 USD 均 unknown。
+
+**W7 review 边界。** trusted-header 两臂都合理报告 deployment `unknown`，但都未明确陈述 closed-control、authentication-failure、trusted-proxy-safe、attacker-header-reachable 四种 outcome；D 没有陈述 optional signup。独立只读复核者同意这些核心缺口，但认为 B 的代码引文可把 password gate 和 signup 算作支持。主 review 依 rubric 的“state”要求采用更严格口径：引文内容不替代答案本身的明确陈述，分歧保留而不改答案或 rubric。
+
+**W8 归因与决定。** wire/schema、citation host-binding、生命周期和评价分栏在真实运行中按合同工作；剩余 partial 是领域条件关系表达缺口。D 在本小样本中开销更低且没有 repair/fallback，但没有质量或完整性增益，因此不能宣称 D 胜出，也不因开销观察直接迁移第二项目。下一轮选择 `study-missing-domain-relations`：只研究通用的 control state、authentication outcome、identity provisioning、deployment boundary 与 protected effect 关系如何进入声明/方法，再用相同小面板验证；不提前实现生产系统。
+
+**W9 完成前审查。** 独立只读审查指出 normalizer 虽把重复/陌生/missing obligation 和无信息 unknown 标记为 invalid，但仍可携带 canonical result，host 可能将它交付为 `completed-with-diagnostics`。新测试先在四类归一化反例及双次 invalid host 路径准确失败，随后改为“任一归一化 error 都禁止 canonical result”并回归通过。该修复不依赖案例名、oracle 或模型重跑，不改变 W7 六个有效最终结果与 W8 方法决定。
 
 **文档归属。** 状态页只维护当前工作和结果导航，plan 只维护近期顺序，spec 保留持续规则；本文件维护设计与复盘。V 的过期草案段落已合并进实际接口，原始失败和历史任务仍可追溯。复核接纳此前共享文档中与代码一致的改写，不继续以“混有修改”为由搁置整批文档；无关源码仍由原任务负责。
 
@@ -893,6 +901,20 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 **W6-MOCK-01。** 三个现有声明按 B/D、D/B、B/D 经 compile、共享 renderer、source catalog、wire v1、normalizer、host、review 和 evaluation 运行六个 injected-provider 单元，6/6 terminal、3/3 pair；恢复再运行没有新派发。注入 schema fallback、malformed wire/citation、late valid/invalid、repair timeout 与 semantic contradiction 均得到预期状态。语义 contradiction 后 evaluation report 仍是结构有效的 `completed`，对应 unit 为 partial，证明自动消费者不能把 exit 0 当语义成功。
 
 **W6-REPLAY-02。** 在不写 V 目录的前提下，用当前 canonical parser/validator 重放 initial 六单元八个 generation 和 revision 两单元两个 generation；validation digest 与旧 `taskDecisionCorrect`/quality/error classes 全部匹配。派生的四层字段写入 W 的 `v-replay-*.json`，明确标为复用旧 hash-bound development-agent review 的 reanalysis，不称新独立评价。`check/status/evaluate/replay` 均不创建 provider；模型可见六份 preview 不含 oracle path/rule、expected disposition 或 GHSA 标识。
+
+### 2026-09-21 W7 三组真实配对
+
+**W7-RUN-01。** 冻结实现 revision `f15f4c7` 和配置后，按 B/D、D/B、B/D 完成三个既有案例共六个 fresh-context 单元。六个单元均 completed，无 completion unknown；file B 发生一次 schema→prompt fallback，text B 因跨 source citation range 使用一次 domain repair。最终 transport/delivery/semantic decision 均 6/6，file/text 四单元 full-success，trusted-header 两单元 partial。八次 provider dispatch 共 22,879 input、9,418 output、6,912 cache-read tokens；实际 USD 八次均未报告。
+
+**W7-REVIEW-02。** trusted-header B/D 都正确 abstain 为 unknown，并明确部署 gate、ingress、proxy 与认证结果缺失；共同漏掉四种条件 outcome 的完整表达，D 另漏 optional signup。独立只读复核与主 review 对 B 的两个隐含项存在宽严差异；最终采用“答案须明确陈述，不能只靠引文代码补全”的保守口径，分歧进入 summary。
+
+### 2026-09-21 W8 无修订与方法决定
+
+**W8-DECISION-01。** 真实结果没有暴露 wire、引用绑定、生命周期或评价实现的共享缺陷；剩余漏项属于领域条件推理。按任务书不加入案例答案提示、不放宽 rubric、不追加 revision。D 比 B 少两次调用、少 8,853 input 与 2,814 output tokens，但三对语义判断一致、trusted-header 证据完整性同为 missing，故不宣称 D 质量优势或启动第二项目。下一轮只研究缺失领域关系的最小、通用表示。
+
+### 2026-09-21 W9 独立审查与最终验证
+
+**W9-REVIEW-01。** 独立代码审查发现一项 important：invalid normalization 可能仍交付 canonical result。先增加 duplicate/foreign/missing obligation、无信息 unknown 与 host 双次 invalid 回归，确认 3 个测试按预期失败；最小修复后聚焦测试 17/17、授权两目录 77/77（449 assertions）和 typecheck 通过。公共 provider 专项 4/4（12 assertions）通过。离线 W replay 重现六单元，模型与目标执行均为 0。独立审查无 critical 或其他 important/minor；其初始“不可发布”结论已针对唯一问题完成修复和回归。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 

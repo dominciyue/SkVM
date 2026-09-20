@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "authorization-semantic-review/v0",
+  "caseId": "owui-trusted-header-deployment",
+  "taskId": "owui-trusted-header-deployment",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "c5fbf39dd5fca3b4ba1ad90773739189e5332fc7d1765db9f3485bbe882264c1",
+  "rubricVersion": "owui-trusted-header-oracle/v1+revision/v1",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "codex-development-agent-w7"
+  },
+  "factReviews": [
+    {
+      "factId": "password-auth-entry-gate",
+      "status": "supported",
+      "reason": "The answer explicitly states that ENABLE_PASSWORD_AUTH is checked first and that false returns HTTP 403 before entering the trusted-header path.",
+      "answerLocation": "/results/0/facts/condition/0",
+      "sourceLocations": [
+        { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 11, "endLine": 15 }
+      ],
+      "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/0"
+    },
+    {
+      "factId": "trusted-header-configuration-gate",
+      "status": "supported",
+      "reason": "The answer states that the header name is environment-controlled and that the trusted-header path requires it to be configured and present.",
+      "answerLocation": "/results/0/facts/condition/1",
+      "sourceLocations": [
+        { "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py", "startLine": 10, "endLine": 13 },
+        { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 17, "endLine": 21 }
+      ],
+      "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/1"
+    },
+    {
+      "factId": "identity-binding",
+      "status": "missing",
+      "reason": "The answer traces the configured header value into the candidate email and name but omits the rubric-required optional signup path.",
+      "answerLocation": null,
+      "sourceLocations": [
+        { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 21, "endLine": 40 }
+      ],
+      "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/2"
+    },
+    {
+      "factId": "authentication-and-session-condition",
+      "status": "supported",
+      "reason": "The answer states that authenticate_user_by_email must yield a user before session creation and that failure returns invalid credentials.",
+      "answerLocation": "/results/0/facts/effect/0",
+      "sourceLocations": [
+        { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 40, "endLine": 62 }
+      ],
+      "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/3"
+    },
+    {
+      "factId": "deployment-facts-absent",
+      "status": "supported",
+      "reason": "The answer names the actual gate values, external ingress and header control, sole-proxy stripping and replacement, and deployed authentication outcome as unavailable.",
+      "answerLocation": "/results/0/decisiveMissingFacts",
+      "sourceLocations": [
+        { "path": "inputs/owui-trusted-header-deployment/task.json", "startLine": 6, "endLine": 18 }
+      ],
+      "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/4"
+    },
+    {
+      "factId": "conditional-outcomes",
+      "status": "missing",
+      "reason": "The answer does not explicitly enumerate all four rubric outcomes: closed control, failed authentication, trusted-proxy-safe handling, and attacker-controlled-header reachability.",
+      "answerLocation": null,
+      "sourceLocations": [
+        { "path": "inputs/owui-trusted-header-deployment/task.json", "startLine": 6, "endLine": 18 },
+        { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 11, "endLine": 62 }
+      ],
+      "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/5"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The answer correctly reports unknown because application semantics alone do not establish the effective deployment gates, ingress, proxy behavior, or authentication outcome.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      { "path": "inputs/owui-trusted-header-deployment/task.json", "startLine": 6, "endLine": 18 },
+      { "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py", "startLine": 10, "endLine": 13 },
+      { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 11, "endLine": 62 }
+    ],
+    "oracleRule": "trusted-header-oracle-revision.json#/revisedDisposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The scope claim is explicitly limited to the declared obligation and fixed crops and disclaims repository-wide and actual-deployment discovery.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      { "path": "inputs/owui-trusted-header-deployment/task.json", "startLine": 6, "endLine": 18 }
+    ],
+    "oracleRule": "evaluation-protocol-revision.json#/scoringEffect"
+  }
+}

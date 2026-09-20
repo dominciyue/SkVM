@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun test、现有 Zod、`LLMProvider`、授权领域模块与实验 runner。优先在授权模块内实现，公共 provider 只做被反例证明必要的最小兼容修改。
 
-- 制定日期：2026-09-21；状态：`active-W7`（W0–W6 已完成，授权回归 76/76、435 assertions，typecheck 通过）。
+- 制定日期：2026-09-21；状态：`active-W9-publication`（W0–W8 已完成；六个真实单元全部完成，revision 为 none；W9 工程、文档与回放验证已通过，等待精确提交与发布）。
 - 分支：`skill-ir-aot`；仅推送用户 `origin`。不新建分支，不处理无关源码修改。
 - 当前设计和复盘：[研究总文档 §7.20](../../skill-ir/skill-dsl-research.md#720-w-复核结论与下一轮设计)；持续方法合同：[spec 14.34](../../skill-ir/skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。
 - 依据：[V summary](../../../results/skill-ir/skill-dsl-research/development/authorization-v0/summary.json)、[本次复核](../../../results/skill-ir/skill-dsl-research/development/review-20260921.json)。
@@ -97,26 +97,26 @@
 
 ### W7：三组真实同条件 B/D 配对
 
-- [ ] 沿用 V 的 file、text、trusted-header 三个已暴露 development 案例和原有源码/政策；每案例一对，共六个新生成单元。固定顺序 B/D、D/B、B/D，均 fresh context。
-- [ ] 沿用可用的 `xty/gpt-5.6-sol` 路由、temperature 0，关闭 auto-probe；使用 W4 统一时间配置。模型/路由不可用时记录阻碍，不静默换模型继续拼表。
-- [ ] 调用前保存配置、代码 revision、prompt 和声明。一单元最多一次 schema→fallback、最多一次有诊断的 domain repair；整个单元 provider dispatch 上限四次。该上限限制重复试验，不是用户费用额度。
-- [ ] 完成或明确失败后都写结果。已派发而完成未知的请求不自动重发；其余独立单元正常继续。
-- [ ] 全部生成结束后审阅语义，review 写清身份、关键事实、答案位置、来源及有争议项。development-agent review 如实标注；涉及方法优势的临界项由另一个只读核验者检查，意见不一致保留 disputed。
-- [ ] 汇总 first response、first normalized result、after repair 三个层次；schema fallback 的成本包含在 first normalized result 成本中。逐臂报告完整的三案例分母与每案例结果，不只展示成功 pair。
+- [x] 沿用 V 的 file、text、trusted-header 三个已暴露 development 案例和原有源码/政策；每案例一对，共六个新生成单元。固定顺序 B/D、D/B、B/D，均 fresh context。
+- [x] 沿用可用的 `xty/gpt-5.6-sol` 路由、temperature 0，关闭 auto-probe；使用 W4 统一时间配置。模型/路由不可用时记录阻碍，不静默换模型继续拼表。
+- [x] 调用前保存配置、代码 revision、prompt 和声明。一单元最多一次 schema→fallback、最多一次有诊断的 domain repair；整个单元 provider dispatch 上限四次。该上限限制重复试验，不是用户费用额度。
+- [x] 完成或明确失败后都写结果。已派发而完成未知的请求不自动重发；其余独立单元正常继续。
+- [x] 全部生成结束后审阅语义，review 写清身份、关键事实、答案位置、来源及有争议项。development-agent review 如实标注；涉及方法优势的临界项由另一个只读核验者检查，意见不一致保留 disputed。
+- [x] 汇总 first response、first normalized result、after repair 三个层次；schema fallback 的成本包含在 first normalized result 成本中。逐臂报告完整的三案例分母与每案例结果，不只展示成功 pair。
 
 ### W8：一次有根据的修订与方法决定
 
-- [ ] 归因到 wire/schema、citation、生命周期、语义推理或评价。共享代码缺陷先写红测试、修复，再最多追加一轮受影响 B/D；同一轮最多沿用三个受影响案例，不新增输入。
-- [ ] 若只有模型推理遗漏，记录遗漏的具体领域关系；不要以答案提示、案例名分支或放宽 rubric 修成成功。没有共享修复依据就结束追加。
-- [ ] 新旧 revision 分开汇总；历史 V 开销只是描述性参照，W 的 B/D 同条件结果用于当前比较。首轮失败不被修订覆盖。
-- [ ] 做明确决定：运行稳定且 D 有具体质量/完整性收益，下一轮筹备第二项目；两臂语义与开销相当，采用较简单表达及共同 helper，保留领域模型；传输稳定而推理仍差，下一轮只研究缺失领域关系；生命周期仍有缺口，先完成对应工程修复。样本小时报告逐案例差异，不做总体显著性承诺。
+- [x] 归因到 wire/schema、citation、生命周期、语义推理或评价。共享代码缺陷先写红测试、修复，再最多追加一轮受影响 B/D；同一轮最多沿用三个受影响案例，不新增输入。
+- [x] 若只有模型推理遗漏，记录遗漏的具体领域关系；不要以答案提示、案例名分支或放宽 rubric 修成成功。没有共享修复依据就结束追加。
+- [x] 新旧 revision 分开汇总；历史 V 开销只是描述性参照，W 的 B/D 同条件结果用于当前比较。首轮失败不被修订覆盖。
+- [x] 做明确决定：运行稳定且 D 有具体质量/完整性收益，下一轮筹备第二项目；两臂语义与开销相当，采用较简单表达及共同 helper，保留领域模型；传输稳定而推理仍差，下一轮只研究缺失领域关系；生命周期仍有缺口，先完成对应工程修复。样本小时报告逐案例差异，不做总体显著性承诺。
 
 ### W9：验证、文档和发布
 
-- [ ] 运行授权两目录测试及 `bun run typecheck`；公共 provider 如有改动，补对应专项回归。修复后只复跑受影响检查，不做历史全量审计。
-- [ ] 文档单测、当前链接/治理检查、已产生 JSON 解析及一次离线 replay；在同一轮收口完成，不重复建 clean worktree 或归档链。
-- [ ] 更新研究总文档中的当前接口与短复盘，同步 current-status、plan、spec。删除已被最终设计取代的草案段落，保留有引用价值的失败事实与原数据。
-- [ ] final summary 分列工程状态、六个初始单元及 revision、语义/传输/交付、调用和费用、具体决定。实际 USD 缺失保持 unknown，开发代理费用单列。
+- [x] 运行授权两目录测试及 `bun run typecheck`；公共 provider 如有改动，补对应专项回归。修复后只复跑受影响检查，不做历史全量审计。
+- [x] 文档单测、当前链接/治理检查、已产生 JSON 解析及一次离线 replay；在同一轮收口完成，不重复建 clean worktree 或归档链。
+- [x] 更新研究总文档中的当前接口与短复盘，同步 current-status、plan、spec。删除已被最终设计取代的草案段落，保留有引用价值的失败事实与原数据。
+- [x] final summary 分列工程状态、六个初始单元及 revision、语义/传输/交付、调用和费用、具体决定。实际 USD 缺失保持 unknown，开发代理费用单列。
 - [ ] 按归属暂存、检查差异、提交并推送 `origin/skill-ir-aot`；确认远端一致，列出仍保留的无关修改。完成后关闭本任务，不自动启动第二项目。
 
 ## 四、失败处理与研究记录

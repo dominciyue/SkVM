@@ -328,6 +328,32 @@ describe("runAuthorizationTask", () => {
     }))
   })
 
+  it("does not deliver a canonical artifact when wire normalization remains invalid", async () => {
+    const calls: CompletionParams[] = []
+    const invalid = makeWireAnswer()
+    ;((invalid.results as Array<Record<string, unknown>>)[0]!).obligationId = "invented::update-record"
+
+    const run = await runAuthorizationTask({
+      task: makeTask(),
+      sourceBundle: makeBundle(),
+      provider: sequenceProvider([
+        toolResponse(invalid),
+        toolResponse(invalid),
+      ], calls, { value: 0 }),
+      arm: "D",
+      options: { timeoutMs: 1_000, maxTokens: 2_000, maxDomainRepairs: 1 },
+    })
+
+    expect(run.status).toBe("transport-failed")
+    expect(run.initialTransport?.normalization.status).toBe("invalid")
+    expect(run.initialTransport?.normalization.result).toBeUndefined()
+    expect(run.repairTransport?.normalization.status).toBe("invalid")
+    expect(run.repairTransport?.normalization.result).toBeUndefined()
+    expect(run.initial).toBeUndefined()
+    expect(run.repair).toBeUndefined()
+    expect(calls).toHaveLength(2)
+  })
+
   it("treats an unknown returned tool name as a protocol failure", async () => {
     const calls: CompletionParams[] = []
     const continuationCalls = { value: 0 }

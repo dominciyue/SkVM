@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "authorization-semantic-review/v0",
+  "caseId": "owui-process-text-controlled",
+  "taskId": "owui-process-text-controlled",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "1ac103e2f88d65f66c1f472fb5dca0332c34d800a3dbacbb4e6a5adbe9b107bc",
+  "rubricVersion": "owui-process-text-controlled-oracle/v1",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "codex-development-agent-w7"
+  },
+  "factReviews": [
+    {
+      "factId": "caller-write-validator",
+      "status": "supported",
+      "reason": "The answer states that process_text passes the caller-supplied collection name to the shared validator with access_type='write' before the save sink.",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 13, "endLine": 28 }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/0"
+    },
+    {
+      "factId": "denied-set-enforcement",
+      "status": "supported",
+      "reason": "The answer states that the validator computes denied requested names and raises HTTP 403 when a requested name is not in the allowed set.",
+      "answerLocation": "/results/0/facts/control/1",
+      "sourceLocations": [
+        { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 31, "endLine": 44 }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/1"
+    },
+    {
+      "factId": "knowledge-base-write-policy",
+      "status": "supported",
+      "reason": "The answer states that an existing knowledge-base ID is allowed for a non-admin only when check_access_by_user_id grants the requested write access.",
+      "answerLocation": "/results/0/facts/control/2",
+      "sourceLocations": [
+        { "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py", "startLine": 42, "endLine": 52 }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/2"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The answer correctly reaches source_refuted because the write validator rejects the stated non-admin/no-write-grant case before save_docs_to_vector_db.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 13, "endLine": 28 },
+      { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 31, "endLine": 44 },
+      { "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py", "startLine": 42, "endLine": 52 }
+    ],
+    "oracleRule": "oracles/owui-process-text-controlled.json#/disposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The scope claim remains limited to the declared obligation and fixed source crops and does not claim repository-wide completeness.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      { "path": "inputs/owui-process-text-controlled/task.json", "startLine": 6, "endLine": 18 }
+    ],
+    "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "authorization-semantic-review/v0",
+  "caseId": "owui-process-text-controlled",
+  "taskId": "owui-process-text-controlled",
+  "generation": "repair",
+  "attemptId": "provider-attempt-2",
+  "rawOutputSha256": "dafb8cd7c030efa4fe6cd5d68f3b884de36543953dde4cb7bfe03045426b883e",
+  "rubricVersion": "owui-process-text-controlled-oracle/v1",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "codex-development-agent-w7"
+  },
+  "factReviews": [
+    {
+      "factId": "caller-write-validator",
+      "status": "supported",
+      "reason": "The repaired answer states that process_text validates the supplied collection name with access_type='write' before the protected save.",
+      "answerLocation": "/results/0/facts/condition/0",
+      "sourceLocations": [
+        { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 13, "endLine": 28 }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/0"
+    },
+    {
+      "factId": "denied-set-enforcement",
+      "status": "supported",
+      "reason": "The repaired answer states that the validator rejects a requested name absent from its allowed set with HTTP 403.",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 31, "endLine": 44 }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/1"
+    },
+    {
+      "factId": "knowledge-base-write-policy",
+      "status": "supported",
+      "reason": "The repaired answer states that an existing knowledge base is added to the allowed set only when check_access_by_user_id grants the requested permission.",
+      "answerLocation": "/results/0/facts/control/1",
+      "sourceLocations": [
+        { "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py", "startLine": 42, "endLine": 52 }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/2"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The repaired answer correctly reaches source_refuted because the denied existing knowledge-base write is stopped before the vector-database save.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 13, "endLine": 28 },
+      { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 31, "endLine": 44 },
+      { "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py", "startLine": 42, "endLine": 52 }
+    ],
+    "oracleRule": "oracles/owui-process-text-controlled.json#/disposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The scope claim is limited to the declared POST /process/text obligation and the supplied fixed crops.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      { "path": "inputs/owui-process-text-controlled/task.json", "startLine": 6, "endLine": 18 }
+    ],
+    "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1"
+  }
+}
