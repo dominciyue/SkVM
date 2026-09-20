@@ -1,0 +1,188 @@
+{
+  "schemaVersion": "skill-dsl-scope-decision/v1",
+  "stage": "E9",
+  "status": "completed-with-open-questions",
+  "decision": {
+    "recommendedTaskScope": "source-visible authorization and trust-boundary assessment for one repository/ref",
+    "recommendedMethodNow": "organized security guidance plus schema-backed configuration, deterministic coverage/staleness/result helpers, an audit ledger, and optional SARIF export",
+    "dslDecision": "do not recommend a distinct DSL or frozen authoring API yet",
+    "profileRole": "source-authorization-assessment/v0-sketch is a readable experimental notation for a paired probe, not a production contract",
+    "consumptionIfProbed": "compile both the profile and the strongest existing-config comparator through the same canonical semantic helper; bounded rendering is only the profile arm's delivery mechanism",
+    "researchFit": "medium: the authorization relations are domain-specific and bounded, but the incremental value of a distinct profile over schema-backed configuration is unproven",
+    "implementationPriority": "conditional and small; lower priority than using the existing config/helper path unless a paired probe shows a unique authoring, diagnostic, or change-management benefit"
+  },
+  "whyThisScope": {
+    "support": [
+      "Cloudflare supplies explicit trust-boundary coverage units, evidence, fresh verification, verdict, and honest incomplete semantics.",
+      "The cross-tenant export task can use closed principal/resource/entry/control relations without arbitrary workflow or expression code.",
+      "The output can reuse an audit ledger and SARIF rather than inventing a finding format."
+    ],
+    "gaps": [
+      "No actual model run, precision/recall result, decoy result, maintenance-time measure, or cross-model evidence exists.",
+      "The strongest configuration alternative can encode the same fields and call the same helper.",
+      "The current ordinary bare-agent adapter cannot enforce a per-run source-only/no-network tool policy."
+    ],
+    "strongestAlternative": "Use a JSON-Schema-backed task configuration and seeded coverage ledger directly, with organized Markdown for nuanced security guidance and the same deterministic helper. This is the default unless the profile arm demonstrates incremental benefit.",
+    "excluded": [
+      "full application security audit as a whole",
+      "differential review and regression analysis",
+      "dependency/advisory freshness",
+      "secret scanning",
+      "generic source/sink or fixed-query static analysis",
+      "live penetration testing or deployment reachability claims",
+      "patch generation, application, regression testing, or release"
+    ]
+  },
+  "readableExample": {
+    "note": "Illustrative YAML-shaped notation only; field names and layout are not a frozen production API.",
+    "task": "At source ref abc123, assess whether unauthenticated or ordinary member users can read another tenant's admin export.",
+    "profile": [
+      "version: source-authorization-assessment/v0-sketch",
+      "scope:",
+      "  sourceRef: abc123",
+      "  include: [admin-export-route, authz-middleware, tenant-lookup, export-query, relevant-tests]",
+      "obligations:",
+      "  - id: admin-export-tenant-boundary",
+      "    kind: authorization-boundary",
+      "    entries: [GET /admin/export]",
+      "    resource: tenant-export",
+      "    controlsToTrace: [authentication, authorization, tenant-binding, query, response]",
+      "    expectations:",
+      "      - { principal: unauthenticated, resourceRelation: any, expected: deny }",
+      "      - { principal: member, resourceRelation: same-tenant, expected: allow }",
+      "      - { principal: member, resourceRelation: cross-tenant, expected: deny }",
+      "evidencePolicy:",
+      "  confirmedRequires: [source-trace, source-visible-boundary-failure, retained-evidence, independent-verification]",
+      "  deploymentOnly: needs_validation",
+      "coverage:",
+      "  expandBy: [obligation, entry, expectation]",
+      "  completeBlockedBy: [planned, gap, blocked, stale]",
+      "outputs: [coverage-ledger, audit-findings-json, optional-sarif-confirmed-results]"
+    ],
+    "meaning": "The helper creates one coverage cell per entry and closed expectation, binds evidence and verifier IDs to each cell, and refuses a complete claim while any required cell is planned, gap, blocked, or stale. The agent still decides which source paths implement the controls and whether evidence confirms a failure."
+  },
+  "requirementChangeExample": {
+    "change": "Add service-account access: same-tenant export is allowed, cross-tenant export is denied, and all service-account cells must be covered before a complete claim.",
+    "profileEdit": [
+      "add { principal: service-account, resourceRelation: same-tenant, expected: allow }",
+      "add { principal: service-account, resourceRelation: cross-tenant, expected: deny }"
+    ],
+    "requiredBehavior": [
+      "the same helper deterministically adds two coverage cells",
+      "prior complete results become stale until those cells are resolved",
+      "unchanged member and unauthenticated evidence remains linked but is not silently copied to service-account",
+      "both the profile and existing-config arms receive identical behavior and diagnostics"
+    ],
+    "nonClaim": "Fewer edited lines do not prove lower human effort; author correction steps/time and invalid first passes must be observed."
+  },
+  "unsupportedExample": {
+    "request": "Compare base..head, reconstruct removed invariants from history, inspect callers/tests, estimate blast radius, propose and apply a patch.",
+    "attemptedKind": "differential-regression",
+    "requiredDisposition": "reject before a model call as unsupported by v0, route to a distinct differential-review method, and do not accept free-form fields that bypass the closed scope",
+    "reason": "Baseline/head identity, invariant change, history, caller/test coverage, blast radius, and mutation duties are different domain relations rather than optional authorization fields."
+  },
+  "evaluationDecision": {
+    "primaryBenefit": "coverage honesty under requirement change",
+    "definition": "required authorization cells are enumerated, stale cells are invalidated, unsupported complete/no-finding claims are blocked, and diagnostics identify the exact missing or invalid relation",
+    "secondaryMeasures": [
+      "first-pass valid authoring",
+      "human/model correction steps and elapsed authoring time",
+      "confirmed true finding and decoy rejection",
+      "unsupported severity or deployment claims",
+      "input/output/cache tokens, model calls, retries, cost, duration, and tool use"
+    ],
+    "qualityFloor": [
+      "100% of declared obligation x entry x expectation cells are generated exactly once with stable IDs.",
+      "Every confirmed finding resolves to an in-scope obligation/cell, retained source evidence, and a distinct verification record.",
+      "needs_validation has no severity and cannot satisfy a confirmed or complete claim.",
+      "planned, gap, blocked, or stale required cells prevent complete/no-finding output.",
+      "The known vulnerable fixture is not rejected and the protected decoy is not confirmed; either miss makes that condition fail regardless of schema validity.",
+      "Unsupported differential, fixed-scan, deployment, and mutation requests are rejected or routed rather than widened into free-form fields."
+    ],
+    "fairComparison": {
+      "arms": [
+        "C: strongest existing JSON configuration plus seeded ledger and the shared semantic helper",
+        "P: experimental authorization profile compiled through the same semantic helper and bounded renderer"
+      ],
+      "heldConstant": [
+        "natural task and repository/ref bytes",
+        "security guidance and answer-bearing facts",
+        "model and model settings",
+        "tool policy and context budget",
+        "canonical semantic helper, coverage expander, validators, and output schemas",
+        "one generation and at most one actionable repair",
+        "task evaluator and telemetry"
+      ],
+      "attributionRule": "A behavior produced by the shared helper, validator, renderer template, model, or SARIF mapping is not attributed to the profile. The profile advances only for a representation-specific authoring, diagnostic, or change-management benefit with no quality-floor regression.",
+      "decisionRule": "Prefer C if normalized semantics and outcomes are equivalent or P only changes labels/field layout. Advance P only if it prevents at least one predeclared authoring/change defect that C accepts, or reduces observed correction effort while both arms meet the quality floor. Treat mixed quality/effort results as inconclusive rather than success."
+    }
+  },
+  "engineeringEstimate": {
+    "basis": "rough design estimate, not measured implementation time",
+    "minimumDeterministicProbe": {
+      "rangeEngineerDays": [3, 5],
+      "work": [
+        "one canonical authorization-plan type and semantic validator",
+        "two thin input adapters: strongest existing config and experimental profile",
+        "shared coverage/staleness expansion, ledger/result checks, and bounded render function",
+        "two tiny public-source fixtures, one requirement-change case, one unsupported-routing case, and focused tests",
+        "machine-readable comparison output"
+      ]
+    },
+    "conditionalRealModelProbe": {
+      "additionalEngineerDays": [2, 4],
+      "precondition": "a development-only read-only execution boundary is explicit and verified; no production CLI is added",
+      "work": [
+        "temporary ordinary skill materialization and existing executeRun integration",
+        "paired runs under identical model/tool/budget/repair settings",
+        "task-quality evaluation, telemetry capture, and analysis"
+      ]
+    },
+    "reuse": [
+      "skill-loader/buildSkillBundleFromContent or temporary ordinary skill materialization",
+      "executeRun lifecycle",
+      "provider routing and existing usage telemetry",
+      "RunResult, custom evaluation hook, pre-run snapshot, workdir manifest, and durable trace",
+      "existing ledger/finding JSON and optional SARIF rather than a new result format"
+    ],
+    "newPieces": [
+      "canonical authorization-plan semantic helper",
+      "two experimental input adapters",
+      "coverage/staleness/result validator",
+      "development-only read-only tool boundary if real-model source inspection is attempted"
+    ],
+    "priorityEffect": "Reuse keeps the probe small, but the absent per-run tool allowlist adds a real precondition for source-only claims. More importantly, the strong existing-config comparator lowers the priority of a distinct DSL even though implementation is technically feasible."
+  },
+  "nextMinimumWorkPackage": {
+    "name": "authorization configuration-versus-profile parity probe",
+    "question": "Does the experimental profile provide an observable authoring, diagnostic, or requirement-change benefit beyond the strongest schema-backed configuration when both use the same semantic helper?",
+    "modules": [
+      "development-only canonical plan types and validator",
+      "existing-config adapter",
+      "experimental-profile adapter",
+      "shared coverage/staleness expander and result validator",
+      "two fixtures plus focused deterministic tests",
+      "optional temporary-skill paired runner only after read-only isolation"
+    ],
+    "expectedArtifacts": [
+      "canonical plans and generated coverage ledgers for both arms",
+      "diagnostics for seeded missing, duplicate, stale, dangling-evidence, unsupported-kind, and false-complete defects",
+      "a paired comparison record separating representation, helper, model, and runtime effects",
+      "a go-config, continue-profile, inconclusive, or stop-both decision"
+    ],
+    "stopOrRevise": [
+      "If both adapters normalize to the same plan and produce equivalent diagnostics/outcomes without lower observed correction effort, adopt the existing config path and stop separate DSL work.",
+      "If the profile needs arbitrary expressions or additional security-review variants to pass the fixtures, keep v0 closed and revise or stop rather than widening it.",
+      "If either arm fails the quality floor on the vulnerable or decoy fixture, do not claim method benefit; fix one local defect at most or mark inconclusive.",
+      "If read-only isolation is unavailable, stop before real-model source-run claims; deterministic parity evidence may still be reported.",
+      "Do not add a CLI, production registry, full interpreter, multi-agent scheduler, or generalized security language in this work package."
+    ]
+  },
+  "openQuestions": [
+    "Will a distinct profile prevent any authoring/change defect that a well-designed JSON configuration and identical helper do not?",
+    "Can a small, explicit read-only tool boundary be provided without changing production behavior?",
+    "What two public authorization fixtures provide a true source-visible failure and a realistic upstream-control decoy without requiring dependency installation?",
+    "Does bounded rendering improve coverage honesty in actual model output, or only reorganize the prompt?",
+    "How should independent verifier identity be established in a single-agent development probe without pretending that a second prompt is independent expertise?"
+  ]
+}

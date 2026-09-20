@@ -1,0 +1,313 @@
+{
+  "schemaVersion": "skill-dsl-consumption-design/v1",
+  "stage": "E7-revised-at-E8",
+  "status": "design-only-not-executed",
+  "candidate": "source-authorization-assessment/v0-sketch",
+  "profilePosition": "A thin, versioned, JSON/YAML-compatible experimental profile for source-visible authorization and trust-boundary assessment. It compiles to instructions and existing ledger/SARIF artifacts; it is not a general security-review language, a new CLI, a security engine, or a replacement result format.",
+  "currentRecommendation": "Use bounded rendering only as the profile arm of a paired method probe against existing configuration plus the same helper. No consumption mode is yet shown superior, and the profile is not a default implementation recommendation.",
+  "consumptionModes": [
+    {
+      "id": "direct-agent-read",
+      "path": [
+        "validate profile shape before the run",
+        "place the raw declaration in the skill bundle or a bundle resource",
+        "tell the agent to read and follow it",
+        "validate produced ledger/findings after the run"
+      ],
+      "hardGuarantees": [
+        "pre-run schema validity if the host parses it",
+        "post-run artifact validity if the host invokes validators"
+      ],
+      "promptOnly": [
+        "obligation coverage during exploration",
+        "fresh independent verification",
+        "no unsupported severity",
+        "no live probing or dependency installation"
+      ],
+      "strengths": ["minimum integration", "raw author intent remains visible", "works with ordinary skill resource loading"],
+      "weaknesses": ["the model must interpret domain relations itself", "profile may be decorative", "coverage expansion and stale-result detection are not reflected in the context unless separately generated"],
+      "decision": "retain as O/M-style baseline, not the recommended profile consumption"
+    },
+    {
+      "id": "bounded-instruction-render",
+      "path": [
+        "strict parse and semantic resolution",
+        "deterministically expand obligation x principal x entry-surface coverage units",
+        "render the profile as bounded domain instructions and an explicit evidence/verdict contract",
+        "seed a machine-readable coverage ledger beside existing skill resources",
+        "run the ordinary agent with the rendered skill and original user prompt",
+        "validate finding-to-obligation, evidence, verifier, verdict, and coverage cross-references",
+        "optionally export confirmed findings as SARIF without discarding the richer audit ledger"
+      ],
+      "hardGuarantees": [
+        "closed schema and supported obligation kinds",
+        "safe relative source/evidence identifiers",
+        "unique IDs and total reference resolution",
+        "deterministic coverage-unit expansion",
+        "verdict-state rules such as no severity on needs_validation",
+        "retained-evidence path and digest checks",
+        "complete claims blocked by gap/blocked/planned coverage",
+        "input/result/profile version provenance"
+      ],
+      "agentJudgment": [
+        "identify the relevant source surfaces and controls within the declared scope",
+        "trace attacker-controlled or lower-trust paths",
+        "decide whether controls refute a candidate",
+        "construct realistic impact and attack scenarios",
+        "decide whether source evidence is sufficient or deployment facts remain unknown",
+        "assign confidence and severity only after confirmation"
+      ],
+      "strengths": [
+        "the declaration changes actual context and seeded obligations",
+        "deterministic rules remain outside model discretion",
+        "ordinary skill execution and existing output formats remain reusable",
+        "far smaller than a domain interpreter"
+      ],
+      "weaknesses": [
+        "a rendered prompt still cannot force correct security reasoning",
+        "current ordinary adapters do not enforce the source-only tool policy",
+        "cross-member usefulness is unmeasured"
+      ],
+      "decision": "selected consumption for the profile arm of a fair paired probe; not a default method recommendation"
+    },
+    {
+      "id": "interpreter-led-execution",
+      "path": [
+        "parse profile",
+        "schedule reconnaissance and one or more obligation hunters",
+        "select source context and invoke models through typed envelopes",
+        "run bounded local checks",
+        "schedule independent verifiers",
+        "merge candidates, derive coverage, and emit ledger/SARIF"
+      ],
+      "hardGuarantees": ["could control scheduling, structured envelopes, budgets, and state transitions"],
+      "agentJudgment": ["all security reasoning and evidence interpretation still remain model/domain work"],
+      "strengths": ["strongest control and observability", "can make verification identity and budgets explicit"],
+      "weaknesses": [
+        "duplicates much of Cloudflare's engineered audit workflow",
+        "requires target-context selection, sandboxing, concurrency, merge, and recovery design before method value is known",
+        "risks confusing orchestration gains with language gains"
+      ],
+      "decision": "reject for the next round; reconsider only if bounded rendering fails for a named reason that scheduling/control would fix"
+    }
+  ],
+  "responsibilityMatrix": [
+    {
+      "concern": "profile syntax, closed obligation kinds, IDs, references, and scope paths",
+      "owner": "profile parser and semantic resolver",
+      "failureDisposition": "pre-run invalid; no model call"
+    },
+    {
+      "concern": "coverage-unit expansion and stale profile/result binding",
+      "owner": "deterministic renderer/validator",
+      "failureDisposition": "pre-run invalid or post-run incomplete"
+    },
+    {
+      "concern": "which source paths implement a control and whether a candidate is exploitable",
+      "owner": "agent/model under the original skill's security guidance",
+      "failureDisposition": "rejected, needs_validation, or explicit gap; never auto-confirm"
+    },
+    {
+      "concern": "bounded local-check execution and network isolation",
+      "owner": "host/tool policy, not the profile or model",
+      "failureDisposition": "source-only analysis or blocked; no claim that prompt instructions enforce isolation"
+    },
+    {
+      "concern": "candidate discovery versus independent verification",
+      "owner": "agent roles selected by the host or source skill",
+      "failureDisposition": "candidate cannot become confirmed without distinct verification evidence"
+    },
+    {
+      "concern": "finding, evidence, verifier, verdict, severity, and coverage cross-links",
+      "owner": "post-run profile validator",
+      "failureDisposition": "not eligible for complete/confirmed output; at most one future repair when diagnostics are actionable"
+    },
+    {
+      "concern": "semantic quality and missed vulnerabilities",
+      "owner": "independent task evaluator/reviewer",
+      "failureDisposition": "quality failure or inconclusive; schema pass is not security success"
+    },
+    {
+      "concern": "usage, retries, fallback, cost, duration, and tool events",
+      "owner": "existing provider/adapter/run telemetry",
+      "failureDisposition": "record unknown when telemetry is unavailable; never coerce to zero"
+    }
+  ],
+  "runtimePath": [
+    {
+      "step": 1,
+      "component": "profile parser/resolver",
+      "effect": "reject invalid/unsupported declarations and produce canonical obligations"
+    },
+    {
+      "step": 2,
+      "component": "bounded renderer",
+      "effect": "render deterministic skill text and seed coverage-ledger data; preserve the original natural task"
+    },
+    {
+      "step": 3,
+      "component": "existing skill bundle and run lifecycle",
+      "effect": "deploy original resources, inject or expose rendered content, capture pre-run bytes, and run an adapter"
+    },
+    {
+      "step": 4,
+      "component": "agent/model",
+      "effect": "perform scoped source exploration and security judgment; write bounded candidate/evidence/coverage artifacts"
+    },
+    {
+      "step": 5,
+      "component": "profile post-validator",
+      "effect": "check relations, retained evidence, independent verification, verdict rules, coverage completeness, and profile/input digests"
+    },
+    {
+      "step": 6,
+      "component": "existing evaluation and telemetry",
+      "effect": "separately assess task quality, preserve run status/usage/steps/traces, and optionally map confirmed results to SARIF"
+    }
+  ],
+  "errorHandling": [
+    {
+      "condition": "profile parse, unsupported obligation kind, duplicate ID, unsafe path, or dangling reference",
+      "result": "invalid before generation; no model/provider call"
+    },
+    {
+      "condition": "required source/evidence bytes absent or source ref/digest changed",
+      "result": "stale or blocked; do not reuse prior coverage/verdict"
+    },
+    {
+      "condition": "deployment-only fact or insufficient source evidence",
+      "result": "needs_validation without severity, or explicit coverage gap"
+    },
+    {
+      "condition": "sandbox/tool policy cannot enforce the declared local-only boundary",
+      "result": "disable target-controlled execution and web access; continue source-only only if the task remains valid"
+    },
+    {
+      "condition": "adapter timeout/crash/parse failure or missing usage telemetry",
+      "result": "preserve RunResult status/partial artifacts and unknown usage; no complete claim"
+    },
+    {
+      "condition": "post-validator supplies a local actionable diagnostic",
+      "result": "future experiment may allow at most one repair under the same input/profile; broad rediscovery is not automatic"
+    }
+  ],
+  "observations": {
+    "profileSpecific": [
+      "canonical profile digest and renderer version",
+      "obligation and expanded coverage-unit counts",
+      "candidate-to-obligation mapping",
+      "source/evidence locations and retained artifact digests",
+      "discoverer and verifier identities",
+      "verdict transitions and rejected-candidate reasons",
+      "covered, gap, blocked, not-applicable, and stale counts",
+      "post-validator diagnostics",
+      "optional SARIF mapping status"
+    ],
+    "existingRuntime": [
+      "RunResult.runStatus/statusDetail/skillLoaded",
+      "agent steps and tool calls",
+      "token usage, availability, cost, duration, and LLM duration",
+      "execution observation counts and termination",
+      "conversation log and durable runtime trace",
+      "initial workdir manifest and pre-run input snapshot references"
+    ],
+    "futureEffectComparison": [
+      "confirmed true findings and false/decoy findings",
+      "required obligation coverage and honest gaps",
+      "unsupported severity or deployment claims",
+      "human correction/intervention",
+      "model calls, retries, input/output/cache tokens, cost, duration, and tool use"
+    ]
+  },
+  "interfaceAudit": [
+    {
+      "file": "src/core/skill-loader.ts",
+      "symbols": ["loadSkill", "buildSkillBundle", "buildSkillBundleFromContent"],
+      "reuse": "Existing loader resolves a normal skill and resources; buildSkillBundleFromContent can carry deterministic rendered content without creating a new skill format.",
+      "gap": "The ordinary executeRun interface accepts ResolvedSkill rather than a prebuilt SkillBundle, so a no-production-change probe should materialize a temporary rendered SKILL.md instead of duplicating the run lifecycle."
+    },
+    {
+      "file": "src/run/index.ts",
+      "symbols": ["prepareRunWorkspaceArtifacts", "executeRun", "buildRunSkillBundle", "deploySkillBundle"],
+      "reuse": "Existing lifecycle copies fixtures, captures optional pre-run bytes before skill deployment, deploys canonical bundle resources, invokes the adapter, and returns RunResult.",
+      "gap": "prepareRunWorkspaceArtifacts is private and the CLI non-opt path does not expose preRunInputSnapshotPath; a development library caller can use executeRun directly."
+    },
+    {
+      "file": "src/core/types.ts",
+      "symbols": ["SkillBundle", "AgentAdapter", "RunResultSchema", "EvalCriterionSchema"],
+      "reuse": "Skill injection/discovery, adapter execution, canonical run status, usage, steps, and four existing evaluation modes already cover the generic runtime surface.",
+      "gap": "No domain-profile/result field belongs in RunResult; keep security artifacts as files and evaluator inputs."
+    },
+    {
+      "file": "src/adapters/bare-agent.ts",
+      "symbols": ["BareAgentAdapter.run", "createToolExecutor"],
+      "reuse": "Inject mode embeds rendered skill text; discover mode exposes skill metadata and deployed resources; logging and runtime trace are already threaded.",
+      "gap": "The fixed tool set includes write_file, execute_command, and web_fetch and has no per-run allowlist. A profile instruction cannot guarantee source-only/no-network execution."
+    },
+    {
+      "file": "src/providers/registry.ts",
+      "symbols": ["createProviderForModel"],
+      "reuse": "Existing provider routing remains the single chokepoint for model configuration.",
+      "gap": "None specific to the profile; route availability and cost telemetry remain runtime facts."
+    },
+    {
+      "file": "src/providers/structured.ts",
+      "symbols": ["extractStructured"],
+      "reuse": "Existing typed model envelope supports tool-use first and prompt/parse fallback with accumulated fallback tokens and cost.",
+      "gap": "It is only needed if a later bounded interpreter call is justified; ordinary rendered-skill consumption should not introduce an extra model call."
+    },
+    {
+      "file": "src/framework/evaluator.ts",
+      "symbols": ["evaluateAll", "evaluateFileCheck", "evaluateCustom", "callJudge"],
+      "reuse": "Script/file/custom/LLM evaluation and usage hooks already exist; custom is the declared extension point for domain evaluation.",
+      "gap": "The built-in JSON-schema file check validates only a basic subset and cannot prove evidence/coverage cross-references; a pure profile validator or later custom evaluator is needed."
+    },
+    {
+      "file": "src/run/pre-run-input-snapshot.ts",
+      "symbols": ["writePreRunInputSnapshot"],
+      "reuse": "Captures original workdir bytes and digests before skill resources are deployed, with size caps and omission reasons.",
+      "gap": "Large files can be omitted; an experiment must disclose the captured denominator rather than treating a snapshot reference as complete repository evidence."
+    },
+    {
+      "file": "src/core/workdir-manifest.ts",
+      "symbols": ["writeInitialWorkdirManifest", "assessWorkdirDelta"],
+      "reuse": "Can bind initial state and constrain expected result artifacts in a development evaluator.",
+      "gap": "It validates file deltas, not security semantics."
+    },
+    {
+      "file": "src/core/durable-runtime-trace.ts",
+      "symbols": ["DurableRuntimeTrace"],
+      "reuse": "Provides run-scoped provider/tool/turn timing and termination events.",
+      "gap": "Events summarize tool types and counts, not domain evidence; profile artifacts remain necessary."
+    }
+  ],
+  "minimumIntegrationRecommendation": {
+    "now": [
+      "Do not add a CLI or production route in this research round.",
+      "For the next minimal implementation, keep a development-only authorization-profile parser/resolver/renderer/result-validator, an equivalent existing-config adapter using the same semantic helper, and two small public source fixtures.",
+      "Materialize a temporary ordinary skill directory with rendered SKILL.md plus profile and seeded ledger resources, then call existing executeRun from a development runner.",
+      "Use the same helper, model, inputs, validators, one generation, and at most one actionable repair across existing-config+ledger and profile-rendered conditions; organized Markdown remains an optional descriptive baseline.",
+      "Run no real model until a per-run source-only tool boundary is explicit; otherwise record the boundary as prompt-only and do not claim sandboxed audit behavior."
+    ],
+    "laterOnlyIfEvidenceSupports": [
+      "A small executeRun option for a prebuilt SkillBundle instead of temporary materialization.",
+      "A per-run bare-agent tool allowlist or separate read-only source adapter.",
+      "A registered custom evaluator for repeated benchmark use.",
+      "Typed per-obligation model calls or a multi-agent interpreter."
+    ],
+    "explicitlyNotRecommended": [
+      "new CLI command",
+      "new security scanner or attack-class engine",
+      "replacement for SARIF or existing coverage/finding schemas",
+      "full production orchestration before a controlled profile-versus-config result"
+    ]
+  },
+  "unverified": [
+    "real-model consumption of raw versus rendered profile",
+    "security finding precision, recall, and decoy behavior",
+    "whether the profile improves coverage honesty or merely reorganizes instructions",
+    "cross-model and cross-repository behavior",
+    "token, cost, latency, and human-maintenance effects",
+    "safe enforcement of no-network/no-target-execution in current adapters"
+  ]
+}

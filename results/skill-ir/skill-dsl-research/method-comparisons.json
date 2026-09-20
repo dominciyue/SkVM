@@ -1,0 +1,300 @@
+{
+  "schemaVersion": "skill-dsl-method-comparisons/v1",
+  "stage": "E6-revised-at-E8",
+  "status": "design-exercise-not-executed",
+  "fairnessControls": {
+    "sameUserRequestWithinCandidate": true,
+    "sameInputFactsWithinCandidate": true,
+    "sameHelpersWithinCandidate": true,
+    "sameValidationOpportunityWithinCandidate": true,
+    "modelCalls": 0,
+    "externalSkillExecutions": 0,
+    "rule": "No representation receives an answer-bearing fact, extra program, additional repair, or stronger evaluator unavailable to the others. A helper benefit is attributed to the helper unless only a representation makes the required relation explicitly machine-addressable."
+  },
+  "primaryAlternatives": [
+    {
+      "sourceId": "src-oasis-sarif-2.1.0",
+      "covers": [
+        "analysis runs and targets",
+        "tool invocations and version-control provenance",
+        "results, locations, fingerprints, code flows, graphs, suppressions, baseline states, provenance, and fixes"
+      ],
+      "doesNotByItselfCover": [
+        "pre-run security coverage obligations",
+        "application trust-boundary/control declarations",
+        "independent verifier identity and evidence threshold",
+        "a denominator for unknown or blocked obligations"
+      ],
+      "reuseDecision": "Use SARIF for interoperable confirmed-result output where useful; do not replace it with a task language. Keep coverage and verification protocol as a separate thin profile or existing ledger."
+    },
+    {
+      "sourceId": "src-prisma-2020",
+      "covers": [
+        "eligibility criteria and study grouping",
+        "information sources and complete search strategies",
+        "selection and data-collection methods including reviewer/automation details",
+        "synthesis methods, selection results, excluded studies with reasons, certainty, protocol, and amendments"
+      ],
+      "doesNotByItselfCover": [
+        "live candidate/session state",
+        "stable-identifier deduplication",
+        "per-paper fetch and actual read status",
+        "claim-to-extracted-evidence links used during an agent run"
+      ],
+      "reuseDecision": "Use PRISMA concepts/checklist as reporting and protocol guidance; a task profile should not claim PRISMA conformance unless its review design actually fits and all required items are supported."
+    },
+    {
+      "sourceId": "src-csl-1.0.2",
+      "covers": [
+        "citation and bibliography style rules",
+        "locale-aware formatting",
+        "style and locale validation through the CSL schema ecosystem"
+      ],
+      "doesNotByItselfCover": [
+        "paper selection",
+        "read status",
+        "paper-level evidence",
+        "cross-paper synthesis support"
+      ],
+      "reuseDecision": "Delegate citation rendering to CSL or existing templates; never count citation formatting as a novel DSL contribution."
+    }
+  ],
+  "candidates": [
+    {
+      "id": "security-authz-boundary-review",
+      "category": "evidence-grounded source security assessment",
+      "userRequest": "At source ref abc123, assess the admin export authorization boundary offline. Unauthenticated and ordinary member principals must not read another tenant's export. Trace the route through controls to the resource, disclose uncovered paths, and classify candidates as confirmed, needs_validation, or rejected. Do not probe a deployment or install dependencies.",
+      "sharedInputs": [
+        "the same repository bytes and ref abc123",
+        "the same allowed source and test files",
+        "the same source-search and git-history capabilities",
+        "the same optional OS-isolated local-check helper",
+        "the same ledger/result/SARIF validators",
+        "one discovery pass and one independent verification pass"
+      ],
+      "representations": {
+        "organizedMarkdown": {
+          "format": "structured Markdown skill section",
+          "example": [
+            "## Scope: ref abc123; include admin export route, authorization middleware, tenant lookup, export query, and relevant tests; exclude deployed systems and dependency installation.",
+            "## Obligation SEC-1: principals unauthenticated|member must not receive export(resourceTenant != principalTenant) through entry /admin/export; inspect authentication, authorization, tenant binding, query, and response paths.",
+            "## Evidence: cite source locations and complete source-to-resource trace; a local check is optional but must be sandboxed and retained; deployment-only facts remain unknown.",
+            "## Verification and verdict: a second pass must challenge upstream controls and reachability; confirmed requires source-visible boundary failure plus retained evidence, needs_validation carries no severity, rejected records the refutation.",
+            "## Coverage: record SEC-1 per principal/path and disclose unknown, blocked, or out-of-scope cells."
+          ],
+          "strengths": [
+            "natural to author and review",
+            "can preserve nuance and member-specific guidance",
+            "no new parser required"
+          ],
+          "limits": [
+            "cross-references and principal/path coverage are conventions unless a helper parses a fixed table",
+            "stale verdicts and evidence links after a requirement edit are not intrinsically detectable"
+          ]
+        },
+        "existingFormatsPlusSameHelper": {
+          "format": "Cloudflare-style seeded coverage-ledger JSON plus finding JSON/SARIF 2.1.0 output",
+          "example": {
+            "scope": {
+              "sourceRef": "abc123",
+              "include": ["admin-export-route", "authz-middleware", "tenant-lookup", "export-query", "relevant-tests"],
+              "execution": "source-and-os-sandboxed-local-only"
+            },
+            "coverageUnit": {
+              "id": "SEC-1/member/cross-tenant/admin-export",
+              "principal": "member",
+              "resource": "other-tenant-export",
+              "entrySurface": "/admin/export",
+              "control": "tenant-authorization",
+              "status": "planned"
+            },
+            "resultOutput": "confirmed results map to SARIF result/location/codeFlows/provenance; needs_validation and rejected remain in the audit ledger because SARIF is not the whole verdict protocol"
+          },
+          "strengths": [
+            "machine-readable coverage and result records already exist",
+            "SARIF interoperates with result consumers and represents locations, traces, baselines, provenance, and fixes",
+            "a JSON Schema/helper can enforce identifiers and states"
+          ],
+          "limits": [
+            "the ledger/report pair is source-family-specific rather than a cross-member authoring contract",
+            "SARIF is result interchange, not a declaration of required trust-boundary coverage or fresh verification"
+          ]
+        },
+        "candidateDomainDeclaration": {
+          "format": "closed JSON/YAML-compatible domain profile, not a new surface syntax",
+          "example": {
+            "version": "source-authorization-assessment/v0-sketch",
+            "scope": {
+              "sourceRef": "abc123",
+              "include": ["admin-export-route", "authz-middleware", "tenant-lookup", "export-query", "relevant-tests"],
+              "execution": "source-and-os-sandboxed-local-only"
+            },
+            "obligations": [
+              {
+                "id": "SEC-1",
+                "kind": "authorization-boundary",
+                "principals": ["unauthenticated", "member"],
+                "entrySurface": "/admin/export",
+                "resource": "tenant-export",
+                "forbiddenWhen": "resource.tenant != principal.tenant",
+                "controlsToTrace": ["authentication", "authorization", "tenant-binding", "query", "response"]
+              }
+            ],
+            "evidencePolicy": {
+              "confirmedRequires": ["source-trace", "source-visible-boundary-failure", "retained-evidence", "independent-verification"],
+              "deploymentOnly": "needs_validation"
+            },
+            "verdicts": ["confirmed", "needs_validation", "rejected"],
+            "coverage": {
+              "expandBy": ["obligation", "principal", "entrySurface"],
+              "allowedStates": ["planned", "covered", "gap", "blocked", "not-applicable"]
+            },
+            "outputs": ["coverage-ledger", "audit-findings-json", "optional-sarif-confirmed-results"]
+          },
+          "strengths": [
+            "one author-facing source connects obligation expansion, evidence threshold, verdict, and coverage",
+            "closed relation kinds can reject unsupported arbitrary targets",
+            "can compile to the same helper inputs and existing output formats"
+          ],
+          "limits": [
+            "the forbiddenWhen expression is itself a design surface and cannot become arbitrary code",
+            "attack-class logic and source reasoning remain in the skill/agent",
+            "most runtime benefit comes from the same ledger validators, not JSON/YAML syntax"
+          ]
+        }
+      },
+      "requirementChange": {
+        "change": "Add service-account as a principal, but allow same-tenant export only; require every principal/tenant-relation cell to be covered before a complete claim.",
+        "organizedMarkdown": {
+          "edits": ["principal list", "obligation sentence or matrix", "coverage table/complete-claim rule"],
+          "detectableConflicts": "Only if the author/helper recognizes the table convention and compares it with prior coverage; prose alone does not invalidate old result rows."
+        },
+        "existingFormatsPlusSameHelper": {
+          "edits": ["seeded ledger generator/config", "new principal/relation coverage rows"],
+          "detectableConflicts": "A schema validates shape; the existing helper can detect missing cells if its generator owns the principal x relation expansion. SARIF adds no pre-run detection."
+        },
+        "candidateDomainDeclaration": {
+          "edits": ["SEC-1.principals", "SEC-1 forbidden/allowed tenant relation or a bounded relation enum"],
+          "detectableConflicts": "The same helper can deterministically mark prior coverage/result records stale and enumerate missing cells because obligation, principal, relation, and evidence references share IDs."
+        },
+        "interpretation": "The declaration can reduce semantic scattering only for the narrower authorization-boundary task represented here. It does not cover differential invariants/history/blast radius or broad dependency/secret/data-flow review, does not prove fewer author minutes, and a disciplined existing JSON config with the same helper can deliver the same checks."
+      },
+      "decision": {
+        "position": "retain a thin authorization-boundary profile only as an experimental arm in a fair paired probe against existing configuration plus the same helper; it is not the default recommendation, and standalone syntax or an interpreter is not justified",
+        "incrementalContribution": [
+          "author-visible closed authorization-boundary obligation types",
+          "cross-links among obligation expansion, coverage, evidence, verification, and verdict",
+          "compilation to existing ledger/SARIF rather than replacement of them"
+        ],
+        "notContribution": [
+          "security expertise or attack discovery",
+          "current advisory data",
+          "SARIF result/location/code-flow representation",
+          "sandboxing, search, git, or verification helpers"
+        ]
+      }
+    },
+    {
+      "id": "literature-rag-mitigation-review",
+      "category": "systematic scholarly evidence synthesis",
+      "userRequest": "Review 12 scholarly papers from 2022-2026 on retrieval-augmented-generation hallucination mitigation. Search arXiv and OpenAlex, deduplicate stable identities, screen in two passes, distinguish abstract-only from full-text evidence, synthesize supported themes, disagreements, limitations, and gaps, and format references in IEEE style.",
+      "sharedInputs": [
+        "the same query and date window",
+        "the same arXiv/OpenAlex metadata returned by the same helpers",
+        "the same full-text availability",
+        "the same deduplication and citation renderer",
+        "the same maximum of 12 included papers",
+        "the same extraction and synthesis opportunity"
+      ],
+      "representations": {
+        "organizedMarkdown": {
+          "format": "structured Markdown review protocol",
+          "example": [
+            "## Question and scope: RAG hallucination mitigation; scholarly papers dated 2022-2026; sources arXiv and OpenAlex; include at most 12 after deduplication.",
+            "## Screening: pass 1 title/abstract relevance; pass 2 eligibility and evidence availability; record include/exclude reason and stable ID.",
+            "## Reading: record metadata-only, abstract-only, full-text, missing, or failed; do not make full-text claims from abstracts.",
+            "## Evidence and synthesis: for each included paper record method, finding, limitation, and supporting location/access level; a theme/disagreement/gap must cite contributing paper records.",
+            "## Output: annotations, selection limitations, themes/disagreements/gaps, and IEEE references."
+          ],
+          "strengths": ["readable review protocol", "handles nuanced judgment", "easy to extend with explanations"],
+          "limits": ["candidate state and claim links live in separate tables/files by convention", "requirement changes can leave stale shortlist and synthesis prose"]
+        },
+        "existingFormatsPlusSameHelper": {
+          "format": "PRISMA-aligned protocol/checklist plus ai-skill-scholar-style session JSON and CSL/template citation rendering",
+          "example": {
+            "protocol": {
+              "question": "RAG hallucination mitigation",
+              "eligibility": {"years": [2022, 2026], "scholarlyOnly": true, "maxIncluded": 12},
+              "sources": ["arXiv", "OpenAlex"],
+              "selectionProcess": "two-pass with include/exclude reason",
+              "synthesis": ["themes", "disagreements", "limitations", "gaps"]
+            },
+            "sessionState": "candidate rows with stable IDs, dedup cluster, screen decision/reason, fetch plan, read status, and paper evidence",
+            "citation": "CSL or existing IEEE template"
+          },
+          "strengths": [
+            "PRISMA already names eligibility, sources, search, selection, synthesis, exclusions, certainty, protocol, and amendments",
+            "persistent JSON state already represents candidates, screening, and read status",
+            "CSL/templates already solve citation formatting"
+          ],
+          "limits": [
+            "PRISMA is reporting guidance, not the live agent state model",
+            "the protocol, session, paper evidence, and synthesis links remain separate artifacts unless a helper binds them"
+          ]
+        },
+        "candidateDomainDeclaration": {
+          "format": "closed JSON/YAML-compatible review profile",
+          "example": {
+            "version": "scholarly-evidence-synthesis/v0-sketch",
+            "question": "RAG hallucination mitigation",
+            "sources": ["arXiv", "OpenAlex"],
+            "eligibility": {"yearFrom": 2022, "yearTo": 2026, "scholarlyOnly": true, "maxIncluded": 12},
+            "screening": {"passes": ["title-abstract", "eligibility-evidence"], "reasonRequired": true},
+            "reading": {"statuses": ["metadata-only", "abstract-only", "full-text", "missing", "failed"], "claimCeilingFromStatus": true},
+            "paperEvidence": ["method", "finding", "limitation", "support-location"],
+            "synthesis": {"relations": ["theme", "agreement", "disagreement", "gap"], "supportRefsRequired": true},
+            "citation": {"style": "IEEE", "engine": "existing-CSL-or-template"}
+          },
+          "strengths": [
+            "one source of truth links eligibility, state transitions, evidence ceilings, and synthesis support",
+            "closed read-status and support references make stale or unsupported synthesis detectable",
+            "can render a protocol and reuse existing session/citation tools"
+          ],
+          "limits": [
+            "does not decide relevance, extract truth, or judge themes",
+            "duplicates much of a disciplined session JSON",
+            "claimCeiling and support thresholds require careful domain policy rather than generic expression code"
+          ]
+        }
+      },
+      "requirementChange": {
+        "change": "Restrict inclusion to empirical evaluations with openly available full text, exclude survey-only papers, require at least two paper records per theme, and switch IEEE to APA.",
+        "organizedMarkdown": {
+          "edits": ["eligibility paragraph", "reading rule", "theme support rule", "citation section", "existing shortlist and synthesis"],
+          "detectableConflicts": "A careful human can find them, but the protocol does not intrinsically mark abstract-only inclusions or one-paper themes stale."
+        },
+        "existingFormatsPlusSameHelper": {
+          "edits": ["protocol eligibility", "session rows/read status", "synthesis validation config", "CSL/template style"],
+          "detectableConflicts": "The same helper can re-screen state, reject non-full-text rows, count theme support, and rerender citations if IDs and provenance are already present."
+        },
+        "candidateDomainDeclaration": {
+          "edits": ["eligibility.studyType", "eligibility.openFullText", "synthesis.minSupport", "citation.style"],
+          "detectableConflicts": "The same helper can trace which shortlist, evidence, theme, and citation artifacts depend on changed fields and mark them stale."
+        },
+        "interpretation": "The candidate is cleaner as one authoring profile, but the existing protocol+session+helper can deliver the same behavior. No maintenance-time saving is claimed from this paper exercise."
+      },
+      "decision": {
+        "position": "organized protocol plus structured session and existing citation tooling is sufficient for a first implementation; a unified profile remains a comparison condition, not the default answer",
+        "incrementalContribution": ["cross-artifact IDs and staleness", "closed read-status claim ceilings", "machine-checkable synthesis support references"],
+        "notContribution": ["search quality", "paper access", "relevance judgment", "accurate extraction", "citation formatting", "scholarly synthesis quality"]
+      }
+    }
+  ],
+  "crossCandidateConclusion": {
+    "security": "SARIF covers result interchange but not authoring coverage obligations and verification thresholds. A thin source-authorization assessment profile has a plausible authoring/linkage gap, but a schema-backed existing ledger/configuration with the same helper may be equivalent and is the required primary baseline.",
+    "literature": "PRISMA, session JSON, and CSL divide reporting, live state, and formatting cleanly. A unified declaration improves linkage and staleness at most; existing protocol plus helper is the stronger default.",
+    "workbook": "Existing workbook schemas, formula languages, OOXML libraries, and query validators remain sufficient; no separate method example is needed to reach the negative conclusion.",
+    "contributionBoundary": "Any retained DSL contribution is domain modeling and cross-reference/staleness validation. Syntax, model calls, helper execution, and existing output formats are not the contribution.",
+    "next": "Any implementation study must pair the thin authorization profile with existing configuration plus the identical helper, model, inputs, validators, and repair opportunity. Full audit, differential review, broad static review, and fixed-query scanning are outside this profile experiment."
+  }
+}

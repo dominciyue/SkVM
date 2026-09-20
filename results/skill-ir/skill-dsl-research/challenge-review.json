@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "skill-dsl-challenge-review/v1",
+  "stage": "E8",
+  "status": "completed-with-narrowing",
+  "developmentEvidenceOnly": true,
+  "actualRuns": 0,
+  "originalJudgment": {
+    "scope": "evidence-grounded source security assessment spanning full audit, differential review, and broad security review",
+    "method": "a thin source-security profile with bounded rendering appeared worth a minimal probe",
+    "uncertainty": "a disciplined existing JSON configuration with the same helper might provide equivalent checks"
+  },
+  "challengeCases": [
+    {
+      "id": "boundary-broad-security-review",
+      "kind": "boundary-member",
+      "sourceIds": ["src-github-security-review"],
+      "task": "dependency and advisory checks, secret scanning, broad source/sink flow review, and patch proposal",
+      "result": "does-not-fit-v0-profile",
+      "reason": "The proposed obligation x principal x entry-surface model represents authorization/trust-boundary questions, but it does not represent dependency freshness, secrets, arbitrary source/sink taxonomies, or patch proposals without opening unrelated variants.",
+      "revision": "Keep broad security review as category evidence only. Exclude it from the first profile experiment."
+    },
+    {
+      "id": "boundary-differential-review",
+      "kind": "boundary-member",
+      "sourceIds": ["src-trailofbits-differential-review"],
+      "task": "baseline/head invariant review using history, callers, tests, and blast radius",
+      "result": "does-not-fit-v0-profile",
+      "reason": "The proposed profile lacks baseline/head semantics, changed invariants, history, caller reachability, and blast-radius relations.",
+      "revision": "Treat differential review as a distinct possible future variant, not evidence that the authorization profile already generalizes."
+    },
+    {
+      "id": "mixed-review-and-fix",
+      "kind": "mixed-task",
+      "sourceIds": ["src-github-security-review"],
+      "task": "assess a source-visible boundary, propose a patch, apply it, and verify the changed program",
+      "result": "split-responsibilities",
+      "reason": "Assessment can end at evidence, verdict, and coverage. Patch design, application, regression testing, and release authorization are a separate residual task with different mutation and validation obligations.",
+      "revision": "The profile may retain an optional fix reference in a confirmed output, but it does not generate, apply, or validate patches."
+    },
+    {
+      "id": "fixed-codeql-query-suite",
+      "kind": "existing-tool-sufficient",
+      "sourceIds": ["src-github-codeql-cli", "src-oasis-sarif-2.1.0"],
+      "task": "run a fixed supported CodeQL query suite on a repository and produce interoperable findings",
+      "result": "exclude-from-profile",
+      "reason": "CodeQL CLI already creates the database, executes the queries, produces SARIF, and exposes diagnostics. An authorization profile adds no named benefit to this fixed-rule scanning task.",
+      "revision": "Exclude fixed-query static scanning; reuse its existing language and SARIF output."
+    }
+  ],
+  "independentReadOnlyReview": {
+    "agent": "/root/e8_independent_audit",
+    "scope": "critical source obligations, lineage dependence, category drift, and unsupported method claims",
+    "editsMade": false,
+    "criticalFindings": [],
+    "materialFindings": [
+      {
+        "id": "category-drift",
+        "finding": "The profile models authorization-boundary relations only and does not model differential-review or broad-review semantics.",
+        "disposition": "accepted; narrow the experiment rather than claim category-wide coverage"
+      },
+      {
+        "id": "unproven-increment",
+        "finding": "Incremental value over an existing JSON ledger/configuration plus the identical helper is not established.",
+        "disposition": "accepted; make existing configuration plus the same helper the required paired comparator and keep the profile experimental"
+      },
+      {
+        "id": "output-boundary",
+        "finding": "SARIF and the profile must not absorb advisory truth, deployment facts, patch execution, or other unsupported outputs.",
+        "disposition": "accepted; record an explicit capability matrix and exclusions"
+      }
+    ],
+    "minorFindings": [
+      {
+        "id": "counterexample-provenance",
+        "finding": "The security shared-semantics record mixed the excluded Sentry counterexample into member source IDs.",
+        "disposition": "fixed by splitting memberSourceIds and counterexampleSourceIds"
+      },
+      {
+        "id": "issue-family-count",
+        "finding": "Cloudflare issues are evidence attachments from one family, not independent members.",
+        "disposition": "confirmed; family denominators remain unchanged"
+      }
+    ],
+    "overall": "narrow-do-not-abandon"
+  },
+  "capabilityMatrix": [
+    {
+      "concern": "declared authorization obligations and coverage denominator",
+      "owner": "profile or equivalently structured existing configuration plus helper",
+      "status": "in-scope-experiment"
+    },
+    {
+      "concern": "source evidence, independent verifier identity, verdict, and honest gaps",
+      "owner": "audit ledger and deterministic cross-reference validator",
+      "status": "in-scope-experiment"
+    },
+    {
+      "concern": "confirmed finding locations, code flows, provenance, baseline state, and optional fix description",
+      "owner": "SARIF where representable",
+      "status": "reuse-existing-output"
+    },
+    {
+      "concern": "fixed-query static scan",
+      "owner": "CodeQL or another existing analyzer and SARIF",
+      "status": "excluded-existing-tool-sufficient"
+    },
+    {
+      "concern": "current dependency/advisory truth",
+      "owner": "external advisory data and scanner",
+      "status": "excluded"
+    },
+    {
+      "concern": "secret scanning and broad source/sink taxonomies",
+      "owner": "existing specialized analyzers or a separately justified variant",
+      "status": "excluded"
+    },
+    {
+      "concern": "deployment reachability or runtime exposure",
+      "owner": "deployment/runtime evidence",
+      "status": "needs_validation-not-confirmed-by-source"
+    },
+    {
+      "concern": "patch generation, application, regression testing, and release",
+      "owner": "separate mutation task",
+      "status": "excluded"
+    },
+    {
+      "concern": "baseline/head invariants, history, callers, tests, and blast radius",
+      "owner": "possible future differential-review variant",
+      "status": "excluded-from-v0"
+    }
+  ],
+  "revisedRecommendation": {
+    "selectedScope": "source-visible authorization and trust-boundary assessment",
+    "profileVersion": "source-authorization-assessment/v0-sketch",
+    "supportedObligationKinds": ["authorization-boundary"],
+    "methodPosition": "experimental representation only",
+    "requiredComparator": "existing JSON configuration plus the identical semantic helper, model, inputs, validators, and repair opportunity",
+    "profileConsumption": "strict parse, deterministic coverage expansion, bounded instruction render, ordinary run, deterministic result validation",
+    "notClaimed": [
+      "coverage of full, differential, or broad security review",
+      "superiority to configuration or organized Markdown",
+      "improved vulnerability recall, precision, or maintenance time",
+      "host-enforced source-only or no-network behavior in the current bare-agent adapter",
+      "production readiness"
+    ],
+    "advanceToE9": true,
+    "reason": "The narrowed semantics remain coherent enough for a small falsifiable paired probe, while the broader category claim and default DSL recommendation do not survive the challenge."
+  },
+  "stoppingRule": "Do not search for more category evidence merely to rescue the broader profile. The next evidence must be a small paired implementation/evaluation that distinguishes the profile from existing configuration plus the same helper."
+}
