@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "authorization-semantic-review/v0",
+  "caseId": "owui-process-text-controlled",
+  "taskId": "owui-process-text-controlled",
+  "generation": "repair",
+  "attemptId": "provider-attempt-3",
+  "rawOutputSha256": "7ba94184ecf1854844b4763452a9150cb786bff792b94eb2aae991c6c4e58e4c",
+  "rubricVersion": "owui-process-text-controlled-oracle/v1",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "codex-development-agent-v8"
+  },
+  "factReviews": [
+    {
+      "factId": "caller-write-validator",
+      "status": "supported",
+      "reason": "The bound answer identifies the caller-bound Files.get_file_by_id(file_id, user.id) validation used before processing content.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+          "startLine": 13,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/0"
+    },
+    {
+      "factId": "denied-set-enforcement",
+      "status": "supported",
+      "reason": "The bound answer explains that failed source validation adds the file to denied_files and prevents the later write path.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+          "startLine": 31,
+          "endLine": 44
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/1"
+    },
+    {
+      "factId": "knowledge-base-write-policy",
+      "status": "supported",
+      "reason": "The bound answer states that add_text_to_knowledge_by_id applies the knowledge-base write-access policy before insertion.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+          "startLine": 42,
+          "endLine": 52
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/2"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The bound answer reaches the source-refuted disposition because both caller-bound source validation and destination write policy are enforced.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+        "startLine": 13,
+        "endLine": 28
+      },
+      {
+        "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+        "startLine": 31,
+        "endLine": 44
+      },
+      {
+        "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+        "startLine": 42,
+        "endLine": 52
+      }
+    ],
+    "oracleRule": "oracles/owui-process-text-controlled.json#/disposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The scope claim remains limited to the supplied controlled-text path and cited access-policy helper.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-text-controlled/task.json",
+        "startLine": 6,
+        "endLine": 18
+      }
+    ],
+    "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1"
+  }
+}

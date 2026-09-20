@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "authorization-semantic-review/v0",
+  "caseId": "owui-trusted-header-deployment",
+  "taskId": "owui-trusted-header-deployment",
+  "generation": "initial",
+  "attemptId": "provider-attempt-2",
+  "rawOutputSha256": "dcca093e30cb089f982c8848bb8bcf2a149cd2d7f8ef67ce7bc932ade1ec20ab",
+  "rubricVersion": "owui-trusted-header-oracle/v1+revision/v1",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "codex-development-agent-v8"
+  },
+  "factReviews": [
+    {
+      "factId": "password-auth-entry-gate",
+      "status": "supported",
+      "reason": "The bound answer identifies that the signin endpoint first requires authentication to be enabled.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+          "startLine": 11,
+          "endLine": 15
+        }
+      ],
+      "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/0"
+    },
+    {
+      "factId": "trusted-header-configuration-gate",
+      "status": "supported",
+      "reason": "The bound answer identifies ENABLE_TRUSTED_HEADER and the configured trusted-header name as gates on the header path.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+          "startLine": 10,
+          "endLine": 13
+        },
+        {
+          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+          "startLine": 17,
+          "endLine": 21
+        }
+      ],
+      "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/1"
+    },
+    {
+      "factId": "identity-binding",
+      "status": "supported",
+      "reason": "The bound answer explains that the configured request header value is used to resolve the candidate user identity.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+          "startLine": 21,
+          "endLine": 40
+        }
+      ],
+      "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/2"
+    },
+    {
+      "factId": "authentication-and-session-condition",
+      "status": "missing",
+      "reason": "The bound answer mentions session issuance after a user is obtained but does not state the required false branch: failed authentication returns invalid credentials and no session.",
+      "answerLocation": null,
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+          "startLine": 40,
+          "endLine": 62
+        }
+      ],
+      "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/3"
+    },
+    {
+      "factId": "deployment-facts-absent",
+      "status": "supported",
+      "reason": "The bound answer explicitly says that proxy stripping, network reachability, and effective deployment configuration are not established by the supplied evidence.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/task.json",
+          "startLine": 6,
+          "endLine": 18
+        }
+      ],
+      "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/4"
+    },
+    {
+      "factId": "conditional-outcomes",
+      "status": "missing",
+      "reason": "The bound answer does not enumerate all four required outcomes for disabled control, failed authentication, safe trusted-proxy handling, and attacker-controlled header reachability.",
+      "answerLocation": null,
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/task.json",
+          "startLine": 6,
+          "endLine": 18
+        },
+        {
+          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+          "startLine": 11,
+          "endLine": 62
+        }
+      ],
+      "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/5"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The bound answer correctly abstains with unknown because source semantics alone do not establish the effective proxy and deployment conditions.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-trusted-header-deployment/task.json",
+        "startLine": 6,
+        "endLine": 18
+      },
+      {
+        "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+        "startLine": 10,
+        "endLine": 13
+      },
+      {
+        "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+        "startLine": 11,
+        "endLine": 62
+      }
+    ],
+    "oracleRule": "trusted-header-oracle-revision.json#/revisedDisposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The scope claim is explicitly bounded to source behavior and withholds a deployment-safety conclusion.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-trusted-header-deployment/task.json",
+        "startLine": 6,
+        "endLine": 18
+      }
+    ],
+    "oracleRule": "evaluation-protocol-revision.json#/scoringEffect"
+  }
+}

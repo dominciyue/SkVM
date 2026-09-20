@@ -234,6 +234,8 @@ bun ./src/benchmarks/authorization-dsl/run.ts status
 
 ### V9 — 根据真实失败做一次有依据的开发修订
 
+**2026-09-21 revision 1（运行前记录）：** 首轮四个 completed initial outputs 中三个把 authored obligation ID 写入 `obligationId`，机械验证均报 `foreign-obligation-result` 与 `missing-obligation-result`；B/D 都出现，且 domain repair 能在三个案例中纠正 ID，故定位为共享输出合同不够显式，而不是案例语义或 arm 专属优势。V9 只把 exact runnable expanded IDs 作为 closed list 放入两臂共同 result contract，不加入 oracle、结论或案例分支。以 `comparison-config-v9-expanded-id.json` 仅重跑受影响且首轮双臂均完成的 file pair，保留首轮结果，不重发两个 timeout-unknown 单元。
+
 - [ ] 逐个失败归因到声明、renderer、输入、结构化传输、领域状态、模型推理或评价依据，在研究正文记录最小反例和根因。
 - [ ] 若存在可定位共享实现缺陷，先加失败测试再修复；工程调试可正常迭代。不得按 case 名输出正确答案，或把 oracle 事实塞进模型任务。
 - [ ] 如果修订会影响效果，记录新的代码/配置 revision，最多追加一轮受影响案例的 B/D 成对运行；初轮与修订后结果各自汇总，不拼接成全成功。

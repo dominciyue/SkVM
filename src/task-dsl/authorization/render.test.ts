@@ -108,6 +108,22 @@ describe("renderAuthorizationTask", () => {
     }
   })
 
+  it("makes the exact expanded output IDs an arm-neutral closed contract", () => {
+    const compiled = compileAuthorizationTask(task)
+    const expectedId = "deny-cross-team-delete::delete-report"
+
+    for (const arm of ["B", "D"] as const) {
+      const rendered = renderAuthorizationTask(compiled, arm)
+      const resultContract = rendered.prompt.split("## Result contract\n")[1]!
+        .split("\n## Fixed source context")[0]!
+
+      expect(resultContract).toContain("Exact runnable obligation IDs (closed list):")
+      expect(resultContract).toContain(`- ${expectedId}`)
+      expect(resultContract).toContain("Use each exact expanded ID verbatim as obligationId")
+      expect(resultContract).toContain("Do not substitute the authored obligation ID")
+    }
+  })
+
   it("renders source attachment once rather than duplicating it per obligation", () => {
     const expandedTask = structuredClone(task)
     expandedTask.obligations.push({

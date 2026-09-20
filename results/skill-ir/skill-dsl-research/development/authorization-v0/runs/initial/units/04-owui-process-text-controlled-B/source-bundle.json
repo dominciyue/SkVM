@@ -1,0 +1,42 @@
+{
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "sourceMode": "fixed-context",
+  "isolation": "exact-allowlist",
+  "files": [
+    {
+      "relativePath": "inputs/owui-process-text-controlled/task.json",
+      "content": "{\n  \"schemaVersion\": \"authorization-case-input/v1\",\n  \"caseId\": \"owui-process-text-controlled\",\n  \"repository\": \"https://github.com/open-webui/open-webui\",\n  \"sourceRef\": \"841c9045d789005145274955e7ef60b1b11a9be9\",\n  \"task\": \"At this fixed source ref, determine whether a verified non-admin user can write attacker-selected text to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/text.\",\n  \"normativeRequirement\": \"A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.\",\n  \"scopeAssurance\": \"The allowed source crops contain the complete authorization-relevant caller, validator, and shared policy path for this bounded request. Trace controls outside the immediate vector-database sink before deciding that a local check is missing.\",\n  \"requiredAnalysis\": [\n    \"identify the principal, operation, target resource relation, entry, and write sink\",\n    \"trace the supplied collection name through caller-side and shared controls\",\n    \"state what happens for a non-admin targeting an existing knowledge-base ID without write access\",\n    \"return source_supported_failure, source_refuted, or unknown with exact input locations\"\n  ],\n  \"constraints\": [\n    \"Use only the allowed case inputs.\",\n    \"Do not search for advisories, fixes, later versions, or deployment behavior.\",\n    \"Do not execute the project or propose a patch.\"\n  ]\n}\n",
+      "sha256": "7dc7a9129dc41e81b69eef0cf9274b7d090285deca0e1843f175ec8b72dd0973",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 20
+      },
+      "originalLocations": []
+    },
+    {
+      "relativePath": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+      "content": "# Cropped from backend/open_webui/routers/retrieval.py at\n# https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9\n# Original lines 1768-1792.\ncollection_name: Optional[str] = None\n\n\n@router.post('/process/text')\nasync def process_text(\n    request: Request,\n    form_data: ProcessTextForm,\n    user=Depends(get_verified_user),\n):\n    collection_name = form_data.collection_name\n    if collection_name is None:\n        collection_name = calculate_sha256_string(form_data.content)\n    else:\n        await _validate_collection_access([collection_name], user, access_type='write')\n\n    docs = [\n        Document(\n            page_content=form_data.content,\n            metadata={'name': form_data.name, 'created_by': user.id},\n        )\n    ]\n    text_content = form_data.content\n    log.debug(f'text_content: {text_content}')\n\n    result = await run_in_threadpool(save_docs_to_vector_db, request, docs, collection_name, user=user)\n\n# Original lines 2339-2352.\nasync def _validate_collection_access(collection_names: list[str], user, access_type: str = 'read') -> None:\n    \"\"\"\n    Raise 403 if the user lacks access to any of the requested collections.\n    Delegates to the shared filter_accessible_collections utility so the\n    access rules stay in one place.\n    \"\"\"\n    requested = set(collection_names)\n    allowed = await filter_accessible_collections(requested, user, access_type=access_type)\n    denied = requested - allowed\n    if denied:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=ERROR_MESSAGES.ACCESS_PROHIBITED,\n        )\n",
+      "sha256": "480e626d80943fa11b711eedc8fd80ba950787d259ed5d7113914a1fda6d0b68",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 44
+      },
+      "originalLocations": [
+        "backend/open_webui/routers/retrieval.py:1768-1792,2339-2352"
+      ]
+    },
+    {
+      "relativePath": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+      "content": "# Cropped from backend/open_webui/retrieval/utils.py at\n# https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9\n# Original lines 1061-1109.\nasync def filter_accessible_collections(\n    collection_names: set[str],\n    user: UserModel,\n    access_type: str = 'read',\n) -> set[str]:\n    \"\"\"\n    Return only the collection names the user is allowed to access.\n    Admins bypass all checks.  For non-admins the policy is:\n\n      - file-*          → validated via has_access_to_file\n      - user-memory-*   → must match user's own memory collection\n      - web-search-*    → ephemeral per-query collections, always allowed\n      - knowledge-bases → always denied (system meta-collection)\n      - everything else → if the name matches a knowledge base, validated\n                          via Knowledges.check_access_by_user_id; if no\n                          such KB exists, the name is treated as an\n                          ephemeral/legacy collection and allowed\n    \"\"\"\n    if user.role == 'admin':\n        return collection_names\n\n    validated = set()\n    for name in collection_names:\n        if name == 'knowledge-bases':\n            # System meta-collection — never exposed to non-admins.\n            continue\n        elif name.startswith('file-'):\n            file_id = name[len('file-') :]\n            if await has_access_to_file(file_id=file_id, access_type=access_type, user=user):\n                validated.add(name)\n        elif name.startswith('user-memory-'):\n            if name == f'user-memory-{user.id}':\n                validated.add(name)\n        elif name.startswith('web-search-'):\n            # Ephemeral collections created by process_web_search — safe\n            # to allow because they contain only transient web-search\n            # results scoped to the requesting user's session.\n            validated.add(name)\n        else:\n            # May be a knowledge-base ID or a legacy/ephemeral collection.\n            # If it IS a KB, enforce access control.  If no such KB\n            # exists, treat it as a non-sensitive collection (e.g. legacy\n            # model knowledge, process_text SHA256 collections) and allow.\n            if await Knowledges.check_access_by_user_id(name, user.id, permission=access_type):\n                validated.add(name)\n            elif not await Knowledges.get_knowledge_by_id(name):\n                # Not a KB at all — legacy/ephemeral collection, allow\n                validated.add(name)\n    return validated\n",
+      "sha256": "53b3de7a7c190fd6aaf7e34b14b73cf4ec4553d5d3535a05158a67653ef366a6",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 52
+      },
+      "originalLocations": [
+        "backend/open_webui/retrieval/utils.py:1061-1109"
+      ]
+    }
+  ]
+}

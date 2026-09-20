@@ -109,8 +109,15 @@ function renderObligations(task: AuthorizationTaskV0): string {
   }).join("\n")
 }
 
-const SHARED_RESULT_REQUIREMENTS = `For every declared entry obligation, return exactly one of: ${AUTHORIZATION_CONCLUSIONS.join(", ")}.
+function renderSharedResultRequirements(compiled: CompiledAuthorizationTask): string {
+  const runnableIds = compiled.runnableObligations.map(obligation => obligation.id)
+  const renderedIds = runnableIds.length > 0 ? bulletLines(runnableIds) : "- (none)"
+  return `Return exactly one result for every runnable expanded obligation, with one of: ${AUTHORIZATION_CONCLUSIONS.join(", ")}.
+Exact runnable obligation IDs (closed list):
+${renderedIds}
+Use each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.
 Support the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite an allowed input path, line range, and retained quotation. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.`
+}
 
 function renderBaseline(compiled: CompiledAuthorizationTask): string {
   const task = compiled.task
@@ -147,7 +154,7 @@ ${bulletLines(task.requiredAnalysis)}
 ${bulletLines(task.constraints)}
 
 ## Result contract
-${SHARED_RESULT_REQUIREMENTS}
+${renderSharedResultRequirements(compiled)}
 
 ## Fixed source context
 <SOURCE_CONTEXT_INSERTED_BY_HOST>`
@@ -186,7 +193,7 @@ ${JSON.stringify({
   }, null, 2)}
 
 ## Result contract
-${SHARED_RESULT_REQUIREMENTS}
+${renderSharedResultRequirements(compiled)}
 
 ## Fixed source context
 <SOURCE_CONTEXT_INSERTED_BY_HOST>`

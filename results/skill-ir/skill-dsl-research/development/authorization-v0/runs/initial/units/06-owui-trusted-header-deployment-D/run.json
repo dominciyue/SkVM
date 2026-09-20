@@ -1,0 +1,1649 @@
+{
+  "status": "completed-with-diagnostics",
+  "arm": "D",
+  "compiled": {
+    "task": {
+      "schemaVersion": "source-authorization-assessment/v0",
+      "taskId": "owui-trusted-header-deployment",
+      "request": "Determine whether an unauthenticated external client can impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin.",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "sourceMode": "fixed-context",
+      "policySources": [
+        {
+          "id": "trusted-proxy-identity-policy",
+          "kind": "study-author-policy-from-pinned-project-guidance",
+          "text": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.",
+          "location": "inputs/owui-trusted-header-deployment/task.json#/sourceOfRequirement",
+          "revision": "open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366",
+          "acceptance": {
+            "status": "accepted",
+            "actorRole": "study-task-author",
+            "reason": "The task input attributes this bounded paraphrase to pinned project hardening guidance; no source-external deployment fact is accepted."
+          }
+        }
+      ],
+      "principals": [
+        {
+          "id": "unauthenticated-external-client",
+          "role": "unauthenticated external client",
+          "description": "A client not authenticated by the trusted identity proxy that may control headers on any ingress it can actually reach.",
+          "startingCapabilities": [
+            "can-send-client-controlled-request-headers-to-a-reachable-ingress"
+          ]
+        }
+      ],
+      "resources": [
+        {
+          "id": "existing-user-session",
+          "type": "authenticated-user-identity-and-session",
+          "description": "The identity and session of an arbitrary existing user named by a trusted-email header."
+        }
+      ],
+      "entries": [
+        {
+          "id": "post-signin-trusted-email",
+          "name": "POST /signin -> trusted-email-header branch",
+          "locations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+              "startLine": 1,
+              "endLine": 13
+            },
+            {
+              "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+              "startLine": 1,
+              "endLine": 62
+            }
+          ]
+        }
+      ],
+      "obligations": [
+        {
+          "id": "external-client-trusted-header-impersonation",
+          "principalId": "unauthenticated-external-client",
+          "resourceId": "existing-user-session",
+          "relation": "external-client-to-arbitrary-existing-user-identity",
+          "operation": "obtain-session-as-header-selected-user",
+          "expectation": "deny",
+          "conditions": [
+            {
+              "name": "password-auth-signin-entry-enabled",
+              "basis": "auths_signin.py checks ENABLE_PASSWORD_AUTH before entering the trusted-header branch."
+            },
+            {
+              "name": "trusted-email-header-name-configured",
+              "basis": "env_trusted_headers.py makes the header name environment-controlled and auths_signin.py enters the branch only when configured."
+            },
+            {
+              "name": "email-authentication-produces-user",
+              "basis": "auths_signin.py returns a session only after authenticate_user_by_email yields a user."
+            },
+            {
+              "name": "deployment-ingress-enforces-header-trust",
+              "basis": "The accepted policy requires sole trusted-proxy ingress and removal/replacement of client-supplied identity headers; actual deployment facts are not supplied."
+            }
+          ],
+          "policySourceId": "trusted-proxy-identity-policy",
+          "entryIds": [
+            "post-signin-trusted-email"
+          ]
+        }
+      ],
+      "scopeAssurance": "The allowed source crops expose the feature configuration and conditional identity-to-session path. They do not contain the actual ENABLE_PASSWORD_AUTH value, trusted-header value, ingress reachability, proxy stripping/replacement, or authentication outcome for a real deployment.",
+      "requiredAnalysis": [
+        "identify the configuration condition and how the header becomes a principal identity",
+        "separate application-source capability from actual deployment reachability and proxy behavior",
+        "name the minimum missing facts needed to decide the real deployment question",
+        "return source_supported_failure, source_refuted, or unknown with exact input locations"
+      ],
+      "constraints": [
+        "Use only the allowed case inputs.",
+        "Do not infer environment values, proxy configuration, network topology, or direct reachability.",
+        "Do not contact or execute the target deployment."
+      ]
+    },
+    "status": "ready",
+    "runnableObligations": [
+      {
+        "id": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+        "authorObligationId": "external-client-trusted-header-impersonation",
+        "entryId": "post-signin-trusted-email",
+        "obligation": {
+          "id": "external-client-trusted-header-impersonation",
+          "principalId": "unauthenticated-external-client",
+          "resourceId": "existing-user-session",
+          "relation": "external-client-to-arbitrary-existing-user-identity",
+          "operation": "obtain-session-as-header-selected-user",
+          "expectation": "deny",
+          "conditions": [
+            {
+              "name": "password-auth-signin-entry-enabled",
+              "basis": "auths_signin.py checks ENABLE_PASSWORD_AUTH before entering the trusted-header branch."
+            },
+            {
+              "name": "trusted-email-header-name-configured",
+              "basis": "env_trusted_headers.py makes the header name environment-controlled and auths_signin.py enters the branch only when configured."
+            },
+            {
+              "name": "email-authentication-produces-user",
+              "basis": "auths_signin.py returns a session only after authenticate_user_by_email yields a user."
+            },
+            {
+              "name": "deployment-ingress-enforces-header-trust",
+              "basis": "The accepted policy requires sole trusted-proxy ingress and removal/replacement of client-supplied identity headers; actual deployment facts are not supplied."
+            }
+          ],
+          "policySourceId": "trusted-proxy-identity-policy",
+          "entryIds": [
+            "post-signin-trusted-email"
+          ]
+        },
+        "principal": {
+          "id": "unauthenticated-external-client",
+          "role": "unauthenticated external client",
+          "description": "A client not authenticated by the trusted identity proxy that may control headers on any ingress it can actually reach.",
+          "startingCapabilities": [
+            "can-send-client-controlled-request-headers-to-a-reachable-ingress"
+          ]
+        },
+        "resource": {
+          "id": "existing-user-session",
+          "type": "authenticated-user-identity-and-session",
+          "description": "The identity and session of an arbitrary existing user named by a trusted-email header."
+        },
+        "entry": {
+          "id": "post-signin-trusted-email",
+          "name": "POST /signin -> trusted-email-header branch",
+          "locations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+              "startLine": 1,
+              "endLine": 13
+            },
+            {
+              "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+              "startLine": 1,
+              "endLine": 62
+            }
+          ]
+        },
+        "policySource": {
+          "id": "trusted-proxy-identity-policy",
+          "kind": "study-author-policy-from-pinned-project-guidance",
+          "text": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.",
+          "location": "inputs/owui-trusted-header-deployment/task.json#/sourceOfRequirement",
+          "revision": "open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366",
+          "acceptance": {
+            "status": "accepted",
+            "actorRole": "study-task-author",
+            "reason": "The task input attributes this bounded paraphrase to pinned project hardening guidance; no source-external deployment fact is accepted."
+          }
+        }
+      }
+    ],
+    "blockedObligations": [],
+    "diagnostics": [],
+    "dependencies": {
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "sourceMode": "fixed-context",
+      "policies": [
+        {
+          "id": "trusted-proxy-identity-policy",
+          "revision": "open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366",
+          "acceptanceStatus": "accepted"
+        }
+      ]
+    }
+  },
+  "renderedPrompt": "# Authorization domain plan (D)\n\nUse the canonical authorization facts and deterministic obligation expansion below. The declaration organizes the work; you still must understand the source control path and justify the conclusion.\n\n## Canonical facts\n{\n  \"schemaVersion\": \"source-authorization-assessment/v0\",\n  \"taskId\": \"owui-trusted-header-deployment\",\n  \"request\": \"Determine whether an unauthenticated external client can impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin.\",\n  \"repository\": \"https://github.com/open-webui/open-webui\",\n  \"sourceRef\": \"841c9045d789005145274955e7ef60b1b11a9be9\",\n  \"sourceMode\": \"fixed-context\",\n  \"policySources\": [\n    {\n      \"id\": \"trusted-proxy-identity-policy\",\n      \"kind\": \"study-author-policy-from-pinned-project-guidance\",\n      \"text\": \"Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.\",\n      \"location\": \"inputs/owui-trusted-header-deployment/task.json#/sourceOfRequirement\",\n      \"revision\": \"open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366\",\n      \"acceptance\": {\n        \"status\": \"accepted\",\n        \"actorRole\": \"study-task-author\",\n        \"reason\": \"The task input attributes this bounded paraphrase to pinned project hardening guidance; no source-external deployment fact is accepted.\"\n      }\n    }\n  ],\n  \"principals\": [\n    {\n      \"id\": \"unauthenticated-external-client\",\n      \"role\": \"unauthenticated external client\",\n      \"description\": \"A client not authenticated by the trusted identity proxy that may control headers on any ingress it can actually reach.\",\n      \"startingCapabilities\": [\n        \"can-send-client-controlled-request-headers-to-a-reachable-ingress\"\n      ]\n    }\n  ],\n  \"resources\": [\n    {\n      \"id\": \"existing-user-session\",\n      \"type\": \"authenticated-user-identity-and-session\",\n      \"description\": \"The identity and session of an arbitrary existing user named by a trusted-email header.\"\n    }\n  ],\n  \"entries\": [\n    {\n      \"id\": \"post-signin-trusted-email\",\n      \"name\": \"POST /signin -> trusted-email-header branch\",\n      \"locations\": [\n        {\n          \"path\": \"inputs/owui-trusted-header-deployment/env_trusted_headers.py\",\n          \"startLine\": 1,\n          \"endLine\": 13\n        },\n        {\n          \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n          \"startLine\": 1,\n          \"endLine\": 62\n        }\n      ]\n    }\n  ],\n  \"obligations\": [\n    {\n      \"id\": \"external-client-trusted-header-impersonation\",\n      \"principalId\": \"unauthenticated-external-client\",\n      \"resourceId\": \"existing-user-session\",\n      \"relation\": \"external-client-to-arbitrary-existing-user-identity\",\n      \"operation\": \"obtain-session-as-header-selected-user\",\n      \"expectation\": \"deny\",\n      \"conditions\": [\n        {\n          \"name\": \"password-auth-signin-entry-enabled\",\n          \"basis\": \"auths_signin.py checks ENABLE_PASSWORD_AUTH before entering the trusted-header branch.\"\n        },\n        {\n          \"name\": \"trusted-email-header-name-configured\",\n          \"basis\": \"env_trusted_headers.py makes the header name environment-controlled and auths_signin.py enters the branch only when configured.\"\n        },\n        {\n          \"name\": \"email-authentication-produces-user\",\n          \"basis\": \"auths_signin.py returns a session only after authenticate_user_by_email yields a user.\"\n        },\n        {\n          \"name\": \"deployment-ingress-enforces-header-trust\",\n          \"basis\": \"The accepted policy requires sole trusted-proxy ingress and removal/replacement of client-supplied identity headers; actual deployment facts are not supplied.\"\n        }\n      ],\n      \"policySourceId\": \"trusted-proxy-identity-policy\",\n      \"entryIds\": [\n        \"post-signin-trusted-email\"\n      ]\n    }\n  ],\n  \"scopeAssurance\": \"The allowed source crops expose the feature configuration and conditional identity-to-session path. They do not contain the actual ENABLE_PASSWORD_AUTH value, trusted-header value, ingress reachability, proxy stripping/replacement, or authentication outcome for a real deployment.\",\n  \"requiredAnalysis\": [\n    \"identify the configuration condition and how the header becomes a principal identity\",\n    \"separate application-source capability from actual deployment reachability and proxy behavior\",\n    \"name the minimum missing facts needed to decide the real deployment question\",\n    \"return source_supported_failure, source_refuted, or unknown with exact input locations\"\n  ],\n  \"constraints\": [\n    \"Use only the allowed case inputs.\",\n    \"Do not infer environment values, proxy configuration, network topology, or direct reachability.\",\n    \"Do not contact or execute the target deployment.\"\n  ],\n  \"allowedConclusions\": [\n    \"source_supported_failure\",\n    \"source_refuted\",\n    \"unknown\"\n  ],\n  \"discoveryStatus\": \"not-tested\"\n}\n\n## Compiled obligation plan\n{\n  \"status\": \"ready\",\n  \"expanded\": [\n    {\n      \"id\": \"external-client-trusted-header-impersonation::post-signin-trusted-email\",\n      \"status\": \"runnable\",\n      \"authorObligationId\": \"external-client-trusted-header-impersonation\",\n      \"entryId\": \"post-signin-trusted-email\"\n    }\n  ],\n  \"dependencies\": {\n    \"repository\": \"https://github.com/open-webui/open-webui\",\n    \"sourceRef\": \"841c9045d789005145274955e7ef60b1b11a9be9\",\n    \"sourceMode\": \"fixed-context\",\n    \"policies\": [\n      {\n        \"id\": \"trusted-proxy-identity-policy\",\n        \"revision\": \"open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366\",\n        \"acceptanceStatus\": \"accepted\"\n      }\n    ]\n  },\n  \"diagnostics\": []\n}\n\n## Result contract\nFor every declared entry obligation, return exactly one of: source_supported_failure, source_refuted, unknown.\nSupport the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite an allowed input path, line range, and retained quotation. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.\n\n## Fixed source context\n===== BEGIN ALLOWED INPUT: inputs/owui-trusted-header-deployment/task.json =====\nLocation note: crop lines 1-20; original locations: not separately supplied\n{\n  \"schemaVersion\": \"authorization-case-input/v1\",\n  \"caseId\": \"owui-trusted-header-deployment\",\n  \"repository\": \"https://github.com/open-webui/open-webui\",\n  \"sourceRef\": \"841c9045d789005145274955e7ef60b1b11a9be9\",\n  \"task\": \"Determine whether an unauthenticated external client can impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin.\",\n  \"normativeRequirement\": \"Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.\",\n  \"sourceOfRequirement\": \"Study-author policy, paraphrasing the project's pinned hardening guidance at open-webui/docs commit d9f637d050e1689e6a4103eafc2b8005a74c9366, docs/getting-started/advanced-topics/hardening.md lines 265-275. No documentation bytes are redistributed because that repository exposed no license file in this study.\",\n  \"requiredAnalysis\": [\n    \"identify the configuration condition and how the header becomes a principal identity\",\n    \"separate application-source capability from actual deployment reachability and proxy behavior\",\n    \"name the minimum missing facts needed to decide the real deployment question\",\n    \"return source_supported_failure, source_refuted, or unknown with exact input locations\"\n  ],\n  \"constraints\": [\n    \"Use only the allowed case inputs.\",\n    \"Do not infer environment values, proxy configuration, network topology, or direct reachability.\",\n    \"Do not contact or execute the target deployment.\"\n  ]\n}\n\n===== END ALLOWED INPUT: inputs/owui-trusted-header-deployment/task.json =====\n\n===== BEGIN ALLOWED INPUT: inputs/owui-trusted-header-deployment/env_trusted_headers.py =====\nLocation note: crop lines 1-13; original locations: backend/open_webui/env.py:529-538\n# Cropped from backend/open_webui/env.py at\n# https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9\n# Original lines 529-538.\n# Optional env vars for creating an admin account on startup\n# Useful for headless/automated deployments\nWEBUI_ADMIN_EMAIL = os.environ.get('WEBUI_ADMIN_EMAIL', '')\nWEBUI_ADMIN_PASSWORD = os.environ.get('WEBUI_ADMIN_PASSWORD', '')\nWEBUI_ADMIN_NAME = os.environ.get('WEBUI_ADMIN_NAME', 'Admin')\n\nWEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)\nWEBUI_AUTH_TRUSTED_NAME_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_NAME_HEADER', None)\nWEBUI_AUTH_TRUSTED_GROUPS_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_GROUPS_HEADER', None)\nWEBUI_AUTH_TRUSTED_ROLE_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_ROLE_HEADER', None)\n\n===== END ALLOWED INPUT: inputs/owui-trusted-header-deployment/env_trusted_headers.py =====\n\n===== BEGIN ALLOWED INPUT: inputs/owui-trusted-header-deployment/auths_signin.py =====\nLocation note: crop lines 1-62; original locations: backend/open_webui/routers/auths.py:570-623,672-675\n# Cropped from backend/open_webui/routers/auths.py at\n# https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9\n# Original lines 570-623 and 672-675.\n@router.post('/signin', response_model=SessionUserResponse)\nasync def signin(\n    request: Request,\n    response: Response,\n    form_data: SigninForm,\n    db: AsyncSession = Depends(get_async_session),\n):\n    if not ENABLE_PASSWORD_AUTH:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=ERROR_MESSAGES.ACTION_PROHIBITED,\n        )\n\n    if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n            raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)\n\n        email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()\n        name = email\n\n        if WEBUI_AUTH_TRUSTED_NAME_HEADER:\n            name = request.headers.get(WEBUI_AUTH_TRUSTED_NAME_HEADER, email)\n            try:\n                name = urllib.parse.unquote(name, encoding='utf-8')\n            except Exception as e:\n                pass\n\n        if not await Users.get_user_by_email(email.lower(), db=db):\n            await signup_handler(\n                request,\n                email,\n                str(uuid.uuid4()),\n                name,\n                db=db,\n            )\n\n        user = await Auths.authenticate_user_by_email(email, db=db)\n        if user:\n            if WEBUI_AUTH_TRUSTED_GROUPS_HEADER:\n                group_names = request.headers.get(WEBUI_AUTH_TRUSTED_GROUPS_HEADER, '').split(',')\n                group_names = [name.strip() for name in group_names if name.strip()]\n\n                if group_names:\n                    await Groups.sync_groups_by_group_names(user.id, group_names, db=db)\n\n            if WEBUI_AUTH_TRUSTED_ROLE_HEADER:\n                trusted_role = request.headers.get(WEBUI_AUTH_TRUSTED_ROLE_HEADER, '').lower().strip()\n                if trusted_role in {'admin', 'user', 'pending'}:\n                    if user.role != trusted_role:\n                        await Users.update_user_role_by_id(user.id, trusted_role, db=db)\n                elif trusted_role:\n                    log.warning(f'Ignoring invalid trusted role header value: {trusted_role}')\n\n# Original lines 623-671 handle other sign-in modes and are omitted.\n\n    if user:\n        return await create_session_response(request, user, db, response, set_cookie=True)\n    else:\n        raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)\n\n===== END ALLOWED INPUT: inputs/owui-trusted-header-deployment/auths_signin.py =====",
+  "initial": {
+    "result": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "owui-trusted-header-deployment",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "results": [
+        {
+          "obligationId": "external-client-trusted-header-impersonation",
+          "conclusion": "unknown",
+          "explanation": "The supplied source supports an application-level capability for POST /signin to use a configured request header as the email identity and then create a session for the resulting user. It does not establish that password authentication is enabled, that the trusted-email header is configured in the actual deployment, that an unauthenticated external client can reach this application ingress, or that a trusted reverse proxy is the sole ingress and strips or replaces client-supplied identity headers. Therefore the actual-deployment impersonation question cannot be decided from the fixed source context.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The declared entry is POST /signin, and the supplied handler contains a trusted-email-header branch.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 1,
+                    "endLine": 62,
+                    "quote": "@router.post('/signin', response_model=SessionUserResponse)"
+                  },
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 1,
+                    "endLine": 62,
+                    "quote": "if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "When the trusted-email header configuration is truthy, the request header with that configured name supplies the email identity; the value is lowercased and used to look up or create the user.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 1,
+                    "endLine": 30,
+                    "quote": "email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()"
+                  },
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 1,
+                    "endLine": 30,
+                    "quote": "if not await Users.get_user_by_email(email.lower(), db=db):"
+                  }
+                ]
+              },
+              {
+                "statement": "The configured trusted-email header name is environment-controlled and defaults to unset.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+                    "startLine": 8,
+                    "endLine": 13,
+                    "quote": "WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The strongest visible application control is the ENABLE_PASSWORD_AUTH gate, which rejects the request before the trusted-header branch when password authentication is disabled.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 1,
+                    "endLine": 15,
+                    "quote": "if not ENABLE_PASSWORD_AUTH:"
+                  },
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 1,
+                    "endLine": 15,
+                    "quote": "raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_MESSAGES.ACTION_PROHIBITED)"
+                  }
+                ]
+              },
+              {
+                "statement": "The trusted-header branch also requires the configured header to be present in the request.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 16,
+                    "endLine": 23,
+                    "quote": "if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "If email authentication yields a user, the handler returns a session response and sets the session cookie.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 45,
+                    "endLine": 62,
+                    "quote": "user = await Auths.authenticate_user_by_email(email, db=db)"
+                  },
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 55,
+                    "endLine": 62,
+                    "quote": "return await create_session_response(request, user, db, response, set_cookie=True)"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The source does not provide the actual deployment value of ENABLE_PASSWORD_AUTH, so it does not establish whether the application-level gate permits entry.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 1,
+                    "endLine": 15,
+                    "quote": "if not ENABLE_PASSWORD_AUTH:"
+                  },
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/task.json",
+                    "startLine": 1,
+                    "endLine": 20,
+                    "quote": "The allowed source crops expose the feature configuration and conditional identity-to-session path. They do not contain the actual ENABLE_PASSWORD_AUTH value"
+                  }
+                ]
+              },
+              {
+                "statement": "The accepted deployment policy requires a sole trusted reverse-proxy ingress that removes client-supplied identity headers and injects the authenticated identity, but the source context supplies no actual deployment or proxy facts.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/task.json",
+                    "startLine": 1,
+                    "endLine": 20,
+                    "quote": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself."
+                  },
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/task.json",
+                    "startLine": 1,
+                    "endLine": 20,
+                    "quote": "Do not infer environment values, proxy configuration, network topology, or direct reachability."
+                  }
+                ]
+              },
+              {
+                "statement": "The supplied context expressly omits the actual trusted-header value, ingress reachability, proxy stripping or replacement, and authentication outcome.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/task.json",
+                    "startLine": 1,
+                    "endLine": 20,
+                    "quote": "They do not contain the actual ENABLE_PASSWORD_AUTH value, trusted-header value, ingress reachability, proxy stripping/replacement, or authentication outcome for a real deployment."
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [
+            "The actual deployed value of ENABLE_PASSWORD_AUTH.",
+            "The actual deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER, including whether the trusted-email branch is enabled and the exact header name.",
+            "Whether the unauthenticated external client can directly reach POST /signin or otherwise reach the application through an ingress it controls.",
+            "Whether a trusted reverse proxy is the sole reachable ingress for this endpoint.",
+            "Whether that proxy removes any client-supplied trusted identity header and injects the identity it authenticated itself.",
+            "Whether the header-selected arbitrary existing user's email resolves to a user and whether authenticate_user_by_email succeeds in the actual deployment."
+          ],
+          "suggestedObservations": [
+            "Inspect the effective runtime configuration for ENABLE_PASSWORD_AUTH and WEBUI_AUTH_TRUSTED_EMAIL_HEADER.",
+            "Determine the externally reachable network path to POST /signin and whether any direct application listener bypasses the proxy.",
+            "Inspect or test the effective reverse-proxy behavior to confirm that client-supplied identity headers are removed and replaced only after proxy authentication.",
+            "Observe a controlled request through the actual deployment and its resulting response and session behavior, without treating the application source alone as proof of deployment reachability."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "This result assesses only the declared post-signin-trusted-email obligation using the supplied fixed source crops. Source discovery was not tested; no repository-wide or all-entry completeness claim is made."
+      }
+    },
+    "rawResponse": "{\n  \"schemaVersion\": \"source-authorization-assessment-result/v0\",\n  \"taskId\": \"owui-trusted-header-deployment\",\n  \"repository\": \"https://github.com/open-webui/open-webui\",\n  \"sourceRef\": \"841c9045d789005145274955e7ef60b1b11a9be9\",\n  \"results\": [\n    {\n      \"obligationId\": \"external-client-trusted-header-impersonation\",\n      \"conclusion\": \"unknown\",\n      \"explanation\": \"The supplied source supports an application-level capability for POST /signin to use a configured request header as the email identity and then create a session for the resulting user. It does not establish that password authentication is enabled, that the trusted-email header is configured in the actual deployment, that an unauthenticated external client can reach this application ingress, or that a trusted reverse proxy is the sole ingress and strips or replaces client-supplied identity headers. Therefore the actual-deployment impersonation question cannot be decided from the fixed source context.\",\n      \"facts\": {\n        \"entry\": [\n          {\n            \"statement\": \"The declared entry is POST /signin, and the supplied handler contains a trusted-email-header branch.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 1,\n                \"endLine\": 62,\n                \"quote\": \"@router.post('/signin', response_model=SessionUserResponse)\"\n              },\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 1,\n                \"endLine\": 62,\n                \"quote\": \"if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\"\n              }\n            ]\n          }\n        ],\n        \"binding\": [\n          {\n            \"statement\": \"When the trusted-email header configuration is truthy, the request header with that configured name supplies the email identity; the value is lowercased and used to look up or create the user.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 1,\n                \"endLine\": 30,\n                \"quote\": \"email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()\"\n              },\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 1,\n                \"endLine\": 30,\n                \"quote\": \"if not await Users.get_user_by_email(email.lower(), db=db):\"\n              }\n            ]\n          },\n          {\n            \"statement\": \"The configured trusted-email header name is environment-controlled and defaults to unset.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/env_trusted_headers.py\",\n                \"startLine\": 8,\n                \"endLine\": 13,\n                \"quote\": \"WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)\"\n              }\n            ]\n          }\n        ],\n        \"control\": [\n          {\n            \"statement\": \"The strongest visible application control is the ENABLE_PASSWORD_AUTH gate, which rejects the request before the trusted-header branch when password authentication is disabled.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 1,\n                \"endLine\": 15,\n                \"quote\": \"if not ENABLE_PASSWORD_AUTH:\"\n              },\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 1,\n                \"endLine\": 15,\n                \"quote\": \"raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_MESSAGES.ACTION_PROHIBITED)\"\n              }\n            ]\n          },\n          {\n            \"statement\": \"The trusted-header branch also requires the configured header to be present in the request.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 16,\n                \"endLine\": 23,\n                \"quote\": \"if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\"\n              }\n            ]\n          }\n        ],\n        \"effect\": [\n          {\n            \"statement\": \"If email authentication yields a user, the handler returns a session response and sets the session cookie.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 45,\n                \"endLine\": 62,\n                \"quote\": \"user = await Auths.authenticate_user_by_email(email, db=db)\"\n              },\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 55,\n                \"endLine\": 62,\n                \"quote\": \"return await create_session_response(request, user, db, response, set_cookie=True)\"\n              }\n            ]\n          }\n        ],\n        \"condition\": [\n          {\n            \"statement\": \"The source does not provide the actual deployment value of ENABLE_PASSWORD_AUTH, so it does not establish whether the application-level gate permits entry.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 1,\n                \"endLine\": 15,\n                \"quote\": \"if not ENABLE_PASSWORD_AUTH:\"\n              },\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/task.json\",\n                \"startLine\": 1,\n                \"endLine\": 20,\n                \"quote\": \"The allowed source crops expose the feature configuration and conditional identity-to-session path. They do not contain the actual ENABLE_PASSWORD_AUTH value\"\n              }\n            ]\n          },\n          {\n            \"statement\": \"The accepted deployment policy requires a sole trusted reverse-proxy ingress that removes client-supplied identity headers and injects the authenticated identity, but the source context supplies no actual deployment or proxy facts.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/task.json\",\n                \"startLine\": 1,\n                \"endLine\": 20,\n                \"quote\": \"Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.\"\n              },\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/task.json\",\n                \"startLine\": 1,\n                \"endLine\": 20,\n                \"quote\": \"Do not infer environment values, proxy configuration, network topology, or direct reachability.\"\n              }\n            ]\n          },\n          {\n            \"statement\": \"The supplied context expressly omits the actual trusted-header value, ingress reachability, proxy stripping or replacement, and authentication outcome.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/task.json\",\n                \"startLine\": 1,\n                \"endLine\": 20,\n                \"quote\": \"They do not contain the actual ENABLE_PASSWORD_AUTH value, trusted-header value, ingress reachability, proxy stripping/replacement, or authentication outcome for a real deployment.\"\n              }\n            ]\n          }\n        ]\n      },\n      \"decisiveMissingFacts\": [\n        \"The actual deployed value of ENABLE_PASSWORD_AUTH.\",\n        \"The actual deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER, including whether the trusted-email branch is enabled and the exact header name.\",\n        \"Whether the unauthenticated external client can directly reach POST /signin or otherwise reach the application through an ingress it controls.\",\n        \"Whether a trusted reverse proxy is the sole reachable ingress for this endpoint.\",\n        \"Whether that proxy removes any client-supplied trusted identity header and injects the identity it authenticated itself.\",\n        \"Whether the header-selected arbitrary existing user's email resolves to a user and whether authenticate_user_by_email succeeds in the actual deployment.\"\n      ],\n      \"suggestedObservations\": [\n        \"Inspect the effective runtime configuration for ENABLE_PASSWORD_AUTH and WEBUI_AUTH_TRUSTED_EMAIL_HEADER.\",\n        \"Determine the externally reachable network path to POST /signin and whether any direct application listener bypasses the proxy.\",\n        \"Inspect or test the effective reverse-proxy behavior to confirm that client-supplied identity headers are removed and replaced only after proxy authentication.\",\n        \"Observe a controlled request through the actual deployment and its resulting response and session behavior, without treating the application source alone as proof of deployment reachability.\"\n      ]\n    }\n  ],\n  \"scopeClaim\": {\n    \"kind\": \"declared-obligations-only\",\n    \"statement\": \"This result assesses only the declared post-signin-trusted-email obligation using the supplied fixed source crops. Source discovery was not tested; no repository-wide or all-entry completeness claim is made.\"\n  }\n}",
+    "providerAttemptIds": [
+      "provider-attempt-1",
+      "provider-attempt-2"
+    ],
+    "outputAttemptId": "provider-attempt-2",
+    "validation": {
+      "parsedResult": {
+        "schemaVersion": "source-authorization-assessment-result/v0",
+        "taskId": "owui-trusted-header-deployment",
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "results": [
+          {
+            "obligationId": "external-client-trusted-header-impersonation",
+            "conclusion": "unknown",
+            "explanation": "The supplied source supports an application-level capability for POST /signin to use a configured request header as the email identity and then create a session for the resulting user. It does not establish that password authentication is enabled, that the trusted-email header is configured in the actual deployment, that an unauthenticated external client can reach this application ingress, or that a trusted reverse proxy is the sole ingress and strips or replaces client-supplied identity headers. Therefore the actual-deployment impersonation question cannot be decided from the fixed source context.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "The declared entry is POST /signin, and the supplied handler contains a trusted-email-header branch.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 1,
+                      "endLine": 62,
+                      "quote": "@router.post('/signin', response_model=SessionUserResponse)"
+                    },
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 1,
+                      "endLine": 62,
+                      "quote": "if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:"
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "When the trusted-email header configuration is truthy, the request header with that configured name supplies the email identity; the value is lowercased and used to look up or create the user.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 1,
+                      "endLine": 30,
+                      "quote": "email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()"
+                    },
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 1,
+                      "endLine": 30,
+                      "quote": "if not await Users.get_user_by_email(email.lower(), db=db):"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The configured trusted-email header name is environment-controlled and defaults to unset.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+                      "startLine": 8,
+                      "endLine": 13,
+                      "quote": "WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)"
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "The strongest visible application control is the ENABLE_PASSWORD_AUTH gate, which rejects the request before the trusted-header branch when password authentication is disabled.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 1,
+                      "endLine": 15,
+                      "quote": "if not ENABLE_PASSWORD_AUTH:"
+                    },
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 1,
+                      "endLine": 15,
+                      "quote": "raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_MESSAGES.ACTION_PROHIBITED)"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The trusted-header branch also requires the configured header to be present in the request.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 16,
+                      "endLine": 23,
+                      "quote": "if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:"
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "If email authentication yields a user, the handler returns a session response and sets the session cookie.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 45,
+                      "endLine": 62,
+                      "quote": "user = await Auths.authenticate_user_by_email(email, db=db)"
+                    },
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 55,
+                      "endLine": 62,
+                      "quote": "return await create_session_response(request, user, db, response, set_cookie=True)"
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The source does not provide the actual deployment value of ENABLE_PASSWORD_AUTH, so it does not establish whether the application-level gate permits entry.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 1,
+                      "endLine": 15,
+                      "quote": "if not ENABLE_PASSWORD_AUTH:"
+                    },
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/task.json",
+                      "startLine": 1,
+                      "endLine": 20,
+                      "quote": "The allowed source crops expose the feature configuration and conditional identity-to-session path. They do not contain the actual ENABLE_PASSWORD_AUTH value"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The accepted deployment policy requires a sole trusted reverse-proxy ingress that removes client-supplied identity headers and injects the authenticated identity, but the source context supplies no actual deployment or proxy facts.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/task.json",
+                      "startLine": 1,
+                      "endLine": 20,
+                      "quote": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself."
+                    },
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/task.json",
+                      "startLine": 1,
+                      "endLine": 20,
+                      "quote": "Do not infer environment values, proxy configuration, network topology, or direct reachability."
+                    }
+                  ]
+                },
+                {
+                  "statement": "The supplied context expressly omits the actual trusted-header value, ingress reachability, proxy stripping or replacement, and authentication outcome.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/task.json",
+                      "startLine": 1,
+                      "endLine": 20,
+                      "quote": "They do not contain the actual ENABLE_PASSWORD_AUTH value, trusted-header value, ingress reachability, proxy stripping/replacement, or authentication outcome for a real deployment."
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [
+              "The actual deployed value of ENABLE_PASSWORD_AUTH.",
+              "The actual deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER, including whether the trusted-email branch is enabled and the exact header name.",
+              "Whether the unauthenticated external client can directly reach POST /signin or otherwise reach the application through an ingress it controls.",
+              "Whether a trusted reverse proxy is the sole reachable ingress for this endpoint.",
+              "Whether that proxy removes any client-supplied trusted identity header and injects the identity it authenticated itself.",
+              "Whether the header-selected arbitrary existing user's email resolves to a user and whether authenticate_user_by_email succeeds in the actual deployment."
+            ],
+            "suggestedObservations": [
+              "Inspect the effective runtime configuration for ENABLE_PASSWORD_AUTH and WEBUI_AUTH_TRUSTED_EMAIL_HEADER.",
+              "Determine the externally reachable network path to POST /signin and whether any direct application listener bypasses the proxy.",
+              "Inspect or test the effective reverse-proxy behavior to confirm that client-supplied identity headers are removed and replaced only after proxy authentication.",
+              "Observe a controlled request through the actual deployment and its resulting response and session behavior, without treating the application source alone as proof of deployment reachability."
+            ]
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "This result assesses only the declared post-signin-trusted-email obligation using the supplied fixed source crops. Source discovery was not tested; no repository-wide or all-entry completeness claim is made."
+        }
+      },
+      "structure": {
+        "status": "valid",
+        "diagnostics": []
+      },
+      "declared": {
+        "total": 1,
+        "disposed": 0,
+        "pending": 1,
+        "blocked": 0,
+        "invalid": 0,
+        "status": "partial",
+        "completionPercent": 0
+      },
+      "discovery": {
+        "status": "not-tested",
+        "claimLimit": "declared-obligations-only"
+      },
+      "evidencePresence": [],
+      "evidenceSupport": [],
+      "completeness": {
+        "status": "accepted",
+        "kind": "declared-obligations-only"
+      },
+      "dependencySnapshot": {
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "sourceFiles": [
+          {
+            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+            "sha256": "91194fe8ebe69bc9434f00c0d6f7e95c34360b597739408df99f1169fc70a4c6"
+          },
+          {
+            "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+            "sha256": "44ac3bb945d5d3a7ea026c8ad5503fada5f740ad0cacb6dea3fc1f3d953bf0a1"
+          },
+          {
+            "path": "inputs/owui-trusted-header-deployment/task.json",
+            "sha256": "1fd0a93b94a373b37dee4fced7c1ebfdb78ba9242b19cdd2206614b45d8c2807"
+          }
+        ],
+        "policies": [
+          {
+            "id": "trusted-proxy-identity-policy",
+            "revision": "open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366",
+            "location": "inputs/owui-trusted-header-deployment/task.json#/sourceOfRequirement",
+            "text": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.",
+            "acceptanceStatus": "accepted"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "external-client-trusted-header-impersonation",
+            "principalId": "unauthenticated-external-client",
+            "resourceId": "existing-user-session",
+            "relation": "external-client-to-arbitrary-existing-user-identity",
+            "operation": "obtain-session-as-header-selected-user",
+            "expectation": "deny",
+            "conditions": [
+              {
+                "name": "password-auth-signin-entry-enabled",
+                "basis": "auths_signin.py checks ENABLE_PASSWORD_AUTH before entering the trusted-header branch."
+              },
+              {
+                "name": "trusted-email-header-name-configured",
+                "basis": "env_trusted_headers.py makes the header name environment-controlled and auths_signin.py enters the branch only when configured."
+              },
+              {
+                "name": "email-authentication-produces-user",
+                "basis": "auths_signin.py returns a session only after authenticate_user_by_email yields a user."
+              },
+              {
+                "name": "deployment-ingress-enforces-header-trust",
+                "basis": "The accepted policy requires sole trusted-proxy ingress and removal/replacement of client-supplied identity headers; actual deployment facts are not supplied."
+              }
+            ],
+            "policySourceId": "trusted-proxy-identity-policy",
+            "entryIds": [
+              "post-signin-trusted-email"
+            ]
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "foreign-obligation-result",
+          "message": "Result names undeclared or non-runnable obligation external-client-trusted-header-impersonation.",
+          "path": "results.0.obligationId",
+          "severity": "error"
+        },
+        {
+          "code": "missing-obligation-result",
+          "message": "No result was returned for obligation external-client-trusted-header-impersonation::post-signin-trusted-email.",
+          "path": "results",
+          "severity": "error"
+        }
+      ]
+    }
+  },
+  "repair": {
+    "result": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "owui-trusted-header-deployment",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "results": [
+        {
+          "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+          "conclusion": "unknown",
+          "explanation": "The fixed source shows an application-level path in which POST /signin can use a configured request header as an email identity and create a session for the resulting user. It does not establish the effective deployment values, whether the unauthenticated external client can reach the application ingress, or whether a trusted proxy is the sole ingress and removes or replaces client-supplied identity headers. The real-deployment authorization question therefore remains undecided.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The declared entry is POST /signin and the handler contains the trusted-email-header branch.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 1,
+                    "endLine": 1,
+                    "quote": "@router.post('/signin', response_model=SessionUserResponse)"
+                  },
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 16,
+                    "endLine": 16,
+                    "quote": "if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "When the trusted-email header configuration is truthy, the value of the request header with that configured name is lowercased and used as the email identity; the code then looks up that email and may create a user if none exists.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 16,
+                    "endLine": 30,
+                    "quote": "email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()"
+                  },
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 27,
+                    "endLine": 30,
+                    "quote": "if not await Users.get_user_by_email(email.lower(), db=db):"
+                  }
+                ]
+              },
+              {
+                "statement": "The trusted-email header name is environment-controlled and defaults to None, so the branch is not shown to be enabled in the actual deployment.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+                    "startLine": 8,
+                    "endLine": 8,
+                    "quote": "WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The strongest visible application control is the ENABLE_PASSWORD_AUTH gate, which rejects the request before the trusted-header branch when password authentication is disabled.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 8,
+                    "endLine": 13,
+                    "quote": "if not ENABLE_PASSWORD_AUTH:"
+                  },
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 9,
+                    "endLine": 13,
+                    "quote": "raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_MESSAGES.ACTION_PROHIBITED)"
+                  }
+                ]
+              },
+              {
+                "statement": "If the trusted-email branch is enabled, the configured header must be present in the request before its value is used.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 17,
+                    "endLine": 20,
+                    "quote": "if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "After email authentication yields a user, the handler returns a session response and sets the session cookie.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 45,
+                    "endLine": 45,
+                    "quote": "user = await Auths.authenticate_user_by_email(email, db=db)"
+                  },
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                    "startLine": 58,
+                    "endLine": 62,
+                    "quote": "return await create_session_response(request, user, db, response, set_cookie=True)"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The source context does not provide the actual deployment value of ENABLE_PASSWORD_AUTH or the actual trusted-header value.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/task.json",
+                    "startLine": 15,
+                    "endLine": 18,
+                    "quote": "The allowed source crops expose the feature configuration and conditional identity-to-session path. They do not contain the actual ENABLE_PASSWORD_AUTH value, trusted-header value, ingress reachability, proxy stripping/replacement, or authentication outcome for a real deployment."
+                  }
+                ]
+              },
+              {
+                "statement": "The accepted policy requires a trusted reverse proxy to be the sole reachable ingress, to remove client-supplied identity headers, and to inject the authenticated identity itself.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/task.json",
+                    "startLine": 8,
+                    "endLine": 10,
+                    "quote": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself."
+                  }
+                ]
+              },
+              {
+                "statement": "The source context prohibits inferring environment values, proxy configuration, network topology, or direct reachability.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-trusted-header-deployment/task.json",
+                    "startLine": 12,
+                    "endLine": 15,
+                    "quote": "Do not infer environment values, proxy configuration, network topology, or direct reachability."
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [
+            "The effective deployed value of ENABLE_PASSWORD_AUTH.",
+            "The effective deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER, including whether the trusted-email branch is enabled and the exact header name.",
+            "Whether the unauthenticated external client can reach POST /signin through an ingress it can control or bypass the trusted proxy.",
+            "Whether a trusted reverse proxy is the sole reachable ingress for POST /signin.",
+            "Whether that proxy removes client-supplied identity headers and injects only the identity it authenticated itself.",
+            "Whether the header-selected existing user's email resolves to a user and whether authenticate_user_by_email succeeds in the actual deployment."
+          ],
+          "suggestedObservations": [
+            "Observe the effective runtime values of ENABLE_PASSWORD_AUTH and WEBUI_AUTH_TRUSTED_EMAIL_HEADER.",
+            "Observe the externally reachable network path to POST /signin, including whether a direct application listener bypasses the proxy.",
+            "Observe the effective reverse-proxy behavior for removal and replacement of client-supplied identity headers and its authentication requirement.",
+            "Observe a controlled request through the actual deployment and whether it produces the session response; do not treat source capability as proof of deployment reachability."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "This result assesses only the runnable expanded obligation external-client-trusted-header-impersonation::post-signin-trusted-email using the supplied fixed source crops. Source discovery was not tested; no repository-wide or all-entry completeness claim is made."
+      }
+    },
+    "rawResponse": "{\"schemaVersion\":\"source-authorization-assessment-result/v0\",\"taskId\":\"owui-trusted-header-deployment\",\"repository\":\"https://github.com/open-webui/open-webui\",\"sourceRef\":\"841c9045d789005145274955e7ef60b1b11a9be9\",\"results\":[{\"obligationId\":\"external-client-trusted-header-impersonation::post-signin-trusted-email\",\"conclusion\":\"unknown\",\"explanation\":\"The fixed source shows an application-level path in which POST /signin can use a configured request header as an email identity and create a session for the resulting user. It does not establish the effective deployment values, whether the unauthenticated external client can reach the application ingress, or whether a trusted proxy is the sole ingress and removes or replaces client-supplied identity headers. The real-deployment authorization question therefore remains undecided.\",\"facts\":{\"entry\":[{\"statement\":\"The declared entry is POST /signin and the handler contains the trusted-email-header branch.\",\"citations\":[{\"path\":\"inputs/owui-trusted-header-deployment/auths_signin.py\",\"startLine\":1,\"endLine\":1,\"quote\":\"@router.post('/signin', response_model=SessionUserResponse)\"},{\"path\":\"inputs/owui-trusted-header-deployment/auths_signin.py\",\"startLine\":16,\"endLine\":16,\"quote\":\"if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\"}]}],\"binding\":[{\"statement\":\"When the trusted-email header configuration is truthy, the value of the request header with that configured name is lowercased and used as the email identity; the code then looks up that email and may create a user if none exists.\",\"citations\":[{\"path\":\"inputs/owui-trusted-header-deployment/auths_signin.py\",\"startLine\":16,\"endLine\":30,\"quote\":\"email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()\"},{\"path\":\"inputs/owui-trusted-header-deployment/auths_signin.py\",\"startLine\":27,\"endLine\":30,\"quote\":\"if not await Users.get_user_by_email(email.lower(), db=db):\"}]},{\"statement\":\"The trusted-email header name is environment-controlled and defaults to None, so the branch is not shown to be enabled in the actual deployment.\",\"citations\":[{\"path\":\"inputs/owui-trusted-header-deployment/env_trusted_headers.py\",\"startLine\":8,\"endLine\":8,\"quote\":\"WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)\"}]}],\"control\":[{\"statement\":\"The strongest visible application control is the ENABLE_PASSWORD_AUTH gate, which rejects the request before the trusted-header branch when password authentication is disabled.\",\"citations\":[{\"path\":\"inputs/owui-trusted-header-deployment/auths_signin.py\",\"startLine\":8,\"endLine\":13,\"quote\":\"if not ENABLE_PASSWORD_AUTH:\"},{\"path\":\"inputs/owui-trusted-header-deployment/auths_signin.py\",\"startLine\":9,\"endLine\":13,\"quote\":\"raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_MESSAGES.ACTION_PROHIBITED)\"}]},{\"statement\":\"If the trusted-email branch is enabled, the configured header must be present in the request before its value is used.\",\"citations\":[{\"path\":\"inputs/owui-trusted-header-deployment/auths_signin.py\",\"startLine\":17,\"endLine\":20,\"quote\":\"if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\"}]}],\"effect\":[{\"statement\":\"After email authentication yields a user, the handler returns a session response and sets the session cookie.\",\"citations\":[{\"path\":\"inputs/owui-trusted-header-deployment/auths_signin.py\",\"startLine\":45,\"endLine\":45,\"quote\":\"user = await Auths.authenticate_user_by_email(email, db=db)\"},{\"path\":\"inputs/owui-trusted-header-deployment/auths_signin.py\",\"startLine\":58,\"endLine\":62,\"quote\":\"return await create_session_response(request, user, db, response, set_cookie=True)\"}]}],\"condition\":[{\"statement\":\"The source context does not provide the actual deployment value of ENABLE_PASSWORD_AUTH or the actual trusted-header value.\",\"citations\":[{\"path\":\"inputs/owui-trusted-header-deployment/task.json\",\"startLine\":15,\"endLine\":18,\"quote\":\"The allowed source crops expose the feature configuration and conditional identity-to-session path. They do not contain the actual ENABLE_PASSWORD_AUTH value, trusted-header value, ingress reachability, proxy stripping/replacement, or authentication outcome for a real deployment.\"}]},{\"statement\":\"The accepted policy requires a trusted reverse proxy to be the sole reachable ingress, to remove client-supplied identity headers, and to inject the authenticated identity itself.\",\"citations\":[{\"path\":\"inputs/owui-trusted-header-deployment/task.json\",\"startLine\":8,\"endLine\":10,\"quote\":\"Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.\"}]},{\"statement\":\"The source context prohibits inferring environment values, proxy configuration, network topology, or direct reachability.\",\"citations\":[{\"path\":\"inputs/owui-trusted-header-deployment/task.json\",\"startLine\":12,\"endLine\":15,\"quote\":\"Do not infer environment values, proxy configuration, network topology, or direct reachability.\"}]}]},\"decisiveMissingFacts\":[\"The effective deployed value of ENABLE_PASSWORD_AUTH.\",\"The effective deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER, including whether the trusted-email branch is enabled and the exact header name.\",\"Whether the unauthenticated external client can reach POST /signin through an ingress it can control or bypass the trusted proxy.\",\"Whether a trusted reverse proxy is the sole reachable ingress for POST /signin.\",\"Whether that proxy removes client-supplied identity headers and injects only the identity it authenticated itself.\",\"Whether the header-selected existing user's email resolves to a user and whether authenticate_user_by_email succeeds in the actual deployment.\"],\"suggestedObservations\":[\"Observe the effective runtime values of ENABLE_PASSWORD_AUTH and WEBUI_AUTH_TRUSTED_EMAIL_HEADER.\",\"Observe the externally reachable network path to POST /signin, including whether a direct application listener bypasses the proxy.\",\"Observe the effective reverse-proxy behavior for removal and replacement of client-supplied identity headers and its authentication requirement.\",\"Observe a controlled request through the actual deployment and whether it produces the session response; do not treat source capability as proof of deployment reachability.\"]}],\"scopeClaim\":{\"kind\":\"declared-obligations-only\",\"statement\":\"This result assesses only the runnable expanded obligation external-client-trusted-header-impersonation::post-signin-trusted-email using the supplied fixed source crops. Source discovery was not tested; no repository-wide or all-entry completeness claim is made.\"}}",
+    "providerAttemptIds": [
+      "provider-attempt-3"
+    ],
+    "outputAttemptId": "provider-attempt-3",
+    "validation": {
+      "parsedResult": {
+        "schemaVersion": "source-authorization-assessment-result/v0",
+        "taskId": "owui-trusted-header-deployment",
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "results": [
+          {
+            "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+            "conclusion": "unknown",
+            "explanation": "The fixed source shows an application-level path in which POST /signin can use a configured request header as an email identity and create a session for the resulting user. It does not establish the effective deployment values, whether the unauthenticated external client can reach the application ingress, or whether a trusted proxy is the sole ingress and removes or replaces client-supplied identity headers. The real-deployment authorization question therefore remains undecided.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "The declared entry is POST /signin and the handler contains the trusted-email-header branch.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 1,
+                      "endLine": 1,
+                      "quote": "@router.post('/signin', response_model=SessionUserResponse)"
+                    },
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 16,
+                      "endLine": 16,
+                      "quote": "if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:"
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "When the trusted-email header configuration is truthy, the value of the request header with that configured name is lowercased and used as the email identity; the code then looks up that email and may create a user if none exists.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 16,
+                      "endLine": 30,
+                      "quote": "email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()"
+                    },
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 27,
+                      "endLine": 30,
+                      "quote": "if not await Users.get_user_by_email(email.lower(), db=db):"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The trusted-email header name is environment-controlled and defaults to None, so the branch is not shown to be enabled in the actual deployment.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+                      "startLine": 8,
+                      "endLine": 8,
+                      "quote": "WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)"
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "The strongest visible application control is the ENABLE_PASSWORD_AUTH gate, which rejects the request before the trusted-header branch when password authentication is disabled.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 8,
+                      "endLine": 13,
+                      "quote": "if not ENABLE_PASSWORD_AUTH:"
+                    },
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 9,
+                      "endLine": 13,
+                      "quote": "raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_MESSAGES.ACTION_PROHIBITED)"
+                    }
+                  ]
+                },
+                {
+                  "statement": "If the trusted-email branch is enabled, the configured header must be present in the request before its value is used.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 17,
+                      "endLine": 20,
+                      "quote": "if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:"
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "After email authentication yields a user, the handler returns a session response and sets the session cookie.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 45,
+                      "endLine": 45,
+                      "quote": "user = await Auths.authenticate_user_by_email(email, db=db)"
+                    },
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                      "startLine": 58,
+                      "endLine": 62,
+                      "quote": "return await create_session_response(request, user, db, response, set_cookie=True)"
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The source context does not provide the actual deployment value of ENABLE_PASSWORD_AUTH or the actual trusted-header value.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/task.json",
+                      "startLine": 15,
+                      "endLine": 18,
+                      "quote": "The allowed source crops expose the feature configuration and conditional identity-to-session path. They do not contain the actual ENABLE_PASSWORD_AUTH value, trusted-header value, ingress reachability, proxy stripping/replacement, or authentication outcome for a real deployment."
+                    }
+                  ]
+                },
+                {
+                  "statement": "The accepted policy requires a trusted reverse proxy to be the sole reachable ingress, to remove client-supplied identity headers, and to inject the authenticated identity itself.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/task.json",
+                      "startLine": 8,
+                      "endLine": 10,
+                      "quote": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself."
+                    }
+                  ]
+                },
+                {
+                  "statement": "The source context prohibits inferring environment values, proxy configuration, network topology, or direct reachability.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-trusted-header-deployment/task.json",
+                      "startLine": 12,
+                      "endLine": 15,
+                      "quote": "Do not infer environment values, proxy configuration, network topology, or direct reachability."
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [
+              "The effective deployed value of ENABLE_PASSWORD_AUTH.",
+              "The effective deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER, including whether the trusted-email branch is enabled and the exact header name.",
+              "Whether the unauthenticated external client can reach POST /signin through an ingress it can control or bypass the trusted proxy.",
+              "Whether a trusted reverse proxy is the sole reachable ingress for POST /signin.",
+              "Whether that proxy removes client-supplied identity headers and injects only the identity it authenticated itself.",
+              "Whether the header-selected existing user's email resolves to a user and whether authenticate_user_by_email succeeds in the actual deployment."
+            ],
+            "suggestedObservations": [
+              "Observe the effective runtime values of ENABLE_PASSWORD_AUTH and WEBUI_AUTH_TRUSTED_EMAIL_HEADER.",
+              "Observe the externally reachable network path to POST /signin, including whether a direct application listener bypasses the proxy.",
+              "Observe the effective reverse-proxy behavior for removal and replacement of client-supplied identity headers and its authentication requirement.",
+              "Observe a controlled request through the actual deployment and whether it produces the session response; do not treat source capability as proof of deployment reachability."
+            ]
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "This result assesses only the runnable expanded obligation external-client-trusted-header-impersonation::post-signin-trusted-email using the supplied fixed source crops. Source discovery was not tested; no repository-wide or all-entry completeness claim is made."
+        }
+      },
+      "structure": {
+        "status": "valid",
+        "diagnostics": []
+      },
+      "declared": {
+        "total": 1,
+        "disposed": 1,
+        "pending": 0,
+        "blocked": 0,
+        "invalid": 0,
+        "status": "all-disposed",
+        "completionPercent": 100
+      },
+      "discovery": {
+        "status": "not-tested",
+        "claimLimit": "declared-obligations-only"
+      },
+      "evidencePresence": [
+        {
+          "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+          "status": "invalid"
+        }
+      ],
+      "evidenceSupport": [
+        {
+          "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+          "status": "unreviewed"
+        }
+      ],
+      "completeness": {
+        "status": "accepted",
+        "kind": "declared-obligations-only"
+      },
+      "dependencySnapshot": {
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "sourceFiles": [
+          {
+            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+            "sha256": "91194fe8ebe69bc9434f00c0d6f7e95c34360b597739408df99f1169fc70a4c6"
+          },
+          {
+            "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+            "sha256": "44ac3bb945d5d3a7ea026c8ad5503fada5f740ad0cacb6dea3fc1f3d953bf0a1"
+          },
+          {
+            "path": "inputs/owui-trusted-header-deployment/task.json",
+            "sha256": "1fd0a93b94a373b37dee4fced7c1ebfdb78ba9242b19cdd2206614b45d8c2807"
+          }
+        ],
+        "policies": [
+          {
+            "id": "trusted-proxy-identity-policy",
+            "revision": "open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366",
+            "location": "inputs/owui-trusted-header-deployment/task.json#/sourceOfRequirement",
+            "text": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.",
+            "acceptanceStatus": "accepted"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "external-client-trusted-header-impersonation",
+            "principalId": "unauthenticated-external-client",
+            "resourceId": "existing-user-session",
+            "relation": "external-client-to-arbitrary-existing-user-identity",
+            "operation": "obtain-session-as-header-selected-user",
+            "expectation": "deny",
+            "conditions": [
+              {
+                "name": "password-auth-signin-entry-enabled",
+                "basis": "auths_signin.py checks ENABLE_PASSWORD_AUTH before entering the trusted-header branch."
+              },
+              {
+                "name": "trusted-email-header-name-configured",
+                "basis": "env_trusted_headers.py makes the header name environment-controlled and auths_signin.py enters the branch only when configured."
+              },
+              {
+                "name": "email-authentication-produces-user",
+                "basis": "auths_signin.py returns a session only after authenticate_user_by_email yields a user."
+              },
+              {
+                "name": "deployment-ingress-enforces-header-trust",
+                "basis": "The accepted policy requires sole trusted-proxy ingress and removal/replacement of client-supplied identity headers; actual deployment facts are not supplied."
+              }
+            ],
+            "policySourceId": "trusted-proxy-identity-policy",
+            "entryIds": [
+              "post-signin-trusted-email"
+            ]
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.entry.0.citations.0.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.entry.0.citations.1.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.binding.0.citations.1.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.binding.1.citations.0.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.control.0.citations.1.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.effect.0.citations.0.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.condition.0.citations.0.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.condition.1.citations.0.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.condition.2.citations.0.quote",
+          "severity": "error"
+        }
+      ]
+    }
+  },
+  "finalKind": "repair",
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "status": "response",
+      "startedAt": "2026-09-20T15:44:26.174Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 12142,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 3418,
+        "output": 2593,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "endedAt": "2026-09-20T15:45:17.246Z",
+      "response": {
+        "text": "",
+        "toolCalls": [
+          {
+            "id": "call_F8f0QlSdD2hLgCpvIrSyE5Wz",
+            "name": "submit_authorization_result",
+            "arguments": {
+              "repository": "https://github.com/open-webui/open-webui",
+              "results": [
+                {
+                  "conclusion": "unknown",
+                  "decisiveMissingFacts": [
+                    "The actual deployment value of ENABLE_PASSWORD_AUTH is not supplied.",
+                    "The actual deployment value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER, including whether it is configured and its deployed header name, is not supplied.",
+                    "The actual ingress topology and reachability are not supplied: it is unknown whether a trusted reverse proxy is the sole reachable ingress or whether the application has any direct or alternate reachable ingress.",
+                    "The actual proxy header handling is not supplied: it is unknown whether every reachable ingress removes client-supplied identity headers and injects the trusted email only from an authenticated proxy identity.",
+                    "The actual result of Auths.authenticate_user_by_email for the selected existing user in the deployment is not supplied."
+                  ],
+                  "explanation": "The fixed source shows a conditional application capability: POST /signin is blocked when password authentication is disabled; when password authentication is enabled and a trusted-email header name is configured, the request-header value is lowercased and used as the email identity, after which a successful email authentication can produce a cookie-setting session for that user. The supplied policy says this design is safe only behind a sole reachable trusted proxy that strips client-supplied identity headers and injects authenticated identity. The fixed context contains no deployed environment values, ingress/reachability facts, proxy stripping/injection facts, or real authentication outcome. Therefore it neither establishes that an unauthenticated external client can deliver an arbitrary trusted-email value to the application nor establishes that deployment controls prevent it, so the actual-deployment conclusion is unknown.",
+                  "facts": {
+                    "binding": [
+                      {
+                        "citations": [
+                          {
+                            "endLine": 21,
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "quote": "email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()",
+                            "startLine": 21
+                          },
+                          {
+                            "endLine": 40,
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "quote": "user = await Auths.authenticate_user_by_email(email, db=db)",
+                            "startLine": 40
+                          }
+                        ],
+                        "statement": "The configured trusted-email request header is lowercased into the email identity and that email is passed to authenticate_user_by_email to obtain the user principal."
+                      }
+                    ],
+                    "condition": [
+                      {
+                        "citations": [
+                          {
+                            "endLine": 15,
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "quote": "if not ENABLE_PASSWORD_AUTH:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=ERROR_MESSAGES.ACTION_PROHIBITED,\n        )",
+                            "startLine": 11
+                          }
+                        ],
+                        "statement": "The signin path is prohibited unless ENABLE_PASSWORD_AUTH is enabled."
+                      },
+                      {
+                        "citations": [
+                          {
+                            "endLine": 10,
+                            "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+                            "quote": "WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)",
+                            "startLine": 10
+                          },
+                          {
+                            "endLine": 19,
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "quote": "if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n            raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)",
+                            "startLine": 17
+                          }
+                        ],
+                        "statement": "The trusted-email branch exists only when its environment-controlled header name is configured, and the configured header must be present."
+                      },
+                      {
+                        "citations": [
+                          {
+                            "endLine": 41,
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "quote": "user = await Auths.authenticate_user_by_email(email, db=db)\n        if user:",
+                            "startLine": 40
+                          },
+                          {
+                            "endLine": 62,
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "quote": "if user:\n        return await create_session_response(request, user, db, response, set_cookie=True)\n    else:\n        raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)",
+                            "startLine": 59
+                          }
+                        ],
+                        "statement": "A session is returned only if email authentication produces a user; otherwise signin fails."
+                      },
+                      {
+                        "citations": [
+                          {
+                            "endLine": 7,
+                            "path": "inputs/owui-trusted-header-deployment/task.json",
+                            "quote": "\"normativeRequirement\": \"Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.\"",
+                            "startLine": 7
+                          },
+                          {
+                            "endLine": 18,
+                            "path": "inputs/owui-trusted-header-deployment/task.json",
+                            "quote": "\"Do not infer environment values, proxy configuration, network topology, or direct reachability.\"",
+                            "startLine": 18
+                          }
+                        ],
+                        "statement": "Safety depends on deployment-specific sole-proxy ingress and header removal/replacement, and the supplied constraints prohibit inferring those deployment facts."
+                      }
+                    ],
+                    "control": [
+                      {
+                        "citations": [
+                          {
+                            "endLine": 19,
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "quote": "if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n            raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)",
+                            "startLine": 17
+                          },
+                          {
+                            "endLine": 7,
+                            "path": "inputs/owui-trusted-header-deployment/task.json",
+                            "quote": "\"normativeRequirement\": \"Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.\"",
+                            "startLine": 7
+                          }
+                        ],
+                        "statement": "The strongest application-visible check is presence of the configured header; the decisive provenance control is deployment-side trusted-proxy exclusivity and stripping/injection, whose actual enforcement is not shown."
+                      }
+                    ],
+                    "effect": [
+                      {
+                        "citations": [
+                          {
+                            "endLine": 60,
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "quote": "if user:\n        return await create_session_response(request, user, db, response, set_cookie=True)",
+                            "startLine": 59
+                          }
+                        ],
+                        "statement": "When a user is produced, the protected effect is creation of that user's session response with a cookie."
+                      }
+                    ],
+                    "entry": [
+                      {
+                        "citations": [
+                          {
+                            "endLine": 10,
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "quote": "@router.post('/signin', response_model=SessionUserResponse)\nasync def signin(\n    request: Request,\n    response: Response,\n    form_data: SigninForm,\n    db: AsyncSession = Depends(get_async_session),\n):",
+                            "startLine": 4
+                          }
+                        ],
+                        "statement": "The declared entry is the POST /signin handler."
+                      }
+                    ],
+                    "resource": [
+                      {
+                        "citations": [
+                          {
+                            "endLine": 40,
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "quote": "user = await Auths.authenticate_user_by_email(email, db=db)",
+                            "startLine": 40
+                          },
+                          {
+                            "endLine": 60,
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "quote": "if user:\n        return await create_session_response(request, user, db, response, set_cookie=True)",
+                            "startLine": 59
+                          }
+                        ],
+                        "statement": "The header-selected email can bind to a user, and the protected resource is the authenticated identity and session created for that user."
+                      }
+                    ]
+                  },
+                  "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+                  "suggestedObservations": [
+                    "Read the deployed ENABLE_PASSWORD_AUTH value from the deployment's effective runtime configuration.",
+                    "Read the deployed WEBUI_AUTH_TRUSTED_EMAIL_HEADER value and identify the exact header name expected by the application.",
+                    "Inspect the deployed routing, load-balancer, service exposure, and network policy configuration to determine whether the trusted proxy is the sole externally reachable path and whether any direct or alternate path reaches the application.",
+                    "Inspect or safely validate the effective proxy configuration to determine whether it always removes the client-supplied trusted-email header and injects a value only after authenticating the upstream identity.",
+                    "In an authorized non-production or otherwise safely instrumented environment with equivalent configuration, observe whether authenticate_user_by_email returns the selected existing user and whether the handler creates that user's session."
+                  ]
+                }
+              ],
+              "schemaVersion": "source-authorization-assessment-result/v0",
+              "scopeClaim": {
+                "kind": "declared-obligations-only",
+                "statement": "This assessment covers only the declared POST /signin trusted-email obligation in the supplied fixed source context; source discovery was not tested, so no repository-wide or all-entry completeness claim is made."
+              },
+              "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+              "taskId": "owui-trusted-header-deployment"
+            }
+          }
+        ],
+        "tokens": {
+          "input": 3418,
+          "output": 2593,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 51072.15539999993,
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "id": "provider-attempt-2",
+      "phase": "initial",
+      "transport": "prompt-parse",
+      "status": "response",
+      "startedAt": "2026-09-20T15:45:17.247Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 21058,
+        "toolNames": [],
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 4547,
+        "output": 2387,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "endedAt": "2026-09-20T15:47:08.515Z",
+      "response": {
+        "text": "{\n  \"schemaVersion\": \"source-authorization-assessment-result/v0\",\n  \"taskId\": \"owui-trusted-header-deployment\",\n  \"repository\": \"https://github.com/open-webui/open-webui\",\n  \"sourceRef\": \"841c9045d789005145274955e7ef60b1b11a9be9\",\n  \"results\": [\n    {\n      \"obligationId\": \"external-client-trusted-header-impersonation\",\n      \"conclusion\": \"unknown\",\n      \"explanation\": \"The supplied source supports an application-level capability for POST /signin to use a configured request header as the email identity and then create a session for the resulting user. It does not establish that password authentication is enabled, that the trusted-email header is configured in the actual deployment, that an unauthenticated external client can reach this application ingress, or that a trusted reverse proxy is the sole ingress and strips or replaces client-supplied identity headers. Therefore the actual-deployment impersonation question cannot be decided from the fixed source context.\",\n      \"facts\": {\n        \"entry\": [\n          {\n            \"statement\": \"The declared entry is POST /signin, and the supplied handler contains a trusted-email-header branch.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 1,\n                \"endLine\": 62,\n                \"quote\": \"@router.post('/signin', response_model=SessionUserResponse)\"\n              },\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 1,\n                \"endLine\": 62,\n                \"quote\": \"if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\"\n              }\n            ]\n          }\n        ],\n        \"binding\": [\n          {\n            \"statement\": \"When the trusted-email header configuration is truthy, the request header with that configured name supplies the email identity; the value is lowercased and used to look up or create the user.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 1,\n                \"endLine\": 30,\n                \"quote\": \"email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()\"\n              },\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 1,\n                \"endLine\": 30,\n                \"quote\": \"if not await Users.get_user_by_email(email.lower(), db=db):\"\n              }\n            ]\n          },\n          {\n            \"statement\": \"The configured trusted-email header name is environment-controlled and defaults to unset.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/env_trusted_headers.py\",\n                \"startLine\": 8,\n                \"endLine\": 13,\n                \"quote\": \"WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)\"\n              }\n            ]\n          }\n        ],\n        \"control\": [\n          {\n            \"statement\": \"The strongest visible application control is the ENABLE_PASSWORD_AUTH gate, which rejects the request before the trusted-header branch when password authentication is disabled.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 1,\n                \"endLine\": 15,\n                \"quote\": \"if not ENABLE_PASSWORD_AUTH:\"\n              },\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 1,\n                \"endLine\": 15,\n                \"quote\": \"raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_MESSAGES.ACTION_PROHIBITED)\"\n              }\n            ]\n          },\n          {\n            \"statement\": \"The trusted-header branch also requires the configured header to be present in the request.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 16,\n                \"endLine\": 23,\n                \"quote\": \"if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\"\n              }\n            ]\n          }\n        ],\n        \"effect\": [\n          {\n            \"statement\": \"If email authentication yields a user, the handler returns a session response and sets the session cookie.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 45,\n                \"endLine\": 62,\n                \"quote\": \"user = await Auths.authenticate_user_by_email(email, db=db)\"\n              },\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 55,\n                \"endLine\": 62,\n                \"quote\": \"return await create_session_response(request, user, db, response, set_cookie=True)\"\n              }\n            ]\n          }\n        ],\n        \"condition\": [\n          {\n            \"statement\": \"The source does not provide the actual deployment value of ENABLE_PASSWORD_AUTH, so it does not establish whether the application-level gate permits entry.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/auths_signin.py\",\n                \"startLine\": 1,\n                \"endLine\": 15,\n                \"quote\": \"if not ENABLE_PASSWORD_AUTH:\"\n              },\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/task.json\",\n                \"startLine\": 1,\n                \"endLine\": 20,\n                \"quote\": \"The allowed source crops expose the feature configuration and conditional identity-to-session path. They do not contain the actual ENABLE_PASSWORD_AUTH value\"\n              }\n            ]\n          },\n          {\n            \"statement\": \"The accepted deployment policy requires a sole trusted reverse-proxy ingress that removes client-supplied identity headers and injects the authenticated identity, but the source context supplies no actual deployment or proxy facts.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/task.json\",\n                \"startLine\": 1,\n                \"endLine\": 20,\n                \"quote\": \"Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.\"\n              },\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/task.json\",\n                \"startLine\": 1,\n                \"endLine\": 20,\n                \"quote\": \"Do not infer environment values, proxy configuration, network topology, or direct reachability.\"\n              }\n            ]\n          },\n          {\n            \"statement\": \"The supplied context expressly omits the actual trusted-header value, ingress reachability, proxy stripping or replacement, and authentication outcome.\",\n            \"citations\": [\n              {\n                \"path\": \"inputs/owui-trusted-header-deployment/task.json\",\n                \"startLine\": 1,\n                \"endLine\": 20,\n                \"quote\": \"They do not contain the actual ENABLE_PASSWORD_AUTH value, trusted-header value, ingress reachability, proxy stripping/replacement, or authentication outcome for a real deployment.\"\n              }\n            ]\n          }\n        ]\n      },\n      \"decisiveMissingFacts\": [\n        \"The actual deployed value of ENABLE_PASSWORD_AUTH.\",\n        \"The actual deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER, including whether the trusted-email branch is enabled and the exact header name.\",\n        \"Whether the unauthenticated external client can directly reach POST /signin or otherwise reach the application through an ingress it controls.\",\n        \"Whether a trusted reverse proxy is the sole reachable ingress for this endpoint.\",\n        \"Whether that proxy removes any client-supplied trusted identity header and injects the identity it authenticated itself.\",\n        \"Whether the header-selected arbitrary existing user's email resolves to a user and whether authenticate_user_by_email succeeds in the actual deployment.\"\n      ],\n      \"suggestedObservations\": [\n        \"Inspect the effective runtime configuration for ENABLE_PASSWORD_AUTH and WEBUI_AUTH_TRUSTED_EMAIL_HEADER.\",\n        \"Determine the externally reachable network path to POST /signin and whether any direct application listener bypasses the proxy.\",\n        \"Inspect or test the effective reverse-proxy behavior to confirm that client-supplied identity headers are removed and replaced only after proxy authentication.\",\n        \"Observe a controlled request through the actual deployment and its resulting response and session behavior, without treating the application source alone as proof of deployment reachability.\"\n      ]\n    }\n  ],\n  \"scopeClaim\": {\n    \"kind\": \"declared-obligations-only\",\n    \"statement\": \"This result assesses only the declared post-signin-trusted-email obligation using the supplied fixed source crops. Source discovery was not tested; no repository-wide or all-entry completeness claim is made.\"\n  }\n}",
+        "toolCalls": [],
+        "tokens": {
+          "input": 4547,
+          "output": 2387,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 111267.32319999987,
+        "stopReason": "end_turn"
+      }
+    },
+    {
+      "id": "provider-attempt-3",
+      "phase": "domain-repair",
+      "transport": "schema-tool",
+      "status": "response",
+      "startedAt": "2026-09-20T15:47:08.516Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 22199,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 5453,
+        "output": 1518,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "endedAt": "2026-09-20T15:48:09.392Z",
+      "response": {
+        "text": "",
+        "toolCalls": [
+          {
+            "id": "call_KIIME9P2sDWAak0AtpUj9Pnd",
+            "name": "submit_authorization_result",
+            "arguments": {
+              "schemaVersion": "source-authorization-assessment-result/v0",
+              "taskId": "owui-trusted-header-deployment",
+              "repository": "https://github.com/open-webui/open-webui",
+              "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+              "results": [
+                {
+                  "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+                  "conclusion": "unknown",
+                  "explanation": "The fixed source shows an application-level path in which POST /signin can use a configured request header as an email identity and create a session for the resulting user. It does not establish the effective deployment values, whether the unauthenticated external client can reach the application ingress, or whether a trusted proxy is the sole ingress and removes or replaces client-supplied identity headers. The real-deployment authorization question therefore remains undecided.",
+                  "facts": {
+                    "entry": [
+                      {
+                        "statement": "The declared entry is POST /signin and the handler contains the trusted-email-header branch.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "startLine": 1,
+                            "endLine": 1,
+                            "quote": "@router.post('/signin', response_model=SessionUserResponse)"
+                          },
+                          {
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "startLine": 16,
+                            "endLine": 16,
+                            "quote": "if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:"
+                          }
+                        ]
+                      }
+                    ],
+                    "binding": [
+                      {
+                        "statement": "When the trusted-email header configuration is truthy, the value of the request header with that configured name is lowercased and used as the email identity; the code then looks up that email and may create a user if none exists.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "startLine": 16,
+                            "endLine": 30,
+                            "quote": "email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()"
+                          },
+                          {
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "startLine": 27,
+                            "endLine": 30,
+                            "quote": "if not await Users.get_user_by_email(email.lower(), db=db):"
+                          }
+                        ]
+                      },
+                      {
+                        "statement": "The trusted-email header name is environment-controlled and defaults to None, so the branch is not shown to be enabled in the actual deployment.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+                            "startLine": 8,
+                            "endLine": 8,
+                            "quote": "WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)"
+                          }
+                        ]
+                      }
+                    ],
+                    "control": [
+                      {
+                        "statement": "The strongest visible application control is the ENABLE_PASSWORD_AUTH gate, which rejects the request before the trusted-header branch when password authentication is disabled.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "startLine": 8,
+                            "endLine": 13,
+                            "quote": "if not ENABLE_PASSWORD_AUTH:"
+                          },
+                          {
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "startLine": 9,
+                            "endLine": 13,
+                            "quote": "raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_MESSAGES.ACTION_PROHIBITED)"
+                          }
+                        ]
+                      },
+                      {
+                        "statement": "If the trusted-email branch is enabled, the configured header must be present in the request before its value is used.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "startLine": 17,
+                            "endLine": 20,
+                            "quote": "if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:"
+                          }
+                        ]
+                      }
+                    ],
+                    "effect": [
+                      {
+                        "statement": "After email authentication yields a user, the handler returns a session response and sets the session cookie.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "startLine": 45,
+                            "endLine": 45,
+                            "quote": "user = await Auths.authenticate_user_by_email(email, db=db)"
+                          },
+                          {
+                            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                            "startLine": 58,
+                            "endLine": 62,
+                            "quote": "return await create_session_response(request, user, db, response, set_cookie=True)"
+                          }
+                        ]
+                      }
+                    ],
+                    "condition": [
+                      {
+                        "statement": "The source context does not provide the actual deployment value of ENABLE_PASSWORD_AUTH or the actual trusted-header value.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-trusted-header-deployment/task.json",
+                            "startLine": 15,
+                            "endLine": 18,
+                            "quote": "The allowed source crops expose the feature configuration and conditional identity-to-session path. They do not contain the actual ENABLE_PASSWORD_AUTH value, trusted-header value, ingress reachability, proxy stripping/replacement, or authentication outcome for a real deployment."
+                          }
+                        ]
+                      },
+                      {
+                        "statement": "The accepted policy requires a trusted reverse proxy to be the sole reachable ingress, to remove client-supplied identity headers, and to inject the authenticated identity itself.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-trusted-header-deployment/task.json",
+                            "startLine": 8,
+                            "endLine": 10,
+                            "quote": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself."
+                          }
+                        ]
+                      },
+                      {
+                        "statement": "The source context prohibits inferring environment values, proxy configuration, network topology, or direct reachability.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-trusted-header-deployment/task.json",
+                            "startLine": 12,
+                            "endLine": 15,
+                            "quote": "Do not infer environment values, proxy configuration, network topology, or direct reachability."
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "decisiveMissingFacts": [
+                    "The effective deployed value of ENABLE_PASSWORD_AUTH.",
+                    "The effective deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER, including whether the trusted-email branch is enabled and the exact header name.",
+                    "Whether the unauthenticated external client can reach POST /signin through an ingress it can control or bypass the trusted proxy.",
+                    "Whether a trusted reverse proxy is the sole reachable ingress for POST /signin.",
+                    "Whether that proxy removes client-supplied identity headers and injects only the identity it authenticated itself.",
+                    "Whether the header-selected existing user's email resolves to a user and whether authenticate_user_by_email succeeds in the actual deployment."
+                  ],
+                  "suggestedObservations": [
+                    "Observe the effective runtime values of ENABLE_PASSWORD_AUTH and WEBUI_AUTH_TRUSTED_EMAIL_HEADER.",
+                    "Observe the externally reachable network path to POST /signin, including whether a direct application listener bypasses the proxy.",
+                    "Observe the effective reverse-proxy behavior for removal and replacement of client-supplied identity headers and its authentication requirement.",
+                    "Observe a controlled request through the actual deployment and whether it produces the session response; do not treat source capability as proof of deployment reachability."
+                  ]
+                }
+              ],
+              "scopeClaim": {
+                "kind": "declared-obligations-only",
+                "statement": "This result assesses only the runnable expanded obligation external-client-trusted-header-impersonation::post-signin-trusted-email using the supplied fixed source crops. Source discovery was not tested; no repository-wide or all-entry completeness claim is made."
+              }
+            }
+          }
+        ],
+        "tokens": {
+          "input": 5453,
+          "output": 1518,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 60876.47129999986,
+        "stopReason": "tool_use"
+      }
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 3,
+    "respondedCalls": 3,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 3,
+    "knownTokens": {
+      "input": 13418,
+      "output": 6498,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}
