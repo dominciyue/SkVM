@@ -96,15 +96,7 @@ const AuthorizationCitationSchema = z.object({
   startLine: z.number().int().positive(),
   endLine: z.number().int().positive(),
   quote: NonEmptyString,
-}).strict().superRefine((citation, context) => {
-  if (citation.endLine < citation.startLine) {
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "endLine must be greater than or equal to startLine",
-      path: ["endLine"],
-    })
-  }
-})
+}).strict()
 
 const AuthorizationFactEvidenceSchema = z.object({
   statement: NonEmptyString,

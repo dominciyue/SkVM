@@ -2,17 +2,16 @@
   "schemaVersion": "source-authorization-assessment-development/v0",
   "taskbook": "docs/superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md",
   "createdAt": "2026-09-20T22:13:32+08:00",
-  "updatedAt": "2026-09-20T22:42:36+08:00",
+  "updatedAt": "2026-09-20T22:54:55+08:00",
   "branch": "skill-ir-aot",
   "startHead": "50ca563a641533b3b4ee1adc0609e0054f1c817c",
-  "stage": "V5",
+  "stage": "V6",
   "taskStatus": "active",
-  "nextAction": "Write V5 mock-provider failing tests for per-attempt telemetry, zero executable tools, structured fallback, failures, timeout handling, and one actionable domain repair.",
-  "implementationRevision": "v0.4-result-contract-working-tree@d8afb54",
+  "nextAction": "Write V6 hand-authored candidate tests and implement review validation plus deterministic paired scoring without deriving semantic support from keywords.",
+  "implementationRevision": "v0.5-fixed-context-host-working-tree@0891fda",
   "comparisonStatus": "not-started",
   "unresolvedIssues": [
-    "Fixed-context host, per-attempt telemetry, bounded fallback, and domain repair remain for V5.",
-    "Per-attempt telemetry and zero-executable-tool behavior remain unimplemented.",
+    "Semantic review validation, critical-fact scoring, paired aggregation, and development-agent review records remain for V6.",
     "The configured xty route is stored in the repository-local .skvm cache; runner configuration must opt into that cache without printing credentials.",
     "Real B/D task quality, fallback rate, elapsed time, token usage, and actual or unknown USD cost are unmeasured."
   ],
@@ -65,7 +64,16 @@
         "Focused result verification passed 10 tests with 33 assertions; the full domain suite passed 27 tests with 119 assertions."
       ]
     },
-    "V5": { "status": "pending", "evidence": [] },
+    "V5": {
+      "status": "completed",
+      "evidence": [
+        "Added a fixed-context host with one non-executed result-schema tool, no external tool channel, exact source attachment, task/source identity checks, and at most one diagnostics-only domain repair.",
+        "Added per-provider-call telemetry before dispatch and after response/error, redacted retained responses, separate schema/fallback/repair attempts, known USD subtotal plus unknown-total semantics, and disabled tool-result continuation.",
+        "Timeouts return timeout-unknown with the in-flight attempt retained as pending and no retry; unknown tool names are protocol failures rather than executable requests.",
+        "A red integration test exposed that refined citation schemas became empty objects in the generated tool schema; the result citation range relation remains in the deterministic validator while the model-visible citation object now retains all four fields.",
+        "Focused host/domain verification passed 36 tests with 155 assertions; bun run typecheck exited 0. No provider or target call occurred."
+      ]
+    },
     "V6": { "status": "pending", "evidence": [] },
     "V7": { "status": "pending", "evidence": [] },
     "V8": { "status": "pending", "evidence": [] },
