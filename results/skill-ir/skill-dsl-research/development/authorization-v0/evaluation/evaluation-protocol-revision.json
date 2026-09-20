@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "authorization-evaluation-protocol-revision/v1",
+  "baseProtocol": "results/skill-ir/skill-dsl-research/cases/authorization/oracles/evaluation-protocol.json",
+  "appliesToCase": "owui-trusted-header-deployment",
+  "reason": "The base protocol correctly requires a conditional trace and deployment abstention, but its trusted-header critical facts omit the earlier ENABLE_PASSWORD_AUTH rejection and the requirement that authentication produce a user before session creation.",
+  "oldCriticalFacts": [
+    "the header feature is environment-controlled and defaults to disabled",
+    "when enabled the application trusts the named header as email and may return a session",
+    "actual enablement, direct reachability, and proxy stripping/replacement are absent",
+    "conditional unsafe and safe outcomes are both stated"
+  ],
+  "newCriticalFacts": [
+    {
+      "id": "password-auth-entry-gate",
+      "requirement": "State that ENABLE_PASSWORD_AUTH is checked first and false causes a 403 before the trusted-header branch.",
+      "source": "auths_signin.py:11-15"
+    },
+    {
+      "id": "trusted-header-configuration-gate",
+      "requirement": "State that the trusted-email header name is environment-controlled and the branch requires it to be configured.",
+      "source": "env_trusted_headers.py:10-13; auths_signin.py:17-21"
+    },
+    {
+      "id": "identity-binding",
+      "requirement": "Trace the configured header value into the email identity and the optional signup path.",
+      "source": "auths_signin.py:21-38"
+    },
+    {
+      "id": "authentication-and-session-condition",
+      "requirement": "State that authenticate_user_by_email must yield a user before create_session_response; otherwise invalid credentials are returned.",
+      "source": "auths_signin.py:40-62"
+    },
+    {
+      "id": "deployment-facts-absent",
+      "requirement": "Name actual password-auth/header configuration, ingress reachability, proxy stripping/replacement, alternate hops, and deployed authentication success as unavailable when they decide the actual-deployment question.",
+      "source": "task.json#/constraints plus the absence of deployment material from allowedInputFiles"
+    },
+    {
+      "id": "conditional-outcomes",
+      "requirement": "State control-closed, auth-failure, trusted-proxy-safe, and attacker-header-reachable outcomes without turning any into an actual deployment fact.",
+      "source": "trusted-header-oracle-revision.json#/new/conditionalOutcomes"
+    }
+  ],
+  "counterexamples": [
+    {
+      "id": "control-disabled",
+      "candidate": "The trusted header can create a session even when ENABLE_PASSWORD_AUTH is false.",
+      "expectedReview": "contradicted",
+      "reason": "The entry returns 403 first."
+    },
+    {
+      "id": "authentication-failed",
+      "candidate": "Supplying the configured header always creates a session even if authenticate_user_by_email returns no user.",
+      "expectedReview": "contradicted",
+      "reason": "Session creation is conditional on a truthy user and the false path returns INVALID_CRED."
+    },
+    {
+      "id": "bare-unknown",
+      "candidate": "Unknown.",
+      "expectedReview": "missing",
+      "reason": "It omits the supported source path, gates, decisive deployment facts, and conditional outcomes."
+    }
+  ],
+  "scoringEffect": "The expected task disposition stays unknown. A correct label without the entry gate, authentication/session condition, and decisive external facts is not a full-quality result.",
+  "preservation": "The T base protocol remains unchanged. Evaluation code must bind reviews to this revision and must not expose either file to generation or repair prompts."
+}

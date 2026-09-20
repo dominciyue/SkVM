@@ -133,4 +133,90 @@ describe("compileAuthorizationTask", () => {
     expect(compiled.blockedObligations).toEqual([])
     expect(compiled.diagnostics).toContainEqual(expect.objectContaining({ code: "empty-obligations" }))
   })
+
+  it("deduplicates repeated entry references within one authored obligation", () => {
+    const task = makeTask()
+    task.obligations[0]!.entryIds = ["update-record", "update-record"]
+
+    const compiled = compileAuthorizationTask(task)
+
+    expect(compiled.runnableObligations.map(obligation => obligation.id)).toEqual([
+      "deny-unrelated-update::update-record",
+    ])
+    expect(compiled.diagnostics).toContainEqual(expect.objectContaining({
+      code: "duplicate-entry-reference",
+      path: "obligations.0.entryIds.1",
+      severity: "warning",
+    }))
+  })
+
+  it("keeps expanded obligation IDs stable when entry arrays are reordered", () => {
+    const task = makeTask()
+    task.entries.push({
+      id: "batch-update-records",
+      name: "batchUpdateRecords",
+      locations: [{ path: "src/batch.ts", startLine: 5, endLine: 25 }],
+    })
+    task.obligations[0]!.entryIds = ["update-record", "batch-update-records"]
+    const before = compileAuthorizationTask(task)
+
+    const reordered = structuredClone(task)
+    reordered.entries.reverse()
+    reordered.obligations[0]!.entryIds.reverse()
+    const after = compileAuthorizationTask(reordered)
+
+    expect(after.runnableObligations.map(item => item.id).sort()).toEqual(
+      before.runnableObligations.map(item => item.id).sort(),
+    )
+  })
+
+  it("adds only the explicit write-grantee obligation when that relation is declared", () => {
+    const task = makeTask()
+    const before = compileAuthorizationTask(task)
+    task.obligations.push({
+      ...task.obligations[0]!,
+      id: "allow-explicit-grantee-update",
+      relation: "non-owner-explicit-write-grant",
+      expectation: "allow",
+    })
+
+    const after = compileAuthorizationTask(task)
+
+    expect(before.runnableObligations.map(item => item.id)).toEqual([
+      "deny-unrelated-update::update-record",
+    ])
+    expect(after.runnableObligations.map(item => item.id).sort()).toEqual([
+      "allow-explicit-grantee-update::update-record",
+      "deny-unrelated-update::update-record",
+    ])
+  })
+
+  it("blocks obligations when the referenced principal lacks role information", () => {
+    const task = makeTask()
+    task.principals[0]!.role = ""
+
+    const compiled = compileAuthorizationTask(task)
+
+    expect(compiled.runnableObligations).toEqual([])
+    expect(compiled.blockedObligations).toHaveLength(1)
+    expect(compiled.diagnostics).toContainEqual(expect.objectContaining({
+      code: "missing-principal-role",
+      path: "principals.0.role",
+    }))
+  })
+
+  it("records source and policy revisions as explicit dependencies", () => {
+    const compiled = compileAuthorizationTask(makeTask())
+
+    expect(compiled.dependencies).toEqual({
+      repository: "https://example.test/acme/records",
+      sourceRef: "source-r1",
+      sourceMode: "fixed-context",
+      policies: [{
+        id: "accepted-write-policy",
+        revision: "policy-r1",
+        acceptanceStatus: "accepted",
+      }],
+    })
+  })
 })

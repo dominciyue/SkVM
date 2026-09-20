@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "authorization-case-oracle-revision/v1",
+  "caseId": "owui-trusted-header-deployment",
+  "historicalOracle": "results/skill-ir/skill-dsl-research/cases/authorization/oracles/owui-trusted-header-deployment.json",
+  "historicalDisposition": "unknown",
+  "revisedDisposition": "unknown",
+  "revisionReason": "The historical oracle started at the trusted-header branch and omitted the preceding ENABLE_PASSWORD_AUTH gate plus the later requirement that email authentication yield a user before a session is returned. These conditions change the supported conditional path but do not supply the deployment facts needed for an actual-deployment verdict.",
+  "materialInputLocations": [
+    "results/skill-ir/skill-dsl-research/cases/authorization/inputs/owui-trusted-header-deployment/auths_signin.py:11-21",
+    "results/skill-ir/skill-dsl-research/cases/authorization/inputs/owui-trusted-header-deployment/auths_signin.py:31-60",
+    "results/skill-ir/skill-dsl-research/cases/authorization/inputs/owui-trusted-header-deployment/env_trusted_headers.py:10-13"
+  ],
+  "old": {
+    "sourceSupportedFacts": [
+      "WEBUI_AUTH_TRUSTED_EMAIL_HEADER defaults to None and may be set by the environment.",
+      "When configured, /signin reads the named request header as email, creates a missing user, authenticates by email, and returns a session.",
+      "The application branch does not itself prove who can reach the route or who can supply/replace the header."
+    ],
+    "decisiveMissingFacts": [
+      "the deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER",
+      "whether Open WebUI is reachable directly or only through the intended reverse proxy",
+      "whether every reachable proxy removes client-supplied identity headers before injecting its own",
+      "whether another ingress, rewrite, or hop preserves an attacker-controlled header"
+    ]
+  },
+  "new": {
+    "sourceSupportedFacts": [
+      "The /signin entry rejects with 403 before trusted-header handling when ENABLE_PASSWORD_AUTH is false.",
+      "WEBUI_AUTH_TRUSTED_EMAIL_HEADER defaults to None and the trusted-header branch is entered only when a header name is configured.",
+      "With both entry and trusted-header gates enabled, the named request header is lowered and used as email; a missing user is passed to signup_handler and the code then calls authenticate_user_by_email.",
+      "A session response is returned only if authenticate_user_by_email yields a user; otherwise the route returns INVALID_CRED.",
+      "The application branch does not establish actual configuration values, ingress reachability, proxy stripping/replacement, or a real authentication outcome."
+    ],
+    "decisiveMissingFacts": [
+      "the deployed value of ENABLE_PASSWORD_AUTH",
+      "the deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER",
+      "whether Open WebUI is reachable directly or only through the intended reverse proxy",
+      "whether every reachable proxy removes client-supplied identity headers before injecting its own",
+      "whether another ingress, rewrite, or hop preserves an attacker-controlled header",
+      "whether the deployed signup and email-authentication path succeeds for the selected identity"
+    ],
+    "conditionalOutcomes": [
+      {
+        "condition": "ENABLE_PASSWORD_AUTH is disabled",
+        "result": "POST /signin returns 403 before trusted-header identity handling."
+      },
+      {
+        "condition": "password sign-in is enabled but WEBUI_AUTH_TRUSTED_EMAIL_HEADER is not configured",
+        "result": "this trusted-header branch cannot authenticate the client."
+      },
+      {
+        "condition": "both gates are enabled but email authentication does not yield a user",
+        "result": "the route does not issue a session and returns invalid credentials."
+      },
+      {
+        "condition": "both gates and authentication succeed, the sole trusted proxy strips/replaces client identity headers, and direct ingress is unavailable",
+        "result": "an external client cannot choose an identity merely by sending its own header."
+      },
+      {
+        "condition": "both gates and authentication succeed, and the application is directly reachable or a reachable proxy preserves an attacker-supplied identity header",
+        "result": "the source path may issue a session for the header-selected identity."
+      }
+    ]
+  },
+  "preservation": "The historical T oracle remains unchanged at its original path. This revision is evaluator-only and is never loaded before a tested generation unit finishes."
+}

@@ -22,8 +22,20 @@ export interface CompiledAuthorizationObligation {
 export type BlockedAuthorizationReason =
   | "invalid-reference"
   | "ambiguous-reference"
+  | "missing-required-fact"
   | "policy-conflicted"
   | "policy-unresolved"
+
+export interface AuthorizationTaskDependencies {
+  repository: string
+  sourceRef: string
+  sourceMode: AuthorizationTaskV0["sourceMode"]
+  policies: Array<{
+    id: string
+    revision: string
+    acceptanceStatus: AuthorizationPolicySource["acceptance"]["status"]
+  }>
+}
 
 export interface BlockedAuthorizationObligation extends CompiledAuthorizationObligation {
   blockedBy: BlockedAuthorizationReason
@@ -35,6 +47,7 @@ export interface CompiledAuthorizationTask {
   runnableObligations: CompiledAuthorizationObligation[]
   blockedObligations: BlockedAuthorizationObligation[]
   diagnostics: Diagnostic[]
+  dependencies: AuthorizationTaskDependencies
 }
 
 interface EntityIndex<T extends { id: string }> {
@@ -89,6 +102,31 @@ export function compileAuthorizationTask(task: AuthorizationTaskV0): CompiledAut
   const resources = indexEntities(task.resources, "resources", diagnostics)
   const entries = indexEntities(task.entries, "entries", diagnostics)
   const obligationIds = indexEntities(task.obligations, "obligations", diagnostics)
+  const principalsMissingRole = new Set<string>()
+  task.principals.forEach((principal, principalIndex) => {
+    if (principal.role.trim().length === 0) {
+      principalsMissingRole.add(principal.id)
+      diagnostics.push({
+        code: "missing-principal-role",
+        message: `Principal \"${principal.id}\" requires a non-empty role before its obligations can run.`,
+        path: `principals.${principalIndex}.role`,
+        severity: "error",
+      })
+    }
+  })
+
+  const dependencies: AuthorizationTaskDependencies = {
+    repository: task.repository,
+    sourceRef: task.sourceRef,
+    sourceMode: task.sourceMode,
+    policies: task.policySources
+      .map(policy => ({
+        id: policy.id,
+        revision: policy.revision,
+        acceptanceStatus: policy.acceptance.status,
+      }))
+      .sort((left, right) => left.id.localeCompare(right.id)),
+  }
 
   if (task.obligations.length === 0) {
     diagnostics.push({
@@ -103,6 +141,7 @@ export function compileAuthorizationTask(task: AuthorizationTaskV0): CompiledAut
       runnableObligations: [],
       blockedObligations: [],
       diagnostics,
+      dependencies,
     }
   }
 
@@ -151,13 +190,28 @@ export function compileAuthorizationTask(task: AuthorizationTaskV0): CompiledAut
       obligationBlockedBy = "ambiguous-reference"
     }
 
+    if (principalsMissingRole.has(obligation.principalId)) {
+      obligationBlockedBy = "missing-required-fact"
+    }
+
     if (!obligationBlockedBy && policySource?.acceptance.status === "conflicted") {
       obligationBlockedBy = "policy-conflicted"
     } else if (!obligationBlockedBy && policySource?.acceptance.status === "unresolved") {
       obligationBlockedBy = "policy-unresolved"
     }
 
+    const seenEntryIds = new Set<string>()
     obligation.entryIds.forEach((entryId, entryIndex) => {
+      if (seenEntryIds.has(entryId)) {
+        diagnostics.push({
+          code: "duplicate-entry-reference",
+          message: `Entry \"${entryId}\" is already listed for obligation \"${obligation.id}\"; it is expanded once.`,
+          path: `obligations.${obligationIndex}.entryIds.${entryIndex}`,
+          severity: "warning",
+        })
+        return
+      }
+      seenEntryIds.add(entryId)
       const entry = entries.values.get(entryId)
       const ambiguous = entries.duplicates.has(entryId)
       let blockedBy = obligationBlockedBy
@@ -194,5 +248,5 @@ export function compileAuthorizationTask(task: AuthorizationTaskV0): CompiledAut
     ? (blockedObligations.length > 0 ? "partial" : "ready")
     : "blocked"
 
-  return { task, status, runnableObligations, blockedObligations, diagnostics }
+  return { task, status, runnableObligations, blockedObligations, diagnostics, dependencies }
 }
