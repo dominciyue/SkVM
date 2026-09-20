@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "authorization-case-oracle/v1",
+  "caseId": "owui-process-text-controlled",
+  "disposition": "source_refuted",
+  "expectedTrace": {
+    "principal": "verified non-admin user",
+    "operation": "write supplied text to a caller-selected existing knowledge-base collection",
+    "resourceRelation": "caller lacks ownership or an explicit write grant on the target knowledge base",
+    "entry": "POST /process/text -> process_text",
+    "selection": "form_data.collection_name is copied to collection_name",
+    "upstreamControl": "process_text calls _validate_collection_access with access_type='write' before save_docs_to_vector_db",
+    "sharedControl": "_validate_collection_access computes denied names from filter_accessible_collections and raises 403",
+    "policyDecision": "for a non-admin existing knowledge-base ID, filter_accessible_collections adds it only if Knowledges.check_access_by_user_id(..., permission='write') succeeds",
+    "sinkDisposition": "the write sink is not reached for the stated unauthorized relation"
+  },
+  "requiredEvidence": [
+    "retrieval_process_text.py original lines 1768-1792 for the caller-side write check before the sink",
+    "retrieval_process_text.py original lines 2339-2352 for denied-set enforcement",
+    "retrieval_access_policy.py original lines 1061-1109 for the existing-KB write-permission decision"
+  ],
+  "answerAuthority": [
+    {
+      "grade": "fixed_source_control_trace",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "relation": "All caller, helper, and shared-policy bytes are visible in the input ref."
+    },
+    {
+      "grade": "maintainer_repository_change",
+      "url": "https://github.com/open-webui/open-webui/commit/ba83613ff297bc82db660b5273f04672d744902f",
+      "relation": "Earlier repository change added the process_text write-access call and knowledge-base-aware validation later present in the input ref."
+    },
+    {
+      "grade": "published_repository_advisory",
+      "url": "https://github.com/open-webui/open-webui/security/advisories/GHSA-4g37-7p2c-38r9",
+      "relation": "The advisory supplies the former failure and intended remediation; the input ref contains the relevant remediation for process_text."
+    }
+  ],
+  "falsePositiveTrap": "Inspecting only save_docs_to_vector_db or VECTOR_DB_CLIENT.insert would miss the caller-side validator and wrongly report a local missing check.",
+  "knownLimitations": [
+    "The study did not execute the route or its maintained test suite.",
+    "The conclusion is limited to the stated process_text path and existing knowledge-base IDs; it does not validate every collection class or write entry."
+  ]
+}

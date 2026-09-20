@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "authorization-case-input/v1",
+  "caseId": "owui-trusted-header-deployment",
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "task": "Determine whether an unauthenticated external client can impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin.",
+  "normativeRequirement": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.",
+  "sourceOfRequirement": "Study-author policy, paraphrasing the project's pinned hardening guidance at open-webui/docs commit d9f637d050e1689e6a4103eafc2b8005a74c9366, docs/getting-started/advanced-topics/hardening.md lines 265-275. No documentation bytes are redistributed because that repository exposed no license file in this study.",
+  "requiredAnalysis": [
+    "identify the configuration condition and how the header becomes a principal identity",
+    "separate application-source capability from actual deployment reachability and proxy behavior",
+    "name the minimum missing facts needed to decide the real deployment question",
+    "return source_supported_failure, source_refuted, or unknown with exact input locations"
+  ],
+  "constraints": [
+    "Use only the allowed case inputs.",
+    "Do not infer environment values, proxy configuration, network topology, or direct reachability.",
+    "Do not contact or execute the target deployment."
+  ]
+}

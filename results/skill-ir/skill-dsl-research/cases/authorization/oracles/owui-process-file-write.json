@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "authorization-case-oracle/v1",
+  "caseId": "owui-process-file-write",
+  "disposition": "source_supported_failure",
+  "expectedTrace": {
+    "principal": "verified non-admin user who owns the source file",
+    "operation": "append the owned file's embedded content to a caller-selected vector collection",
+    "resourceRelation": "caller lacks ownership or an explicit write grant on the existing target knowledge base",
+    "entry": "POST /process/file -> process_file",
+    "selection": "form_data.collection_name is copied to collection_name when supplied",
+    "visibleControl": "Files.get_file_by_id_and_user_id checks only ownership of form_data.file_id",
+    "missingControl": "no destination collection write-access validation occurs before the sink",
+    "sink": "save_docs_to_vector_db receives collection_name and VECTOR_DB_CLIENT.insert writes items into it"
+  },
+  "requiredEvidence": [
+    "retrieval_process_file.py original lines 1540-1570 for authentication, file ownership, and target selection",
+    "retrieval_process_file.py original lines 1688-1706 for the call to save_docs_to_vector_db",
+    "retrieval_process_file.py original lines 1517-1531 for VECTOR_DB_CLIENT.insert"
+  ],
+  "answerAuthority": [
+    {
+      "grade": "maintainer_repository_fix",
+      "url": "https://github.com/open-webui/open-webui/commit/d11e06f1b7f6f6298c31432d88fec7c4a40c7499",
+      "relation": "Direct child of the input ref; adds _validate_collection_access([collection_name], user, access_type='write') when collection_name is supplied to process_file."
+    },
+    {
+      "grade": "published_repository_advisory",
+      "url": "https://github.com/open-webui/open-webui/security/advisories/GHSA-4g37-7p2c-38r9",
+      "relation": "CVE-2026-45398 describes file ownership without destination-collection authorization and lists /process/file as a vulnerable write endpoint."
+    },
+    {
+      "grade": "fixed_source_trace",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "relation": "The fixed source path shows the user-controlled target reaches the write sink without a knowledge-base write check."
+    }
+  ],
+  "maintainerFix": {
+    "commit": "d11e06f1b7f6f6298c31432d88fec7c4a40c7499",
+    "parent": "841c9045d789005145274955e7ef60b1b11a9be9",
+    "patchSummary": "Adds the shared write-access validator after resolving a caller-supplied collection_name in process_file; the same commit also covers process_files_batch.",
+    "modelVisible": false
+  },
+  "knownLimitations": [
+    "The study did not install or execute Open WebUI or reproduce the exploit.",
+    "The advisory's PoC and proposed regression tests were not executed.",
+    "This case supports a bounded source conclusion, not a claim about every entry or deployed instance."
+  ]
+}

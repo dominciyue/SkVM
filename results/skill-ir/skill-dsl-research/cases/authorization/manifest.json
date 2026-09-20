@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "authorization-case-manifest/v1",
+  "studyId": "authorization-domain-evidence-and-evaluation",
+  "createdAt": "2026-09-20T20:30:00+08:00",
+  "caseFamily": "one real repository and fixed source ref; three distinct authorization conditions, not three independent skills or projects",
+  "repository": {
+    "url": "https://github.com/open-webui/open-webui",
+    "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+    "sourceRefRelation": "direct parent of the maintainer fix used only by the positive oracle",
+    "license": {
+      "name": "Open WebUI License",
+      "source": "https://github.com/open-webui/open-webui/blob/841c9045d789005145274955e7ef60b1b11a9be9/LICENSE",
+      "retainedNotice": "LICENSE.open-webui.txt"
+    }
+  },
+  "isolationPolicy": {
+    "inputRoot": "inputs",
+    "oracleRoot": "oracles",
+    "runnerRule": "Create a fresh work directory and copy only the exact allowedInputFiles for one case. Never recursively copy or mount cases/authorization, its parent, manifest.json, LICENSE.open-webui.txt, or oracles into the tested model's workspace.",
+    "oracleVisibility": "evaluator-only",
+    "fixVisibility": "evaluator-only",
+    "internetPolicy": "disabled for the tested task",
+    "targetExecution": "forbidden"
+  },
+  "coverageOracleFile": "oracles/coverage-challenges.json",
+  "evaluationProtocolFile": "oracles/evaluation-protocol.json",
+  "cases": [
+    {
+      "id": "owui-process-file-write",
+      "condition": "source-visible authorization failure",
+      "realSource": true,
+      "synthetic": false,
+      "allowedInputFiles": [
+        "inputs/owui-process-file-write/task.json",
+        "inputs/owui-process-file-write/retrieval_process_file.py"
+      ],
+      "oracleFile": "oracles/owui-process-file-write.json",
+      "originalPaths": [
+        "backend/open_webui/routers/retrieval.py:1517-1531,1540-1570,1688-1706"
+      ],
+      "cropReason": "Retain the request schema, authentication/file-ownership branch, caller-controlled target, call to the shared write helper, and final vector insert; omit content parsing and embedding mechanics that do not affect authorization.",
+      "answerEvidenceGrade": "fixed source trace plus direct maintainer fix plus published repository advisory"
+    },
+    {
+      "id": "owui-process-text-controlled",
+      "condition": "apparent local missing check defeated by an upstream shared control",
+      "realSource": true,
+      "synthetic": false,
+      "allowedInputFiles": [
+        "inputs/owui-process-text-controlled/task.json",
+        "inputs/owui-process-text-controlled/retrieval_process_text.py",
+        "inputs/owui-process-text-controlled/retrieval_access_policy.py"
+      ],
+      "oracleFile": "oracles/owui-process-text-controlled.json",
+      "originalPaths": [
+        "backend/open_webui/routers/retrieval.py:1768-1792,2339-2352",
+        "backend/open_webui/retrieval/utils.py:1061-1109"
+      ],
+      "cropReason": "Retain the request-to-sink caller, the denied-set helper, and the shared class-specific policy so a reviewer must follow an upstream control rather than judge the sink locally.",
+      "answerEvidenceGrade": "fixed source control trace plus earlier maintainer repository change and advisory context"
+    },
+    {
+      "id": "owui-trusted-header-deployment",
+      "condition": "decisive authorization fact outside source",
+      "realSource": true,
+      "synthetic": false,
+      "allowedInputFiles": [
+        "inputs/owui-trusted-header-deployment/task.json",
+        "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+        "inputs/owui-trusted-header-deployment/auths_signin.py"
+      ],
+      "oracleFile": "oracles/owui-trusted-header-deployment.json",
+      "originalPaths": [
+        "backend/open_webui/env.py:529-538",
+        "backend/open_webui/routers/auths.py:570-623,672-675"
+      ],
+      "cropReason": "Retain the environment-controlled feature gate and identity-to-session branch; deliberately omit unavailable deployment environment, proxy, and network facts whose absence is the point of the case.",
+      "answerEvidenceGrade": "fixed conditional source trace plus pinned project hardening guidance; actual deployment answer intentionally unavailable"
+    }
+  ],
+  "counting": {
+    "realProjects": 1,
+    "sourceRefs": 1,
+    "caseConditions": 3,
+    "independentSkillMembers": 0,
+    "syntheticCases": 0
+  },
+  "licenseAndCroppingNotes": [
+    "All redistributed Open WebUI source crops retain the repository copyright/license notice in LICENSE.open-webui.txt.",
+    "No bytes from open-webui/docs are redistributed because no license file was resolved at the pinned docs ref; only a location and study-author paraphrase are recorded.",
+    "Source comments mark original path and line ranges; ellipsis comments explicitly describe omitted non-authorization regions."
+  ]
+}

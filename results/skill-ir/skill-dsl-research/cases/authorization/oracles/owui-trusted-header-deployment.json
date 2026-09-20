@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "authorization-case-oracle/v1",
+  "caseId": "owui-trusted-header-deployment",
+  "disposition": "unknown",
+  "sourceSupportedFacts": [
+    "WEBUI_AUTH_TRUSTED_EMAIL_HEADER defaults to None and may be set by the environment.",
+    "When configured, /signin reads the named request header as email, creates a missing user, authenticates by email, and returns a session.",
+    "The application branch does not itself prove who can reach the route or who can supply/replace the header."
+  ],
+  "decisiveMissingFacts": [
+    "the deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER",
+    "whether Open WebUI is reachable directly or only through the intended reverse proxy",
+    "whether every reachable proxy removes client-supplied identity headers before injecting its own",
+    "whether another ingress, rewrite, or hop preserves an attacker-controlled header"
+  ],
+  "conditionalOutcomes": [
+    {
+      "condition": "trusted-email header is disabled",
+      "result": "this header path cannot authenticate the client"
+    },
+    {
+      "condition": "enabled, sole trusted proxy ingress, and client header always stripped/replaced",
+      "result": "an external client cannot establish the chosen identity merely by sending the header"
+    },
+    {
+      "condition": "enabled and the application is directly reachable or a reachable proxy forwards an attacker-supplied identity header",
+      "result": "the source path would accept that identity and may issue a session"
+    }
+  ],
+  "answerAuthority": [
+    {
+      "grade": "fixed_source_conditional_trace",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "paths": [
+        "backend/open_webui/env.py:535-538",
+        "backend/open_webui/routers/auths.py:570-623,672-675"
+      ]
+    },
+    {
+      "grade": "pinned_project_hardening_guidance",
+      "url": "https://github.com/open-webui/docs/blob/d9f637d050e1689e6a4103eafc2b8005a74c9366/docs/getting-started/advanced-topics/hardening.md",
+      "location": "lines 265-275",
+      "relation": "Warns that the reverse proxy must remove client-provided trusted headers and inject its own; otherwise clients can forge identities.",
+      "redistributedBytes": false,
+      "licenseStatus": "unresolved"
+    }
+  ],
+  "overclaimTrap": "Treating the conditional source branch as proof of the actual deployment's environment, topology, or proxy behavior is an unsupported deployment inference.",
+  "knownLimitations": [
+    "No deployment configuration, proxy configuration, packet path, or live endpoint was accessed.",
+    "Unknown is the correct bounded answer, not evidence that the feature is safe or exploitable in a particular deployment."
+  ]
+}

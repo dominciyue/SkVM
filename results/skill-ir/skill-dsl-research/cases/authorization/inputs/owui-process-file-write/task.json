@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "authorization-case-input/v1",
+  "caseId": "owui-process-file-write",
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "task": "At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.",
+  "normativeRequirement": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+  "scopeAssurance": "The allowed source crops contain the complete authorization-relevant entry-to-write path for this bounded request. General authentication is visible, but a target-specific knowledge-base write check must be traced in these inputs rather than presumed from authentication.",
+  "requiredAnalysis": [
+    "identify the principal, operation, target resource relation, entry, and write sink",
+    "trace the user-controlled collection name through any target-specific authorization control",
+    "distinguish file ownership from destination knowledge-base write permission",
+    "return source_supported_failure, source_refuted, or unknown with exact input locations"
+  ],
+  "constraints": [
+    "Use only the allowed case inputs.",
+    "Do not search for advisories, fixes, later versions, or deployment behavior.",
+    "Do not execute the project or propose a patch."
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "authorization-minimum-consumption-path/v1",
+  "studyId": "authorization-domain-evidence-and-evaluation",
+  "status": "designed-not-implemented",
+  "selectedFirstPrototype": {
+    "mode": "fixed-complete-allowed-context",
+    "reason": "The three real cases have small, exact allowedInputFiles and the first B/D question is authorization judgment/evidence/coverage honesty, not active repository discovery. Embedding the complete allowed bytes removes tool-policy and search-recall confounds.",
+    "explicitlyNotTested": [
+      "active sibling-entry discovery",
+      "whole-repository coverage",
+      "target execution or dynamic behavior",
+      "model access to the internet or target network"
+    ],
+    "flow": [
+      "host parses the case manifest outside the model workspace",
+      "host creates a fresh isolated work directory and verifies every exact allowedInputFile",
+      "host reads only those files and renders B organized instructions or D canonical declaration/support with identical task facts",
+      "host sends the full bounded context through a structured provider call with no model tools",
+      "host validates structure and evidence references, stores result/trace/evaluation outside the model-visible directory, and never copies oracle/fix/advisory bytes into the run"
+    ]
+  },
+  "laterDiscoveryExperiment": {
+    "mode": "restricted-local-read-only",
+    "question": "Can the agent enumerate and map sibling authorization entries within a predeclared repository/path boundary, including the hidden process_file omission?",
+    "separationReason": "Adding search tools and larger source changes the intervention and should not be mixed into the first judgment comparison.",
+    "tools": [
+      "list_allowed_files",
+      "read_allowed_file",
+      "search_allowed_text"
+    ],
+    "enforcement": [
+      "canonicalize every requested path and reject it unless it is an exact allowlist member or within an explicitly allowed source root",
+      "reject absolute paths, parent traversal, symlink escapes, unknown tool names, writes, commands, subprocesses, web/network, and target execution",
+      "bound returned bytes/results and record query/path/duration",
+      "keep oracle and evaluator files outside every readable root"
+    ]
+  },
+  "reusableExistingComponents": [
+    {
+      "file": "src/core/skill-loader.ts",
+      "symbols": [
+        "loadSkill",
+        "buildSkillBundle",
+        "buildSkillBundleFromContent"
+      ],
+      "use": "Load or construct public skill instructions only. Never locate the research cases/oracles inside a loaded skill directory because loadSkill recursively includes bundle files."
+    },
+    {
+      "file": "src/run/index.ts",
+      "symbols": [
+        "executeRun",
+        "prepareRunWorkspaceArtifacts",
+        "writeInitialWorkdirManifest",
+        "writePreRunInputSnapshot"
+      ],
+      "use": "Reuse run identity, fresh workdir, snapshots/manifests, adapter lifecycle, and result capture only after generating an isolated task/fixture directory containing exactly allowed files. copyTaskFixtures recursively copies a sibling fixtures directory, so pointing it at the cases parent would leak evaluator data."
+    },
+    {
+      "file": "src/providers/structured.ts",
+      "symbols": [
+        "extractStructured"
+      ],
+      "use": "Reuse Zod-validated structured output for the no-tool fixed-context path, with targeted telemetry wrapping because an initial failed tool-use response is not included in the returned fallback token/cost aggregate."
+    },
+    {
+      "file": "src/core/agent-loop.ts",
+      "symbols": [
+        "runAgentLoop",
+        "AgentLoopConfig"
+      ],
+      "use": "Later restricted-read mode can supply a narrow tool array and rejecting executor while reusing multi-turn dispatch, token/cost accumulation, tool-call trace, timeout, and callbacks."
+    },
+    {
+      "file": "src/adapters/bare-agent.ts",
+      "symbols": [
+        "BareAgentAdapter"
+      ],
+      "use": "Do not use unchanged for a source-only run. It always registers read/write/command/list/web tools and delegates to executors not designed as a strict read allowlist."
+    }
+  ],
+  "currentUnsafeForSourceOnly": [
+    "BareAgentAdapter passes AGENT_TOOLS plus list_directory and web_fetch on every run; AGENT_TOOLS includes write_file and execute_command.",
+    "createAgentToolExecutor resolves read/write paths against workDir but does not reject paths that escape it; list_directory has the same issue.",
+    "execute_command inherits the host environment and web_fetch can reach arbitrary URLs, subject only to ordinary runtime behavior.",
+    "A prompt saying source-only/no-network cannot remove these host capabilities.",
+    "loadSkill and executeRun deploy all non-excluded bundle files; an oracle stored beside public skill content would be exposed."
+  ],
+  "hostResponsibilities": [
+    "accept and verify repository ref, case ID, exact allowed inputs, and B/D condition",
+    "create/copy only the isolated model-visible bytes and keep evaluator state elsewhere",
+    "render identical task facts for B and D and retain the normalized D declaration",
+    "enforce zero tools for fixed context or a strict read allowlist for discovery",
+    "validate result structure/evidence locations, run semantic evaluation, and write artifacts after the model call",
+    "separate model-provider network from model/agent target-network capability",
+    "record every generation, fallback, format repair, domain repair, and tool action with its own usage/status"
+  ],
+  "metering": {
+    "generation": "Count the initial semantic response call(s) and their provider usage/cost.",
+    "structuredTransportFallback": "Count a failed forced tool-use transport and prompt+parse attempts separately; this is transport recovery, not domain repair.",
+    "formatRepair": "Count schema/JSON correction separately and do not change domain evidence requirements.",
+    "domainRepair": "Only a post-validation call using actionable authorization evidence; if the formal comparison allows one, both arms receive the same budget and it is reported separately.",
+    "tools": "For later discovery, record tool name, allowed path/query, duration, result size, rejection, and model tokens surrounding the calls.",
+    "cost": "Preserve actual provider USD only when available; estimated cost and unknown USD are distinct. AgentLoop totalCostUsd is all-or-nothing across responses, while BareAgent RunResult.cost may be estimated."
+  },
+  "knownTelemetryGap": {
+    "location": "src/providers/structured.ts:48-75,108-115,141-172",
+    "issue": "When tool-use produces a response but then fails content/schema handling and extractStructured falls back to prompt+parse, the returned fallback tokens/cost do not include the failed tool-use response. Prompt+parse retries do aggregate among themselves.",
+    "minimalFutureAction": "Wrap the provider/call path with per-attempt telemetry or add a focused aggregation change and test before reporting B/D total usage; do not refactor the whole provider subsystem in this research round."
+  },
+  "failureOwnership": [
+    "provider/auth/rate-limit failure is infrastructure and not a task-quality error",
+    "parse/schema failure is structured-transport or format failure",
+    "domain validation failure is task-result quality and may receive only the predeclared equal repair opportunity",
+    "tool denial/path escape is host-policy enforcement and must be retained, not retried through a broader tool",
+    "timeout/max-iteration status is operational outcome and never silently scored as a correct answer"
+  ],
+  "productionCodeModified": false,
+  "executed": false
+}

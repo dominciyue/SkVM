@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "authorization-manual-design-walkthrough/v1",
+  "studyId": "authorization-domain-evidence-and-evaluation",
+  "status": "paper-walkthrough-not-behavior-run",
+  "primaryCase": "owui-process-file-write",
+  "steps": [
+    {
+      "id": "natural-requirement",
+      "status": "real-source-and-study-policy",
+      "content": "At Open WebUI ref 841c9045, determine whether a verified non-admin who owns a file can write its content to an existing KB on which that user has no write permission by supplying collection_name to POST /process/file. File ownership does not authorize the destination KB.",
+      "origin": "case input task.json plus pinned source ref; policy accepted by study author and corroborated only evaluator-side by the project advisory/fix"
+    },
+    {
+      "id": "domain-declaration",
+      "status": "designed-not-normalized-by-code",
+      "content": {
+        "repositoryRef": {
+          "repository": "https://github.com/open-webui/open-webui",
+          "ref": "841c9045d789005145274955e7ef60b1b11a9be9"
+        },
+        "principal": "verified-non-admin",
+        "operation": "write-file-content-to-existing-knowledge-base",
+        "resourceRelation": "owns-source-file-but-no-destination-kb-write-grant",
+        "conditions": [
+          "caller supplies collection_name",
+          "target name resolves to an existing knowledge base"
+        ],
+        "entry": "POST /process/file -> process_file",
+        "expected": "deny",
+        "policySource": {
+          "kind": "explicit-task-requirement",
+          "reference": "inputs/owui-process-file-write/task.json:normativeRequirement",
+          "acceptance": "study-author-accepted"
+        },
+        "sourceMode": "fixed-complete-allowed-context",
+        "allowedConclusions": [
+          "source_supported_failure",
+          "source_refuted",
+          "unknown"
+        ]
+      }
+    },
+    {
+      "id": "coverage-plan",
+      "status": "designed-not-agent-executed",
+      "declaredObligations": [
+        "bind verified non-admin identity",
+        "distinguish owned source file from destination KB",
+        "trace caller-supplied collection_name",
+        "inspect destination-specific write control including upstream/shared control",
+        "reach the actual vector write effect",
+        "bound completeness to this declared entry and fixed crop"
+      ],
+      "sourceDiscovery": {
+        "mode": "not-tested-in-first-prototype",
+        "visiblePaths": [
+          "task.json",
+          "retrieval_process_file.py"
+        ],
+        "claimLimit": "No repository-wide or sibling-entry completeness."
+      },
+      "evidenceRequirements": [
+        "entry and verified-user dependency",
+        "file ownership lookup",
+        "collection_name selection",
+        "absence or presence of destination write control on the full supplied path",
+        "save_docs_to_vector_db call and VECTOR_DB_CLIENT.insert sink"
+      ]
+    },
+    {
+      "id": "example-evidence",
+      "status": "real-source-manually-traced",
+      "records": [
+        {
+          "claim": "non-admin source-file ownership is checked",
+          "location": "retrieval_process_file.py original lines 1559-1563",
+          "support": "Files.get_file_by_id_and_user_id(form_data.file_id, user.id)"
+        },
+        {
+          "claim": "destination collection is caller controlled when supplied",
+          "location": "retrieval_process_file.py original lines 1564-1570",
+          "support": "collection_name = form_data.collection_name; fallback occurs only when None"
+        },
+        {
+          "claim": "no destination write validator occurs on the complete supplied path",
+          "location": "retrieval_process_file.py original lines 1540-1706",
+          "support": "the crop explicitly retains the complete authorization-relevant path; it contains authentication/file lookup and the sink call but no collection-access validation"
+        },
+        {
+          "claim": "selected destination reaches the protected effect",
+          "location": "retrieval_process_file.py original lines 1688-1706 and 1517-1531",
+          "support": "save_docs_to_vector_db receives collection_name; VECTOR_DB_CLIENT.insert writes items to it"
+        }
+      ]
+    },
+    {
+      "id": "conclusion-check",
+      "status": "manually-evaluated-against-oracle-not-model-run",
+      "proposedDisposition": "source_supported_failure",
+      "why": "The accepted deny requirement applies; file ownership is not destination authorization; the supplied target reaches the write effect with no target write check on the complete visible path.",
+      "structure": "would pass if serialized to the future result schema",
+      "evidencePresence": "locations exist in allowed input",
+      "evidenceSupport": "entry/binding/target/control/effect trace supports the source conclusion",
+      "taskCorrectness": "matches the evaluator-only direct child fix and published advisory without exposing either to the tested model",
+      "claimLimit": "source-only, this entry/ref, no exploit reproduction or all-entry coverage"
+    }
+  ],
+  "challengeWalkthroughs": [
+    {
+      "caseId": "owui-process-text-controlled",
+      "challenge": "A sink-local missing-check pattern would propose a failure.",
+      "requiredCorrection": "Follow process_text to _validate_collection_access and filter_accessible_collections; existing KB without write access is excluded and raises 403 before the sink.",
+      "result": "source_refuted",
+      "methodContribution": "The controlTrace/strongestVisibleControl obligation makes the false-positive check explicit, but semantic reading still belongs to the agent/rechecker."
+    },
+    {
+      "caseId": "owui-trusted-header-deployment",
+      "challenge": "The source branch accepts a configured trusted-email header, tempting an exploitability claim.",
+      "requiredCorrection": "Keep actual env value, direct reachability, and proxy stripping/replacement as source-external decisive facts; state conditional outcomes.",
+      "result": "unknown",
+      "methodContribution": "The policy source and externalFact fields preserve the boundary; no helper can manufacture deployment evidence."
+    },
+    {
+      "challengeId": "T4-omit-entry-process-file",
+      "challenge": "All declared process_text items are filled while process_file is absent.",
+      "requiredCorrection": "Fixed-context output may say the declared process_text entry is disposed, but must report discovery not tested and must not claim repository completeness.",
+      "result": "bounded partial completion",
+      "methodContribution": "Separate declared/discovery/evidence states expose the limit; only a later restricted-read experiment can test actual discovery."
+    }
+  ],
+  "crossSkillTransfer": {
+    "sameTaskOtherSource": "GitHub security-review",
+    "sharedSemantics": [
+      "principal/resource/operation",
+      "source-to-sink and cross-file trace",
+      "ownership/BOLA/IDOR policy relation",
+      "framework/middleware/upstream-control self-check",
+      "location, severity/confidence, and evidence-backed disposition"
+    ],
+    "memberGuidanceRetained": {
+      "cloudflare": [
+        "lower-trust starting capability",
+        "intended and strongest source-visible control",
+        "source versus deployment visibility",
+        "coverage ledger/fresh verification in its full-audit mode"
+      ],
+      "github": [
+        "language/framework access-control patterns",
+        "holistic cross-file flow and middleware self-verification",
+        "severity/confidence/report and optional patch responsibilities in its full review"
+      ]
+    },
+    "schemaDecision": "No Open-WebUI-specific field or source-family success branch is needed. collection_name, file_id, KB UUID, FastAPI Depends, and Knowledges.check_access_by_user_id remain source evidence/control details, not canonical fields. Member-specific guidance can render as instructions around the same domain declaration.",
+    "variationBoundary": "A request comparing 841c9045 with d11e06f requires base/head, changed invariant, history, caller/test blast radius, and routes to the Trail of Bits-style differential task; do not absorb it as arbitrary fields in the single-ref profile."
+  },
+  "unresolvedRunAssumptions": [
+    "Whether B or D changes actual model correctness on the three cases.",
+    "Whether a model supplies oracle-critical trace rather than only the correct label.",
+    "Whether the D helper reduces false completeness without causing excessive unknown.",
+    "Whether restricted read-only tools find sibling entries in a later discovery experiment.",
+    "Actual generation/fallback/repair/tool usage and cost after the telemetry gap is fixed."
+  ],
+  "independentReadOnlyReview": {
+    "reviewer": "separate default-agent context",
+    "reviewType": "procedurally independent read-only source/oracle check; not human review or inter-rater agreement",
+    "editsAllowed": false,
+    "criticalFindings": [],
+    "materialCorrectionsRequired": [],
+    "confirmed": [
+      "process_file checks source-file ownership, preserves caller-supplied collection_name, and reaches the vector insert without a destination-KB write gate at the input ref",
+      "direct child d11e06f adds the missing process_file write validator",
+      "process_text reaches a caller-side validator and shared existing-KB write-permission filter before the sink",
+      "trusted-header code proves only a conditional identity-to-session path and hardening guidance requires proxy strip/inject; actual deployment remains unknown",
+      "allowedInputFiles exclude oracle/fix/advisory content and the walkthrough distinguishes real source, designed steps, and unrun behavior"
+    ],
+    "minorNote": "One web rendering path displayed different source line numbers. A fresh authenticated GitHub contents API read of the exact ref re-confirmed process_file route line 1546, process_text line 1772, and _validate_collection_access line 2339, matching the manifest/crops; final citations keep ref + path + crop/original location rather than relying on an unpinned web line view.",
+    "limitations": [
+      "no target execution, PoC, regression test, deployment, model experiment, or evaluator run",
+      "separate agent context does not prove independent expertise or uncorrelated errors"
+    ]
+  },
+  "paperOnly": true,
+  "modelCalls": 0,
+  "targetExecutions": 0,
+  "productionCodeModified": false
+}

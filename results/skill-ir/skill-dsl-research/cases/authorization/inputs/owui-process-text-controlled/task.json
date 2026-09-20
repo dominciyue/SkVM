@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "authorization-case-input/v1",
+  "caseId": "owui-process-text-controlled",
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "task": "At this fixed source ref, determine whether a verified non-admin user can write attacker-selected text to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/text.",
+  "normativeRequirement": "A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+  "scopeAssurance": "The allowed source crops contain the complete authorization-relevant caller, validator, and shared policy path for this bounded request. Trace controls outside the immediate vector-database sink before deciding that a local check is missing.",
+  "requiredAnalysis": [
+    "identify the principal, operation, target resource relation, entry, and write sink",
+    "trace the supplied collection name through caller-side and shared controls",
+    "state what happens for a non-admin targeting an existing knowledge-base ID without write access",
+    "return source_supported_failure, source_refuted, or unknown with exact input locations"
+  ],
+  "constraints": [
+    "Use only the allowed case inputs.",
+    "Do not search for advisories, fixes, later versions, or deployment behavior.",
+    "Do not execute the project or propose a patch."
+  ]
+}

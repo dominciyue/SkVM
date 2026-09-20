@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "authorization-evaluation-protocol/v1",
+  "studyId": "authorization-domain-evidence-and-evaluation",
+  "status": "designed-not-run",
+  "layers": [
+    {
+      "id": "structure-valid",
+      "judge": "deterministic host",
+      "checks": [
+        "required result fields and allowed enums parse",
+        "case ID and repository ref match the deployed input",
+        "claimed input paths stay within the exact allowedInputFiles"
+      ],
+      "doesNotEstablish": "that evidence exists, supports the conclusion, or that the conclusion is correct"
+    },
+    {
+      "id": "evidence-present",
+      "judge": "deterministic host",
+      "checks": [
+        "each cited allowed file exists",
+        "cited location resolves in the deployed crop",
+        "the cited text is retained with the result"
+      ],
+      "doesNotEstablish": "that the cited text is the relevant control/effect or semantically supports the claim"
+    },
+    {
+      "id": "evidence-support",
+      "judge": "semantic rechecker",
+      "checks": [
+        "accepted policy actually applies to the principal, operation, relation, and condition",
+        "trace reaches identity/resource binding, strongest visible upstream control, and protected effect",
+        "the proposed disposition follows from the trace rather than a local missing-check pattern",
+        "source-external decisive facts are named rather than inferred"
+      ],
+      "doesNotEstablish": "that the declared/discovered denominator is complete or that the entire task answer is correct"
+    },
+    {
+      "id": "task-correct",
+      "judge": "oracle-holding experiment evaluator",
+      "checks": [
+        "disposition matches the case oracle",
+        "required trace facts are present and no oracle-critical control is omitted",
+        "scope and completeness claims remain within visible/deployed inputs",
+        "false positives, false negatives, unsupported deployment inference, and unresolved items are recorded"
+      ],
+      "doesNotEstablish": "general effectiveness outside these cases or human-review agreement"
+    }
+  ],
+  "roles": {
+    "authorOrDiscoverer": "Produces the domain proposal, searches allowed source if that arm permits it, and returns evidence plus a disposition. It never accepts its own policy source or grades itself.",
+    "semanticRechecker": "Receives the original task inputs and the full claimed trace/citations, not merely the final label. It records support/refutation/unknown and disagreements. A fresh context is procedural separation, not proof of expertise or uncorrelated error.",
+    "experimentEvaluator": "Holds the oracle, fix/advisory provenance, hidden omissions, and scoring rubric; compares the complete result after generation. It does not feed oracle facts back to the tested run.",
+    "humanStatus": "No human review or inter-rater agreement is claimed by this designed protocol. A person may later audit selected judgments, but that would be separately recorded."
+  },
+  "caseExpectations": [
+    {
+      "caseId": "owui-process-file-write",
+      "correctDisposition": "source_supported_failure",
+      "criticalFacts": [
+        "file ownership is checked",
+        "caller-supplied destination collection is distinct from the owned file",
+        "no destination write check occurs before save_docs_to_vector_db",
+        "the supplied collection reaches VECTOR_DB_CLIENT.insert"
+      ],
+      "majorErrors": [
+        "unknown despite the supplied complete relevant source path",
+        "safe/source_refuted because the file ownership check is mistaken for destination authorization",
+        "failure label without the entry-to-write trace"
+      ]
+    },
+    {
+      "caseId": "owui-process-text-controlled",
+      "correctDisposition": "source_refuted",
+      "criticalFacts": [
+        "process_text calls the validator with access_type='write' before the sink",
+        "the validator rejects requested names absent from the allowed set",
+        "an existing KB is allowed only when check_access_by_user_id grants write"
+      ],
+      "majorErrors": [
+        "source_supported_failure based only on the sink lacking an inline check",
+        "citing the helper name without following it to the shared filter",
+        "unknown despite the complete supplied caller/helper/policy path"
+      ]
+    },
+    {
+      "caseId": "owui-trusted-header-deployment",
+      "correctDisposition": "unknown",
+      "criticalFacts": [
+        "the header feature is environment-controlled and defaults to disabled",
+        "when enabled the application trusts the named header as email and may return a session",
+        "actual enablement, direct reachability, and proxy stripping/replacement are absent",
+        "conditional unsafe and safe outcomes are both stated"
+      ],
+      "majorErrors": [
+        "claiming the actual deployment is exploitable",
+        "claiming the actual deployment is safe",
+        "returning bare unknown without the conditional source capability and decisive missing facts"
+      ]
+    }
+  ],
+  "errorClasses": {
+    "falsePositive": "Reports a policy failure where the complete visible trace contains a preventing upstream control, as in process_text.",
+    "falseNegative": "Refutes or misses a source-visible violation whose target selector reaches the protected effect without the required control, as in process_file.",
+    "unsupportedDeploymentInference": "Turns conditional application source into a factual claim about env, proxy, topology, or reachability.",
+    "unsupportedCompleteness": "Turns a completed declaration or fixed crop into a repository-wide all-entry claim.",
+    "evidenceDecoration": "Citations exist but omit the actual binding/control/effect needed for the conclusion."
+  },
+  "abstention": {
+    "correct": "Return unknown only when a named missing fact can change the answer, preserve the supported conditional source trace, list the minimum observation needed, and avoid safe/exploitable claims.",
+    "excessive": "Return unknown when the supplied source path and accepted policy decide the source question, or omit available supported/refuting facts.",
+    "allUnknownBaseline": "Fails the two source-decidable cases, earns credit only for the deployment case if it also supplies the conditional trace and decisive missing facts, and is reported with its unresolved fraction rather than rewarded for zero false positives."
+  },
+  "scoring": {
+    "primary": "taskDecisionCorrect for each case",
+    "qualityRequirements": [
+      "critical trace facts present",
+      "strongest upstream control handled",
+      "evidence semantically supports the disposition",
+      "scope/completeness claim bounded",
+      "unknown contains decisive missing facts and conditional outcomes"
+    ],
+    "reportedCounts": [
+      "correct/incorrect/partially-supported decisions",
+      "false positives and false negatives",
+      "unsupported deployment and completeness claims",
+      "supported/refuted/unknown/stale evidence states",
+      "resolved and unresolved obligation fractions"
+    ],
+    "aggregationRule": "Do not collapse a correct label with missing or contradictory evidence into a full success; do not erase a supported finding because another obligation remains unresolved."
+  },
+  "provenanceLimits": [
+    "The positive oracle combines fixed source, a direct repository fix, and a published advisory; it does not rely on the advisory label alone.",
+    "The upstream-control oracle is source-decidable at the input ref and is corroborated by repository history.",
+    "The deployment oracle is intentionally undecidable from allowed inputs; project guidance defines the condition but supplies no actual deployment fact.",
+    "No Open WebUI code, PoC, regression test, model run, or evaluator run was executed in this study."
+  ]
+}

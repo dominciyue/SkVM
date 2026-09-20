@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "authorization-coverage-challenges/v1",
+  "studyId": "authorization-domain-evidence-and-evaluation",
+  "kind": "evaluator-only designed variations grounded in the three real Open WebUI cases",
+  "executed": false,
+  "stateDimensions": {
+    "declaredObligation": "An accepted tuple of principal, operation, resource relation, condition, entry, and policy source. Completion is relative only to this explicit set.",
+    "sourceDiscovery": "The actual repository paths, entry-enumeration method, roles/relations searched, candidates found, exclusions, and unresolved areas at one ref.",
+    "evidenceSupport": "Whether cited source bytes and the full entry-to-control-to-effect trace support, refute, or cannot decide one conclusion at that ref."
+  },
+  "allowedAggregateClaim": "All 6 accepted declared obligations have dispositions; independent discovery found 7 in-scope entries, of which 6 are mapped and 1 remains unmapped; 4 mapped conclusions are supported, 1 is refuted, and 1 is unknown because deployment facts are absent.",
+  "forbiddenAggregateClaims": [
+    "complete",
+    "all authorization paths checked",
+    "no authorization issues",
+    "coverage 100%"
+  ],
+  "challenges": [
+    {
+      "id": "T4-omit-entry-process-file",
+      "groundingCase": "owui-process-text-controlled",
+      "mutation": "The declared set names only POST /process/text and all its cells are filled; POST /process/file is evaluator-known but absent from the declaration.",
+      "hiddenOracleFact": "At the same fixed ref, process_file is a sibling write entry with a source-supported missing destination write gate.",
+      "discoverability": {
+        "fixedContextMode": "Not discoverable from the process_text-only allowed files; the system must limit its claim to the declared entry.",
+        "restrictedReadMode": "Discoverable only if the allowed search scope includes route enumeration in backend/open_webui/routers/retrieval.py and the agent actually records the sibling entry."
+      },
+      "expected": "Declared completion may be true; repository-level completeness is false or unestablished. The omitted entry remains an unmapped discovery item and blocks any all-entry claim.",
+      "detector": "independent entry enumeration or evaluator oracle, never the completed declaration itself"
+    },
+    {
+      "id": "T4-omit-relation-write-grantee",
+      "groundingCase": "owui-process-text-controlled",
+      "mutation": "The declared relation set contains owner and unrelated non-admin but omits a non-owner with an explicit write grant.",
+      "hiddenOracleFact": "The shared policy calls Knowledges.check_access_by_user_id with permission='write', so an explicit grantee is a materially distinct allowed relation.",
+      "expected": "A checklist can be complete for the two declared relations but cannot claim all non-admin relations. A blanket 'non-owner denied' conclusion is semantically wrong.",
+      "detector": "policy-source review plus source discovery of group/access-grant semantics"
+    },
+    {
+      "id": "T4-conflicting-requirement",
+      "groundingCase": "owui-process-file-write",
+      "mutation": "The task requirement says source-file ownership does not authorize the destination KB, while the authored declaration says file ownership implies destination write permission.",
+      "expected": "Mark the obligation conflicted and prevent a violation/safe verdict until an authorized task owner resolves which policy applies. Structural validity and filled evidence fields do not resolve the conflict.",
+      "detector": "host comparison of accepted task requirement and authored declaration"
+    },
+    {
+      "id": "T4-relevant-source-change",
+      "groundingCase": "owui-process-file-write",
+      "mutation": "Move from input ref 841c9045 to child d11e06f, which adds the destination write validator in process_file.",
+      "expected": "The old source-supported-failure conclusion becomes stale for the new ref and must be retraced. Historical evidence remains valid for 841c9045; the policy obligation remains reusable if unchanged.",
+      "detector": "repository/ref mismatch plus relevant-path diff"
+    },
+    {
+      "id": "T4-policy-change",
+      "groundingCase": "owui-trusted-header-deployment",
+      "mutation": "The accepted deployment policy changes from sole trusted proxy ingress to an explicitly allowed direct-ingress mode with another authenticated header mechanism.",
+      "expected": "The old expectation and conclusion are invalid until the new policy is accepted and traced. Source observations about header handling may remain factual but no longer prove the prior policy relation.",
+      "detector": "policy-source revision/applicability check by host or evaluator"
+    },
+    {
+      "id": "T4-broken-evidence-location",
+      "groundingCase": "owui-process-text-controlled",
+      "mutation": "A result cites only save_docs_to_vector_db or a line range that no longer contains _validate_collection_access, while claiming the unauthorized write is blocked.",
+      "expected": "Evidence existence may pass, but evidence support fails. The conclusion is unsupported until the caller/helper/shared-filter trace is cited and semantically checked.",
+      "detector": "deterministic path/ref/location validation followed by semantic trace review"
+    },
+    {
+      "id": "T4-external-fact-still-missing",
+      "groundingCase": "owui-trusted-header-deployment",
+      "mutation": "Every declared source obligation is filled and the conditional sign-in path is fully traced, but deployed env, ingress reachability, and proxy stripping are still absent.",
+      "expected": "Declared and source-discovery status may be complete for the allowed source; evidence support for the deployment claim remains unknown. No complete flag may coerce allow, deny, safe, or exploitable.",
+      "detector": "explicit external-fact dependency in the evidence record"
+    },
+    {
+      "id": "T4-irrelevant-file-change",
+      "groundingCase": "owui-process-text-controlled",
+      "mutation": "A new ref changes only an unrelated README while all allowed authorization source bytes and the enumerated route universe are unchanged.",
+      "expected": "The prior evidence is still historical evidence for its original ref. For the new ref it may be reused only after the host verifies relevant bytes and the scoped entry universe are unchanged; no semantic re-review is required solely because an unrelated file changed.",
+      "detector": "bounded relevant-path and entry-universe comparison"
+    }
+  ],
+  "evaluationRules": [
+    "Score whether the result limits completeness to its declared and discovered scope.",
+    "Keep already supported findings when another obligation remains unmapped; partial validity is allowed.",
+    "A hidden omission tests coverage honesty, not clairvoyance when the input mode cannot expose it.",
+    "Do not let the declaration author, discovery agent, or evidence checker serve as the sole authority for all three dimensions."
+  ]
+}
