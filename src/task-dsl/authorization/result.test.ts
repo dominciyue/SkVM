@@ -193,6 +193,29 @@ describe("validateAuthorizationResult", () => {
     expect(quoteChecked.diagnostics).toContainEqual(expect.objectContaining({ code: "citation-text-mismatch" }))
   })
 
+  it("validates canonical quotations against a non-one crop start", () => {
+    const answer = makeAnswer()
+    for (const facts of Object.values(answer.results[0]!.facts)) {
+      for (const fact of facts) {
+        for (const citation of fact.citations) {
+          citation.startLine += 39
+          citation.endLine += 39
+        }
+      }
+    }
+    const sourceBundle = makeBundle()
+    sourceBundle.files[0]!.cropRange = { startLine: 40, endLine: 44 }
+
+    const checked = validateAuthorizationResult(
+      compileAuthorizationTask(makeTask()),
+      answer,
+      sourceBundle,
+    )
+
+    expect(checked.evidencePresence[0]?.status).toBe("present")
+    expect(checked.diagnostics).not.toContainEqual(expect.objectContaining({ code: "citation-text-mismatch" }))
+  })
+
   it("lets a sink-only citation be present but never upgrades support", () => {
     const answer = makeAnswer()
     answer.results[0]!.facts.entry = []

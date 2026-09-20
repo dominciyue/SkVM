@@ -3,7 +3,11 @@ import { z } from "zod"
 import { extractStructured } from "../../providers/structured.ts"
 import { ProviderNetworkError } from "../../providers/errors.ts"
 import type { CompletionParams, LLMProvider, LLMResponse } from "../../providers/types.ts"
-import { createTelemetryProvider } from "./telemetry.ts"
+import {
+  createTelemetryProvider,
+  reconcileAuthorizationAttemptsFromEvents,
+  summarizeAuthorizationAttempts,
+} from "./telemetry.ts"
 
 const TinySchema = z.object({ ok: z.boolean() })
 
@@ -152,5 +156,86 @@ describe("createTelemetryProvider", () => {
       response(),
     )).rejects.toThrow(/disabled/)
     expect(delegated).toBe(false)
+  })
+
+  it("closes on a per-call timeout, records a late settlement, and rejects new dispatch", async () => {
+    let delegatedCalls = 0
+    const delegate: LLMProvider = {
+      name: "late-response",
+      async complete() {
+        delegatedCalls += 1
+        await new Promise(resolve => setTimeout(resolve, 25))
+        return response({ text: "late", costUsd: 0.03 })
+      },
+      async completeWithToolResults() {
+        throw new Error("not reached")
+      },
+    }
+    const telemetry = createTelemetryProvider(delegate, {
+      perCallTimeoutMs: 5,
+      unitTimeoutMs: 100,
+      maxDispatches: 4,
+    })
+
+    await expect(telemetry.inPhase("initial", provider => provider.complete({ messages: [] })))
+      .rejects.toThrow(/did not settle within 5ms/)
+    const returnTimeSnapshot = structuredClone(telemetry.attempts)
+    await new Promise(resolve => setTimeout(resolve, 35))
+    await expect(telemetry.inPhase("domain-repair", provider => provider.complete({ messages: [] })))
+      .rejects.toThrow(/closed/)
+
+    expect(delegatedCalls).toBe(1)
+    expect(telemetry.attempts[0]).toEqual(expect.objectContaining({
+      phase: "initial",
+      status: "timeout",
+      usage: { input: 10, output: 2, cacheRead: 0, cacheWrite: 0 },
+      costUsd: 0.03,
+      lateSettlement: expect.objectContaining({ kind: "response" }),
+    }))
+    expect(telemetry.events.map(event => event.kind)).toEqual([
+      "dispatch",
+      "timeout",
+      "closed",
+      "late-response",
+      "dispatch-rejected",
+    ])
+    const reconciled = reconcileAuthorizationAttemptsFromEvents(returnTimeSnapshot, telemetry.events)
+    expect(reconciled[0]?.lateSettlement?.kind).toBe("response")
+    expect(summarizeAuthorizationAttempts(reconciled)).toEqual(expect.objectContaining({
+      providerCalls: 1,
+      respondedCalls: 1,
+      unknownUsageCalls: 0,
+      knownActualUsdSubtotal: 0.03,
+      totalActualUsd: 0.03,
+    }))
+  })
+
+  it("rejects a fifth provider dispatch before calling the delegate", async () => {
+    let delegatedCalls = 0
+    const delegate: LLMProvider = {
+      name: "dispatch-cap",
+      async complete() {
+        delegatedCalls += 1
+        return response()
+      },
+      async completeWithToolResults() {
+        throw new Error("not reached")
+      },
+    }
+    const telemetry = createTelemetryProvider(delegate, {
+      perCallTimeoutMs: 1_000,
+      unitTimeoutMs: 10_000,
+      maxDispatches: 4,
+    })
+
+    for (let index = 0; index < 4; index += 1) {
+      await telemetry.inPhase("initial", provider => provider.complete({ messages: [] }))
+    }
+    await expect(telemetry.inPhase("initial", provider => provider.complete({ messages: [] })))
+      .rejects.toThrow(/dispatch limit of 4/)
+
+    expect(delegatedCalls).toBe(4)
+    expect(telemetry.attempts).toHaveLength(4)
+    expect(telemetry.events.at(-1)?.kind).toBe("dispatch-rejected")
   })
 })

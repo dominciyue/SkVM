@@ -137,8 +137,10 @@ function validateMetadata(
   return diagnostics
 }
 
-function citationSegment(content: string, startLine: number, endLine: number): string {
-  return content.split(/\r?\n/).slice(startLine - 1, endLine).join("\n")
+function citationSegment(content: string, cropStartLine: number, startLine: number, endLine: number): string {
+  const startOffset = startLine - cropStartLine
+  const endOffset = endLine - cropStartLine + 1
+  return content.replace(/\r?\n$/, "").split(/\r?\n/).slice(startOffset, endOffset).join("\n")
 }
 
 function validateEvidence(
@@ -182,7 +184,12 @@ function validateEvidence(
           ))
           return
         }
-        const segment = citationSegment(file.content, citation.startLine, citation.endLine)
+        const segment = citationSegment(
+          file.content,
+          file.cropRange.startLine,
+          citation.startLine,
+          citation.endLine,
+        )
         if (!segment.includes(citation.quote)) {
           invalid = true
           diagnostics.push(makeDiagnostic(

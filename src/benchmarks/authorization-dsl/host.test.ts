@@ -1,8 +1,9 @@
 import { describe, expect, it } from "bun:test"
 import { createHash } from "node:crypto"
 import type { CompletionParams, LLMProvider, LLMResponse } from "../../providers/types.ts"
+import { ProviderNetworkError } from "../../providers/errors.ts"
 import type { AuthorizationResultV0, AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
-import type { SourceBundle } from "./inputs.ts"
+import { buildAuthorizationSourceCatalog, type SourceBundle } from "./inputs.ts"
 import { runAuthorizationTask } from "./host.ts"
 
 const sourceContent = [
@@ -114,6 +115,37 @@ function makeAnswer(scopeKind: AuthorizationResultV0["scopeClaim"]["kind"] = "de
   }
 }
 
+function makeWireAnswer(
+  scopeKind: AuthorizationResultV0["scopeClaim"]["kind"] = "declared-obligations-only",
+): Record<string, unknown> {
+  const answer = makeAnswer(scopeKind)
+  const built = buildAuthorizationSourceCatalog(makeBundle())
+  if (!built.success) throw new Error("host fixture source bundle must be valid")
+  const sourceId = built.catalog.sources[0]!.sourceId
+  return {
+    schemaVersion: "source-authorization-assessment-wire/v1",
+    results: answer.results.map(result => ({
+      obligationId: result.obligationId,
+      conclusion: result.conclusion,
+      explanation: result.explanation,
+      facts: Object.fromEntries(Object.entries(result.facts).map(([group, facts]) => [
+        group,
+        facts.map(fact => ({
+          statement: fact.statement,
+          citations: fact.citations.map(citation => ({
+            sourceId,
+            startLine: citation.startLine,
+            endLine: citation.endLine,
+          })),
+        })),
+      ])),
+      decisiveMissingFacts: result.decisiveMissingFacts,
+      suggestedObservations: result.suggestedObservations,
+    })),
+    scopeClaim: answer.scopeClaim,
+  }
+}
+
 function toolResponse(argumentsValue: Record<string, unknown>, name = "submit_authorization_result"): LLMResponse {
   return {
     text: "",
@@ -155,12 +187,20 @@ describe("runAuthorizationTask", () => {
     const run = await runAuthorizationTask({
       task: makeTask(),
       sourceBundle: makeBundle(),
-      provider: sequenceProvider([toolResponse(makeAnswer() as unknown as Record<string, unknown>)], calls, continuationCalls),
+      provider: sequenceProvider([toolResponse(makeWireAnswer())], calls, continuationCalls),
       arm: "D",
       options: { timeoutMs: 1_000, maxTokens: 2_000, maxDomainRepairs: 1 },
     })
 
     expect(run.status).toBe("completed")
+    expect(run.initial?.result).toEqual(expect.objectContaining({
+      taskId: "host-record-update",
+      repository: "https://example.test/acme/records",
+      sourceRef: "records-r1",
+    }))
+    expect(run.initial?.result.results[0]?.facts.control[0]?.citations[0]?.quote)
+      .toBe("  if (!await canWrite(principal, request.recordId)) throw new Error('denied')")
+    expect(run.initial?.normalization?.normalizerVersion).toBe("authorization-wire-normalizer/v1")
     expect(calls).toHaveLength(1)
     expect(calls[0]?.tools?.map(tool => tool.name)).toEqual(["submit_authorization_result"])
     expect(calls[0]?.toolChoice).toEqual({ name: "submit_authorization_result" })
@@ -188,11 +228,19 @@ describe("runAuthorizationTask", () => {
     expect(resultToolSchema.properties?.results?.items?.properties?.facts
       ?.properties?.entry?.items?.properties?.citations?.items?.properties)
       .toEqual(expect.objectContaining({
-        path: { type: "string" },
+        sourceId: { type: "string" },
         startLine: { type: "number" },
         endLine: { type: "number" },
-        quote: { type: "string" },
       }))
+    expect(resultToolSchema.properties).not.toHaveProperty("taskId")
+    expect(resultToolSchema.properties).not.toHaveProperty("repository")
+    expect(resultToolSchema.properties).not.toHaveProperty("sourceRef")
+    expect(resultToolSchema.properties?.results?.items?.properties?.facts
+      ?.properties?.entry?.items?.properties?.citations?.items?.properties)
+      .not.toHaveProperty("path")
+    expect(resultToolSchema.properties?.results?.items?.properties?.facts
+      ?.properties?.entry?.items?.properties?.citations?.items?.properties)
+      .not.toHaveProperty("quote")
     expect(continuationCalls.value).toBe(0)
     expect(run.attempts[0]?.request.executableTools).toBe(false)
   })
@@ -204,8 +252,8 @@ describe("runAuthorizationTask", () => {
       task: makeTask(),
       sourceBundle: makeBundle(),
       provider: sequenceProvider([
-        toolResponse(makeAnswer("repository-all-entries") as unknown as Record<string, unknown>),
-        toolResponse(makeAnswer() as unknown as Record<string, unknown>),
+        toolResponse(makeWireAnswer("repository-all-entries")),
+        toolResponse(makeWireAnswer()),
       ], calls, continuationCalls),
       arm: "B",
       options: { timeoutMs: 1_000, maxTokens: 2_000, maxDomainRepairs: 1 },
@@ -218,18 +266,56 @@ describe("runAuthorizationTask", () => {
     expect(run.attempts.map(attempt => attempt.phase)).toEqual(["initial", "domain-repair"])
     expect(calls[1]?.messages[0]?.content).toContain("unsupported-completeness")
     expect(calls[1]?.messages[0]?.content.toLowerCase()).not.toContain("oracle")
+    expect(calls[1]?.messages[0]?.content.match(/## Current wire answer/g)).toHaveLength(1)
+    expect(calls[1]?.messages[0]?.content.match(/## Deterministic host diagnostics/g)).toHaveLength(1)
+    expect(calls[1]?.messages[0]?.content.match(/===== BEGIN ALLOWED INPUT:/g)).toHaveLength(1)
+    expect(run.promptCharacters?.initial.source).toBeGreaterThan(sourceContent.length)
+    expect(run.promptCharacters?.repair).toEqual(expect.objectContaining({
+      total: calls[1]?.messages[0]?.content.length,
+      tokenMeasurement: "provider-reported-only",
+    }))
+  })
+
+  it("uses the same narrow wire contract for schema-tool fallback parsing", async () => {
+    const calls: CompletionParams[] = []
+    const wireAnswer = makeWireAnswer()
+    const noToolResponse = {
+      ...toolResponse(wireAnswer),
+      toolCalls: [],
+    }
+    const promptResponse = {
+      ...toolResponse(wireAnswer),
+      text: JSON.stringify(wireAnswer),
+      toolCalls: [],
+    }
+    const run = await runAuthorizationTask({
+      task: makeTask(),
+      sourceBundle: makeBundle(),
+      provider: sequenceProvider([noToolResponse, promptResponse], calls, { value: 0 }),
+      arm: "D",
+      options: { timeoutMs: 1_000, maxTokens: 2_000, maxDomainRepairs: 1 },
+    })
+
+    expect(run.status).toBe("completed")
+    expect(run.attempts.map(attempt => attempt.transport)).toEqual(["schema-tool", "prompt-parse"])
+    const fallbackSchema = calls[1]?.messages[0]?.content.split(
+      "You MUST respond with a valid JSON object conforming to this schema:",
+    )[1] ?? ""
+    expect(fallbackSchema).toContain('"sourceId"')
+    expect(fallbackSchema).not.toContain('"quote"')
+    expect(fallbackSchema).not.toContain('"repository"')
   })
 
   it("stops after one repair even when actionable diagnostics remain", async () => {
     const calls: CompletionParams[] = []
     const continuationCalls = { value: 0 }
-    const invalid = makeAnswer("repository-all-entries")
+    const invalid = makeWireAnswer("repository-all-entries")
     const run = await runAuthorizationTask({
       task: makeTask(),
       sourceBundle: makeBundle(),
       provider: sequenceProvider([
-        toolResponse(invalid as unknown as Record<string, unknown>),
-        toolResponse(invalid as unknown as Record<string, unknown>),
+        toolResponse(invalid),
+        toolResponse(invalid),
       ], calls, continuationCalls),
       arm: "D",
       options: { timeoutMs: 1_000, maxTokens: 2_000, maxDomainRepairs: 1 },
@@ -249,7 +335,7 @@ describe("runAuthorizationTask", () => {
       task: makeTask(),
       sourceBundle: makeBundle(),
       provider: sequenceProvider([
-        toolResponse(makeAnswer() as unknown as Record<string, unknown>, "execute_command"),
+        toolResponse(makeWireAnswer(), "execute_command"),
       ], calls, continuationCalls),
       arm: "B",
       options: { timeoutMs: 1_000, maxTokens: 2_000, maxDomainRepairs: 1 },
@@ -274,8 +360,129 @@ describe("runAuthorizationTask", () => {
 
     expect(run.status).toBe("timeout-unknown")
     expect(calls).toHaveLength(1)
-    expect(run.attempts[0]?.status).toBe("pending")
+    expect(run.attempts[0]?.status).toBe("timeout")
     expect(run.telemetry.totalActualUsd).toBeNull()
     expect(run.telemetry.unknownUsageCalls).toBe(1)
+    expect(run.events?.map(event => event.kind)).toEqual(["dispatch", "timeout", "closed"])
+  })
+
+  it("does not start a late prompt fallback after the unit has timed out", async () => {
+    let providerCalls = 0
+    const provider: LLMProvider = {
+      name: "late-invalid-schema-provider",
+      async complete() {
+        providerCalls += 1
+        if (providerCalls === 1) {
+          await new Promise(resolve => setTimeout(resolve, 25))
+          return {
+            ...toolResponse(makeWireAnswer()),
+            toolCalls: [],
+          }
+        }
+        return {
+          ...toolResponse(makeWireAnswer()),
+          text: JSON.stringify(makeWireAnswer()),
+          toolCalls: [],
+        }
+      },
+      async completeWithToolResults() {
+        throw new Error("must not execute tools")
+      },
+    }
+
+    const run = await runAuthorizationTask({
+      task: makeTask(),
+      sourceBundle: makeBundle(),
+      provider,
+      arm: "B",
+      options: { timeoutMs: 5, maxTokens: 2_000, maxDomainRepairs: 1 },
+    })
+    await new Promise(resolve => setTimeout(resolve, 50))
+
+    expect(run.status).toBe("timeout-unknown")
+    expect(providerCalls).toBe(1)
+    expect(run.events?.map(event => event.kind)).toEqual([
+      "dispatch",
+      "timeout",
+      "closed",
+      "late-response",
+    ])
+  })
+
+  it("records a valid late response without adopting it as the experimental answer", async () => {
+    let providerCalls = 0
+    const persistedEvents: string[] = []
+    const provider: LLMProvider = {
+      name: "late-valid-provider",
+      async complete() {
+        providerCalls += 1
+        await new Promise(resolve => setTimeout(resolve, 25))
+        return toolResponse(makeWireAnswer())
+      },
+      async completeWithToolResults() {
+        throw new Error("must not execute tools")
+      },
+    }
+
+    const run = await runAuthorizationTask({
+      task: makeTask(),
+      sourceBundle: makeBundle(),
+      provider,
+      arm: "D",
+      options: { timeoutMs: 5, maxTokens: 2_000, maxDomainRepairs: 1 },
+      onLifecycleEvent: event => {
+        persistedEvents.push(event.kind)
+      },
+    })
+    await new Promise(resolve => setTimeout(resolve, 35))
+
+    expect(run.status).toBe("timeout-unknown")
+    expect(run.initial).toBeUndefined()
+    expect(run.initialTransport).toBeUndefined()
+    expect(providerCalls).toBe(1)
+    expect(run.attempts[0]?.lateSettlement).toEqual(expect.objectContaining({ kind: "response" }))
+    expect(persistedEvents).toEqual(["dispatch", "timeout", "closed", "late-response"])
+  })
+
+  it("preserves the initial result when the single repair call times out", async () => {
+    const calls: CompletionParams[] = []
+    const run = await runAuthorizationTask({
+      task: makeTask(),
+      sourceBundle: makeBundle(),
+      provider: sequenceProvider([
+        toolResponse(makeWireAnswer("repository-all-entries")),
+        "pending",
+      ], calls, { value: 0 }),
+      arm: "B",
+      options: { timeoutMs: 5, maxTokens: 2_000, maxDomainRepairs: 1 },
+    })
+
+    expect(run.status).toBe("timeout-unknown")
+    expect(run.initial?.validation.completeness.status).toBe("rejected")
+    expect(run.initialTransport?.normalization.result).toBeDefined()
+    expect(run.repair).toBeUndefined()
+    expect(run.finalKind).toBe("initial")
+    expect(run.error?.name).toBe("AuthorizationCallTimeoutError")
+    expect(run.attempts.map(attempt => [attempt.phase, attempt.status])).toEqual([
+      ["initial", "response"],
+      ["domain-repair", "timeout"],
+    ])
+  })
+
+  it("records a provider rejection without starting prompt fallback", async () => {
+    const calls: CompletionParams[] = []
+    const failure = new ProviderNetworkError("network unavailable", "rejecting-provider")
+    const run = await runAuthorizationTask({
+      task: makeTask(),
+      sourceBundle: makeBundle(),
+      provider: sequenceProvider([failure], calls, { value: 0 }),
+      arm: "B",
+      options: { timeoutMs: 1_000, maxTokens: 2_000, maxDomainRepairs: 1 },
+    })
+
+    expect(run.status).toBe("transport-failed")
+    expect(calls).toHaveLength(1)
+    expect(run.attempts[0]?.status).toBe("error")
+    expect(run.events?.map(event => event.kind)).toEqual(["dispatch", "error", "closed"])
   })
 })

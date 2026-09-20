@@ -9,12 +9,13 @@ import {
   createAuthorizationReviewTemplate,
   type AuthorizationSemanticReviewV0,
 } from "./evaluate.ts"
-import type { SourceBundle } from "./inputs.ts"
+import { buildAuthorizationSourceCatalog, type SourceBundle } from "./inputs.ts"
 import {
   checkAuthorizationComparison,
   evaluateAuthorizationRunDirectory,
   executeAuthorizationComparison,
   loadAuthorizationComparisonConfig,
+  replayAuthorizationRunDirectory,
   runAuthorizationCli,
 } from "./run.ts"
 
@@ -79,7 +80,41 @@ function resultFor(
   }
 }
 
-function responseFor(result: AuthorizationResultV0): LLMResponse {
+function wireResultFor(
+  task: AuthorizationTaskV0,
+  sourceBundle: SourceBundle,
+  obligationId: string,
+  conclusion: AuthorizationResultV0["results"][number]["conclusion"],
+): Record<string, unknown> {
+  const canonical = resultFor(task, sourceBundle, obligationId, conclusion)
+  const built = buildAuthorizationSourceCatalog(sourceBundle)
+  if (!built.success) throw new Error("runner fixture source bundle must be valid")
+  const sourceId = built.catalog.sources[0]!.sourceId
+  return {
+    schemaVersion: "source-authorization-assessment-wire/v1",
+    results: canonical.results.map(result => ({
+      obligationId: result.obligationId,
+      conclusion: result.conclusion,
+      explanation: result.explanation,
+      facts: Object.fromEntries(Object.entries(result.facts).map(([group, facts]) => [
+        group,
+        facts.map(fact => ({
+          statement: fact.statement,
+          citations: fact.citations.map(citation => ({
+            sourceId,
+            startLine: citation.startLine,
+            endLine: citation.endLine,
+          })),
+        })),
+      ])),
+      decisiveMissingFacts: result.decisiveMissingFacts,
+      suggestedObservations: result.suggestedObservations,
+    })),
+    scopeClaim: canonical.scopeClaim,
+  }
+}
+
+function responseFor(result: Record<string, unknown>): LLMResponse {
   return {
     text: "",
     toolCalls: [{ id: "mock-result", name: "submit_authorization_result", arguments: result as unknown as Record<string, unknown> }],
@@ -133,6 +168,11 @@ describe("authorization comparison development runner", () => {
     expect(checked.cases).toHaveLength(3)
     expect(checked.cases.flatMap(candidate => Object.keys(candidate.previews))).toHaveLength(6)
     expect(checked.cases.every(candidate => candidate.files.every(file => file.startsWith("inputs/")))).toBe(true)
+    expect(checked.cases.flatMap(candidate => [candidate.previews.B, candidate.previews.D])
+      .every(preview => !preview.includes("oracles/")
+        && !preview.includes("oracleRule")
+        && !preview.includes("expectedDisposition")
+        && !preview.includes("GHSA-"))).toBe(true)
     for (const candidate of checked.cases) {
       for (const entry of candidate.declaration.entries) {
         for (const location of entry.locations) {
@@ -165,7 +205,7 @@ describe("authorization comparison development runner", () => {
     const responses = loadedConfig.config.units.map(unit => {
       const candidate = caseById.get(unit.caseId)!
       const candidateRubric = rubricByCase.get(unit.caseId)!
-      return responseFor(resultFor(
+      return responseFor(wireResultFor(
         candidate.declaration,
         candidate.sourceBundle,
         candidateRubric.obligationId,
@@ -206,6 +246,11 @@ describe("authorization comparison development runner", () => {
     expect(first.units.every(unit => unit.status === "completed")).toBe(true)
     expect(providerFactoryCalls).toBe(1)
     expect(providerCalls).toBe(6)
+    for (const unit of loadedConfig.config.units) {
+      const eventsText = await readFile(path.join(runDir, "units", unit.id, "events.jsonl"), "utf8")
+      const events = eventsText.trim().split("\n").map(line => JSON.parse(line) as { kind: string })
+      expect(events.map(event => event.kind)).toEqual(["dispatch", "response", "closed"])
+    }
 
     const second = await executeAuthorizationComparison({
       repositoryRoot,
@@ -242,6 +287,17 @@ describe("authorization comparison development runner", () => {
     expect(evaluated.units).toHaveLength(6)
     expect(evaluated.pairs).toHaveLength(3)
     expect(evaluated.units.every(unit => unit.summary.finalQuality === "full-success")).toBe(true)
+
+    const injectedUnit = loadedConfig.config.units[0]!
+    const injectedReviewPath = path.join(runDir, "units", injectedUnit.id, "review.initial.json")
+    const injectedReview = JSON.parse(await readFile(injectedReviewPath, "utf8")) as AuthorizationSemanticReviewV0
+    injectedReview.factReviews[0]!.status = "contradicted"
+    injectedReview.factReviews[0]!.reason = "Injected offline evaluator error: the claim contradicts the bound source rule."
+    await writeFile(injectedReviewPath, `${JSON.stringify(injectedReview, null, 2)}\n`, "utf8")
+    const evaluatedWithSemanticFailure = await evaluateAuthorizationRunDirectory({ repositoryRoot, configPath, runDir })
+    expect(evaluatedWithSemanticFailure.status).toBe("completed")
+    expect(evaluatedWithSemanticFailure.units.find(unit => unit.id === injectedUnit.id)?.summary.finalQuality)
+      .toBe("partial")
 
     const stdout: string[] = []
     const exitCode = await runAuthorizationCli([
@@ -282,8 +338,59 @@ describe("authorization comparison development runner", () => {
     expect(providerCreated).toBe(false)
 
     output.length = 0
+    expect(await runAuthorizationCli(["status", `--config=${configPath}`], dependencies)).toBe(0)
+    expect(output.join("\n")).toContain('"runAttempts"')
+    expect(providerCreated).toBe(false)
+
+    output.length = 0
     expect(await runAuthorizationCli(["unknown-command"], dependencies)).toBe(2)
     expect(output.join("\n")).toContain("Unknown command")
     expect(providerCreated).toBe(false)
+  })
+
+  it("replays the archived V initial run read-only without initializing a provider", async () => {
+    const vRunDir = path.join(
+      repositoryRoot,
+      "results/skill-ir/skill-dsl-research/development/authorization-v0/runs/initial",
+    )
+    const archivedSummaryPath = path.join(vRunDir, "evaluation-summary.json")
+    const before = await readFile(archivedSummaryPath, "utf8")
+    const replayed = await replayAuthorizationRunDirectory({
+      repositoryRoot,
+      configPath,
+      runDir: vRunDir,
+    })
+    const after = await readFile(archivedSummaryPath, "utf8")
+
+    expect(replayed.status).toBe("reproduced")
+    expect(replayed.units).toHaveLength(6)
+    expect(replayed.units.flatMap(unit => unit.generations)).toHaveLength(8)
+    expect(replayed.units.flatMap(unit => unit.generations)
+      .every(generation => generation.validationMatchesArchived)).toBe(true)
+    expect(before).toBe(after)
+
+    const temporaryRoot = await mkdtemp(path.join(tmpdir(), "skvm-authorization-replay-"))
+    cleanupRoots.push(temporaryRoot)
+    const outputPath = path.join(temporaryRoot, "replay.json")
+    let providerCreated = false
+    const stdout: string[] = []
+    const exitCode = await runAuthorizationCli([
+      "replay",
+      `--config=${configPath}`,
+      `--run-dir=${vRunDir}`,
+      `--output=${outputPath}`,
+    ], {
+      repositoryRoot,
+      stdout: value => stdout.push(value),
+      stderr: value => stdout.push(value),
+      providerFactory: async () => {
+        providerCreated = true
+        throw new Error("offline replay must not initialize a provider")
+      },
+    })
+
+    expect(exitCode).toBe(0)
+    expect(providerCreated).toBe(false)
+    expect(JSON.parse(await readFile(outputPath, "utf8"))).toEqual(replayed)
   })
 })

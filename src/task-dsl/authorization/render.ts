@@ -33,6 +33,23 @@ export interface RenderedAuthorizationTask {
   facts: AuthorizationRenderFacts
   prompt: string
   expandedObligationIds: string[]
+  sections: AuthorizationPromptSections
+}
+
+export interface AuthorizationPromptSections {
+  instructions: string
+  declaration: string
+  outputContract: string
+  sourceMarker: "<SOURCE_CONTEXT_INSERTED_BY_HOST>"
+}
+
+export interface AuthorizationPromptCharacterBreakdown {
+  instructions: number
+  declaration: number
+  source: number
+  outputContract: number
+  total: number
+  tokenMeasurement: "provider-reported-only"
 }
 
 function collectFacts(task: AuthorizationTaskV0): AuthorizationRenderFacts {
@@ -56,147 +73,58 @@ function collectFacts(task: AuthorizationTaskV0): AuthorizationRenderFacts {
   }
 }
 
-function bulletLines(values: string[]): string {
-  return values.map(value => `- ${value}`).join("\n")
-}
-
-function renderPolicies(task: AuthorizationTaskV0): string {
-  return task.policySources.map(policy => [
-    `- ${policy.id} (${policy.kind}, ${policy.acceptance.status})`,
-    `  Rule: ${policy.text}`,
-    `  Source: ${policy.location} @ ${policy.revision}`,
-    `  Accepted/resolved by: ${policy.acceptance.actorRole}`,
-    `  Reason: ${policy.acceptance.reason}`,
-  ].join("\n")).join("\n")
-}
-
-function renderPrincipals(task: AuthorizationTaskV0): string {
-  return task.principals.map(principal => [
-    `- ${principal.id}: ${principal.role}`,
-    `  Description: ${principal.description}`,
-    `  Starting capabilities: ${principal.startingCapabilities.length > 0 ? principal.startingCapabilities.join(", ") : "(none declared)"}`,
-  ].join("\n")).join("\n")
-}
-
-function renderResources(task: AuthorizationTaskV0): string {
-  return task.resources.map(resource =>
-    `- ${resource.id} (${resource.type}): ${resource.description}`,
-  ).join("\n")
-}
-
-function renderEntries(task: AuthorizationTaskV0): string {
-  return task.entries.map(entry => {
-    const locations = entry.locations
-      .map(location => `${location.path}:${location.startLine}-${location.endLine}`)
-      .join(", ")
-    return `- ${entry.id}: ${entry.name}\n  Allowed source locations: ${locations}`
-  }).join("\n")
-}
-
-function renderObligations(task: AuthorizationTaskV0): string {
-  return task.obligations.map(obligation => {
-    const conditions = obligation.conditions.length === 0
-      ? "(none declared)"
-      : obligation.conditions.map(condition => `${condition.name}: ${condition.basis}`).join("; ")
-    return [
-      `- ${obligation.id}`,
-      `  Principal/resource: ${obligation.principalId} -> ${obligation.resourceId}`,
-      `  Relation/operation/expectation: ${obligation.relation} / ${obligation.operation} / ${obligation.expectation}`,
-      `  Conditions: ${conditions}`,
-      `  Policy: ${obligation.policySourceId}`,
-      `  Declared entries: ${obligation.entryIds.join(", ")}`,
-    ].join("\n")
-  }).join("\n")
-}
-
 function renderSharedResultRequirements(compiled: CompiledAuthorizationTask): string {
   const runnableIds = compiled.runnableObligations.map(obligation => obligation.id)
-  const renderedIds = runnableIds.length > 0 ? bulletLines(runnableIds) : "- (none)"
+  const renderedIds = runnableIds.length > 0 ? runnableIds.map(value => `- ${value}`).join("\n") : "- (none)"
   return `Return exactly one result for every runnable expanded obligation, with one of: ${AUTHORIZATION_CONCLUSIONS.join(", ")}.
 Exact runnable obligation IDs (closed list):
 ${renderedIds}
 Use each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.
-Support the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite an allowed input path, line range, and retained quotation. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.`
+Support the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.`
 }
 
-function renderBaseline(compiled: CompiledAuthorizationTask): string {
-  const task = compiled.task
+function renderBaselineInstructions(): string {
   return `# Organized authorization assessment instruction (B)
 
-Task ID: ${task.taskId}
-Request: ${task.request}
-Repository: ${task.repository}
-Source ref: ${task.sourceRef}
-Source mode: ${task.sourceMode}
-
-## Governing policy sources
-${renderPolicies(task)}
-
-## Principals
-${renderPrincipals(task)}
-
-## Resources
-${renderResources(task)}
-
-## Declared entries and allowed locations
-${renderEntries(task)}
-
-## Authorization questions
-${renderObligations(task)}
-
-## Scope assurance
-${task.scopeAssurance}
-
-## Required analysis
-${bulletLines(task.requiredAnalysis)}
-
-## Constraints
-${bulletLines(task.constraints)}
-
-## Result contract
-${renderSharedResultRequirements(compiled)}
-
-## Fixed source context
-<SOURCE_CONTEXT_INSERTED_BY_HOST>`
+Analyze each runnable obligation in the canonical declaration. Follow the declared required analysis, constraints, policy authority, and scope assurance. Explain the source-visible decision without assuming repository discovery or deployment facts.`
 }
 
-function renderDomain(compiled: CompiledAuthorizationTask, facts: AuthorizationRenderFacts): string {
-  const expanded = [
-    ...compiled.runnableObligations.map(obligation => ({
-      id: obligation.id,
-      status: "runnable",
-      authorObligationId: obligation.authorObligationId,
-      entryId: obligation.entryId,
-    })),
-    ...compiled.blockedObligations.map(obligation => ({
-      id: obligation.id,
-      status: "blocked",
-      blockedBy: obligation.blockedBy,
-      authorObligationId: obligation.authorObligationId,
-      entryId: obligation.entryId,
-    })),
-  ]
+function renderDomainInstructions(compiled: CompiledAuthorizationTask): string {
+  const runnable = compiled.runnableObligations.map(obligation => obligation.id)
+  const blocked = compiled.blockedObligations.map(obligation => ({ id: obligation.id, blockedBy: obligation.blockedBy }))
+  return `# Authorization domain method (D)
 
-  return `# Authorization domain plan (D)
+For every runnable obligation, trace this causal chain before deciding: declared entry -> principal and resource bindings -> stated relation and conditions -> strongest source-visible authorization control -> protected effect. Compare the observed chain with the accepted policy expectation. Use unknown only when a named missing fact is decisive, and bound scope to the declared fixed context.
 
-Use the canonical authorization facts and deterministic obligation expansion below. The declaration organizes the work; you still must understand the source control path and justify the conclusion.
+Method execution state:
+${JSON.stringify({ status: compiled.status, runnableObligationIds: runnable, blocked }, null, 2)}`
+}
 
-## Canonical facts
-${JSON.stringify(facts, null, 2)}
+function composeAuthorizationPrompt(sections: AuthorizationPromptSections): string {
+  return `${sections.instructions}
 
-## Compiled obligation plan
-${JSON.stringify({
-    status: compiled.status,
-    expanded,
-    dependencies: compiled.dependencies,
-    diagnostics: compiled.diagnostics,
-  }, null, 2)}
+## Canonical declaration
+${sections.declaration}
 
 ## Result contract
-${renderSharedResultRequirements(compiled)}
+${sections.outputContract}
 
 ## Fixed source context
-<SOURCE_CONTEXT_INSERTED_BY_HOST>`
+${sections.sourceMarker}`
+}
+
+export function measureAuthorizationPromptCharacters(
+  rendered: RenderedAuthorizationTask,
+  sourceContext: string,
+): AuthorizationPromptCharacterBreakdown {
+  return {
+    instructions: rendered.sections.instructions.length,
+    declaration: rendered.sections.declaration.length,
+    source: sourceContext.length,
+    outputContract: rendered.sections.outputContract.length,
+    total: rendered.prompt.replace(rendered.sections.sourceMarker, sourceContext).length,
+    tokenMeasurement: "provider-reported-only",
+  }
 }
 
 export function renderAuthorizationTask(
@@ -208,10 +136,17 @@ export function renderAuthorizationTask(
     ...compiled.runnableObligations.map(obligation => obligation.id),
     ...compiled.blockedObligations.map(obligation => obligation.id),
   ]
+  const sections: AuthorizationPromptSections = {
+    instructions: arm === "B" ? renderBaselineInstructions() : renderDomainInstructions(compiled),
+    declaration: JSON.stringify(facts, null, 2),
+    outputContract: renderSharedResultRequirements(compiled),
+    sourceMarker: "<SOURCE_CONTEXT_INSERTED_BY_HOST>",
+  }
   return {
     arm,
     facts,
-    prompt: arm === "B" ? renderBaseline(compiled) : renderDomain(compiled, facts),
+    prompt: composeAuthorizationPrompt(sections),
     expandedObligationIds,
+    sections,
   }
 }

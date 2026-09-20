@@ -585,19 +585,21 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 ### 7.20 W 复核结论与下一轮设计
 
-2026-09-21，复核 V 代码、原始输出和语义 review，并以注入 provider 的离线 mock 验证超时行为。证据见[复核记录](../../results/skill-ir/skill-dsl-research/development/review-20260921.json)，执行清单见 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)。以下为待实现设计，不写成现有能力。
+2026-09-21，复核 V 代码、原始输出和语义 review，并以注入 provider 的离线 mock 验证超时行为。证据见[复核记录](../../results/skill-ir/skill-dsl-research/development/review-20260921.json)，执行清单见 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)。本节区分已经测试或实现的事实与仍待实现的设计。
 
 **研究基础的可用程度。** 外部任务研究已经给出可用的分类方法：由目标、领域对象、决定答案的关系、跨来源映射及反例确定范围。授权任务的 principal/resource/relation/operation/condition/policy/entry 已能表达三个真实条件，程序与模型分工也已运行。下一步所需信息主要来自消费失败，而非更多泛读数量。第二项目仍承担以后检验领域语义迁移的责任；当前三个条件均来自 Open WebUI。
 
-**引用问题。** `renderSourceBundle` 展示裁剪范围但不逐行编号，结果却要求模型复制 exact path、行号和 quote。file B final 的关键事实、结论与 scope review 均 supported，三处 quote mismatch 使交付为 partial；修订 D 首答也有八处 mismatch。W 使用覆盖全部允许源码的 source ID 与编号范围，宿主据 exact source 绑定路径及原文。模型仍选择论据并说明因果，合法引用不会自动获得语义支持。两臂共用目录，拒绝陌生/越界/错 ref，不用 oracle 筛出答案片段。
+**引用问题与 W1 处理。** `renderSourceBundle` 原来只展示裁剪范围却要求模型复制 exact path、行号和 quote。现在 source catalog 以 repository/ref/path/content digest 生成稳定 ID，按 crop 行号显示全部允许源码；宿主从单一 source ID 和闭区间绑定 canonical path 与整行原文。目录顺序不影响 ID，相同字节的不同路径仍不同；重复路径、陌生/旧 ref ID、越界和跨来源范围 fail closed。原始文件位置只作 provenance，不混入 crop 行号。合法引用与 semantic review 仍分开，未用 oracle 选片段。
 
-**传输问题。** revision B 不仅漏 `suggestedObservations`，还在 `results` 中混入字符串；其首响应约耗时 131 秒，随后 fallback 共用原 180 秒 phase 截止，剩余时间不足一次完整请求窗口。W 单独版本化模型 wire，只保留义务结论、解释、事实引用及必要的 unknown 信息，由宿主绑定请求元数据；旧 canonical result 与回放保留。实际发送的 JSON schema 和 fallback 必须一致。时间按 per-call 与整单元分别记录，在新配对开始前固定共同配置。
+**传输问题与 W2 处理。** revision B 既漏字段又在 `results` 混入字符串。新增 `source-authorization-assessment-wire/v1`：模型只写 exact obligation ID、结论、解释、五组事实、source ranges、unknown 信息和 scope；`authorization-wire-normalizer/v1` 绑定 task/repository/ref、canonical result v0 和 quote。明确结论可省略 missing/observation 并规范为 `[]`，unknown 缺两项仍报错。schema tool 与 prompt fallback 共用同一实测 schema；旧 `AuthorizationResultV0` parser/validator 未删除。归一化拒绝 malformed item、重复/陌生/missing obligation、错 ref 和无效引用，不猜答案字段。
 
-**生命周期问题。** `host.ts` 用 `Promise.race` 返回超时，未关闭结构化解析链。离线 mock 在 5 ms 返回时已派发一次请求，30 ms 到达的无效响应随后触发第二次请求；返回快照仍仅含一个 pending attempt。修订要在每次 provider 派发前检查关闭状态，事件即时落盘，迟到响应按原 attempt 补结算；无法取得的 usage 保持 unknown。repair 超时也应保留已生成 initial。该 mock 证明代码缺陷，历史真实额外调用数量须依原始记录核对，不能从 mock 推算。
+**生命周期问题与 W4 处理。** 根因不是计时数值，而是 phase 外层 `Promise.race` 返回后，底层 extraction 仍拥有派发 fallback 的能力。deadline 已移到每次 wrapped `provider.complete`：超时作为 provider 级 completion-unknown 错误关闭单元，因此解析链终止；每次派发前再检查 closed、整单元剩余时间和四次上限。attempt 在派发时固定 phase，事件记录 dispatch/response/error/timeout/late settlement/closed/rejected，并可追加 `events.jsonl`；离线评价从事件归并调用事实。迟到响应只补 usage/cost，不产生答案；repair 超时保留 initial。固定配置仍为 per-call 180 秒、unit 600 秒、6000 output tokens、最多四次派发和一次 repair。
 
-**评价问题。** V 的 `taskDecisionCorrect` 同时受机械验证与语义 review 影响。W 单列语义正确性、证据语义、传输有效性和完整交付，保留旧版本分数。trusted-header 缺 authentication-failure 分支及条件关系的事实遗漏仍需评价；接受逻辑等价表达，不要求逐字照抄 rubric。无答案或无 review 保持未知并留在原分母。这样可看出领域支持究竟改善了判断、完整性还是仅减少格式返工。
+**评价问题与 W5 处理。** V 的 `taskDecisionCorrect` 原口径保留为 `authorization-evaluation/v0`。附加的 v1 分解单列 `semanticDecisionCorrect`（label 与有定位的 disposition review）、`evidenceSemanticSupport`（关键事实 review）、`transportValid`（结构、义务及引用可归一化）和 `deliveryComplete`（机械交付完整且 scope 可接受）。因此正确判断但坏引用不再被描述成语义错误，引用合法但论断矛盾也不能冒充成功。无答案或无有效 review 为 unknown；四种逻辑等价条件表述由 review 判因果，不按固定措辞。
 
-**开发与比较。** 顺序为引用目录→wire/归一化→精简 B/D 与 repair→关闭与事件→分层评价→离线演练→三个原案例的新六单元配对→一次有依据的共享修订。B/D 同模型、源码、输出接口和修复机会，源码只插入一次。历史 V 与新 W 分版本报告；跨轮开销为描述性观察，当前 B/D 承担方法比较。若两臂效果相当则保留领域模型与共同 helper、采用较简单表达；若 D 有具体增益，再筹备第二项目。W 状态为 `planned-not-started`。
+**开发与比较。** 顺序为引用目录→wire/归一化→精简 B/D 与 repair→关闭与事件→分层评价→离线演练→三个原案例的新六单元配对→一次有依据的共享修订。B/D 同模型、源码、输出接口和修复机会，源码只插入一次。历史 V 与新 W 分版本报告；跨轮开销为描述性观察，当前 B/D 承担方法比较。若两臂效果相当则保留领域模型与共同 helper、采用较简单表达；若 D 有具体增益，再筹备第二项目。W0–W6 已完成，授权回归 76/76、435 assertions 和 typecheck 通过；当前状态为 `active-W7`。
+
+**W0 反例基线。** 旧实现的授权回归 51/51、284 assertions 和主 typecheck 均通过；这只证明 V 合同自洽。随后四个新增 synthetic 测试分别准确失败于：源码没有稳定 source ID/逐行标签；实际 provider schema 仍要求任务元数据、path 与 quote；宿主 5 ms 截止后，25 ms 到达的无工具响应继续触发第二次 prompt fallback；评价对象没有独立的 `semanticDecisionCorrect` 等字段。该组红灯把 W 的四个共享缺口固定为可回归行为，未调用模型或目标。
 
 **文档归属。** 状态页只维护当前工作和结果导航，plan 只维护近期顺序，spec 保留持续规则；本文件维护设计与复盘。V 的过期草案段落已合并进实际接口，原始失败和历史任务仍可追溯。复核接纳此前共享文档中与代码一致的改写，不继续以“混有修改”为由搁置整批文档；无关源码仍由原任务负责。
 
@@ -869,6 +871,28 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 **W-PREP-01。** 复核原始响应、review 与评分代码，区分引用交付失败和条件推理遗漏；离线 mock 复现超时后 fallback 继续派发，外部调用为零。既有授权回归 51/51、284 assertions 通过，说明需要补充迟到响应反例。详细证据和待实现修复更新 §7.20；V 数据原字节保留。
 
 **W-DOC-02。** 合并状态页和计划的重复历史说明，修复研究正文“尚无真实消费”、V 任务书“尚未开始”等过期状态，采用已复核的共享组件文档更新。W0–W9 制定完成；本轮未启动 W 代码或模型实验。文档验证与提交记 conversation log 和 Git。
+
+### 2026-09-21 W0 基线与共享反例
+
+**W0-RED-01。** 触发：V 回归全部通过，但真实运行留下引用返工、异常 wire、迟到 fallback 和混合评分。根因：旧测试只覆盖 V 已有合同，没有把四项复核发现写成期望行为。修改：保留 51/51、284 assertions 与 typecheck 基线，再加入逐行 source ID、窄 provider schema、timeout 后禁止新 fallback、语义与 citation delivery 分离四项 synthetic 红测。验证：三个 focused test 文件分别以 1、2、1 个目标断言失败，迟到 mock 在宿主返回后从一次调用增长为两次；外部 provider、目标执行和费用均为零。含义：W1–W5 的成功条件现在由可复现行为约束，不能靠文档宣称修复。
+
+### 2026-09-21 W1–W5 引用、wire、生命周期与评价分解
+
+**W1-CITATION-01。** 触发：模型必须从未编号正文复制 path/line/quote，真实 file 与 revision 输出反复 quote mismatch。根因：模型承担了宿主可确定的机械绑定。修改：source catalog 提供 ref-bound ID 与 crop 行标签，normalizer 从 exact bytes 生成 path/quote；原始位置独立保存。验证：order/duplicate/LF/CRLF/non-one start/trailing newline/stale ref/out-of-range/cross-source 与普通 generic-save 声明均通过。含义：引用选择仍由模型完成，机械抄写从比较变量移出。
+
+**W2-WIRE-02。** 触发：canonical schema 让模型复制请求元数据且 malformed array item 使整次结果无效。根因：模型 wire 与持久化 result 共用版本。修改：wire v1 与 normalizer v1 分版，unknown 才强制 missing/observation；schema tool/fallback 使用同一窄结构。验证：实际 provider JSON schema 不含 task/repository/ref/path/quote，fallback schema 同样只含 sourceId/range；旧 canonical tests 保持通过。含义：新运行可区分传输失败与 canonical 验证，V 原件仍可回放。
+
+**W3-PROMPT-03。** 触发：D 的 canonical facts 与 compiled plan 重复相同义务信息，repair 又复制完整首 prompt。根因：方法说明、共同事实和修复材料没有分节。修改：B/D 共用 byte-identical declaration/result contract/source marker，只保留不同方法 instructions；repair 各放一次声明、合同、源码、当前 wire、诊断。验证：结构对象等价、源码单次插入、分节字符和 repair 总字符均由测试核对；字符不换算为 token。含义：W 配对更接近方法差异而非重复量差异。
+
+**W4-LIFECYCLE-04。** 触发：5 ms timeout 后 25 ms 无效响应仍触发第二 dispatch，repair timeout 丢 initial。根因：超时包围整个 extraction，却未撤销 wrapped provider 的派发权限。修改：provider 边界实现 per-call/unit deadline、closed state、四次 cap、事件 sink 与 late settlement；initial 生命周期提升到 catch 外。验证：正常、schema fallback、late valid/invalid、pending、repair timeout、provider reject、post-close、第五次拒绝和恢复不重发均通过；JSONL 含 dispatch/response/closed，late usage 可从事件归并。含义：completion unknown 不再扩散成隐藏请求，实际无法结算的调用仍保持 unknown。
+
+**W5-EVAL-05。** 触发：file B 的事实和结论 review supported，却因 citation mismatch 得到旧 partial/task false。根因：单一字段把 semantic、evidence、transport 与 delivery 合取。修改：增加四个分解字段并保留旧字段计算。验证：坏引用/正确语义、合法引用/错误论断、scope 夸大、缺条件、无效 review 与四种等价条件表达共 9 个 evaluator 测试通过。含义：后续 B/D 报告能指出收益属于推理、证据还是格式，不改写 V 当时结论。
+
+### 2026-09-21 W6 全链离线演练与兼容重放
+
+**W6-MOCK-01。** 三个现有声明按 B/D、D/B、B/D 经 compile、共享 renderer、source catalog、wire v1、normalizer、host、review 和 evaluation 运行六个 injected-provider 单元，6/6 terminal、3/3 pair；恢复再运行没有新派发。注入 schema fallback、malformed wire/citation、late valid/invalid、repair timeout 与 semantic contradiction 均得到预期状态。语义 contradiction 后 evaluation report 仍是结构有效的 `completed`，对应 unit 为 partial，证明自动消费者不能把 exit 0 当语义成功。
+
+**W6-REPLAY-02。** 在不写 V 目录的前提下，用当前 canonical parser/validator 重放 initial 六单元八个 generation 和 revision 两单元两个 generation；validation digest 与旧 `taskDecisionCorrect`/quality/error classes 全部匹配。派生的四层字段写入 W 的 `v-replay-*.json`，明确标为复用旧 hash-bound development-agent review 的 reanalysis，不称新独立评价。`check/status/evaluate/replay` 均不创建 provider；模型可见六份 preview 不含 oracle path/rule、expected disposition 或 GHSA 标识。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 

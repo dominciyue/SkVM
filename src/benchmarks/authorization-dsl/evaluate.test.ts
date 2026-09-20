@@ -343,6 +343,73 @@ describe("authorization semantic evaluation", () => {
     expect(uncertain.qualityStatus).toBe("needs-review")
   })
 
+  it("keeps a supported semantic decision separate from broken citation delivery", () => {
+    const candidateRubric = rubric()
+    const result = answer("source_refuted", "The upstream validator prevents the write.")
+    result.results[0]!.facts.control[0]!.citations[0]!.quote = "text absent from the cited line"
+
+    const evaluated = evaluateCandidate(result, candidateRubric)
+
+    expect(evaluated.semanticDecisionCorrect).toBe(true)
+    expect(evaluated.evidenceSemanticSupport).toBe("supported")
+    expect(evaluated.transportValid).toBe(false)
+    expect(evaluated.deliveryComplete).toBe(false)
+  })
+
+  it("keeps legal citation transport separate from a contradicted claim", () => {
+    const evaluated = evaluateCandidate(
+      answer("source_refuted", "The validator allows the ungranted write to reach the sink."),
+      rubric(),
+      {
+        factStatuses: { "upstream-control": "contradicted" },
+        dispositionStatus: "contradicted",
+      },
+    )
+
+    expect(evaluated.semanticDecisionCorrect).toBe(false)
+    expect(evaluated.evidenceSemanticSupport).toBe("contradicted")
+    expect(evaluated.transportValid).toBe(true)
+    expect(evaluated.deliveryComplete).toBe(true)
+  })
+
+  it("separates an exaggerated scope and a missing decisive condition from transport", () => {
+    const exaggerated = answer("source_refuted", "The upstream validator prevents the write.")
+    exaggerated.scopeClaim = {
+      kind: "repository-all-entries",
+      statement: "Every repository entry is complete.",
+    }
+    const scopeEvaluation = evaluateCandidate(exaggerated, rubric(), { scopeStatus: "contradicted" })
+    expect(scopeEvaluation.semanticDecisionCorrect).toBe(true)
+    expect(scopeEvaluation.evidenceSemanticSupport).toBe("supported")
+    expect(scopeEvaluation.transportValid).toBe(true)
+    expect(scopeEvaluation.deliveryComplete).toBe(false)
+    expect(scopeEvaluation.scopeHonesty).toBe("rejected")
+
+    const missingCondition = evaluateCandidate(
+      answer("source_refuted", "The validator prevents the sink, but the policy condition is not explained."),
+      rubric(),
+      { factStatuses: { "write-policy": "missing" } },
+    )
+    expect(missingCondition.semanticDecisionCorrect).toBe(true)
+    expect(missingCondition.evidenceSemanticSupport).toBe("missing")
+    expect(missingCondition.transportValid).toBe(true)
+    expect(missingCondition.deliveryComplete).toBe(true)
+  })
+
+  it("accepts four review-supported equivalent expressions of the authorization condition", () => {
+    const equivalentExplanations = [
+      "Write access is required before the existing collection can be saved.",
+      "Without write access, the validator rejects the selected collection before persistence.",
+      "The allowed-set control excludes this ungranted member from the write effect.",
+      "The guard prevents persistence when canWrite is false for the bound principal and collection.",
+    ]
+
+    expect(equivalentExplanations.map(explanation => {
+      const evaluated = evaluateCandidate(answer("source_refuted", explanation), rubric())
+      return [evaluated.semanticDecisionCorrect, evaluated.evidenceSemanticSupport]
+    })).toEqual(equivalentExplanations.map(() => [true, "supported"]))
+  })
+
   it("rejects incomplete or stale review bindings without inventing a semantic verdict", () => {
     const candidateRubric = rubric()
     const made = artifact(answer("source_refuted", "The validator prevents the sink."))
@@ -366,6 +433,8 @@ describe("authorization semantic evaluation", () => {
       "review-answer-location-invalid",
     ]))
     expect(evaluated.taskDecisionCorrect).toBeNull()
+    expect(evaluated.semanticDecisionCorrect).toBeNull()
+    expect(evaluated.evidenceSemanticSupport).toBe("unknown")
   })
 
   it("reports initial/final quality and operation totals without converting unknown cost into zero", () => {
@@ -449,6 +518,16 @@ describe("authorization semantic evaluation", () => {
 
     expect(summary.initialQuality).toBe("full-success")
     expect(summary.finalQuality).toBe("full-success")
+    expect(summary).toEqual(expect.objectContaining({
+      initialSemanticDecisionCorrect: true,
+      finalSemanticDecisionCorrect: true,
+      initialEvidenceSemanticSupport: "supported",
+      finalEvidenceSemanticSupport: "supported",
+      initialTransportValid: true,
+      finalTransportValid: true,
+      initialDeliveryComplete: true,
+      finalDeliveryComplete: true,
+    }))
     expect(summary.operation).toEqual(expect.objectContaining({
       providerAttempts: 2,
       schemaToolAttempts: 1,

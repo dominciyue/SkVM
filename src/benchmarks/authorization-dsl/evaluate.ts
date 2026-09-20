@@ -116,6 +116,8 @@ export interface AuthorizationCriticalFactEvaluation {
 }
 
 export interface AuthorizationGenerationEvaluation {
+  evaluationVersion: "authorization-evaluation/v1"
+  legacyDecisionVersion: "authorization-evaluation/v0"
   caseId: string
   taskId: string
   generation: "initial" | "repair"
@@ -127,6 +129,10 @@ export interface AuthorizationGenerationEvaluation {
   reviewValidation: AuthorizationReviewValidation
   criticalFacts: AuthorizationCriticalFactEvaluation[]
   scopeHonesty: "accepted" | "rejected" | "needs-review"
+  semanticDecisionCorrect: boolean | null
+  evidenceSemanticSupport: "supported" | "contradicted" | "missing" | "unknown"
+  transportValid: boolean
+  deliveryComplete: boolean
   taskDecisionCorrect: boolean | null
   qualityStatus: "full-success" | "partial" | "incorrect" | "needs-review"
   errorClasses: AuthorizationErrorClass[]
@@ -384,6 +390,30 @@ function reviewStatusIsUncertain(status: SemanticReviewStatus | "unreviewed"): b
   return status === "uncertain" || status === "unreviewed"
 }
 
+const TRANSPORT_DIAGNOSTIC_CODES = new Set([
+  "task-id-mismatch",
+  "repository-mismatch",
+  "source-ref-mismatch",
+  "missing-obligation-result",
+  "duplicate-obligation-result",
+  "foreign-obligation-result",
+  "citation-file-not-allowed",
+  "citation-out-of-range",
+  "citation-text-mismatch",
+])
+
+function aggregateEvidenceSemanticSupport(
+  reviewValidation: AuthorizationReviewValidation,
+  criticalFacts: AuthorizationCriticalFactEvaluation[],
+): AuthorizationGenerationEvaluation["evidenceSemanticSupport"] {
+  if (reviewValidation.status !== "valid") return "unknown"
+  const statuses = criticalFacts.map(fact => fact.status)
+  if (statuses.some(status => status === "contradicted")) return "contradicted"
+  if (statuses.some(status => status === "missing")) return "missing"
+  if (statuses.some(reviewStatusIsUncertain)) return "unknown"
+  return "supported"
+}
+
 export function evaluateAuthorizationGeneration(input: {
   rubric: AuthorizationCaseEvaluationRubric
   sourceBundle: SourceBundle
@@ -466,7 +496,28 @@ export function evaluateAuthorizationGeneration(input: {
     errorClasses.add("evidenceDecoration")
   }
 
+  const dispositionStatus = review?.dispositionReview.status ?? "unreviewed"
+  const semanticDecisionCorrect: boolean | null = reviewValidation.status !== "valid"
+    || actualDisposition === null
+    || obligationResults.length !== 1
+    || reviewStatusIsUncertain(dispositionStatus)
+    ? null
+    : (!labelCorrect || reviewStatusIsFailure(dispositionStatus) ? false : true)
+  const evidenceSemanticSupport = aggregateEvidenceSemanticSupport(reviewValidation, criticalFacts)
+  const normalizationValid = input.artifact.normalization === undefined
+    || input.artifact.normalization.status === "valid"
+  const transportValid = normalizationValid
+    && input.artifact.validation.structure.status === "valid"
+    && obligationResults.length === 1
+    && evidencePresence === "present"
+    && !deterministicDiagnostics.some(code => TRANSPORT_DIAGNOSTIC_CODES.has(code))
+  const deliveryComplete = transportValid
+    && input.artifact.validation.declared.status === "all-disposed"
+    && input.artifact.validation.completeness.status === "accepted"
+
   return {
+    evaluationVersion: "authorization-evaluation/v1",
+    legacyDecisionVersion: "authorization-evaluation/v0",
     caseId: input.rubric.caseId,
     taskId: input.rubric.taskId,
     generation: input.generation,
@@ -478,6 +529,10 @@ export function evaluateAuthorizationGeneration(input: {
     reviewValidation,
     criticalFacts,
     scopeHonesty,
+    semanticDecisionCorrect,
+    evidenceSemanticSupport,
+    transportValid,
+    deliveryComplete,
     taskDecisionCorrect,
     qualityStatus,
     errorClasses: [...errorClasses],
@@ -513,6 +568,14 @@ export interface AuthorizationRunEvaluationSummary {
   finalQuality: AuthorizationGenerationEvaluation["qualityStatus"] | null
   initialTaskDecisionCorrect: boolean | null
   finalTaskDecisionCorrect: boolean | null
+  initialSemanticDecisionCorrect: boolean | null
+  finalSemanticDecisionCorrect: boolean | null
+  initialEvidenceSemanticSupport: AuthorizationGenerationEvaluation["evidenceSemanticSupport"] | null
+  finalEvidenceSemanticSupport: AuthorizationGenerationEvaluation["evidenceSemanticSupport"] | null
+  initialTransportValid: boolean | null
+  finalTransportValid: boolean | null
+  initialDeliveryComplete: boolean | null
+  finalDeliveryComplete: boolean | null
   diagnostics: {
     initial: string[]
     repair: string[]
@@ -546,6 +609,14 @@ export function summarizeAuthorizationRun(
     finalQuality: finalEvaluation?.qualityStatus ?? null,
     initialTaskDecisionCorrect: evaluations.initial?.taskDecisionCorrect ?? null,
     finalTaskDecisionCorrect: finalEvaluation?.taskDecisionCorrect ?? null,
+    initialSemanticDecisionCorrect: evaluations.initial?.semanticDecisionCorrect ?? null,
+    finalSemanticDecisionCorrect: finalEvaluation?.semanticDecisionCorrect ?? null,
+    initialEvidenceSemanticSupport: evaluations.initial?.evidenceSemanticSupport ?? null,
+    finalEvidenceSemanticSupport: finalEvaluation?.evidenceSemanticSupport ?? null,
+    initialTransportValid: evaluations.initial?.transportValid ?? null,
+    finalTransportValid: finalEvaluation?.transportValid ?? null,
+    initialDeliveryComplete: evaluations.initial?.deliveryComplete ?? null,
+    finalDeliveryComplete: finalEvaluation?.deliveryComplete ?? null,
     diagnostics: {
       initial: run.initial?.validation.diagnostics.map(item => item.code) ?? [],
       repair: run.repair?.validation.diagnostics.map(item => item.code) ?? [],

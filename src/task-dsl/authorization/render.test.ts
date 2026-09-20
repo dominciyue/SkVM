@@ -1,6 +1,9 @@
 import { describe, expect, it } from "bun:test"
 import { compileAuthorizationTask } from "./semantics.ts"
-import { renderAuthorizationTask } from "./render.ts"
+import {
+  measureAuthorizationPromptCharacters,
+  renderAuthorizationTask,
+} from "./render.ts"
 import type { AuthorizationTaskV0 } from "./schema.ts"
 
 const task: AuthorizationTaskV0 = {
@@ -136,5 +139,34 @@ describe("renderAuthorizationTask", () => {
     const rendered = renderAuthorizationTask(compileAuthorizationTask(expandedTask), "D")
 
     expect(rendered.prompt.match(/<SOURCE_CONTEXT_INSERTED_BY_HOST>/g)).toHaveLength(1)
+  })
+
+  it("shares one canonical declaration and output contract while isolating the method instructions", () => {
+    const compiled = compileAuthorizationTask(task)
+    const baseline = renderAuthorizationTask(compiled, "B")
+    const domain = renderAuthorizationTask(compiled, "D")
+
+    expect(domain.sections.declaration).toBe(baseline.sections.declaration)
+    expect(domain.sections.outputContract).toBe(baseline.sections.outputContract)
+    expect(domain.sections.sourceMarker).toBe(baseline.sections.sourceMarker)
+    expect(domain.sections.instructions).not.toBe(baseline.sections.instructions)
+    expect(domain.sections.declaration).toBe(JSON.stringify(baseline.facts, null, 2))
+    expect(domain.sections.instructions).not.toContain(task.policySources[0]!.text)
+    expect(domain.sections.instructions).not.toContain(task.obligations[0]!.relation)
+  })
+
+  it("reports character sections without treating characters as measured tokens", () => {
+    const rendered = renderAuthorizationTask(compileAuthorizationTask(task), "D")
+    const source = "Source ID: src-0123456789abcdef\n12 | visible source"
+    const measured = measureAuthorizationPromptCharacters(rendered, source)
+
+    expect(measured).toEqual({
+      instructions: rendered.sections.instructions.length,
+      declaration: rendered.sections.declaration.length,
+      source: source.length,
+      outputContract: rendered.sections.outputContract.length,
+      total: rendered.prompt.replace(rendered.sections.sourceMarker, source).length,
+      tokenMeasurement: "provider-reported-only",
+    })
   })
 })

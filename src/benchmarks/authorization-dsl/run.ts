@@ -1,10 +1,11 @@
 import { createHash } from "node:crypto"
-import { access, mkdir, readFile, readdir, writeFile } from "node:fs/promises"
+import { access, appendFile, mkdir, readFile, readdir, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { z } from "zod"
 import type { LLMProvider } from "../../providers/types.ts"
 import { parseAuthorizationTask, type AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
 import { renderAuthorizationTask } from "../../task-dsl/authorization/render.ts"
+import { validateAuthorizationResult } from "../../task-dsl/authorization/result.ts"
 import { compileAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
 import {
   AuthorizationEvaluationRubricsV0Schema,
@@ -18,6 +19,11 @@ import {
 } from "./evaluate.ts"
 import { runAuthorizationTask, type AuthorizationTaskRun } from "./host.ts"
 import { loadExactSourceBundle, renderSourceBundle, type SourceBundle } from "./inputs.ts"
+import {
+  reconcileAuthorizationAttemptsFromEvents,
+  summarizeAuthorizationAttempts,
+  type AuthorizationLifecycleEvent,
+} from "./telemetry.ts"
 
 const NonEmptyString = z.string().trim().min(1)
 const RelativeRepositoryPath = NonEmptyString.refine(value => {
@@ -43,8 +49,10 @@ const AuthorizationComparisonConfigSchema = z.object({
     routeMatch: NonEmptyString,
     cacheDir: RelativeRepositoryPath,
     temperature: z.literal(0),
-    timeoutMs: z.number().int().positive(),
-    maxTokens: z.number().int().positive(),
+      timeoutMs: z.number().int().positive(),
+      unitTimeoutMs: z.number().int().positive().optional().default(600_000),
+      maxTokens: z.number().int().positive(),
+      maxProviderDispatches: z.number().int().positive().max(4).optional().default(4),
     contextLimitTokens: z.number().int().positive().nullable(),
     contextLimitStatus: z.enum(["provider-reported", "provider-not-reported"]),
     maxDomainRepairs: z.union([z.literal(0), z.literal(1)]),
@@ -159,6 +167,11 @@ async function pathExists(candidate: string): Promise<boolean> {
 
 async function readJson(candidate: string): Promise<unknown> {
   return JSON.parse(await readFile(candidate, "utf8"))
+}
+
+async function readLifecycleEvents(candidate: string): Promise<AuthorizationLifecycleEvent[]> {
+  const text = await readFile(candidate, "utf8")
+  return text.split(/\r?\n/).filter(line => line.trim().length > 0).map(line => JSON.parse(line) as AuthorizationLifecycleEvent)
 }
 
 async function writeJson(candidate: string, value: unknown): Promise<void> {
@@ -474,6 +487,12 @@ export async function executeAuthorizationComparison(input: {
       model: loaded.config.model,
       source: loaded.config.source,
       rubricProtocolVersion: loaded.config.rubricProtocolVersion,
+      transportVersions: {
+        wire: "source-authorization-assessment-wire/v1",
+        normalizer: "authorization-wire-normalizer/v1",
+        canonicalResult: "source-authorization-assessment-result/v0",
+        evaluation: "authorization-evaluation/v1",
+      },
       unitOrder: loaded.config.units.map(unit => unit.id),
       recordedBeforeProviderCreation: true,
       createdAt: new Date().toISOString(),
@@ -512,6 +531,12 @@ export async function executeAuthorizationComparison(input: {
       model: loaded.config.model,
       source: loaded.config.source,
       configSha256: loaded.configSha256,
+      transportVersions: {
+        wire: "source-authorization-assessment-wire/v1",
+        normalizer: "authorization-wire-normalizer/v1",
+        canonicalResult: "source-authorization-assessment-result/v0",
+        evaluation: "authorization-evaluation/v1",
+      },
     })
     await writeJson(path.join(unitDirectory, "declaration.json"), candidate.declaration)
     await writeJson(path.join(unitDirectory, "source-bundle.json"), candidate.sourceBundle)
@@ -523,6 +548,8 @@ export async function executeAuthorizationComparison(input: {
       startedAt: new Date().toISOString(),
       noAutomaticResend: true,
     })
+    const eventsPath = path.join(unitDirectory, "events.jsonl")
+    await writeFile(eventsPath, "", "utf8")
     const run = await runAuthorizationTask({
       task: candidate.declaration,
       sourceBundle: candidate.sourceBundle,
@@ -530,9 +557,12 @@ export async function executeAuthorizationComparison(input: {
       arm: unit.arm,
       options: {
         timeoutMs: loaded.config.model.timeoutMs,
+        unitTimeoutMs: loaded.config.model.unitTimeoutMs,
         maxTokens: loaded.config.model.maxTokens,
+        maxProviderDispatches: loaded.config.model.maxProviderDispatches,
         maxDomainRepairs: loaded.config.model.maxDomainRepairs,
       },
+      onLifecycleEvent: event => appendFile(eventsPath, `${JSON.stringify(event)}\n`, "utf8"),
     })
     await writeJson(path.join(unitDirectory, "run.json"), run)
     const completed = run.status === "completed" || run.status === "completed-with-diagnostics"
@@ -566,6 +596,44 @@ export interface AuthorizationOfflineEvaluationReport {
   diagnostics: AuthorizationRunnerDiagnostic[]
 }
 
+export interface AuthorizationReplayGeneration {
+  generation: "initial" | "repair"
+  validationMatchesArchived: boolean
+  replayedValidationSha256: string
+  archivedValidationSha256: string
+  legacyDecisionMatchesArchived: boolean | null
+  reanalysis: {
+    status: "available" | "review-missing"
+    semanticDecisionCorrect: boolean | null
+    evidenceSemanticSupport: "supported" | "contradicted" | "missing" | "unknown" | null
+    transportValid: boolean | null
+    deliveryComplete: boolean | null
+    policy: "reused-archived-hash-bound-review-no-new-semantic-judgment"
+  }
+}
+
+export interface AuthorizationReplayUnit {
+  id: string
+  caseId: string
+  arm: "B" | "D"
+  terminalStatus: AuthorizationTaskRun["status"]
+  declarationParseStatus: "valid" | "invalid"
+  compiledMatchesArchived: boolean
+  generations: AuthorizationReplayGeneration[]
+}
+
+export interface AuthorizationOfflineReplayReport {
+  schemaVersion: "authorization-offline-replay/v1"
+  status: "reproduced" | "mismatch" | "incomplete"
+  modelCalls: 0
+  targetExecutions: 0
+  sourceArchive: string
+  configSha256: string
+  semanticReviewPolicy: "Reused archived hash-bound development-agent reviews; v1 split fields are a derived reanalysis, not a new independent judgment."
+  units: AuthorizationReplayUnit[]
+  evaluationSummarySha256: string | null
+}
+
 export async function evaluateAuthorizationRunDirectory(input: {
   repositoryRoot: string
   configPath: string
@@ -592,6 +660,13 @@ export async function evaluateAuthorizationRunDirectory(input: {
       continue
     }
     const run = await readJson(runPath) as AuthorizationTaskRun
+    const eventsPath = path.join(unitDirectory, "events.jsonl")
+    if (await pathExists(eventsPath)) {
+      const events = await readLifecycleEvents(eventsPath)
+      run.events = events
+      run.attempts = reconcileAuthorizationAttemptsFromEvents(run.attempts, events)
+      run.telemetry = summarizeAuthorizationAttempts(run.attempts)
+    }
     const sourceBundle = await readJson(path.join(unitDirectory, "source-bundle.json")) as SourceBundle
     const rubric = rubricByCase.get(unit.caseId)
     if (!rubric) {
@@ -669,6 +744,131 @@ export async function evaluateAuthorizationRunDirectory(input: {
   return report
 }
 
+export async function replayAuthorizationRunDirectory(input: {
+  repositoryRoot: string
+  configPath: string
+  runDir: string
+}): Promise<AuthorizationOfflineReplayReport> {
+  const loaded = await loadAuthorizationComparisonConfig(input.repositoryRoot, input.configPath)
+  const runRoot = path.resolve(input.runDir)
+  const rubrics = AuthorizationEvaluationRubricsV0Schema.parse(
+    await readJson(resolveRepositoryPath(input.repositoryRoot, loaded.config.paths.rubrics)),
+  )
+  const rubricByCase = new Map(rubrics.cases.map(rubric => [rubric.caseId, rubric]))
+  const units: AuthorizationReplayUnit[] = []
+  let incomplete = false
+
+  for (const unit of loaded.config.units) {
+    const unitDirectory = path.join(runRoot, "units", unit.id)
+    const runPath = path.join(unitDirectory, "run.json")
+    if (!await pathExists(runPath)) {
+      incomplete = true
+      continue
+    }
+    const run = await readJson(runPath) as AuthorizationTaskRun
+    const parsedTask = parseAuthorizationTask(await readJson(path.join(unitDirectory, "declaration.json")))
+    if (!parsedTask.success) {
+      units.push({
+        ...unit,
+        terminalStatus: run.status,
+        declarationParseStatus: "invalid",
+        compiledMatchesArchived: false,
+        generations: [],
+      })
+      continue
+    }
+    const sourceBundle = await readJson(path.join(unitDirectory, "source-bundle.json")) as SourceBundle
+    const compiled = compileAuthorizationTask(parsedTask.task)
+    const compiledMatchesArchived = JSON.stringify(compiled) === JSON.stringify(run.compiled)
+    const rubric = rubricByCase.get(unit.caseId)
+    const generations: AuthorizationReplayGeneration[] = []
+
+    for (const generation of ["initial", "repair"] as const) {
+      const artifact = run[generation]
+      if (!artifact) continue
+      const replayedValidation = validateAuthorizationResult(compiled, artifact.result, sourceBundle)
+      const replayedValidationSha256 = sha256(JSON.stringify(replayedValidation))
+      const archivedValidationSha256 = sha256(JSON.stringify(artifact.validation))
+      let legacyDecisionMatchesArchived: boolean | null = null
+      let reanalysis: AuthorizationReplayGeneration["reanalysis"] = {
+        status: "review-missing",
+        semanticDecisionCorrect: null,
+        evidenceSemanticSupport: null,
+        transportValid: null,
+        deliveryComplete: null,
+        policy: "reused-archived-hash-bound-review-no-new-semantic-judgment",
+      }
+      const reviewPath = path.join(unitDirectory, `review.${generation}.json`)
+      const archivedEvaluationPath = path.join(unitDirectory, `evaluation.${generation}.json`)
+      if (rubric && await pathExists(reviewPath)) {
+        const replayArtifact = { ...artifact, validation: replayedValidation }
+        const evaluated = evaluateAuthorizationGeneration({
+          rubric,
+          sourceBundle,
+          artifact: replayArtifact,
+          generation,
+          review: await readJson(reviewPath),
+        })
+        reanalysis = {
+          status: "available",
+          semanticDecisionCorrect: evaluated.semanticDecisionCorrect,
+          evidenceSemanticSupport: evaluated.evidenceSemanticSupport,
+          transportValid: evaluated.transportValid,
+          deliveryComplete: evaluated.deliveryComplete,
+          policy: "reused-archived-hash-bound-review-no-new-semantic-judgment",
+        }
+        if (await pathExists(archivedEvaluationPath)) {
+          const archived = await readJson(archivedEvaluationPath) as {
+            taskDecisionCorrect?: unknown
+            qualityStatus?: unknown
+            errorClasses?: unknown
+          }
+          legacyDecisionMatchesArchived = archived.taskDecisionCorrect === evaluated.taskDecisionCorrect
+            && archived.qualityStatus === evaluated.qualityStatus
+            && JSON.stringify(archived.errorClasses) === JSON.stringify(evaluated.errorClasses)
+        }
+      }
+      generations.push({
+        generation,
+        validationMatchesArchived: replayedValidationSha256 === archivedValidationSha256,
+        replayedValidationSha256,
+        archivedValidationSha256,
+        legacyDecisionMatchesArchived,
+        reanalysis,
+      })
+    }
+    units.push({
+      ...unit,
+      terminalStatus: run.status,
+      declarationParseStatus: "valid",
+      compiledMatchesArchived,
+      generations,
+    })
+  }
+
+  const evaluationSummaryPath = path.join(runRoot, "evaluation-summary.json")
+  const evaluationSummarySha256 = await pathExists(evaluationSummaryPath)
+    ? sha256(await readFile(evaluationSummaryPath, "utf8"))
+    : null
+  const mismatch = units.some(unit => !unit.compiledMatchesArchived
+    || unit.declarationParseStatus !== "valid"
+    || unit.generations.some(generation => !generation.validationMatchesArchived
+      || generation.legacyDecisionMatchesArchived === false))
+  return {
+    schemaVersion: "authorization-offline-replay/v1",
+    status: incomplete || units.length !== loaded.config.units.length
+      ? "incomplete"
+      : (mismatch ? "mismatch" : "reproduced"),
+    modelCalls: 0,
+    targetExecutions: 0,
+    sourceArchive: path.relative(input.repositoryRoot, runRoot).replace(/\\/g, "/"),
+    configSha256: loaded.configSha256,
+    semanticReviewPolicy: "Reused archived hash-bound development-agent reviews; v1 split fields are a derived reanalysis, not a new independent judgment.",
+    units,
+    evaluationSummarySha256,
+  }
+}
+
 async function readDevelopmentStatus(repositoryRoot: string, configPath: string): Promise<unknown> {
   const loaded = await loadAuthorizationComparisonConfig(repositoryRoot, configPath)
   const developmentRoot = resolveRepositoryPath(repositoryRoot, loaded.config.paths.developmentRoot)
@@ -688,9 +888,10 @@ function helpText(): string {
     "  check [--config=<path>]",
     "  run [--config=<path>] [--attempt=<id>] [--retry-reason=<text>] [--run-dir=<path>]",
     "  evaluate --run-dir=<path> [--config=<path>]",
+    "  replay --run-dir=<path> [--config=<path>] [--output=<path>]",
     "  status [--config=<path>]",
     "",
-    "Only run initializes the configured provider. check, evaluate, status, and --help are offline.",
+    "Only run initializes the configured provider. check, evaluate, replay, status, and --help are offline.",
   ].join("\n")
 }
 
@@ -780,6 +981,23 @@ export async function runAuthorizationCli(
       dependencies.stdout(JSON.stringify(report, null, 2))
       return report.status === "completed" ? 0 : 1
     }
+    if (command === "replay") {
+      const options = parseCliOptions(argv.slice(1), new Set(["config", "run-dir", "output"]))
+      if (!options["run-dir"]) throw new AuthorizationRunnerError("replay requires --run-dir=<path>.")
+      const report = await replayAuthorizationRunDirectory({
+        repositoryRoot: dependencies.repositoryRoot,
+        configPath: options.config ?? defaultConfig,
+        runDir: options["run-dir"],
+      })
+      if (options.output) {
+        const outputPath = path.isAbsolute(options.output)
+          ? options.output
+          : path.resolve(dependencies.repositoryRoot, options.output)
+        await writeJson(outputPath, report)
+      }
+      dependencies.stdout(JSON.stringify(report, null, 2))
+      return report.status === "reproduced" ? 0 : 1
+    }
     if (command === "status") {
       const options = parseCliOptions(argv.slice(1), new Set(["config"]))
       dependencies.stdout(JSON.stringify(await readDevelopmentStatus(
@@ -788,7 +1006,7 @@ export async function runAuthorizationCli(
       ), null, 2))
       return 0
     }
-    throw new AuthorizationRunnerError(`Unknown command ${command}. Use --help for check, run, evaluate, and status.`)
+    throw new AuthorizationRunnerError(`Unknown command ${command}. Use --help for check, run, evaluate, replay, and status.`)
   } catch (error) {
     dependencies.stderr(error instanceof Error ? error.message : String(error))
     return error instanceof AuthorizationRunnerError ? error.exitCode : 1

@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "authorization-transport-offline-rehearsal/v1",
+  "createdAt": "2026-09-21T18:28:00+08:00",
+  "status": "passed",
+  "implementationStartHead": "d432df1681ff918e53f17d1d4895c9894cc0bfd7",
+  "scope": {
+    "cases": [
+      "owui-process-file-write",
+      "owui-process-text-controlled",
+      "owui-trusted-header-deployment"
+    ],
+    "armsByCase": [["B", "D"], ["D", "B"], ["B", "D"]],
+    "units": 6,
+    "sourceMode": "fixed-context",
+    "wireVersion": "source-authorization-assessment-wire/v1",
+    "normalizerVersion": "authorization-wire-normalizer/v1",
+    "evaluationVersion": "authorization-evaluation/v1",
+    "legacyDecisionVersion": "authorization-evaluation/v0"
+  },
+  "normalMockPath": {
+    "terminalUnits": 6,
+    "completedUnits": 6,
+    "pairs": 3,
+    "injectedProviderDispatches": 6,
+    "resumeProviderDispatches": 0,
+    "sourceCatalogs": 3,
+    "wireResultsNormalized": 6,
+    "reviewsBoundAfterGeneration": 6,
+    "initialFullSuccessUnits": 6
+  },
+  "injectedFailures": [
+    {
+      "kind": "schema-tool-no-call",
+      "expected": "one prompt-parse fallback using the same narrow schema",
+      "observed": "passed"
+    },
+    {
+      "kind": "malformed-wire-and-invalid-source-reference",
+      "expected": "explicit transport diagnostics without semantic guessing",
+      "observed": "passed"
+    },
+    {
+      "kind": "late-valid-and-late-invalid-response",
+      "expected": "timeout closes dispatch; late facts settle the attempt but never create an answer",
+      "observed": "passed"
+    },
+    {
+      "kind": "repair-timeout",
+      "expected": "initial canonical result and validation remain retained",
+      "observed": "passed"
+    },
+    {
+      "kind": "semantic-review-contradiction",
+      "expected": "offline report remains valid/completed with a partial unit and CLI exit 0",
+      "observed": "passed"
+    }
+  ],
+  "modelVisibleIsolation": {
+    "allAllowedFilesUnderInputs": true,
+    "sixPreviewsContainOraclePath": false,
+    "sixPreviewsContainOracleRule": false,
+    "sixPreviewsContainExpectedDisposition": false,
+    "sixPreviewsContainGhsaIdentifier": false
+  },
+  "offlineCommands": {
+    "checkCreatesProvider": false,
+    "statusCreatesProvider": false,
+    "evaluateCreatesProvider": false,
+    "replayCreatesProvider": false,
+    "validEvaluationMayContainPartialOrIncorrect": true,
+    "qualityMustBeReadFromSplitFieldsNotExitCodeAlone": true
+  },
+  "legacyReplay": {
+    "initial": {
+      "artifact": "v-replay-initial.json",
+      "status": "reproduced",
+      "units": 6,
+      "generations": 8,
+      "validationMatchesArchived": true,
+      "legacyDecisionMatchesArchived": true
+    },
+    "revision1": {
+      "artifact": "v-replay-revision-1.json",
+      "status": "reproduced",
+      "units": 2,
+      "generations": 2,
+      "validationMatchesArchived": true,
+      "legacyDecisionMatchesArchived": true
+    },
+    "semanticReviewPolicy": "Existing hash-bound development-agent reviews were reused only for a labeled v1 reanalysis; this is not a new independent judgment or model success."
+  },
+  "verification": {
+    "authorizationTests": { "passed": 76, "failed": 0, "assertions": 435 },
+    "typecheck": "passed",
+    "externalModelCalls": 0,
+    "targetExecutions": 0,
+    "actualUsd": 0
+  }
+}

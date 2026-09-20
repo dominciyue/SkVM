@@ -1,12 +1,26 @@
 import { extractStructured } from "../../providers/structured.ts"
 import type { LLMProvider } from "../../providers/types.ts"
-import { renderAuthorizationTask, type AuthorizationRenderArm } from "../../task-dsl/authorization/render.ts"
+import {
+  measureAuthorizationPromptCharacters,
+  renderAuthorizationTask,
+  type AuthorizationPromptCharacterBreakdown,
+  type AuthorizationRenderArm,
+  type RenderedAuthorizationTask,
+} from "../../task-dsl/authorization/render.ts"
 import { validateAuthorizationResult, type AuthorizationValidation } from "../../task-dsl/authorization/result.ts"
-import { AuthorizationResultV0Schema, type AuthorizationResultV0, type AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
+import type { AuthorizationResultV0, AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
 import { compileAuthorizationTask, type CompiledAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
+import {
+  AuthorizationWireResultV1Schema,
+  normalizeAuthorizationWireResult,
+  type AuthorizationWireNormalization,
+  type AuthorizationWireResultV1,
+} from "../../task-dsl/authorization/transport.ts"
 import { renderSourceBundle, type SourceBundle } from "./inputs.ts"
 import {
+  AuthorizationCallTimeoutError,
   createTelemetryProvider,
+  type AuthorizationLifecycleEvent,
   type AuthorizationProviderAttempt,
   type AuthorizationTelemetrySummary,
 } from "./telemetry.ts"
@@ -20,6 +34,7 @@ const ACTIONABLE_DIAGNOSTICS = new Set([
   "duplicate-obligation-result",
   "foreign-obligation-result",
   "citation-file-not-allowed",
+  "unknown-source-id",
   "citation-out-of-range",
   "citation-text-mismatch",
   "missing-fact-group",
@@ -29,16 +44,28 @@ const ACTIONABLE_DIAGNOSTICS = new Set([
 
 export interface RunAuthorizationTaskOptions {
   timeoutMs: number
+  unitTimeoutMs?: number
   maxTokens: number
+  maxProviderDispatches?: number
   maxDomainRepairs: 0 | 1
 }
 
 export interface AuthorizationGenerationArtifact {
   result: AuthorizationResultV0
+  wireResult?: AuthorizationWireResultV1
+  normalization?: AuthorizationWireNormalization
   rawResponse: string
   providerAttemptIds: string[]
   outputAttemptId: string
   validation: AuthorizationValidation
+}
+
+export interface AuthorizationTransportArtifact {
+  wireResult: AuthorizationWireResultV1
+  normalization: AuthorizationWireNormalization
+  rawResponse: string
+  providerAttemptIds: string[]
+  outputAttemptId: string
 }
 
 export interface AuthorizationTaskRun {
@@ -52,12 +79,32 @@ export interface AuthorizationTaskRun {
   arm: AuthorizationRenderArm
   compiled: CompiledAuthorizationTask
   renderedPrompt: string
+  promptCharacters?: AuthorizationRunPromptCharacters
+  initialTransport?: AuthorizationTransportArtifact
+  repairTransport?: AuthorizationTransportArtifact
   initial?: AuthorizationGenerationArtifact
   repair?: AuthorizationGenerationArtifact
   finalKind?: "initial" | "repair"
   attempts: AuthorizationProviderAttempt[]
+  events?: AuthorizationLifecycleEvent[]
   telemetry: AuthorizationTelemetrySummary
   error?: { name: string; message: string }
+}
+
+export interface AuthorizationRepairPromptCharacterBreakdown {
+  instructions: number
+  declaration: number
+  source: number
+  outputContract: number
+  currentAnswer: number
+  diagnostics: number
+  total: number
+  tokenMeasurement: "provider-reported-only"
+}
+
+export interface AuthorizationRunPromptCharacters {
+  initial: AuthorizationPromptCharacterBreakdown
+  repair?: AuthorizationRepairPromptCharacterBreakdown
 }
 
 export interface RunAuthorizationTaskInput {
@@ -66,29 +113,7 @@ export interface RunAuthorizationTaskInput {
   provider: LLMProvider
   arm: AuthorizationRenderArm
   options: RunAuthorizationTaskOptions
-}
-
-class AuthorizationTimeoutError extends Error {
-  constructor(readonly timeoutMs: number) {
-    super(`Authorization provider call did not settle within ${timeoutMs}ms; request completion is unknown.`)
-    this.name = "AuthorizationTimeoutError"
-  }
-}
-
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined
-  const timeout = new Promise<never>((_resolve, reject) => {
-    timer = setTimeout(() => reject(new AuthorizationTimeoutError(timeoutMs)), timeoutMs)
-  })
-  try {
-    return await Promise.race([promise, timeout])
-  } finally {
-    if (timer !== undefined) clearTimeout(timer)
-  }
-}
-
-function snapshotAttempts(attempts: AuthorizationProviderAttempt[]): AuthorizationProviderAttempt[] {
-  return structuredClone(attempts)
+  onLifecycleEvent?: (event: AuthorizationLifecycleEvent) => void | Promise<void>
 }
 
 function errorArtifact(error: unknown): { name: string; message: string } {
@@ -103,21 +128,46 @@ function hasActionableDiagnostics(validation: AuthorizationValidation): boolean 
 }
 
 function buildRepairPrompt(
-  modelVisiblePrompt: string,
-  initial: AuthorizationGenerationArtifact,
-): string {
-  const actionable = initial.validation.diagnostics
+  rendered: RenderedAuthorizationTask,
+  sourceContext: string,
+  initial: AuthorizationTransportArtifact,
+  validation?: AuthorizationValidation,
+): { prompt: string; characters: AuthorizationRepairPromptCharacterBreakdown } {
+  const actionable = [
+    ...initial.normalization.diagnostics,
+    ...(validation?.diagnostics ?? []),
+  ]
     .filter(diagnostic => ACTIONABLE_DIAGNOSTICS.has(diagnostic.code))
     .map(diagnostic => ({ code: diagnostic.code, path: diagnostic.path, message: diagnostic.message }))
-  return `${modelVisiblePrompt}
-
-The first structured answer did not satisfy deterministic host checks. Revise only the answer using the same visible task and source context. Do not add facts not present in that context.
-
-Initial answer:
-${JSON.stringify(initial.result, null, 2)}
-
-Deterministic diagnostics:
-${JSON.stringify(actionable, null, 2)}`
+  const sections = {
+    instructions: "# Authorization wire repair\n\nThe current structured answer did not satisfy deterministic host checks. Revise only that answer from the same declaration and exact source. Do not add unavailable facts or infer a requested conclusion.",
+    declaration: `## Canonical declaration\n${rendered.sections.declaration}`,
+    outputContract: `## Result contract\n${rendered.sections.outputContract}`,
+    source: `## Fixed source context\n${sourceContext}`,
+    currentAnswer: `## Current wire answer\n${JSON.stringify(initial.wireResult, null, 2)}`,
+    diagnostics: `## Deterministic host diagnostics\n${JSON.stringify(actionable, null, 2)}`,
+  }
+  const prompt = [
+    sections.instructions,
+    sections.declaration,
+    sections.outputContract,
+    sections.source,
+    sections.currentAnswer,
+    sections.diagnostics,
+  ].join("\n\n")
+  return {
+    prompt,
+    characters: {
+      instructions: sections.instructions.length,
+      declaration: sections.declaration.length,
+      source: sections.source.length,
+      outputContract: sections.outputContract.length,
+      currentAnswer: sections.currentAnswer.length,
+      diagnostics: sections.diagnostics.length,
+      total: prompt.length,
+      tokenMeasurement: "provider-reported-only",
+    },
+  }
 }
 
 export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Promise<AuthorizationTaskRun> {
@@ -128,13 +178,28 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
   const rendered = renderAuthorizationTask(compiled, input.arm)
   const sourceContext = renderSourceBundle(input.sourceBundle)
   const renderedPrompt = rendered.prompt.replace("<SOURCE_CONTEXT_INSERTED_BY_HOST>", sourceContext)
-  const telemetry = createTelemetryProvider(input.provider)
-
-  const finish = (partial: Omit<AuthorizationTaskRun, "attempts" | "telemetry">): AuthorizationTaskRun => ({
-    ...partial,
-    attempts: snapshotAttempts(telemetry.attempts),
-    telemetry: telemetry.summary(),
+  const promptCharacters: AuthorizationRunPromptCharacters = {
+    initial: measureAuthorizationPromptCharacters(rendered, sourceContext),
+  }
+  const telemetry = createTelemetryProvider(input.provider, {
+    perCallTimeoutMs: input.options.timeoutMs,
+    unitTimeoutMs: input.options.unitTimeoutMs ?? 600_000,
+    maxDispatches: input.options.maxProviderDispatches ?? 4,
+    ...(input.onLifecycleEvent ? { onEvent: input.onLifecycleEvent } : {}),
   })
+
+  const finish = async (
+    partial: Omit<AuthorizationTaskRun, "attempts" | "events" | "telemetry" | "promptCharacters">,
+  ): Promise<AuthorizationTaskRun> => {
+    await telemetry.close(`host-return:${partial.status}`)
+    return {
+      ...partial,
+      promptCharacters,
+      attempts: telemetry.attempts,
+      events: telemetry.events,
+      telemetry: telemetry.summary(),
+    }
+  }
 
   if (compiled.runnableObligations.length === 0) {
     return finish({ status: "needs-input", arm: input.arm, compiled, renderedPrompt })
@@ -160,16 +225,16 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     const firstAttemptIndex = telemetry.attempts.length
     const extracted = await telemetry.inPhase(
       phase,
-      provider => withTimeout(extractStructured({
+      provider => extractStructured({
         provider,
-        schema: AuthorizationResultV0Schema,
+        schema: AuthorizationWireResultV1Schema,
         schemaName: RESULT_TOOL_NAME,
         schemaDescription: "Return the bounded authorization assessment result. This schema tool is an output container and is never executed.",
         prompt,
         system: "Analyze only the supplied fixed source context. Do not execute tools, contact a target, infer unavailable deployment facts, or claim repository-wide discovery.",
         maxRetries: 1,
         maxTokens: input.options.maxTokens,
-      }), input.options.timeoutMs),
+      }),
     )
     const providerAttemptIds = telemetry.attempts
       .slice(firstAttemptIndex)
@@ -181,46 +246,117 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     return { ...extracted, providerAttemptIds, outputAttemptId }
   }
 
+  let initialTransport: AuthorizationTransportArtifact | undefined
+  let initial: AuthorizationGenerationArtifact | undefined
+  let repairTransport: AuthorizationTransportArtifact | undefined
+  let repair: AuthorizationGenerationArtifact | undefined
+  let finalKind: "initial" | "repair" = "initial"
   try {
     const extractedInitial = await extract("initial", renderedPrompt)
-    const initial: AuthorizationGenerationArtifact = {
-      result: extractedInitial.result,
+    const initialNormalization = normalizeAuthorizationWireResult({
+      compiled,
+      sourceBundle: input.sourceBundle,
+      input: extractedInitial.result,
+    })
+    initialTransport = {
+      wireResult: extractedInitial.result,
+      normalization: initialNormalization,
       rawResponse: extractedInitial.rawResponse,
       providerAttemptIds: extractedInitial.providerAttemptIds,
       outputAttemptId: extractedInitial.outputAttemptId,
-      validation: validateAuthorizationResult(compiled, extractedInitial.result, input.sourceBundle),
     }
-    let repair: AuthorizationGenerationArtifact | undefined
-    let finalKind: "initial" | "repair" = "initial"
-
-    if (input.options.maxDomainRepairs === 1 && hasActionableDiagnostics(initial.validation)) {
-      const extractedRepair = await extract("domain-repair", buildRepairPrompt(renderedPrompt, initial))
-      repair = {
-        result: extractedRepair.result,
+    initial = initialNormalization.result
+      ? {
+        result: initialNormalization.result,
+        wireResult: extractedInitial.result,
+        normalization: initialNormalization,
+        rawResponse: extractedInitial.rawResponse,
+        providerAttemptIds: extractedInitial.providerAttemptIds,
+        outputAttemptId: extractedInitial.outputAttemptId,
+        validation: validateAuthorizationResult(compiled, initialNormalization.result, input.sourceBundle),
+      }
+      : undefined
+    const repairNeeded = initialNormalization.status === "invalid"
+      || (initial !== undefined && hasActionableDiagnostics(initial.validation))
+    if (input.options.maxDomainRepairs === 1 && repairNeeded) {
+      const repairPrompt = buildRepairPrompt(rendered, sourceContext, initialTransport!, initial?.validation)
+      promptCharacters.repair = repairPrompt.characters
+      const extractedRepair = await extract(
+        "domain-repair",
+        repairPrompt.prompt,
+      )
+      const repairNormalization = normalizeAuthorizationWireResult({
+        compiled,
+        sourceBundle: input.sourceBundle,
+        input: extractedRepair.result,
+      })
+      repairTransport = {
+        wireResult: extractedRepair.result,
+        normalization: repairNormalization,
         rawResponse: extractedRepair.rawResponse,
         providerAttemptIds: extractedRepair.providerAttemptIds,
         outputAttemptId: extractedRepair.outputAttemptId,
-        validation: validateAuthorizationResult(compiled, extractedRepair.result, input.sourceBundle),
       }
-      finalKind = "repair"
+      if (repairNormalization.result) {
+        repair = {
+          result: repairNormalization.result,
+          wireResult: extractedRepair.result,
+          normalization: repairNormalization,
+          rawResponse: extractedRepair.rawResponse,
+          providerAttemptIds: extractedRepair.providerAttemptIds,
+          outputAttemptId: extractedRepair.outputAttemptId,
+          validation: validateAuthorizationResult(compiled, repairNormalization.result, input.sourceBundle),
+        }
+        finalKind = "repair"
+      }
     }
 
-    const finalValidation = repair?.validation ?? initial.validation
+    const finalArtifact = repair ?? initial
+    if (!finalArtifact) {
+      return finish({
+        status: "transport-failed",
+        arm: input.arm,
+        compiled,
+        renderedPrompt,
+        initialTransport,
+        ...(repairTransport ? { repairTransport } : {}),
+        error: {
+          name: "AuthorizationWireNormalizationError",
+          message: "No wire answer could be normalized into a canonical authorization result.",
+        },
+      })
+    }
+    const finalTransport = finalKind === "repair" ? repairTransport : initialTransport
+    if (!finalTransport) {
+      throw new Error("Canonical authorization result exists without its transport artifact.")
+    }
+    const finalDiagnostics = [
+      ...finalTransport.normalization.diagnostics,
+      ...finalArtifact.validation.diagnostics,
+      ...(repairTransport && finalKind !== "repair" ? repairTransport.normalization.diagnostics : []),
+    ]
     return finish({
-      status: finalValidation.diagnostics.length === 0 ? "completed" : "completed-with-diagnostics",
+      status: finalDiagnostics.length === 0 ? "completed" : "completed-with-diagnostics",
       arm: input.arm,
       compiled,
       renderedPrompt,
-      initial,
+      initialTransport,
+      ...(initial ? { initial } : {}),
+      ...(repairTransport ? { repairTransport } : {}),
       ...(repair ? { repair } : {}),
       finalKind,
     })
   } catch (error) {
     return finish({
-      status: error instanceof AuthorizationTimeoutError ? "timeout-unknown" : "transport-failed",
+      status: error instanceof AuthorizationCallTimeoutError ? "timeout-unknown" : "transport-failed",
       arm: input.arm,
       compiled,
       renderedPrompt,
+      ...(initialTransport ? { initialTransport } : {}),
+      ...(initial ? { initial } : {}),
+      ...(repairTransport ? { repairTransport } : {}),
+      ...(repair ? { repair } : {}),
+      ...(initial ? { finalKind } : {}),
       error: errorArtifact(error),
     })
   }

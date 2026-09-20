@@ -1,4 +1,4 @@
-import { z, type ZodType } from "zod"
+import { z, type ZodType, type ZodTypeAny } from "zod"
 import type { LLMProvider } from "./types.ts"
 import type { TokenUsage } from "../core/types.ts"
 import { emptyTokenUsage, addTokenUsage } from "../core/types.ts"
@@ -35,7 +35,7 @@ const log = createLogger("structured")
  */
 export async function extractStructured<T>(opts: {
   provider: LLMProvider
-  schema: ZodType<T>
+  schema: ZodType<T, any, any>
   schemaName: string
   schemaDescription: string
   prompt: string
@@ -77,7 +77,7 @@ export async function extractStructured<T>(opts: {
 
 async function extractViaToolUse<T>(opts: {
   provider: LLMProvider
-  schema: ZodType<T>
+  schema: ZodType<T, any, any>
   schemaName: string
   schemaDescription: string
   prompt: string
@@ -116,7 +116,7 @@ async function extractViaToolUse<T>(opts: {
 
 async function extractViaPromptParse<T>(opts: {
   provider: LLMProvider
-  schema: ZodType<T>
+  schema: ZodType<T, any, any>
   schemaName: string
   prompt: string
   system?: string
@@ -176,7 +176,7 @@ Output ONLY the JSON object, nothing else. No markdown fences, no explanation.`
  * Convert a Zod schema to a JSON Schema object.
  * Handles common Zod types used in our system.
  */
-function zodToJsonSchema(schema: ZodType<unknown>): Record<string, unknown> {
+function zodToJsonSchema(schema: ZodTypeAny): Record<string, unknown> {
   // Use Zod's built-in JSON schema generation if available,
   // otherwise do a basic manual conversion
   const def = (schema as any)._def
@@ -197,7 +197,7 @@ function zodDefToJsonSchema(def: any): Record<string, unknown> {
 
       if (shape) {
         for (const [key, value] of Object.entries(shape)) {
-          properties[key] = zodToJsonSchema(value as ZodType<unknown>)
+          properties[key] = zodToJsonSchema(value as ZodTypeAny)
           // Check if field is optional
           const fieldDef = (value as any)?._def
           if (fieldDef?.typeName !== "ZodOptional" && fieldDef?.typeName !== "ZodDefault") {
@@ -221,7 +221,7 @@ function zodDefToJsonSchema(def: any): Record<string, unknown> {
     case "ZodArray":
       return {
         type: "array",
-        items: zodToJsonSchema(def.type),
+        items: zodToJsonSchema(def.type as ZodTypeAny),
       }
 
     case "ZodEnum":
@@ -239,13 +239,13 @@ function zodDefToJsonSchema(def: any): Record<string, unknown> {
     case "ZodRecord":
       return {
         type: "object",
-        additionalProperties: zodToJsonSchema(def.valueType),
+        additionalProperties: zodToJsonSchema(def.valueType as ZodTypeAny),
       }
 
     case "ZodUnion":
     case "ZodDiscriminatedUnion":
       return {
-        anyOf: def.options.map((opt: ZodType<unknown>) => zodToJsonSchema(opt)),
+        anyOf: def.options.map((opt: ZodTypeAny) => zodToJsonSchema(opt)),
       }
 
     default:
