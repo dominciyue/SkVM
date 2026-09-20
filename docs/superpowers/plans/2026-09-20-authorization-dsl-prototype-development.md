@@ -253,8 +253,10 @@ bun ./src/benchmarks/authorization-dsl/run.ts status
 - [x] 补齐公开函数、字段说明、错误示例和四条实际命令，明确运行哪一步会调用模型、输出在哪里、如何恢复；研究正文保留简明当前设计和开发复盘。
 - [x] `status.json` 标明 engineeringStatus、comparisonStatus、nextAction；`summary.json` 列实际交付、初轮/修订结果、已知/未知成本、未解决项与具体下一动作。不以获得正向效果作为代码完成的唯一标准。
 - [x] 文档单测、变更文件链接检查和 `git diff --check` 各做一次；涉及共享逻辑时做相应回归，不扩大成历史材料复核。
-- [ ] 只提交本轮归属代码、数据与文档块，推送 `origin/skill-ir-aot`。混有他人内容的文档按修改块处理；无法可靠归属的内容保留并明确未发布。
+- [x] 只提交本轮归属代码、数据与文档块，推送 `origin/skill-ir-aot`。混有他人内容的文档按修改块处理；无法可靠归属的内容保留并明确未发布。
 - [x] 更新 conversation log、当前状态与计划；完成后交付，不自动换类别或扩成长时间新队列。
+
+**完成：** V0–V10 的八个归属提交已通过 `ff5a98a` 推送到 `origin/skill-ir-aot`；工程状态为 `completed-development`，比较仍不完整、效果仍为 `not-established`。现有工作树的其他修改和未跟踪材料未清理、回退或纳入提交。
 
 ## 四、研究总文档怎样记录开发历程
 

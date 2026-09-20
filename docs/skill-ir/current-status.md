@@ -232,4 +232,4 @@ S0–S11 已完成 development 方法准备；本节覆盖本页上方较早阶�
 
 initial 6 单元中 4 完成、2 `timeout-unknown`，只有 file pair 完整；exact-ID 共享修订在两臂首响应中生效，但 revision B 再次超时。两轮共 18 provider calls、15 responses、3 pending-at-timeout；已知 57,172 input、31,770 output、1,408 cache-read tokens，actual USD 全部 unknown。机器状态、总结果与离线复验见 [status](../../results/skill-ir/skill-dsl-research/development/authorization-v0/status.json)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-v0/summary.json) 和 [offline replay](../../results/skill-ir/skill-dsl-research/development/authorization-v0/offline-replay.json)。
 
-下一最小实现只简化 result/citation transport，并在相同 fixed-context 案例测无 repair completion 与 completion-known rate；不自动扩 active discovery、第二项目或生产系统。本轮首批归属提交：`PUBLISH_PENDING`。
+下一最小实现只简化 result/citation transport，并在相同 fixed-context 案例测无 repair completion 与 completion-known rate；不自动扩 active discovery、第二项目或生产系统。本轮首批归属提交：`ff5a98a`。

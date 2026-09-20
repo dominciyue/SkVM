@@ -805,7 +805,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 
 **V10-VERIFY-02。** 新鲜验证为 authorization 51/51、284 assertions，主 typecheck 通过，文档单测 12/12，链接/治理检查无 broken、legacy 或 governance error，94 份 authorization-v0 JSON 全部可解析。独立只读复核未发现 critical defect 或凭据材料，确认 exact-ID 改动由共同 compiled obligations 生成、两臂一致；其指出的状态/checklist 收口已在发布流程中处理。
 
-**V10-DELIVERY-03。** 交付范围限定为 development-only canonical declaration、compiler、B/D renderer、fixed-context zero-executable-tool host、validator/change state、逐调用计量、hash-bound review、evaluator 与可恢复 runner；不包含生产 CLI、入口发现、target execution、patch、held-out 或跨项目主张。工程状态可为 `completed-development`，比较状态仍为 incomplete/effectiveness `not-established`。下一轮最小实现只收窄 schema/fallback 与 citation transport，并在原 fixed-context 案例测无 repair completion 和 completion-known rate。
+**V10-DELIVERY-03。** 交付范围限定为 development-only canonical declaration、compiler、B/D renderer、fixed-context zero-executable-tool host、validator/change state、逐调用计量、hash-bound review、evaluator 与可恢复 runner；不包含生产 CLI、入口发现、target execution、patch、held-out 或跨项目主张。工程状态为 `completed-development`，比较状态仍为 incomplete/effectiveness `not-established`。八个 V 归属提交已通过 `ff5a98a` 推送 `origin/skill-ir-aot`，既有脏工作树未清理或吞并。下一轮最小实现只收窄 schema/fallback 与 citation transport，并在原 fixed-context 案例测无 repair completion 和 completion-known rate。
 
 
 ## 13. 原始证据索引（只在需要细节时读取）
