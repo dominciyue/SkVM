@@ -1,0 +1,185 @@
+{
+  "schemaVersion": "authorization-evaluation-rubrics/v0",
+  "protocolVersion": "authorization-evaluation-protocol/v1+trusted-header-revision/v1",
+  "cases": [
+    {
+      "caseId": "owui-process-file-write",
+      "taskId": "owui-process-file-write",
+      "rubricVersion": "owui-process-file-write-oracle/v1",
+      "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+      "expectedDisposition": "source_supported_failure",
+      "dispositionRule": {
+        "oracleRule": "oracles/owui-process-file-write.json#/disposition",
+        "sourceLocations": [
+          { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 14, "endLine": 18 },
+          { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 40, "endLine": 50 },
+          { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 62, "endLine": 74 }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0",
+        "sourceLocations": [
+          { "path": "inputs/owui-process-file-write/task.json", "startLine": 6, "endLine": 18 }
+        ]
+      },
+      "criticalFacts": [
+        {
+          "id": "source-file-ownership-check",
+          "requirement": "State that the visible ownership check is on the supplied source file.",
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/0",
+          "sourceLocations": [
+            { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 40, "endLine": 44 }
+          ]
+        },
+        {
+          "id": "destination-is-distinct",
+          "requirement": "Distinguish the caller-selected destination collection from the owned source file.",
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/1",
+          "sourceLocations": [
+            { "path": "inputs/owui-process-file-write/task.json", "startLine": 6, "endLine": 8 },
+            { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 21, "endLine": 24 },
+            { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 45, "endLine": 50 }
+          ]
+        },
+        {
+          "id": "destination-write-control-absent",
+          "requirement": "State that no destination knowledge-base write check occurs before save_docs_to_vector_db in the complete fixed crop.",
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/2",
+          "sourceLocations": [
+            { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 45, "endLine": 53 },
+            { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 55, "endLine": 74 }
+          ]
+        },
+        {
+          "id": "destination-reaches-insert",
+          "requirement": "Trace the supplied collection name through save_docs_to_vector_db to VECTOR_DB_CLIENT.insert.",
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/3",
+          "sourceLocations": [
+            { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 14, "endLine": 18 },
+            { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 62, "endLine": 74 }
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "owui-process-text-controlled",
+      "taskId": "owui-process-text-controlled",
+      "rubricVersion": "owui-process-text-controlled-oracle/v1",
+      "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "oracles/owui-process-text-controlled.json#/disposition",
+        "sourceLocations": [
+          { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 13, "endLine": 28 },
+          { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 31, "endLine": 44 },
+          { "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py", "startLine": 42, "endLine": 52 }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1",
+        "sourceLocations": [
+          { "path": "inputs/owui-process-text-controlled/task.json", "startLine": 6, "endLine": 18 }
+        ]
+      },
+      "criticalFacts": [
+        {
+          "id": "caller-write-validator",
+          "requirement": "State that process_text calls the validator with access_type='write' before the sink.",
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/0",
+          "sourceLocations": [
+            { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 13, "endLine": 28 }
+          ]
+        },
+        {
+          "id": "denied-set-enforcement",
+          "requirement": "State that the validator rejects requested names absent from the allowed set.",
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/1",
+          "sourceLocations": [
+            { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 31, "endLine": 44 }
+          ]
+        },
+        {
+          "id": "knowledge-base-write-policy",
+          "requirement": "State that an existing knowledge base is allowed only when check_access_by_user_id grants write access.",
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/2",
+          "sourceLocations": [
+            { "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py", "startLine": 42, "endLine": 52 }
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "owui-trusted-header-deployment",
+      "taskId": "owui-trusted-header-deployment",
+      "rubricVersion": "owui-trusted-header-oracle/v1+revision/v1",
+      "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+      "expectedDisposition": "unknown",
+      "dispositionRule": {
+        "oracleRule": "trusted-header-oracle-revision.json#/revisedDisposition",
+        "sourceLocations": [
+          { "path": "inputs/owui-trusted-header-deployment/task.json", "startLine": 6, "endLine": 18 },
+          { "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py", "startLine": 10, "endLine": 13 },
+          { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 11, "endLine": 62 }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "evaluation-protocol-revision.json#/scoringEffect",
+        "sourceLocations": [
+          { "path": "inputs/owui-trusted-header-deployment/task.json", "startLine": 6, "endLine": 18 }
+        ]
+      },
+      "criticalFacts": [
+        {
+          "id": "password-auth-entry-gate",
+          "requirement": "State that ENABLE_PASSWORD_AUTH is checked first and false causes a 403 before the trusted-header branch.",
+          "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/0",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 11, "endLine": 15 }
+          ]
+        },
+        {
+          "id": "trusted-header-configuration-gate",
+          "requirement": "State that the header name is environment-controlled and the branch requires it to be configured.",
+          "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/1",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py", "startLine": 10, "endLine": 13 },
+            { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 17, "endLine": 21 }
+          ]
+        },
+        {
+          "id": "identity-binding",
+          "requirement": "Trace the configured header value into the email identity and optional signup path.",
+          "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/2",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 21, "endLine": 40 }
+          ]
+        },
+        {
+          "id": "authentication-and-session-condition",
+          "requirement": "State that email authentication must yield a user before session creation; otherwise invalid credentials are returned.",
+          "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/3",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 40, "endLine": 62 }
+          ]
+        },
+        {
+          "id": "deployment-facts-absent",
+          "requirement": "Name actual gate values, ingress reachability, proxy handling, alternate hops, and deployed authentication outcome as unavailable.",
+          "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/4",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/task.json", "startLine": 6, "endLine": 18 }
+          ]
+        },
+        {
+          "id": "conditional-outcomes",
+          "requirement": "State closed-control, authentication-failure, trusted-proxy-safe, and attacker-header-reachable outcomes without asserting deployment facts.",
+          "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/5",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/task.json", "startLine": 6, "endLine": 18 },
+            { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 11, "endLine": 62 }
+          ]
+        }
+      ]
+    }
+  ]
+}

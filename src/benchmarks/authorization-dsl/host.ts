@@ -36,6 +36,8 @@ export interface RunAuthorizationTaskOptions {
 export interface AuthorizationGenerationArtifact {
   result: AuthorizationResultV0
   rawResponse: string
+  providerAttemptIds: string[]
+  outputAttemptId: string
   validation: AuthorizationValidation
 }
 
@@ -154,25 +156,38 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     })
   }
 
-  const extract = async (phase: "initial" | "domain-repair", prompt: string) => telemetry.inPhase(
-    phase,
-    provider => withTimeout(extractStructured({
-      provider,
-      schema: AuthorizationResultV0Schema,
-      schemaName: RESULT_TOOL_NAME,
-      schemaDescription: "Return the bounded authorization assessment result. This schema tool is an output container and is never executed.",
-      prompt,
-      system: "Analyze only the supplied fixed source context. Do not execute tools, contact a target, infer unavailable deployment facts, or claim repository-wide discovery.",
-      maxRetries: 1,
-      maxTokens: input.options.maxTokens,
-    }), input.options.timeoutMs),
-  )
+  const extract = async (phase: "initial" | "domain-repair", prompt: string) => {
+    const firstAttemptIndex = telemetry.attempts.length
+    const extracted = await telemetry.inPhase(
+      phase,
+      provider => withTimeout(extractStructured({
+        provider,
+        schema: AuthorizationResultV0Schema,
+        schemaName: RESULT_TOOL_NAME,
+        schemaDescription: "Return the bounded authorization assessment result. This schema tool is an output container and is never executed.",
+        prompt,
+        system: "Analyze only the supplied fixed source context. Do not execute tools, contact a target, infer unavailable deployment facts, or claim repository-wide discovery.",
+        maxRetries: 1,
+        maxTokens: input.options.maxTokens,
+      }), input.options.timeoutMs),
+    )
+    const providerAttemptIds = telemetry.attempts
+      .slice(firstAttemptIndex)
+      .map(attempt => attempt.id)
+    const outputAttemptId = providerAttemptIds.at(-1)
+    if (!outputAttemptId) {
+      throw new Error(`Structured ${phase} generation returned without a recorded provider attempt.`)
+    }
+    return { ...extracted, providerAttemptIds, outputAttemptId }
+  }
 
   try {
     const extractedInitial = await extract("initial", renderedPrompt)
     const initial: AuthorizationGenerationArtifact = {
       result: extractedInitial.result,
       rawResponse: extractedInitial.rawResponse,
+      providerAttemptIds: extractedInitial.providerAttemptIds,
+      outputAttemptId: extractedInitial.outputAttemptId,
       validation: validateAuthorizationResult(compiled, extractedInitial.result, input.sourceBundle),
     }
     let repair: AuthorizationGenerationArtifact | undefined
@@ -183,6 +198,8 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
       repair = {
         result: extractedRepair.result,
         rawResponse: extractedRepair.rawResponse,
+        providerAttemptIds: extractedRepair.providerAttemptIds,
+        outputAttemptId: extractedRepair.outputAttemptId,
         validation: validateAuthorizationResult(compiled, extractedRepair.result, input.sourceBundle),
       }
       finalKind = "repair"

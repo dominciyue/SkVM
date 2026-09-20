@@ -1,0 +1,587 @@
+import { createHash } from "node:crypto"
+import { z } from "zod"
+import type { TokenUsage } from "../../core/types.ts"
+import type { AuthorizationResultV0 } from "../../task-dsl/authorization/schema.ts"
+import type { AuthorizationGenerationArtifact, AuthorizationTaskRun } from "./host.ts"
+import type { SourceBundle } from "./inputs.ts"
+
+const NonEmptyString = z.string().trim().min(1)
+
+const EvaluationSourceLocationSchema = z.object({
+  path: NonEmptyString,
+  startLine: z.number().int().positive(),
+  endLine: z.number().int().positive(),
+}).strict().superRefine((location, context) => {
+  if (location.endLine < location.startLine) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "endLine must be greater than or equal to startLine",
+      path: ["endLine"],
+    })
+  }
+})
+
+const EvaluationRuleSchema = z.object({
+  oracleRule: NonEmptyString,
+  sourceLocations: z.array(EvaluationSourceLocationSchema).min(1),
+}).strict()
+
+const AuthorizationCriticalFactSchema = EvaluationRuleSchema.extend({
+  id: NonEmptyString,
+  requirement: NonEmptyString,
+}).strict()
+
+export const AuthorizationCaseEvaluationRubricSchema = z.object({
+  caseId: NonEmptyString,
+  taskId: NonEmptyString,
+  rubricVersion: NonEmptyString,
+  obligationId: NonEmptyString,
+  expectedDisposition: z.enum(["source_supported_failure", "source_refuted", "unknown"]),
+  dispositionRule: EvaluationRuleSchema,
+  scopeRule: EvaluationRuleSchema,
+  criticalFacts: z.array(AuthorizationCriticalFactSchema).min(1),
+}).strict()
+
+export const AuthorizationEvaluationRubricsV0Schema = z.object({
+  schemaVersion: z.literal("authorization-evaluation-rubrics/v0"),
+  protocolVersion: NonEmptyString,
+  cases: z.array(AuthorizationCaseEvaluationRubricSchema).min(1),
+}).strict()
+
+export type AuthorizationCaseEvaluationRubric = z.infer<typeof AuthorizationCaseEvaluationRubricSchema>
+export type AuthorizationEvaluationSourceLocation = z.infer<typeof EvaluationSourceLocationSchema>
+
+export const SemanticReviewStatusSchema = z.enum(["supported", "contradicted", "missing", "uncertain"])
+export type SemanticReviewStatus = z.infer<typeof SemanticReviewStatusSchema>
+
+const SemanticAssessmentSchema = z.object({
+  status: SemanticReviewStatusSchema,
+  reason: NonEmptyString,
+  answerLocation: NonEmptyString.nullable(),
+  sourceLocations: z.array(EvaluationSourceLocationSchema).min(1),
+  oracleRule: NonEmptyString,
+}).strict()
+
+const FactReviewSchema = SemanticAssessmentSchema.extend({
+  factId: NonEmptyString,
+}).strict()
+
+export const AuthorizationSemanticReviewV0Schema = z.object({
+  schemaVersion: z.literal("authorization-semantic-review/v0"),
+  caseId: NonEmptyString,
+  taskId: NonEmptyString,
+  generation: z.enum(["initial", "repair"]),
+  attemptId: NonEmptyString,
+  rawOutputSha256: z.string().regex(/^[a-f0-9]{64}$/),
+  rubricVersion: NonEmptyString,
+  reviewer: z.object({
+    kind: z.literal("development-agent"),
+    identity: NonEmptyString,
+  }).strict(),
+  factReviews: z.array(FactReviewSchema),
+  dispositionReview: SemanticAssessmentSchema,
+  scopeReview: SemanticAssessmentSchema,
+}).strict()
+
+export type AuthorizationSemanticReviewV0 = z.infer<typeof AuthorizationSemanticReviewV0Schema>
+
+export interface AuthorizationEvaluationDiagnostic {
+  code: string
+  message: string
+  path: string
+}
+
+export interface AuthorizationReviewValidation {
+  status: "valid" | "invalid"
+  diagnostics: AuthorizationEvaluationDiagnostic[]
+  review?: AuthorizationSemanticReviewV0
+}
+
+export type AuthorizationErrorClass =
+  | "falsePositive"
+  | "falseNegative"
+  | "unsupportedDeploymentInference"
+  | "unsupportedCompleteness"
+  | "evidenceDecoration"
+  | "excessiveAbstention"
+
+export interface AuthorizationCriticalFactEvaluation {
+  id: string
+  requirement: string
+  status: SemanticReviewStatus | "unreviewed"
+  reason?: string
+  answerLocation?: string | null
+  sourceLocations: AuthorizationEvaluationSourceLocation[]
+  oracleRule: string
+}
+
+export interface AuthorizationGenerationEvaluation {
+  caseId: string
+  taskId: string
+  generation: "initial" | "repair"
+  attemptId: string
+  rawOutputSha256: string
+  expectedDisposition: AuthorizationCaseEvaluationRubric["expectedDisposition"]
+  actualDisposition: AuthorizationResultV0["results"][number]["conclusion"] | null
+  labelCorrect: boolean
+  reviewValidation: AuthorizationReviewValidation
+  criticalFacts: AuthorizationCriticalFactEvaluation[]
+  scopeHonesty: "accepted" | "rejected" | "needs-review"
+  taskDecisionCorrect: boolean | null
+  qualityStatus: "full-success" | "partial" | "incorrect" | "needs-review"
+  errorClasses: AuthorizationErrorClass[]
+  deterministicDiagnostics: string[]
+}
+
+function diagnostic(code: string, message: string, path: string): AuthorizationEvaluationDiagnostic {
+  return { code, message, path }
+}
+
+export function hashAuthorizationRawOutput(rawOutput: string): string {
+  return createHash("sha256").update(rawOutput, "utf8").digest("hex")
+}
+
+function sourceLocationKey(location: AuthorizationEvaluationSourceLocation): string {
+  return `${location.path}:${location.startLine}-${location.endLine}`
+}
+
+function sameSourceLocations(
+  left: AuthorizationEvaluationSourceLocation[],
+  right: AuthorizationEvaluationSourceLocation[],
+): boolean {
+  const leftKeys = left.map(sourceLocationKey).sort()
+  const rightKeys = right.map(sourceLocationKey).sort()
+  return leftKeys.length === rightKeys.length && leftKeys.every((key, index) => key === rightKeys[index])
+}
+
+function sourceLocationExists(location: AuthorizationEvaluationSourceLocation, sourceBundle: SourceBundle): boolean {
+  const file = sourceBundle.files.find(candidate => candidate.relativePath === location.path)
+  return Boolean(file
+    && location.startLine >= file.cropRange.startLine
+    && location.endLine <= file.cropRange.endLine
+    && location.endLine >= location.startLine)
+}
+
+function decodeJsonPointerSegment(segment: string): string {
+  return segment.replace(/~1/g, "/").replace(/~0/g, "~")
+}
+
+function jsonPointerResolves(value: unknown, pointer: string): boolean {
+  if (pointer === "") return true
+  if (!pointer.startsWith("/")) return false
+  let current: unknown = value
+  for (const encodedSegment of pointer.slice(1).split("/")) {
+    const segment = decodeJsonPointerSegment(encodedSegment)
+    if (Array.isArray(current)) {
+      if (!/^\d+$/.test(segment)) return false
+      const index = Number(segment)
+      if (index < 0 || index >= current.length) return false
+      current = current[index]
+      continue
+    }
+    if (!current || typeof current !== "object" || !Object.prototype.hasOwnProperty.call(current, segment)) {
+      return false
+    }
+    current = (current as Record<string, unknown>)[segment]
+  }
+  return true
+}
+
+function validateAssessment(
+  assessment: z.infer<typeof SemanticAssessmentSchema>,
+  expectedRule: z.infer<typeof EvaluationRuleSchema>,
+  answer: AuthorizationResultV0,
+  sourceBundle: SourceBundle,
+  path: string,
+  diagnostics: AuthorizationEvaluationDiagnostic[],
+): void {
+  if (assessment.oracleRule !== expectedRule.oracleRule) {
+    diagnostics.push(diagnostic(
+      "review-oracle-rule-mismatch",
+      `Review oracle rule ${assessment.oracleRule} does not match ${expectedRule.oracleRule}.`,
+      `${path}.oracleRule`,
+    ))
+  }
+  if (!sameSourceLocations(assessment.sourceLocations, expectedRule.sourceLocations)) {
+    diagnostics.push(diagnostic(
+      "review-source-binding-mismatch",
+      "Review source locations do not exactly match the evaluator rubric for this judgment.",
+      `${path}.sourceLocations`,
+    ))
+  }
+  assessment.sourceLocations.forEach((location, index) => {
+    if (!sourceLocationExists(location, sourceBundle)) {
+      diagnostics.push(diagnostic(
+        "review-source-location-invalid",
+        `Review source location is outside the exact source bundle: ${sourceLocationKey(location)}.`,
+        `${path}.sourceLocations.${index}`,
+      ))
+    }
+  })
+
+  if (assessment.status === "missing") {
+    if (assessment.answerLocation !== null) {
+      diagnostics.push(diagnostic(
+        "review-missing-answer-location",
+        "A missing fact must use a null answer location rather than point at unrelated answer text.",
+        `${path}.answerLocation`,
+      ))
+    }
+    return
+  }
+  if (assessment.answerLocation === null) {
+    if (assessment.status !== "uncertain") {
+      diagnostics.push(diagnostic(
+        "review-answer-location-required",
+        `${assessment.status} review requires an answer JSON pointer.`,
+        `${path}.answerLocation`,
+      ))
+    }
+    return
+  }
+  if (!jsonPointerResolves(answer, assessment.answerLocation)) {
+    diagnostics.push(diagnostic(
+      "review-answer-location-invalid",
+      `Answer JSON pointer does not resolve: ${assessment.answerLocation}.`,
+      `${path}.answerLocation`,
+    ))
+  }
+}
+
+function validateSemanticReview(input: {
+  rubric: AuthorizationCaseEvaluationRubric
+  sourceBundle: SourceBundle
+  artifact: AuthorizationGenerationArtifact
+  generation: "initial" | "repair"
+  review: unknown
+}): AuthorizationReviewValidation {
+  const parsed = AuthorizationSemanticReviewV0Schema.safeParse(input.review)
+  if (!parsed.success) {
+    return {
+      status: "invalid",
+      diagnostics: parsed.error.issues.map(issue => diagnostic(
+        "review-schema-invalid",
+        issue.message,
+        issue.path.join("."),
+      )),
+    }
+  }
+
+  const review = parsed.data
+  const diagnostics: AuthorizationEvaluationDiagnostic[] = []
+  if (review.caseId !== input.rubric.caseId) {
+    diagnostics.push(diagnostic("review-case-mismatch", "Review case does not match the rubric.", "caseId"))
+  }
+  if (review.taskId !== input.rubric.taskId) {
+    diagnostics.push(diagnostic("review-task-mismatch", "Review task does not match the rubric.", "taskId"))
+  }
+  if (review.generation !== input.generation) {
+    diagnostics.push(diagnostic("review-generation-mismatch", "Review generation does not match the evaluated artifact.", "generation"))
+  }
+  if (review.attemptId !== input.artifact.outputAttemptId) {
+    diagnostics.push(diagnostic(
+      "review-attempt-mismatch",
+      "Review must bind the provider attempt that supplied this structured output.",
+      "attemptId",
+    ))
+  }
+  if (review.rawOutputSha256 !== hashAuthorizationRawOutput(input.artifact.rawResponse)) {
+    diagnostics.push(diagnostic(
+      "review-output-hash-mismatch",
+      "Review raw-output digest does not match the retained generation artifact.",
+      "rawOutputSha256",
+    ))
+  }
+  if (review.rubricVersion !== input.rubric.rubricVersion) {
+    diagnostics.push(diagnostic("review-rubric-mismatch", "Review rubric version does not match.", "rubricVersion"))
+  }
+
+  const expectedFacts = new Map(input.rubric.criticalFacts.map(fact => [fact.id, fact]))
+  const reviewCounts = new Map<string, number>()
+  review.factReviews.forEach((factReview, index) => {
+    reviewCounts.set(factReview.factId, (reviewCounts.get(factReview.factId) ?? 0) + 1)
+    const expected = expectedFacts.get(factReview.factId)
+    if (!expected) {
+      diagnostics.push(diagnostic(
+        "foreign-fact-review",
+        `Review contains a fact absent from the rubric: ${factReview.factId}.`,
+        `factReviews.${index}.factId`,
+      ))
+      return
+    }
+    validateAssessment(factReview, expected, input.artifact.result, input.sourceBundle, `factReviews.${index}`, diagnostics)
+  })
+  for (const [factId] of expectedFacts) {
+    const count = reviewCounts.get(factId) ?? 0
+    if (count === 0) {
+      diagnostics.push(diagnostic("missing-fact-review", `Review is missing rubric fact ${factId}.`, "factReviews"))
+    } else if (count > 1) {
+      diagnostics.push(diagnostic("duplicate-fact-review", `Review repeats rubric fact ${factId}.`, "factReviews"))
+    }
+  }
+
+  validateAssessment(
+    review.dispositionReview,
+    input.rubric.dispositionRule,
+    input.artifact.result,
+    input.sourceBundle,
+    "dispositionReview",
+    diagnostics,
+  )
+  validateAssessment(
+    review.scopeReview,
+    input.rubric.scopeRule,
+    input.artifact.result,
+    input.sourceBundle,
+    "scopeReview",
+    diagnostics,
+  )
+
+  return {
+    status: diagnostics.length === 0 ? "valid" : "invalid",
+    diagnostics,
+    review,
+  }
+}
+
+function reviewStatusIsFailure(status: SemanticReviewStatus | "unreviewed"): boolean {
+  return status === "missing" || status === "contradicted"
+}
+
+function reviewStatusIsUncertain(status: SemanticReviewStatus | "unreviewed"): boolean {
+  return status === "uncertain" || status === "unreviewed"
+}
+
+export function evaluateAuthorizationGeneration(input: {
+  rubric: AuthorizationCaseEvaluationRubric
+  sourceBundle: SourceBundle
+  artifact: AuthorizationGenerationArtifact
+  generation: "initial" | "repair"
+  review: unknown
+}): AuthorizationGenerationEvaluation {
+  const reviewValidation = validateSemanticReview(input)
+  const review = reviewValidation.review
+  const obligationResults = input.artifact.result.results.filter(result => result.obligationId === input.rubric.obligationId)
+  const obligationResult = obligationResults.length === 1 ? obligationResults[0] : undefined
+  const actualDisposition = obligationResult?.conclusion ?? null
+  const labelCorrect = actualDisposition === input.rubric.expectedDisposition
+  const reviewsByFact = new Map(review?.factReviews.map(fact => [fact.factId, fact]) ?? [])
+  const criticalFacts: AuthorizationCriticalFactEvaluation[] = input.rubric.criticalFacts.map(fact => {
+    const factReview = reviewsByFact.get(fact.id)
+    return {
+      id: fact.id,
+      requirement: fact.requirement,
+      status: factReview?.status ?? "unreviewed",
+      ...(factReview ? { reason: factReview.reason, answerLocation: factReview.answerLocation } : {}),
+      sourceLocations: fact.sourceLocations,
+      oracleRule: fact.oracleRule,
+    }
+  })
+  const evidencePresence = input.artifact.validation.evidencePresence
+    .find(evidence => evidence.obligationId === input.rubric.obligationId)?.status
+  const deterministicDiagnostics = input.artifact.validation.diagnostics.map(item => item.code)
+  const mechanicalFailure = input.artifact.validation.structure.status !== "valid"
+    || obligationResults.length !== 1
+    || evidencePresence !== "present"
+    || input.artifact.validation.completeness.status !== "accepted"
+    || deterministicDiagnostics.length > 0
+
+  const scopeReviewStatus = review?.scopeReview.status ?? "unreviewed"
+  const scopeHonesty: AuthorizationGenerationEvaluation["scopeHonesty"] = reviewValidation.status === "invalid"
+    || reviewStatusIsUncertain(scopeReviewStatus)
+    ? "needs-review"
+    : (input.artifact.validation.completeness.status === "accepted" && scopeReviewStatus === "supported"
+      ? "accepted"
+      : "rejected")
+
+  const semanticStatuses: Array<SemanticReviewStatus | "unreviewed"> = [
+    ...criticalFacts.map(fact => fact.status),
+    review?.dispositionReview.status ?? "unreviewed",
+    scopeReviewStatus,
+  ]
+  const definiteFailure = !labelCorrect
+    || mechanicalFailure
+    || semanticStatuses.some(reviewStatusIsFailure)
+    || scopeHonesty === "rejected"
+  const uncertain = reviewValidation.status === "invalid"
+    || semanticStatuses.some(reviewStatusIsUncertain)
+    || scopeHonesty === "needs-review"
+  const taskDecisionCorrect = definiteFailure ? false : (uncertain ? null : true)
+  const qualityStatus: AuthorizationGenerationEvaluation["qualityStatus"] = taskDecisionCorrect === true
+    ? "full-success"
+    : (taskDecisionCorrect === null ? "needs-review" : (labelCorrect ? "partial" : "incorrect"))
+
+  const errorClasses = new Set<AuthorizationErrorClass>()
+  if (input.rubric.expectedDisposition === "source_refuted" && actualDisposition === "source_supported_failure") {
+    errorClasses.add("falsePositive")
+  }
+  if (input.rubric.expectedDisposition === "source_supported_failure" && actualDisposition === "source_refuted") {
+    errorClasses.add("falseNegative")
+  }
+  if (input.rubric.expectedDisposition === "unknown" && actualDisposition !== null && actualDisposition !== "unknown") {
+    errorClasses.add("unsupportedDeploymentInference")
+  }
+  if (input.rubric.expectedDisposition !== "unknown" && actualDisposition === "unknown") {
+    errorClasses.add("excessiveAbstention")
+  }
+  if (input.artifact.validation.completeness.status === "rejected"
+    || deterministicDiagnostics.includes("unsupported-completeness")) {
+    errorClasses.add("unsupportedCompleteness")
+  }
+  if (evidencePresence === "present" && semanticStatuses
+    .slice(0, criticalFacts.length + 1)
+    .some(status => status !== "supported")) {
+    errorClasses.add("evidenceDecoration")
+  }
+
+  return {
+    caseId: input.rubric.caseId,
+    taskId: input.rubric.taskId,
+    generation: input.generation,
+    attemptId: input.artifact.outputAttemptId,
+    rawOutputSha256: hashAuthorizationRawOutput(input.artifact.rawResponse),
+    expectedDisposition: input.rubric.expectedDisposition,
+    actualDisposition,
+    labelCorrect,
+    reviewValidation,
+    criticalFacts,
+    scopeHonesty,
+    taskDecisionCorrect,
+    qualityStatus,
+    errorClasses: [...errorClasses],
+    deterministicDiagnostics,
+  }
+}
+
+export interface AuthorizationRunOperationSummary {
+  providerAttempts: number
+  schemaToolAttempts: number
+  promptParseAttempts: number
+  domainRepairAttempts: number
+  unknownElapsedCalls: number
+  knownElapsedMsSubtotal: number
+  totalElapsedMs: number | null
+  knownTokens: TokenUsage
+  tokensStatus: AuthorizationTaskRun["telemetry"]["tokensStatus"]
+  unknownUsageCalls: number
+  knownActualUsdSubtotal: number
+  totalActualUsd: number | null
+  actualUsdStatus: AuthorizationTaskRun["telemetry"]["actualUsdStatus"]
+  unknownCostCalls: number
+  transportAttempts: "unknown"
+}
+
+export interface AuthorizationRunEvaluationSummary {
+  caseId: string
+  arm: "B" | "D"
+  runStatus: AuthorizationTaskRun["status"]
+  repairUsed: boolean
+  initialQuality: AuthorizationGenerationEvaluation["qualityStatus"] | null
+  repairQuality: AuthorizationGenerationEvaluation["qualityStatus"] | null
+  finalQuality: AuthorizationGenerationEvaluation["qualityStatus"] | null
+  initialTaskDecisionCorrect: boolean | null
+  finalTaskDecisionCorrect: boolean | null
+  diagnostics: {
+    initial: string[]
+    repair: string[]
+  }
+  errorClasses: AuthorizationErrorClass[]
+  operation: AuthorizationRunOperationSummary
+}
+
+export function summarizeAuthorizationRun(
+  run: AuthorizationTaskRun,
+  evaluations: {
+    initial?: AuthorizationGenerationEvaluation
+    repair?: AuthorizationGenerationEvaluation
+  },
+): AuthorizationRunEvaluationSummary {
+  const finalEvaluation = run.finalKind === "repair" ? evaluations.repair : evaluations.initial
+  const responses = run.attempts.filter(attempt => attempt.response !== undefined)
+  const knownElapsedMsSubtotal = responses.reduce((sum, attempt) => sum + attempt.response!.durationMs, 0)
+  const unknownElapsedCalls = run.attempts.length - responses.length
+  const errorClasses = new Set<AuthorizationErrorClass>([
+    ...(evaluations.initial?.errorClasses ?? []),
+    ...(evaluations.repair?.errorClasses ?? []),
+  ])
+  return {
+    caseId: evaluations.initial?.caseId ?? evaluations.repair?.caseId ?? run.compiled.task.taskId,
+    arm: run.arm,
+    runStatus: run.status,
+    repairUsed: run.repair !== undefined,
+    initialQuality: evaluations.initial?.qualityStatus ?? null,
+    repairQuality: evaluations.repair?.qualityStatus ?? null,
+    finalQuality: finalEvaluation?.qualityStatus ?? null,
+    initialTaskDecisionCorrect: evaluations.initial?.taskDecisionCorrect ?? null,
+    finalTaskDecisionCorrect: finalEvaluation?.taskDecisionCorrect ?? null,
+    diagnostics: {
+      initial: run.initial?.validation.diagnostics.map(item => item.code) ?? [],
+      repair: run.repair?.validation.diagnostics.map(item => item.code) ?? [],
+    },
+    errorClasses: [...errorClasses],
+    operation: {
+      providerAttempts: run.attempts.length,
+      schemaToolAttempts: run.attempts.filter(attempt => attempt.transport === "schema-tool").length,
+      promptParseAttempts: run.attempts.filter(attempt => attempt.transport === "prompt-parse").length,
+      domainRepairAttempts: run.attempts.filter(attempt => attempt.phase === "domain-repair").length,
+      unknownElapsedCalls,
+      knownElapsedMsSubtotal,
+      totalElapsedMs: unknownElapsedCalls === 0 ? knownElapsedMsSubtotal : null,
+      knownTokens: { ...run.telemetry.knownTokens },
+      tokensStatus: run.telemetry.tokensStatus,
+      unknownUsageCalls: run.telemetry.unknownUsageCalls,
+      knownActualUsdSubtotal: run.telemetry.knownActualUsdSubtotal,
+      totalActualUsd: run.telemetry.totalActualUsd,
+      actualUsdStatus: run.telemetry.actualUsdStatus,
+      unknownCostCalls: run.telemetry.unknownCostCalls,
+      transportAttempts: "unknown",
+    },
+  }
+}
+
+export interface AuthorizationPairSummary {
+  caseId: string
+  arms: {
+    B: AuthorizationRunEvaluationSummary
+    D: AuthorizationRunEvaluationSummary
+  }
+  differences: {
+    providerAttempts: number
+    inputTokens: number
+    outputTokens: number
+    cacheReadTokens: number
+    cacheWriteTokens: number
+    knownElapsedMsSubtotal: number
+    knownActualUsdSubtotal: number
+    totalActualUsd: number | null
+  }
+}
+
+export function summarizeAuthorizationPair(
+  caseId: string,
+  baseline: AuthorizationRunEvaluationSummary,
+  domain: AuthorizationRunEvaluationSummary,
+): AuthorizationPairSummary {
+  if (baseline.arm !== "B" || domain.arm !== "D") {
+    throw new Error("Authorization pair summary requires B baseline followed by D domain arm.")
+  }
+  if (baseline.caseId !== caseId || domain.caseId !== caseId) {
+    throw new Error("Authorization pair summary case IDs must match the requested case.")
+  }
+  return {
+    caseId,
+    arms: { B: baseline, D: domain },
+    differences: {
+      providerAttempts: domain.operation.providerAttempts - baseline.operation.providerAttempts,
+      inputTokens: domain.operation.knownTokens.input - baseline.operation.knownTokens.input,
+      outputTokens: domain.operation.knownTokens.output - baseline.operation.knownTokens.output,
+      cacheReadTokens: domain.operation.knownTokens.cacheRead - baseline.operation.knownTokens.cacheRead,
+      cacheWriteTokens: domain.operation.knownTokens.cacheWrite - baseline.operation.knownTokens.cacheWrite,
+      knownElapsedMsSubtotal: domain.operation.knownElapsedMsSubtotal - baseline.operation.knownElapsedMsSubtotal,
+      knownActualUsdSubtotal: domain.operation.knownActualUsdSubtotal - baseline.operation.knownActualUsdSubtotal,
+      totalActualUsd: baseline.operation.totalActualUsd === null || domain.operation.totalActualUsd === null
+        ? null
+        : domain.operation.totalActualUsd - baseline.operation.totalActualUsd,
+    },
+  }
+}
