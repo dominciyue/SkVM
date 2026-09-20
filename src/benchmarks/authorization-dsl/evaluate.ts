@@ -141,6 +141,38 @@ export function hashAuthorizationRawOutput(rawOutput: string): string {
   return createHash("sha256").update(rawOutput, "utf8").digest("hex")
 }
 
+export function createAuthorizationReviewTemplate(
+  rubric: AuthorizationCaseEvaluationRubric,
+  artifact: AuthorizationGenerationArtifact,
+  generation: "initial" | "repair",
+  reviewerIdentity: string,
+): AuthorizationSemanticReviewV0 {
+  const pendingReason = "Development-agent semantic review is required against the bound answer, fixed source, and evaluator rubric."
+  const assessment = (rule: z.infer<typeof EvaluationRuleSchema>) => ({
+    status: "uncertain" as const,
+    reason: pendingReason,
+    answerLocation: null,
+    sourceLocations: rule.sourceLocations.map(location => ({ ...location })),
+    oracleRule: rule.oracleRule,
+  })
+  return {
+    schemaVersion: "authorization-semantic-review/v0",
+    caseId: rubric.caseId,
+    taskId: rubric.taskId,
+    generation,
+    attemptId: artifact.outputAttemptId,
+    rawOutputSha256: hashAuthorizationRawOutput(artifact.rawResponse),
+    rubricVersion: rubric.rubricVersion,
+    reviewer: { kind: "development-agent", identity: reviewerIdentity },
+    factReviews: rubric.criticalFacts.map(fact => ({
+      factId: fact.id,
+      ...assessment(fact),
+    })),
+    dispositionReview: assessment(rubric.dispositionRule),
+    scopeReview: assessment(rubric.scopeRule),
+  }
+}
+
 function sourceLocationKey(location: AuthorizationEvaluationSourceLocation): string {
   return `${location.path}:${location.startLine}-${location.endLine}`
 }
