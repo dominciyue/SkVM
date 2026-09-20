@@ -91,6 +91,58 @@ export type AuthorizationResource = AuthorizationTaskV0["resources"][number]
 export type AuthorizationEntry = AuthorizationTaskV0["entries"][number]
 export type AuthorizationObligation = AuthorizationTaskV0["obligations"][number]
 
+const AuthorizationCitationSchema = z.object({
+  path: NonEmptyString,
+  startLine: z.number().int().positive(),
+  endLine: z.number().int().positive(),
+  quote: NonEmptyString,
+}).strict().superRefine((citation, context) => {
+  if (citation.endLine < citation.startLine) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "endLine must be greater than or equal to startLine",
+      path: ["endLine"],
+    })
+  }
+})
+
+const AuthorizationFactEvidenceSchema = z.object({
+  statement: NonEmptyString,
+  citations: z.array(AuthorizationCitationSchema).min(1),
+}).strict()
+
+const AuthorizationFactGroupsSchema = z.object({
+  entry: z.array(AuthorizationFactEvidenceSchema),
+  binding: z.array(AuthorizationFactEvidenceSchema),
+  control: z.array(AuthorizationFactEvidenceSchema),
+  effect: z.array(AuthorizationFactEvidenceSchema),
+  condition: z.array(AuthorizationFactEvidenceSchema),
+}).strict()
+
+const AuthorizationObligationResultSchema = z.object({
+  obligationId: NonEmptyString,
+  conclusion: z.enum(["source_supported_failure", "source_refuted", "unknown"]),
+  explanation: NonEmptyString,
+  facts: AuthorizationFactGroupsSchema,
+  decisiveMissingFacts: z.array(NonEmptyString),
+  suggestedObservations: z.array(NonEmptyString),
+}).strict()
+
+export const AuthorizationResultV0Schema = z.object({
+  schemaVersion: z.literal("source-authorization-assessment-result/v0"),
+  taskId: NonEmptyString,
+  repository: NonEmptyString,
+  sourceRef: NonEmptyString,
+  results: z.array(AuthorizationObligationResultSchema),
+  scopeClaim: z.object({
+    kind: z.enum(["declared-obligations-only", "repository-all-entries"]),
+    statement: NonEmptyString,
+  }).strict(),
+}).strict()
+
+export type AuthorizationResultV0 = z.infer<typeof AuthorizationResultV0Schema>
+export type AuthorizationObligationResult = AuthorizationResultV0["results"][number]
+
 export interface Diagnostic {
   code: string
   message: string
@@ -104,6 +156,27 @@ export type ParseAuthorizationTaskResult =
 
 function formatPath(path: Array<string | number>): string {
   return path.length === 0 ? "$" : path.join(".")
+}
+
+export type ParseAuthorizationResultResult =
+  | { success: true; result: AuthorizationResultV0; diagnostics: [] }
+  | { success: false; diagnostics: Diagnostic[] }
+
+export function parseAuthorizationResult(input: unknown): ParseAuthorizationResultResult {
+  const parsed = AuthorizationResultV0Schema.safeParse(input)
+  if (parsed.success) {
+    return { success: true, result: parsed.data, diagnostics: [] }
+  }
+
+  return {
+    success: false,
+    diagnostics: parsed.error.issues.map(issue => ({
+      code: issue.code,
+      message: issue.message,
+      path: formatPath(issue.path),
+      severity: "error",
+    })),
+  }
 }
 
 export function parseAuthorizationTask(input: unknown): ParseAuthorizationTaskResult {
