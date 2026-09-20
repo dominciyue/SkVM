@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-- 更新日期：2026-09-14
+- 更新日期：2026-09-21
 - 路线：F0–F11，通用生成流程补牢
 - 状态：`verified-pending-publication`；F0–F10 的适用工作已核对，F11 正在同步最终交付。此前本页滞留的 F2 active 不再作为进度。
 - 唯一实时状态：[current-status.md](current-status.md)
@@ -113,3 +113,11 @@ S0–S11 已完成；本节是当前计划更新，覆盖上方较早阶段的�
 5. 先做确定性 mutation/failure tests，再按 O 原 skill、M 整理 Markdown、MH Markdown+同 helper、DH DSL+同 helper 运行小型 development 对照；语义质量与开发成本和运行成本分开。
 
 首个里程碑只要求：一个直接编写包走普通入口，两个输入成功，缺必要输入与 placeholder 破坏各有一次预期失败。若跨法律/i18n 的共同构造没有可观察作用，或 DH 不能在质量底线下优于 MH，则缩窄范围或继续用 Markdown，不扩建框架。
+
+## 2026-09-21 授权 DSL V0–V10 完成记录
+
+本节覆盖上方较早的 F 队列和 2026-09-19 方法准备状态。[V0–V10 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)已完成 development 交付；当前没有自动启动的新执行队列。声明、义务展开、信息相当的 B/D renderer、fixed-context zero-executable-tool host、结果/变化检查、逐次计量、hash-bound review、离线评价与恢复入口已经接通。
+
+首轮六单元中四个完成、两个 `timeout-unknown`，只有 file pair 完整；共享 exact-ID 修订在两臂首个响应中生效，但修订 B 再次超时。工程状态为 `completed-development`，效果为 `not-established`，actual USD 对 18 次调用均为 unknown。初轮、修订、离线 replay 与总结果见 [development summary](../../results/skill-ir/skill-dsl-research/development/authorization-v0/summary.json)。
+
+下一轮若立项，只先收窄 schema-tool/fallback 的结果形状与 citation transport，并在相同 fixed-context 案例测无 repair completion 和 completion-known rate；不自动扩 active discovery、第二项目、target execution、产品入口或 held-out。完整设计、真实失败和复盘统一见[研究总文档](skill-dsl-research.md)。

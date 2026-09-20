@@ -2,19 +2,20 @@
   "schemaVersion": "source-authorization-assessment-development/v0",
   "taskbook": "docs/superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md",
   "createdAt": "2026-09-20T22:13:32+08:00",
-  "updatedAt": "2026-09-20T23:58:40+08:00",
+  "updatedAt": "2026-09-21T00:38:08+08:00",
   "branch": "skill-ir-aot",
   "startHead": "50ca563a641533b3b4ee1adc0609e0054f1c817c",
-  "stage": "V9",
+  "stage": "V10",
   "taskStatus": "active",
-  "nextAction": "Classify the initial failures, add a red test for the shared expanded-obligation-ID output-contract defect, implement the smallest arm-neutral renderer fix, and run at most one affected B/D pair as a separate revision.",
-  "implementationRevision": "v0.7-development-runner@17fa201",
-  "comparisonStatus": "initial-evaluated-incomplete",
+  "engineeringStatus": "verification-passed-publish-pending",
+  "nextAction": "Selectively commit and push only V-owned code, evidence, and reconstructable documentation hunks to origin/skill-ir-aot; then record the published commit without changing the comparison result.",
+  "implementationRevision": "v0.9-expanded-obligation-id-contract@dffda6a",
+  "comparisonStatus": "initial-and-revision-evaluated-incomplete",
   "unresolvedIssues": [
-    "Two of six initial generation units reached the 180000 ms host cutoff with completion and usage unknown; the text and trusted-header pairs are therefore incomplete and were not resent.",
-    "All fourteen provider calls have unknown actual USD cost; two pending calls also have unknown token usage and provider completion.",
-    "Three completed initial outputs used the authored obligation ID instead of the required expanded ID; the shared result contract does not make the exact output IDs sufficiently explicit.",
-    "Citation-text mismatches remain in two repaired outputs, and the completed trusted-header D answer omits the authentication-failure branch and the four required conditional outcomes."
+    "Three calls across the initial and revision runs reached the 180000 ms host cutoff with completion and usage unknown; two initial pairs and the revision pair are incomplete and were not resent.",
+    "All eighteen provider calls have unknown actual USD cost; three pending calls also have unknown token usage and provider completion.",
+    "The exact expanded-ID defect is fixed in both revision arms' first schema responses, but revision B produced a different invalid schema shape and its fallback timed out, so paired task-quality impact remains unmeasured.",
+    "Citation-text mismatches remain the dominant repair trigger, and the completed initial trusted-header D answer omits the authentication-failure branch and the four required conditional outcomes."
   ],
   "stages": {
     "V0": {
@@ -108,8 +109,28 @@
         "No target execution, external search, oracle exposure during generation, retry, replacement case, or answer-informed warmup occurred."
       ]
     },
-    "V9": { "status": "pending", "evidence": [] },
-    "V10": { "status": "pending", "evidence": [] }
+    "V9": {
+      "status": "completed",
+      "evidence": [
+        "Classified every initial failure without changing oracle, declaration semantics, fixed inputs, or case selection: timeouts are provider completion-unknown, exact-ID mismatches are a shared renderer contract defect, citation mismatches are structured evidence fidelity, and trusted-header omissions are model conditional reasoning.",
+        "Added a failing arm-neutral renderer test requiring the exact runnable expanded IDs as a closed result-contract list; observed the expected red failure, implemented the minimal shared renderer change, then passed 51 focused authorization tests with 284 assertions.",
+        "Frozen comparison-config-v9-expanded-id.json before revision generation and limited the only additional real run to the affected file B/D pair, retaining the initial run separately.",
+        "Both revision arms' first schema responses used the exact expanded obligation ID, so the targeted foreign/missing-obligation defect was removed without a case-name branch or oracle hint.",
+        "Revision B returned an invalid schema shape and its prompt fallback timed out; revision D completed, was partial initially due eight citation-text mismatches, and became full-success after the one allowed repair. The revision therefore remains incomplete with no pair summary.",
+        "The revision used four provider calls: three responses and one pending-at-timeout call; known usage was 10612 input and 5187 output tokens, while actual USD was unreported for all four calls.",
+        "Selected next direction: simplify and harden the current result/citation transport before adding entry discovery or a second project, because transport repair and timeout cost dominate the present fixed-context evidence."
+      ]
+    },
+    "V10": {
+      "status": "in-progress",
+      "evidence": [
+        "Archive-only offline replay reparsed and recompiled every declaration, revalidated every completed generation against its retained exact source bundle, and regenerated summaries with the existing hash-bound semantic reviews; no model or target call occurred and both evaluation-summary hashes matched.",
+        "Fresh authorization verification passed 51 tests with 284 assertions; bun run typecheck exited 0.",
+        "Documentation unit tests passed 12/12, the documentation link/governance checker reported no broken, legacy, or governance errors, and all 94 authorization-v0 JSON artifacts parsed successfully.",
+        "Independent read-only delivery review found no critical defect or credential material; it confirmed the exact-ID repair is generic and arm-neutral, then identified only the publication-state fields and checklist as remaining work.",
+        "Public function, field, command, model-boundary, output, recovery, actual-result, limitation, and next-action documentation is complete; selective commit and origin publication remain pending."
+      ]
+    }
   },
   "workingTreeBaseline": {
     "capturedAt": "2026-09-20T22:13:32+08:00",
@@ -164,9 +185,9 @@
       "credentialConfigured": true,
       "autoProbeForExperiment": false
     },
-    "purposefulModelCalls": 14,
+    "purposefulModelCalls": 18,
     "externalTargetExecutions": 0,
     "actualUsdCost": null,
-    "unknownUsdRequests": 14
+    "unknownUsdRequests": 18
   }
 }

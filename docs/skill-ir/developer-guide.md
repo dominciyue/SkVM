@@ -13,6 +13,36 @@
 当前开发路线是“真实 trace → 模型优化 → 新 skill 包 → agent 消费”。开发线程已完成 U0 基线冻结，正在执行 U1
 trace adapter TDD；不要从旧 API 或分类实验文档推断当前任务。
 
+
+### 1.1 授权 DSL 开发原型
+
+[V0–V10 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)和[研究 §7.19](skill-dsl-research.md#719-v-开发合同与持续复盘)定义边界。它只处理单 repository/ref、fixed-context、source-visible authorization obligation；不是产品 CLI、完整安全语言、repository discovery 或目标执行器。领域代码位于 `src/task-dsl/authorization/`，实验代码位于 `src/benchmarks/authorization-dsl/`。
+
+公开边界如下：
+
+- `parseAuthorizationTask(input)`：strict 解析 canonical declaration，错误带字段路径。
+- `compileAuthorizationTask(task)`：解析引用与政策状态，只把显式 obligation × entry 展开为稳定 `author::entry` ID。
+- `renderAuthorizationTask(compiled, "B" | "D")`：从同一事实对象渲染 organized baseline 或 canonical domain plan；两臂共同列出 exact runnable output-ID 闭集。
+- `validateAuthorizationResult(compiled, answer, sourceBundle)`：分别检查结构、声明义务、引用存在、范围声明和依赖快照；语义支持仍为 `unreviewed`。
+- `runAuthorizationTask(...)`：在注入 provider、精确源码束和固定预算下生成，记录每次 schema/fallback/repair attempt；没有可执行工具。
+- `evaluateAuthorizationGeneration`、`summarizeAuthorizationRun` 与 `summarizeAuthorizationPair`：消费哈希绑定的 development-agent review，不能从关键词或 citation 存在性推断正确性。
+
+声明顶层字段为 `schemaVersion/taskId/request/repository/sourceRef/sourceMode/policySources/principals/resources/entries/obligations/scopeAssurance/requiredAnalysis/constraints`。每条 obligation 明确 `principalId/resourceId/relation/operation/expectation/conditions/policySourceId/entryIds`；`expectation` 是规范方向，不是源码观察。结果按 exact expanded ID 返回 `source_supported_failure | source_refuted | unknown`，并给出 entry、binding、control、effect、condition 事实、引用、缺失事实/最小观察和 bounded scope claim。
+
+在仓库根使用四条开发命令：
+
+```powershell
+bun ./src/benchmarks/authorization-dsl/run.ts check
+bun ./src/benchmarks/authorization-dsl/run.ts run --config=./results/skill-ir/skill-dsl-research/development/authorization-v0/comparison-config.json
+bun ./src/benchmarks/authorization-dsl/run.ts evaluate --run-dir=./results/skill-ir/skill-dsl-research/development/authorization-v0/runs/initial
+bun ./src/benchmarks/authorization-dsl/run.ts status
+```
+
+只有 `run` 初始化并调用模型；help、check、evaluate、status 和离线 replay 都不调用 provider。check 写 `development/authorization-v0/check.json` 与 previews；run 按 attempt 写 `runs/<attempt>/run-metadata.json`、index 及逐单元 declaration/source/prompt/dispatch/run；evaluate 写 hash-bound review template、evaluation 和 summary。开发状态、总结果与离线复验分别在 `status.json`、`summary.json`、`offline-replay.json`。
+
+常见错误含：字段路径解析错误；`declaration-source-location-invalid`；`foreign-obligation-result`/`missing-obligation-result`；`citation-text-mismatch`；`semantic-review-missing`；`timeout-unknown`。前四类按诊断修改输入、输出合同或本地结果；review 缺失时必须在全部生成结束后依据 evaluator-only rubric 填写，不能交还被测模型；timeout 表示已发请求的 completion/usage 可能未知，禁止自动重发。运行器在 provider 创建前设置 `SKVM_AUTO_PROBE=0` 和指定 cache；有 `run.json` 的终态及只有 dispatch 的 completion-unknown 单元都不会自动发送。确需新 revision 时使用新 attempt、明确原因和独立目录，保留旧结果。
+
+
 ## 2. 当前端到端流程
 
 ### 2.1 收集真实 trace
@@ -61,6 +91,7 @@ skvm proposals accept <id>
 | Q1/Q2 分类、能力图、发放边界 | [classification-and-routing.md](classification-and-routing.md) |
 | 外部 skill closure | [external-skill-import.md](external-skill-import.md) |
 | 代表案例与适用范围 | [real-skill-pilots.md](real-skill-pilots.md) |
+| 授权任务 DSL 声明、义务、渲染、消费与评价 | [研究开发合同](skill-dsl-research.md#719-v-开发合同与持续复盘)及 [V 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md) |
 
 ## 4. 实现纪律
 

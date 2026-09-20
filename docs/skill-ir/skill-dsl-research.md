@@ -1,10 +1,10 @@
 # Skill 分类与领域 DSL 研究总文档
 
-更新于 2026-09-20。本文件是这条研究路线唯一持续维护的**调研结论正文**，合并 S0–S11、D0–D11 及后续复核。实时执行状态仍由 [current-status](current-status.md) 维护，待办见[当前计划](skill-ir-aot-optimization-plan.md)。
+更新于 2026-09-21。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并 S0–S11、D0–D11 及后续研究，并记录 DSL 实现中发现和解决的问题。实时执行状态仍由 [current-status](current-status.md) 维护，待办见[当前计划](skill-ir-aot-optimization-plan.md)。
 
 ## 1. 当前结论
 
-**E0–E10 与 [T0–T10 授权领域证据与评价定向研究](../superpowers/plans/2026-09-20-authorization-domain-evidence-and-evaluation.md)均已完成；T 状态为 `completed-with-open-questions`。** 方法就绪建议为 `ready-with-bounded-questions`：真实案例、答案隔离、coverage/evidence 分母、评价协议和 fixed-context 消费路径足以支持一个窄原型，但尚无模型消费、跨项目复用或主动发现证据。配置可以承载领域语言；整体方法收益、额外表示收益和确定性一致性分开，旧 C/P parity 不再是默认下一步。I1、本地化实现、正式效果实验及生产开发均未启动。
+**E/T/V 已完成，授权任务 DSL 当前为 `completed-development`、效果 `not-established`。** [V0–V10 开发任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)已经交付“声明→义务→B/D→模型分析→检查→review→评价”闭环，并保留 initial 与 revision 实际结果。唯一完整 initial pair 偏向 D，但另两对及 revision pair 因 timeout 不完整，不能建立总体优势。下一轮优先简化 result/citation transport；I1、本地化、主动发现、第二项目和生产化不自动启动。
 
 已经站得住的判断：
 
@@ -533,6 +533,17 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 旧 E9 的“3–5 engineer-days parity + 2–4 engineer-days paired run”已撤销且不换算为新的日历承诺。替代范围是：一个 experiment-only driver、一个 schema/renderer/validator 组、一个 oracle evaluator、一个聚焦 telemetry wrapper 或修复、约十个 focused tests；测试通过后才计划六次模型运行（三个 matched B/D pair）。这只是可直接写实现计划的工作边界，不是实测工时；本轮 `automaticNextStep=false`，不自动启动实现。
 
+### 7.19 V 开发合同与持续复盘
+
+首版只处理单 repository/ref、fixed-context、source-visible authorization obligation。`src/task-dsl/authorization/` 提供 strict canonical declaration、引用/政策语义、显式 obligation×entry 展开、B/D 同事实渲染和结果/变化验证；`src/benchmarks/authorization-dsl/` 提供 exact input reader、fixed-context host、逐调用 telemetry、hash-bound semantic review、离线 evaluator 和 development runner。领域代码不按 case ID 或 oracle 分支。
+
+执行顺序为 parse→compile→render→宿主附 exact source→structured provider→机械 validate→至多一次 diagnostics-only repair→全部生成结束后读取 evaluator-only rubric。schema tool 只承载结构化返回，不是 executable tool；宿主不暴露文件、命令或网络执行，不执行目标项目，completion-unknown 不自动重发。
+
+B 是信息相当的 organized instruction，D 是 canonical declaration 加 bounded domain support；二者由同一 facts 和 exact runnable output-ID 闭集生成。评价分开 structure、declared disposition、source discovery、citation presence、semantic support、scope honesty 与任务结论，不把 schema/citation 存在性当作正确性，也不把未知费用写成零。
+
+V0–V10 的实际实现、问题触发、根因、修复、验证和方法变化记录在本文件 §12 的 V 日期记录；机器状态、初轮/修订结果与离线 replay 位于 `results/skill-ir/skill-dsl-research/development/authorization-v0/`。当前工程状态为 `completed-development`，效果为 `not-established`；下一最小实现只收窄 schema/fallback 与 citation transport，不自动扩入口发现、第二项目或生产系统。
+
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
@@ -713,6 +724,90 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 
 解析 15 个研究 JSON、40 条来源及 52 条既有 observation，确认 18 条 T1–T9 记录 ID 唯一；三个真实 case 的 8 个 exact input 与 5 个 evaluator-only 文件无交叉，关键 source trace 均能在裁剪输入定位。文档链接单测 12/12 通过；纳入本轮 staged 文件后的 9,310 文件扫描为 broken/legacy/governance error 各 0，三条 `technical-document-localization` 旧引用只按精确 source/target 记为 retired；cached diff check 通过。独立 default-agent 交付审阅 Critical 0，指出的 output index 已补齐；该复核不是人工评审或效果证据。25 个归属文件已进入证据提交 `2118a7d`；current-status、plan、spec 三个 T0 前已 dirty 的共享文件只做本地同步，未吞入该提交。最终状态提交与 `origin/skill-ir-aot` 推送完成后，本轮停止，不自动启动原型。
 
+
+### 2026-09-20 V 开发准备
+
+用户确认进入开发，制定 V0–V10 实施任务书，明确 JSON 声明、义务展开、B/D renderer、结果/覆盖、精确输入、模型宿主、计量和逐事实评价的文件责任。核对现有 provider 与真实 task 字段后，增加实验子进程关闭 auto-probe、显式字段来源映射、trusted-header 入口条件修订和初始/修复结果分开记录。同步当前状态、plan/spec 与开发指南；没有创建运行状态、修改生产代码或发起模型实验。下一动作是 V0 恢复现场、V1 失败测试与领域 schema 实现。
+
+### 2026-09-20 V0 开发现场
+
+以 `50ca563` 且与 `origin/skill-ir-aot` 一致的普通 checkout 启动，保留 20 个既有 tracked 修改和 234 个 untracked porcelain entry；本轮只拥有新授权 DSL、benchmark、development 证据以及可重构的 V 文档块。Bun 1.3.14、Python 3.12.13 和文档检查入口可用；仓库本地 `.skvm` 中存在已配置的 `xty/*` openai-compatible route，真实实验将显式关闭 auto-probe 且不输出凭据。开发状态位于 `development/authorization-v0/status.json`，模型、付费调用和目标执行计数均为零。下一动作是 V1 strict schema 与语义解析红测试。
+
+### 2026-09-20 V1 声明与语义解析
+
+**V1-SEM-01。** 触发：accepted policy 的自由文本可说明规则，却不能让 renderer/validator 稳定区分规范期待是 allow、deny 还是 conditional。根因：任务书最初只列 relation/operation/conditions/policy reference，缺少义务级规范方向。处理：在 obligation 增加 closed `expectation`，保持当前实现 observation 与规范分离；任务书和本节字段表同步。验证：generic record fixture 的 accepted、conflicted、dangling、duplicate 和 empty-obligation 路径共 9 项测试、26 assertions 通过。方法变化：仍是同一 canonical JSON，不增加表示或案例分支。剩余：V2 renderer 必须把 expectation 与 policy 原文同时传入两臂。
+
+**V1-DEV-02。** 触发：Bun 1.3.14 在 Windows 上把不带 `./` 的 test path 当 filter，首次命令未选中测试。根因：任务书命令缺显式相对路径前缀。处理：六处聚焦 test 命令统一加 `./`，随后红灯准确表现为缺少 schema/semantics 模块，再以最小实现转绿。验证：`bun test ./src/task-dsl/authorization/schema.test.ts ./src/task-dsl/authorization/semantics.test.ts` 为 9/9；这不是产品行为问题。剩余：后续所有新 test 命令沿用显式路径。
+
+### 2026-09-20 V2 义务展开与 B/D 渲染
+
+**V2-SEM-01。** 触发：同一 authored obligation 重复列出 entry 时，初版 compiler 产生两个相同 ID。根因：展开直接遍历数组，没有区分 authored duplicate 与独立 obligation。处理：每条 obligation 局部去重、保留 `duplicate-entry-reference` warning；全局 entry 数组仍以 ID 检查歧义。验证：重排、重复、追加 explicit-grantee relation、缺 principal role 和依赖 revision 红测转绿；领域目录为 17/17、86 assertions。方法变化：只展开作者显式 tuple，不引入笛卡尔积或自动关系发现。
+
+**V2-RENDER-02。** B 与 D 从同一 `AuthorizationRenderFacts` 生成；逐项断言 repository/ref、自然请求、政策原文/接受理由、主体、资源、条件、scope、全部分析/约束和结论 enum 确实出现在两个 prompt，而不只存在 sidecar。三份真实 declaration preview 均为一项 runnable obligation、一个源码插槽；B 是 organized Markdown，D 额外显示 canonical facts、compiled plan、dependency/diagnostic state。差异属于整套领域支持，不归因于语法。剩余：实际模型是否利用这些组织差异由 V8 回答。
+
+### 2026-09-20 V3 精确输入、声明与评价修订
+
+**V3-INPUT-01。** 精确 reader 只接受 `inputs/` 下 portable allowlist path，先拒 absolute/parent，再以 realpath 拒 symlink/junction escape；缺文件返回诊断，不递归搜索或扩大目录。bundle 分开 crop-local 行号与 original locations，prompt 不含 oracle bytes。红灯为缺少 inputs 模块，最小实现后 6/6、54 assertions 通过，包含三份真实 manifest/declaration 集成。
+
+**V3-AUTHOR-02。** 三份 declaration 由各自 task/source 可见事实编写，字段来源写入 `authoring-map.json`；没有 disposition、correctDisposition、GHSA 或 fix commit。测试最初错误禁止 `source_supported_failure/source_refuted` 字样，点验后确认这些是原 task 明示的允许结论 enum，故把检查收窄为真正答案字段/标识，保留用户可见 answer contract。方法边界不变：禁止答案泄漏，不禁止任务本身给出的结论集合。
+
+**V3-ORACLE-03。** trusted-header 历史 oracle 漏掉 `ENABLE_PASSWORD_AUTH` 先行 403 和 `authenticate_user_by_email` 必须产出 user 才返回 session。T 原件不改；本轮 evaluator-only revision 新增 entry gate、header gate、identity binding、authentication/session 条件，以及实际配置、ingress/proxy 和 deployed auth outcome 缺口，并加入 control-disabled/auth-failed 反例。expected disposition 仍为 `unknown`；变化只提高条件 trace 与评分要求，不向生成或 repair 暴露。
+
+### 2026-09-20 V4 结果、证据与变化状态
+
+**V4-RESULT-01。** 触发：单一 pass/fail 会把“返回了答案”“引用存在”“引用支持”和“全范围完成”混在一起。处理：新增 strict `AuthorizationResultV0` 与 validation envelope，分列 declared/discovery/evidence presence/evidence support/completeness；missing/duplicate/foreign obligation、ref mismatch、越界/错 quote、缺 fact group、无内容 unknown 和 repository-complete 各有独立 diagnostic。验证：10 项红测先失败于缺 result 模块，最小实现后 10/10、33 assertions；领域全套 27/27、119 assertions。方法变化：deterministic host 只把 citation 判为 present/invalid，semantic support 初始永远 `unreviewed`。
+
+**V4-CHANGE-02。** 相关 source digest、policy 内容/revision/status 或 obligation semantics 改变均标 `needs-review`；仅 source ref 改变且所有 bounded dependencies 相同，也必须先有宿主记录的 entry-universe-unchanged reuse basis 才能标 `reusable`。旧 parsed result/ref 原样保留。空 obligation 分母给 `needs-input` 和 null completion，不产生 100%。剩余：V5 host 需把这些机械 diagnostics 用作有界 repair，而不能把 oracle 或 semantic review 注入修复。
+
+### 2026-09-20 V5 固定上下文宿主与逐次计量
+
+**V5-HOST-01。** mock 红测先失败于缺少 telemetry/host 模块；实现后，宿主只暴露不执行的 `submit_authorization_result` schema tool，统一附加一次 exact source，检查 task/bundle repository/ref/mode，并仅把 actionable 机械 diagnostics 连同原可见输入送入至多一次 domain repair。初始与修复结果分别保留；未知工具名作为 protocol failure，不进入 tool-result continuation。无响应 timeout 保留 pending attempt，返回 `timeout-unknown` 且不重发。
+
+**V5-TELEMETRY-02。** 每个底层 `provider.complete` 在调用前建 attempt，schema tool 无调用而 fallback 成功会保留两条 response；无响应异常保留 error 与 unknown usage/cost，缺一个 USD 时总 actual USD 为 null、已知小计仍保存。原始生成文本、tool arguments、tokens、duration 和 stop reason 保留，常见 authorization/token/secret 值在持久化副本中遮蔽；provider 内部重试次数不可见，明确记为 unknown，不伪造计数。
+
+**V5-SCHEMA-03。** 触发：实际发送 schema 的测试发现 citation 使用 `superRefine` 后，现有 Zod→JSON Schema 转换器把嵌套 citation 退化为空对象。根因是通用转换器不展开 `ZodEffects`。处理：不扩大共享 provider 变更；结果 citation 保持普通 strict object，使 path/startLine/endLine/quote 全部进入模型 schema，`endLine >= startLine` 仍由已有 deterministic validator 检查并产生 `citation-out-of-range`。验证：host/telemetry 加领域全套 36/36、155 assertions，`bun run typecheck` 退出 0。方法边界不变，模型/付费/目标调用仍为零；剩余是 V6 语义 review 与 V7 实验入口。
+
+### 2026-09-20 V6 语义 review、质量判断与配对统计
+
+**V6-REVIEW-01。** evaluator-only `rubrics.json` 把两个 base oracle 和 trusted-header revision 转为三个可验证 rubric；后者使用六项修订事实，expected disposition 仍为 unknown。review 必须逐项给 `supported/contradicted/missing/uncertain`、理由、answer JSON pointer、exact bundle source location 与 oracle rule，并绑定输出 attempt、raw-output digest 和 rubric version；missing 使用 null answer location，未解析/重复/陌生事实、失效 pointer、错误 source/rule/binding 均阻止程序给出语义结论。宿主 artifact 因此增加逻辑 generation 涉及的 provider attempt IDs 与实际输出 attempt ID，不改变调用。
+
+**V6-SCORE-02。** 六种手写形状固定了语义边界：正确改述 full success；包含正确关键词但因果反转仍失败；漏上游 control、漏 entry gate、bare unknown 和 source-decidable all-unknown 均不能靠 schema/citation 得分。程序不匹配关键词，只消费人工填写的 development-agent review；把任一必要事实从 supported 改为 uncertain，会从 true 变为 needs-review/null，而不是暗自判真。`taskDecisionCorrect` 只有 label、全部关键事实、disposition support、scope honesty 和 deterministic checks 同时通过才为 true；partial/incorrect/needs-review 和 false-positive/negative、deployment inference、false completeness、evidence decoration、excessive abstention 分列。
+
+**V6-AGG-03。** run summary 保留 initial/repair/final quality、两阶段 diagnostics、schema/fallback/domain-repair 次数、已知 token、已知 elapsed 小计、unknown duration、已知 USD 小计和 unknown total；pair summary 只计算 D−B 差值，不把未知费用改为零。红测先失败于 evaluator 不存在；最小实现后 benchmark+domain 为 47/47、228 assertions。类型检查随后捕获 mixed review status 数组被 TypeScript 扩成 `string[]`，根因点验后仅增加显式 union 类型，focused tests 与 typecheck 均转绿。模型、付费和目标执行仍为零；V7 负责入口与离线演练，V8 后才填写六份实际 review。
+
+### 2026-09-20 V7 开发入口、恢复语义与离线演练
+
+**V7-RUNNER-01。** `comparison-config.json` 在结果前固定 `xty/gpt-5.6-sol`、仓库本地 `.skvm` route、temperature 0、180000 ms timeout、6000 max output tokens、provider 未报告的 context limit、一次 domain repair、file→text→header 案例顺序和 B/D→D/B→B/D 臂顺序。run 在 lazy provider import/creation 前设置 `SKVM_AUTO_PROBE=0` 与 exact cache；help/check/evaluate/status 没有 provider factory 路径。每个单元先保存 config/declaration/source/prompt 与 dispatch，再调用宿主；存在 run.json 的终态或只有 dispatch 的 completion-unknown 均不自动重发，新尝试必须换 attempt 并写原因。
+
+**V7-OFFLINE-02。** `check` 验证 manifest/source/ref、strict declaration、compiled obligation、rubric fact/obligation/source location、每 case 唯一 B/D，并输出声明、file list、诊断和六份 exact-source preview。注入 mock provider 的测试完成 6 单元 generation、同目录恢复 0 重发、显式 review、6 个 unit summary 和 3 个 pair summary；随后 CLI evaluate 证明不创建 provider。真实 `--help/check/status` 各以 0 退出，check diagnostics 为零；这一演练只证明接线，不是模型或方法效果证据。
+
+**V7-INPUT-03。** 触发：check preview 同时显示 declaration entry 1–75 与 exact reader crop 1–74。根因是声明作者把终止换行当作可引用空行，reader 则按实际文本行计数；五个 source 文件均有同类差一。处理：加入 declaration location 必须落在 exact bundle 的 invariant，把五个 endLine 收敛为 74/44/52/13/62，并重生成 preview/check。验证：runner 红测先收到 75>74，最终领域+benchmark 全套 50/50、276 assertions 与 typecheck 通过。方法未改变，只消除模型可见允许范围与宿主引用验证的不一致；真实模型调用仍为零。
+
+### 2026-09-20 V8 三组真实 B/D 生成与离线评价
+
+**V8-RUN-01。** 触发：按冻结配置运行 file→text→trusted-header 六单元。结果：file B/D、text B、trusted-header D 完成；text D 在 schema response 后的 prompt fallback pending，trusted-header B 在首个 schema request pending，均于 180 秒截止并标记 `timeout-unknown`。处理：遵守 completion-unknown 不重发，保留两次失败及未知 usage/cost；其余生成全部结束后才读取 rubric。验证：index 记录四 completed、两 failed-terminal，所有六个目录均保留 dispatch、prompt、declaration、source bundle 与 run artifact；没有目标执行、网络搜索、oracle 暴露或替换案例。方法变化：三 pair 计划不变，但首轮 pair completeness 明确为 1/3，不能把单臂结果拼成三对。
+
+**V8-REVIEW-02。** 触发：四个完成单元需要逐事实判定而机械 citation 合法性不足以证明语义。处理：填写八份绑定 actual attempt、raw-output SHA-256、rubric revision、answer pointer、exact source location 与 oracle rule 的 development-agent review；两个 timeout 单元不造 answer/review。file 与 text 完成答案的关键事实均有源码支持；trusted-header D 正确保持 deployment unknown，但没有完整陈述 authentication failure 不发 session，也未列齐 control-disabled、auth-failed、safe-proxy、attacker-header-reachable 四个条件结果，相关两项记 missing。验证：离线 evaluator 接受全部绑定 review，得到 file B partial/D full-success、text B full-success、trusted-header D partial，整体按缺两臂保持 incomplete。
+
+**V8-FAILURE-03。** 触发：四个 completed initial outputs 中三个使用 authored obligation ID，而 contract 要求 expanded `author::entry` ID；三者因此同时出现 foreign/missing-obligation diagnostics。另有三个初始答案和两个修复答案出现 citation-text mismatch，修复后的 trusted-header D 还保留上述两项语义遗漏。根因：前者是 arm-neutral 输出合同没有把 exact runnable output IDs 列成显式闭集；citation 问题来自模型给出与 crop 不完全一致的行/quote；trusted-header 缺口属于模型条件推理。下一步：V9 先用红测试修 exact-ID 共享接口，只选择一个受影响案例做独立 B/D revision；不按案例注入答案，不把模型推理或 timeout 伪装成 renderer 缺陷。
+
+### 2026-09-21 V9 共享 exact-ID 修订与一次受影响配对
+
+**V9-ID-01。** 触发：首轮三个 completed initial outputs 使用 authored ID，domain repair 才改成 expanded ID。根因：shared result contract 没有列出输出键闭集；D 的 compiled plan 虽含 expanded ID，也仍出现同类错误，说明自然语言合同优先级不足。处理：红测试先证明 B/D contract 均缺 exact list，再由 renderer 从 compiled runnable obligations 生成共同 closed list，并明确禁止 authored/omitted/foreign ID。验证：红测试按预期失败；实现后 focused authorization suite 51/51、284 assertions，revision config 离线 valid；两臂首个 schema response 均使用 exact expanded ID。方法变化：只增强共同输出合同，不改变事实、结论、oracle、输入或两臂方法差异。
+
+**V9-RUN-02。** 仅按运行前记录追加 file B/D revision。B schema response 使用正确 ID，但缺必填数组且在 `results` 混入字符串；fallback 在 180 秒 pending，保留 `timeout-unknown`。D 使用正确 ID，initial 因八项 citation-text mismatch 为 partial，一次 diagnostics-only repair 后 full-success。四次 provider call 中三次有 response、一次 usage/completion unknown；已知 10,612 input、5,187 output tokens，actual USD 总额 unknown。修订 pair 不完整，未与首轮拼接。剩余问题按层归属：schema/fallback 是 transport，citation 是证据表达，trusted-header 事实遗漏是条件推理，timeout 是 completion unknown；本轮不再追加调用。
+
+**V9-NEXT-03。** 下一轮选择“先简化领域支持”，不是增加入口发现或直接迁移第二项目。最小实现应在现有 fixed-context file/text 任务上减少结论明确时的非必要观察字段、让 schema tool/fallback 接受同一窄形状，并设计能由宿主可靠核验的 citation 表达；以无 repair 完成率和 completion-unknown 率作为门槛。理由是本轮 18 次 provider call 中有 3 次 pending-at-timeout，已完成答案又普遍依赖 citation repair，扩大入口/项目会先放大成本而不是检验领域收益。
+
+### 2026-09-21 V10 离线复验、工程收口与独立复核
+
+**V10-REPLAY-01。** 用归档声明、exact source bundle、模型回答和既有 hash-bound semantic review 重跑 parse、compile、validate 与 summary；所有 compiled/validation 对照一致，两份 evaluation-summary digest 不变，记录为 `reproduced`。这次复验没有 provider call、目标执行或新语义判断，也没有把已有 review 冒充重评。
+
+**V10-VERIFY-02。** 新鲜验证为 authorization 51/51、284 assertions，主 typecheck 通过，文档单测 12/12，链接/治理检查无 broken、legacy 或 governance error，94 份 authorization-v0 JSON 全部可解析。独立只读复核未发现 critical defect 或凭据材料，确认 exact-ID 改动由共同 compiled obligations 生成、两臂一致；其指出的状态/checklist 收口已在发布流程中处理。
+
+**V10-DELIVERY-03。** 交付范围限定为 development-only canonical declaration、compiler、B/D renderer、fixed-context zero-executable-tool host、validator/change state、逐调用计量、hash-bound review、evaluator 与可恢复 runner；不包含生产 CLI、入口发现、target execution、patch、held-out 或跨项目主张。工程状态可为 `completed-development`，比较状态仍为 incomplete/effectiveness `not-established`。下一轮最小实现只收窄 schema/fallback 与 citation transport，并在原 fixed-context 案例测无 repair completion 和 completion-known rate。
+
+
 ## 13. 原始证据索引（只在需要细节时读取）
 
 | 内容 | 原件 |
@@ -725,5 +820,6 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | D 当时提出的实现交接、状态 | [handoff](../../results/skill-ir/dsl-semantics-readiness-20260920/implementation-handoff.md)、[status](../../results/skill-ir/dsl-semantics-readiness-20260920/status.json) |
 | E 外部来源、观察、方法对照、反例与持续状态 | [sources](../../results/skill-ir/skill-dsl-research/sources.jsonl)、[observations](../../results/skill-ir/skill-dsl-research/observations.jsonl)、[method comparisons](../../results/skill-ir/skill-dsl-research/method-comparisons.json)、[consumption](../../results/skill-ir/skill-dsl-research/consumption-design.json)、[challenge](../../results/skill-ir/skill-dsl-research/challenge-review.json)、[status](../../results/skill-ir/skill-dsl-research/status.json) |
 | T 授权真实案例、允许输入、独立答案与原型决定 | [manifest](../../results/skill-ir/skill-dsl-research/cases/authorization/manifest.json)、[walkthrough](../../results/skill-ir/skill-dsl-research/manual-design-walkthrough.json)、[prototype decision](../../results/skill-ir/skill-dsl-research/prototype-readiness-decision.json)、[targeted status](../../results/skill-ir/skill-dsl-research/targeted-study-status.json) |
+| V 授权 DSL 开发、真实运行、复验与总结果 | [status](../../results/skill-ir/skill-dsl-research/development/authorization-v0/status.json)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-v0/summary.json)、[offline replay](../../results/skill-ir/skill-dsl-research/development/authorization-v0/offline-replay.json)、[initial](../../results/skill-ir/skill-dsl-research/development/authorization-v0/runs/initial)、[revision](../../results/skill-ir/skill-dsl-research/development/authorization-v0/runs/revision-1-expanded-id-contract) |
 
 原件中的 nextAction、frozen、proceed-narrow 代表当时阶段；当前选择以本文件第 1 节及 current-status 为准，不因保留原件而重新启动旧任务。

@@ -1,6 +1,6 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-09-14
+**最后更新：** 2026-09-21
 
 **当前已确认路线：** 第 14.32 节与[单次真实运行到新程序包任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1，状态 `completed-development`。沿用已实现的采集、JIT 优化和导出组件，已补齐原始输入内容、本地程序修改、修复动作采纳和同一新包的连续消费。U/G/H/R 历史结果原样保留；本轮结论仍限于一个有界新程序职责。Q1/held-out、旧 0/6、readiness 与冻结结果不变。
 
@@ -2439,3 +2439,13 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **revision 2 补充合同：** skill 深读以原文、依赖与真实 trace 的模式比较进入生产代码和测试，不以阅读规模证明泛化。已有通用 action 支持模型写程序，但不等于自动实现领域流程。F6.1 轻量骨架只处理共享参数、遍历和产物交接，业务处理来自来源复用或模型实现；框架、模型和源脚本贡献分列。不另建 workflow DSL，语义判断继续留给 agent；至少接管两个可连续的机械步骤并产出任务文件，checker-only 不计执行型流程完成。
 
 **迁移范围：** 固定优化得到的同一包，分别检查消费模型变化与实际环境变化。模型调用、参数、程序输出、残余任务和总体质量独立记录；原包/新包在每个模型内部匹配比较。首轮小矩阵仅提供兼容性与局部差异，不声明总体稳定性提高。换 cwd、同宿主隔离依赖和跨操作系统是不同范围；只测其一不推导其他范围。迁移失败若修订包，则新版本另记，旧通过不自动继承。历史 Stage N 主张不因本轮计划而升级。
+
+## 14.34 按 skill/task 范围设计领域 DSL
+
+到 2026-09-21，单 repository/ref、source-visible authorization/trust-boundary assessment 的 V0–V10 development 原型已实现并真实运行。该结果只证明一条有界工程链可运行；对照不完整，不能声称整套方法有效、跨项目复用或生产就绪。
+
+**V 实现边界。** 使用 strict canonical JSON、显式 obligation×entry expansion、B/D 同事实 renderer、exact allowed-input host、零 executable tools、一次 diagnostics-only repair、逐 provider-call telemetry、deterministic validation、hash-bound development-agent review 和离线 evaluator。没有新产品 CLI、repository discovery、target execution、patch 或 held-out；oracle 只在全部生成结束后进入评价，completion-unknown 不重发。
+
+**V 实际结果。** initial 6 单元中 4 完成、2 timeout-unknown，只有 file pair 完整：B final partial、D full-success，D 少 1 call、2,353 input、3,537 output、1,408 cache-read tokens 与 109,057.317 ms 已知时间，但一个 pair 不支持总体优势。共享 exact expanded-ID 缺陷经红测试和 arm-neutral contract 修复；revision 两臂首响应均使用正确 ID，但 B fallback timeout，D citation repair 后 full-success，pair 仍不完整。两轮共 18 calls、15 responses、3 pending-at-timeout，已知 57,172 input、31,770 output、1,408 cache-read tokens，actual USD 全部 unknown。离线 replay 重算一致且未产生新语义判断。
+
+**V 后续最小范围。** 当前选择先简化领域支持：让 schema-tool 与 fallback 使用同一窄结果形状，并把 citation 改为模型可稳定表达、宿主可确定映射和核验的形式。先在现有 fixed-context development 案例测无 repair completion 与 completion-known rate；稳定前不新增入口发现、第二项目、跨项目效果或生产化主张。任务与证据见 [V0–V10 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)和 [development summary](../../results/skill-ir/skill-dsl-research/development/authorization-v0/summary.json)。

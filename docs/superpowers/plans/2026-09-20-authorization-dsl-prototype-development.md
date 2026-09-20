@@ -224,11 +224,11 @@ bun ./src/benchmarks/authorization-dsl/run.ts status
 
 ### V8 — 三组真实 B/D 配对
 
-- [ ] 执行预定六个生成单元，每个 fresh context；失败单元也保留，不换案例。第一组同样进入正式分母，不额外跑有答案反馈的 warmup。
-- [ ] 每个单元保留声明、实际发出的 prompt、原始回答、结构化结果、机器诊断、attempts 与成本可得性；不记录密钥或完整请求头。
-- [ ] 完成所有生成后按 V6 逐项评价。被测运行看到的资料不含 oracle、既有回答或评分。
-- [ ] 比较 task correctness、关键控制 trace、false positive/negative、范围表述与开销，报告具体改善/退化位置。
-- [ ] 若 provider 不可用，不反复烧调用；记录未运行单元及原因，继续 V10 的代码交付和恢复说明。若已发请求结果未知，保留未知成本。
+- [x] 执行预定六个生成单元，每个 fresh context；失败单元也保留，不换案例。第一组同样进入正式分母，不额外跑有答案反馈的 warmup。
+- [x] 每个单元保留声明、实际发出的 prompt、原始回答、结构化结果、机器诊断、attempts 与成本可得性；不记录密钥或完整请求头。
+- [x] 完成所有生成后按 V6 逐项评价。被测运行看到的资料不含 oracle、既有回答或评分。
+- [x] 比较 task correctness、关键控制 trace、false positive/negative、范围表述与开销，报告具体改善/退化位置。
+- [x] 若 provider 不可用，不反复烧调用；记录未运行单元及原因，继续 V10 的代码交付和恢复说明。若已发请求结果未知，保留未知成本。
 
 **完成：** 有完整六单元的结果或明确未执行原因；三个条件样本来自一个真实项目/ref，分别统计，不扩写为多个独立项目。
 
@@ -236,23 +236,25 @@ bun ./src/benchmarks/authorization-dsl/run.ts status
 
 **2026-09-21 revision 1（运行前记录）：** 首轮四个 completed initial outputs 中三个把 authored obligation ID 写入 `obligationId`，机械验证均报 `foreign-obligation-result` 与 `missing-obligation-result`；B/D 都出现，且 domain repair 能在三个案例中纠正 ID，故定位为共享输出合同不够显式，而不是案例语义或 arm 专属优势。V9 只把 exact runnable expanded IDs 作为 closed list 放入两臂共同 result contract，不加入 oracle、结论或案例分支。以 `comparison-config-v9-expanded-id.json` 仅重跑受影响且首轮双臂均完成的 file pair，保留首轮结果，不重发两个 timeout-unknown 单元。
 
-- [ ] 逐个失败归因到声明、renderer、输入、结构化传输、领域状态、模型推理或评价依据，在研究正文记录最小反例和根因。
-- [ ] 若存在可定位共享实现缺陷，先加失败测试再修复；工程调试可正常迭代。不得按 case 名输出正确答案，或把 oracle 事实塞进模型任务。
-- [ ] 如果修订会影响效果，记录新的代码/配置 revision，最多追加一轮受影响案例的 B/D 成对运行；初轮与修订后结果各自汇总，不拼接成全成功。
-- [ ] 若两臂均正确、差异很小，保留该观察，完成可用性、代码和文档工作；不为制造优势临时扩样。若无可定位修复，就交付具体模型/方法问题和证据。
-- [ ] 输出下一步选择：继续相同语义的第二项目、增加入口发现，或先简化领域支持。选择要引用实际错误和开销，不只给状态标签。
+**Revision 1 结果：** 两臂的首个 schema response 都使用了正确 expanded ID，目标缺陷已消除。B 的 schema response 另有缺字段/混入字符串，fallback 于 180 秒仍 pending，故保持 `timeout-unknown`；D initial 只剩八项 citation-text mismatch，一次 repair 后 full-success。修订 pair 因 B 超时仍不完整，不与首轮拼接为成功 pair。下一步选择“先简化领域支持”：优先收窄/增强 result 与 citation transport，再考虑入口发现或第二项目。
+
+- [x] 逐个失败归因到声明、renderer、输入、结构化传输、领域状态、模型推理或评价依据，在研究正文记录最小反例和根因。
+- [x] 若存在可定位共享实现缺陷，先加失败测试再修复；工程调试可正常迭代。不得按 case 名输出正确答案，或把 oracle 事实塞进模型任务。
+- [x] 如果修订会影响效果，记录新的代码/配置 revision，最多追加一轮受影响案例的 B/D 成对运行；初轮与修订后结果各自汇总，不拼接成全成功。
+- [x] 若两臂均正确、差异很小，保留该观察，完成可用性、代码和文档工作；不为制造优势临时扩样。若无可定位修复，就交付具体模型/方法问题和证据。
+- [x] 输出下一步选择：继续相同语义的第二项目、增加入口发现，或先简化领域支持。选择要引用实际错误和开销，不只给状态标签。
 
 **完成：** 首轮运行产生的工程问题得到处理或解释，后续研究问题来自真实使用。
 
 ### V10 — 工程交付、复盘与发布
 
-- [ ] 复跑受修改影响的测试和主 typecheck；新增 benchmark 必须在现有 tsconfig 检查范围内。真实付费调用不作为每次回归的默认动作。
-- [ ] 一次离线复验：用已归档输入和回答重跑 parse/compile/validate/汇总，与已记录结果比较；语义 review 复用并注明，没有把离线重算算成新判断。无需创建历史 clean archive 或重做全量审计。
-- [ ] 补齐公开函数、字段说明、错误示例和四条实际命令，明确运行哪一步会调用模型、输出在哪里、如何恢复；研究正文保留简明当前设计和开发复盘。
-- [ ] `status.json` 标明 engineeringStatus、comparisonStatus、nextAction；`summary.json` 列实际交付、初轮/修订结果、已知/未知成本、未解决项与具体下一动作。不以获得正向效果作为代码完成的唯一标准。
-- [ ] 文档单测、变更文件链接检查和 `git diff --check` 各做一次；涉及共享逻辑时做相应回归，不扩大成历史材料复核。
+- [x] 复跑受修改影响的测试和主 typecheck；新增 benchmark 必须在现有 tsconfig 检查范围内。真实付费调用不作为每次回归的默认动作。
+- [x] 一次离线复验：用已归档输入和回答重跑 parse/compile/validate/汇总，与已记录结果比较；语义 review 复用并注明，没有把离线重算算成新判断。无需创建历史 clean archive 或重做全量审计。
+- [x] 补齐公开函数、字段说明、错误示例和四条实际命令，明确运行哪一步会调用模型、输出在哪里、如何恢复；研究正文保留简明当前设计和开发复盘。
+- [x] `status.json` 标明 engineeringStatus、comparisonStatus、nextAction；`summary.json` 列实际交付、初轮/修订结果、已知/未知成本、未解决项与具体下一动作。不以获得正向效果作为代码完成的唯一标准。
+- [x] 文档单测、变更文件链接检查和 `git diff --check` 各做一次；涉及共享逻辑时做相应回归，不扩大成历史材料复核。
 - [ ] 只提交本轮归属代码、数据与文档块，推送 `origin/skill-ir-aot`。混有他人内容的文档按修改块处理；无法可靠归属的内容保留并明确未发布。
-- [ ] 更新 conversation log、当前状态与计划；完成后交付，不自动换类别或扩成长时间新队列。
+- [x] 更新 conversation log、当前状态与计划；完成后交付，不自动换类别或扩成长时间新队列。
 
 ## 四、研究总文档怎样记录开发历程
 

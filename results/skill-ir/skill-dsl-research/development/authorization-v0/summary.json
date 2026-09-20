@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "authorization-dsl-development-summary/v0",
+  "createdAt": "2026-09-21T00:18:35+08:00",
+  "taskbook": "docs/superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md",
+  "engineeringStatus": "completed-development",
+  "comparisonStatus": "initial-and-revision-incomplete",
+  "scope": {
+    "implemented": "A development-only canonical JSON authorization declaration, deterministic obligation compiler, information-equivalent B/D renderers, exact fixed-context input loader, zero-executable-tool model host, result validator, complete attempt telemetry, hash-bound semantic review, offline evaluator, and resumable development runner.",
+    "excluded": [
+      "production CLI or scheduler",
+      "repository-wide entry discovery",
+      "target project execution or live deployment probing",
+      "patch generation",
+      "general security-analysis language",
+      "held-out or cross-project effectiveness claims"
+    ]
+  },
+  "deliverables": {
+    "domainCode": "src/task-dsl/authorization/",
+    "benchmarkCode": "src/benchmarks/authorization-dsl/",
+    "declarations": "results/skill-ir/skill-dsl-research/development/authorization-v0/declarations/",
+    "evaluation": "results/skill-ir/skill-dsl-research/development/authorization-v0/evaluation/",
+    "initialRun": "results/skill-ir/skill-dsl-research/development/authorization-v0/runs/initial/",
+    "revisionRun": "results/skill-ir/skill-dsl-research/development/authorization-v0/runs/revision-1-expanded-id-contract/",
+    "offlineReplay": "results/skill-ir/skill-dsl-research/development/authorization-v0/offline-replay.json"
+  },
+  "initialComparison": {
+    "plannedUnits": 6,
+    "completedUnits": 4,
+    "timeoutUnknownUnits": 2,
+    "completePairs": 1,
+    "plannedPairs": 3,
+    "unitOutcomes": [
+      { "unit": "owui-process-file-write/B", "initial": "incorrect", "final": "partial" },
+      { "unit": "owui-process-file-write/D", "initial": "partial", "final": "full-success" },
+      { "unit": "owui-process-text-controlled/D", "initial": "timeout-unknown", "final": "timeout-unknown" },
+      { "unit": "owui-process-text-controlled/B", "initial": "incorrect", "final": "full-success" },
+      { "unit": "owui-trusted-header-deployment/B", "initial": "timeout-unknown", "final": "timeout-unknown" },
+      { "unit": "owui-trusted-header-deployment/D", "initial": "incorrect", "final": "partial" }
+    ],
+    "completePairObservation": {
+      "caseId": "owui-process-file-write",
+      "BFinal": "partial",
+      "DFinal": "full-success",
+      "DMinusB": {
+        "providerCalls": -1,
+        "inputTokens": -2353,
+        "outputTokens": -3537,
+        "cacheReadTokens": -1408,
+        "knownElapsedMs": -109057.317
+      },
+      "interpretation": "This one complete pair favors D but is insufficient to establish a general method advantage."
+    },
+    "operations": {
+      "providerCalls": 14,
+      "respondedCalls": 12,
+      "pendingAtTimeoutCalls": 2,
+      "knownTokens": { "input": 46560, "output": 26583, "cacheRead": 1408, "cacheWrite": 0 },
+      "knownElapsedMsSubtotal": 895965.9503,
+      "actualUsd": null,
+      "actualUsdStatus": "unknown",
+      "unknownCostCalls": 14
+    }
+  },
+  "revisionComparison": {
+    "change": "Both arms now list exact runnable expanded obligation IDs as a closed result-contract set and forbid authored, omitted, or foreign IDs.",
+    "affectedCase": "owui-process-file-write",
+    "plannedUnits": 2,
+    "completedUnits": 1,
+    "timeoutUnknownUnits": 1,
+    "completePairs": 0,
+    "targetedDefectResult": "Both arms' first schema responses used the correct expanded obligation ID; the foreign/missing-obligation defect was removed.",
+    "unitOutcomes": [
+      { "unit": "owui-process-file-write/B", "initial": "timeout-unknown", "final": "timeout-unknown", "note": "The schema response used the exact ID but had a different invalid shape; fallback completion remained unknown." },
+      { "unit": "owui-process-file-write/D", "initial": "partial", "final": "full-success", "note": "Eight citation-text mismatches triggered the one allowed repair." }
+    ],
+    "operations": {
+      "providerCalls": 4,
+      "respondedCalls": 3,
+      "pendingAtTimeoutCalls": 1,
+      "knownTokens": { "input": 10612, "output": 5187, "cacheRead": 0, "cacheWrite": 0 },
+      "knownElapsedMsSubtotal": 228250.6478,
+      "actualUsd": null,
+      "actualUsdStatus": "unknown",
+      "unknownCostCalls": 4
+    },
+    "interpretation": "The interface defect is fixed, but paired task-quality impact is unmeasured because B timed out; the revision is not combined with the initial denominator."
+  },
+  "combinedAccounting": {
+    "providerCalls": 18,
+    "respondedCalls": 15,
+    "pendingAtTimeoutCalls": 3,
+    "knownTokens": { "input": 57172, "output": 31770, "cacheRead": 1408, "cacheWrite": 0 },
+    "knownElapsedMsSubtotal": 1124216.5981,
+    "actualUsd": null,
+    "actualUsdStatus": "unknown",
+    "unknownCostCalls": 18,
+    "targetExecutions": 0,
+    "reviewerModelCalls": 0
+  },
+  "verification": {
+    "authorizationTests": { "passed": 51, "failed": 0, "assertions": 284 },
+    "typecheck": "passed",
+    "documentationUnitTests": { "passed": 12, "failed": 0 },
+    "documentationLinkCheck": "passed-with-existing-soft-line-limit-warnings",
+    "parsedAuthorizationJsonArtifacts": 94,
+    "offlineReplay": "reproduced-with-zero-model-and-zero-target-calls",
+    "independentReview": "no-critical-findings"
+  },
+  "methodFeasibility": {
+    "engineering": "feasible-for-bounded-development",
+    "effectiveness": "not-established",
+    "evidence": [
+      "The same declaration compiles and renders both arms without case-specific code.",
+      "Exact source, output validation, semantic review, repair accounting, resume behavior, and offline replay are operational.",
+      "One initial pair completed and favored D, while two initial pairs and the revision pair were incomplete due timeout-unknown calls.",
+      "Completed answers frequently required repair for output IDs or citation fidelity; trusted-header D retained two critical semantic omissions."
+    ]
+  },
+  "unresolvedIssues": [
+    "Schema-tool and prompt-fallback outputs do not yet share a sufficiently reliable narrow shape; one revision B schema result mixed an object and a string and omitted a required array.",
+    "Exact quotation and crop-line citations are a dominant repair trigger even when the semantic trace is correct.",
+    "Three provider calls have unknown completion, usage, and cost after the host cutoff; no retries were issued.",
+    "Actual USD cost is unavailable for all eighteen calls.",
+    "The trusted-header result did not fully state the authentication failure branch or all four conditional deployment outcomes.",
+    "Only one project/ref and one complete B/D pair were observed; no cross-project or repository-discovery claim is supported."
+  ],
+  "nextAction": {
+    "selection": "simplify-domain-support",
+    "minimumImplementation": [
+      "Use one narrower schema shape across schema-tool and fallback paths, making observations conditional on unknown rather than boilerplate for decisive conclusions.",
+      "Replace model-guessed crop line/quote pairs with a citation representation that the host can map and verify deterministically against numbered fixed context.",
+      "Re-run only the existing fixed-context development cases until no-repair completion and completion-known rates are measurable; do not add entry discovery or a second project first."
+    ],
+    "successCriteria": [
+      "Both arms parse without fallback-shape divergence.",
+      "Correct semantic answers do not require citation-only repair.",
+      "A complete B/D pair is obtained without retrying completion-unknown calls."
+    ]
+  }
+}

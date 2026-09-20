@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "authorization-semantic-review/v0",
+  "caseId": "owui-process-file-write",
+  "taskId": "owui-process-file-write",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "b64d3578d59884bdc29982e4df454dcbb5017fd7ab9af8a48262074fd6a2a171",
+  "rubricVersion": "owui-process-file-write-oracle/v1",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "codex-development-agent-v9"
+  },
+  "factReviews": [
+    {
+      "factId": "source-file-ownership-check",
+      "status": "supported",
+      "reason": "The bound answer identifies that source retrieval is constrained by Files.get_file_by_id(file_id, user.id), so the source lookup is caller-bound.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 40,
+          "endLine": 44
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/0"
+    },
+    {
+      "factId": "destination-is-distinct",
+      "status": "supported",
+      "reason": "The bound answer distinguishes the source file_id from the destination knowledge.id and reasons about them as separate authorization objects.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/task.json",
+          "startLine": 6,
+          "endLine": 8
+        },
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 21,
+          "endLine": 24
+        },
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 45,
+          "endLine": 50
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/1"
+    },
+    {
+      "factId": "destination-write-control-absent",
+      "status": "supported",
+      "reason": "The bound answer states that the route calls add_file_to_knowledge_by_id without first enforcing a destination knowledge-base write grant.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 45,
+          "endLine": 53
+        },
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 55,
+          "endLine": 74
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/2"
+    },
+    {
+      "factId": "destination-reaches-insert",
+      "status": "supported",
+      "reason": "The bound answer connects the unchecked destination to the downstream KnowledgeTable.insert path that mutates membership.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 14,
+          "endLine": 18
+        },
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 62,
+          "endLine": 74
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/3"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The bound answer reaches the source-supported failure disposition: caller-bound source access does not establish authorization to mutate the distinct destination knowledge base.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+        "startLine": 14,
+        "endLine": 18
+      },
+      {
+        "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+        "startLine": 40,
+        "endLine": 50
+      },
+      {
+        "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+        "startLine": 62,
+        "endLine": 74
+      }
+    ],
+    "oracleRule": "oracles/owui-process-file-write.json#/disposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The scope claim remains limited to the supplied route and helper excerpts and does not generalize to unrelated authorization paths.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-file-write/task.json",
+        "startLine": 6,
+        "endLine": 18
+      }
+    ],
+    "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0"
+  }
+}

@@ -1,6 +1,6 @@
 # Skill IR 当前状态
 
-- 更新日期：2026-09-15
+- 更新日期：2026-09-21
 - F10 后继完成：模型使用已消费包与两份真实消费日志产出修订包；3/3 自然消费、15/15 结构检查通过，同宿主隔离通过。共享修复 Pi 操作识别、部署根匹配及局部 IO 归属后，一次仅元数据修复使同一包内部 2/2 案例通过，独立案例仍为 0。新配对 effect=negative（工具 62→64，input 58828→190516），不继承旧效果。完整入口：本轮结果根 `completion-audit.json`、`final-report.json`、`final-costs.json`。
 - F9/F10 当前：F9.9 模型报告 finalizer 已按原事件精确恢复，同一包完成两个模型×原/变化任务×source/optimized 的八单元消费；当前共享离线验证 help/case 通过、独立 case=0。用户确认最小语义门禁后，JSON 排版/对象键序、报告集合顺序和无影响空表示不再误拒绝，历史结果保留。新口径原/新各 4/4，但总体效果 negative：工具调用 90→99、input +104.4%、duration +98.4%，实际美元未知。证据见 `f9/consumption-effect.json` 与 `f9/attempt-reconciliation-through-f9-10.json`。最新受影响回归 101/101、491 assertions、typecheck 与文档测试通过。
 - 工作分支：`skill-ir-aot`
@@ -225,3 +225,11 @@ S0–S11 已完成 development 方法准备；本节覆盖本页上方较早阶�
 - **下一执行任务：** 仅做五项最小实现：窄 schema/semantic validator；obligation ledger/plan renderer；保存与完整性 checks；普通 natural-run 消费切片；rule-mutation tests 与 O/M/MH/DH development harness。先做无模型测试，再决定是否运行小配对面板。
 
 下一轮不含稳定语法、公共 CLI、完整编译器、自动迁移主张、OCR/交互 PDF 后端或跨 artifact 平台。历史冻结结果、Q1、held-out、readiness 与 prospective 状态不改变。
+
+## 9. 2026-09-21 授权 DSL V0–V10 完成（当前状态）
+
+本节覆盖上方较早阶段的“当前”表述。[V0–V10 开发任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)已完成，工程状态为 `completed-development`、效果为 `not-established`。canonical declaration、义务展开、B/D renderer、fixed-context zero-tool host、结果/变化检查、逐次计量、hash-bound review、离线评价与恢复入口已接通；没有产品 CLI、target execution、held-out 或跨项目验证。
+
+initial 6 单元中 4 完成、2 `timeout-unknown`，只有 file pair 完整；exact-ID 共享修订在两臂首响应中生效，但 revision B 再次超时。两轮共 18 provider calls、15 responses、3 pending-at-timeout；已知 57,172 input、31,770 output、1,408 cache-read tokens，actual USD 全部 unknown。机器状态、总结果与离线复验见 [status](../../results/skill-ir/skill-dsl-research/development/authorization-v0/status.json)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-v0/summary.json) 和 [offline replay](../../results/skill-ir/skill-dsl-research/development/authorization-v0/offline-replay.json)。
+
+下一最小实现只简化 result/citation transport，并在相同 fixed-context 案例测无 repair completion 与 completion-known rate；不自动扩 active discovery、第二项目或生产系统。本轮首批归属提交：`PUBLISH_PENDING`。

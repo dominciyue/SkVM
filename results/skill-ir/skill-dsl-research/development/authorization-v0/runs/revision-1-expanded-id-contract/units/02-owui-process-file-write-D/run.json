@@ -1,0 +1,1266 @@
+{
+  "status": "completed",
+  "arm": "D",
+  "compiled": {
+    "task": {
+      "schemaVersion": "source-authorization-assessment/v0",
+      "taskId": "owui-process-file-write",
+      "request": "At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "sourceMode": "fixed-context",
+      "policySources": [
+        {
+          "id": "destination-knowledge-write-policy",
+          "kind": "explicit-task-requirement",
+          "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+          "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+          "revision": "authorization-case-input/v1@841c9045",
+          "acceptance": {
+            "status": "accepted",
+            "actorRole": "study-task-author",
+            "reason": "The study task author supplied this bounded normative requirement for the comparison."
+          }
+        }
+      ],
+      "principals": [
+        {
+          "id": "verified-non-admin-file-owner",
+          "role": "verified non-administrator who owns the supplied source file",
+          "description": "A signed-in non-admin whose file ownership is distinct from authorization on the destination knowledge base.",
+          "startingCapabilities": [
+            "authenticated-as-verified-user",
+            "owns-supplied-source-file",
+            "can-submit-process-file-form"
+          ]
+        }
+      ],
+      "resources": [
+        {
+          "id": "existing-destination-knowledge-base",
+          "type": "knowledge-base-vector-collection",
+          "description": "An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal."
+        }
+      ],
+      "entries": [
+        {
+          "id": "post-process-file",
+          "name": "POST /process/file -> process_file",
+          "locations": [
+            {
+              "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+              "startLine": 1,
+              "endLine": 74
+            }
+          ]
+        }
+      ],
+      "obligations": [
+        {
+          "id": "file-owner-without-destination-write-grant",
+          "principalId": "verified-non-admin-file-owner",
+          "resourceId": "existing-destination-knowledge-base",
+          "relation": "owns-source-file-but-no-destination-write-grant",
+          "operation": "write-file-content-to-existing-knowledge-base",
+          "expectation": "deny",
+          "conditions": [
+            {
+              "name": "caller-supplies-existing-collection-name",
+              "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+            },
+            {
+              "name": "principal-is-not-admin",
+              "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+            }
+          ],
+          "policySourceId": "destination-knowledge-write-policy",
+          "entryIds": [
+            "post-process-file"
+          ]
+        }
+      ],
+      "scopeAssurance": "The allowed source crops contain the complete authorization-relevant entry-to-write path for this bounded request. General authentication is visible, but a target-specific knowledge-base write check must be traced in these inputs rather than presumed from authentication.",
+      "requiredAnalysis": [
+        "identify the principal, operation, target resource relation, entry, and write sink",
+        "trace the user-controlled collection name through any target-specific authorization control",
+        "distinguish file ownership from destination knowledge-base write permission",
+        "return source_supported_failure, source_refuted, or unknown with exact input locations"
+      ],
+      "constraints": [
+        "Use only the allowed case inputs.",
+        "Do not search for advisories, fixes, later versions, or deployment behavior.",
+        "Do not execute the project or propose a patch."
+      ]
+    },
+    "status": "ready",
+    "runnableObligations": [
+      {
+        "id": "file-owner-without-destination-write-grant::post-process-file",
+        "authorObligationId": "file-owner-without-destination-write-grant",
+        "entryId": "post-process-file",
+        "obligation": {
+          "id": "file-owner-without-destination-write-grant",
+          "principalId": "verified-non-admin-file-owner",
+          "resourceId": "existing-destination-knowledge-base",
+          "relation": "owns-source-file-but-no-destination-write-grant",
+          "operation": "write-file-content-to-existing-knowledge-base",
+          "expectation": "deny",
+          "conditions": [
+            {
+              "name": "caller-supplies-existing-collection-name",
+              "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+            },
+            {
+              "name": "principal-is-not-admin",
+              "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+            }
+          ],
+          "policySourceId": "destination-knowledge-write-policy",
+          "entryIds": [
+            "post-process-file"
+          ]
+        },
+        "principal": {
+          "id": "verified-non-admin-file-owner",
+          "role": "verified non-administrator who owns the supplied source file",
+          "description": "A signed-in non-admin whose file ownership is distinct from authorization on the destination knowledge base.",
+          "startingCapabilities": [
+            "authenticated-as-verified-user",
+            "owns-supplied-source-file",
+            "can-submit-process-file-form"
+          ]
+        },
+        "resource": {
+          "id": "existing-destination-knowledge-base",
+          "type": "knowledge-base-vector-collection",
+          "description": "An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal."
+        },
+        "entry": {
+          "id": "post-process-file",
+          "name": "POST /process/file -> process_file",
+          "locations": [
+            {
+              "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+              "startLine": 1,
+              "endLine": 74
+            }
+          ]
+        },
+        "policySource": {
+          "id": "destination-knowledge-write-policy",
+          "kind": "explicit-task-requirement",
+          "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+          "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+          "revision": "authorization-case-input/v1@841c9045",
+          "acceptance": {
+            "status": "accepted",
+            "actorRole": "study-task-author",
+            "reason": "The study task author supplied this bounded normative requirement for the comparison."
+          }
+        }
+      }
+    ],
+    "blockedObligations": [],
+    "diagnostics": [],
+    "dependencies": {
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "sourceMode": "fixed-context",
+      "policies": [
+        {
+          "id": "destination-knowledge-write-policy",
+          "revision": "authorization-case-input/v1@841c9045",
+          "acceptanceStatus": "accepted"
+        }
+      ]
+    }
+  },
+  "renderedPrompt": "# Authorization domain plan (D)\n\nUse the canonical authorization facts and deterministic obligation expansion below. The declaration organizes the work; you still must understand the source control path and justify the conclusion.\n\n## Canonical facts\n{\n  \"schemaVersion\": \"source-authorization-assessment/v0\",\n  \"taskId\": \"owui-process-file-write\",\n  \"request\": \"At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.\",\n  \"repository\": \"https://github.com/open-webui/open-webui\",\n  \"sourceRef\": \"841c9045d789005145274955e7ef60b1b11a9be9\",\n  \"sourceMode\": \"fixed-context\",\n  \"policySources\": [\n    {\n      \"id\": \"destination-knowledge-write-policy\",\n      \"kind\": \"explicit-task-requirement\",\n      \"text\": \"Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.\",\n      \"location\": \"inputs/owui-process-file-write/task.json#/normativeRequirement\",\n      \"revision\": \"authorization-case-input/v1@841c9045\",\n      \"acceptance\": {\n        \"status\": \"accepted\",\n        \"actorRole\": \"study-task-author\",\n        \"reason\": \"The study task author supplied this bounded normative requirement for the comparison.\"\n      }\n    }\n  ],\n  \"principals\": [\n    {\n      \"id\": \"verified-non-admin-file-owner\",\n      \"role\": \"verified non-administrator who owns the supplied source file\",\n      \"description\": \"A signed-in non-admin whose file ownership is distinct from authorization on the destination knowledge base.\",\n      \"startingCapabilities\": [\n        \"authenticated-as-verified-user\",\n        \"owns-supplied-source-file\",\n        \"can-submit-process-file-form\"\n      ]\n    }\n  ],\n  \"resources\": [\n    {\n      \"id\": \"existing-destination-knowledge-base\",\n      \"type\": \"knowledge-base-vector-collection\",\n      \"description\": \"An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal.\"\n    }\n  ],\n  \"entries\": [\n    {\n      \"id\": \"post-process-file\",\n      \"name\": \"POST /process/file -> process_file\",\n      \"locations\": [\n        {\n          \"path\": \"inputs/owui-process-file-write/retrieval_process_file.py\",\n          \"startLine\": 1,\n          \"endLine\": 74\n        }\n      ]\n    }\n  ],\n  \"obligations\": [\n    {\n      \"id\": \"file-owner-without-destination-write-grant\",\n      \"principalId\": \"verified-non-admin-file-owner\",\n      \"resourceId\": \"existing-destination-knowledge-base\",\n      \"relation\": \"owns-source-file-but-no-destination-write-grant\",\n      \"operation\": \"write-file-content-to-existing-knowledge-base\",\n      \"expectation\": \"deny\",\n      \"conditions\": [\n        {\n          \"name\": \"caller-supplies-existing-collection-name\",\n          \"basis\": \"The natural task fixes a caller-selected existing knowledge-base collection.\"\n        },\n        {\n          \"name\": \"principal-is-not-admin\",\n          \"basis\": \"The task asks about a verified non-admin and the source exposes a separate admin branch.\"\n        }\n      ],\n      \"policySourceId\": \"destination-knowledge-write-policy\",\n      \"entryIds\": [\n        \"post-process-file\"\n      ]\n    }\n  ],\n  \"scopeAssurance\": \"The allowed source crops contain the complete authorization-relevant entry-to-write path for this bounded request. General authentication is visible, but a target-specific knowledge-base write check must be traced in these inputs rather than presumed from authentication.\",\n  \"requiredAnalysis\": [\n    \"identify the principal, operation, target resource relation, entry, and write sink\",\n    \"trace the user-controlled collection name through any target-specific authorization control\",\n    \"distinguish file ownership from destination knowledge-base write permission\",\n    \"return source_supported_failure, source_refuted, or unknown with exact input locations\"\n  ],\n  \"constraints\": [\n    \"Use only the allowed case inputs.\",\n    \"Do not search for advisories, fixes, later versions, or deployment behavior.\",\n    \"Do not execute the project or propose a patch.\"\n  ],\n  \"allowedConclusions\": [\n    \"source_supported_failure\",\n    \"source_refuted\",\n    \"unknown\"\n  ],\n  \"discoveryStatus\": \"not-tested\"\n}\n\n## Compiled obligation plan\n{\n  \"status\": \"ready\",\n  \"expanded\": [\n    {\n      \"id\": \"file-owner-without-destination-write-grant::post-process-file\",\n      \"status\": \"runnable\",\n      \"authorObligationId\": \"file-owner-without-destination-write-grant\",\n      \"entryId\": \"post-process-file\"\n    }\n  ],\n  \"dependencies\": {\n    \"repository\": \"https://github.com/open-webui/open-webui\",\n    \"sourceRef\": \"841c9045d789005145274955e7ef60b1b11a9be9\",\n    \"sourceMode\": \"fixed-context\",\n    \"policies\": [\n      {\n        \"id\": \"destination-knowledge-write-policy\",\n        \"revision\": \"authorization-case-input/v1@841c9045\",\n        \"acceptanceStatus\": \"accepted\"\n      }\n    ]\n  },\n  \"diagnostics\": []\n}\n\n## Result contract\nReturn exactly one result for every runnable expanded obligation, with one of: source_supported_failure, source_refuted, unknown.\nExact runnable obligation IDs (closed list):\n- file-owner-without-destination-write-grant::post-process-file\nUse each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.\nSupport the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite an allowed input path, line range, and retained quotation. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.\n\n## Fixed source context\n===== BEGIN ALLOWED INPUT: inputs/owui-process-file-write/task.json =====\nLocation note: crop lines 1-20; original locations: not separately supplied\n{\n  \"schemaVersion\": \"authorization-case-input/v1\",\n  \"caseId\": \"owui-process-file-write\",\n  \"repository\": \"https://github.com/open-webui/open-webui\",\n  \"sourceRef\": \"841c9045d789005145274955e7ef60b1b11a9be9\",\n  \"task\": \"At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.\",\n  \"normativeRequirement\": \"Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.\",\n  \"scopeAssurance\": \"The allowed source crops contain the complete authorization-relevant entry-to-write path for this bounded request. General authentication is visible, but a target-specific knowledge-base write check must be traced in these inputs rather than presumed from authentication.\",\n  \"requiredAnalysis\": [\n    \"identify the principal, operation, target resource relation, entry, and write sink\",\n    \"trace the user-controlled collection name through any target-specific authorization control\",\n    \"distinguish file ownership from destination knowledge-base write permission\",\n    \"return source_supported_failure, source_refuted, or unknown with exact input locations\"\n  ],\n  \"constraints\": [\n    \"Use only the allowed case inputs.\",\n    \"Do not search for advisories, fixes, later versions, or deployment behavior.\",\n    \"Do not execute the project or propose a patch.\"\n  ]\n}\n\n===== END ALLOWED INPUT: inputs/owui-process-file-write/task.json =====\n\n===== BEGIN ALLOWED INPUT: inputs/owui-process-file-write/retrieval_process_file.py =====\nLocation note: crop lines 1-74; original locations: backend/open_webui/routers/retrieval.py:1517-1531,1540-1570,1688-1706\n# Cropped from backend/open_webui/routers/retrieval.py at\n# https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9\n# Original lines 1517-1531, inside save_docs_to_vector_db.\nitems = [\n    {\n        'id': str(uuid.uuid4()),\n        'text': text,\n        'vector': embeddings[idx],\n        'metadata': metadatas[idx],\n    }\n    for idx, text in enumerate(texts)\n]\n\nlog.info(f'adding to collection {collection_name}')\nVECTOR_DB_CLIENT.insert(\n    collection_name=collection_name,\n    items=items,\n)\n\n# Original lines 1540-1570.\nclass ProcessFileForm(BaseModel):\n    file_id: str\n    content: Optional[str] = None\n    collection_name: Optional[str] = None\n\n\n@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),\n):\n    \"\"\"\n    Process a file and save its content to the vector database.\n    Process a file and save its content to the vector database.\n    Note: granular session management is used to prevent connection pool exhaustion.\n    The session is committed before external API calls, and updates use a fresh session.\n    \"\"\"\n    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:\n        try:\n            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'\n\n# Original lines 1571-1687 load content, build metadata, and commit file updates;\n# they contain no call that authorizes collection_name and are omitted from this crop.\n\n# Original lines 1688-1706.\n            # External embedding API takes time (5-60s+).\n            # Subsequent updates use fresh async sessions.\n            # NOTE: save_docs_to_vector_db is a sync function that\n            # calls asyncio.run_coroutine_threadsafe(..., main_loop).result()\n            # which blocks the calling thread.  We MUST run it in a\n            # worker thread to avoid deadlocking the event loop.\n            result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={\n                    'file_id': file.id,\n                    'name': file.filename,\n                    'hash': hash,\n                },\n                add=(True if form_data.collection_name else False),\n                user=user,\n            )\n\n===== END ALLOWED INPUT: inputs/owui-process-file-write/retrieval_process_file.py =====",
+  "initial": {
+    "result": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "owui-process-file-write",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "results": [
+        {
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "conclusion": "source_supported_failure",
+          "explanation": "The fixed source shows that a verified non-admin user's file ownership is enforced only when selecting the source file. A caller-supplied collection_name is then passed through without any visible destination ownership or explicit-write-grant check and is supplied to VECTOR_DB_CLIENT.insert, which writes the file-derived items to that collection. Thus, under the stated condition that the named collection exists and the user lacks destination write permission, the source supports the authorization failure.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The relevant entry is POST /process/file, implemented by process_file.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 15,
+                    "endLine": 20,
+                    "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The entry authenticates through get_verified_user and, for a non-admin, binds the source file lookup to user.id.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 16,
+                    "endLine": 25,
+                    "quote": "user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),\n):\n...\n    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The visible authorization control checks only whether a non-admin may access the supplied source file by user ID; no target-specific collection ownership or explicit write-grant check appears between collection_name assignment and the write call.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 21,
+                    "endLine": 31,
+                    "quote": "if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:\n        try:\n            collection_name = form_data.collection_name\n\n            if collection_name is None:"
+                  },
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 32,
+                    "endLine": 32,
+                    "quote": "# Original lines 1571-1687 load content, build metadata, and commit file updates;\n# they contain no call that authorizes collection_name and are omitted from this crop."
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The file's processed content is passed to save_docs_to_vector_db with the caller-selected collection_name and add enabled when collection_name was supplied.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 37,
+                    "endLine": 49,
+                    "quote": "result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={\n                    'file_id': file.id,\n                    'name': file.filename,\n                    'hash': hash,\n                },\n                add=(True if form_data.collection_name else False),\n                user=user,"
+                  }
+                ]
+              },
+              {
+                "statement": "The write sink inserts the constructed items into the supplied collection_name.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 1,
+                    "endLine": 10,
+                    "quote": "log.info(f'adding to collection {collection_name}')\nVECTOR_DB_CLIENT.insert(\n    collection_name=collection_name,\n    items=items,\n)"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The destination collection name is caller-controlled through the optional collection_name form field; when supplied, it is retained rather than replaced by the file-default collection name.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 11,
+                    "endLine": 14,
+                    "quote": "class ProcessFileForm(BaseModel):\n    file_id: str\n    content: Optional[str] = None\n    collection_name: Optional[str] = None"
+                  },
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 27,
+                    "endLine": 31,
+                    "quote": "collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                  }
+                ]
+              },
+              {
+                "statement": "The bounded condition is that the supplied collection is an existing knowledge-base collection for which the user has no write permission and the caller is a non-admin; these are task conditions, not deployment inferences.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/task.json",
+                    "startLine": 6,
+                    "endLine": 9,
+                    "quote": "At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file."
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [
+            "No additional observation is required for this bounded source-supported conclusion; if independently validating runtime behavior, observe whether VECTOR_DB_CLIENT.insert accepts the named existing collection, but that is outside the supplied fixed source context."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "This result addresses only the single declared and runnable obligation file-owner-without-destination-write-grant::post-process-file using the supplied fixed source crop; it makes no repository-wide or all-entry discovery claim."
+      }
+    },
+    "rawResponse": "{\"repository\":\"https://github.com/open-webui/open-webui\",\"results\":[{\"conclusion\":\"source_supported_failure\",\"decisiveMissingFacts\":[],\"explanation\":\"The fixed source shows that a verified non-admin user's file ownership is enforced only when selecting the source file. A caller-supplied collection_name is then passed through without any visible destination ownership or explicit-write-grant check and is supplied to VECTOR_DB_CLIENT.insert, which writes the file-derived items to that collection. Thus, under the stated condition that the named collection exists and the user lacks destination write permission, the source supports the authorization failure.\",\"facts\":{\"binding\":[{\"statement\":\"The entry authenticates through get_verified_user and, for a non-admin, binds the source file lookup to user.id.\",\"citations\":[{\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"startLine\":16,\"endLine\":25,\"quote\":\"user=Depends(get_verified_user),\\n    db: AsyncSession = Depends(get_async_session),\\n):\\n...\\n    if user.role == 'admin':\\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\\n    else:\\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\"}]}],\"condition\":[{\"statement\":\"The destination collection name is caller-controlled through the optional collection_name form field; when supplied, it is retained rather than replaced by the file-default collection name.\",\"citations\":[{\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"startLine\":11,\"endLine\":14,\"quote\":\"class ProcessFileForm(BaseModel):\\n    file_id: str\\n    content: Optional[str] = None\\n    collection_name: Optional[str] = None\"},{\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"startLine\":27,\"endLine\":31,\"quote\":\"collection_name = form_data.collection_name\\n\\n            if collection_name is None:\\n                collection_name = f'file-{file.id}'\"}]},{\"statement\":\"The bounded condition is that the supplied collection is an existing knowledge-base collection for which the user has no write permission and the caller is a non-admin; these are task conditions, not deployment inferences.\",\"citations\":[{\"path\":\"inputs/owui-process-file-write/task.json\",\"startLine\":6,\"endLine\":9,\"quote\":\"At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.\"}]}],\"control\":[{\"statement\":\"The visible authorization control checks only whether a non-admin may access the supplied source file by user ID; no target-specific collection ownership or explicit write-grant check appears between collection_name assignment and the write call.\",\"citations\":[{\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"startLine\":21,\"endLine\":31,\"quote\":\"if user.role == 'admin':\\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\\n    else:\\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\\n\\n    if file:\\n        try:\\n            collection_name = form_data.collection_name\\n\\n            if collection_name is None:\"},{\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"startLine\":32,\"endLine\":32,\"quote\":\"# Original lines 1571-1687 load content, build metadata, and commit file updates;\\n# they contain no call that authorizes collection_name and are omitted from this crop.\"}]}],\"effect\":[{\"statement\":\"The file's processed content is passed to save_docs_to_vector_db with the caller-selected collection_name and add enabled when collection_name was supplied.\",\"citations\":[{\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"startLine\":37,\"endLine\":49,\"quote\":\"result = await run_in_threadpool(\\n                save_docs_to_vector_db,\\n                request,\\n                docs=docs,\\n                collection_name=collection_name,\\n                metadata={\\n                    'file_id': file.id,\\n                    'name': file.filename,\\n                    'hash': hash,\\n                },\\n                add=(True if form_data.collection_name else False),\\n                user=user,\"}]},{\"statement\":\"The write sink inserts the constructed items into the supplied collection_name.\",\"citations\":[{\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"startLine\":1,\"endLine\":10,\"quote\":\"log.info(f'adding to collection {collection_name}')\\nVECTOR_DB_CLIENT.insert(\\n    collection_name=collection_name,\\n    items=items,\\n)\"}]}],\"entry\":[{\"statement\":\"The relevant entry is POST /process/file, implemented by process_file.\",\"citations\":[{\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"startLine\":15,\"endLine\":20,\"quote\":\"@router.post('/process/file')\\nasync def process_file(\\n    request: Request,\\n    form_data: ProcessFileForm,\"}]}]},\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"suggestedObservations\":[\"No additional observation is required for this bounded source-supported conclusion; if independently validating runtime behavior, observe whether VECTOR_DB_CLIENT.insert accepts the named existing collection, but that is outside the supplied fixed source context.\"]}],\"schemaVersion\":\"source-authorization-assessment-result/v0\",\"scopeClaim\":{\"kind\":\"declared-obligations-only\",\"statement\":\"This result addresses only the single declared and runnable obligation file-owner-without-destination-write-grant::post-process-file using the supplied fixed source crop; it makes no repository-wide or all-entry discovery claim.\"},\"sourceRef\":\"841c9045d789005145274955e7ef60b1b11a9be9\",\"taskId\":\"owui-process-file-write\"}",
+    "providerAttemptIds": [
+      "provider-attempt-1"
+    ],
+    "outputAttemptId": "provider-attempt-1",
+    "validation": {
+      "parsedResult": {
+        "schemaVersion": "source-authorization-assessment-result/v0",
+        "taskId": "owui-process-file-write",
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "results": [
+          {
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "conclusion": "source_supported_failure",
+            "explanation": "The fixed source shows that a verified non-admin user's file ownership is enforced only when selecting the source file. A caller-supplied collection_name is then passed through without any visible destination ownership or explicit-write-grant check and is supplied to VECTOR_DB_CLIENT.insert, which writes the file-derived items to that collection. Thus, under the stated condition that the named collection exists and the user lacks destination write permission, the source supports the authorization failure.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "The relevant entry is POST /process/file, implemented by process_file.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 15,
+                      "endLine": 20,
+                      "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,"
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "The entry authenticates through get_verified_user and, for a non-admin, binds the source file lookup to user.id.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 16,
+                      "endLine": 25,
+                      "quote": "user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),\n):\n...\n    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "The visible authorization control checks only whether a non-admin may access the supplied source file by user ID; no target-specific collection ownership or explicit write-grant check appears between collection_name assignment and the write call.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 21,
+                      "endLine": 31,
+                      "quote": "if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:\n        try:\n            collection_name = form_data.collection_name\n\n            if collection_name is None:"
+                    },
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 32,
+                      "endLine": 32,
+                      "quote": "# Original lines 1571-1687 load content, build metadata, and commit file updates;\n# they contain no call that authorizes collection_name and are omitted from this crop."
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "The file's processed content is passed to save_docs_to_vector_db with the caller-selected collection_name and add enabled when collection_name was supplied.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 37,
+                      "endLine": 49,
+                      "quote": "result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={\n                    'file_id': file.id,\n                    'name': file.filename,\n                    'hash': hash,\n                },\n                add=(True if form_data.collection_name else False),\n                user=user,"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The write sink inserts the constructed items into the supplied collection_name.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 1,
+                      "endLine": 10,
+                      "quote": "log.info(f'adding to collection {collection_name}')\nVECTOR_DB_CLIENT.insert(\n    collection_name=collection_name,\n    items=items,\n)"
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The destination collection name is caller-controlled through the optional collection_name form field; when supplied, it is retained rather than replaced by the file-default collection name.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 11,
+                      "endLine": 14,
+                      "quote": "class ProcessFileForm(BaseModel):\n    file_id: str\n    content: Optional[str] = None\n    collection_name: Optional[str] = None"
+                    },
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 27,
+                      "endLine": 31,
+                      "quote": "collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The bounded condition is that the supplied collection is an existing knowledge-base collection for which the user has no write permission and the caller is a non-admin; these are task conditions, not deployment inferences.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/task.json",
+                      "startLine": 6,
+                      "endLine": 9,
+                      "quote": "At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file."
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [],
+            "suggestedObservations": [
+              "No additional observation is required for this bounded source-supported conclusion; if independently validating runtime behavior, observe whether VECTOR_DB_CLIENT.insert accepts the named existing collection, but that is outside the supplied fixed source context."
+            ]
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "This result addresses only the single declared and runnable obligation file-owner-without-destination-write-grant::post-process-file using the supplied fixed source crop; it makes no repository-wide or all-entry discovery claim."
+        }
+      },
+      "structure": {
+        "status": "valid",
+        "diagnostics": []
+      },
+      "declared": {
+        "total": 1,
+        "disposed": 1,
+        "pending": 0,
+        "blocked": 0,
+        "invalid": 0,
+        "status": "all-disposed",
+        "completionPercent": 100
+      },
+      "discovery": {
+        "status": "not-tested",
+        "claimLimit": "declared-obligations-only"
+      },
+      "evidencePresence": [
+        {
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "invalid"
+        }
+      ],
+      "evidenceSupport": [
+        {
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "unreviewed"
+        }
+      ],
+      "completeness": {
+        "status": "accepted",
+        "kind": "declared-obligations-only"
+      },
+      "dependencySnapshot": {
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "sourceFiles": [
+          {
+            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+            "sha256": "2548edb22139e5eb6bc4b3df7ef4a813fc9dcaef8b1630c8fe1f485a7ba29cae"
+          },
+          {
+            "path": "inputs/owui-process-file-write/task.json",
+            "sha256": "e806df8faae00a6a4dce6f49d0309de2247d3c63b7e2b11d03df42245f4fc2ab"
+          }
+        ],
+        "policies": [
+          {
+            "id": "destination-knowledge-write-policy",
+            "revision": "authorization-case-input/v1@841c9045",
+            "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+            "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+            "acceptanceStatus": "accepted"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "file-owner-without-destination-write-grant",
+            "principalId": "verified-non-admin-file-owner",
+            "resourceId": "existing-destination-knowledge-base",
+            "relation": "owns-source-file-but-no-destination-write-grant",
+            "operation": "write-file-content-to-existing-knowledge-base",
+            "expectation": "deny",
+            "conditions": [
+              {
+                "name": "caller-supplies-existing-collection-name",
+                "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+              },
+              {
+                "name": "principal-is-not-admin",
+                "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+              }
+            ],
+            "policySourceId": "destination-knowledge-write-policy",
+            "entryIds": [
+              "post-process-file"
+            ]
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.entry.0.citations.0.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.binding.0.citations.0.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.control.0.citations.0.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.control.0.citations.1.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.effect.0.citations.0.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.effect.1.citations.0.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.condition.0.citations.0.quote",
+          "severity": "error"
+        },
+        {
+          "code": "citation-text-mismatch",
+          "message": "Retained citation text does not occur within the cited crop range.",
+          "path": "results.0.facts.condition.0.citations.1.quote",
+          "severity": "error"
+        }
+      ]
+    }
+  },
+  "repair": {
+    "result": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "owui-process-file-write",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "results": [
+        {
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "conclusion": "source_supported_failure",
+          "explanation": "The fixed source shows that POST /process/file requires a verified user and, for a non-admin, restricts selection of the source file by user.id. That source-file ownership check is distinct from authorization to write to the destination collection. The caller-controlled form_data.collection_name is retained when supplied, passed to save_docs_to_vector_db, and ultimately used by VECTOR_DB_CLIENT.insert. The supplied complete authorization-relevant path states that the omitted middle section contains no collection_name authorization call. Under the task-fixed conditions that the named destination is an existing knowledge-base collection, the caller is a non-admin, and the caller has neither ownership nor an explicit write grant on that destination, the source supports the authorization failure.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The relevant entry is POST /process/file implemented by process_file and reached by a verified user.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 27,
+                    "endLine": 32,
+                    "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The principal is bound as a verified user, and the non-admin branch binds access to the supplied source file to user.id.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 31,
+                    "endLine": 32,
+                    "quote": "user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                  },
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 40,
+                    "endLine": 43,
+                    "quote": "if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The strongest visible authorization control for a non-admin is ownership-based lookup of the source file; the supplied complete path expressly identifies no call authorizing collection_name in the omitted middle section, so no destination ownership or explicit-write-grant control intervenes.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 40,
+                    "endLine": 43,
+                    "quote": "if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                  },
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 52,
+                    "endLine": 53,
+                    "quote": "# Original lines 1571-1687 load content, build metadata, and commit file updates;\n# they contain no call that authorizes collection_name and are omitted from this crop."
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The processed file documents and selected collection_name are passed to save_docs_to_vector_db, with add enabled when the caller supplied collection_name.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 62,
+                    "endLine": 74,
+                    "quote": "result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={\n                    'file_id': file.id,\n                    'name': file.filename,\n                    'hash': hash,\n                },\n                add=(True if form_data.collection_name else False),\n                user=user,\n            )"
+                  }
+                ]
+              },
+              {
+                "statement": "The protected write effect is insertion of the constructed content items into the selected collection_name through VECTOR_DB_CLIENT.insert.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 14,
+                    "endLine": 18,
+                    "quote": "log.info(f'adding to collection {collection_name}')\nVECTOR_DB_CLIENT.insert(\n    collection_name=collection_name,\n    items=items,\n)"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The destination collection name is caller-controlled through the optional collection_name field and is replaced with a file-specific default only when the caller does not supply it.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 21,
+                    "endLine": 24,
+                    "quote": "class ProcessFileForm(BaseModel):\n    file_id: str\n    content: Optional[str] = None\n    collection_name: Optional[str] = None"
+                  },
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 47,
+                    "endLine": 50,
+                    "quote": "collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                  }
+                ]
+              },
+              {
+                "statement": "The bounded conditions fix a verified non-admin source-file owner, a caller-supplied existing knowledge-base collection, and absence of destination ownership or an explicit write grant.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/task.json",
+                    "startLine": 6,
+                    "endLine": 7,
+                    "quote": "\"task\": \"At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.\",\n  \"normativeRequirement\": \"Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.\","
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "This assessment resolves only the declared runnable obligation file-owner-without-destination-write-grant::post-process-file from the supplied fixed source context; source discovery is not tested, and no repository-wide or all-entry completeness claim is made."
+      }
+    },
+    "rawResponse": "{\"repository\":\"https://github.com/open-webui/open-webui\",\"results\":[{\"conclusion\":\"source_supported_failure\",\"decisiveMissingFacts\":[],\"explanation\":\"The fixed source shows that POST /process/file requires a verified user and, for a non-admin, restricts selection of the source file by user.id. That source-file ownership check is distinct from authorization to write to the destination collection. The caller-controlled form_data.collection_name is retained when supplied, passed to save_docs_to_vector_db, and ultimately used by VECTOR_DB_CLIENT.insert. The supplied complete authorization-relevant path states that the omitted middle section contains no collection_name authorization call. Under the task-fixed conditions that the named destination is an existing knowledge-base collection, the caller is a non-admin, and the caller has neither ownership nor an explicit write grant on that destination, the source supports the authorization failure.\",\"facts\":{\"binding\":[{\"citations\":[{\"endLine\":32,\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"quote\":\"    user=Depends(get_verified_user),\\n    db: AsyncSession = Depends(get_async_session),\",\"startLine\":31},{\"endLine\":43,\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"quote\":\"    if user.role == 'admin':\\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\\n    else:\\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\",\"startLine\":40}],\"statement\":\"The principal is bound as a verified user, and the non-admin branch binds access to the supplied source file to user.id.\"}],\"condition\":[{\"citations\":[{\"endLine\":24,\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"quote\":\"class ProcessFileForm(BaseModel):\\n    file_id: str\\n    content: Optional[str] = None\\n    collection_name: Optional[str] = None\",\"startLine\":21},{\"endLine\":50,\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"quote\":\"            collection_name = form_data.collection_name\\n\\n            if collection_name is None:\\n                collection_name = f'file-{file.id}'\",\"startLine\":47}],\"statement\":\"The destination collection name is caller-controlled through the optional collection_name field and is replaced with a file-specific default only when the caller does not supply it.\"},{\"citations\":[{\"endLine\":7,\"path\":\"inputs/owui-process-file-write/task.json\",\"quote\":\"  \\\"task\\\": \\\"At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.\\\",\\n  \\\"normativeRequirement\\\": \\\"Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.\\\",\",\"startLine\":6}],\"statement\":\"The bounded conditions fix a verified non-admin source-file owner, a caller-supplied existing knowledge-base collection, and absence of destination ownership or an explicit write grant.\"}],\"control\":[{\"citations\":[{\"endLine\":43,\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"quote\":\"    if user.role == 'admin':\\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\\n    else:\\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\",\"startLine\":40},{\"endLine\":53,\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"quote\":\"# Original lines 1571-1687 load content, build metadata, and commit file updates;\\n# they contain no call that authorizes collection_name and are omitted from this crop.\",\"startLine\":52}],\"statement\":\"The strongest visible authorization control for a non-admin is ownership-based lookup of the source file; the supplied complete path expressly identifies no call authorizing collection_name in the omitted middle section, so no destination ownership or explicit-write-grant control intervenes.\"}],\"effect\":[{\"citations\":[{\"endLine\":74,\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"quote\":\"            result = await run_in_threadpool(\\n                save_docs_to_vector_db,\\n                request,\\n                docs=docs,\\n                collection_name=collection_name,\\n                metadata={\\n                    'file_id': file.id,\\n                    'name': file.filename,\\n                    'hash': hash,\\n                },\\n                add=(True if form_data.collection_name else False),\\n                user=user,\\n            )\",\"startLine\":62}],\"statement\":\"The processed file documents and selected collection_name are passed to save_docs_to_vector_db, with add enabled when the caller supplied collection_name.\"},{\"citations\":[{\"endLine\":18,\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"quote\":\"log.info(f'adding to collection {collection_name}')\\nVECTOR_DB_CLIENT.insert(\\n    collection_name=collection_name,\\n    items=items,\\n)\",\"startLine\":14}],\"statement\":\"The protected write effect is insertion of the constructed content items into the selected collection_name through VECTOR_DB_CLIENT.insert.\"}],\"entry\":[{\"citations\":[{\"endLine\":32,\"path\":\"inputs/owui-process-file-write/retrieval_process_file.py\",\"quote\":\"@router.post('/process/file')\\nasync def process_file(\\n    request: Request,\\n    form_data: ProcessFileForm,\\n    user=Depends(get_verified_user),\\n    db: AsyncSession = Depends(get_async_session),\",\"startLine\":27}],\"statement\":\"The relevant entry is POST /process/file implemented by process_file and reached by a verified user.\"}]},\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"suggestedObservations\":[]}],\"schemaVersion\":\"source-authorization-assessment-result/v0\",\"scopeClaim\":{\"kind\":\"declared-obligations-only\",\"statement\":\"This assessment resolves only the declared runnable obligation file-owner-without-destination-write-grant::post-process-file from the supplied fixed source context; source discovery is not tested, and no repository-wide or all-entry completeness claim is made.\"},\"sourceRef\":\"841c9045d789005145274955e7ef60b1b11a9be9\",\"taskId\":\"owui-process-file-write\"}",
+    "providerAttemptIds": [
+      "provider-attempt-2"
+    ],
+    "outputAttemptId": "provider-attempt-2",
+    "validation": {
+      "parsedResult": {
+        "schemaVersion": "source-authorization-assessment-result/v0",
+        "taskId": "owui-process-file-write",
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "results": [
+          {
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "conclusion": "source_supported_failure",
+            "explanation": "The fixed source shows that POST /process/file requires a verified user and, for a non-admin, restricts selection of the source file by user.id. That source-file ownership check is distinct from authorization to write to the destination collection. The caller-controlled form_data.collection_name is retained when supplied, passed to save_docs_to_vector_db, and ultimately used by VECTOR_DB_CLIENT.insert. The supplied complete authorization-relevant path states that the omitted middle section contains no collection_name authorization call. Under the task-fixed conditions that the named destination is an existing knowledge-base collection, the caller is a non-admin, and the caller has neither ownership nor an explicit write grant on that destination, the source supports the authorization failure.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "The relevant entry is POST /process/file implemented by process_file and reached by a verified user.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 27,
+                      "endLine": 32,
+                      "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "The principal is bound as a verified user, and the non-admin branch binds access to the supplied source file to user.id.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 31,
+                      "endLine": 32,
+                      "quote": "user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                    },
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 40,
+                      "endLine": 43,
+                      "quote": "if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "The strongest visible authorization control for a non-admin is ownership-based lookup of the source file; the supplied complete path expressly identifies no call authorizing collection_name in the omitted middle section, so no destination ownership or explicit-write-grant control intervenes.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 40,
+                      "endLine": 43,
+                      "quote": "if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                    },
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 52,
+                      "endLine": 53,
+                      "quote": "# Original lines 1571-1687 load content, build metadata, and commit file updates;\n# they contain no call that authorizes collection_name and are omitted from this crop."
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "The processed file documents and selected collection_name are passed to save_docs_to_vector_db, with add enabled when the caller supplied collection_name.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 62,
+                      "endLine": 74,
+                      "quote": "result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={\n                    'file_id': file.id,\n                    'name': file.filename,\n                    'hash': hash,\n                },\n                add=(True if form_data.collection_name else False),\n                user=user,\n            )"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The protected write effect is insertion of the constructed content items into the selected collection_name through VECTOR_DB_CLIENT.insert.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 14,
+                      "endLine": 18,
+                      "quote": "log.info(f'adding to collection {collection_name}')\nVECTOR_DB_CLIENT.insert(\n    collection_name=collection_name,\n    items=items,\n)"
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The destination collection name is caller-controlled through the optional collection_name field and is replaced with a file-specific default only when the caller does not supply it.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 21,
+                      "endLine": 24,
+                      "quote": "class ProcessFileForm(BaseModel):\n    file_id: str\n    content: Optional[str] = None\n    collection_name: Optional[str] = None"
+                    },
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 47,
+                      "endLine": 50,
+                      "quote": "collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The bounded conditions fix a verified non-admin source-file owner, a caller-supplied existing knowledge-base collection, and absence of destination ownership or an explicit write grant.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/task.json",
+                      "startLine": 6,
+                      "endLine": 7,
+                      "quote": "\"task\": \"At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.\",\n  \"normativeRequirement\": \"Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.\","
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [],
+            "suggestedObservations": []
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "This assessment resolves only the declared runnable obligation file-owner-without-destination-write-grant::post-process-file from the supplied fixed source context; source discovery is not tested, and no repository-wide or all-entry completeness claim is made."
+        }
+      },
+      "structure": {
+        "status": "valid",
+        "diagnostics": []
+      },
+      "declared": {
+        "total": 1,
+        "disposed": 1,
+        "pending": 0,
+        "blocked": 0,
+        "invalid": 0,
+        "status": "all-disposed",
+        "completionPercent": 100
+      },
+      "discovery": {
+        "status": "not-tested",
+        "claimLimit": "declared-obligations-only"
+      },
+      "evidencePresence": [
+        {
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "present"
+        }
+      ],
+      "evidenceSupport": [
+        {
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "unreviewed"
+        }
+      ],
+      "completeness": {
+        "status": "accepted",
+        "kind": "declared-obligations-only"
+      },
+      "dependencySnapshot": {
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "sourceFiles": [
+          {
+            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+            "sha256": "2548edb22139e5eb6bc4b3df7ef4a813fc9dcaef8b1630c8fe1f485a7ba29cae"
+          },
+          {
+            "path": "inputs/owui-process-file-write/task.json",
+            "sha256": "e806df8faae00a6a4dce6f49d0309de2247d3c63b7e2b11d03df42245f4fc2ab"
+          }
+        ],
+        "policies": [
+          {
+            "id": "destination-knowledge-write-policy",
+            "revision": "authorization-case-input/v1@841c9045",
+            "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+            "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+            "acceptanceStatus": "accepted"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "file-owner-without-destination-write-grant",
+            "principalId": "verified-non-admin-file-owner",
+            "resourceId": "existing-destination-knowledge-base",
+            "relation": "owns-source-file-but-no-destination-write-grant",
+            "operation": "write-file-content-to-existing-knowledge-base",
+            "expectation": "deny",
+            "conditions": [
+              {
+                "name": "caller-supplies-existing-collection-name",
+                "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+              },
+              {
+                "name": "principal-is-not-admin",
+                "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+              }
+            ],
+            "policySourceId": "destination-knowledge-write-policy",
+            "entryIds": [
+              "post-process-file"
+            ]
+          }
+        ]
+      },
+      "diagnostics": []
+    }
+  },
+  "finalKind": "repair",
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "status": "response",
+      "startedAt": "2026-09-20T16:08:29.599Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 10861,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 3041,
+        "output": 1290,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "endedAt": "2026-09-20T16:09:30.842Z",
+      "response": {
+        "text": "",
+        "toolCalls": [
+          {
+            "id": "call_OdUUbggFMt0hRxVvrAWGW97i",
+            "name": "submit_authorization_result",
+            "arguments": {
+              "repository": "https://github.com/open-webui/open-webui",
+              "results": [
+                {
+                  "conclusion": "source_supported_failure",
+                  "decisiveMissingFacts": [],
+                  "explanation": "The fixed source shows that a verified non-admin user's file ownership is enforced only when selecting the source file. A caller-supplied collection_name is then passed through without any visible destination ownership or explicit-write-grant check and is supplied to VECTOR_DB_CLIENT.insert, which writes the file-derived items to that collection. Thus, under the stated condition that the named collection exists and the user lacks destination write permission, the source supports the authorization failure.",
+                  "facts": {
+                    "binding": [
+                      {
+                        "statement": "The entry authenticates through get_verified_user and, for a non-admin, binds the source file lookup to user.id.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "startLine": 16,
+                            "endLine": 25,
+                            "quote": "user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),\n):\n...\n    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                          }
+                        ]
+                      }
+                    ],
+                    "condition": [
+                      {
+                        "statement": "The destination collection name is caller-controlled through the optional collection_name form field; when supplied, it is retained rather than replaced by the file-default collection name.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "startLine": 11,
+                            "endLine": 14,
+                            "quote": "class ProcessFileForm(BaseModel):\n    file_id: str\n    content: Optional[str] = None\n    collection_name: Optional[str] = None"
+                          },
+                          {
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "startLine": 27,
+                            "endLine": 31,
+                            "quote": "collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                          }
+                        ]
+                      },
+                      {
+                        "statement": "The bounded condition is that the supplied collection is an existing knowledge-base collection for which the user has no write permission and the caller is a non-admin; these are task conditions, not deployment inferences.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-process-file-write/task.json",
+                            "startLine": 6,
+                            "endLine": 9,
+                            "quote": "At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file."
+                          }
+                        ]
+                      }
+                    ],
+                    "control": [
+                      {
+                        "statement": "The visible authorization control checks only whether a non-admin may access the supplied source file by user ID; no target-specific collection ownership or explicit write-grant check appears between collection_name assignment and the write call.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "startLine": 21,
+                            "endLine": 31,
+                            "quote": "if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:\n        try:\n            collection_name = form_data.collection_name\n\n            if collection_name is None:"
+                          },
+                          {
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "startLine": 32,
+                            "endLine": 32,
+                            "quote": "# Original lines 1571-1687 load content, build metadata, and commit file updates;\n# they contain no call that authorizes collection_name and are omitted from this crop."
+                          }
+                        ]
+                      }
+                    ],
+                    "effect": [
+                      {
+                        "statement": "The file's processed content is passed to save_docs_to_vector_db with the caller-selected collection_name and add enabled when collection_name was supplied.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "startLine": 37,
+                            "endLine": 49,
+                            "quote": "result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={\n                    'file_id': file.id,\n                    'name': file.filename,\n                    'hash': hash,\n                },\n                add=(True if form_data.collection_name else False),\n                user=user,"
+                          }
+                        ]
+                      },
+                      {
+                        "statement": "The write sink inserts the constructed items into the supplied collection_name.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "startLine": 1,
+                            "endLine": 10,
+                            "quote": "log.info(f'adding to collection {collection_name}')\nVECTOR_DB_CLIENT.insert(\n    collection_name=collection_name,\n    items=items,\n)"
+                          }
+                        ]
+                      }
+                    ],
+                    "entry": [
+                      {
+                        "statement": "The relevant entry is POST /process/file, implemented by process_file.",
+                        "citations": [
+                          {
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "startLine": 15,
+                            "endLine": 20,
+                            "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                  "suggestedObservations": [
+                    "No additional observation is required for this bounded source-supported conclusion; if independently validating runtime behavior, observe whether VECTOR_DB_CLIENT.insert accepts the named existing collection, but that is outside the supplied fixed source context."
+                  ]
+                }
+              ],
+              "schemaVersion": "source-authorization-assessment-result/v0",
+              "scopeClaim": {
+                "kind": "declared-obligations-only",
+                "statement": "This result addresses only the single declared and runnable obligation file-owner-without-destination-write-grant::post-process-file using the supplied fixed source crop; it makes no repository-wide or all-entry discovery claim."
+              },
+              "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+              "taskId": "owui-process-file-write"
+            }
+          }
+        ],
+        "tokens": {
+          "input": 3041,
+          "output": 1290,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 61242.97929999998,
+        "stopReason": "tool_use"
+      }
+    },
+    {
+      "id": "provider-attempt-2",
+      "phase": "domain-repair",
+      "transport": "schema-tool",
+      "status": "response",
+      "startedAt": "2026-09-20T16:09:30.848Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 20003,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 5040,
+        "output": 1802,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "endedAt": "2026-09-20T16:10:06.456Z",
+      "response": {
+        "text": "",
+        "toolCalls": [
+          {
+            "id": "call_VW2ePdowJ42qMpCrA5OkHLr8",
+            "name": "submit_authorization_result",
+            "arguments": {
+              "repository": "https://github.com/open-webui/open-webui",
+              "results": [
+                {
+                  "conclusion": "source_supported_failure",
+                  "decisiveMissingFacts": [],
+                  "explanation": "The fixed source shows that POST /process/file requires a verified user and, for a non-admin, restricts selection of the source file by user.id. That source-file ownership check is distinct from authorization to write to the destination collection. The caller-controlled form_data.collection_name is retained when supplied, passed to save_docs_to_vector_db, and ultimately used by VECTOR_DB_CLIENT.insert. The supplied complete authorization-relevant path states that the omitted middle section contains no collection_name authorization call. Under the task-fixed conditions that the named destination is an existing knowledge-base collection, the caller is a non-admin, and the caller has neither ownership nor an explicit write grant on that destination, the source supports the authorization failure.",
+                  "facts": {
+                    "binding": [
+                      {
+                        "citations": [
+                          {
+                            "endLine": 32,
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "quote": "    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),",
+                            "startLine": 31
+                          },
+                          {
+                            "endLine": 43,
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)",
+                            "startLine": 40
+                          }
+                        ],
+                        "statement": "The principal is bound as a verified user, and the non-admin branch binds access to the supplied source file to user.id."
+                      }
+                    ],
+                    "condition": [
+                      {
+                        "citations": [
+                          {
+                            "endLine": 24,
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "quote": "class ProcessFileForm(BaseModel):\n    file_id: str\n    content: Optional[str] = None\n    collection_name: Optional[str] = None",
+                            "startLine": 21
+                          },
+                          {
+                            "endLine": 50,
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "quote": "            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'",
+                            "startLine": 47
+                          }
+                        ],
+                        "statement": "The destination collection name is caller-controlled through the optional collection_name field and is replaced with a file-specific default only when the caller does not supply it."
+                      },
+                      {
+                        "citations": [
+                          {
+                            "endLine": 7,
+                            "path": "inputs/owui-process-file-write/task.json",
+                            "quote": "  \"task\": \"At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.\",\n  \"normativeRequirement\": \"Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.\",",
+                            "startLine": 6
+                          }
+                        ],
+                        "statement": "The bounded conditions fix a verified non-admin source-file owner, a caller-supplied existing knowledge-base collection, and absence of destination ownership or an explicit write grant."
+                      }
+                    ],
+                    "control": [
+                      {
+                        "citations": [
+                          {
+                            "endLine": 43,
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)",
+                            "startLine": 40
+                          },
+                          {
+                            "endLine": 53,
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "quote": "# Original lines 1571-1687 load content, build metadata, and commit file updates;\n# they contain no call that authorizes collection_name and are omitted from this crop.",
+                            "startLine": 52
+                          }
+                        ],
+                        "statement": "The strongest visible authorization control for a non-admin is ownership-based lookup of the source file; the supplied complete path expressly identifies no call authorizing collection_name in the omitted middle section, so no destination ownership or explicit-write-grant control intervenes."
+                      }
+                    ],
+                    "effect": [
+                      {
+                        "citations": [
+                          {
+                            "endLine": 74,
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "quote": "            result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={\n                    'file_id': file.id,\n                    'name': file.filename,\n                    'hash': hash,\n                },\n                add=(True if form_data.collection_name else False),\n                user=user,\n            )",
+                            "startLine": 62
+                          }
+                        ],
+                        "statement": "The processed file documents and selected collection_name are passed to save_docs_to_vector_db, with add enabled when the caller supplied collection_name."
+                      },
+                      {
+                        "citations": [
+                          {
+                            "endLine": 18,
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "quote": "log.info(f'adding to collection {collection_name}')\nVECTOR_DB_CLIENT.insert(\n    collection_name=collection_name,\n    items=items,\n)",
+                            "startLine": 14
+                          }
+                        ],
+                        "statement": "The protected write effect is insertion of the constructed content items into the selected collection_name through VECTOR_DB_CLIENT.insert."
+                      }
+                    ],
+                    "entry": [
+                      {
+                        "citations": [
+                          {
+                            "endLine": 32,
+                            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                            "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),",
+                            "startLine": 27
+                          }
+                        ],
+                        "statement": "The relevant entry is POST /process/file implemented by process_file and reached by a verified user."
+                      }
+                    ]
+                  },
+                  "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                  "suggestedObservations": []
+                }
+              ],
+              "schemaVersion": "source-authorization-assessment-result/v0",
+              "scopeClaim": {
+                "kind": "declared-obligations-only",
+                "statement": "This assessment resolves only the declared runnable obligation file-owner-without-destination-write-grant::post-process-file from the supplied fixed source context; source discovery is not tested, and no repository-wide or all-entry completeness claim is made."
+              },
+              "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+              "taskId": "owui-process-file-write"
+            }
+          }
+        ],
+        "tokens": {
+          "input": 5040,
+          "output": 1802,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 35607.40660000002,
+        "stopReason": "tool_use"
+      }
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 2,
+    "respondedCalls": 2,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 2,
+    "knownTokens": {
+      "input": 8081,
+      "output": 3092,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}
