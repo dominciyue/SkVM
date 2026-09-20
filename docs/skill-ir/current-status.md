@@ -6,7 +6,7 @@
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)已完成。[W0–W9 结果传输、运行计量与评价修复](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成 W0–W8 及 W9 工程验证，正在做精确发布收口。W 已完成同条件三组 B/D 配对，不再追加 revision 或模型调用。
+[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)已完成。[W0–W9 结果传输、运行计量与评价修复](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成并发布到 `origin/skill-ir-aot`。W 已完成同条件三组 B/D 配对，不再追加 revision 或模型调用，也不自动启动第二项目。
 
 本轮已让宿主管理引用和重复元数据，补齐关闭后的调用生命周期，并把语义判断、证据支持、传输有效和完整交付分别评价。下一轮不扩项目：先为授权任务研究最小的通用条件关系表示，覆盖控制关闭、认证失败、可信代理安全、攻击者头可达和身份 provisioning，再用同一小面板判断是否改善证据完整性。研究、当前设计与问题复盘统一维护在[研究总文档](skill-dsl-research.md)。
 

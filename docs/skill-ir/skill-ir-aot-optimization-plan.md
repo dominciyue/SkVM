@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-21
 - 路线：按 skill/task 范围设计领域 DSL
-- 状态：V0–V10 `completed-development`；W0–W9 工程与验证完成，精确发布收口中
+- 状态：V0–V10、W0–W9 均为 `completed-development`
 - 唯一实时状态：[current-status.md](current-status.md)
 - 方法依据：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)
@@ -11,7 +11,7 @@
 
 ## 当前工作顺序
 
-W 已修复 V 暴露的引用抄写、迟到调用和混合评分问题，并在相同三个输入上完成新配对。W9 独立审查发现并修复 invalid wire 错误路径的 canonical result 泄漏；新鲜验证和机器摘要已收口，当前只剩精确提交与 origin 发布。具体设计、原因与复盘写在[研究总文档 §7.20](skill-dsl-research.md#720-w-复核结论与下一轮设计)。
+W 已修复 V 暴露的引用抄写、迟到调用和混合评分问题，并在相同三个输入上完成新配对。W9 独立审查发现并修复 invalid wire 错误路径的 canonical result 泄漏；新鲜验证、机器摘要、精确提交与 origin 发布均已收口。具体设计、原因与复盘写在[研究总文档 §7.20](skill-dsl-research.md#720-w-复核结论与下一轮设计)。
 
 | 阶段 | 工作 | 可检查的交付 |
 |---|---|---|
@@ -22,7 +22,7 @@ W 已修复 V 暴露的引用抄写、迟到调用和混合评分问题，并在
 | W5 | 分解评价 | 语义正确、证据语义、引用有效、完整交付分别计算 |
 | W6 | 离线接线与历史回放 | 新合同反例通过；旧 v0 归档按原口径 replay |
 | W7–W8 | 已完成三组真实配对；真实输出无共享修订依据，revision 为 none | 六单元完成；逐层结果、语义/传输/交付和完整调用/开销已记录 |
-| W9 | 验证完成，发布收口中 | invalid wire fail-closed 回归、可复现使用命令、当前设计、失败结论与下一步决定 |
+| W9 | 已完成：独立审查、验证与发布 | invalid wire fail-closed 回归、可复现使用命令、当前设计、失败结论与下一步决定 |
 
 ## 验收与效果
 
@@ -47,4 +47,4 @@ W 的实际决定是 `no-revision / study-missing-domain-relations`。六单元�
 
 S/D 完成结构与语义准备，E/T 建立外部任务依据、授权范围与真实案例，V 完成首次可运行原型及模型观察，W 完成共享传输/生命周期修复和三组新配对。旧 trace 优化路线的 U/G/H/R/C/F 记录由[历史](history.md)和[证据索引](evidence-index.md)承载，本计划不重复维护其逐轮数据。
 
-恢复时依次读取状态页、W 任务书、研究 §7.19–7.20 与 W summary。W 当前只做发布收口；完成后不自动启动第二项目。
+恢复时依次读取状态页、W 任务书、研究 §7.19–7.20 与 W summary。W 已关闭；下一轮必须作为新任务单独启动，不自动扩到第二项目。

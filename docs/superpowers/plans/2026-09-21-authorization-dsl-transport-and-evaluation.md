@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun test、现有 Zod、`LLMProvider`、授权领域模块与实验 runner。优先在授权模块内实现，公共 provider 只做被反例证明必要的最小兼容修改。
 
-- 制定日期：2026-09-21；状态：`active-W9-publication`（W0–W8 已完成；六个真实单元全部完成，revision 为 none；W9 工程、文档与回放验证已通过，等待精确提交与发布）。
+- 制定日期：2026-09-21；状态：`completed-development`（W0–W9 已完成；六个真实单元全部完成，revision 为 none；工程、文档、回放与发布验证已通过）。
 - 分支：`skill-ir-aot`；仅推送用户 `origin`。不新建分支，不处理无关源码修改。
 - 当前设计和复盘：[研究总文档 §7.20](../../skill-ir/skill-dsl-research.md#720-w-复核结论与下一轮设计)；持续方法合同：[spec 14.34](../../skill-ir/skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。
 - 依据：[V summary](../../../results/skill-ir/skill-dsl-research/development/authorization-v0/summary.json)、[本次复核](../../../results/skill-ir/skill-dsl-research/development/review-20260921.json)。
@@ -117,7 +117,7 @@
 - [x] 文档单测、当前链接/治理检查、已产生 JSON 解析及一次离线 replay；在同一轮收口完成，不重复建 clean worktree 或归档链。
 - [x] 更新研究总文档中的当前接口与短复盘，同步 current-status、plan、spec。删除已被最终设计取代的草案段落，保留有引用价值的失败事实与原数据。
 - [x] final summary 分列工程状态、六个初始单元及 revision、语义/传输/交付、调用和费用、具体决定。实际 USD 缺失保持 unknown，开发代理费用单列。
-- [ ] 按归属暂存、检查差异、提交并推送 `origin/skill-ir-aot`；确认远端一致，列出仍保留的无关修改。完成后关闭本任务，不自动启动第二项目。
+- [x] 按归属暂存、检查差异、提交并推送 `origin/skill-ir-aot`；确认远端一致，列出仍保留的无关修改。完成后关闭本任务，不自动启动第二项目。
 
 ## 四、失败处理与研究记录
 
