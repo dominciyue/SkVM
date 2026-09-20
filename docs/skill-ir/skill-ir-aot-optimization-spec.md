@@ -2,15 +2,17 @@
 
 **最后更新：** 2026-09-21
 
-**当前已确认路线：** 第 14.32 节与[单次真实运行到新程序包任务书](../superpowers/plans/2026-09-14-skill-optimization-end-to-end-repair.md) revision 1，状态 `completed-development`。沿用已实现的采集、JIT 优化和导出组件，已补齐原始输入内容、本地程序修改、修复动作采纳和同一新包的连续消费。U/G/H/R 历史结果原样保留；本轮结论仍限于一个有界新程序职责。Q1/held-out、旧 0/6、readiness 与冻结结果不变。
+**当前已确认路线：** 第 14.34 节的“按 skill/task 范围设计领域表达并验证实际价值”。S/D/E/T/V 已完成；单 repo/ref、source-visible authorization/trust-boundary assessment 的 development 原型已经实现并真实运行。工程闭环可用，效果证据因只有一个完整 initial pair、三个 completion-unknown 请求及普遍 citation repair 而保持 `not-established`。下一步先简化 result/citation transport，不自动扩入口、项目或生产系统。研究和开发复盘见[研究总文档](skill-dsl-research.md)，执行顺序见[当前计划](skill-ir-aot-optimization-plan.md)。第 14.32–14.33 节及更早阶段保留为历史合同与工程基础，I1 保留后备。
+
+本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；新工作以第 14.34 节为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
-**北极星（一句话）：** 以公开验证依据为组织原则，研究受限 skill 任务的确定性 AOT 转换与人工边界，
-并通过 SkVM 提供可复现的产物封装。
+**北极星（一句话）：** 先确定一类 skill 中的任务范围，设计能直接描述这类 skill 的领域 DSL，并通过明确的任务规则、执行支持和验证改善实际使用效果。
 
-项目仍把 Skill IR 作为 SkVM AOT 编译链中的语义表示和优化 pass，但今后的顶层组织原则不再是堆叠案例或
-单独追逐跨模型面板，而是先判断任务答案能否从公开产物或用户输入中重建，再决定 AOT 固化和人工审核边界。
+分类帮助控制研究范围，暂不以建立完整分类学为前提。不同任务可以使用不同的领域表达，同类任务尽量共享语义；不再要求统一 IR 承载所有 skill。AI 可以起草 DSL 和具体 skill 描述，人工负责进一步设计、审阅和修订。现有 IR/AOT、trace、执行与封装组件按需要复用，是否采用它们由具体任务决定。
+
+下列答案可得性路由与历史工作线继续作为参考：它们能帮助识别可检查、可执行和仍需判断的部分，但不是新 DSL 设计的唯一分类轴，也不是启动新方向的额外前置门。
 
 ### 1.1 答案可得性路由框架
 
@@ -2442,10 +2444,40 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 ## 14.34 按 skill/task 范围设计领域 DSL
 
-到 2026-09-21，单 repository/ref、source-visible authorization/trust-boundary assessment 的 V0–V10 development 原型已实现并真实运行。该结果只证明一条有界工程链可运行；对照不完整，不能声称整套方法有效、跨项目复用或生产就绪。
+2026-09-15，用户与学长讨论后确认本节方向。到 2026-09-21，外部类别研究、授权领域定向补证与 V0–V10 development 原型均已完成：有真实案例、独立 oracle、可运行开发链和实际 B/D 输出，但没有实现生产 DSL，且对照不完整，不能声称整套方法有效。“任务适合结构化”“工程链可运行”“整套方法有价值”与“独立表示值得继续建设”继续分开判断。
 
-**V 实现边界。** 使用 strict canonical JSON、显式 obligation×entry expansion、B/D 同事实 renderer、exact allowed-input host、零 executable tools、一次 diagnostics-only repair、逐 provider-call telemetry、deterministic validation、hash-bound development-agent review 和离线 evaluator。没有新产品 CLI、repository discovery、target execution、patch 或 held-out；oracle 只在全部生成结束后进入评价，completion-unknown 不重发。
+**分类的用途。** 分类主要帮助确定研究范围。先识别 skill 所涉及的任务，再选择一个能深入分析的任务范围；一个 skill 可以包含多个任务，同一任务也可以出现在不同 skill 中。不以完整生态分类、人工一致率或大规模样本数量作为工程启动条件，旧 Q1 及其未完成状态独立保留。
 
-**V 实际结果。** initial 6 单元中 4 完成、2 timeout-unknown，只有 file pair 完整：B final partial、D full-success，D 少 1 call、2,353 input、3,537 output、1,408 cache-read tokens 与 109,057.317 ms 已知时间，但一个 pair 不支持总体优势。共享 exact expanded-ID 缺陷经红测试和 arm-neutral contract 修复；revision 两臂首响应均使用正确 ID，但 B fallback timeout，D citation repair 后 full-success，pair 仍不完整。两轮共 18 calls、15 responses、3 pending-at-timeout，已知 57,172 input、31,770 output、1,408 cache-read tokens，actual USD 全部 unknown。离线 replay 重算一致且未产生新语义判断。
+**DSL 的角色。** 目标是让选定范围的 skill 可以直接用 DSL 编写，表达任务要求、输入输出、操作规则、条件、约束，以及需要的判断或检查。具体语言元素由真实任务需求决定，不预先建立跨领域通用指令集。DSL 不只是运行后抽出的代码片段、脚本清单或替统一 IR 改名；需要说明它怎样影响 skill 的使用、执行或结果。不同任务允许不同表达，同类任务应尽量复用语义，而非按每个仓库单独定制。
 
-**V 后续最小范围。** 当前选择先简化领域支持：让 schema-tool 与 fallback 使用同一窄结果形状，并把 citation 改为模型可稳定表达、宿主可确定映射和核验的形式。先在现有 fixed-context development 案例测无 repair completion 与 completion-known rate；稳定前不新增入口发现、第二项目、跨项目效果或生产化主张。任务与证据见 [V0–V10 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)和 [development summary](../../results/skill-ir/skill-dsl-research/development/authorization-v0/summary.json)。
+**AI 与人工。** DSL 及其示例可由 AI 起草，人工结合任务进一步设计、纠错和收敛。具体 skill 可以由人工编写，也可以由模型辅助转换或生成。语言设计、领域能力实现、skill 映射和运行效果分别记录，不能把人工编写的执行器说成模型自动发现的算法，也不要求当前阶段自动完成语言设计全过程。
+
+**两种使用方式。** 一是直接以 DSL 编写新的 skill；二是将已有 skill 的相应任务整理成 DSL 表达。前者不要求先有旧 skill 的 trace，后者可结合正文、脚本、任务与已有真实 trace。Trace 提供实际行为和问题线索，不单独定义整个任务的语义，也不把一次输入的偶然条件固定成长期规则。
+
+**效果范围。** 优化包括正确性、完整性、约束遵守、稳定性、效率、成本和使用便利。具体任务先确定主要改进目标、必要质量要求和评价依据，再报告相关指标及其他代价。不要求所有维度同时上升，也不在结果出现后只挑一个下降指标宣称全面成功。质量改善而 token 增加可报告为相应取舍；程序可执行、局部固化或包导出本身不等于效果改善。未知费用保持未知。
+
+**执行边界。** DSL 可以组织 agent 的工作，也可以调用程序接管确定步骤。领域语义和专业判断尚不能程序化时，允许明确交由 agent 或人工处理，不要求先把整个 skill 全自动化。缺可选结构只影响对应步骤；缺必要输入、违反任务约束或存在有影响的语义歧义时，给出相应诊断，不能静默跳过义务。覆盖范围如实说明，不能把局部任务成果写成整类 skill 均已支持。
+
+**已有基础。** 复用现有捕获、资源与参数索引、验证、局部修复、执行和包导出能力，但不强制新 DSL 先经过旧统一 IR 或既有 action 格式才能成立。保留通用基础设施与领域语义的区别；不预设新 CLI、文件扩展名、完整编译器或大规模框架迁移。旧 IR 和已发布接口继续兼容，历史研究结果不回写。
+
+**下一步。** T 与 V 已完成；[W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已制定，尚未执行。保持三个 fixed-context development 案例，先修复结果传输、引用、调用生命周期及评价分层，再完成新 B/D 配对。历史 held-out、冻结身份和 readiness 保持各自记录。
+
+**已有研究。** S0–S11 方法准备、D0–D11 语义深化/探针与 E0–E10 外部类别研究已完成；分类、标准比较、候选设计、45 项旧探针边界、外部任务/反例、方法对照、消费设计、范围决定与复核发现统一维护在[研究总文档](skill-dsl-research.md)，旧来源和结果保持原件。D 阶段的 `proceed-narrow` 只表示当时对技术文档本地化候选的有界可实施性建议，未证明真实模型消费和效果。
+
+**当前研究边界（2026-09-20 用户确认）。** [E0–E10 记录](../../results/skill-ir/skill-dsl-research/status.json)已按外部真实 skill 的任务、需求、共同领域语义和反例比较类别，并区分研究类别、首版范围与实验输入；本地化为候选，I1 暂缓。不因本地已有后端或易验证性提前排除其他类别，也不新建完整 CLI。DSL 已与整理 Markdown、配置/helper 和现有领域语言比较，再核对 SkVM 最小接入成本；完成研究不自动转入生产开发。
+
+**E0–E10 方法决定（2026-09-20）。** 研究类别“有证据的源码安全评估”可以包含 full、diff 与 broad 变体，但首个实验表示不得据此声称跨变体通用。v0 只允许一个 repo/ref 的 source-visible `authorization-boundary` obligation；dependency/advisory、secret、fixed-query/static、differential history/caller/blast-radius、deployment truth 和 patch mutation 均排除或路由。结果继续复用 audit ledger 与 SARIF，不重建扫描器或结果语言。
+
+**方法与效果合同（T 定向研究）。** 第一原型只比较 B（信息相当的 organized instruction）和 D（canonical domain declaration 加 bounded support）的整体方法；两臂必须由同一任务事实生成并固定模型、设置、源码、answer contract、repair budget 与 evaluator，helper/coverage/control 差异公开作为整套干预，不能归因于语法。只有出现具体作者错误或修改负担假设时才增加第二表示；deterministic parity 只在确有多个受支持入口时证明接线与语义一致性。核心质量同时考虑三个真实条件的正确判断与 oracle-critical trace、漏项/false complete、误报漏报、合理或过度 unknown 及证据支持；declared obligations、source discovery 和 evidence support 使用不同分母。调用、token、时间、actual/estimated/unknown USD 分开，不要求所有维度同升，不将模型辅助编写开销冒充人工节省。
+
+**T0–T10 确认的领域边界。** 首版语义只描述固定 repository/ref 上 principal 在 conditions 下经 entry 对某种 resource relation 执行 operation，并用 accepted policy source、entry→binding→strongest control→effect trace 和 `source_supported_failure` / `source_refuted` / `unknown` 形成结论。用户/研究作者、模型发现者与宿主/评价者的提供、提议和接受责任分开；当前实现行为不自证政策，源外 deployment fact 缺失时保留有内容的 unknown。full/diff/broad review、dependency/secret、patch、live deployment 与 target execution 均排除或路由。
+
+**第一版实现边界。** 使用一个 canonical JSON declaration、信息相当的 B/D renderer、coverage/result contract、精确 allowedInputFiles 的 fixed-context host、逐尝试 telemetry 和 oracle evaluator。零工具指零可执行外部能力：可复用不执行的 schema 输出通道，不注册文件/命令/网络 executor。实验子进程关闭 provider auto-probe，保持调用路线和用户配置。每条声明义务显式记录 principal/resource/relation/operation、`allow/deny/conditional` expectation、conditions、policy source 与入口，只展开显式入口；可选字段缺省正常处理，政策未决仅影响相关任务。首批失败测试覆盖输入、事实等价、义务状态、证据、三种答案、合理 unknown、回退计量及运行边界，随后执行三组 matched B/D。第二项目与 active discovery 依据真实结果安排。
+
+**V 实际实现与边界。** V 已用 strict canonical JSON、显式 obligation×entry expansion、B/D 同事实 renderer、exact allowed-input host、零 executable tools、一次 diagnostics-only repair、逐 provider-call telemetry、deterministic validation、hash-bound development-agent review 和离线 evaluator 完成开发闭环。没有新产品 CLI 或调度平台，目标项目未执行，oracle 在全部生成结束后才进入评价。initial 与 revision 分目录保留，completion-unknown 不重发。
+
+**V 评价与实际结果。** initial 四个单元完成，仅 file 一组完整；revision pair 仍不完整，效果 `not-established`。file 两臂 final 的语义 review 均支持关键事实，B 的 partial 来自引用格式。完整数字由[研究总文档 §7.19–7.20](skill-dsl-research.md#719-v-开发合同与持续复盘)与原 summary 维护，不在 spec 另设重复结果表。V 归档调用是返回快照中的已记录量；9 月 21 日离线复核发现迟到 fallback 缺口，未知历史调用与费用不作推算。
+
+**W 最小实现合同。** 保留声明与旧 canonical result，模型 wire 单独版本化；请求元数据和 exact quote 由宿主绑定，模型返回义务判断、事实引用及必要 unknown 信息。全部允许源码使用共同编号目录，不按答案挑选。schema/fallback 共用合同；关闭后禁止新派发，逐请求事件计量，repair 失败保留 initial，迟到结算不改实验答案。评价分别给出语义正确、证据支持、传输有效和完整交付；旧评分按原版本回放。当前 B/D 共用源码、输出协议、deadline 和修复机会，领域组织差异明确记录。首先修复这些具体问题；第二项目由结果中的明确方法问题驱动。
+
+**研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。

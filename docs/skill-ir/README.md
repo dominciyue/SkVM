@@ -1,6 +1,6 @@
 # Skill IR 文档入口
 
-本目录维护 SkVM 的 Skill IR、AOT 优化、验证与产物交付文档。它是 Skill IR 子系统的入口，不代替 SkVM 整体项目文档。
+这里说明 Skill IR 的优化、验证和产物交付。初次使用 SkVM 可先读使用说明；修改这个子系统时，从当前状态和对应组件入手。
 
 ## 从这里开始
 
@@ -18,6 +18,7 @@
 | [developer-guide.md](developer-guide.md) | 上手与开发 |
 | [skill-ir-aot-optimization-spec.md](skill-ir-aot-optimization-spec.md) | 方法边界与成功条件 |
 | [skill-ir-aot-optimization-plan.md](skill-ir-aot-optimization-plan.md) | 当前未完成任务 |
+| [skill-dsl-research.md](skill-dsl-research.md) | Skill 分类与 DSL 的持续研究结论、来源和未决问题 |
 | [ir-core.md](ir-core.md) | IR、解析、验证与 lowering |
 | [optimization-and-artifacts.md](optimization-and-artifacts.md) | 优化、提案、封装与产品链 |
 | [evaluation-system.md](evaluation-system.md) | runner、checker、scorer 与证据资格 |
@@ -37,15 +38,18 @@
 
 - `spec` 只维护方法、边界和长期验收条件。
 - `plan` 只维护当前未完成任务；实时状态只写入 `current-status.md`。
+- DSL 调研结论统一更新 `skill-dsl-research.md` 的主题章节并追加简短研究记录，不按轮次另建研究报告；原始来源、数据与探针仍放在 results。
 - 运行证据写入 `results/skill-ir/`，文档只链接最窄结果，不复制执行流水。
 - 历史过程依靠 Git 与 `history.md` 恢复，不建立第二棵 archive 目录。
 - 默认更新当前阅读集中的现有文档；新增长期文档必须承担现有文档无法容纳的新职责。
+- 组件正文说明接口、处理原因和限制。阶段编号用于定位历史，不代替组件名称；测试数量和执行流水留在结果记录中。
+- 注释解释代码中不明显的约束、兼容原因和失败处理，不重复函数名或逐行翻译代码。保留作者、来源和 AI 辅助记录，不把措辞调整写成人工贡献证据。
 
 ## 文档检查
 
 ```powershell
 python scripts/check_skill_ir_doc_links.py
-python -m unittest scripts/check_skill_ir_doc_links_test.py
+python -m unittest discover -s scripts -p check_skill_ir_doc_links_test.py
 ```
 
 文件数与行数只作维护提醒；缺失入口、当前/版本化清单冲突、错误迁移引用才会失败。

@@ -1,38 +1,38 @@
 # External Skill Import Staging Bundle
 
-本文定义 P2 的通用 external-skill import 合同。该合同把用户已经准备好的本地 skill source closure、review 资产和显式成本证据冻结为可移植 staging bundle，再交给现有 verified-artifact product CLI。它不实现第二套 runtime，也不声称 bundle 离开 SkVM 后可以独立执行。
+External-skill importer 把已准备好的本地 skill 文件、审核资源和成本证据复制成 staging bundle，供现有 verified-artifact CLI 使用。Bundle 保存运行所需的声明文件；执行仍依赖 SkVM。
 
 ## 1. 目标
 
-P2 提供：
+Importer 提供：
 
-- 可执行的通用 library/CLI；
+- 显式 recipe 驱动的 library/CLI；
 - 机器可读、digest-bound 的 import recipe 与 import manifest；
 - `--root=<bundle>` 下完全自洽的 `workflow-config.json`；
 - 对 source、license、review plan/patch/dependency、可选 checker 和 compact cost evidence 的显式闭包；
-- 一个 Magpie shadow case 和一个非 Magpie fixture，证明 importer 没有 skill-id 分支。
+- Magpie shadow case 和非 Magpie fixture，用于检查同一导入逻辑是否能处理不同来源。
 
-P2 只证明 staging 合同和现有 product CLI 的组合可工作。**Bundle 不是独立运行时**；运行解释器仍是当前 SkVM checkout 中的 product CLI/library，搬走 bundle 本身不能脱离 SkVM 执行。
+这项能力在 P2 阶段实现。其验证范围是文件封装与现有 product CLI 的组合；复制 bundle 后，目标环境仍须具备 SkVM CLI/library。
 
 ## 2. 非目标
 
-P2 不执行 Git clone/fetch，不访问网络，不自动发现 `SKILL.md` 引用，不递归猜 patch/checker dependency，不调用模型/API，不读取 held-out，不打包 raw/model-run/workdir，不修改 P1、portfolio、readiness 或 `src/index.ts`。
+导入过程只读取 recipe 声明的本地文件，不执行 Git clone/fetch、联网或模型/API 调用。`SKILL.md` 引用和 patch/checker 依赖需事先列全；raw/model-run/workdir 与 held-out 不进入 bundle。P1、portfolio、readiness 和 `src/index.ts` 不在该组件的修改范围内。
 
-Importer 不生成 review 逻辑，不判断 semantic parity，不推测人工时间，不从 evidence 重算 token break-even。Recipe 仍是人工审核的显式文件清单，因此 P2 不是 automatic optimizer 或 live-source import claim。
+Recipe 是经过人工审核的显式文件清单。Importer 不生成审核逻辑或判断语义等价，也不推算人工时间和 token 回本次数。这些判断由上层流程提供，不能从导入成功得出。
 
 ## 3. 备选方案
 
 ### 3.1 采用：可移植 staging bundle
 
-Importer 将显式输入复制到新目录，重写 workflow config 为 bundle 内相对路径，并生成可独立复核的 closure manifest。该方案能离开原 source checkout 保存输入证据，同时保持 import 与 product execution 分层。
+显式输入复制到新目录后，workflow config 使用 bundle 内相对路径，closure manifest 记录文件集合。这样可以移动输入证据，而无需保留原 source checkout 的目录布局。
 
 ### 3.2 不采用：只索引本地 checkout
 
-只保存原目录路径的实现更小，但目录移动后不可重放，并会重复 P1 的仓库内路径绑定问题。
+只记录原目录路径会在目录移动后失效，P1 已遇到过这种路径绑定问题。
 
 ### 3.3 不采用：import 后立即执行 product
 
-单命令同时 import、执行 checker 和生成质量/成本结论会把来源冻结与产品声明混在一起，难以区分 staging failure 与 product failure。
+导入和执行分开，才能区分文件准备失败与 product 运行失败，并分别检查来源和结果。
 
 ## 4. 输入合同
 

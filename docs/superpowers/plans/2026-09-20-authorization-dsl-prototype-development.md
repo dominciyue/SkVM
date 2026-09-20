@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun test、现有 Zod 3、`LLMProvider` / `extractStructured` / provider registry，固定版本源码与 JSON/JSONL 运行记录。
 
-- 制定日期：2026-09-20；状态：`planned-not-started`。本文件完成开发准备，V0 启动后才创建执行状态和运行目录。
+- 制定日期：2026-09-20；状态：`completed-development`（2026-09-21 收口，最终提交 `43d6d89`）。以下为原执行清单，机器状态见 `development/authorization-v0/status.json`；后续工作见 W 任务书。
 - 工作分支：`skill-ir-aot`；仅推送用户 `origin`，保留所有无关修改与历史材料。
 - 设计正文：[研究总文档 §7.19](../../skill-ir/skill-dsl-research.md#719-v-开发合同与持续复盘)；方法边界：[spec 14.34](../../skill-ir/skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。本轮不另建 design、开发总结或交接 Markdown。
 - 研究依据：[T 原型决定](../../../results/skill-ir/skill-dsl-research/prototype-readiness-decision.json)、[对照设计](../../../results/skill-ir/skill-dsl-research/next-prototype-evaluation.json)、[真实案例](../../../results/skill-ir/skill-dsl-research/cases/authorization/manifest.json)。T 原件保留研究时含义；本任务书落实实现细节。
@@ -83,10 +83,10 @@
 
 **读取：** current-status、本任务书、研究 §7.9–7.19、spec 14.34、T case manifest。按需读取相关模块，不重跑历史研究。
 
-- [ ] 记录分支、提交、tracked 修改及本轮归属文件；保留其他线程内容，不清理历史目录。
-- [ ] 创建 `development/authorization-v0/status.json`：stage、taskStatus、nextAction、implementationRevision、comparisonStatus、unresolvedIssues。所有任务初始 `pending`。
-- [ ] 确认 Bun、项目依赖、Python 文档检查入口可用；读取路由只输出非敏感的模型标识和能力，不打印密钥/完整配置。
-- [ ] 在研究 §7.19 更新开发入口和接口草案；本轮以同一任务语义实现，不重新选类。
+- [x] 记录分支、提交、tracked 修改及本轮归属文件；保留其他线程内容，不清理历史目录。
+- [x] 创建 `development/authorization-v0/status.json`：stage、taskStatus、nextAction、implementationRevision、comparisonStatus、unresolvedIssues。所有任务初始 `pending`。
+- [x] 确认 Bun、项目依赖、Python 文档检查入口可用；读取路由只输出非敏感的模型标识和能力，不打印密钥/完整配置。
+- [x] 在研究 §7.19 更新开发入口和接口草案；本轮以同一任务语义实现，不重新选类。
 
 **完成：** 执行者知道接下来改哪些文件、如何验证及恢复；此时模型运行数为零。
 
@@ -94,11 +94,11 @@
 
 **文件：** `schema.ts`、`semantics.ts` 及相邻测试；实际实现前先阅读准备修改的完整文件。
 
-- [ ] 首先用小型 synthetic declaration 写失败测试：合法非 Open-WebUI 名称、缺版本、错类型、悬空引用、重复 ID、空可选数组、政策 conflict 和空义务。
-- [ ] 运行 `bun test ./src/task-dsl/authorization/schema.test.ts src/task-dsl/authorization/semantics.test.ts`，确认失败指向未实现的解析/诊断行为。
-- [ ] 用 Zod `.strict()` 实现结构解析；语义层解析引用并返回 `{ task, runnableObligations, blockedObligations, diagnostics }`，结构错误保留字段路径。不要把 task/ref 字符串硬编码成某个案例。
-- [ ] 绿灯后补充关系/条件来源检查；未决政策只影响相关义务。记录可选缺项和真正缺输入的处理差异。
-- [ ] 更新研究正文的最终字段表与公开符号；完成该独立实现后可提交 `feat: add authorization task declaration`。
+- [x] 首先用小型 synthetic declaration 写失败测试：合法非 Open-WebUI 名称、缺版本、错类型、悬空引用、重复 ID、空可选数组、政策 conflict 和空义务。
+- [x] 运行 `bun test ./src/task-dsl/authorization/schema.test.ts src/task-dsl/authorization/semantics.test.ts`，确认失败指向未实现的解析/诊断行为。
+- [x] 用 Zod `.strict()` 实现结构解析；语义层解析引用并返回 `{ task, runnableObligations, blockedObligations, diagnostics }`，结构错误保留字段路径。不要把 task/ref 字符串硬编码成某个案例。
+- [x] 绿灯后补充关系/条件来源检查；未决政策只影响相关义务。记录可选缺项和真正缺输入的处理差异。
+- [x] 更新研究正文的最终字段表与公开符号；完成该独立实现后可提交 `feat: add authorization task declaration`。
 
 核心断言形状（测试 fixture 在本任务中构造）：
 
@@ -116,11 +116,11 @@ expect(compiled.blockedObligations).toHaveLength(1)
 
 **文件：** `semantics.ts`、`render.ts`、相邻测试及 `index.ts`。
 
-- [ ] 红测试覆盖 entry 去重、数组重排 ID 稳定、增加 explicit write grantee 只增加对应义务、缺角色信息诊断。
-- [ ] 定义 `CompiledAuthorizationTask`：接受的事实、展开义务、待解决项、source/policy 依赖；同一 obligation 的多个 entry 各生成一项。
-- [ ] 实现 B/D renderer，共用事实收集函数；B 使用明确 Markdown 段落，D 使用领域计划和义务列表。源码由宿主在统一位置插入，避免每个义务重复附整个源码。
-- [ ] 对两个 renderer 检查 repository/ref、原 request、政策原文、scopeAssurance、主体/资源/条件、所有分析要求和结论规则；自由文本不丢失。不用字符串长度或出现某个关键词验证信息等价。
-- [ ] 运行 `bun test ./src/task-dsl/authorization`；抽读三个任务的 B/D preview，说明差异落在方法组织的哪一层。
+- [x] 红测试覆盖 entry 去重、数组重排 ID 稳定、增加 explicit write grantee 只增加对应义务、缺角色信息诊断。
+- [x] 定义 `CompiledAuthorizationTask`：接受的事实、展开义务、待解决项、source/policy 依赖；同一 obligation 的多个 entry 各生成一项。
+- [x] 实现 B/D renderer，共用事实收集函数；B 使用明确 Markdown 段落，D 使用领域计划和义务列表。源码由宿主在统一位置插入，避免每个义务重复附整个源码。
+- [x] 对两个 renderer 检查 repository/ref、原 request、政策原文、scopeAssurance、主体/资源/条件、所有分析要求和结论规则；自由文本不丢失。不用字符串长度或出现某个关键词验证信息等价。
+- [x] 运行 `bun test ./src/task-dsl/authorization`；抽读三个任务的 B/D preview，说明差异落在方法组织的哪一层。
 
 关键测试：
 
@@ -141,12 +141,12 @@ expect(renderAuthorizationTask(before, "B").facts)
 
 **文件：** `inputs.ts`、测试；新增 `development/authorization-v0/declarations/`、`evaluation/`。
 
-- [ ] 写失败测试：只读取允许文件；拒绝 parent/absolute/symlink escape；缺文件返回诊断；额外 oracle 文件不进入 prompt；crop 行号与原始位置保持可区分。
-- [ ] 实现输入读取器。领域运行函数只接受准备好的 `SourceBundle`，不传 oracle 路径；manifest 和评价材料只由实验外层持有。不存在“递归复制整个案例目录”的默认行为。
-- [ ] 根据每个 task 的允许输入编写三份声明和 `authoring-map.json`，保留字段来源。模型输入保留原自然任务与规范文本。映射过程不从修复提交或 oracle 添加答案暗示。
-- [ ] 在本轮 `evaluation/` 保存修订的 trusted-header oracle 与 protocol，写出 old/new/原因和原材料路径；T 原文件保留。补齐 `ENABLE_PASSWORD_AUTH` 先行拒绝、trusted-header 条件、认证成功与 session 关系。
-- [ ] 给修订 rubric 加控制关闭/认证失败反例；最终 deployment `unknown` 及 env/proxy/ingress 的事实要求保留。
-- [ ] 运行 `bun test ./src/benchmarks/authorization-dsl/inputs.test.ts`，无网络；研究正文记录这次发现如何影响条件建模与评分。
+- [x] 写失败测试：只读取允许文件；拒绝 parent/absolute/symlink escape；缺文件返回诊断；额外 oracle 文件不进入 prompt；crop 行号与原始位置保持可区分。
+- [x] 实现输入读取器。领域运行函数只接受准备好的 `SourceBundle`，不传 oracle 路径；manifest 和评价材料只由实验外层持有。不存在“递归复制整个案例目录”的默认行为。
+- [x] 根据每个 task 的允许输入编写三份声明和 `authoring-map.json`，保留字段来源。模型输入保留原自然任务与规范文本。映射过程不从修复提交或 oracle 添加答案暗示。
+- [x] 在本轮 `evaluation/` 保存修订的 trusted-header oracle 与 protocol，写出 old/new/原因和原材料路径；T 原文件保留。补齐 `ENABLE_PASSWORD_AUTH` 先行拒绝、trusted-header 条件、认证成功与 session 关系。
+- [x] 给修订 rubric 加控制关闭/认证失败反例；最终 deployment `unknown` 及 env/proxy/ingress 的事实要求保留。
+- [x] 运行 `bun test ./src/benchmarks/authorization-dsl/inputs.test.ts`，无网络；研究正文记录这次发现如何影响条件建模与评分。
 
 **完成：** 三个案例有可运行声明、精确输入、可解释字段来源和修订后的评价依据。
 
@@ -154,11 +154,11 @@ expect(renderAuthorizationTask(before, "B").facts)
 
 **文件：** `schema.ts`、`result.ts`、测试。
 
-- [ ] 红测试包括：遗漏/重复/陌生 obligation、错 ref、越界行号、引用文本不符、sink-only 引用、已填表却声明全仓检查完成。
-- [ ] 实现结果结构和引用定位；缺失项保留 `pending`，其他有效任务结果继续返回。引用存在性输出为机械检查，语义支持状态初始 `unreviewed`。
-- [ ] 主机生成 declared/discovery/evidence 三组统计。`unknown` 需 explanation、决定性缺失事实和建议观察；结构层检查是否提供，语义层判断是否合理。
-- [ ] 实现相关依赖变更检查：政策变更或相关 source 变化标 `needs-review`；新的 ref 先保留旧结果所属版本，确认相关输入与政策未变后可记录复用依据。无需引入新哈希冻结链。
-- [ ] 测试漏入口只影响全范围完成表述、已检查 entry 的有效结论可保留；空清单不会产生 100% 完成。
+- [x] 红测试包括：遗漏/重复/陌生 obligation、错 ref、越界行号、引用文本不符、sink-only 引用、已填表却声明全仓检查完成。
+- [x] 实现结果结构和引用定位；缺失项保留 `pending`，其他有效任务结果继续返回。引用存在性输出为机械检查，语义支持状态初始 `unreviewed`。
+- [x] 主机生成 declared/discovery/evidence 三组统计。`unknown` 需 explanation、决定性缺失事实和建议观察；结构层检查是否提供，语义层判断是否合理。
+- [x] 实现相关依赖变更检查：政策变更或相关 source 变化标 `needs-review`；新的 ref 先保留旧结果所属版本，确认相关输入与政策未变后可记录复用依据。无需引入新哈希冻结链。
+- [x] 测试漏入口只影响全范围完成表述、已检查 entry 的有效结论可保留；空清单不会产生 100% 完成。
 
 关键断言：
 
@@ -175,13 +175,13 @@ expect(checked.discovery.status).toBe("not-tested")
 
 **文件：** `telemetry.ts`、`host.ts` 及测试；条件性修改通用 provider 只限必要兼容修复。
 
-- [ ] 写 mock provider 红测试：首次 schema response 无 tool call、fallback 成功，usage 应计两次；无响应异常标 unknown；一次缺 USD 则 total actual USD 未知，同时保留已知小计。
-- [ ] 包装 `LLMProvider.complete`，调用前记 attempt，返回后保存 response，再交给结构化解析；异常写入记录再原样传播。拒绝包装器中的 `completeWithToolResults`。
-- [ ] 实现宿主 `runAuthorizationTask`：传入 task/sourceBundle/provider/arm/options，构造统一上下文、调用 `extractStructured`、运行检查并返回结果和 attempts。provider 原始响应存盘须遮蔽凭据，生成内容和必要引用完整保留。
-- [ ] 验证只存在指定 schema 输出工具，无外部工具定义和 executor；遇到其他 tool 名返回 transport failure。先确认该路径能做到，再投入真实模型调用。
-- [ ] 禁用实验子进程的 auto-probe，测试不发生隐藏路由切换与配置写入。超时先记录，在请求状态不明时不同时重发；若 provider 没有取消接口，记录 pending/unknown 并结束该 worker。
-- [ ] 按本书 2.3 实现至多一次 actionable domain repair；初始/修复前后结果分别保留。只有机械诊断可进入修复请求，oracle 不加载进 host。
-- [ ] 运行 `bun test ./src/benchmarks/authorization-dsl/telemetry.test.ts src/benchmarks/authorization-dsl/host.test.ts`；涉及共享代码时补 `bun test test/providers/structured.test.ts test/providers/structured-error-propagation.test.ts test/providers/registry.test.ts`。
+- [x] 写 mock provider 红测试：首次 schema response 无 tool call、fallback 成功，usage 应计两次；无响应异常标 unknown；一次缺 USD 则 total actual USD 未知，同时保留已知小计。
+- [x] 包装 `LLMProvider.complete`，调用前记 attempt，返回后保存 response，再交给结构化解析；异常写入记录再原样传播。拒绝包装器中的 `completeWithToolResults`。
+- [x] 实现宿主 `runAuthorizationTask`：传入 task/sourceBundle/provider/arm/options，构造统一上下文、调用 `extractStructured`、运行检查并返回结果和 attempts。provider 原始响应存盘须遮蔽凭据，生成内容和必要引用完整保留。
+- [x] 验证只存在指定 schema 输出工具，无外部工具定义和 executor；遇到其他 tool 名返回 transport failure。先确认该路径能做到，再投入真实模型调用。
+- [x] 禁用实验子进程的 auto-probe，测试不发生隐藏路由切换与配置写入。超时先记录，在请求状态不明时不同时重发；若 provider 没有取消接口，记录 pending/unknown 并结束该 worker。
+- [x] 按本书 2.3 实现至多一次 actionable domain repair；初始/修复前后结果分别保留。只有机械诊断可进入修复请求，oracle 不加载进 host。
+- [x] 运行 `bun test ./src/benchmarks/authorization-dsl/telemetry.test.ts src/benchmarks/authorization-dsl/host.test.ts`；涉及共享代码时补 `bun test test/providers/structured.test.ts test/providers/structured-error-propagation.test.ts test/providers/registry.test.ts`。
 
 **完成：** mock 下端到端执行与恢复可用，调用记录覆盖失败、fallback 和修复。
 
@@ -189,13 +189,13 @@ expect(checked.discovery.status).toBe("not-tested")
 
 **文件：** `evaluate.ts`、测试、本轮 evaluation 数据；研究总文档同步评分职责。
 
-- [ ] 先以手写候选答案测试评价接口：正确改述、正确关键词但因果反转、漏上游控制、忽略入口开关、无内容 unknown、全部 unknown。
-- [ ] 实现机械评分与语义 review 分离：程序判断 schema/引用/任务覆盖，语义 review 对每项关键事实给 `supported/contradicted/missing/uncertain`、理由、回答位置、源码位置和适用 oracle rule。
-- [ ] 首六份输出由执行代理依据原始输入与修订 rubric 逐项填写 review，记录 `reviewerKind=development-agent` 和身份；这是开发阶段代理复核，不另建 reviewer 模型服务，不登记为真人审核或六次被测模型调用之一。宿主代理开销无计量时记 unmeasured。
-- [ ] review 文件绑定具体 attempt、原始输出和 rubric 版本；有争议项目保留 `uncertain`。程序验证 review 完整性与引用，按明确规则生成 `taskDecisionCorrect`、criticalFacts、scopeHonesty 和错误类型。
-- [ ] 质量通过要求该 case 的正确结论和全部关键事实受支持；裁决必要项 uncertain 时记待复核。不能靠词匹配或预期标签自动填 supported。
-- [ ] 成对汇总报告初始质量、修复后质量、引用/覆盖诊断、耗时、各类 token、providerAttempts、已知费用与未知请求。`source_refuted` 是正常任务成功，合理 unknown 按对应 oracle 计分。
-- [ ] 运行 `bun test ./src/benchmarks/authorization-dsl/evaluate.test.ts`；修改任一 review 关键事实应按规则改变结果。
+- [x] 先以手写候选答案测试评价接口：正确改述、正确关键词但因果反转、漏上游控制、忽略入口开关、无内容 unknown、全部 unknown。
+- [x] 实现机械评分与语义 review 分离：程序判断 schema/引用/任务覆盖，语义 review 对每项关键事实给 `supported/contradicted/missing/uncertain`、理由、回答位置、源码位置和适用 oracle rule。
+- [x] 首六份输出由执行代理依据原始输入与修订 rubric 逐项填写 review，记录 `reviewerKind=development-agent` 和身份；这是开发阶段代理复核，不另建 reviewer 模型服务，不登记为真人审核或六次被测模型调用之一。宿主代理开销无计量时记 unmeasured。
+- [x] review 文件绑定具体 attempt、原始输出和 rubric 版本；有争议项目保留 `uncertain`。程序验证 review 完整性与引用，按明确规则生成 `taskDecisionCorrect`、criticalFacts、scopeHonesty 和错误类型。
+- [x] 质量通过要求该 case 的正确结论和全部关键事实受支持；裁决必要项 uncertain 时记待复核。不能靠词匹配或预期标签自动填 supported。
+- [x] 成对汇总报告初始质量、修复后质量、引用/覆盖诊断、耗时、各类 token、providerAttempts、已知费用与未知请求。`source_refuted` 是正常任务成功，合理 unknown 按对应 oracle 计分。
+- [x] 运行 `bun test ./src/benchmarks/authorization-dsl/evaluate.test.ts`；修改任一 review 关键事实应按规则改变结果。
 
 **完成：** 每个分数可以追到具体判断和源码；程序与 reviewer 的贡献清晰。
 
@@ -203,11 +203,11 @@ expect(checked.discovery.status).toBe("not-tested")
 
 **文件：** `run.ts`、测试、本轮 `comparison-config.json`；developer-guide 指向研究 §7.19 的使用说明。
 
-- [ ] 提供 `check/run/evaluate/status` 子命令，所有参数有诊断，`--help` 不初始化 provider。可注入 sourceBundle 的公开函数保持独立于案例目录。
-- [ ] `check` 输出三份声明、B/D preview、文件清单和诊断，无模型调用；mock 演练一次 `run` 到 `evaluate` 全链。
-- [ ] 写 `comparison-config.json`：实际可用 modelId、同一路由和设置、timeout/maxTokens/context limit、case 次序、每 case 的 B/D 顺序、相同修复上限、源码与 rubric 版本、诊断差异。案例顺序为 file→text→header，臂顺序为 B/D、D/B、B/D。
-- [ ] 选择已配置可用模型；不另行强制某个供应商。配置不存在时说明缺项，继续完成无网络任务；不展示凭据。配置值在首轮调用前记录，结果不能反向决定设置。
-- [ ] 运行 `bun test ./src/task-dsl/authorization src/benchmarks/authorization-dsl` 和 `bun run typecheck`。若已有无关失败，定位并单列，不改无关线程文件。
+- [x] 提供 `check/run/evaluate/status` 子命令，所有参数有诊断，`--help` 不初始化 provider。可注入 sourceBundle 的公开函数保持独立于案例目录。
+- [x] `check` 输出三份声明、B/D preview、文件清单和诊断，无模型调用；mock 演练一次 `run` 到 `evaluate` 全链。
+- [x] 写 `comparison-config.json`：实际可用 modelId、同一路由和设置、timeout/maxTokens/context limit、case 次序、每 case 的 B/D 顺序、相同修复上限、源码与 rubric 版本、诊断差异。案例顺序为 file→text→header，臂顺序为 B/D、D/B、B/D。
+- [x] 选择已配置可用模型；不另行强制某个供应商。配置不存在时说明缺项，继续完成无网络任务；不展示凭据。配置值在首轮调用前记录，结果不能反向决定设置。
+- [x] 运行 `bun test ./src/task-dsl/authorization src/benchmarks/authorization-dsl` 和 `bun run typecheck`。若已有无关失败，定位并单列，不改无关线程文件。
 
 计划开发命令（仅 V7 实现后可用；在仓库根执行）：
 
@@ -256,7 +256,7 @@ bun ./src/benchmarks/authorization-dsl/run.ts status
 - [x] 只提交本轮归属代码、数据与文档块，推送 `origin/skill-ir-aot`。混有他人内容的文档按修改块处理；无法可靠归属的内容保留并明确未发布。
 - [x] 更新 conversation log、当前状态与计划；完成后交付，不自动换类别或扩成长时间新队列。
 
-**完成：** V0–V10 的八个归属提交已通过 `ff5a98a` 推送到 `origin/skill-ir-aot`；工程状态为 `completed-development`，比较仍不完整、效果仍为 `not-established`。现有工作树的其他修改和未跟踪材料未清理、回退或纳入提交。
+**完成：** V0–V10 的九个归属提交已通过 `43d6d89` 推送到 `origin/skill-ir-aot`；工程状态为 `completed-development`，比较仍不完整、效果仍为 `not-established`。当时保留的共享文档于 9 月 21 日另行复核整理；无关源码和未跟踪材料继续由原任务负责。
 
 ## 四、研究总文档怎样记录开发历程
 

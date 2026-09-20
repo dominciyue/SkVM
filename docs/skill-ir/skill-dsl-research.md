@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**E/T/V 已完成，授权任务 DSL 当前为 `completed-development`、效果 `not-established`。** [V0–V10 开发任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)已经交付“声明→义务→B/D→模型分析→检查→review→评价”闭环，并保留 initial 与 revision 实际结果。唯一完整 initial pair 偏向 D，但另两对及 revision pair 因 timeout 不完整，不能建立总体优势。下一轮优先简化 result/citation transport；I1、本地化、主动发现、第二项目和生产化不自动启动。
+**E/T/V 已完成，授权任务 DSL 当前为 `completed-development`、效果 `not-established`。** V 已交付“声明→义务→B/D→模型分析→检查→review→评价”闭环。9 月 21 日复核进一步确认：唯一完整 file pair 的两臂关键语义均获 review 支持，交付差异主要来自 B 的引用格式；另两对及 revision pair 不完整。下一轮 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)修复结果传输、调用生命周期及评价分层，然后在相同三个 development 案例复测；I1 暂缓。
 
 已经站得住的判断：
 
@@ -12,10 +12,10 @@
 - 分类服务于范围选择。应区分任务类别、首版能力范围和实验输入，不要求先建立完整生态分类学。
 - DSL 允许组织 agent 判断，也允许调用程序；不局限于固化执行或节省 token。目标包括直接用 DSL 写所选范围的 skill。
 - 可以复用 SkVM 的运行、模型路由、记录、验证和包基础；现有 CLI 不需要重建。具体接入方式应后于语言使用方式的选择。
-- 已有窄域探针证明部分定位、回填、约束和宿主控制能够实现；尚无这条 DSL 路线的真实模型消费或效果比较。
-- 当前发现的 Markdown/YAML 回填漏检与模型回退计量问题仍待修复。测试通过不能扩张为全部结构或收益保证。
+- 已有窄域探针支持部分定位、回填与约束设计；V 又完成了授权原型的真实模型消费，提供了结果传输、推理遗漏及开销的具体观察。
+- 本地化候选的 Markdown/YAML 回填问题保留在 §8；当前授权路线的引用、迟到 fallback 与评价混合问题见 §7.20，分别维护处理状态。
 
-E8 已推翻“一个薄 profile 覆盖 full/diff/broad 安全评估”的宽主张。当前继续研究 **source-visible authorization/trust-boundary assessment**，领域声明可连接 scope、evidence、verification、verdict 与 coverage；ledger 和可选 SARIF 按需复用。E9 曾建议配置/profile 配对，完成后复核见第 7.7 节：共享语义下的 parity 不能单独回答方法价值，T 将重新论证实验臂，不预设第二套表示。文献综合、workbook/browser 和本地化保留原有比较结论；所有这些方法仍无本项目真实模型效果证据。
+当前开发 **source-visible authorization/trust-boundary assessment**：固定项目版本，检查主体对资源执行操作时的权限关系与源码控制。T 已把 E9 的配置/profile 对照修订为 B/D 整体方法比较，首版实现单一声明与配套支持。文献综合、workbook/browser 和本地化保留比较结论；各路线的真实效果随各自运行记录更新。
 
 ## 2. 研究目标与术语
 
@@ -533,16 +533,73 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 旧 E9 的“3–5 engineer-days parity + 2–4 engineer-days paired run”已撤销且不换算为新的日历承诺。替代范围是：一个 experiment-only driver、一个 schema/renderer/validator 组、一个 oracle evaluator、一个聚焦 telemetry wrapper 或修复、约十个 focused tests；测试通过后才计划六次模型运行（三个 matched B/D pair）。这只是可直接写实现计划的工作边界，不是实测工时；本轮 `automaticNextStep=false`，不自动启动实现。
 
+### 7.18 T 完成后复核：进入原型前的局部修正
+
+2026-09-20，用户再次提供 E 阶段摘要；新鲜现场已到 T 交付 `50ca563`，因此当前建议依据 T 的真实案例、语义与评价设计，不重复开展 T。T 研究与任务书已纳入 Git；current-status、plan、spec 等既有修改仍在工作树，提交对齐不代表工作树干净。
+
+现有基础足够进入实验性窄原型，无需再做一轮广泛选类或文献综述。单项目三个情形支持方法可行性试验，不能直接证明整类、跨项目或主动发现收益。仍有三项实现前必须明确的局部问题：
+
+1. **trusted-header oracle 漏了入口开关。** [输入源码](../../results/skill-ir/skill-dsl-research/cases/authorization/inputs/owui-trusted-header-deployment/auths_signin.py) 第 11–15 行在 trusted-header 分支前检查 `ENABLE_PASSWORD_AUTH`，关闭时直接 403。[当前 oracle](../../results/skill-ir/skill-dsl-research/cases/authorization/oracles/owui-trusted-header-deployment.json) 的缺失事实和条件结果未包含该开关。因此“trusted header 启用且能直达”不足以单独支持其条件路径；需注明入口开关及后续认证成功条件。最终 `unknown` 不变，首轮实验前应显式修订 oracle/评分依据并保留变更记录，本次复核不悄悄覆盖原答案。
+2. **语义评分尚是协议，不是已实现能力。** [evaluation protocol](../../results/skill-ir/skill-dsl-research/cases/authorization/oracles/evaluation-protocol.json) 已正确区分四层，但尚需说明每次语义判断由谁、依据哪些引用和矛盾作出，如何记录争议。关键词/函数名命中只能作覆盖提示，不能自动判证据支持；第一小面板可保留逐项可审阅判断。实现应至少检查正确改述、带正确关键词但否定关系错误、忽略入口控制等反例，不先建设通用语义评价平台。
+3. **零工具需定义为零可执行外部能力。** 当前 [structured provider](../../src/providers/structured.ts) 用不执行的 tool schema 承载结构化输出。可以复用该输出通道，同时禁止读写文件、命令和网络工具执行；不能既要求完全没有任何 schema tool，又原样调用该接口。若坚持请求中没有 tools，需明确选用 prompt/parse 路径。每次 fallback/失败响应的计量仍须补全。
+
+下一步应把以上局部修正纳入最小实现计划，然后实现 canonical declaration、B/D 同事实渲染、coverage/result contract、固定上下文宿主及逐次计量/评价。约十类确定性失败测试通过后做三个 matched B/D pair。六次运行仅用于确认链路和发现问题；真实质量、实际开销及后续重复/第二项目是否值得做，由结果决定，不再用检索代替运行。
+
 ### 7.19 V 开发合同与持续复盘
 
-首版只处理单 repository/ref、fixed-context、source-visible authorization obligation。`src/task-dsl/authorization/` 提供 strict canonical declaration、引用/政策语义、显式 obligation×entry 展开、B/D 同事实渲染和结果/变化验证；`src/benchmarks/authorization-dsl/` 提供 exact input reader、fixed-context host、逐调用 telemetry、hash-bound semantic review、离线 evaluator 和 development runner。领域代码不按 case ID 或 oracle 分支。
+2026-09-20，用户确认从研究进入开发。[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)已完成，下文描述其已实现接口与运行结果；W 的待实现变更集中在 §7.20。执行细节与失败原件由原任务书和 development 数据承载。
 
-执行顺序为 parse→compile→render→宿主附 exact source→structured provider→机械 validate→至多一次 diagnostics-only repair→全部生成结束后读取 evaluator-only rubric。schema tool 只承载结构化返回，不是 executable tool；宿主不暴露文件、命令或网络执行，不执行目标项目，completion-unknown 不自动重发。
+**分类如何进入实现。** 按“任务目标→领域对象→决定答案的关系/规则→跨来源映射→近似反例→程序/模型分工”识别任务范围。首版接收明确的单 ref 授权任务；已有 skill 可以把对应职责写成声明，其余职责保留。首版不需要训练分类器，也不以构造所有 skill 的类别树为前置。
 
-B 是信息相当的 organized instruction，D 是 canonical declaration 加 bounded domain support；二者由同一 facts 和 exact runnable output-ID 闭集生成。评价分开 structure、declared disposition、source discovery、citation presence、semantic support、scope honesty 与任务结论，不把 schema/citation 存在性当作正确性，也不把未知费用写成零。
+**最小组件。** `src/task-dsl/authorization/` 负责 schema、semantics、render、result 和公开导出；`src/benchmarks/authorization-dsl/` 负责精确输入、provider 包装、fixed-context host、评价与开发脚本。前者不依赖案例 ID 或 oracle，后者承担实验数据映射。已有 provider 路由、Zod、Bun 与 token 类型直接复用。
 
-V0–V10 的实际实现、问题触发、根因、修复、验证和方法变化记录在本文件 §12 的 V 日期记录；机器状态、初轮/修订结果与离线 replay 位于 `results/skill-ir/skill-dsl-research/development/authorization-v0/`。当前工程状态为 `completed-development`，效果为 `not-established`；下一最小实现只收窄 schema/fallback 与 citation transport，不自动扩入口发现、第二项目或生产系统。
+**已实现领域接口。** `AuthorizationTaskV0Schema`/`AuthorizationTaskV0`、`Diagnostic`、`parseAuthorizationTask`、`CompiledAuthorizationTask`、`compileAuthorizationTask` 和 `renderAuthorizationTask` 已落地并由 `index.ts` 导出。解析层只判断 closed shape，语义层单独报告 duplicate/dangling/ambiguous reference；政策 conflict/unresolved 仅阻塞引用它的展开义务。无义务返回 `needs-input`，不会产生 vacuous complete；已有 runnable 与 blocked 同时存在时返回 `partial`。同一 authored obligation 内重复 entry 只展开一次并保留 warning；展开 ID 由 authored obligation ID 与 entry ID 决定，数组重排不改变身份。B/D 共用同一 facts；B 组织成 Markdown，D 附 canonical facts、展开任务、依赖和诊断，源码插槽各出现一次。
 
+**领域声明。** `source-authorization-assessment/v0` 的实际 v0 字段为 `schemaVersion/taskId/request/repository/sourceRef/sourceMode/policySources/principals/resources/entries/obligations/scopeAssurance/requiredAnalysis/constraints`。政策记录文本、位置、revision 与 `accepted/conflicted/unresolved` 接受记录；主体记录 role、description 和 starting capabilities；入口记录允许源码位置。每条义务写明 `principalId/resourceId/relation/operation/expectation/conditions/policySourceId/entryIds`，其中 expectation 为 `allow/deny/conditional`，只展开显式 entry，避免把所有维度机械组合。实体名称可变化，核心对象采用 strict schema；starting capabilities 和 conditions 空数组正常处理。缺必要事实输出字段路径诊断，政策冲突只阻塞相关义务。
+
+**作者与政策。** 首版三份声明由开发者根据允许的 task/source 编写，保存字段来源。政策接受记录写明接受者角色、适用理由和来源；当前实现行为进入观察，不作为规范依据。模型后续可辅助起草，但自动编写与主动发现是后续功能。首版生成输入不含预期结论或答案提示。
+
+**执行顺序。** parse→semantic resolve→明确义务展开→B/D 渲染→宿主附精确源码→structured provider→结构/引用/覆盖检查→必要局部修复→生成结束后读取 oracle 评价。首轮模型没有文件、命令或网络执行能力；结构化 schema tool 只是输出通道。程序记录声明处置、source discovery 和 evidence 三种状态，source discovery 为 `not-tested`。
+
+**结果接口。** `AuthorizationResultV0` 使用 `source-authorization-assessment-result/v0`，逐展开 obligation 返回 `source_supported_failure/source_refuted/unknown`、explanation、entry/binding/control/effect/condition 分组事实与 citation、决定性缺失事实和建议观察，并显式选择 declared-only 或 repository-all-entry scope claim。`validateAuthorizationResult` 分开输出 strict structure、declared disposition、host-owned `discovery=not-tested`、citation presence 和 `evidenceSupport=unreviewed`。引用只可指 exact bundle path 和 crop 行，保留 quote 必须出现在该范围；sink-only 引用可为 present，但缺 binding/control 等 fact group，绝不自动升级 support。正常 unknown 可完成对应声明义务，但空 missing facts/observation 产生 actionable diagnostic；漏项、重复、陌生结果和 unsupported completeness 不抹掉其他有效结论。
+
+**变化处理。** 义务 ID 由作者 obligation ID 与 entry ID 稳定关联，数组重排保持不变。validation 保存 repository/ref、exact source digest、政策文本/位置/revision/status 和 obligation semantics 的轻量 dependency snapshot。政策、相关源码或 obligation scope 变化标 `needs-review`；只有 ref 改变而这些依赖相同，也先保持 needs-review，宿主另行确认 bounded entry universe 未变并写明 reuse basis 后才记 `reusable`。旧结果仍属于原 ref；没有新增哈希冻结链。
+
+**固定上下文宿主与调用计量。** `runAuthorizationTask` 接受 task、精确 `SourceBundle`、注入 provider、B/D arm 和界限参数；不解析案例目录或 oracle。宿主仅提供 `submit_authorization_result` 输出容器，没有可执行外部工具。wrapper 在实际 `provider.complete` 前登记 schema/fallback/repair attempt，已返回响应的 usage 只汇总一次，未知费用保留 null。V runner 的恢复规则不会重新派发已登记单元；9 月 21 日复核发现，内存中的迟到解析仍可触发 fallback，且 repair 超时会丢失返回对象中的 initial。W 将修复这些生命周期缺口，V 归档按已有快照解释。
+
+**准备阶段新发现 V-PREP-01：自动探测会改变比较条件。** [registry](../../src/providers/registry.ts) 第 167–219 行默认给 openai-compatible 包装 AutoProbeProvider；[auto-probe](../../src/providers/auto-probe.ts) 可在解析错误后发出额外探测、切换协议并写入路由。V5 宿主只接受注入 provider，因此其 mock 路径不会初始化 registry、探测或写配置；V7 实验入口仍必须在创建 provider 前设置 `SKVM_AUTO_PROBE=0`，并用入口测试固定这一点，避免真实 B/D 中途换路由或产生 wrapper 外调用。
+
+**评价与迭代。** 首三个真实条件各运行一对 B/D。两臂同事实、模型、源码、输出合同与修复机会；方法差异记录在 comparison config。`AuthorizationSemanticReviewV0` 绑定 case/task、initial/repair、实际输出 provider attempt、原始输出 SHA-256、rubric version、reviewer 身份，以及每项判断的 answer JSON pointer、exact source location 和 oracle rule；首轮 reviewer 角色固定为 `development-agent`，不称真人或独立模型服务。程序先验证 review 完整性与绑定，再分开计算 label correctness、critical facts、scope honesty、deterministic diagnostics、task decision 和 error classes；任何语义支持都来自显式 review，不从关键词或 citation 存在性推导。初始输出全部完成后再读取 oracle 填写 review，评价内容不返回被测修复流程。有具体共享缺陷时先补反例、修实现，再追加一轮受影响配对，首轮仍保留。
+
+**V8 首轮真实结果。** 六个预定单元均按冻结顺序且每单元 fresh context 发出一次，没有换案例或重发 completion-unknown。四个单元完成，`process-text D` 与 `trusted-header B` 在 180 秒宿主截止时仍有 pending 请求，保留为 `timeout-unknown`，故只有 file pair 可配对评价。完成单元经输出哈希绑定 review 后：file B 为 partial、file D 为 full-success；text B 为 full-success；trusted-header D 为 partial。唯一完整 pair 的 D 相对 B 少 1 次 provider call、2,353 input tokens、3,537 output tokens、1,408 cache-read tokens 与 109,057.317 ms 已知 elapsed，但单一 pair 不支持推广 D 优势。全轮 14 次 provider call 中 12 次有响应、2 次 pending；已知用量为 46,560 input、26,583 output、1,408 cache-read、0 cache-write tokens。provider 对 14 次调用均未报告实际 USD，故总成本是 unknown 而非 0。原始与评价证据位于 `development/authorization-v0/runs/initial/`。
+
+**V9 revision 1（运行前）。** 首轮三个 completed initial outputs 在语义上回答了问题，却把 authored obligation ID 写成结果键；validator 因 closed compiled target 是 `author::entry` 同时报 foreign/missing。该现象跨 B/D 且修复调用能纠正，最窄共享根因是 result contract 只说“declared entry obligation”，没有把 exact runnable output IDs 列为闭集。红测试现已要求 B/D 的 `## Result contract` 同时列出 exact expanded IDs，并明确禁止 authored ID、遗漏和额外 ID；renderer 由同一 compiled object 生成这段合同，不含 case ID 分支、结论或 oracle。效果修订固定在 `comparison-config-v9-expanded-id.json`，只重跑首轮双臂均完成且直接受影响的 file pair；citation mismatch、trusted-header 条件遗漏与 provider timeout 不冒充此修复的目标。
+
+**V9 revision 1 结果。** B 与 D 的首个 schema response 都使用 exact `file-owner-without-destination-write-grant::post-process-file`，说明目标 foreign/missing-ID 缺陷已由共享合同消除。B 的 response 仍因缺 `suggestedObservations` 且 `results` 混入字符串而不能解析，prompt fallback 于 180 秒保持 pending；D initial 的 obligation/结论/语义事实正确，但八处 citation 行/quote 不匹配，唯一 domain repair 后 full-success。修订共 4 次 provider call（3 response、1 pending），已知 10,612 input、5,187 output tokens，四次 actual USD 均 unknown。由于 B timeout，修订不形成 pair，不能用 D 单臂宣称质量改善；初轮与修订证据分别保留。下一轮应选择“先简化领域支持”：在相同 fixed-context 任务上收窄非决定性字段、改善 schema transport 与 citation 表达/校验，再决定是否进入第二项目；现在增加入口发现只会把未解决的传输成本放大。
+
+**当前局部问题归属。** trusted-header 的 `ENABLE_PASSWORD_AUTH`、authentication/user 和 session 条件已在 evaluator-only revision 中补齐，T oracle 原件保留且最终 expected disposition 仍为 unknown。exact expanded-ID 合同由 V9 解决；schema/fallback shape 与 citation fidelity 是下一轮 transport 工作；trusted-header 的 authentication false branch/四种条件结果仍是模型推理缺口；三个 pending-at-timeout 继续属于 completion unknown。工具 schema、零执行能力与关闭 auto-probe 均已有测试，不再作为未完成项。
+
+**使用与测试。** 公开领域函数为 `parseAuthorizationTask`、`compileAuthorizationTask`、`renderAuthorizationTask`、`validateAuthorizationResult`；实验宿主公开 `runAuthorizationTask`，开发入口为 `src/benchmarks/authorization-dsl/run.ts` 的 `check/run/evaluate/status`。仓库根执行 `bun ./src/benchmarks/authorization-dsl/run.ts check` 会验证声明、rubric 与 exact bundle，写 `check.json` 和六份 preview；`run --config=./results/skill-ir/skill-dsl-research/development/authorization-v0/comparison-config.json` 是唯一会初始化 provider 的命令，默认写 `runs/initial`；全部生成结束并填写 review 后，执行 `evaluate --run-dir=./results/skill-ir/skill-dsl-research/development/authorization-v0/runs/initial` 离线重算；`status` 只读。help/check/evaluate/status 不创建 provider。修订配置和结果分别为 `comparison-config-v9-expanded-id.json` 与 `runs/revision-1-expanded-id-contract/`，不得与 initial 拼接。总状态、结果和 V10 离线复验分别见 `status.json`、`summary.json`、`offline-replay.json`。聚焦测试目录为 `src/task-dsl/authorization` 与 `src/benchmarks/authorization-dsl`，同时运行现有 typecheck；修改 provider 才增加相关专项回归。
+
+**复盘约定。** 实现期间每个有意义问题按“触发→根因→解决→验证→方法变化→剩余项”在本节相关主题更新，并在 §12 追加短记录；原始日志和机器证据放 `results/skill-ir/skill-dsl-research/development/authorization-v0/`。本轮计划写好时不创建空运行结果。错误处理、字段调整或评分修订改变当前行为时同步本节、spec 和任务书，不额外建立平行开发报告。
+
+### 7.20 W 复核结论与下一轮设计
+
+2026-09-21，复核 V 代码、原始输出和语义 review，并以注入 provider 的离线 mock 验证超时行为。证据见[复核记录](../../results/skill-ir/skill-dsl-research/development/review-20260921.json)，执行清单见 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)。以下为待实现设计，不写成现有能力。
+
+**研究基础的可用程度。** 外部任务研究已经给出可用的分类方法：由目标、领域对象、决定答案的关系、跨来源映射及反例确定范围。授权任务的 principal/resource/relation/operation/condition/policy/entry 已能表达三个真实条件，程序与模型分工也已运行。下一步所需信息主要来自消费失败，而非更多泛读数量。第二项目仍承担以后检验领域语义迁移的责任；当前三个条件均来自 Open WebUI。
+
+**引用问题。** `renderSourceBundle` 展示裁剪范围但不逐行编号，结果却要求模型复制 exact path、行号和 quote。file B final 的关键事实、结论与 scope review 均 supported，三处 quote mismatch 使交付为 partial；修订 D 首答也有八处 mismatch。W 使用覆盖全部允许源码的 source ID 与编号范围，宿主据 exact source 绑定路径及原文。模型仍选择论据并说明因果，合法引用不会自动获得语义支持。两臂共用目录，拒绝陌生/越界/错 ref，不用 oracle 筛出答案片段。
+
+**传输问题。** revision B 不仅漏 `suggestedObservations`，还在 `results` 中混入字符串；其首响应约耗时 131 秒，随后 fallback 共用原 180 秒 phase 截止，剩余时间不足一次完整请求窗口。W 单独版本化模型 wire，只保留义务结论、解释、事实引用及必要的 unknown 信息，由宿主绑定请求元数据；旧 canonical result 与回放保留。实际发送的 JSON schema 和 fallback 必须一致。时间按 per-call 与整单元分别记录，在新配对开始前固定共同配置。
+
+**生命周期问题。** `host.ts` 用 `Promise.race` 返回超时，未关闭结构化解析链。离线 mock 在 5 ms 返回时已派发一次请求，30 ms 到达的无效响应随后触发第二次请求；返回快照仍仅含一个 pending attempt。修订要在每次 provider 派发前检查关闭状态，事件即时落盘，迟到响应按原 attempt 补结算；无法取得的 usage 保持 unknown。repair 超时也应保留已生成 initial。该 mock 证明代码缺陷，历史真实额外调用数量须依原始记录核对，不能从 mock 推算。
+
+**评价问题。** V 的 `taskDecisionCorrect` 同时受机械验证与语义 review 影响。W 单列语义正确性、证据语义、传输有效性和完整交付，保留旧版本分数。trusted-header 缺 authentication-failure 分支及条件关系的事实遗漏仍需评价；接受逻辑等价表达，不要求逐字照抄 rubric。无答案或无 review 保持未知并留在原分母。这样可看出领域支持究竟改善了判断、完整性还是仅减少格式返工。
+
+**开发与比较。** 顺序为引用目录→wire/归一化→精简 B/D 与 repair→关闭与事件→分层评价→离线演练→三个原案例的新六单元配对→一次有依据的共享修订。B/D 同模型、源码、输出接口和修复机会，源码只插入一次。历史 V 与新 W 分版本报告；跨轮开销为描述性观察，当前 B/D 承担方法比较。若两臂效果相当则保留领域模型与共同 helper、采用较简单表达；若 D 有具体增益，再筹备第二项目。W 状态为 `planned-not-started`。
+
+**文档归属。** 状态页只维护当前工作和结果导航，plan 只维护近期顺序，spec 保留持续规则；本文件维护设计与复盘。V 的过期草案段落已合并进实际接口，原始失败和历史任务仍可追溯。复核接纳此前共享文档中与代码一致的改写，不继续以“混有修改”为由搁置整批文档；无关源码仍由原任务负责。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -631,6 +688,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 4. 新任务书仍放 plans，写要做的事，不复制结果正文。current-status 只写短状态和指针，plan 只写当前待办，spec 只写方法边界。
 5. 与旧分类组件的分工：本文件承载 DSL 研究发现和选择理由；classification-and-routing 保留已有工程路由、合同与历史发放接口。
 6. 本次新增一个长期研究职责，当前阅读集由 14 份增至 15 份；旧两轮结果 Markdown 保留为历史证据，不继续平行维护。单文档采用主题整合加简短追加，不无限粘贴重复摘要。
+7. 开发阶段沿用本文件：记录可定位的问题、根因、解决、验证及方法变化；接口与使用说明随实现更新到 §7.19。执行状态和长日志留在机器文件，日常无方法影响的小修复可合并一条记录。
 
 ### 2026-09-20 合并记录
 
@@ -724,7 +782,6 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 
 解析 15 个研究 JSON、40 条来源及 52 条既有 observation，确认 18 条 T1–T9 记录 ID 唯一；三个真实 case 的 8 个 exact input 与 5 个 evaluator-only 文件无交叉，关键 source trace 均能在裁剪输入定位。文档链接单测 12/12 通过；纳入本轮 staged 文件后的 9,310 文件扫描为 broken/legacy/governance error 各 0，三条 `technical-document-localization` 旧引用只按精确 source/target 记为 retired；cached diff check 通过。独立 default-agent 交付审阅 Critical 0，指出的 output index 已补齐；该复核不是人工评审或效果证据。25 个归属文件已进入证据提交 `2118a7d`；current-status、plan、spec 三个 T0 前已 dirty 的共享文件只做本地同步，未吞入该提交。最终状态提交与 `origin/skill-ir-aot` 推送完成后，本轮停止，不自动启动原型。
 
-
 ### 2026-09-20 V 开发准备
 
 用户确认进入开发，制定 V0–V10 实施任务书，明确 JSON 声明、义务展开、B/D renderer、结果/覆盖、精确输入、模型宿主、计量和逐事实评价的文件责任。核对现有 provider 与真实 task 字段后，增加实验子进程关闭 auto-probe、显式字段来源映射、trusted-header 入口条件修订和初始/修复结果分开记录。同步当前状态、plan/spec 与开发指南；没有创建运行状态、修改生产代码或发起模型实验。下一动作是 V0 恢复现场、V1 失败测试与领域 schema 实现。
@@ -807,6 +864,11 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 
 **V10-DELIVERY-03。** 交付范围限定为 development-only canonical declaration、compiler、B/D renderer、fixed-context zero-executable-tool host、validator/change state、逐调用计量、hash-bound review、evaluator 与可恢复 runner；不包含生产 CLI、入口发现、target execution、patch、held-out 或跨项目主张。工程状态为 `completed-development`，比较状态仍为 incomplete/effectiveness `not-established`。八个 V 归属提交已通过 `ff5a98a` 推送 `origin/skill-ir-aot`，既有脏工作树未清理或吞并。下一轮最小实现只收窄 schema/fallback 与 citation transport，并在原 fixed-context 案例测无 repair completion 和 completion-known rate。
 
+### 2026-09-21 V 二次复核与 W 开发准备
+
+**W-PREP-01。** 复核原始响应、review 与评分代码，区分引用交付失败和条件推理遗漏；离线 mock 复现超时后 fallback 继续派发，外部调用为零。既有授权回归 51/51、284 assertions 通过，说明需要补充迟到响应反例。详细证据和待实现修复更新 §7.20；V 数据原字节保留。
+
+**W-DOC-02。** 合并状态页和计划的重复历史说明，修复研究正文“尚无真实消费”、V 任务书“尚未开始”等过期状态，采用已复核的共享组件文档更新。W0–W9 制定完成；本轮未启动 W 代码或模型实验。文档验证与提交记 conversation log 和 Git。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 

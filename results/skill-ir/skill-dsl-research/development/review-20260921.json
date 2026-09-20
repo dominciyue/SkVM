@@ -1,0 +1,100 @@
+{
+  "kind": "authorization-v0-code-evidence-and-document-review",
+  "date": "2026-09-21",
+  "reviewedHead": "43d6d89f585ef8e3bc602d5b4f6bb5e34e99b793",
+  "scope": "Review existing code and development evidence; reconcile shared documentation; prepare W taskbook.",
+  "productionCodeChanged": false,
+  "historicalRunArtifactsChanged": false,
+  "externalProviderCalls": 0,
+  "findings": [
+    {
+      "id": "citation-transport-burden",
+      "status": "confirmed-by-code-and-artifacts",
+      "evidence": [
+        "src/benchmarks/authorization-dsl/inputs.ts:152",
+        "src/task-dsl/authorization/result.ts:144",
+        "results/skill-ir/skill-dsl-research/development/authorization-v0/runs/initial/units/01-owui-process-file-write-B/review.repair.json",
+        "results/skill-ir/skill-dsl-research/development/authorization-v0/runs/initial/evaluation-summary.json"
+      ],
+      "observation": "Source contents have a crop-range header but no per-line numbering; model citations must reproduce exact paths, ranges and quote text. File B final has supported semantic review but three citation-text mismatches.",
+      "nextAction": "Use a shared numbered source catalog and host-derived canonical quotes. Keep semantic support review separate."
+    },
+    {
+      "id": "revision-schema-and-deadline",
+      "status": "confirmed-by-raw-attempt",
+      "evidence": [
+        "results/skill-ir/skill-dsl-research/development/authorization-v0/runs/revision-1-expanded-id-contract/units/01-owui-process-file-write-B/run.json:183",
+        "src/benchmarks/authorization-dsl/host.ts:159"
+      ],
+      "observation": "The schema response contains an extraneous string in results and lacks suggestedObservations. Its response took about 131 seconds; fallback then shared the original 180-second extraction-phase deadline.",
+      "nextAction": "Narrow the wire protocol, inspect the actual provider schema, and distinguish call and unit deadlines."
+    },
+    {
+      "id": "late-fallback-after-timeout",
+      "status": "reproduced-with-local-injected-provider",
+      "evidence": [
+        "src/benchmarks/authorization-dsl/host.ts:78",
+        "src/benchmarks/authorization-dsl/host.ts:133",
+        "src/benchmarks/authorization-dsl/host.ts:159",
+        "src/benchmarks/authorization-dsl/telemetry.ts"
+      ],
+      "probe": {
+        "inputDirectory": "results/skill-ir/skill-dsl-research/development/authorization-v0/runs/initial/units/02-owui-process-file-write-D",
+        "hostArm": "B",
+        "timeoutMs": 5,
+        "maxDomainRepairs": 0,
+        "mockResponseDelayMs": 30,
+        "mockResponseText": "{}",
+        "mockResponseToolCalls": [],
+        "settlementObservationWaitMs": 150,
+        "returnedStatus": "timeout-unknown",
+        "mockCallsAtReturn": 1,
+        "mockCallsAfterSettlement": 2,
+        "returnedAttemptCount": 1,
+        "returnedAttemptStatuses": ["pending"],
+        "externalCalls": 0
+      },
+      "nextAction": "Close dispatch before returning timeout, journal attempt events, and retain late settlements without changing the experimental answer.",
+      "historicalExtraCalls": "unknown; the local probe does not establish that extra real calls occurred"
+    },
+    {
+      "id": "initial-artifact-lost-on-repair-failure",
+      "status": "confirmed-by-control-flow",
+      "evidence": ["src/benchmarks/authorization-dsl/host.ts:184", "src/benchmarks/authorization-dsl/host.ts:218"],
+      "observation": "initial is created inside try, while catch returns only status, compiled input, prompt and error; raw provider attempts survive but the initial parsed artifact is absent from the returned run.",
+      "nextAction": "Preserve initial result and validation independently of repair completion."
+    },
+    {
+      "id": "semantic-and-mechanical-score-coupling",
+      "status": "confirmed-by-evaluator-and-review",
+      "evidence": ["src/benchmarks/authorization-dsl/evaluate.ts:412", "src/benchmarks/authorization-dsl/evaluate.ts:441"],
+      "observation": "taskDecisionCorrect is affected by mechanical validation. The complete initial file pair supports an artifact-delivery difference; its final semantic reviews both support the critical facts.",
+      "nextAction": "Version the new evaluation and report semantic correctness, semantic evidence, transport validity and delivery completeness separately. Preserve old scores."
+    }
+  ],
+  "verificationAtReview": {
+    "command": "bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl",
+    "passed": 51,
+    "failed": 0,
+    "assertions": 284,
+    "interpretation": "Existing tests pass; the late-response lifecycle needs an additional regression case.",
+    "typecheckExitCode": 0,
+    "documentationTestsPassed": 12,
+    "documentationScan": {
+      "files": 9440,
+      "brokenReferences": 0,
+      "legacyReferences": 0,
+      "governanceErrors": 0,
+      "softLengthWarnings": 5
+    },
+    "changedMarkdownNonTrackedLinkTargets": 0,
+    "unrelatedSourceDrift": 0
+  },
+  "decision": {
+    "researchBasis": "sufficient-for-the-next-bounded-development-cycle",
+    "methodEffectiveness": "not-established",
+    "nextTaskbook": "docs/superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md",
+    "nextTaskStatus": "planned-not-started",
+    "priority": ["host-owned citations and compact wire", "closed dispatch and event accounting", "separate semantic and mechanical evaluation", "three new matched B/D development pairs"]
+  }
+}

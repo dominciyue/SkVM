@@ -1,7 +1,14 @@
 # 分类与路由
 
-本页维护 responsibility/step 级分类、能力路由、发放与 held-out 边界。分类是开发工具，不是当前 U0–U7 路线的
-状态页，也不能用候选运行结果倒推标签。
+本页维护分类依据、能力路由及历史发放与 held-out 边界。项目进度见 [current-status.md](current-status.md)。分类用于确定任务范围，不能用候选运行结果倒推标签。
+
+## 当前用途：为领域 DSL 确定任务范围
+
+2026-09-15 确认：先比较 skill 所包含的任务，再选择一个范围设计 DSL；分类主要帮助控制研究范围，暂不要求独立完成一套生态分类学。一个 skill 可以承担多个任务，同一任务也可出现在不同 skill 中。任务目的、输入输出、操作与判断规则共同决定相似性，不能只按文件格式、skill 名称或当前程序能否通过来分类。
+
+范围说明应给出纳入条件、差异、反例和仍需 agent 判断的部分，并指出 DSL 如何表达该范围的 skill。AI 可以提出分类与 DSL 草案，人工进一步分析和设计；这不等于历史 Q1 真人标注完成。已有语料和真实 trace 可复用，读取、运行、质量与效果证据分别记录。
+
+新方向关注直接编写或转换 skill 的领域表达，以及质量、完整性、稳定性、效率等实际效果，不只寻找可确定性固化的步骤。下面的答案依据、构造依据和执行条件仍用于分析局部能力；旧 family/Q1/held-out 合同只约束各自研究身份，不自动成为新 development 路线的进入门槛。方法见 spec 14.34，执行顺序见[当前计划](skill-ir-aot-optimization-plan.md)。
 
 ## 1. 分类单位与四种状态
 
@@ -117,8 +124,6 @@ bun run typecheck
 
 本轮 working classification 的 meta-characteristic 是：会改变共享 DSL 语义、运行支持或公平评价的任务目的、领域操作、规则、判断和可观察完成差异。应用主题只用于发现/领域词汇，自动化与可验证性只记录 support/evaluation；membership、current support 和 evaluability 不再混成一个标签。
 
-从 52 个 development package 中深读 24 个 skill，拆出 30 张 task card。六任务 v0 经另一组六任务反打后形成十个暂定 range；九项 challenge 使 skill authoring 的主类改为 constraint-backed artifact，并把交互 PDF 的次级语义从 configuration lifecycle 改为 policy-gated external action。PDF 创建/变换混卡、OCR subtype、交互 PDF 边界和 contract/evidence 横切性继续 unresolved；这不是分类准确率或生态比例。
+原始 52 包、24 个深读 skill、30 张任务卡及 assignment 见 [`classification.json`](../../results/skill-ir/skill-task-dsl-preparation-20260919/classification.json)，不代表分类准确率或生态比例。
 
-主选 `preservation-constrained-transform` 的纳入条件是：明确 source/target、eligible units、至少一个保护/保持义务、可观察变换结果和变换后 check；排除 source-free synthesis、以 live-state editing 为主和纯 assessment。核心成员来自法律转换、skill 文档翻译与 locale 生成/检查。PDF OCR 只作为“属于候选但当前不支持”的边界成员，不作为独立实现证据。
-
-备选 `constraint-backed-artifact` 只有缩到单一 artifact family 后才进入实现。最强反对意见是主选可能退化为通用 transform wrapper；下一轮必须在至少两个独立谱系中证明共享构造的改变会改变诊断、控制流或结果，否则回退到窄域规范或整理 Markdown。完整规则、assignment、反例与争议见 [`classification.json`](../../results/skill-ir/skill-task-dsl-preparation-20260919/classification.json)。
+S/D 两轮的类别比较、候选变化、谱系限制和后续 E/T/V 研究开发结论统一维护在[研究总文档](skill-dsl-research.md)。本组件维护机器合同、工程路由与发放边界。当前范围是单 repo/ref、源码可见的授权任务，V 原型已完成，W 将修复结果消费和计量；本地化 I1 暂缓。

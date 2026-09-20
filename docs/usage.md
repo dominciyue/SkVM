@@ -138,7 +138,7 @@ The supported default path needs only a natural task, source skill, work directo
 skvm run --prompt="<task>" --skill=./skill --workdir=./project --model=<id> --optimize
 ```
 
-SkVM materializes the internal task, runs it once, binds that run's capture, passes the evidence to the existing optimizer, and exports any resulting package under the run session. Users do not provide a task JSON, log path, record locator, validation plan, criteria file, action mapping, or package destination. `--optimizer-model=<id>` and `--package-out=<new-empty-directory>` are optional advanced overrides. Manual `jit-optimize --task-source=log` remains an advanced compatibility path.
+SkVM runs the task once, captures its execution and passes that evidence to the optimizer. Any resulting package is saved under the run session. Capture and handoff are automatic; the optimizer uses `--model` unless `--optimizer-model=<id>` is set. Use `--package-out=<new-empty-directory>` to override the package location. For existing logs, use the advanced `jit-optimize --task-source=log` path.
 
 JSON reference checks compare parsed values, not formatting or object key order. A passed local case means it executed successfully; without independent task checks the package remains a usable draft, not an independently validated recommendation. Resolve bundled scripts relative to their `SKILL.md` directory. Manifests, validation reports and hashes are diagnostic evidence, not routine steps for consuming a skill; follow the program's own exit-code convention.
 
@@ -152,14 +152,7 @@ skvm run --resume-optimization=path/to/optimization-session.json
 
 States whose external completion is unknown remain non-replayable. A completed package can be `draft` or `validated-recommendation`; package-file closure alone is not behavior validation, and neither status establishes whole-skill correctness or cost savings.
 
-The R7 development acceptance actually ran this command with the recorded local configuration (shown as evidence, not a portable example):
-
-```powershell
-$env:SKVM_CACHE = 'D:\skill优化\SkVM\.skvm'
-bun D:\skill优化\SkVM\src\index.ts run --prompt="Read document.txt in this directory and convert it to Markdown with the selected skill. Preserve the source bytes, produce the skill's normal final and audit outputs, and report the local verification result." --skill=D:\skill优化\SkVM\results\skill-ir\skill-optimization-production-closure-20260913\h9\package-attempt-001-revision-001\SKILL.md --workdir=D:\skill优化\SkVM\results\skill-ir\skill-optimization-production-closure-20260913\r7\ordinary-project-revision-002 --model=xty/gpt-5.6-sol --optimize
-```
-
-Its source/capture/handoff completed. The optimizer changed documentation only, so the package correctly remained `draft` with behavior `not-run`; provider-bound USD cost was unavailable and remains unknown.
+A recorded example is the [R7 development run](../results/skill-ir/skill-optimization-production-closure-20260913/r7/report.json). Source execution, capture and handoff completed, but the optimizer changed documentation only. Its package remained `draft`, behavior was `not-run`, and USD cost was unknown. Use the portable command above for a new task; the report preserves that run's local setup.
 
 ### Copy and use an exported package
 
@@ -170,15 +163,15 @@ Copy-Item -LiteralPath <exported-package> -Destination .\optimized-skill -Recurs
 skvm run --prompt="<task>" --skill=.\optimized-skill --workdir=.\project --model=<id>
 ```
 
-Inspect `OPTIMIZATION-USAGE.md` and `optimization-manifest.json` first. For the verified Law TXT package's direct local path, run from the new parent directory with Python bytecode disabled so the exact package closure stays unchanged:
+Start with `OPTIMIZATION-USAGE.md` for the package's commands and limits. The manifest is available for diagnostics. For example, the Law TXT package can run directly from its new parent directory with Python bytecode disabled:
 
 ```powershell
 python -B .\optimized-skill\scripts\law_to_markdown.py .\project\document.txt --law-decision law --artifact-level minimal
 ```
 
-H13 verified that command after a single copy to a fresh Windows temporary directory: package closure passed before and after, Stage3 A/B/overall passed, the input and package digests were unchanged, and no research-root path was embedded. This covers TXT only. PDF/DOCX still follow `SKILL.md`: use the configured `mineru-ocr` route, or install `python-docx>=1.1.0` and `pdfplumber>=0.11.0` only for an explicitly authorized local fallback.
+This is a historical H13 TXT example, rather than the default workflow for a new skill. H13 verified that command after a single copy to a fresh Windows temporary directory: package closure passed before and after, Stage3 A/B/overall passed, the input and package digests were unchanged, and no research-root path was embedded. PDF/DOCX were outside that check. For those formats, follow the package's `SKILL.md`: use the configured `mineru-ocr` route, or install `python-docx>=1.1.0` and `pdfplumber>=0.11.0` for an explicitly authorized local fallback.
 
-The current C8/C9 development package is a bounded contract checker rather than a whole-skill replacement. Its shortest local invocation is:
+The C8/C9 Law development package contains a local contract checker. It covers part of the skill's work; its invocation is:
 
 ```powershell
 python -B .\law-batch-package\scripts\contract_checker.py --root .\case --contract .\case\law-contract.json --source .\case\document.txt
@@ -302,21 +295,7 @@ Log source does not rerun tasks, so `--rounds`, `--runs-per-task`, `--convergenc
 
 The command prints whether the result is a `draft` or `validated-recommendation`, the actual action kinds, applicable inputs and preconditions, residual duties, and concrete validation gaps. A recommendation requires a bound passed report with at least one independent case and no unvalidated or rejected action. This status is limited to those action-local cases and does not claim whole-skill correctness or real agent consumption.
 
-The following development command was run end-to-end against one exact record and exported a non-API package:
-
-```bash
-bun src/index.ts jit-optimize \
-  --skill=benchmarks/skill-ir/pilots/i18n-helper/source \
-  --task-source=log \
-  --logs=results/skill-ir/i18n-helper-v3-execution-observable-calibration-v3/run/raw-runs.jsonl \
-  --log-records=line:3 \
-  --optimizer-model=xty/gpt-5.6-sol \
-  --target-model=xty/gpt-5.6-sol \
-  --rounds=1 \
-  --package-out=results/skill-ir/general-skill-optimization-20260913/g12-i18n-helper/package
-```
-
-This is development evidence, not a generic quality or cost claim. Inspect `optimization-manifest.json` before use; behavior validation and natural task evaluation remain separate from package-file closure.
+The [G-stage development report](../results/skill-ir/general-skill-optimization-20260913/final-report.json) records a non-API package exported from an exact I18n log record. Its historical invocation is not a current CLI example: in particular, the log path does not accept `--rounds`. Use the log command above and consult the exported package's `OPTIMIZATION-USAGE.md`; file closure, behavior checks and natural task evaluation establish different properties.
 
 ### Batch mode
 

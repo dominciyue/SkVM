@@ -1,7 +1,6 @@
 # Skill IR 开发指南
 
-本指南只保留当前上手、开发和验证所需内容。历史接力点见[history.md](history.md)，实时状态只看
-[current-status.md](current-status.md)。
+本指南说明开发入口、组件分工和常用检查。项目进度见 [current-status.md](current-status.md)，历史阶段见 [history.md](history.md)。
 
 ## 1. 先建立项目视图
 
@@ -10,13 +9,11 @@
 3. 需要整体背景时阅读 [架构](../architecture.md)、[使用说明](../usage.md)和[JIT Boost](../jit-boost.md)。
 4. 检查工作树，保留其他线程的未提交修改。
 
-当前开发路线是“真实 trace → 模型优化 → 新 skill 包 → agent 消费”。开发线程已完成 U0 基线冻结，正在执行 U1
-trace adapter TDD；不要从旧 API 或分类实验文档推断当前任务。
-
+已实现的通用流程是“真实 trace → 模型优化 → 新 skill 包 → agent 消费”。授权方向另有一个窄域开发原型，用 canonical declaration、义务展开、固定上下文零工具宿主和逐事实评价比较 organized instruction 与领域支持；它不是产品 CLI、通用安全 DSL 或生产默认路径。下文说明可复用的现有工程流程，当前领域工作见[当前计划](skill-ir-aot-optimization-plan.md)与 spec 14.34。
 
 ### 1.1 授权 DSL 开发原型
 
-[V0–V10 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)和[研究 §7.19](skill-dsl-research.md#719-v-开发合同与持续复盘)定义边界。它只处理单 repository/ref、fixed-context、source-visible authorization obligation；不是产品 CLI、完整安全语言、repository discovery 或目标执行器。领域代码位于 `src/task-dsl/authorization/`，实验代码位于 `src/benchmarks/authorization-dsl/`。
+[V0–V10 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)和[研究 §7.19](skill-dsl-research.md#719-v-开发合同与持续复盘)描述已实现接口。它处理单 repository/ref、fixed-context、source-visible authorization obligation。领域代码位于 `src/task-dsl/authorization/`，实验代码位于 `src/benchmarks/authorization-dsl/`；下一轮变更见 [W 任务书](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)。
 
 公开边界如下：
 
@@ -42,12 +39,19 @@ bun ./src/benchmarks/authorization-dsl/run.ts status
 
 常见错误含：字段路径解析错误；`declaration-source-location-invalid`；`foreign-obligation-result`/`missing-obligation-result`；`citation-text-mismatch`；`semantic-review-missing`；`timeout-unknown`。前四类按诊断修改输入、输出合同或本地结果；review 缺失时必须在全部生成结束后依据 evaluator-only rubric 填写，不能交还被测模型；timeout 表示已发请求的 completion/usage 可能未知，禁止自动重发。运行器在 provider 创建前设置 `SKVM_AUTO_PROBE=0` 和指定 cache；有 `run.json` 的终态及只有 dispatch 的 completion-unknown 单元都不会自动发送。确需新 revision 时使用新 attempt、明确原因和独立目录，保留旧结果。
 
+9 月 21 日复核确认：上述恢复规则已存在，但宿主超时后的底层 fallback 尚未关闭，repair 超时也可能丢失返回对象中的 initial。W 将以迟到响应测试、事件落盘和关闭状态修复；执行新的模型比较前先完成该项。
 
 ## 2. 当前端到端流程
 
 ### 2.1 收集真实 trace
 
-保留原 skill、成功/失败日志、失败 sidecar、模型身份与任务上下文。日志源优化不会重跑任务：
+普通使用从一次自然任务开始，由 bare-agent 自动收集本次运行记录：
+
+```powershell
+skvm run --prompt="<task>" --skill=./skill --workdir=./project --model=<id> --optimize
+```
+
+优化模型默认沿用 `--model`，需要区分时指定 `--optimizer-model`。已有日志时，保留原 skill、成功/失败记录、失败 sidecar、模型身份与任务上下文，使用高级日志入口。该入口不会重跑原任务：
 
 ```powershell
 skvm jit-optimize `
@@ -67,15 +71,14 @@ skvm proposals show <id>
 skvm proposals accept <id>
 ```
 
-接受只表示把明确决定落到新版本；它不自动建立质量、held-out 或人工节省主张。Evidence 中的未知和剩余职责必须保留。
+接受 proposal 会应用选定改动，但不是质量认证。检查 Evidence 中的未知项和剩余职责；研究效果仍需相应的比较证据。
 
 ### 2.3 生成并消费新包
 
-用现有 artifact/Skill IR 能力封装被接受的稳定部分。API request/pytest、Env preset 或外部 skill import
-只在契合任务时作为后端。新包必须：
+自动入口会尝试导出新包；高级日志入口可用 `--package-out=<new-empty-directory>` 指定位置。API request/pytest、Env preset 和外部 skill import 按任务需要使用。查看包内 `OPTIMIZATION-USAGE.md` 了解入口和限制；新包应当：
 
 - 可独立定位与加载；
-- 绑定 source、proposal、接受决定和产物摘要；
+- 记录 source、proposal、选中版本、已有接受决定和产物摘要；
 - 保留未固化的说明与 agent 职责；
 - 在新消费任务中记录真实 trace；
 - 由与公开合同一致的 checker 或明确人工接受边界验证。
@@ -91,7 +94,7 @@ skvm proposals accept <id>
 | Q1/Q2 分类、能力图、发放边界 | [classification-and-routing.md](classification-and-routing.md) |
 | 外部 skill closure | [external-skill-import.md](external-skill-import.md) |
 | 代表案例与适用范围 | [real-skill-pilots.md](real-skill-pilots.md) |
-| 授权任务 DSL 声明、义务、渲染、消费与评价 | [研究开发合同](skill-dsl-research.md#719-v-开发合同与持续复盘)及 [V 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md) |
+| 授权任务 DSL 声明、义务、渲染、消费与评价 | [研究开发合同](skill-dsl-research.md#719-v-开发合同与持续复盘)及 [W 任务书](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md) |
 
 ## 4. 实现纪律
 
@@ -106,7 +109,7 @@ skvm proposals accept <id>
 
 ```powershell
 bun run typecheck
-python -m unittest scripts/check_skill_ir_doc_links_test.py
+python -m unittest discover -s scripts -p check_skill_ir_doc_links_test.py
 python scripts/check_skill_ir_doc_links.py
 ```
 
@@ -129,7 +132,7 @@ bun test ./src/benchmarks/skill-ir/task-automation-annotation-package.test.ts
 
 ## 7. Git 与协作
 
-- 在 `skill-ir-aot` 或专用分支工作，只推送 `origin`。
+- 在 `skill-ir-aot` 工作，只推送用户 `origin`。
 - 精确暂存本任务文件，不夹带其他线程的代码、未跟踪实验或临时产物。
 - 治理线程负责归并与导航；最新任务书/spec 的方法决定由开发线程维护。治理提交前读取最新字节并做局部合并，不整份覆盖。
 - 有意义阶段只在根目录 conversation log 留一条短记录；长期决定才进入 communication，当前恢复信息才进入 handoff。

@@ -1,6 +1,6 @@
 # Skill 优化、Final IR 与 Artifact Runtime
 
-本文说明当前通用优化机制。历史 v1-v4 实验数值只在 `experiment-results.md` 保留。
+本文说明优化动作、局部验证和产物封装的实现。当前进度见[状态页](current-status.md)，实验结果及其适用范围见[证据索引](evidence-index.md)。
 
 ## 1. 优化分层
 
@@ -12,9 +12,7 @@ L0 raw skill
 -> L4 validated package + provenance + regression evidence
 ```
 
-项目当前具备 L1/L2 通用能力，API Tester 与 Env Manager 两种 phenotype 均有 L4-oriented development
-package；但只有 API Tester 是 `quality-positive`，Env Manager 目前只是 `fidelity-preserving`。尚未证明第二个
-readiness 优化正例、held-out、untouched replication 或跨模型 L4。
+这五层描述产物需要经过哪些处理，不是所有 skill 都已达到的完成度。早期 API Tester 与 Env Manager 后端都有面向 L4 的 development 包：当时 API Tester 为 `quality-positive`，Env 为 `fidelity-preserving`。这些历史后端结果不代表当前通用包优化的收益，也未建立第二个 readiness 优化正例、held-out、untouched replication 或跨模型 L4 结论。
 
 ## 2. 静态优化
 
@@ -31,7 +29,7 @@ output 或后验结果。
 
 ## 3. Typed Dynamic Feedback
 
-Dynamic feedback 不是自由文本反思，而是版本化 `RepairEvidence`：
+动态反馈通过版本化 `RepairEvidence` 记录问题位置、来源、观察和拟议修复：
 
 ```text
 targetRef
@@ -46,8 +44,8 @@ confidence
 
 ### 3.0 单次外部 trace 的通用加载边界
 
-G 路线允许把一条已暴露的真实非 API 执行记录作为 development 优化输入，但不会把 `runStatus=ok` 当作质量
-通过。`execution-log` 输入可用 `recordLocators` 从多记录文件精确选择一条；记录身份由原文件 SHA-256 与适配器
+日志入口可以使用一条已暴露的真实非 API 执行记录；`runStatus=ok` 只说明运行状态，不等于质量通过。
+`execution-log` 输入可用 `recordLocators` 从多记录文件精确选择一条；记录身份由原文件 SHA-256 与适配器
 记录定位共同确定，字节相同的文件副本不会被计成第二次独立运行，同一文件的不同定位仍保持独立。
 
 优化工作区新增 `.optimize/SKILL_RESOURCE_INDEX.md`，列出显式配置 skill 副本的完整文件、字节数和摘要，并把

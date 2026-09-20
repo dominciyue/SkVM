@@ -1,8 +1,6 @@
-# JIT-boost — Code Solidification at Runtime
+# JIT-boost: runtime code templates
 
-`jit-boost` shortens repeated agent runs on the same skill by replacing matched LLM tool calls with pre-compiled code templates. After a one-time compile from a warmup conversation log, subsequent runs that reproduce the same code structure short-circuit the LLM entirely and execute the template directly.
-
-> Compile once on a warmup, then keep replaying.
+`jit-boost` builds executable templates from a warmup conversation log. During later runs, a promoted template can handle a matching task without another LLM call. A successful shortcut ends the agent run, so the template must cover the requested work.
 
 ## Concepts
 
@@ -16,7 +14,7 @@ A **Solidifier** holds one entry per candidate. Each entry is observed during ru
 
 ## Compile pipeline
 
-`jit-boost` does not analyze a skill statically — it compiles **from the trace of a real agent run** so the captured patterns reflect what an actual model produces, not what the documentation hypothesizes.
+The compiler reads a real run's tool calls alongside the skill directory. The trace supplies observed code patterns; the skill supplies their context and conventions.
 
 ```
 warmup conv log ─┐
@@ -32,7 +30,7 @@ Both phases are model- and harness-agnostic: Phase 1 dispatches through the prov
 - **Phase 1** asks an LLM to read the warmup's tool-call code and produce loose regex signatures + parameter definitions.
 - **Phase 2** gives a headless agent the full skill directory and the Phase 1 candidates, and asks it to fill in working `${param}`-shaped templates that obey the skill's conventions.
 
-The output is a single compiled `boost-candidates.json` per skill, reusable across every model and harness that integrates the runtime hooks.
+The output is one `boost-candidates.json` per skill. A harness needs the runtime hooks below to consume it; this interface alone does not establish cross-model reliability.
 
 ## Runtime — Solidifier hooks
 
@@ -56,7 +54,7 @@ The interface lives at `src/runtime/types.ts` and the reference implementation i
 
 ## When it helps, when it doesn't
 
-Works well for **repetitive, single-shot tasks** where the agent's effective output is one tool call producing the final artifact (read a PDF → write a JSON; query an API → write a CSV) and the schema generalizes across instances with simple parameter substitution.
+The intended use is a repetitive task whose final artifact can be produced by one parameterized program, such as converting a known input format to JSON. Whether it helps a particular skill depends on successful matching, template coverage and measured execution costs.
 
 Less useful when:
 
