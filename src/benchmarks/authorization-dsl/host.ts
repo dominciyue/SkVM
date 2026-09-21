@@ -6,6 +6,7 @@ import {
   renderAuthorizationTask,
   type AuthorizationPromptCharacterBreakdown,
   type AuthorizationRenderArm,
+  type AuthorizationRenderOptions,
   type RenderedAuthorizationTask,
 } from "../../task-dsl/authorization/render.ts"
 import { validateAuthorizationResult, type AuthorizationValidation } from "../../task-dsl/authorization/result.ts"
@@ -165,6 +166,7 @@ export interface AuthorizationTaskRun {
 export interface AuthorizationRepairPromptCharacterBreakdown {
   instructions: number
   declaration: number
+  methodContext?: number
   source: number
   outputContract: number
   currentAnswer: number
@@ -185,6 +187,7 @@ export interface RunAuthorizationTaskInput {
   conditionAnalysisRequest?: AuthorizationConditionAnalysisRequestV1
   provider: LLMProvider
   arm: AuthorizationRenderArm
+  renderOptions?: AuthorizationRenderOptions
   options: RunAuthorizationTaskOptions
   onLifecycleEvent?: (event: AuthorizationLifecycleEvent) => void | Promise<void>
 }
@@ -228,6 +231,17 @@ function buildRepairPrompt(
   const sections = {
     instructions: "# Authorization wire repair\n\nThe current structured answer did not satisfy deterministic host checks. Revise only that answer from the same declaration and exact source. Do not add unavailable facts or infer a requested conclusion.",
     declaration: `## Canonical declaration\n${rendered.sections.declaration}`,
+    methodContext: [
+      rendered.sections.publicAnalysis
+        ? `## Public analysis questions\n${rendered.sections.publicAnalysis}`
+        : "",
+      rendered.sections.analysisLedger
+        ? `## Analysis requirement ledger\n${rendered.sections.analysisLedger}`
+        : "",
+      rendered.sections.conditionAnalysis
+        ? `## Condition analysis request\n${rendered.sections.conditionAnalysis}`
+        : "",
+    ].filter(Boolean).join("\n\n"),
     outputContract: `## Result contract\n${rendered.sections.outputContract}`,
     source: `## Fixed source context\n${sourceContext}`,
     currentAnswer: `## Current wire answer\n${JSON.stringify(initial.wireResult, null, 2)}`,
@@ -236,6 +250,7 @@ function buildRepairPrompt(
   const prompt = [
     sections.instructions,
     sections.declaration,
+    sections.methodContext,
     sections.outputContract,
     sections.source,
     sections.currentAnswer,
@@ -246,6 +261,7 @@ function buildRepairPrompt(
     characters: {
       instructions: sections.instructions.length,
       declaration: sections.declaration.length,
+      ...(sections.methodContext ? { methodContext: sections.methodContext.length } : {}),
       source: sections.source.length,
       outputContract: sections.outputContract.length,
       currentAnswer: sections.currentAnswer.length,
@@ -267,7 +283,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
   const conditionPlan = input.conditionAnalysisRequest
     ? compileConditionAnalysisRequest(input.task, input.conditionAnalysisRequest)
     : undefined
-  const rendered = renderAuthorizationTask(compiled, input.arm, analysisPlan, conditionPlan)
+  const rendered = renderAuthorizationTask(compiled, input.arm, analysisPlan, conditionPlan, input.renderOptions)
   const sourceContext = renderSourceBundle(input.sourceBundle)
   const renderedPrompt = rendered.prompt.replace("<SOURCE_CONTEXT_INSERTED_BY_HOST>", sourceContext)
   const promptCharacters: AuthorizationRunPromptCharacters = {

@@ -2506,4 +2506,6 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **Y6 CLI边界。** 顶层`authorization`命令动态装载现有实现，init不覆盖，check/inspect不建provider，run省略arm固定B且每次新建immutable session。`--from`只允许authoring与normalized output同目录，避免相对sourceRoot在移动后改变含义。condition request是显式opt-in并贯穿preview、wire/v3、session和inspect；无请求保持ledger/v2。source checkout shim可以解析Windows npm Bun的真实binary；这只是本地路由修复，不代表npm包已发布该命令。
 
+**Y7公平研究接线边界。** 新study contract显式记录`studyArm=P|L|C`，不重写历史N/B/D，且所有研究单元固定历史`renderArm=B`。P不是带ledger的N别名：它只收到完整自然任务事实、同一组公共问题、固定源码和基础引用/result合同，输出wire/v1且没有coverage/condition字段；L增加默认或作者已冻结的ledger与wire/v2；C再增加answer-free condition request和wire/v3。三者共用host、source、预算、最多一次机械诊断repair和telemetry。配置冻结case、顺序、停止与最多6个共享缺陷修订单元；evaluator路径只存metadata，生成期不读其内容。共同v2语义review接受P的逻辑等价文字，任何专用字段的存在不代替必要语义或条件解释；结构问题与first response/fallback/repair及token/cache/calls/time/cost分别报告，provider未报告USD时保持unknown。
+
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。

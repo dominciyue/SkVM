@@ -172,9 +172,9 @@ init/check/inspect 不初始化 provider；run 显式使用 `--model`。没有 a
 - [x] 用临时普通项目目录验证模板编写、mock run、inspect及路径错误；保存可复制命令，结果无需实验 oracle。
 
 ### Y7：实现公平的 P/L/C 研究接线
-- [ ] 新 study 配置明确 studyArm 与历史 renderArm分离；P 不借用一个仍带 ledger 的 N 冒充无 helper；保留同一 host、来源和基础计量。
-- [ ] 失败测试涵盖三臂公共事实/政策/源码等价、各自真实干预差异、P 文字条件解释正常得分、C 空分支不凭字段得分，以及 oracle 路径不进入 prompt。
-- [ ] 复用 evaluator 的逐义务语义 review，输出每臂质量、结构问题、first response/after fallback/after repair、分字段 token/cache、调用和时间。实际费用未知明确保留。
+- [x] 新 study 配置明确 studyArm 与历史 renderArm分离；P 不借用一个仍带 ledger 的 N 冒充无 helper；保留同一 host、来源和基础计量。
+- [x] 失败测试涵盖三臂公共事实/政策/源码等价、各自真实干预差异、P 文字条件解释正常得分、C 空分支不凭字段得分，以及 oracle 路径不进入 prompt。
+- [x] 复用 evaluator 的逐义务语义 review，输出每臂质量、结构问题、first response/after fallback/after repair、分字段 token/cache、调用和时间。实际费用未知明确保留。
 - [ ] 配置开发 15 单元、预定轮换顺序与停止/修订规则；mock dry-run一次通过后记录实现 commit 和配置，不叠加新归档链。
 
 ### Y8：真实开发面板

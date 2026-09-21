@@ -8,6 +8,7 @@ import {
   renderAuthorizationTask,
   type AuthorizationPromptCharacterBreakdown,
   type AuthorizationRenderArm,
+  type AuthorizationRenderOptions,
 } from "../../task-dsl/authorization/render.ts"
 import type { AnalysisDiagnostic } from "../../task-dsl/authorization/relations.ts"
 import type { AuthorizationResultV0 } from "../../task-dsl/authorization/schema.ts"
@@ -26,6 +27,7 @@ import {
 
 export type LocalAuthorizationProviderFactory = (modelId: string) => Promise<LLMProvider> | LLMProvider
 export type LocalAuthorizationRunnerEnv = Record<string, string | undefined>
+export type AuthorizationStudyArm = "P" | "L" | "C"
 
 export interface LocalAuthorizationCheckReport {
   schemaVersion: "authorization-local-check/v1"
@@ -37,6 +39,7 @@ export interface LocalAuthorizationCheckReport {
   sourceRoot?: string
   sourceFiles?: string[]
   arm?: AuthorizationRenderArm
+  studyArm?: AuthorizationStudyArm
   analysisProfile?: LocalAnalysisProfile
   requirementCount?: number
   ledgerEntryCount?: number
@@ -54,6 +57,7 @@ export type LocalAuthorizationSessionStatus =
   | "initialized"
 
 const NonEmptyString = z.string().trim().min(1)
+const AuthorizationStudyArmSchema = z.enum(["P", "L", "C"])
 const LocalAuthorizationSessionStatusSchema = z.enum([
   "completed",
   "completed-with-diagnostics",
@@ -81,6 +85,7 @@ const PersistedLocalSessionSchema = z.object({
   inputSha256: z.string().regex(/^[a-f0-9]{64}$/i).optional(),
   model: NonEmptyString.optional(),
   arm: z.enum(["N", "B", "D"]).optional(),
+  studyArm: AuthorizationStudyArmSchema.optional(),
   analysisProfile: z.unknown().optional(),
   noAutomaticResend: z.literal(true).optional(),
 }).passthrough()
@@ -94,6 +99,7 @@ const PersistedLocalSessionReportSchema = z.object({
   taskId: NonEmptyString.optional(),
   model: NonEmptyString.optional(),
   arm: z.enum(["N", "B", "D"]).optional(),
+  studyArm: AuthorizationStudyArmSchema.optional(),
   finalKind: z.enum(["initial", "repair"]).optional(),
 }).passthrough()
 const PersistedLocalDispatchSchema = z.object({
@@ -101,6 +107,7 @@ const PersistedLocalDispatchSchema = z.object({
   sessionId: NonEmptyString,
   model: NonEmptyString,
   arm: z.enum(["N", "B", "D"]),
+  studyArm: AuthorizationStudyArmSchema.optional(),
 }).passthrough()
 const PersistedAuthorizationRunSchema = z.object({
   status: AuthorizationTaskRunStatusSchema,
@@ -130,6 +137,7 @@ export interface LocalAuthorizationSessionReport {
   sourceRef?: string
   model?: string
   arm?: AuthorizationRenderArm
+  studyArm?: AuthorizationStudyArm
   analysisProfile?: LocalAnalysisProfile
   finalKind?: "initial" | "repair"
   canonicalResult?: AuthorizationResultV0
@@ -214,7 +222,49 @@ function errorArtifact(error: unknown): { name: string; message: string } {
   }
 }
 
-function checkReport(loaded: LocalInputResult, arm: AuthorizationRenderArm): LocalAuthorizationCheckReport {
+type ValidLocalAuthorizationInput = Extract<LocalInputResult, { status: "valid" }>
+
+function studyExecutionInputs(
+  loaded: ValidLocalAuthorizationInput,
+  studyArm?: AuthorizationStudyArm,
+): {
+  analysisRequirements?: ValidLocalAuthorizationInput["analysisRequirements"]
+  conditionAnalysisRequest?: NonNullable<ValidLocalAuthorizationInput["conditionAnalysisRequest"]>
+  analysisPlan?: ValidLocalAuthorizationInput["analysisPlan"]
+  conditionPlan?: NonNullable<ValidLocalAuthorizationInput["conditionPlan"]>
+  renderOptions?: AuthorizationRenderOptions
+} {
+  if (studyArm === "P") {
+    return {
+      renderOptions: {
+        declarationStyle: "natural",
+        publicAnalysisQuestions: loaded.analysisRequirements.map(requirement => requirement.question),
+      },
+    }
+  }
+  if (studyArm === "L") {
+    return {
+      analysisRequirements: loaded.analysisRequirements,
+      analysisPlan: loaded.analysisPlan,
+    }
+  }
+  return {
+    analysisRequirements: loaded.analysisRequirements,
+    analysisPlan: loaded.analysisPlan,
+    ...(loaded.conditionAnalysisRequest && loaded.conditionPlan
+      ? {
+          conditionAnalysisRequest: loaded.conditionAnalysisRequest,
+          conditionPlan: loaded.conditionPlan,
+        }
+      : {}),
+  }
+}
+
+function checkReport(
+  loaded: LocalInputResult,
+  arm: AuthorizationRenderArm,
+  studyArm?: AuthorizationStudyArm,
+): LocalAuthorizationCheckReport {
   if (loaded.status === "invalid") {
     return {
       schemaVersion: "authorization-local-check/v1",
@@ -223,12 +273,47 @@ function checkReport(loaded: LocalInputResult, arm: AuthorizationRenderArm): Loc
       diagnostics: loaded.diagnostics,
     }
   }
+  if (studyArm && arm !== "B") {
+    return {
+      schemaVersion: "authorization-local-check/v1",
+      status: "invalid",
+      inputPath: loaded.inputPath,
+      arm,
+      studyArm,
+      diagnostics: [localStudyDiagnostic(
+        "study-render-arm-mismatch",
+        `Study arm ${studyArm} must use historical render arm B.`,
+        "arm",
+      )],
+    }
+  }
+  if (studyArm === "C" && (!loaded.conditionAnalysisRequest || !loaded.conditionPlan)) {
+    return {
+      schemaVersion: "authorization-local-check/v1",
+      status: "invalid",
+      inputPath: loaded.inputPath,
+      arm,
+      studyArm,
+      diagnostics: [localStudyDiagnostic(
+        "study-condition-request-missing",
+        "Study arm C requires a ready condition analysis request.",
+        "conditionAnalysisRequest",
+      )],
+    }
+  }
   const compiled = compileAuthorizationTask(loaded.task)
   const sourceContext = renderSourceBundle(loaded.sourceBundle)
-  const rendered = renderAuthorizationTask(compiled, arm, loaded.analysisPlan, loaded.conditionPlan)
+  const selected = studyExecutionInputs(loaded, studyArm)
+  const rendered = renderAuthorizationTask(
+    compiled,
+    arm,
+    selected.analysisPlan,
+    selected.conditionPlan,
+    selected.renderOptions,
+  )
   const renderedPrompt = rendered.prompt.replace("<SOURCE_CONTEXT_INSERTED_BY_HOST>", sourceContext)
   const preview = [
-    `<!-- analysis-profile: ${loaded.analysisProfile.id}; origin: ${loaded.analysisProfile.origin}; condition-analysis: ${loaded.conditionPlan ? "enabled" : "disabled"} -->`,
+    `<!-- analysis-profile: ${loaded.analysisProfile.id}; origin: ${loaded.analysisProfile.origin}; study-arm: ${studyArm ?? "none"}; condition-analysis: ${selected.conditionPlan ? "enabled" : "disabled"} -->`,
     renderedPrompt,
   ].join("\n\n")
   return {
@@ -241,13 +326,14 @@ function checkReport(loaded: LocalInputResult, arm: AuthorizationRenderArm): Loc
     sourceRoot: loaded.sourceRoot,
     sourceFiles: loaded.sourceBundle.files.map(file => file.relativePath),
     arm,
+    ...(studyArm ? { studyArm } : {}),
     analysisProfile: loaded.analysisProfile,
     requirementCount: loaded.analysisRequirements.length,
-    ledgerEntryCount: loaded.analysisPlan.entries.length,
-    ...(loaded.conditionAnalysisRequest
+    ledgerEntryCount: selected.analysisPlan?.entries.length ?? 0,
+    ...(selected.conditionAnalysisRequest
       ? {
-          conditionRequestCount: loaded.conditionAnalysisRequest.requests.length,
-          conditionPlanEntryCount: loaded.conditionPlan?.entries.length ?? 0,
+          conditionRequestCount: selected.conditionAnalysisRequest.requests.length,
+          conditionPlanEntryCount: selected.conditionPlan?.entries.length ?? 0,
         }
       : {}),
     preview,
@@ -256,11 +342,22 @@ function checkReport(loaded: LocalInputResult, arm: AuthorizationRenderArm): Loc
   }
 }
 
+function localStudyDiagnostic(code: string, message: string, diagnosticPath?: string): AnalysisDiagnostic {
+  return { code, message, ...(diagnosticPath ? { path: diagnosticPath } : {}) }
+}
+
 export async function checkLocalAuthorizationInput(
   inputFile: string,
   arm: AuthorizationRenderArm = "B",
 ): Promise<LocalAuthorizationCheckReport> {
   return checkReport(await loadLocalAuthorizationInput(inputFile), arm)
+}
+
+export async function checkLocalAuthorizationStudyInput(
+  inputFile: string,
+  studyArm: AuthorizationStudyArm,
+): Promise<LocalAuthorizationCheckReport> {
+  return checkReport(await loadLocalAuthorizationInput(inputFile), "B", studyArm)
 }
 
 function sessionIdFor(now = new Date()): string {
@@ -392,14 +489,16 @@ export async function executeLocalAuthorizationRun(input: {
   model: string
   outRoot: string
   arm?: AuthorizationRenderArm
+  studyArm?: AuthorizationStudyArm
   executionOptions?: RunAuthorizationTaskOptions
   providerFactory?: LocalAuthorizationProviderFactory
   env?: LocalAuthorizationRunnerEnv
 }): Promise<LocalAuthorizationSessionReport | LocalAuthorizationCheckReport> {
   const arm = input.arm ?? "B"
   const loaded = await loadLocalAuthorizationInput(input.inputFile)
-  const checked = checkReport(loaded, arm)
-  if (loaded.status === "invalid") return checked
+  const checked = checkReport(loaded, arm, input.studyArm)
+  if (loaded.status === "invalid" || checked.status === "invalid") return checked
+  const selected = studyExecutionInputs(loaded, input.studyArm)
 
   const session = await createSession(input.outRoot)
   const inputBytes = await readFile(loaded.inputPath, "utf8")
@@ -423,6 +522,7 @@ export async function executeLocalAuthorizationRun(input: {
     inputSha256: sha256(inputBytes),
     model: input.model,
     arm,
+    ...(input.studyArm ? { studyArm: input.studyArm } : {}),
     analysisProfile: loaded.analysisProfile,
     noAutomaticResend: true,
   })
@@ -430,18 +530,27 @@ export async function executeLocalAuthorizationRun(input: {
   await writeExclusive(path.join(session.sessionPath, baseArtifacts.input), inputBytes)
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.task), loaded.task)
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.sourceBundle), loaded.sourceBundle)
-  await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.analysisRequirements), {
-    schemaVersion: "authorization-analysis-profile-snapshot/v1",
-    profile: loaded.analysisProfile,
-    requirements: loaded.analysisRequirements,
-    plan: loaded.analysisPlan,
-    ...(loaded.conditionAnalysisRequest
-      ? {
-          conditionAnalysisRequest: loaded.conditionAnalysisRequest,
-          conditionPlan: loaded.conditionPlan,
-        }
-      : {}),
-  })
+  await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.analysisRequirements), input.studyArm === "P"
+    ? {
+        schemaVersion: "authorization-public-analysis-snapshot/v1",
+        studyArm: "P",
+        profile: loaded.analysisProfile,
+        publicQuestions: loaded.analysisRequirements.map(requirement => requirement.question),
+        ledgerGenerated: false,
+      }
+    : {
+        schemaVersion: "authorization-analysis-profile-snapshot/v1",
+        ...(input.studyArm ? { studyArm: input.studyArm } : {}),
+        profile: loaded.analysisProfile,
+        requirements: loaded.analysisRequirements,
+        plan: loaded.analysisPlan,
+        ...(selected.conditionAnalysisRequest
+          ? {
+              conditionAnalysisRequest: selected.conditionAnalysisRequest,
+              conditionPlan: selected.conditionPlan,
+            }
+          : {}),
+      })
   await writeExclusive(path.join(session.sessionPath, baseArtifacts.preview), `${checked.preview ?? ""}\n`)
   await writeExclusive(path.join(session.sessionPath, baseArtifacts.events!), "")
   await appendIndex(input.outRoot, {
@@ -464,6 +573,7 @@ export async function executeLocalAuthorizationRun(input: {
     sourceRef: loaded.task.sourceRef,
     model: input.model,
     arm,
+    ...(input.studyArm ? { studyArm: input.studyArm } : {}),
     analysisProfile: loaded.analysisProfile,
     ...(checked.promptCharacters ? { promptCharacters: { initial: checked.promptCharacters } } : {}),
     artifacts: baseArtifacts,
@@ -502,6 +612,7 @@ export async function executeLocalAuthorizationRun(input: {
     sessionId: session.sessionId,
     model: input.model,
     arm,
+    ...(input.studyArm ? { studyArm: input.studyArm } : {}),
     executionOptions,
     startedAt: new Date().toISOString(),
     completionUnknownUntilRunArtifact: true,
@@ -511,12 +622,11 @@ export async function executeLocalAuthorizationRun(input: {
     const run = await runAuthorizationTask({
       task: loaded.task,
       sourceBundle: loaded.sourceBundle,
-      analysisRequirements: loaded.analysisRequirements,
-      ...(loaded.conditionAnalysisRequest
-        ? { conditionAnalysisRequest: loaded.conditionAnalysisRequest }
-        : {}),
+      ...(selected.analysisRequirements ? { analysisRequirements: selected.analysisRequirements } : {}),
+      ...(selected.conditionAnalysisRequest ? { conditionAnalysisRequest: selected.conditionAnalysisRequest } : {}),
       provider,
       arm,
+      ...(selected.renderOptions ? { renderOptions: selected.renderOptions } : {}),
       options: executionOptions,
       onLifecycleEvent: event => appendFile(
         path.join(session.sessionPath, runArtifacts.events!),
@@ -612,6 +722,7 @@ async function validateDispatchIdentity(
     dispatch.sessionId !== sessionId
     || (session.model !== undefined && dispatch.model !== session.model)
     || (session.arm !== undefined && dispatch.arm !== session.arm)
+    || (session.studyArm !== undefined && dispatch.studyArm !== session.studyArm)
   ) {
     throw new LocalAuthorizationRunnerError(`Dispatch artifact identity does not match session ${sessionId}.`)
   }
@@ -632,6 +743,7 @@ async function validateTerminalSession(input: {
     || (session.inputPath !== undefined && path.resolve(report.inputPath ?? "") !== path.resolve(session.inputPath))
     || (session.model !== undefined && report.model !== session.model)
     || (session.arm !== undefined && report.arm !== session.arm)
+    || (session.studyArm !== undefined && report.studyArm !== session.studyArm)
   ) {
     throw new LocalAuthorizationRunnerError(`Persisted session identity does not match directory ${sessionId}.`)
   }
@@ -710,6 +822,7 @@ async function inspectSession(sessionPath: string, sessionId: string): Promise<L
     ...(session.inputPath ? { inputPath: session.inputPath } : {}),
     ...(session.model ? { model: session.model } : {}),
     ...(session.arm ? { arm: session.arm } : {}),
+    ...(session.studyArm ? { studyArm: session.studyArm } : {}),
     ...(session.analysisProfile ? { analysisProfile: session.analysisProfile as LocalAnalysisProfile } : {}),
   }
 }

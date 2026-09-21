@@ -40,9 +40,15 @@ export interface RenderedAuthorizationTask {
   conditionPlan?: ConditionAnalysisPlan
 }
 
+export interface AuthorizationRenderOptions {
+  declarationStyle?: "arm-default" | "natural"
+  publicAnalysisQuestions?: readonly string[]
+}
+
 export interface AuthorizationPromptSections {
   instructions: string
   declaration: string
+  publicAnalysis?: string
   analysisLedger?: string
   conditionAnalysis?: string
   outputContract: string
@@ -52,6 +58,7 @@ export interface AuthorizationPromptSections {
 export interface AuthorizationPromptCharacterBreakdown {
   instructions: number
   declaration: number
+  publicAnalysis?: number
   analysisLedger?: number
   conditionAnalysis?: number
   source: number
@@ -85,6 +92,7 @@ function renderSharedResultRequirements(
   compiled: CompiledAuthorizationTask,
   analysisPlan?: AnalysisPlan,
   conditionPlan?: ConditionAnalysisPlan,
+  publicAnalysisQuestions: readonly string[] = [],
 ): string {
   const runnableIds = compiled.runnableObligations.map(obligation => obligation.id)
   const renderedIds = runnableIds.length > 0 ? runnableIds.map(value => `- ${value}`).join("\n") : "- (none)"
@@ -103,6 +111,9 @@ ${conditionPlan.entries.map(entry => [
       ...entry.conditions.map(condition => `  - ${condition.id}: ${condition.name} — ${condition.basis}`),
     ].join("\n")).join("\n") || "- (none)"}`
     : ""
+  const publicQuestionContract = !analysisPlan && publicAnalysisQuestions.length > 0
+    ? "\nAddress every public analysis question in the explanation and source-backed facts. No separate coverage ledger is required for this plain-method answer."
+    : ""
   return `Return exactly one result for every runnable expanded obligation, with one of: ${AUTHORIZATION_CONCLUSIONS.join(", ")}.
 Interpret conclusion labels relative to the declared policy expectation, not as direct synonyms for allow or deny:
 - source_supported_failure: the fixed source supports that the declared policy expectation fails under the stated conditions.
@@ -111,7 +122,7 @@ Interpret conclusion labels relative to the declared policy expectation, not as 
 Exact runnable obligation IDs (closed list):
 ${renderedIds}
 Use each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.
-Support the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.${coverageContract}${conditionContract}`
+Support the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.${publicQuestionContract}${coverageContract}${conditionContract}`
 }
 
 function renderBaselineInstructions(hasAnalysisPlan: boolean): string {
@@ -189,7 +200,7 @@ function composeAuthorizationPrompt(sections: AuthorizationPromptSections): stri
 ## Canonical declaration
 ${sections.declaration}
 
-${sections.analysisLedger ? `## Analysis requirement ledger\n${sections.analysisLedger}\n\n` : ""}${sections.conditionAnalysis ? `## Condition analysis request\n${sections.conditionAnalysis}\n\n` : ""}## Result contract
+${sections.publicAnalysis ? `## Public analysis questions\n${sections.publicAnalysis}\n\n` : ""}${sections.analysisLedger ? `## Analysis requirement ledger\n${sections.analysisLedger}\n\n` : ""}${sections.conditionAnalysis ? `## Condition analysis request\n${sections.conditionAnalysis}\n\n` : ""}## Result contract
 ${sections.outputContract}
 
 ## Fixed source context
@@ -203,6 +214,9 @@ export function measureAuthorizationPromptCharacters(
   return {
     instructions: rendered.sections.instructions.length,
     declaration: rendered.sections.declaration.length,
+    ...(rendered.sections.publicAnalysis
+      ? { publicAnalysis: rendered.sections.publicAnalysis.length }
+      : {}),
     ...(rendered.sections.analysisLedger
       ? { analysisLedger: rendered.sections.analysisLedger.length }
       : {}),
@@ -221,22 +235,31 @@ export function renderAuthorizationTask(
   arm: AuthorizationRenderArm,
   analysisPlan?: AnalysisPlan,
   conditionPlan?: ConditionAnalysisPlan,
+  options: AuthorizationRenderOptions = {},
 ): RenderedAuthorizationTask {
   const facts = collectFacts(compiled.task)
   const expandedObligationIds = [
     ...compiled.runnableObligations.map(obligation => obligation.id),
     ...compiled.blockedObligations.map(obligation => obligation.id),
   ]
+  const publicAnalysisQuestions = options.publicAnalysisQuestions ?? []
+  const hasPublicAnalysis = analysisPlan !== undefined || publicAnalysisQuestions.length > 0
   const instructions = (() => {
     switch (arm) {
-      case "N": return renderNaturalInstructions(analysisPlan !== undefined)
-      case "B": return renderBaselineInstructions(analysisPlan !== undefined)
-      case "D": return renderDomainInstructions(compiled, analysisPlan !== undefined)
+      case "N": return renderNaturalInstructions(hasPublicAnalysis)
+      case "B": return renderBaselineInstructions(hasPublicAnalysis)
+      case "D": return renderDomainInstructions(compiled, hasPublicAnalysis)
     }
   })()
+  const naturalDeclaration = options.declarationStyle === "natural" || (
+    options.declarationStyle !== "arm-default" && arm === "N"
+  )
   const sections: AuthorizationPromptSections = {
     instructions,
-    declaration: arm === "N" ? renderNaturalDeclaration(facts) : JSON.stringify(facts, null, 2),
+    declaration: naturalDeclaration ? renderNaturalDeclaration(facts) : JSON.stringify(facts, null, 2),
+    ...(publicAnalysisQuestions.length > 0
+      ? { publicAnalysis: publicAnalysisQuestions.map(question => `- ${question}`).join("\n") }
+      : {}),
     ...(analysisPlan
       ? {
           analysisLedger: JSON.stringify({
@@ -254,7 +277,7 @@ export function renderAuthorizationTask(
           }, null, 2),
         }
       : {}),
-    outputContract: renderSharedResultRequirements(compiled, analysisPlan, conditionPlan),
+    outputContract: renderSharedResultRequirements(compiled, analysisPlan, conditionPlan, publicAnalysisQuestions),
     sourceMarker: "<SOURCE_CONTEXT_INSERTED_BY_HOST>",
   }
   return {
