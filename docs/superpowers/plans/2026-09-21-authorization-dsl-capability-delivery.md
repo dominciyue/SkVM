@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、现有 Zod、SkVM provider/telemetry；一个轻量本地脚本和公开函数，不另建 CLI 框架、Web 页面或通用工作流引擎。
 
-- 制定日期：2026-09-21；状态：`planned-not-started`。本任务书及设计同步不计作 X 实现。
+- 制定日期：2026-09-21；状态：`active-X1-X2`（X0 已完成；评价校准与第二项目获取交错推进）。
 - 基线：W 发布 `fa6b064`；工程已完成，原始三例结论 6/6 正确、关键事实支持 4/6，D 有较低调用/token 的初步观察。
 - 工作分支：`skill-ir-aot`；仅向用户 `origin` 推送。保留其他任务的源码改动与本地材料。
 - 设计正文：[研究总文档 §7.21](../../skill-ir/skill-dsl-research.md#721-x-完整能力阶段设计)；持续合同：[spec 14.34](../../skill-ir/skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。不另建一份 design 或逐阶段总结 Markdown。
@@ -139,9 +139,9 @@ check 应输出字段、输入和分析要求检查结果且零模型调用；ru
 
 ### X0：恢复现场，建立一份执行状态
 
-- [ ] 读取当前状态、本任务书、研究 §7.20–7.21、W summary，记录 HEAD 与现有修改，不重新执行 V/W 全量审计。
-- [ ] 建立本轮 `status.json`：X 阶段、归属文件、nextAction、运行 revision、未决问题；建立一份 acquisition/experiment journal，不叠加多层冻结材料。
-- [ ] 运行 `bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl` 取得基线；已有非本轮失败单列，不通过改历史数据消除。
+- [x] 读取当前状态、本任务书、研究 §7.20–7.21、W summary，记录 HEAD 与现有修改，不重新执行 V/W 全量审计。
+- [x] 建立本轮 `status.json`：X 阶段、归属文件、nextAction、运行 revision、未决问题；建立一份 acquisition/experiment journal，不叠加多层冻结材料。
+- [x] 运行 `bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl` 取得基线；已有非本轮失败单列，不通过改历史数据消除。
 
 ### X1：对齐公开分析要求与评价 v2
 

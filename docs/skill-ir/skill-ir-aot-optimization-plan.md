@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-21
 - 路线：按 skill/task 范围设计领域 DSL
-- 状态：V/W `completed-development`；X0–X13 `planned-not-started`
+- 状态：V/W `completed-development`；X0 完成，X1–X2 进行中
 - 唯一实时状态：[current-status.md](current-status.md)
 - 方法依据：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)
@@ -46,4 +46,4 @@ W 的 `no-revision / study-missing-domain-relations` 保留为历史决定。X �
 
 S/D 完成结构与语义准备，E/T 建立外部任务依据、授权范围与真实案例，V 完成首次可运行原型及模型观察，W 完成共享传输/生命周期修复和三组新配对。旧 trace 优化路线的 U/G/H/R/C/F 记录由[历史](history.md)和[证据索引](evidence-index.md)承载，本计划不重复维护其逐轮数据。
 
-恢复时读取状态页、X 任务书、研究 §7.20–7.21 和 W summary。X 尚未执行；X0 启动后建立其结果目录。第二项目和普通入口已纳入 X 授权范围，待用户启动持续目标后推进。
+恢复时读取状态页、X 任务书、研究 §7.20–7.21、W summary 与 X `status.json`。X0 已完成；当前交错推进 X1 评价校准和 X2 第二项目获取。

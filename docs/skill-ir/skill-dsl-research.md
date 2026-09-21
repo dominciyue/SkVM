@@ -613,7 +613,7 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 ### 7.21 X 完整能力阶段设计
 
-2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `planned-not-started`，尚无 X 实现或新模型结果。
+2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X1-X2`：X0 基线已完成，尚无 X 真实模型结果。
 
 **为什么扩大本轮范围。** W 的模型消费与计量已经可用，继续只修旧案例会降低获取新信息的速度。现有 B/D 共用 canonical declaration、输出合同和宿主，主要差异位于领域方法指令。接下来既要检验这种组织方式，也要让作者实际写任务、用自备输入运行，并检验换项目后的语义适配。
 
@@ -941,6 +941,10 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 ### 2026-09-21 X 完整能力阶段准备
 
 **X-PREP-01。** W 二次复核新鲜通过授权/provider 81/81、461 assertions；确认 B/D 共用声明和输出底座，trusted-header 部分评分涉及显式表达粒度。用户接受扩大下一轮：评价校准、可选关系、普通输入、第二项目及对照一并交付。制定 X0–X13，同步当前状态、plan 与 spec，W 历史资料不改。本次只写任务书和设计，未启动 X 或新模型调用。
+
+### 2026-09-21 X0 恢复与基线
+
+**X0-BASELINE-01。** 从与 `origin/skill-ir-aot` 一致的 `9204239` 普通 checkout 启动，保留 7 个既有 tracked 源码修改和 233 个 untracked porcelain 条目。建立 `authorization-capability-v1/status.json` 与单一 `journal.jsonl`；授权基线新鲜通过 77/77、449 assertions。未重放 V/W、未调用模型或目标。下一步交错执行 X1 评价 v2 校准与 X2 第二项目获取。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 
