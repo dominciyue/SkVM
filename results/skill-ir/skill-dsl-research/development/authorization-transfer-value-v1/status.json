@@ -1,0 +1,114 @@
+{
+  "schemaVersion": "authorization-dsl-transfer-value-development/v1",
+  "taskbook": "docs/superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md",
+  "createdAt": "2026-09-22T00:51:02+08:00",
+  "updatedAt": "2026-09-22T01:02:00+08:00",
+  "branch": "skill-ir-aot",
+  "startHead": "b3a1a44",
+  "codeBaseline": "abe470f2a887f35ca1d6782cfbd5343965856620",
+  "stage": "Y2",
+  "taskStatus": "in-progress",
+  "nextAction": "Finalize the answer-free condition contract and evaluator cases in Y2, then begin condition pure-function tests in Y3.",
+  "stages": {
+    "Y0": {
+      "status": "completed",
+      "evidence": [
+        "Read the active taskbook, current status, research sections 1-4 and 7.21-7.22, spec 14.34, and the current execution plan.",
+        "Confirmed skill-ir-aot at b3a1a44 with origin matching; preserved seven pre-existing tracked changes and 233 untracked porcelain entries.",
+        "Fresh authorization baseline passed 131 tests with 836 assertions; no provider call or target execution occurred."
+      ]
+    },
+    "Y1": {
+      "status": "completed",
+      "evidence": [
+        "Two focused tests failed with public check/run receiving D when B was expected, confirming the default mismatch.",
+        "The two public defaults now select B; explicit D and CLI B behavior remain covered.",
+        "Focused local-run verification passed 7 tests with 59 assertions; the synthetic example and current prompt-parse description now match actual behavior."
+      ]
+    },
+    "Y2": { "status": "in-progress", "evidence": [] },
+    "Y3": { "status": "planned", "evidence": [] },
+    "Y4": { "status": "planned", "evidence": [] },
+    "Y5": { "status": "planned", "evidence": [] },
+    "Y6": { "status": "planned", "evidence": [] },
+    "Y7": { "status": "planned", "evidence": [] },
+    "Y8": { "status": "planned", "evidence": [] },
+    "Y9": { "status": "planned", "evidence": [] },
+    "Y10": { "status": "planned", "evidence": [] },
+    "Y11": { "status": "planned", "evidence": [] },
+    "Y12": { "status": "planned", "evidence": [] },
+    "Y13": { "status": "planned", "evidence": [] },
+    "Y14": { "status": "planned", "evidence": [] }
+  },
+  "workingTreeBaseline": {
+    "headMatchesOrigin": true,
+    "modifiedTrackedCount": 7,
+    "untrackedPorcelainEntryCount": 233,
+    "trackedDirtyPaths": [
+      "src/jit-optimize/evidence-criteria.ts",
+      "src/jit-optimize/evidence.ts",
+      "src/jit-optimize/loop.ts",
+      "src/jit-optimize/validation-completion.ts",
+      "src/jit-optimize/validation-lifecycle.ts",
+      "src/jit-optimize/workspace.ts",
+      "src/skill-ir/skill-family-minimum-delivery-run.ts"
+    ],
+    "preservationRule": "Do not clean, revert, stage, or commit the pre-existing tracked or untracked work. Commit only Y-owned paths."
+  },
+  "ownedPaths": [
+    "src/task-dsl/authorization/",
+    "src/benchmarks/authorization-dsl/",
+    "src/cli/authorization.ts",
+    "src/cli/authorization.test.ts",
+    "src/index.ts",
+    "bin/skvm-route.js when required by the existing shim",
+    "examples/authorization-assessment/",
+    "results/skill-ir/skill-dsl-research/development/authorization-transfer-value-v1/",
+    "Y-specific updates in docs/usage.md and docs/skill-ir/",
+    "Y stage entries in D:/skill优化/conversation_log.md"
+  ],
+  "fixedRunIntent": {
+    "providerModel": "xty/gpt-5.6-sol",
+    "temperature": 0,
+    "autoProbe": false,
+    "perCallTimeoutMs": 180000,
+    "perUnitTimeoutMs": 600000,
+    "maxOutputTokens": 6000,
+    "maxProviderDispatchesPerUnit": 4,
+    "maxDomainRepairs": 1,
+    "plannedDevelopmentUnits": 15,
+    "maximumDevelopmentRevisionUnits": 6,
+    "plannedMigrationUnits": 12,
+    "maximumTotalUnits": 33,
+    "maximumTotalDispatches": 132,
+    "historicalRenderArm": "B",
+    "defaultStudyMethod": "ledger",
+    "conditionLayer": "opt-in"
+  },
+  "unresolvedIssues": [
+    "The condition result contract, authoring normalization, top-level CLI, P/L/C study, and third-project migration are not implemented yet.",
+    "Actual provider USD is not reported and must remain unknown unless the provider supplies it."
+  ],
+  "operations": {
+    "developmentProviderCalls": 0,
+    "evaluationProviderCalls": 0,
+    "targetExecutions": 0,
+    "actualUsd": null,
+    "actualUsdStatus": "unknown"
+  },
+  "verification": {
+    "y0AuthorizationBaseline": {
+      "command": "bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl",
+      "passed": 131,
+      "failed": 0,
+      "assertions": 836
+    },
+    "y1LocalRun": {
+      "command": "bun test ./src/benchmarks/authorization-dsl/local-run.test.ts",
+      "passed": 7,
+      "failed": 0,
+      "assertions": 59,
+      "redState": "2 expected failures: omitted public check/run arm returned D instead of B"
+    }
+  }
+}

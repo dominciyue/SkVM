@@ -7,6 +7,8 @@ import type { AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts
 import { buildAuthorizationSourceCatalog } from "./inputs.ts"
 import { loadLocalAuthorizationInput } from "./local-input.ts"
 import {
+  checkLocalAuthorizationInput,
+  executeLocalAuthorizationRun,
   inspectLocalAuthorizationOutput,
   runLocalAuthorizationCli,
   type LocalAuthorizationCliDependencies,
@@ -161,6 +163,41 @@ function dependencies(
 }
 
 describe("local authorization runner", () => {
+  it("defaults the public check function to B while preserving explicit D", async () => {
+    const fixture = await makeFixture()
+
+    expect((await checkLocalAuthorizationInput(fixture.inputPath)).arm).toBe("B")
+    expect((await checkLocalAuthorizationInput(fixture.inputPath, "D")).arm).toBe("D")
+  })
+
+  it("defaults the public run function to B while preserving explicit D", async () => {
+    const fixture = await makeFixture()
+    const calls = { factory: 0, provider: 0 }
+    const providerFactory = async () => providerFor(fixture.inputPath, calls)
+
+    const defaultRun = await executeLocalAuthorizationRun({
+      inputFile: fixture.inputPath,
+      model: "mock/model",
+      outRoot: fixture.outRoot,
+      providerFactory,
+      env: {},
+    })
+    expect(defaultRun.status).toBe("completed")
+    expect(defaultRun.arm).toBe("B")
+
+    const explicitDomainRun = await executeLocalAuthorizationRun({
+      inputFile: fixture.inputPath,
+      model: "mock/model",
+      outRoot: fixture.outRoot,
+      arm: "D",
+      providerFactory,
+      env: {},
+    })
+    expect(explicitDomainRun.status).toBe("completed")
+    expect(explicitDomainRun.arm).toBe("D")
+    expect(calls).toEqual({ factory: 2, provider: 2 })
+  })
+
   it("checks arbitrary input without creating a provider and rejects bad input before provider creation", async () => {
     const fixture = await makeFixture()
     const calls = { factory: 0, provider: 0 }

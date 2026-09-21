@@ -8,11 +8,11 @@ From the repository root, validate the input without creating a model provider:
 bun ./src/benchmarks/authorization-dsl/local-run.ts check --input=./examples/authorization-assessment/assessment.json
 ```
 
-Run a new immutable session with the default domain arm, then inspect the latest saved session without resending it:
+Run a new immutable session with the default baseline B arm, then inspect the latest saved session without resending it:
 
 ```powershell
 bun ./src/benchmarks/authorization-dsl/local-run.ts run --input=./examples/authorization-assessment/assessment.json --model=xty/gpt-5.6-sol --out=./.skvm/authorization-demo
 bun ./src/benchmarks/authorization-dsl/local-run.ts inspect --out=./.skvm/authorization-demo
 ```
 
-Use `--arm=N`, `--arm=B`, or `--arm=D` on `check` and `run` when an explicit render is needed. If omitted, D is used. To adapt the example, edit `assessment.json`, the files below `project/`, and the model identifier. Keep `sourceIdentity` synchronized with `task.repository` and `task.sourceRef`, and list every declared source path in `sources`.
+Use `--arm=N`, `--arm=B`, or `--arm=D` on `check` and `run` when an explicit render is needed. If omitted, B is used by both the CLI and the public check/run functions. To adapt the example, edit `assessment.json`, the files below `project/`, and the model identifier. Keep `sourceIdentity` synchronized with `task.repository` and `task.sourceRef`, and list every declared source path in `sources`.

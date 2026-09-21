@@ -22,7 +22,7 @@ X7 增加显式 N/B/D renderer 与本地 `--arm`。三臂共用事实、公开 r
 
 X8 已让五个任务、四种 synthetic 变化和临时普通目录通过共同 parser/ledger/source/mock-host/coverage/evaluator-template 路径。experiment-only runner 的实现固定为 `dccd830`；配置 SHA-256 `23e22d8...57fec` 在 provider-free check 中得到 5 cases、23 units、0 diagnostics。终态或已 dispatch 的未知完成单元不自动重发；仅 initialized 且无 dispatch 的 session 可安全继续，恢复时交叉核验 unit/session/dispatch/run/result。授权回归 129/129、813 assertions 和 typecheck 通过；截至 X8 真实 provider 与目标执行仍为 0。
 
-X9 按冻结顺序完成 23/23 fresh-context 单元，全部为 `completed`，没有 completion-unknown、timeout 或 domain repair，也没有目标执行。共 30 次 provider 调用：23 次 schema-tool 与 7 次 prompt-parse 结构解析；已知 token 为 input 102,579、output 61,942、cache-read 45,824，30 次费用均未由 provider 报告，实际 USD 保持 unknown。全部生成结束后才开始 evaluator-only X10；原始生成字节与初轮身份保持不变。
+X9 按冻结顺序完成 23/23 fresh-context 单元，全部为 `completed`，没有 completion-unknown、timeout 或 domain repair，也没有目标执行。共 30 次 provider 调用：23 次 schema-tool 与 7 次 schema-tool 失败后的 prompt-parse transport fallback；fallback 按原任务重新请求模型，不是离线格式转换。已知 token 为 input 102,579、output 61,942、cache-read 45,824，30 次费用均未由 provider 报告，实际 USD 保持 unknown。全部生成结束后才开始 evaluator-only X10；原始生成字节与初轮身份保持不变。
 
 X10 的 hash-bound v2 评价得到 14 full、5 partial、4 incorrect；23/23 necessary semantics supported、coverage valid、scope accepted、transport valid、delivery complete。四个 incorrect 都是解释正确描述 deny control、却把 `source_refuted` 写成相反的 `source_supported_failure`：text B 一次、FastAPI update D 两次及 N 一次。B 汇总为 7/2/1，D 为 6/2/2；两臂 necessary/coverage 都是 10/10，D 未显示额外关系收益，且观察到更多调用和 token。三个 N 单元无重复，只说明当前自然说明形状下的机制表现，不能作稳定性或整个 SkVM 对原始 agent 的因果比较。离线 replay 摘要哈希一致；独立只读复核确认上述结论。X11 只修共同输出合同中未解释 conclusion enum 的缺陷，不改初轮身份。
 
@@ -30,7 +30,7 @@ X11 先以失败测试固定三臂共同缺少标签方向定义，再只在 res
 
 X12 复用同一 ordinary entry 与 X11 同 revision 的既有 session，离线 inspect Open WebUI controlled-text B 和 FastAPI foreign-update B；两者均 completed、`source_refuted`、coverage valid，新增 provider 与目标执行为零，且 inspection 不依赖 evaluator。省略 arm 的 synthetic check 返回 B、六项默认要求和零诊断；作者四步 trace 的两项错误继续得到精确字段/路径诊断。普通入口默认已从 D 改为 B，N/D 显式模式和旧接口仍保留：冻结初轮中 B/D necessary semantics 与 coverage 都为 10/10，而 D 没有额外收益并观察到更多调用/token。当前能力判定为 bounded development capability，只推荐单 repo/ref、显式源码、声明义务的 source-visible 评估；不包含仓库发现、目标执行、部署验证、patch 或生产默认安全决策。
 
-X13 新鲜验证为授权测试 131/131、836 assertions，typecheck 通过；初轮离线 replay 重现相同 summary digest。文档单测 12/12，10,074 文件链接/治理扫描无 broken、legacy 或 governance error，X 结果根 409 JSON 与 56 JSONL/166 records 全部可解析。精确归属与敏感信息检查通过；交付提交 `5297071` 已推送，状态提交为 `abe470f`。X 当时建议薄命令加新项目；2026-09-22 用户确认扩大为上述 Y 完整方法与使用阶段，X 历史结果保留。
+X13 新鲜验证为授权测试 131/131、836 assertions，typecheck 通过；初轮离线 replay 重现相同 summary digest。文档单测 12/12，10,074 文件链接/治理扫描无 broken、legacy 或 governance error，X 结果根 409 JSON 与 56 JSONL/166 records 全部可解析。精确归属与敏感信息检查通过；交付提交 `5297071` 已推送，状态提交为 `abe470f`。Y0 已建立恢复状态并重现同一 131/836 基线；Y1 已用红绿测试把公开 check/run 省略 arm 从 D 统一为 B，显式 D 与历史接口不变。X 当时建议薄命令加新项目；2026-09-22 用户确认扩大为上述 Y 完整方法与使用阶段，X 历史结果保留。
 
 ## W 阶段实际结果
 

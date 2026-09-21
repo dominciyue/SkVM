@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 SkVM provider 与 CLI。机器结果写一处，研究与问题复盘持续追加研究总文档，不新增 HTML、通用工作流引擎或整套产品 CLI。
 
-- 日期：2026-09-22；状态：`authorized-for-execution`。执行代理在 Y0 创建机器状态，此时不得提前填写完成。
+- 日期：2026-09-22；状态：`in-progress`。Y0–Y1 已完成，机器状态位于本任务书指定的新结果根；当前进入 Y2。
 - 代码基线：`abe470f2a887f35ca1d6782cfbd5343965856620`；接手时读取本任务书登记提交后的最新 HEAD。
 - 分支：`skill-ir-aot`；只提交归属文件并推送用户 `origin/skill-ir-aot`。
 - 设计：[研究总文档 §7.22](../../skill-ir/skill-dsl-research.md#722-y-条件表达默认迁移与价值验证)；持续合同：spec 14.34。
@@ -131,15 +131,15 @@ init/check/inspect 不初始化 provider；run 显式使用 `--model`。没有 a
 ## 五、Y0–Y14 连续任务
 
 ### Y0：建立本轮现场与恢复状态
-- [ ] 记录 HEAD/branch、七项既有修改和本轮归属；读取上文上下文，不复查全部历史。
-- [ ] 建立一份 status.json，含阶段、nextAction、实现版本、单位数量、问题、成本未知项及实际归属文件；恢复只读取此状态和对应产物。
-- [ ] 跑 `bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl` 一次基线，当前预期 131/131、836 assertions；新失败先定位来源。
+- [x] 记录 HEAD/branch、七项既有修改和本轮归属；读取上文上下文，不复查全部历史。
+- [x] 建立一份 status.json，含阶段、nextAction、实现版本、单位数量、问题、成本未知项及实际归属文件；恢复只读取此状态和对应产物。
+- [x] 跑 `bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl` 一次基线，当前预期 131/131、836 assertions；新失败先定位来源。
 
 ### Y1：修复共享默认与研究记述
-- [ ] 在 local-run 测试增加“公开 check/run 省略 arm 均 B、显式 D 保持 D、CLI 与函数一致”的失败用例，跑红后修复两处默认值。
-- [ ] 例如 mock run 用 `executeLocalAuthorizationRun` 不传 arm，断言 session/report.arm 为 B；保持原 provider dependency injection，不产生真实调用。
-- [ ] 修正示例 README 默认 D；核对全部当前使用说明。prompt-parse 描述为重新请求的 transport fallback，保留原计量与历史原件。
-- [ ] 验证 `bun test ./src/benchmarks/authorization-dsl/local-run.test.ts`，提交本轮共享修复。
+- [x] 在 local-run 测试增加“公开 check/run 省略 arm 均 B、显式 D 保持 D、CLI 与函数一致”的失败用例，跑红后修复两处默认值。
+- [x] 例如 mock run 用 `executeLocalAuthorizationRun` 不传 arm，断言 session/report.arm 为 B；保持原 provider dependency injection，不产生真实调用。
+- [x] 修正示例 README 默认 D；核对全部当前使用说明。prompt-parse 描述为重新请求的 transport fallback，保留原计量与历史原件。
+- [x] 验证 `bun test ./src/benchmarks/authorization-dsl/local-run.test.ts`，提交本轮共享修复。
 
 ### Y2：条件领域合同与公开要求对齐
 - [ ] 用 synthetic owner/role、配置 gate、外部代理未知三个例子走查 §3.1，确认不含项目名和预填答案。

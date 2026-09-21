@@ -248,7 +248,7 @@ function checkReport(loaded: LocalInputResult, arm: AuthorizationRenderArm): Loc
 
 export async function checkLocalAuthorizationInput(
   inputFile: string,
-  arm: AuthorizationRenderArm = "D",
+  arm: AuthorizationRenderArm = "B",
 ): Promise<LocalAuthorizationCheckReport> {
   return checkReport(await loadLocalAuthorizationInput(inputFile), arm)
 }
@@ -377,7 +377,7 @@ export async function executeLocalAuthorizationRun(input: {
   providerFactory?: LocalAuthorizationProviderFactory
   env?: LocalAuthorizationRunnerEnv
 }): Promise<LocalAuthorizationSessionReport | LocalAuthorizationCheckReport> {
-  const arm = input.arm ?? "D"
+  const arm = input.arm ?? "B"
   const loaded = await loadLocalAuthorizationInput(input.inputFile)
   const checked = checkReport(loaded, arm)
   if (loaded.status === "invalid") return checked
