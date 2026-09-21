@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、现有 Zod、SkVM provider/telemetry；一个轻量本地脚本和公开函数，不另建 CLI 框架、Web 页面或通用工作流引擎。
 
-- 制定日期：2026-09-21；状态：`active-X13`（X0–X12 已完成；统一验证与发布推进中）。
+- 制定日期：2026-09-21；状态：`completed-development`（X0–X13 已完成并发布）。
 - 基线：W 发布 `fa6b064`；工程已完成，原始三例结论 6/6 正确、关键事实支持 4/6，D 有较低调用/token 的初步观察。
 - 工作分支：`skill-ir-aot`；仅向用户 `origin` 推送。保留其他任务的源码改动与本地材料。
 - 设计正文：[研究总文档 §7.21](../../skill-ir/skill-dsl-research.md#721-x-完整能力阶段设计)；持续合同：[spec 14.34](../../skill-ir/skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。不另建一份 design 或逐阶段总结 Markdown。
@@ -247,8 +247,8 @@ check 应输出字段、输入和分析要求检查结果且零模型调用；ru
 - [x] 运行 `bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl` 与 `bun run typecheck`；改 provider 才加相应 provider 回归。一次离线 replay 验证新摘要可重算。
 - [x] 更新研究 §7.21 的实际设计及 §12 短记录，状态页/plan/spec/usage 同步；机器结果保存 status、summary、单元、评价与费用，不另写大量分轮 Markdown。
 - [x] 运行文档单测、链接检查和本轮 JSON/JSONL 解析，检查暂存归属及敏感信息。修复后只复跑受影响检查，不重复历史全量审计。
-- [ ] 提交并推送用户 `origin/skill-ir-aot`，确认远端一致；交付可运行入口、两个项目的实际结果、收益/退化和下一步决定。
-- [ ] 所有承诺项按完成/有具体原因未完成记录，不用统计任务终态数量冒充目标达成。完成本任务后停止自动扩展，不靠重复执行拉长时间。
+- [x] 提交并推送用户 `origin/skill-ir-aot`，确认远端一致；交付可运行入口、两个项目的实际结果、收益/退化和下一步决定。
+- [x] 所有承诺项按完成/有具体原因未完成记录，不用统计任务终态数量冒充目标达成。完成本任务后停止自动扩展，不靠重复执行拉长时间。
 
 ## 五、预算、故障与连续推进
 

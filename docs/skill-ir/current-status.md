@@ -6,7 +6,7 @@
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)及 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成，W 最终发布为 `fa6b064`。[X0–X13 完整能力交付](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)已启动：X0–X12 完成，关系/coverage、普通自备输入、同事实 N/B/D、跨项目真实面板、逐义务评价、一次共享合同修订和两项目普通使用复验已完成；当前进入 X13 统一验证与发布。
+[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)及 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成，W 最终发布为 `fa6b064`。[X0–X13 完整能力交付](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)也已完成并发布：关系/coverage、普通自备输入、同事实 N/B/D、跨项目真实面板、逐义务评价、一次共享合同修订、两项目普通使用复验及统一验证均已闭合。当前不自动启动下一轮。
 
 用户在 W 复核后确认按完整能力阶段推进：评价要求校准、可选/分支关系、普通自备输入、第二项目 development 与小型对照放入同一轮。第二项目提前检验共性，旧三例不必先全部满分；内部仍小步测试和提交。研究与开发复盘统一维护在[研究总文档 §7.21](skill-dsl-research.md#721-x-完整能力阶段设计)。
 
@@ -27,6 +27,8 @@ X10 的 hash-bound v2 评价得到 14 full、5 partial、4 incorrect；23/23 nec
 X11 先以失败测试固定三臂共同缺少标签方向定义，再只在 result contract 说明：结论相对 declared policy expectation，`source_supported_failure` 表示期待失败，`source_refuted` 表示期待被执行，`unknown` 表示固定上下文不足；事实、requirements、源码、rubric 与 B/D 方法差异均未改。预先冻结的 text B/D 与 FastAPI update D/B 四单元各一次，全部为 `source_refuted`、full-success、necessary supported、coverage valid；3/4 first response accepted，FastAPI B 另有一次 prompt-parse，无 domain repair。共 5 次调用、input 25,674、output 9,836，实际 USD 仍 unknown。一次 `SKVM_CACHE` 未传入导致的 provider-unavailable 发生在创建 provider/dispatch 前，原 session 保留后安全继续。revision 与初轮分开，支持共享合同诊断但不替代初轮失败或证明一般可靠性；不再追加调用。
 
 X12 复用同一 ordinary entry 与 X11 同 revision 的既有 session，离线 inspect Open WebUI controlled-text B 和 FastAPI foreign-update B；两者均 completed、`source_refuted`、coverage valid，新增 provider 与目标执行为零，且 inspection 不依赖 evaluator。省略 arm 的 synthetic check 返回 B、六项默认要求和零诊断；作者四步 trace 的两项错误继续得到精确字段/路径诊断。普通入口默认已从 D 改为 B，N/D 显式模式和旧接口仍保留：冻结初轮中 B/D necessary semantics 与 coverage 都为 10/10，而 D 没有额外收益并观察到更多调用/token。当前能力判定为 bounded development capability，只推荐单 repo/ref、显式源码、声明义务的 source-visible 评估；不包含仓库发现、目标执行、部署验证、patch 或生产默认安全决策。
+
+X13 新鲜验证为授权测试 131/131、836 assertions，typecheck 通过；初轮离线 replay 重现相同 summary digest。文档单测 12/12，10,074 文件链接/治理扫描无 broken、legacy 或 governance error，X 结果根 409 JSON 与 56 JSONL/166 records 全部可解析。精确归属与敏感信息检查通过；交付提交 `5297071` 已推送，首次远端核对为 ahead/behind `0/0`。下一轮最小实现若另行启动，应只做 opt-in 顶层命令适配器，并在一个新 held-out repo/task 验证，不直接扩成生产系统。
 
 ## W 阶段实际结果
 

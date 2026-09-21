@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-21
 - 路线：按 skill/task 范围设计领域 DSL
-- 状态：V/W `completed-development`；X0–X12 完成，X13 统一验证与发布进行中
+- 状态：V/W/X `completed-development`；当前不自动启动后续实现
 - 唯一实时状态：[current-status.md](current-status.md)
 - 方法依据：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)
@@ -23,7 +23,7 @@ W 已解决主要输出与计量问题。用户确认下一轮扩大为完整能
 | X8 | 离线接线（已完成） | 两项目共用实现、兼容与错误路径验证；5-case/23-unit 配置 valid |
 | X9–X11 | 真实运行、评价、共享修订（已完成） | 23 单元初轮 14 full/5 partial/4 incorrect；共享标签合同的限定 revision 4/4 full |
 | X12 | 使用复验与能力判定（已完成） | 两项目普通 inspect、作者诊断、默认 B、bounded-development 范围与未决项 |
-| X13 | 统一验证与发布（进行中） | 全授权回归、typecheck、离线 replay、文档/JSON/归属检查、提交与 origin 推送 |
+| X13 | 统一验证与发布（已完成） | 授权回归、typecheck、离线 replay、文档/JSON/归属检查、提交与 origin 推送均通过 |
 
 ## 验收与效果
 
@@ -48,4 +48,4 @@ W 的 `no-revision / study-missing-domain-relations` 保留为历史决定。X �
 
 S/D 完成结构与语义准备，E/T 建立外部任务依据、授权范围与真实案例，V 完成首次可运行原型及模型观察，W 完成共享传输/生命周期修复和三组新配对。旧 trace 优化路线的 U/G/H/R/C/F 记录由[历史](history.md)和[证据索引](evidence-index.md)承载，本计划不重复维护其逐轮数据。
 
-恢复时读取状态页、X 任务书、研究 §7.20–7.21 与 X `status.json`。X0–X12 已完成；当前不再生成样本或追加修订，只执行 X13 新鲜验证、证据/文档一致性、归属检查与发布。当前能力只定为单 repo/ref、显式 source/obligation 的 bounded development capability；下一轮最小实现候选是 opt-in 顶层命令适配器加一个新 held-out repo/task，不在本轮提前生产化。
+恢复时读取状态页、X 任务书、研究 §7.20–7.21 与 X `status.json`。X0–X13 已完成并发布，不再生成样本、追加修订或自动开始下一轮。当前能力只定为单 repo/ref、显式 source/obligation 的 bounded development capability；下一轮最小实现候选是 opt-in 顶层命令适配器加一个新 held-out repo/task，不应直接生产化。
