@@ -6,7 +6,7 @@
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)及 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成，W 最终发布为 `fa6b064`。[X0–X13 完整能力交付](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)已启动：X0–X7 完成，关系/coverage、普通自备输入及同事实 N/B/D 已实现；当前进入 X8 离线接线与跨项目 dry-run，尚未开始新真实模型实验。
+[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)及 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成，W 最终发布为 `fa6b064`。[X0–X13 完整能力交付](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)已启动：X0–X8 完成，关系/coverage、普通自备输入、同事实 N/B/D 及跨项目离线接线已实现；当前进入 X9，按冻结的 5-case/23-unit 配置进行真实生成。
 
 用户在 W 复核后确认按完整能力阶段推进：评价要求校准、可选/分支关系、普通自备输入、第二项目 development 与小型对照放入同一轮。第二项目提前检验共性，旧三例不必先全部满分；内部仍小步测试和提交。研究与开发复盘统一维护在[研究总文档 §7.21](skill-dsl-research.md#721-x-完整能力阶段设计)。
 
@@ -17,6 +17,8 @@ X5 的 wire/v2 只在显式 analysis requirements 时加入 coverage sidecar，c
 X6 的 `authorization-assessment-input/v1` 接受任意 taskId/repository、相对 sourceRoot、普通 `src/...` 文件及默认或显式 profile，不需要 manifest/oracle。check/inspect 零 provider；run 每次创建新的不可覆盖 session，并保存 JSON、事件 JSONL 与文本摘要。sourceRoot/path、junction/symlink、task/ref、声明位置及 ledger 都在 provider factory 前 fail closed；未知完成不自动重发。
 
 X7 增加显式 N/B/D renderer 与本地 `--arm`。三臂共用事实、公开 requirements、源码、wire/v2 和输出合同；N 自然化全部 canonical facts，B/D 共用 JSON declaration，D 增加领域因果方法。字符分项与 provider-reported token 分开保存。仓内 synthetic 例子已通过三臂 provider-free check；两份固定外部 skill 的授权职责映射与剩余职责分开记录，作者变化 trace 实际得到两项 pre-provider 诊断，不含真人耗时或节省主张。
+
+X8 已让五个任务、四种 synthetic 变化和临时普通目录通过共同 parser/ledger/source/mock-host/coverage/evaluator-template 路径。experiment-only runner 的实现固定为 `dccd830`；配置 SHA-256 `23e22d8...57fec` 在 provider-free check 中得到 5 cases、23 units、0 diagnostics。终态或已 dispatch 的未知完成单元不自动重发；仅 initialized 且无 dispatch 的 session 可安全继续，恢复时交叉核验 unit/session/dispatch/run/result。授权回归 129/129、813 assertions 和 typecheck 通过；截至 X8 真实 provider 与目标执行仍为 0。
 
 ## W 阶段实际结果
 
@@ -32,7 +34,7 @@ X7 增加显式 N/B/D renderer 与本地 `--arm`。三臂共用事实、公开 r
 
 | 路线 | 当前可用能力 | 当前效果记录 |
 |---|---|---|
-| 授权领域 DSL 原型 | canonical JSON、显式义务、编号源码、窄 wire、宿主引用绑定、关闭/迟到计量、分层评价、N/B/D 渲染与普通输入入口 | W 三对完成；X 尚未运行真实面板，D 的跨项目质量增益仍未知 |
+| 授权领域 DSL 原型 | canonical JSON、显式义务、编号源码、窄 wire、宿主引用绑定、关闭/迟到计量、分层评价、N/B/D 渲染、普通输入与可恢复面板入口 | W 三对完成；X9 的 23 单元真实面板待运行，D 的跨项目质量增益仍未知 |
 | Trace 驱动 skill 包优化 | bare-agent 自动捕获、日志导入、模型修改说明和脚本、局部验证与修复、原子包导出、自然消费记录 | F 后继包三次实际消费通过；配对工具调用 62→64、输入 token 58,828→190,516，效果 negative |
 | 既有确定性基础 | IR parser/validator、lowering、API Tester/Env 后端、artifact 与显式 recipe import | 保留各自有界案例及原评价口径 |
 

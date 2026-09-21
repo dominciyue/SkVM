@@ -1,0 +1,58 @@
+[
+  {
+    "id": "header.entry-control",
+    "kind": "entry-control",
+    "obligationIds": ["external-client-trusted-header-impersonation"],
+    "question": "Which source-visible gates must be traversed before the trusted-email path can process the request?",
+    "applicability": "required",
+    "prerequisiteIds": []
+  },
+  {
+    "id": "header.identity-binding",
+    "kind": "identity-binding",
+    "obligationIds": ["external-client-trusted-header-impersonation"],
+    "question": "How, if at all, does a request value become the identity used by this entry?",
+    "applicability": "required",
+    "prerequisiteIds": []
+  },
+  {
+    "id": "header.session-resource",
+    "kind": "resource-binding",
+    "obligationIds": ["external-client-trusted-header-impersonation"],
+    "question": "How is the selected identity bound to the existing-user session resource named by the obligation?",
+    "applicability": "required",
+    "prerequisiteIds": ["header.identity-binding"]
+  },
+  {
+    "id": "header.authorization-decision",
+    "kind": "authorization-decision",
+    "obligationIds": ["external-client-trusted-header-impersonation"],
+    "question": "What source-visible application and accepted-policy controls decide whether this principal may obtain the selected user's session?",
+    "applicability": "required",
+    "prerequisiteIds": ["header.identity-binding", "header.session-resource"]
+  },
+  {
+    "id": "header.session-effect",
+    "kind": "effect-reachability",
+    "obligationIds": ["external-client-trusted-header-impersonation"],
+    "question": "Under which source-visible branch can processing reach the protected session effect?",
+    "applicability": "required",
+    "prerequisiteIds": ["header.entry-control", "header.authorization-decision"]
+  },
+  {
+    "id": "header.deployment-assumptions",
+    "kind": "external-assumption",
+    "obligationIds": ["external-client-trusted-header-impersonation"],
+    "question": "Which actual configuration, ingress, proxy, or authentication fact can change the deployment answer, and is it present in this fixed context?",
+    "applicability": "required",
+    "prerequisiteIds": ["header.session-effect"]
+  },
+  {
+    "id": "header.optional-provisioning",
+    "kind": "identity-binding",
+    "obligationIds": ["external-client-trusted-header-impersonation"],
+    "question": "If an optional provisioning branch is present, how does it affect identity binding before authentication?",
+    "applicability": "when-present",
+    "prerequisiteIds": ["header.identity-binding"]
+  }
+]

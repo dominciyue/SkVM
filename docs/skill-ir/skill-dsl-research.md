@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**W 已完成并发布，下一轮 X0–X13 为 `planned-not-started`。** W 的六单元传输、交付及结论判断成功，关键事实支持为 4/6；D 的调用与 token 较少，是值得继续验证的开销观察。用户随后确认将评价校准、关系支持、普通输入与第二项目合并为完整能力阶段，设计见 §7.21；本地化 I1 暂缓。W 原始效果判断和数据保持原记录。
+**W 已完成并发布，X0–X8 已完成，当前为 `active-X9`。** W 的六单元传输、交付及结论判断成功，关键事实支持为 4/6；D 的调用与 token 较少，是值得继续验证的开销观察。X 已完成评价校准、关系支持、普通输入、第二项目与 23 单元配置的离线接线，尚未形成本轮真实模型结果；设计见 §7.21，本地化 I1 暂缓。W 原始效果判断和数据保持原记录。
 
 已经站得住的判断：
 
@@ -613,7 +613,7 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 ### 7.21 X 完整能力阶段设计
 
-2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X8`：X0–X7 已完成，尚无 X 真实模型结果。
+2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X9`：X0–X8 已完成，尚无 X 真实模型结果。
 
 **为什么扩大本轮范围。** W 的模型消费与计量已经可用，继续只修旧案例会降低获取新信息的速度。现有 B/D 共用 canonical declaration、输出合同和宿主，主要差异位于领域方法指令。接下来既要检验这种组织方式，也要让作者实际写任务、用自备输入运行，并检验换项目后的语义适配。
 
@@ -638,6 +638,8 @@ X5 已把这份记录接入版本化 `source-authorization-assessment-wire/v2`�
 **X7 同事实三臂与作者体验。** renderer 现显式接受 N/B/D，switch 阻止第三臂落入旧 D 分支。三臂从同一 `AuthorizationRenderFacts`、公开 analysis plan、source catalog、wire/v2 与 result contract 生成：N 把全部 schema 字段确定性写成自然说明，B/D 共用 canonical JSON，D 只额外给出授权因果链和 prerequisite-order 方法。普通 check/run 的 `--arm` 从 preview 贯穿 session、dispatch、host、inspect、字符分项与 telemetry；默认 D，非法值在读 input/建 provider 前拒绝。合成例子三次 provider-free check 均 valid，N/B/D prompt 分别为 11,141/11,837/12,177 characters；字符不冒充 token，真实 token 只采用 provider response，当前 X7 尚无真实调用。单次 evaluator summary 可记录 N，B/D pair summary 仍在运行时拒绝非 B→D 配对。
 
 两份真实 skill 映射来自固定 MIT 版本的 Cloudflare security-audit 与 GitHub awesome-copilot security-review。人工/agent 辅助只映射其 fixed-ref 授权敏感操作切片到 declaration 与六类 requirements；全审计编排、dependency、secret、patch 等剩余职责继续属于原 skill，不声称自动转换。skill 来源数 2 与目标代码项目数 2 分账。自包含例子以 synthetic 标记，不是漏洞或 evaluator fixture。作者变化 trace 做四次 deterministic check：基线 valid，遗漏 sourceIdentity 同步得到 `source-identity-mismatch`，移动 entry 未更新 sources 得到 `declaration-source-location-invalid`，补齐后 valid；两次错误、零 provider、零目标执行，未测真人时间，不主张人工节省。机器记录为 `render-interventions-v1.json`、`skill-responsibility-mappings-v1.json` 与 `authoring-experience-v1.json`；独立只读复核未发现 critical/important。
+
+**X8 离线接线与运行冻结。** 五个任务已通过同一 ordinary parser、analysis ledger、精确 source catalog、wire/v2 mock host、coverage validator 和 v2 evaluator template 入口；四种 synthetic 变化分别证明 prerequisite 删除、声明条件反转、when-present 问题删除及 required external fact 缺失会改变 plan、prompt 或诊断，而不被计作新项目证据。复制自包含例子到临时普通目录后完成 check/run(mock)/inspect，没有研究绝对路径、manifest 或 oracle 依赖。新增的 experiment-only capability runner 只编排已存在的 local-run/host 语义：在 provider 创建前冻结 config/revision/顺序，逐单元创建不可覆盖 session，终态与 completion-unknown 不重发；仅“已有 session 但尚无 dispatch”可新建 session 继续。恢复时交叉核验 unit result、session、dispatch、run 与 result 身份，篡改在 provider factory 前失败。实现固定为 `dccd83099dd4f2779604d18f9ad36e62aa8f5a31`，配置 SHA-256 为 `23e22d8e3f6f49728d1ba1eb2db8afde7b861053bace435607b6222a64b57fec`；五任务、20 个 B/D 重复及 3 个 N 补充共 23 单元的 provider-free check 为 valid。评价路径只写入 metadata，生成结束前不读取 rubric。授权回归 129/129、813 assertions 与 typecheck 通过；真实 provider 和目标执行仍为 0。
 
 **使用交付。** 薄脚本支持 check/run/inspect，输出机器 JSON、事件和简明文本结论；只有 run 调模型。一个自包含 synthetic 例子用于上手，真实两项目用于结果验证；另从现有语料选两份独立 skill，明确授权职责到 DSL 的映射及剩余职责。skill 来源与目标代码项目分开计数，人工/agent 辅助映射不称自动转换整个 skill。作者步骤、字段修改与诊断可观察；未测真人时间时不称人工节省。X 最终以实际可运行命令替换任务书中的接口设计说明。
 
@@ -987,6 +989,10 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 ### 2026-09-21 X7 同事实 N/B/D 与作者体验
 
 **X7-RENDER-01。** 失败测试先证明传入 N 会静默使用 D，且本地 CLI 不接受 `--arm`；改为显式三分支后，N 使用自然说明、B 使用 organized instruction、D 使用因果/prerequisite method，三者共用同一 facts、公开 requirements、source、wire/v2 和输出合同。arm 与分节字符贯穿 check/session/dispatch/host/inspect，provider token 仍只取真实 response。单次 evaluator summary 扩为 N/B/D，pair summary 的 B→D guard 保留。自包含 synthetic 例子三臂 check 均 valid；prompt 字符为 N 11,141、B 11,837、D 12,177，不解释为 token。两份 pinned MIT skill 仅映射授权切片，剩余职责保留；authoring trace 四次 check 中两次给出精确诊断，未测真人时间。授权全套 120/120、709 assertions 通过；typecheck 的 per-run/pair 类型耦合经 N 回归修复后通过。独立只读复核未发现 critical/important；无真实 provider 或目标执行。X8 转入五任务与 synthetic 变化的共同离线链。
+
+### 2026-09-21 X8 离线接线、恢复协议与面板冻结
+
+**X8-OFFLINE-01。** 五个真实任务和四种 synthetic 变化通过共同 parser/ledger/source/mock-host/coverage/evaluator-template 路径；普通例子复制到临时目录后完成 check/run(mock)/inspect，确认不依赖研究绝对路径、历史 manifest 或 oracle。为 23 单元真实面板增加 experiment-only 薄编排器，先以失败测试锁定分母、顺序、预算、path-safe ID、终态恢复、claim-only 禁止重发、initialized-without-dispatch 安全继续及跨 artifact 篡改拒绝。独立只读复核确认恢复边界无阻断问题。实现 revision `dccd83099dd4f2779604d18f9ad36e62aa8f5a31`；冻结配置 `experiment-config-v1.json` 的 SHA-256 为 `23e22d8e3f6f49728d1ba1eb2db8afde7b861053bace435607b6222a64b57fec`，provider-free check 得到 5 cases/23 units/0 diagnostics。授权回归 129/129、813 assertions 与 typecheck 通过；模型、付费和目标执行均未发生。X9 将严格按已提交配置生成，全部生成后才进入 evaluator。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 

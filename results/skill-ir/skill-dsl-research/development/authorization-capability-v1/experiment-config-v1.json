@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "authorization-capability-experiment/v1",
+  "studyId": "authorization-dsl-capability-x9-initial-v1",
+  "createdAt": "2026-09-21T19:25:00+08:00",
+  "implementationRevision": "dccd83099dd4f2779604d18f9ad36e62aa8f5a31",
+  "paths": {
+    "runRoot": "results/skill-ir/skill-dsl-research/development/authorization-capability-v1/runs/x9-initial-v1",
+    "evaluatorRubrics": "results/skill-ir/skill-dsl-research/development/authorization-capability-v1/evaluation-v2.json"
+  },
+  "model": {
+    "modelId": "xty/gpt-5.6-sol",
+    "routeMatch": "xty/*",
+    "cacheDir": ".skvm",
+    "temperature": 0,
+    "timeoutMs": 180000,
+    "unitTimeoutMs": 600000,
+    "maxTokens": 6000,
+    "maxProviderDispatches": 4,
+    "maxDomainRepairs": 1,
+    "autoProbe": false,
+    "contextLimitTokens": null,
+    "contextLimitStatus": "provider-not-reported"
+  },
+  "design": {
+    "mainRepeats": 2,
+    "reverseSecondRepeat": true,
+    "freshContextPerUnit": true,
+    "evaluateAfterAllGeneration": true,
+    "expectedCaseCount": 5,
+    "expectedUnitCount": 23
+  },
+  "execution": {
+    "sourceMode": "fixed-context",
+    "targetExecution": "forbidden",
+    "modelExecutableTools": false,
+    "evaluatorVisibleDuringGeneration": false
+  },
+  "cases": [
+    {
+      "caseId": "owui-process-file-write",
+      "task": "results/skill-ir/skill-dsl-research/development/authorization-v0/declarations/owui-process-file-write.json",
+      "analysisRequirements": { "kind": "default" },
+      "sourceRoot": "results/skill-ir/skill-dsl-research/cases/authorization",
+      "sources": ["inputs/owui-process-file-write/retrieval_process_file.py"],
+      "includeNaturalSupplement": true
+    },
+    {
+      "caseId": "owui-process-text-controlled",
+      "task": "results/skill-ir/skill-dsl-research/development/authorization-v0/declarations/owui-process-text-controlled.json",
+      "analysisRequirements": { "kind": "default" },
+      "sourceRoot": "results/skill-ir/skill-dsl-research/cases/authorization",
+      "sources": [
+        "inputs/owui-process-text-controlled/retrieval_process_text.py",
+        "inputs/owui-process-text-controlled/retrieval_access_policy.py"
+      ],
+      "includeNaturalSupplement": false
+    },
+    {
+      "caseId": "owui-trusted-header-deployment",
+      "task": "results/skill-ir/skill-dsl-research/development/authorization-v0/declarations/owui-trusted-header-deployment.json",
+      "analysisRequirements": {
+        "kind": "file",
+        "path": "results/skill-ir/skill-dsl-research/development/authorization-capability-v1/panel/analysis-requirements/owui-trusted-header-deployment.json"
+      },
+      "sourceRoot": "results/skill-ir/skill-dsl-research/cases/authorization",
+      "sources": [
+        "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+        "inputs/owui-trusted-header-deployment/auths_signin.py"
+      ],
+      "includeNaturalSupplement": true
+    },
+    {
+      "caseId": "fastapi-items-foreign-update",
+      "task": "results/skill-ir/skill-dsl-research/development/authorization-capability-v1/panel/declarations/fastapi-items-foreign-update.json",
+      "analysisRequirements": {
+        "kind": "file",
+        "path": "results/skill-ir/skill-dsl-research/development/authorization-capability-v1/panel/analysis-requirements/fastapi-items-foreign-update.json"
+      },
+      "sourceRoot": "results/skill-ir/skill-dsl-research/development/authorization-capability-v1/second-project/model-input",
+      "sources": ["task.json", "items.py"],
+      "includeNaturalSupplement": true
+    },
+    {
+      "caseId": "fastapi-items-superuser-read",
+      "task": "results/skill-ir/skill-dsl-research/development/authorization-capability-v1/panel/declarations/fastapi-items-superuser-read.json",
+      "analysisRequirements": {
+        "kind": "file",
+        "path": "results/skill-ir/skill-dsl-research/development/authorization-capability-v1/panel/analysis-requirements/fastapi-items-superuser-read.json"
+      },
+      "sourceRoot": "results/skill-ir/skill-dsl-research/development/authorization-capability-v1/second-project/model-input",
+      "sources": ["task.json", "items.py"],
+      "includeNaturalSupplement": false
+    }
+  ],
+  "units": [
+    { "id": "01-r1-file-B", "caseId": "owui-process-file-write", "set": "main", "repeat": 1, "arm": "B" },
+    { "id": "02-r1-file-D", "caseId": "owui-process-file-write", "set": "main", "repeat": 1, "arm": "D" },
+    { "id": "03-r1-text-B", "caseId": "owui-process-text-controlled", "set": "main", "repeat": 1, "arm": "B" },
+    { "id": "04-r1-text-D", "caseId": "owui-process-text-controlled", "set": "main", "repeat": 1, "arm": "D" },
+    { "id": "05-r1-header-B", "caseId": "owui-trusted-header-deployment", "set": "main", "repeat": 1, "arm": "B" },
+    { "id": "06-r1-header-D", "caseId": "owui-trusted-header-deployment", "set": "main", "repeat": 1, "arm": "D" },
+    { "id": "07-r1-fastapi-update-B", "caseId": "fastapi-items-foreign-update", "set": "main", "repeat": 1, "arm": "B" },
+    { "id": "08-r1-fastapi-update-D", "caseId": "fastapi-items-foreign-update", "set": "main", "repeat": 1, "arm": "D" },
+    { "id": "09-r1-fastapi-read-B", "caseId": "fastapi-items-superuser-read", "set": "main", "repeat": 1, "arm": "B" },
+    { "id": "10-r1-fastapi-read-D", "caseId": "fastapi-items-superuser-read", "set": "main", "repeat": 1, "arm": "D" },
+    { "id": "11-r2-file-D", "caseId": "owui-process-file-write", "set": "main", "repeat": 2, "arm": "D" },
+    { "id": "12-r2-file-B", "caseId": "owui-process-file-write", "set": "main", "repeat": 2, "arm": "B" },
+    { "id": "13-r2-text-D", "caseId": "owui-process-text-controlled", "set": "main", "repeat": 2, "arm": "D" },
+    { "id": "14-r2-text-B", "caseId": "owui-process-text-controlled", "set": "main", "repeat": 2, "arm": "B" },
+    { "id": "15-r2-header-D", "caseId": "owui-trusted-header-deployment", "set": "main", "repeat": 2, "arm": "D" },
+    { "id": "16-r2-header-B", "caseId": "owui-trusted-header-deployment", "set": "main", "repeat": 2, "arm": "B" },
+    { "id": "17-r2-fastapi-update-D", "caseId": "fastapi-items-foreign-update", "set": "main", "repeat": 2, "arm": "D" },
+    { "id": "18-r2-fastapi-update-B", "caseId": "fastapi-items-foreign-update", "set": "main", "repeat": 2, "arm": "B" },
+    { "id": "19-r2-fastapi-read-D", "caseId": "fastapi-items-superuser-read", "set": "main", "repeat": 2, "arm": "D" },
+    { "id": "20-r2-fastapi-read-B", "caseId": "fastapi-items-superuser-read", "set": "main", "repeat": 2, "arm": "B" },
+    { "id": "21-natural-file-N", "caseId": "owui-process-file-write", "set": "natural-supplement", "repeat": null, "arm": "N" },
+    { "id": "22-natural-header-N", "caseId": "owui-trusted-header-deployment", "set": "natural-supplement", "repeat": null, "arm": "N" },
+    { "id": "23-natural-fastapi-update-N", "caseId": "fastapi-items-foreign-update", "set": "natural-supplement", "repeat": null, "arm": "N" }
+  ],
+  "resumePolicy": {
+    "terminalUnitsAreNotResent": true,
+    "dispatchedWithoutResultIsCompletionUnknown": true
+  }
+}

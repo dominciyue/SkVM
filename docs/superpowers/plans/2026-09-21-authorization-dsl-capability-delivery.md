@@ -208,10 +208,10 @@ check 应输出字段、输入和分析要求检查结果且零模型调用；ru
 
 ### X8：离线接线与跨项目 dry-run
 
-- [ ] 五项任务通过同一 parser、ledger、引用装载、host mock、coverage 和评价入口；缺第二项目时保留明确分母，其他工作继续。
-- [ ] 对要求删除、控制条件相反、无 provisioning、缺部署事实四种 synthetic 变化运行确定性测试，检查 ledger/诊断能反映变化；这些变体不算新增真实项目证据。
-- [ ] 在一个临时普通目录使用例子完成 check/run(mock)/inspect，确认无研究目录绝对路径、无 oracle/历史 case manifest 依赖。已有工作树即可，不另建 clean archive 链。
-- [ ] 一次运行授权回归与 typecheck；通过后记录实验配置与实现 revision，进入真实运行。无须等旧 header 满分。
+- [x] 五项任务通过同一 parser、ledger、引用装载、host mock、coverage 和评价入口；缺第二项目时保留明确分母，其他工作继续。
+- [x] 对要求删除、控制条件相反、无 provisioning、缺部署事实四种 synthetic 变化运行确定性测试，检查 ledger/诊断能反映变化；这些变体不算新增真实项目证据。
+- [x] 在一个临时普通目录使用例子完成 check/run(mock)/inspect，确认无研究目录绝对路径、无 oracle/历史 case manifest 依赖。已有工作树即可，不另建 clean archive 链。
+- [x] 一次运行授权回归与 typecheck；通过后记录实验配置与实现 revision，进入真实运行。无须等旧 header 满分。
 
 ### X9：真实主面板与重复观察
 
