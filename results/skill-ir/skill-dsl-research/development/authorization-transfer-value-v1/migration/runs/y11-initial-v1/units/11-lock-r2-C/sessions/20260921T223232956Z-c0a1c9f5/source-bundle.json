@@ -1,0 +1,38 @@
+{
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceMode": "fixed-context",
+  "isolation": "exact-allowlist",
+  "files": [
+    {
+      "relativePath": "policy.json",
+      "content": "{\n  \"schemaVersion\": \"authorization-migration-public-policy/v1\",\n  \"repository\": \"https://github.com/go-gitea/gitea\",\n  \"sourceRef\": \"fc28937a8d772fe9e4025c9b5f24d5db4d86610b\",\n  \"upstreamSources\": [\n    \"routers/api/v1/api.go#L451-L459,L1741-L1745\",\n    \"routers/api/v1/repo/issue_lock.go#L15-L81\"\n  ],\n  \"normativePolicy\": \"The issue-lock route requires the caller to be a repository administrator or site administrator. After that route gate, the handler also requires permission to write the issue or pull request before it may lock an unlocked issue.\",\n  \"boundedScenario\": \"The caller is authenticated, has full token scope and repository issue-write permission, but is neither a repository administrator nor a site administrator; the issue exists, is readable, and is currently unlocked.\",\n  \"claimBoundary\": \"The assessment concerns the declared API route and fixed source only. It does not infer deployment state or permissions outside the supplied scenario.\"\n}\n",
+      "sha256": "d7dbd7317a73fdcfa1ac12ea4af4e0add98afe862d6d8acfb848be9a5717b005",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 12
+      },
+      "originalLocations": []
+    },
+    {
+      "relativePath": "route_guard.go",
+      "content": "// Fixed excerpts from go-gitea/gitea at fc28937a8d772fe9e4025c9b5f24d5db4d86610b.\n// Original path and ranges: routers/api/v1/api.go:451-459,1741-1745.\n\n// reqAdmin user should be an owner or a collaborator with admin write of a repository, or site admin\nfunc reqAdmin() func(ctx *context.APIContext) {\n\treturn func(ctx *context.APIContext) {\n\t\tif !ctx.IsUserRepoAdmin() && !ctx.IsUserSiteAdmin() {\n\t\t\tctx.APIError(http.StatusForbidden, \"user should be an owner or a collaborator with admin write of a repository\")\n\t\t\treturn\n\t\t}\n\t}\n}\n\n// Upstream route tree outside the declared lock group is omitted.\n\nm.Group(\"/lock\", func() {\n\tm.Combo(\"\").\n\t\tPut(bind(api.LockIssueOption{}), repo.LockIssue).\n\t\tDelete(repo.UnlockIssue)\n}, reqToken(), reqAdmin())\n",
+      "sha256": "8bc95a31887ad3bbaac3349e6a0f596dc1d8833f72aa8b4ccbb68df1f415a292",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 20
+      },
+      "originalLocations": []
+    },
+    {
+      "relativePath": "issue_lock.go",
+      "content": "// Fixed excerpt from go-gitea/gitea at fc28937a8d772fe9e4025c9b5f24d5db4d86610b.\n// Original path and range: routers/api/v1/repo/issue_lock.go:15-81.\n\n// LockIssue lock an issue\nfunc LockIssue(ctx *context.APIContext) {\n\t// swagger:operation PUT /repos/{owner}/{repo}/issues/{index}/lock issue issueLockIssue\n\t// ---\n\t// summary: Lock an issue\n\t// consumes:\n\t// - application/json\n\t// produces:\n\t// - application/json\n\t// parameters:\n\t// - name: owner\n\t//   in: path\n\t//   description: owner of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: repo\n\t//   in: path\n\t//   description: name of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: index\n\t//   in: path\n\t//   description: index of the issue\n\t//   type: integer\n\t//   format: int64\n\t//   required: true\n\t// - name: body\n\t//   in: body\n\t//   schema:\n\t//     \"$ref\": \"#/definitions/LockIssueOption\"\n\t// responses:\n\t//   \"204\":\n\t//     \"$ref\": \"#/responses/empty\"\n\t//   \"403\":\n\t//     \"$ref\": \"#/responses/forbidden\"\n\t//   \"404\":\n\t//     \"$ref\": \"#/responses/notFound\"\n\n\treason := web.GetForm[*api.LockIssueOption](ctx).Reason\n\tissue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.PathParamInt64(\"index\"))\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.APIError(http.StatusForbidden, \"no permission to lock this issue\")\n\t\treturn\n\t}\n\n\tif !issue.IsLocked {\n\t\topt := &issues_model.IssueLockOptions{\n\t\t\tDoer:   ctx.ContextUser,\n\t\t\tIssue:  issue,\n\t\t\tReason: reason,\n\t\t}\n\n\t\tissue.Repo = ctx.Repo.Repository\n\t\terr = issues_model.LockIssue(ctx, opt)\n\t\tif err != nil {\n\t\t\tctx.APIErrorInternal(err)\n\t\t\treturn\n\t\t}\n\t}\n\n\tctx.Status(http.StatusNoContent)\n}\n",
+      "sha256": "727c99966e125af80b036544e7beb091824f502f57ce741fab9a7946f44014c5",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 70
+      },
+      "originalLocations": []
+    }
+  ]
+}

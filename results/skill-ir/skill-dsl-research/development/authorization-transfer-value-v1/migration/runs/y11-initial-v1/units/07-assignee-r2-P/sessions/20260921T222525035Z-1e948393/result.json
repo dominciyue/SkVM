@@ -1,0 +1,231 @@
+{
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260921T222525035Z-1e948393",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\migration\\runs\\y11-initial-v1\\units\\07-assignee-r2-P\\sessions\\20260921T222525035Z-1e948393",
+  "createdAt": "2026-09-21T22:25:25.035Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\migration\\runs\\y11-initial-v1\\public-inputs\\gitea-issue-assignee-nonwriter\\assessment.json",
+  "taskId": "gitea-issue-assignee-nonwriter",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "studyArm": "P",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 3606,
+      "publicAnalysis": 763,
+      "source": 4578,
+      "outputContract": 1699,
+      "total": 11147,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "gitea-issue-assignee-nonwriter",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "results": [
+      {
+        "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+        "conclusion": "source_refuted",
+        "explanation": "The fixed source enforces the expected denial for the bounded non-writer scenario, so it refutes a policy failure. The declared POST entry invokes the assignee-update path. That path first retrieves the issue identified by the repository context and request index, then checks repository permission to write issues or pull requests. If the check fails, it returns HTTP 403 and stops before assignee-name resolution and before the add-assignees mutation. The authenticated caller, existing issue, existing requested user, and absence of repository issue-write permission are supplied bounded conditions. The issue-write token scope does not replace the repository permission check. The protected effect is reachable only after the permission check succeeds; no alternate role, ownership, or bypass branch is visible in this crop. Authentication middleware and deployment behavior are outside the crop, but authentication is fixed by the bounded scenario and those external facts are not needed to decide this declared entry.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The declared entry is the POST issue-assignees operation, whose wrapper parses assignee options and calls the update routine in add mode.",
+              "citations": [
+                {
+                  "path": "issue_assignee.go",
+                  "startLine": 4,
+                  "endLine": 49,
+                  "quote": "// AddIssueAssignees add assignees to an issue\nfunc AddIssueAssignees(ctx *context.APIContext) {\n\t// swagger:operation POST /repos/{owner}/{repo}/issues/{index}/assignees issue issueAddAssignees\n\t// ---\n\t// summary: Add assignees to an issue\n\t// consumes:\n\t// - application/json\n\t// produces:\n\t// - application/json\n\t// parameters:\n\t// - name: owner\n\t//   in: path\n\t//   description: owner of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: repo\n\t//   in: path\n\t//   description: name of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: index\n\t//   in: path\n\t//   description: index of the issue\n\t//   type: integer\n\t//   format: int64\n\t//   required: true\n\t// - name: body\n\t//   in: body\n\t//   required: true\n\t//   schema:\n\t//     \"$ref\": \"#/definitions/IssueAssigneesOption\"\n\t// responses:\n\t//   \"201\":\n\t//     \"$ref\": \"#/responses/Issue\"\n\t//   \"400\":\n\t//     \"$ref\": \"#/responses/error\"\n\t//   \"403\":\n\t//     \"$ref\": \"#/responses/forbidden\"\n\t//   \"404\":\n\t//     \"$ref\": \"#/responses/notFound\"\n\t//   \"422\":\n\t//     \"$ref\": \"#/responses/validationError\"\n\n\topts := web.GetForm[*api.IssueAssigneesOption](ctx)\n\tupdateIssueAssignees(ctx, *opts, true)\n}"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The request-selected issue is bound by the repository ID from the request context together with the path parameter named index.",
+              "citations": [
+                {
+                  "path": "issue_assignee.go",
+                  "startLine": 53,
+                  "endLine": 58,
+                  "quote": "func updateIssueAssignees(ctx *context.APIContext, opts api.IssueAssigneesOption, isAdd bool) {\n\tissue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.PathParamInt64(\"index\"))\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}"
+                }
+              ]
+            },
+            {
+              "statement": "The runtime caller identity used by the operation is ctx.Doer at the mutation and response sites, while the repository authorization decision is obtained from ctx.Repo.Permission; the authentication middleware that establishes these context values is outside the supplied crop.",
+              "citations": [
+                {
+                  "path": "issue_assignee.go",
+                  "startLine": 60,
+                  "endLine": 63,
+                  "quote": "\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.Status(http.StatusForbidden)\n\t\treturn\n\t}"
+                },
+                {
+                  "path": "issue_assignee.go",
+                  "startLine": 80,
+                  "endLine": 101,
+                  "quote": "\tif isAdd {\n\t\terr = issue_service.AddAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t} else {\n\t\terr = issue_service.RemoveAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t}\n\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tissue, err = issues_model.GetIssueByID(ctx, issue.ID)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tstatus := http.StatusOK\n\tif isAdd {\n\t\tstatus = http.StatusCreated\n\t}\n\tctx.JSON(status, convert.ToAPIIssue(ctx, ctx.Doer, issue))"
+                }
+              ]
+            },
+            {
+              "statement": "The requested assignee object is selected separately by resolving the request's assignee names to user IDs; the issue resource checked for repository permission remains distinct from those assignee users.",
+              "citations": [
+                {
+                  "path": "issue_assignee.go",
+                  "startLine": 65,
+                  "endLine": 78,
+                  "quote": "\tif err := issue.LoadAttributes(ctx); err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tassigneeIDs, err := user_model.GetUserIDsByNames(ctx, opts.Assignees, false)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusUnprocessableEntity, err.Error())\n\t\t\treturn\n\t\t}\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "After issue lookup, the decisive gate checks CanWriteIssuesOrPulls for the issue's pull-request status and returns HTTP 403 immediately when the caller lacks the required repository issue or pull-request write permission.",
+              "citations": [
+                {
+                  "path": "issue_assignee.go",
+                  "startLine": 53,
+                  "endLine": 63,
+                  "quote": "func updateIssueAssignees(ctx *context.APIContext, opts api.IssueAssigneesOption, isAdd bool) {\n\tissue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.PathParamInt64(\"index\"))\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.Status(http.StatusForbidden)\n\t\treturn\n\t}"
+                }
+              ]
+            },
+            {
+              "statement": "The fixed policy states that repository write permission is required and that the 403 occurs before assignee resolution or mutation; token scope and repository permission are distinct.",
+              "citations": [
+                {
+                  "path": "policy.json",
+                  "startLine": 6,
+                  "endLine": 8,
+                  "quote": "  \"normativePolicy\": \"Adding issue assignees requires repository permission to write the issue or pull request. A caller without that repository permission receives HTTP 403 before assignee names are resolved or the issue's assignees are mutated.\",\n  \"boundedScenario\": \"The caller is authenticated and has an issue-write token scope but lacks repository issue-write permission; the issue and requested user both exist.\",\n  \"claimBoundary\": \"Token scope and repository permission are distinct in this bounded task. The policy is accepted only for the declared fixed source entry.\""
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "Adding the assignee set occurs only in the add branch through issue_service.AddAssignees, after assignee resolution and after the repository permission gate.",
+              "citations": [
+                {
+                  "path": "issue_assignee.go",
+                  "startLine": 70,
+                  "endLine": 83,
+                  "quote": "\tassigneeIDs, err := user_model.GetUserIDsByNames(ctx, opts.Assignees, false)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusUnprocessableEntity, err.Error())\n\t\t\treturn\n\t\t}\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tif isAdd {\n\t\terr = issue_service.AddAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t} else {\n\t\terr = issue_service.RemoveAssignees(ctx, issue, ctx.Doer, assigneeIDs)"
+                }
+              ]
+            },
+            {
+              "statement": "A successful add would continue to reload the issue and return an HTTP 201 response, but that success path is not reached when the permission check returns 403.",
+              "citations": [
+                {
+                  "path": "issue_assignee.go",
+                  "startLine": 86,
+                  "endLine": 101,
+                  "quote": "\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tissue, err = issues_model.GetIssueByID(ctx, issue.ID)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tstatus := http.StatusOK\n\tif isAdd {\n\t\tstatus = http.StatusCreated\n\t}\n\tctx.JSON(status, convert.ToAPIIssue(ctx, ctx.Doer, issue))"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The bounded scenario supplies an authenticated caller with an issue-write token scope, an existing issue, and an existing requested user, while expressly withholding repository issue-write permission; the policy says the token scope alone does not supply that permission.",
+              "citations": [
+                {
+                  "path": "policy.json",
+                  "startLine": 6,
+                  "endLine": 8,
+                  "quote": "  \"normativePolicy\": \"Adding issue assignees requires repository permission to write the issue or pull request. A caller without that repository permission receives HTTP 403 before assignee names are resolved or the issue's assignees are mutated.\",\n  \"boundedScenario\": \"The caller is authenticated and has an issue-write token scope but lacks repository issue-write permission; the issue and requested user both exist.\",\n  \"claimBoundary\": \"Token scope and repository permission are distinct in this bounded task. The policy is accepted only for the declared fixed source entry.\""
+                }
+              ]
+            },
+            {
+              "statement": "Issue existence is checked by the issue lookup before authorization, and the supplied scenario fixes that the issue exists; if lookup failed, the handler would return an error before the permission gate.",
+              "citations": [
+                {
+                  "path": "issue_assignee.go",
+                  "startLine": 53,
+                  "endLine": 58,
+                  "quote": "func updateIssueAssignees(ctx *context.APIContext, opts api.IssueAssigneesOption, isAdd bool) {\n\tissue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.PathParamInt64(\"index\"))\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}"
+                }
+              ]
+            },
+            {
+              "statement": "Assignee existence is checked only after the repository permission gate, so the supplied existence of the requested user does not change the denial branch for a non-writer.",
+              "citations": [
+                {
+                  "path": "issue_assignee.go",
+                  "startLine": 60,
+                  "endLine": 78,
+                  "quote": "\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.Status(http.StatusForbidden)\n\t\treturn\n\t}\n\n\tif err := issue.LoadAttributes(ctx); err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tassigneeIDs, err := user_model.GetUserIDsByNames(ctx, opts.Assignees, false)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusUnprocessableEntity, err.Error())\n\t\t\treturn\n\t\t}\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}"
+                }
+              ]
+            },
+            {
+              "statement": "No separate role, ownership, or alternate authorization branch is visible in the supplied control; the visible decision is the CanWriteIssuesOrPulls result.",
+              "citations": [
+                {
+                  "path": "issue_assignee.go",
+                  "startLine": 60,
+                  "endLine": 63,
+                  "quote": "\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.Status(http.StatusForbidden)\n\t\treturn\n\t}"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": []
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "This result covers only the single declared expanded obligation and the supplied POST issue-assignees source crop. Source discovery is not-tested, so this does not claim repository-wide or all-entry completeness."
+    }
+  },
+  "relationCoverage": [],
+  "telemetry": {
+    "providerCalls": 2,
+    "respondedCalls": 2,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 2,
+    "knownTokens": {
+      "input": 5220,
+      "output": 3220,
+      "cacheRead": 2432,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

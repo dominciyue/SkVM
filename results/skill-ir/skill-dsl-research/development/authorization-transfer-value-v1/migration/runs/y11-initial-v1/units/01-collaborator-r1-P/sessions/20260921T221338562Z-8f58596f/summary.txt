@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260921T221338562Z-8f58596f
+Status: completed
+Task: gitea-collaborator-cross-user-permission
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- deny-cross-user-permission-query::get-collaborator-permission: source_refuted — The fixed source refutes a failure of the declared deny expectation. The declared GET entry reads the requested collaborator username, then rejects the request with HTTP 403 when the caller is neither a site administrator, the named collaborator, nor a repository administrator. Under the supplied conditions, the caller is authenticated but is not the target collaborator and has read-collaborator access rather than repository-administrator or site-administrator status, so the rejection branch is reached before the target collaborator is loaded. The permission lookup and successful permission response are therefore unreachable for this cross-user request. The source-visible role or ownership branches that can change reachability are site-administrator status, repository-administrator status, or equality between the caller identity and the requested username. No decisive fact is missing for the bounded scenario; deployment behavior, other endpoints, and repository-wide completeness are outside the declared fixed-source scope.
+  Evidence: The assessed source entry is the GET operation that obtains repository permissions for the collaborator named in the request path. (collaborators.go:4-6)
+  Evidence: The accepted policy identifies the same bounded entry and limits the claim to that fixed source entry rather than every endpoint or deployment. (policy.json:5-8)
+  Evidence: The requested target identity is taken from the request path and compared case-insensitively with the runtime caller's lower-cased name; the caller's administrator and repository-administrator attributes are also read from the runtime context. (collaborators.go:35-36)
+  Evidence: The request-selected collaborator is bound to the target resource by looking up the user named by the path parameter, then using that user with the current repository to obtain an individual repository permission. (collaborators.go:41-51)
+  Evidence: The checked resources that must remain distinct are the runtime caller identity and the request-selected target collaborator; the source also separately checks site-administrator and repository-administrator authority. (collaborators.go:35-38)
+  Evidence: The decisive pre-load control denies the request when the caller is not a site administrator, is not the named collaborator, and is not a repository administrator, returning HTTP 403 before target-user lookup. (collaborators.go:35-41)
+  Evidence: The normative policy states the same three permitted branches: site administrator, repository administrator, or querying the caller's own username; otherwise rejection occurs before the target collaborator is loaded. (policy.json:6-7)
+  Evidence: If the authorization control is passed, the operation loads the target user, retrieves that user's permission in the current repository, and returns a successful JSON permission response. (collaborators.go:41-57)
+  Evidence: For the declared cross-user non-administrator conditions, the 403 return prevents the target lookup, permission retrieval, and successful permission response from being reached. (collaborators.go:35-51)
+  Evidence: The bounded scenario supplies an authenticated read collaborator who is not a site administrator or repository administrator and who requests a different existing collaborator. (policy.json:6-8)
+  Evidence: Because the caller is not the requested collaborator, the ownership branch is false; because the caller has only read-collaborator access and is not a site administrator, both administrator branches are false. (policy.json:7-7)
+  Evidence: The existing-target condition is decisive only after authorization succeeds; under the supplied conditions, authorization fails first, so the target lookup is not reached. (collaborators.go:35-42)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

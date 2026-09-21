@@ -197,7 +197,7 @@ init/check/inspect 不初始化 provider；run 显式使用 `--model`。没有 a
 ### Y11：普通入口迁移与变化输入
 实施细节：Y7 的 experiment/v1 继续只表达每例各一次 P/L/C，不改变其冻结语义。迁移新增向后兼容的 experiment/v2：case 直接引用普通入口生成的 `authorization-assessment-input/v1`，unit 显式记录 P/C、重复序号与冻结顺序；检查与执行仍逐单元复用 `executeLocalAuthorizationRun`，每次生成新的 immutable session，并把输入与源码快照物化到 run root。v2 不读取 evaluator 内容，v1 配置、结果与重放保持不变。
 
-- [ ] 新任务通过已接入CLI的同一调用函数执行 P/候选各两次fresh context，第二重复反向顺序；正常12单元，少于3项时保留真实分母。
+- [x] 新任务通过已接入CLI的同一调用函数执行 P/候选各两次fresh context，第二重复反向顺序；正常12单元，少于3项时保留真实分母。
 - [ ] 检验可表示性、所需任务专属改动、结论和解释质量及编写负担；不因某任务失败换输入补成功数。
 - [ ] 对一个任务作规范期待/资源关系的明确变化，用确定性检查确认声明与prompt会变化；如真实比较需要，纳入既定迁移任务而非隐藏增加调用。
 - [ ] 迁移暴露缺陷可修共享方法和回归，首跑原样保存；修订后身份记 development，不改写首次迁移结论。

@@ -1,0 +1,568 @@
+{
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260921T223000554Z-b8da2d39",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\migration\\runs\\y11-initial-v1\\units\\10-lock-r1-C\\sessions\\20260921T223000554Z-b8da2d39",
+  "createdAt": "2026-09-21T22:30:00.554Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\migration\\runs\\y11-initial-v1\\public-inputs\\gitea-issue-lock-writer-nonadmin\\assessment.json",
+  "taskId": "gitea-issue-lock-writer-nonadmin",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "studyArm": "C",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 4861,
+      "analysisLedger": 5420,
+      "conditionAnalysis": 805,
+      "source": 4857,
+      "outputContract": 4097,
+      "total": 20575,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "gitea-issue-lock-writer-nonadmin",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "results": [
+      {
+        "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+        "conclusion": "source_refuted",
+        "explanation": "The declared policy expectation is enforced for the bounded scenario. The lock route applies repository-or-site-administrator middleware before invoking the lock handler. Because the declared caller is neither kind of administrator, the route guard returns forbidden and the request cannot reach the issue-write check or the lock mutation. Full token scope and issue-write permission do not satisfy the separate administrator predicate.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The assessed entry is the lock-group PUT operation, and the route is guarded by token authentication and the repository-or-site-administrator middleware.",
+              "citations": [
+                {
+                  "path": "route_guard.go",
+                  "startLine": 16,
+                  "endLine": 20,
+                  "quote": "m.Group(\"/lock\", func() {\n\tm.Combo(\"\").\n\t\tPut(bind(api.LockIssueOption{}), repo.LockIssue).\n\t\tDelete(repo.UnlockIssue)\n}, reqToken(), reqAdmin())"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The declared caller is evaluated through the request context's repository-administrator and site-administrator predicates; the bounded scenario supplies the caller's authenticated, nonadministrator identity and separately supplies issue-write permission.",
+              "citations": [
+                {
+                  "path": "route_guard.go",
+                  "startLine": 4,
+                  "endLine": 10,
+                  "quote": "// reqAdmin user should be an owner or a collaborator with admin write of a repository, or site admin\nfunc reqAdmin() func(ctx *context.APIContext) {\n\treturn func(ctx *context.APIContext) {\n\t\tif !ctx.IsUserRepoAdmin() && !ctx.IsUserSiteAdmin() {\n\t\t\tctx.APIError(http.StatusForbidden, \"user should be an owner or a collaborator with admin write of a repository\")\n\t\t\treturn\n\t\t}"
+                },
+                {
+                  "path": "policy.json",
+                  "startLine": 9,
+                  "endLine": 11,
+                  "quote": "  \"normativePolicy\": \"The issue-lock route requires the caller to be a repository administrator or site administrator. After that route gate, the handler also requires permission to write the issue or pull request before it may lock an unlocked issue.\",\n  \"boundedScenario\": \"The caller is authenticated, has full token scope and repository issue-write permission, but is neither a repository administrator nor a site administrator; the issue exists, is readable, and is currently unlocked.\",\n  \"claimBoundary\": \"The assessment concerns the declared API route and fixed source only. It does not infer deployment state or permissions outside the supplied scenario.\""
+                }
+              ]
+            },
+            {
+              "statement": "The request-selected issue is obtained from the repository in the request context using the numeric issue path parameter; the repository object and issue object are distinct checked resources.",
+              "citations": [
+                {
+                  "path": "issue_lock.go",
+                  "startLine": 42,
+                  "endLine": 43,
+                  "quote": "\treason := web.GetForm[*api.LockIssueOption](ctx).Reason\n\tissue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.PathParamInt64(\"index\"))"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "The decisive visible control is the administrator guard: access is allowed past the guard only when either the repository-administrator predicate or the site-administrator predicate is true; otherwise the request receives a forbidden response and returns.",
+              "citations": [
+                {
+                  "path": "route_guard.go",
+                  "startLine": 4,
+                  "endLine": 10,
+                  "quote": "// reqAdmin user should be an owner or a collaborator with admin write of a repository, or site admin\nfunc reqAdmin() func(ctx *context.APIContext) {\n\treturn func(ctx *context.APIContext) {\n\t\tif !ctx.IsUserRepoAdmin() && !ctx.IsUserSiteAdmin() {\n\t\t\tctx.APIError(http.StatusForbidden, \"user should be an owner or a collaborator with admin write of a repository\")\n\t\t\treturn\n\t\t}"
+                }
+              ]
+            },
+            {
+              "statement": "If the route guard were passed, the handler would additionally require permission to write issues or pull requests before proceeding.",
+              "citations": [
+                {
+                  "path": "issue_lock.go",
+                  "startLine": 49,
+                  "endLine": 52,
+                  "quote": "\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.APIError(http.StatusForbidden, \"no permission to lock this issue\")\n\t\treturn\n\t}"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "The protected effect is the issue-lock mutation, which is invoked only when the issue is not already locked; successful completion then returns no content.",
+              "citations": [
+                {
+                  "path": "issue_lock.go",
+                  "startLine": 54,
+                  "endLine": 69,
+                  "quote": "\tif !issue.IsLocked {\n\t\topt := &issues_model.IssueLockOptions{\n\t\t\tDoer:   ctx.ContextUser,\n\t\t\tIssue:  issue,\n\t\t\tReason: reason,\n\t\t}\n\n\t\tissue.Repo = ctx.Repo.Repository\n\t\terr = issues_model.LockIssue(ctx, opt)\n\t\tif err != nil {\n\t\t\tctx.APIErrorInternal(err)\n\t\t\treturn\n\t\t}\n\t}\n\n\tctx.Status(http.StatusNoContent)"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The bounded scenario fixes issue-write permission as true, but fixes both repository-administrator status and site-administrator status as false.",
+              "citations": [
+                {
+                  "path": "policy.json",
+                  "startLine": 9,
+                  "endLine": 10,
+                  "quote": "  \"normativePolicy\": \"The issue-lock route requires the caller to be a repository administrator or site administrator. After that route gate, the handler also requires permission to write the issue or pull request before it may lock an unlocked issue.\",\n  \"boundedScenario\": \"The caller is authenticated, has full token scope and repository issue-write permission, but is neither a repository administrator nor a site administrator; the issue exists, is readable, and is currently unlocked.\","
+                }
+              ]
+            },
+            {
+              "statement": "The bounded scenario fixes the issue as existing, readable, and currently unlocked, so the issue state would not independently prevent the mutation if the authorization gates were passed.",
+              "citations": [
+                {
+                  "path": "policy.json",
+                  "startLine": 9,
+                  "endLine": 10,
+                  "quote": "  \"normativePolicy\": \"The issue-lock route requires the caller to be a repository administrator or site administrator. After that route gate, the handler also requires permission to write the issue or pull request before it may lock an unlocked issue.\",\n  \"boundedScenario\": \"The caller is authenticated, has full token scope and repository issue-write permission, but is neither a repository administrator nor a site administrator; the issue exists, is readable, and is currently unlocked.\","
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": []
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "This result covers only the declared lock-route obligation and the supplied fixed source context. Discovery was not tested, so the result makes no repository-wide or all-entry completeness claim."
+    }
+  },
+  "relationCoverage": [
+    {
+      "requirementId": "authorization-core-v1.authorization-decision",
+      "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+      "status": "addressed",
+      "explanation": "The strongest source-visible decision is that the declared nonadministrator caller is blocked at the route-level administrator guard, despite having issue-write permission.",
+      "factPointers": [
+        "/results/0/facts/control/0",
+        "/results/0/facts/condition/0"
+      ]
+    },
+    {
+      "requirementId": "authorization-core-v1.effect-reachability",
+      "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+      "status": "addressed",
+      "explanation": "Under the declared condition that both administrator predicates are false, the request returns from the route guard before the handler's issue-write check and before the unlocked-issue lock mutation.",
+      "factPointers": [
+        "/results/0/facts/control/0",
+        "/results/0/facts/effect/0",
+        "/results/0/facts/condition/0"
+      ]
+    },
+    {
+      "requirementId": "authorization-core-v1.entry-control",
+      "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+      "status": "addressed",
+      "explanation": "The entry is gated by the route's repository-or-site-administrator middleware, in addition to token authentication.",
+      "factPointers": [
+        "/results/0/facts/entry/0",
+        "/results/0/facts/control/0"
+      ]
+    },
+    {
+      "requirementId": "authorization-core-v1.external-assumption",
+      "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+      "status": "addressed",
+      "explanation": "No deployment or repository-wide fact is needed for the declared decision because the scenario and fixed route crop define the assessed route and caller conditions. Deployment wiring or permissions outside that supplied context could change applicability, but those facts are expressly outside the claim boundary and were not discovered.",
+      "factPointers": [
+        "/results/0/facts/entry/0",
+        "/results/0/facts/condition/0"
+      ]
+    },
+    {
+      "requirementId": "authorization-core-v1.identity-binding",
+      "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+      "status": "addressed",
+      "explanation": "The route guard evaluates the caller through the request context's repository-administrator and site-administrator identity predicates, while the bounded scenario supplies the corresponding authenticated nonadministrator facts. The fixed crop does not reproduce the broader authentication middleware, so no stronger claim about identity construction is made.",
+      "factPointers": [
+        "/results/0/facts/binding/0",
+        "/results/0/facts/condition/0"
+      ]
+    },
+    {
+      "requirementId": "authorization-core-v1.resource-binding",
+      "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+      "status": "addressed",
+      "explanation": "The handler binds the request's issue index to an issue retrieved within the repository identified by the request context. Repository administration is checked at route entry, while issue write permission is checked on the retrieved issue; these are distinct resource-related checks.",
+      "factPointers": [
+        "/results/0/facts/binding/1",
+        "/results/0/facts/control/1"
+      ]
+    }
+  ],
+  "coverageValidation": {
+    "status": "valid",
+    "declared": 6,
+    "addressed": 6,
+    "unknown": 0,
+    "notApplicable": 0,
+    "missing": [],
+    "semanticSupport": "unreviewed",
+    "coverage": [
+      {
+        "requirementId": "authorization-core-v1.authorization-decision",
+        "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+        "status": "addressed",
+        "explanation": "The strongest source-visible decision is that the declared nonadministrator caller is blocked at the route-level administrator guard, despite having issue-write permission.",
+        "factPointers": [
+          "/results/0/facts/control/0",
+          "/results/0/facts/condition/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.effect-reachability",
+        "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+        "status": "addressed",
+        "explanation": "Under the declared condition that both administrator predicates are false, the request returns from the route guard before the handler's issue-write check and before the unlocked-issue lock mutation.",
+        "factPointers": [
+          "/results/0/facts/control/0",
+          "/results/0/facts/effect/0",
+          "/results/0/facts/condition/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.entry-control",
+        "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+        "status": "addressed",
+        "explanation": "The entry is gated by the route's repository-or-site-administrator middleware, in addition to token authentication.",
+        "factPointers": [
+          "/results/0/facts/entry/0",
+          "/results/0/facts/control/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.external-assumption",
+        "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+        "status": "addressed",
+        "explanation": "No deployment or repository-wide fact is needed for the declared decision because the scenario and fixed route crop define the assessed route and caller conditions. Deployment wiring or permissions outside that supplied context could change applicability, but those facts are expressly outside the claim boundary and were not discovered.",
+        "factPointers": [
+          "/results/0/facts/entry/0",
+          "/results/0/facts/condition/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.identity-binding",
+        "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+        "status": "addressed",
+        "explanation": "The route guard evaluates the caller through the request context's repository-administrator and site-administrator identity predicates, while the bounded scenario supplies the corresponding authenticated nonadministrator facts. The fixed crop does not reproduce the broader authentication middleware, so no stronger claim about identity construction is made.",
+        "factPointers": [
+          "/results/0/facts/binding/0",
+          "/results/0/facts/condition/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.resource-binding",
+        "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+        "status": "addressed",
+        "explanation": "The handler binds the request's issue index to an issue retrieved within the repository identified by the request context. Repository administration is checked at route entry, while issue write permission is checked on the retrieved issue; these are distinct resource-related checks.",
+        "factPointers": [
+          "/results/0/facts/binding/1",
+          "/results/0/facts/control/1"
+        ]
+      }
+    ],
+    "diagnostics": []
+  },
+  "conditionAnalysis": {
+    "schemaVersion": "authorization-condition-analysis-result/v1",
+    "analyses": [
+      {
+        "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+        "branches": [
+          {
+            "id": "nonadmin-write-capable",
+            "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+            "assumptions": [
+              {
+                "conditionId": "requester-has-repository-issue-write",
+                "value": "true"
+              },
+              {
+                "conditionId": "requester-is-repository-admin",
+                "value": "false"
+              },
+              {
+                "conditionId": "requester-is-site-admin",
+                "value": "false"
+              }
+            ],
+            "effect": "blocked",
+            "explanation": "Under the bounded scenario, issue-write permission is present, but both administrator predicates are false. The route guard therefore returns forbidden before the handler can perform the issue-write check or lock the unlocked issue.",
+            "factPointers": [
+              "/results/0/facts/control/0",
+              "/results/0/facts/condition/0",
+              "/results/0/facts/effect/0"
+            ],
+            "missingFacts": []
+          },
+          {
+            "id": "repository-admin-write-capable",
+            "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+            "assumptions": [
+              {
+                "conditionId": "requester-has-repository-issue-write",
+                "value": "true"
+              },
+              {
+                "conditionId": "requester-is-repository-admin",
+                "value": "true"
+              },
+              {
+                "conditionId": "requester-is-site-admin",
+                "value": "false"
+              }
+            ],
+            "effect": "reachable",
+            "explanation": "This comparison hypothesis satisfies the route guard through repository-administrator status. With issue-write permission also true and the declared issue state unlocked, the handler's visible path reaches the lock mutation.",
+            "factPointers": [
+              "/results/0/facts/control/0",
+              "/results/0/facts/control/1",
+              "/results/0/facts/effect/0"
+            ],
+            "missingFacts": []
+          },
+          {
+            "id": "site-admin-write-capable",
+            "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+            "assumptions": [
+              {
+                "conditionId": "requester-has-repository-issue-write",
+                "value": "true"
+              },
+              {
+                "conditionId": "requester-is-repository-admin",
+                "value": "false"
+              },
+              {
+                "conditionId": "requester-is-site-admin",
+                "value": "true"
+              }
+            ],
+            "effect": "reachable",
+            "explanation": "This comparison hypothesis satisfies the route guard through site-administrator status. With issue-write permission also true and the declared issue state unlocked, the handler's visible path reaches the lock mutation.",
+            "factPointers": [
+              "/results/0/facts/control/0",
+              "/results/0/facts/control/1",
+              "/results/0/facts/effect/0"
+            ],
+            "missingFacts": []
+          },
+          {
+            "id": "no-write-nonadmin",
+            "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+            "assumptions": [
+              {
+                "conditionId": "requester-has-repository-issue-write",
+                "value": "false"
+              },
+              {
+                "conditionId": "requester-is-repository-admin",
+                "value": "false"
+              },
+              {
+                "conditionId": "requester-is-site-admin",
+                "value": "false"
+              }
+            ],
+            "effect": "blocked",
+            "explanation": "With both administrator predicates false, the route guard blocks the request regardless of the issue-write value. The false issue-write assumption would also block the handler if the route guard were satisfied, but it is not reached in this branch.",
+            "factPointers": [
+              "/results/0/facts/control/0"
+            ],
+            "missingFacts": []
+          }
+        ],
+        "unexaminedConditionIds": [],
+        "completeness": "bounded",
+        "limitations": [
+          "The branches compare the requested authorization conditions within the six-branch limit; they do not enumerate unrelated deployment states or undisclosed route entries.",
+          "The source crop does not reproduce the broader authentication and parent-route middleware, which remain fixed by the declared scenario rather than independently analyzed."
+        ]
+      }
+    ]
+  },
+  "conditionValidation": {
+    "status": "valid",
+    "declared": 1,
+    "bounded": 1,
+    "incomplete": 0,
+    "missing": [],
+    "semanticSupport": "unreviewed",
+    "result": {
+      "schemaVersion": "authorization-condition-analysis-result/v1",
+      "analyses": [
+        {
+          "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+          "branches": [
+            {
+              "id": "nonadmin-write-capable",
+              "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+              "assumptions": [
+                {
+                  "conditionId": "requester-has-repository-issue-write",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "requester-is-repository-admin",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "requester-is-site-admin",
+                  "value": "false"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "Under the bounded scenario, issue-write permission is present, but both administrator predicates are false. The route guard therefore returns forbidden before the handler can perform the issue-write check or lock the unlocked issue.",
+              "factPointers": [
+                "/results/0/facts/control/0",
+                "/results/0/facts/condition/0",
+                "/results/0/facts/effect/0"
+              ],
+              "missingFacts": []
+            },
+            {
+              "id": "repository-admin-write-capable",
+              "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+              "assumptions": [
+                {
+                  "conditionId": "requester-has-repository-issue-write",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "requester-is-repository-admin",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "requester-is-site-admin",
+                  "value": "false"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "This comparison hypothesis satisfies the route guard through repository-administrator status. With issue-write permission also true and the declared issue state unlocked, the handler's visible path reaches the lock mutation.",
+              "factPointers": [
+                "/results/0/facts/control/0",
+                "/results/0/facts/control/1",
+                "/results/0/facts/effect/0"
+              ],
+              "missingFacts": []
+            },
+            {
+              "id": "site-admin-write-capable",
+              "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+              "assumptions": [
+                {
+                  "conditionId": "requester-has-repository-issue-write",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "requester-is-repository-admin",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "requester-is-site-admin",
+                  "value": "true"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "This comparison hypothesis satisfies the route guard through site-administrator status. With issue-write permission also true and the declared issue state unlocked, the handler's visible path reaches the lock mutation.",
+              "factPointers": [
+                "/results/0/facts/control/0",
+                "/results/0/facts/control/1",
+                "/results/0/facts/effect/0"
+              ],
+              "missingFacts": []
+            },
+            {
+              "id": "no-write-nonadmin",
+              "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+              "assumptions": [
+                {
+                  "conditionId": "requester-has-repository-issue-write",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "requester-is-repository-admin",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "requester-is-site-admin",
+                  "value": "false"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "With both administrator predicates false, the route guard blocks the request regardless of the issue-write value. The false issue-write assumption would also block the handler if the route guard were satisfied, but it is not reached in this branch.",
+              "factPointers": [
+                "/results/0/facts/control/0"
+              ],
+              "missingFacts": []
+            }
+          ],
+          "unexaminedConditionIds": [],
+          "completeness": "bounded",
+          "limitations": [
+            "The branches compare the requested authorization conditions within the six-branch limit; they do not enumerate unrelated deployment states or undisclosed route entries.",
+            "The source crop does not reproduce the broader authentication and parent-route middleware, which remain fixed by the declared scenario rather than independently analyzed."
+          ]
+        }
+      ]
+    },
+    "diagnostics": []
+  },
+  "telemetry": {
+    "providerCalls": 2,
+    "respondedCalls": 2,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 2,
+    "knownTokens": {
+      "input": 12959,
+      "output": 5595,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

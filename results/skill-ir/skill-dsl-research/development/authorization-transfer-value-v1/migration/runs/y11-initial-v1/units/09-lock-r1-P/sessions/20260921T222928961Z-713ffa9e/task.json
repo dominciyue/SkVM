@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "source-authorization-assessment/v0",
+  "taskId": "gitea-issue-lock-writer-nonadmin",
+  "request": "Determine whether an authenticated repository issue writer with full token scope, but with neither repository-administrator nor site-administrator status, may lock an existing unlocked issue through PUT /repos/{owner}/{repo}/issues/{index}/lock.",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceMode": "fixed-context",
+  "policySources": [
+    {
+      "id": "issue-lock-admin-policy",
+      "kind": "study-task-author-policy-from-public-source",
+      "text": "The issue-lock route requires repository-administrator or site-administrator status; the handler then also requires issue-write permission before locking an unlocked issue.",
+      "location": "policy.json#/normativePolicy",
+      "revision": "gitea@fc28937:routers/api/v1/api.go#L451-L459,L1741-L1745;routers/api/v1/repo/issue_lock.go#L15-L81",
+      "acceptance": {
+        "status": "accepted",
+        "actorRole": "study-task-author",
+        "reason": "The fixed public route and handler expose both permission gates before the lock mutation."
+      }
+    }
+  ],
+  "principals": [
+    {
+      "id": "authenticated-issue-writer-without-admin-role",
+      "role": "authenticated repository issue writer without an administrator role",
+      "description": "The caller has full token scope and repository issue-write permission, but is neither a repository administrator nor a site administrator.",
+      "startingCapabilities": [
+        "authenticated",
+        "token-scope-all",
+        "repository-issue-read",
+        "repository-issue-write"
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "existing-unlocked-issue",
+      "type": "repository issue lock state",
+      "description": "An existing readable issue whose lock state is currently unlocked."
+    }
+  ],
+  "entries": [
+    {
+      "id": "put-issue-lock",
+      "name": "PUT /repos/{owner}/{repo}/issues/{index}/lock",
+      "locations": [
+        {
+          "path": "route_guard.go",
+          "startLine": 4,
+          "endLine": 12
+        },
+        {
+          "path": "route_guard.go",
+          "startLine": 16,
+          "endLine": 20
+        },
+        {
+          "path": "issue_lock.go",
+          "startLine": 4,
+          "endLine": 70
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "id": "deny-nonadmin-issue-lock",
+      "principalId": "authenticated-issue-writer-without-admin-role",
+      "resourceId": "existing-unlocked-issue",
+      "relation": "issue-writer-without-repository-or-site-admin-role",
+      "operation": "lock-issue",
+      "expectation": "deny",
+      "conditions": [
+        {
+          "name": "requester-authenticated",
+          "basis": "The bounded scenario fixes an authenticated caller."
+        },
+        {
+          "name": "requester-is-repository-admin",
+          "basis": "False in the bounded scenario."
+        },
+        {
+          "name": "requester-is-site-admin",
+          "basis": "False in the bounded scenario."
+        },
+        {
+          "name": "requester-has-repository-issue-write",
+          "basis": "True in the bounded scenario, isolating the stronger route-level administrator gate."
+        },
+        {
+          "name": "issue-exists-and-is-readable",
+          "basis": "The bounded scenario fixes an existing issue visible to the caller."
+        },
+        {
+          "name": "issue-is-currently-locked",
+          "basis": "False in the bounded scenario, so a permitted path would reach the lock mutation rather than a no-op success."
+        }
+      ],
+      "policySourceId": "issue-lock-admin-policy",
+      "entryIds": [
+        "put-issue-lock"
+      ]
+    }
+  ],
+  "scopeAssurance": "The fixed crops contain the route-level repository/site administrator middleware, the lock route registration, handler issue lookup, issue-write check, lock mutation, and response. Parent visibility and token middleware are fixed by the scenario but not reproduced beyond the lock group.",
+  "requiredAnalysis": [
+    "Trace the declared principal, resource relation, authorization control, and protected effect through the supplied fixed source.",
+    "State any decisive fact unavailable from the fixed source instead of inferring it, and explain how the declared conditions change reachability."
+  ],
+  "constraints": [
+    "Use only policy.json, route_guard.go, and issue_lock.go from the supplied fixed source context.",
+    "Do not execute or modify Gitea and do not contact a deployment.",
+    "Do not treat full token scope or repository issue-write permission as repository-administrator status."
+  ]
+}

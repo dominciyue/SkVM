@@ -1,0 +1,602 @@
+{
+  "schemaVersion": "authorization-value-study-unit-result/v1",
+  "configSha256": "b5477832c05b2f239eb8b893d5b923695e3db4a6d85a39ce0c583ef84ea88bfa",
+  "implementationRevision": "d1afddc8e2e823ed27f0428938bccd0e996b7941",
+  "unit": {
+    "id": "03-collaborator-r2-C",
+    "caseId": "gitea-collaborator-cross-user-permission",
+    "repetition": 2,
+    "studyArm": "C",
+    "renderArm": "B"
+  },
+  "report": {
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260921T221823998Z-fe12e196",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\migration\\runs\\y11-initial-v1\\units\\03-collaborator-r2-C\\sessions\\20260921T221823998Z-fe12e196",
+    "createdAt": "2026-09-21T22:18:23.998Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\migration\\runs\\y11-initial-v1\\public-inputs\\gitea-collaborator-cross-user-permission\\assessment.json",
+    "taskId": "gitea-collaborator-cross-user-permission",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "studyArm": "C",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 396,
+        "declaration": 4528,
+        "analysisLedger": 5594,
+        "conditionAnalysis": 881,
+        "source": 3780,
+        "outputContract": 4312,
+        "total": 19630,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "gitea-collaborator-cross-user-permission",
+      "repository": "https://github.com/go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "results": [
+        {
+          "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+          "conclusion": "source_refuted",
+          "explanation": "The fixed source enforces the declared deny expectation for the bounded scenario, so the alleged policy failure is refuted. The request selects a different collaborator, while the requester is neither a site administrator nor a repository administrator. The entry control rejects that combination with HTTP 403 and returns before the target collaborator is loaded. Consequently, the permission lookup and permission response are unreachable under the declared conditions. This conclusion is limited to the declared entry and fixed source context; source discovery was not tested.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The assessed entry is the GET operation that obtains repository permissions for the username supplied as the collaborator path parameter.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 4,
+                    "endLine": 6,
+                    "quote": "// GetRepoPermissions gets repository permissions for a user\nfunc GetRepoPermissions(ctx *context.APIContext) {\n\t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions"
+                  },
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 22,
+                    "endLine": 25,
+                    "quote": "\t// - name: collaborator\n\t//   in: path\n\t//   description: username of the collaborator whose permissions are to be obtained\n\t//   type: string"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The runtime caller is represented by the request context's Doer identity, whose administrator status and normalized name are used by the authorization check.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 37,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")"
+                  }
+                ]
+              },
+              {
+                "statement": "The requested collaborator resource is bound from the collaborator path value and is later loaded by username; it is distinct from the caller identity used in the authorization condition.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 36,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {"
+                  },
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 41,
+                    "endLine": 49,
+                    "quote": "\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "Before target-collaborator loading, the entry rejects the request when the caller is not a site administrator, does not match the requested collaborator username, and is not a repository administrator.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 39,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                  }
+                ]
+              },
+              {
+                "statement": "The fixed policy identifies the same three permitted relations and specifies rejection with HTTP 403 before loading the target when none holds.",
+                "citations": [
+                  {
+                    "path": "policy.json",
+                    "startLine": 6,
+                    "endLine": 8,
+                    "quote": "  \"normativePolicy\": \"A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.\",\n  \"boundedScenario\": \"The caller is authenticated and has repository read access, is a collaborator, is not a site or repository administrator, and queries a different existing collaborator.\",\n  \"claimBoundary\": \"This policy is accepted for the declared fixed source entry only. It is not a claim about every Gitea version, endpoint, or deployment.\""
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The protected effect is the individual repository-permission lookup for the selected collaborator followed by the successful permission response.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 51,
+                    "endLine": 57,
+                    "quote": "\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))"
+                  }
+                ]
+              },
+              {
+                "statement": "Under the declared non-admin, cross-user conditions, the forbidden response returns before the target lookup, so the permission lookup and response cannot be reached on that path.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 36,
+                    "endLine": 49,
+                    "quote": "\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}\n\n\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The bounded scenario fixes an authenticated read collaborator who is not a site administrator or repository administrator and who queries a different existing collaborator.",
+                "citations": [
+                  {
+                    "path": "policy.json",
+                    "startLine": 6,
+                    "endLine": 8,
+                    "quote": "  \"normativePolicy\": \"A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.\",\n  \"boundedScenario\": \"The caller is authenticated and has repository read access, is a collaborator, is not a site or repository administrator, and queries a different existing collaborator.\",\n  \"claimBoundary\": \"This policy is accepted for the declared fixed source entry only. It is not a claim about every Gitea version, endpoint, or deployment.\""
+                  }
+                ]
+              },
+              {
+                "statement": "The caller therefore fails the site-administrator, self-identity, and repository-administrator alternatives in the entry condition.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 39,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "This assessment covers only the single declared expanded obligation and the fixed GET entry in the supplied source crop. It makes no repository-wide, all-entry, version-wide, or deployment-wide completeness claim; source discovery is not-tested."
+      }
+    },
+    "relationCoverage": [
+      {
+        "requirementId": "authorization-core-v1.authorization-decision",
+        "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+        "status": "addressed",
+        "explanation": "The caller identity is checked against site-administrator status, the requested collaborator username, and repository-administrator status. All three alternatives are false in the bounded scenario, so the source-visible decision is HTTP 403 before target loading.",
+        "factPointers": [
+          "/results/0/facts/binding/0",
+          "/results/0/facts/control/0",
+          "/results/0/facts/condition/1"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.effect-reachability",
+        "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+        "status": "addressed",
+        "explanation": "The permission lookup and JSON permission response occur only after the authorization check and target lookup. The denied branch returns before both operations, so the declared protected effect is unreachable under the bounded conditions.",
+        "factPointers": [
+          "/results/0/facts/control/0",
+          "/results/0/facts/effect/0",
+          "/results/0/facts/effect/1"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.entry-control",
+        "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+        "status": "addressed",
+        "explanation": "The source-visible entry gate is the conjunction of not being a site administrator, not querying the caller's own username, and not being a repository administrator. When all three are true as negated conditions, the handler emits HTTP 403 and returns.",
+        "factPointers": [
+          "/results/0/facts/control/0",
+          "/results/0/facts/control/1"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.external-assumption",
+        "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+        "status": "addressed",
+        "explanation": "No external fact is needed to decide the declared bounded case within the supplied source. An actual deployment, another source revision, or another endpoint could differ, but those facts are expressly outside the fixed claim boundary and are not supplied; they cannot be inferred here.",
+        "factPointers": [
+          "/results/0/facts/entry/0",
+          "/results/0/facts/control/1"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.identity-binding",
+        "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+        "status": "addressed",
+        "explanation": "The operation binds authorization to the context Doer identity, using its administrator flag and normalized username. The bounded scenario supplies the corresponding identity facts: authenticated, non-site-admin, non-repository-admin, and not the requested collaborator.",
+        "factPointers": [
+          "/results/0/facts/binding/0",
+          "/results/0/facts/condition/0",
+          "/results/0/facts/condition/1"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.resource-binding",
+        "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+        "status": "addressed",
+        "explanation": "The requested object is selected by the collaborator path parameter and bound to a user loaded by that username. The caller's identity remains a separate authorization input, and the bounded scenario fixes the selected user as a different existing collaborator.",
+        "factPointers": [
+          "/results/0/facts/entry/0",
+          "/results/0/facts/binding/1",
+          "/results/0/facts/condition/0"
+        ]
+      }
+    ],
+    "coverageValidation": {
+      "status": "valid",
+      "declared": 6,
+      "addressed": 6,
+      "unknown": 0,
+      "notApplicable": 0,
+      "missing": [],
+      "semanticSupport": "unreviewed",
+      "coverage": [
+        {
+          "requirementId": "authorization-core-v1.authorization-decision",
+          "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+          "status": "addressed",
+          "explanation": "The caller identity is checked against site-administrator status, the requested collaborator username, and repository-administrator status. All three alternatives are false in the bounded scenario, so the source-visible decision is HTTP 403 before target loading.",
+          "factPointers": [
+            "/results/0/facts/binding/0",
+            "/results/0/facts/control/0",
+            "/results/0/facts/condition/1"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.effect-reachability",
+          "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+          "status": "addressed",
+          "explanation": "The permission lookup and JSON permission response occur only after the authorization check and target lookup. The denied branch returns before both operations, so the declared protected effect is unreachable under the bounded conditions.",
+          "factPointers": [
+            "/results/0/facts/control/0",
+            "/results/0/facts/effect/0",
+            "/results/0/facts/effect/1"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.entry-control",
+          "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+          "status": "addressed",
+          "explanation": "The source-visible entry gate is the conjunction of not being a site administrator, not querying the caller's own username, and not being a repository administrator. When all three are true as negated conditions, the handler emits HTTP 403 and returns.",
+          "factPointers": [
+            "/results/0/facts/control/0",
+            "/results/0/facts/control/1"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.external-assumption",
+          "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+          "status": "addressed",
+          "explanation": "No external fact is needed to decide the declared bounded case within the supplied source. An actual deployment, another source revision, or another endpoint could differ, but those facts are expressly outside the fixed claim boundary and are not supplied; they cannot be inferred here.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/control/1"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.identity-binding",
+          "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+          "status": "addressed",
+          "explanation": "The operation binds authorization to the context Doer identity, using its administrator flag and normalized username. The bounded scenario supplies the corresponding identity facts: authenticated, non-site-admin, non-repository-admin, and not the requested collaborator.",
+          "factPointers": [
+            "/results/0/facts/binding/0",
+            "/results/0/facts/condition/0",
+            "/results/0/facts/condition/1"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.resource-binding",
+          "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+          "status": "addressed",
+          "explanation": "The requested object is selected by the collaborator path parameter and bound to a user loaded by that username. The caller's identity remains a separate authorization input, and the bounded scenario fixes the selected user as a different existing collaborator.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/binding/1",
+            "/results/0/facts/condition/0"
+          ]
+        }
+      ],
+      "diagnostics": []
+    },
+    "conditionAnalysis": {
+      "schemaVersion": "authorization-condition-analysis-result/v1",
+      "analyses": [
+        {
+          "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+          "branches": [
+            {
+              "id": "all-exceptions-false",
+              "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+              "assumptions": [
+                {
+                  "conditionId": "requester-is-repository-admin",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "requester-is-site-admin",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "requester-is-target-collaborator",
+                  "value": "false"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "Under this branch hypothesis, none of the three authorization alternatives holds. The source condition therefore enters the forbidden branch, returns HTTP 403, and prevents target loading and permission lookup.",
+              "factPointers": [
+                "/results/0/facts/control/0",
+                "/results/0/facts/effect/1",
+                "/results/0/facts/condition/1"
+              ],
+              "missingFacts": []
+            },
+            {
+              "id": "repository-admin-exception",
+              "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+              "assumptions": [
+                {
+                  "conditionId": "requester-is-repository-admin",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "requester-is-site-admin",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "requester-is-target-collaborator",
+                  "value": "false"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "This is a hypothetical comparison branch, not an observation about the bounded requester. A repository-administrator relation makes the final authorization conjunct false, so the forbidden condition does not trigger and the later target lookup and permission operation are reachable.",
+              "factPointers": [
+                "/results/0/facts/control/0",
+                "/results/0/facts/effect/0"
+              ],
+              "missingFacts": []
+            },
+            {
+              "id": "site-admin-exception",
+              "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+              "assumptions": [
+                {
+                  "conditionId": "requester-is-repository-admin",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "requester-is-site-admin",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "requester-is-target-collaborator",
+                  "value": "false"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "This is a hypothetical comparison branch, not an observation about the bounded requester. A site-administrator relation makes the first authorization conjunct false, so the forbidden condition does not trigger and the later target lookup and permission operation are reachable.",
+              "factPointers": [
+                "/results/0/facts/control/0",
+                "/results/0/facts/effect/0"
+              ],
+              "missingFacts": []
+            },
+            {
+              "id": "self-query-exception",
+              "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+              "assumptions": [
+                {
+                  "conditionId": "requester-is-repository-admin",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "requester-is-site-admin",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "requester-is-target-collaborator",
+                  "value": "true"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "This is a hypothetical comparison branch, not an observation about the bounded requester. Matching the requested username makes the self-query conjunct false, so the forbidden condition does not trigger and the later target lookup and permission operation are reachable.",
+              "factPointers": [
+                "/results/0/facts/control/0",
+                "/results/0/facts/effect/0"
+              ],
+              "missingFacts": []
+            }
+          ],
+          "unexaminedConditionIds": [],
+          "completeness": "bounded",
+          "limitations": [
+            "The branches compare the three declared authorization alternatives within the maximum of six branches; they do not enumerate unrelated endpoints, deployments, source revisions, or all possible runtime failures.",
+            "The reachable branches establish only that the authorization gate does not block the path; later lookup or internal-error outcomes are outside this authorization reachability comparison."
+          ]
+        }
+      ]
+    },
+    "conditionValidation": {
+      "status": "valid",
+      "declared": 1,
+      "bounded": 1,
+      "incomplete": 0,
+      "missing": [],
+      "semanticSupport": "unreviewed",
+      "result": {
+        "schemaVersion": "authorization-condition-analysis-result/v1",
+        "analyses": [
+          {
+            "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+            "branches": [
+              {
+                "id": "all-exceptions-false",
+                "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+                "assumptions": [
+                  {
+                    "conditionId": "requester-is-repository-admin",
+                    "value": "false"
+                  },
+                  {
+                    "conditionId": "requester-is-site-admin",
+                    "value": "false"
+                  },
+                  {
+                    "conditionId": "requester-is-target-collaborator",
+                    "value": "false"
+                  }
+                ],
+                "effect": "blocked",
+                "explanation": "Under this branch hypothesis, none of the three authorization alternatives holds. The source condition therefore enters the forbidden branch, returns HTTP 403, and prevents target loading and permission lookup.",
+                "factPointers": [
+                  "/results/0/facts/control/0",
+                  "/results/0/facts/effect/1",
+                  "/results/0/facts/condition/1"
+                ],
+                "missingFacts": []
+              },
+              {
+                "id": "repository-admin-exception",
+                "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+                "assumptions": [
+                  {
+                    "conditionId": "requester-is-repository-admin",
+                    "value": "true"
+                  },
+                  {
+                    "conditionId": "requester-is-site-admin",
+                    "value": "false"
+                  },
+                  {
+                    "conditionId": "requester-is-target-collaborator",
+                    "value": "false"
+                  }
+                ],
+                "effect": "reachable",
+                "explanation": "This is a hypothetical comparison branch, not an observation about the bounded requester. A repository-administrator relation makes the final authorization conjunct false, so the forbidden condition does not trigger and the later target lookup and permission operation are reachable.",
+                "factPointers": [
+                  "/results/0/facts/control/0",
+                  "/results/0/facts/effect/0"
+                ],
+                "missingFacts": []
+              },
+              {
+                "id": "site-admin-exception",
+                "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+                "assumptions": [
+                  {
+                    "conditionId": "requester-is-repository-admin",
+                    "value": "false"
+                  },
+                  {
+                    "conditionId": "requester-is-site-admin",
+                    "value": "true"
+                  },
+                  {
+                    "conditionId": "requester-is-target-collaborator",
+                    "value": "false"
+                  }
+                ],
+                "effect": "reachable",
+                "explanation": "This is a hypothetical comparison branch, not an observation about the bounded requester. A site-administrator relation makes the first authorization conjunct false, so the forbidden condition does not trigger and the later target lookup and permission operation are reachable.",
+                "factPointers": [
+                  "/results/0/facts/control/0",
+                  "/results/0/facts/effect/0"
+                ],
+                "missingFacts": []
+              },
+              {
+                "id": "self-query-exception",
+                "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+                "assumptions": [
+                  {
+                    "conditionId": "requester-is-repository-admin",
+                    "value": "false"
+                  },
+                  {
+                    "conditionId": "requester-is-site-admin",
+                    "value": "false"
+                  },
+                  {
+                    "conditionId": "requester-is-target-collaborator",
+                    "value": "true"
+                  }
+                ],
+                "effect": "reachable",
+                "explanation": "This is a hypothetical comparison branch, not an observation about the bounded requester. Matching the requested username makes the self-query conjunct false, so the forbidden condition does not trigger and the later target lookup and permission operation are reachable.",
+                "factPointers": [
+                  "/results/0/facts/control/0",
+                  "/results/0/facts/effect/0"
+                ],
+                "missingFacts": []
+              }
+            ],
+            "unexaminedConditionIds": [],
+            "completeness": "bounded",
+            "limitations": [
+              "The branches compare the three declared authorization alternatives within the maximum of six branches; they do not enumerate unrelated endpoints, deployments, source revisions, or all possible runtime failures.",
+              "The reachable branches establish only that the authorization gate does not block the path; later lookup or internal-error outcomes are outside this authorization reachability comparison."
+            ]
+          }
+        ]
+      },
+      "diagnostics": []
+    },
+    "telemetry": {
+      "providerCalls": 2,
+      "respondedCalls": 2,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 2,
+      "knownTokens": {
+        "input": 1665,
+        "output": 6090,
+        "cacheRead": 10368,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  },
+  "sessionRelativePath": "units/03-collaborator-r2-C/sessions/20260921T221823998Z-fe12e196"
+}

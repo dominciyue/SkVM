@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260921T223232956Z-c0a1c9f5
+Status: completed
+Task: gitea-issue-lock-writer-nonadmin
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- deny-nonadmin-issue-lock::put-issue-lock: source_refuted — The declared policy expectation is denial, and the fixed source enforces that expectation for the bounded principal and operation. The route applies a repository-or-site-administrator guard before the lock handler proceeds. Because the scenario states that the caller is neither kind of administrator, the request is rejected before the handler can perform its issue-write check or lock mutation. Full token scope and issue-write permission do not satisfy the separate administrator predicates. Thus the source refutes a policy failure, while this conclusion is limited to the declared route and fixed source.
+  Evidence: The lock route binds PUT to the lock handler and applies token and administrator middleware to the route group. (route_guard.go:16-20)
+  Evidence: The handler obtains the repository issue using the repository selected in the request context and the issue index path parameter. (issue_lock.go:42-44)
+  Evidence: The handler separately checks issue or pull-request write permission on the selected issue; this permission is distinct from repository or site administrator status. (issue_lock.go:49-51)
+  Evidence: The route-level administrator guard rejects the request when both repository-administrator and site-administrator predicates are false. (route_guard.go:4-10)
+  Evidence: The bounded scenario states that the caller has issue-write permission but is neither a repository administrator nor a site administrator. (policy.json:9-11)
+  Evidence: If the handler is reached and the issue is unlocked, it constructs lock options, invokes the issue-lock operation, and returns no content after the operation succeeds. (issue_lock.go:54-69)
+  Evidence: The bounded issue is existing, readable, and unlocked, and the caller is authenticated with issue-write permission but lacks both administrator roles. (policy.json:9-11)
+
+Coverage
+- authorization-core-v1.authorization-decision × deny-nonadmin-issue-lock::put-issue-lock: addressed — The strongest source-visible decision is denial at the route-level administrator guard: the scenario supplies false repository-administrator and site-administrator conditions, while the route requires at least one of those predicates. Issue-write permission does not bypass that earlier gate.
+- authorization-core-v1.effect-reachability × deny-nonadmin-issue-lock::put-issue-lock: addressed — Under the bounded nonadministrator conditions, the route guard blocks the request before the handler's unlocked-issue branch and lock mutation can be reached. The mutation is source-visible only after successful entry and the issue-write check.
+- authorization-core-v1.entry-control × deny-nonadmin-issue-lock::put-issue-lock: addressed — The declared entry is gated by the route group's administrator middleware, which invokes the repository-administrator or site-administrator guard before dispatch proceeds to the lock handler.
+- authorization-core-v1.external-assumption × deny-nonadmin-issue-lock::put-issue-lock: unknown — A deployment or route-wiring fact outside the supplied fixed crop could change runtime behavior, but deployment state and unshown repository-wide routing are not supplied. The fixed context therefore cannot decide such external behavior; the source-supported result remains limited to the declared route and supplied context.
+- authorization-core-v1.identity-binding × deny-nonadmin-issue-lock::put-issue-lock: addressed — The bounded scenario binds the assessed principal to an authenticated caller with the stated administrator-role and issue-write attributes. The route guard evaluates the runtime context's repository-administrator and site-administrator predicates, and the handler uses the runtime context's issue permission and context user.
+- authorization-core-v1.resource-binding × deny-nonadmin-issue-lock::put-issue-lock: addressed — The request-selected issue is bound through the repository in the request context and the integer issue-index path parameter. The issue-write permission check is performed against that selected issue, while the administrator guard is a separate route-level repository/site role check.
+
+Condition analysis
+- deny-nonadmin-issue-lock::put-issue-lock: bounded; 4 branch(es)

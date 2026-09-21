@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260921T222429393Z-ecbc3730
+Status: completed
+Task: gitea-issue-assignee-nonwriter
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- deny-nonwriter-assignee-add::post-issue-assignees: source_refuted — The fixed source supports enforcement of the declared deny expectation, so it refutes a policy failure for this entry. The POST wrapper invokes the add path, which selects an issue using the repository context and request index. Before issue attributes are loaded, assignee names are resolved, or the add-assignees mutation is called, the handler checks ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) and returns HTTP 403 when false. The bounded scenario supplies that the caller is authenticated, has an issue-write token scope, lacks repository issue-write permission, the issue exists, and the requested assignee exists; the policy expressly treats token scope and repository permission as distinct. The runtime operation uses ctx.Doer as the actor for the mutation, but authentication middleware and the complete identity-binding path are outside the crop; that does not change the result because the relevant repository-permission condition is expressly fixed by the bounded scenario. The request-selected issue is bound by the repository ID in ctx.Repo and the path index; the requested assignee is resolved later from opts.Assignees. The separately checked resource is repository permission to write the issue or pull request, including the issue-versus-pull-request distinction represented by issue.IsPull. Under the false permission branch, the protected add operation is unreachable and assignee resolution does not occur. No source-external fact is needed to decide this declared bounded case; authentication middleware, other endpoints, and deployment behavior remain outside scope. The public questions are covered: the permission check gates the entry; ctx.Doer is the visible operation identity, with upstream authentication binding unavailable; the issue and assignee are request-bound while repository write permission remains distinct; the strongest visible decision is HTTP 403 for a non-writer, with no visible ownership/admin bypass branch; the mutation is reachable only when the permission check is true; and no unsupplied external fact changes the stated fixed conditions.
+  Evidence: The declared POST operation is implemented by AddIssueAssignees, whose wrapper parses the assignee option and invokes updateIssueAssignees with isAdd=true. (issue_assignee.go:4-49)
+  Evidence: The mutation call uses ctx.Doer as the acting identity, while the supplied crop does not show the authentication middleware that establishes ctx.Doer. (issue_assignee.go:80-83)
+  Evidence: The bounded policy scenario supplies an authenticated caller and distinguishes issue-write token scope from repository issue-write permission. (policy.json:6-8)
+  Evidence: The source checks CanWriteIssuesOrPulls(issue.IsPull) and returns HTTP 403 immediately when the check is false. (issue_assignee.go:60-63)
+  Evidence: The accepted policy requires repository permission and states that lacking it produces HTTP 403 before assignee resolution or mutation. (policy.json:6-8)
+  Evidence: The protected add effect is the issue_service.AddAssignees call, which is selected because the wrapper passed isAdd=true; success then returns HTTP 201 after reloading the issue. (issue_assignee.go:80-101)
+  Evidence: The issue is selected by the repository ID in ctx.Repo together with the request path index, and an error stops processing if lookup fails. (issue_assignee.go:53-58)
+  Evidence: The assignee names are resolved only after the repository issue-write check, and a nonexistent requested user produces an error rather than proceeding. (issue_assignee.go:60-77)
+  Evidence: The bounded scenario fixes the caller as authenticated with issue-write token scope, without repository issue-write permission, with an existing issue and existing requested user. (policy.json:6-8)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

@@ -699,6 +699,8 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 
 **Y11 迁移运行器兼容。** Y7 的 experiment/v1 语义继续固定为每例各一次 P/L/C，既有配置、结果和重放不改。新增 experiment/v2 只用于方法固定后的普通输入迁移：case 引用现成 `authorization-assessment-input/v1`，同时冻结 source root/list；unit 显式保存 P/C、重复序号和 P-C/C-P 顺序，检查器要求每个重复恰好各一臂并强制第二次反序。运行前把 normalized assessment 与准确源码物化到 run root，确认 `authorization-core-v1` 和 condition request，再逐单元复用同一个 `executeLocalAuthorizationRun`，因此每次仍创建 immutable fresh session，host、repair、telemetry 和恢复语义没有第二条实现。生成期只验证 evaluator 路径存在，不读取其内容。红态为 v2 export 缺失；实现后 v1/v2、评价与本地入口聚焦回归 15/15（194 assertions）及 typecheck 通过，远端 provider 和目标执行仍为0。
 
+**Y11 迁移生成冻结。** 绑定实现`d1afddc8`与配置SHA `b5477832...88bfa`的三任务12单元全部completed，12个session互异；没有timeout、completion-unknown、terminal failure、domain repair或目标执行。20次provider调用由12次schema-tool和8次prompt-parse组成；P为8次调用、known input/output/cache-read `20,211/9,982/7,296`，C为12次、`41,202/34,365/34,176`，合计`61,413/44,347/41,472`，cache-write为0。20次usage完整但费用均未报告，actual USD继续unknown。生成关闭前没有读取evaluator内容，全部首答/fallback与初轮身份保持原样；本记录尚不作语义质量判断。
+
 **公平比较。** P是信息齐全的普通说明及基础引用/计量；L增加默认领域ledger/coverage；C再加条件层。三者共享业务事实、公开分析要求、源码、模型和修复机会，协议差异和成本显式记录。共同评价接受P的等价文字分析，不因缺少专用字段扣语义分。本轮评估表达与运行支持组合，不把效果单独归因于JSON语法。原五任务开发面板15单元；最多6修订单元。方法固定后再读取第三项目正文，用默认profile而非任务专属问题清单，P与选定结构化方法在2–3任务上各两次重复，正常12单元。选择先看必要质量，再看条件完整性、成本和编写负担；C无增量就保留L。
 
 **编写与交付。** 新authoring输入复用现有task，派生重复sourceIdentity/default requirements；缺政策与expectation集中报needs-input，不猜测填充。`skvm authorization init/check/run/inspect`复用现有宿主，init示例明确synthetic，普通输入保留作者来源，只有run调用模型。method与历史N/B/D分开，默认ledger/B，条件层opt-in。新项目来源独立选择，不读取旧保护集；首次迁移后修方法时保留首次结果，后续记development。允许工程完成而效果mixed/negative，按缺项而非阶段终态数判交付。

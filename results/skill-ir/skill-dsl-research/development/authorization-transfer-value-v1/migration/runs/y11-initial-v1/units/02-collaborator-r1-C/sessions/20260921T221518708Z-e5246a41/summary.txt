@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260921T221518708Z-e5246a41
+Status: completed
+Task: gitea-collaborator-cross-user-permission
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- deny-cross-user-permission-query::get-collaborator-permission: source_refuted — Within the declared fixed source and bounded scenario, the endpoint enforces the policy expectation of denying a cross-user permission query by a non-site-admin, non-repository-admin read collaborator. The caller identity is evaluated through the request context, the requested collaborator is selected from the request, and the authorization guard rejects the request before the target collaborator is loaded when none of the self, repository-administrator, or site-administrator relations holds. Therefore the declared denial expectation is enforced, not shown to fail.
+  Evidence: The supplied handler is the declared permission-query entry and receives the requested collaborator identity from the request context. (collaborators.go:4-6, collaborators.go:22-25, collaborators.go:35-35)
+  Evidence: The runtime caller is represented by the request context's doer identity and its administrative attributes; the bounded policy scenario supplies that caller as authenticated, read-capable, and not a site or repository administrator. (collaborators.go:35-37, policy.json:6-7)
+  Evidence: The request-selected target is bound to the named collaborator, while the permission lookup is bound to the repository in the request context and that target user. (collaborators.go:35-41, collaborators.go:51-51)
+  Evidence: Before loading the target collaborator, the handler permits the request only if the caller is a site administrator, the requested username matches the caller, or the caller is a repository administrator; otherwise it returns HTTP 403. (collaborators.go:35-39, policy.json:6-7)
+  Evidence: The protected effect is loading the target collaborator, obtaining that user's repository permission, and returning the permission-bearing response; the denial branch prevents those later operations. (collaborators.go:41-57)
+  Evidence: The bounded scenario fixes the caller as authenticated, as a read collaborator, not a site or repository administrator, and querying a different existing collaborator. (policy.json:6-7)
+  Evidence: Under those conditions, the self, repository-administrator, and site-administrator alternatives are all false, so the visible guard takes the forbidden branch. (collaborators.go:35-39, policy.json:6-7)
+
+Coverage
+- authorization-core-v1.authorization-decision × deny-cross-user-permission-query::get-collaborator-permission: addressed — The visible authorization decision is denial for the bounded caller and target relation because the caller is neither the target nor a repository or site administrator. The control fact and condition fact establish that the forbidden branch is selected.
+- authorization-core-v1.effect-reachability × deny-cross-user-permission-query::get-collaborator-permission: addressed — The requested permission operation cannot reach the protected target-loading, permission-lookup, or response effect under the stated conditions because the handler returns before those operations.
+- authorization-core-v1.entry-control × deny-cross-user-permission-query::get-collaborator-permission: addressed — The entry is gated by a compound check over site-administrator status, self-query identity matching, and repository-administrator status, with HTTP 403 on failure.
+- authorization-core-v1.external-assumption × deny-cross-user-permission-query::get-collaborator-permission: addressed — The fixed source expressly bounds the policy claim to the supplied source entry and disclaims claims about every version, endpoint, or deployment. Those external deployment or version facts could affect a broader claim, but they are outside this assessment and are not needed to decide the declared fixed-source obligation.
+- authorization-core-v1.identity-binding × deny-cross-user-permission-query::get-collaborator-permission: addressed — The handler evaluates the caller through the request context's doer identity and administrative flags, while the bounded scenario supplies the caller's authenticated and non-administrative role conditions.
+- authorization-core-v1.resource-binding × deny-cross-user-permission-query::get-collaborator-permission: addressed — The requested collaborator is selected from the collaborator request parameter and then used as the target user for the repository-specific permission lookup. The caller identity remains distinct from that target in the bounded cross-user scenario.
+
+Condition analysis
+- deny-cross-user-permission-query::get-collaborator-permission: bounded; 1 branch(es)

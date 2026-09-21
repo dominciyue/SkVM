@@ -1,0 +1,20 @@
+Authorization assessment
+Session: 20260921T222928961Z-713ffa9e
+Status: completed
+Task: gitea-issue-lock-writer-nonadmin
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- deny-nonadmin-issue-lock::put-issue-lock: source_refuted — The declared policy expectation is enforced by the supplied source: the lock route applies a repository/site-administrator gate before the handler, and the bounded principal is expressly neither kind of administrator. Therefore the request is rejected before issue lookup, the issue-write check, or the lock mutation. The authenticated caller is bound only by the fixed scenario; the supplied route crop shows token middleware but not the omitted parent authentication binding, so no stronger runtime identity-binding claim is made. The request-selected issue is bound in the handler by the repository context and path-derived issue index, while repository issue-write permission is a distinct later check on that issue. Under the declared conditions, the strongest visible decision is denial at reqAdmin, with no ownership or alternative role branch shown that permits this nonadmin caller. The protected effect is conditional on an unlocked issue and passing the write-permission check, but the route gate prevents this principal from reaching it. The only potentially answer-changing external fact would be whether the deployed route differs from the supplied fixed source or whether the caller actually has administrator status; the former is outside the fixed source and deployment is not tested, while the latter is fixed false by the scenario. This result covers the sole runnable expanded obligation and does not assert repository-wide completeness.
+  Evidence: The handler obtains the issue using the repository context and the request path's issue index, then checks issue-write permission before the lock path. (issue_lock.go:42-51)
+  Evidence: The fixed scenario supplies an authenticated caller and fixes repository/site administrator status as false; the route crop shows token middleware but the parent authentication binding is omitted. (policy.json:9-11, route_guard.go:14-20)
+  Evidence: The route-level control rejects the request unless the caller is a repository administrator or a site administrator. (route_guard.go:4-11)
+  Evidence: If reached, the handler locks an unlocked issue using the selected issue and returns no content; the mutation is after the issue-write check. (issue_lock.go:49-69)
+  Evidence: The caller has repository issue-write permission, the issue exists and is readable, and the issue is currently unlocked, while administrator status is absent. (policy.json:9-11)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

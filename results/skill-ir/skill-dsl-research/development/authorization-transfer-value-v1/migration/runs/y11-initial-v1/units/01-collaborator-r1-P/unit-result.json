@@ -1,0 +1,238 @@
+{
+  "schemaVersion": "authorization-value-study-unit-result/v1",
+  "configSha256": "b5477832c05b2f239eb8b893d5b923695e3db4a6d85a39ce0c583ef84ea88bfa",
+  "implementationRevision": "d1afddc8e2e823ed27f0428938bccd0e996b7941",
+  "unit": {
+    "id": "01-collaborator-r1-P",
+    "caseId": "gitea-collaborator-cross-user-permission",
+    "repetition": 1,
+    "studyArm": "P",
+    "renderArm": "B"
+  },
+  "report": {
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260921T221338562Z-8f58596f",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\migration\\runs\\y11-initial-v1\\units\\01-collaborator-r1-P\\sessions\\20260921T221338562Z-8f58596f",
+    "createdAt": "2026-09-21T22:13:38.562Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\migration\\runs\\y11-initial-v1\\public-inputs\\gitea-collaborator-cross-user-permission\\assessment.json",
+    "taskId": "gitea-collaborator-cross-user-permission",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "studyArm": "P",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 396,
+        "declaration": 3687,
+        "publicAnalysis": 763,
+        "source": 3780,
+        "outputContract": 1711,
+        "total": 10442,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "gitea-collaborator-cross-user-permission",
+      "repository": "https://github.com/go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "results": [
+        {
+          "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+          "conclusion": "source_refuted",
+          "explanation": "The fixed source refutes a failure of the declared deny expectation. The declared GET entry reads the requested collaborator username, then rejects the request with HTTP 403 when the caller is neither a site administrator, the named collaborator, nor a repository administrator. Under the supplied conditions, the caller is authenticated but is not the target collaborator and has read-collaborator access rather than repository-administrator or site-administrator status, so the rejection branch is reached before the target collaborator is loaded. The permission lookup and successful permission response are therefore unreachable for this cross-user request. The source-visible role or ownership branches that can change reachability are site-administrator status, repository-administrator status, or equality between the caller identity and the requested username. No decisive fact is missing for the bounded scenario; deployment behavior, other endpoints, and repository-wide completeness are outside the declared fixed-source scope.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The assessed source entry is the GET operation that obtains repository permissions for the collaborator named in the request path.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 4,
+                    "endLine": 6,
+                    "quote": "// GetRepoPermissions gets repository permissions for a user\nfunc GetRepoPermissions(ctx *context.APIContext) {\n\t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions"
+                  }
+                ]
+              },
+              {
+                "statement": "The accepted policy identifies the same bounded entry and limits the claim to that fixed source entry rather than every endpoint or deployment.",
+                "citations": [
+                  {
+                    "path": "policy.json",
+                    "startLine": 5,
+                    "endLine": 8,
+                    "quote": "  \"upstreamSource\": \"routers/api/v1/repo/collaborators.go#L247-L301\",\n  \"normativePolicy\": \"A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.\",\n  \"boundedScenario\": \"The caller is authenticated and has repository read access, is a collaborator, is not a site or repository administrator, and queries a different existing collaborator.\",\n  \"claimBoundary\": \"This policy is accepted for the declared fixed source entry only. It is not a claim about every Gitea version, endpoint, or deployment.\""
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The requested target identity is taken from the request path and compared case-insensitively with the runtime caller's lower-cased name; the caller's administrator and repository-administrator attributes are also read from the runtime context.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 36,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {"
+                  }
+                ]
+              },
+              {
+                "statement": "The request-selected collaborator is bound to the target resource by looking up the user named by the path parameter, then using that user with the current repository to obtain an individual repository permission.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 41,
+                    "endLine": 51,
+                    "quote": "\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}\n\n\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)"
+                  }
+                ]
+              },
+              {
+                "statement": "The checked resources that must remain distinct are the runtime caller identity and the request-selected target collaborator; the source also separately checks site-administrator and repository-administrator authority.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 38,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The decisive pre-load control denies the request when the caller is not a site administrator, is not the named collaborator, and is not a repository administrator, returning HTTP 403 before target-user lookup.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 41,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}\n\n\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)"
+                  }
+                ]
+              },
+              {
+                "statement": "The normative policy states the same three permitted branches: site administrator, repository administrator, or querying the caller's own username; otherwise rejection occurs before the target collaborator is loaded.",
+                "citations": [
+                  {
+                    "path": "policy.json",
+                    "startLine": 6,
+                    "endLine": 7,
+                    "quote": "  \"normativePolicy\": \"A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.\",\n  \"boundedScenario\": \"The caller is authenticated and has repository read access, is a collaborator, is not a site or repository administrator, and queries a different existing collaborator.\","
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "If the authorization control is passed, the operation loads the target user, retrieves that user's permission in the current repository, and returns a successful JSON permission response.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 41,
+                    "endLine": 57,
+                    "quote": "\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}\n\n\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))"
+                  }
+                ]
+              },
+              {
+                "statement": "For the declared cross-user non-administrator conditions, the 403 return prevents the target lookup, permission retrieval, and successful permission response from being reached.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 51,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}\n\n\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}\n\n\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The bounded scenario supplies an authenticated read collaborator who is not a site administrator or repository administrator and who requests a different existing collaborator.",
+                "citations": [
+                  {
+                    "path": "policy.json",
+                    "startLine": 6,
+                    "endLine": 8,
+                    "quote": "  \"normativePolicy\": \"A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.\",\n  \"boundedScenario\": \"The caller is authenticated and has repository read access, is a collaborator, is not a site or repository administrator, and queries a different existing collaborator.\",\n  \"claimBoundary\": \"This policy is accepted for the declared fixed source entry only. It is not a claim about every Gitea version, endpoint, or deployment.\""
+                  }
+                ]
+              },
+              {
+                "statement": "Because the caller is not the requested collaborator, the ownership branch is false; because the caller has only read-collaborator access and is not a site administrator, both administrator branches are false.",
+                "citations": [
+                  {
+                    "path": "policy.json",
+                    "startLine": 7,
+                    "endLine": 7,
+                    "quote": "  \"boundedScenario\": \"The caller is authenticated and has repository read access, is a collaborator, is not a site or repository administrator, and queries a different existing collaborator.\","
+                  }
+                ]
+              },
+              {
+                "statement": "The existing-target condition is decisive only after authorization succeeds; under the supplied conditions, authorization fails first, so the target lookup is not reached.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 42,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}\n\n\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "This result covers only the single declared expanded obligation and the supplied fixed GET source crop. Source discovery is not-tested; the result makes no repository-wide, all-entry, version-wide, or deployment-wide completeness claim."
+      }
+    },
+    "relationCoverage": [],
+    "telemetry": {
+      "providerCalls": 2,
+      "respondedCalls": 2,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 2,
+      "knownTokens": {
+        "input": 6842,
+        "output": 2592,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  },
+  "sessionRelativePath": "units/01-collaborator-r1-P/sessions/20260921T221338562Z-8f58596f"
+}

@@ -1,0 +1,23 @@
+Authorization assessment
+Session: 20260921T222155075Z-ab1cc3f5
+Status: completed
+Task: gitea-collaborator-cross-user-permission
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- deny-cross-user-permission-query::get-collaborator-permission: source_refuted — The declared policy expectation is deny, and the fixed source enforces that expectation for the stated conditions. The declared GET entry is the supplied handler. Its pre-load control rejects the request with HTTP 403 when the caller is not a site administrator, is not querying their own username, and is not a repository administrator. The bounded principal is an authenticated read collaborator, so the supplied conditions make all three allow branches false: the target username is different, repository-administrator status is false, and site-administrator status is false. The request-selected collaborator username is used first in the authorization comparison and, if the control permits, to load the target collaborator; the protected permission record is then obtained for that loaded collaborator and the current repository, with the permission response emitted afterward. Under the declared cross-user relation, the selected username remains distinct from the caller identity, so the self-query branch is unavailable. The strongest visible decision is therefore HTTP 403 and immediate return before target lookup, permission lookup, or the successful permission response. No source-external fact changes this bounded source conclusion: deployment behavior, other endpoints, and repository-wide completeness are outside scope and not inferred. Public analysis questions are covered: the gating control is the pre-load role/ownership condition; caller identity is represented by ctx.Doer.IsAdmin and ctx.Doer.LowerName, with repository-admin status from ctx.IsUserRepoAdmin(); the selected object is bound through ctx.PathParam("collaborator") and subsequent target lookup, while the current repository remains the other checked resource; the protected effect is the permission lookup and HTTP 200 JSON response, reachable only through an allowed admin or self branch; and no decisive fact remains unknown within the declared conditions.
+  Evidence: The declared source entry includes the collaborator path parameter and the documented 200, 404, and 403 outcomes. (collaborators.go:6-33)
+  Evidence: The caller and selected collaborator are compared through the runtime doer administrator flag and username, with repository-administrator status checked separately. (collaborators.go:35-38)
+  Evidence: The bounded scenario fixes an authenticated read collaborator who is neither a site administrator nor a repository administrator and who queries a different collaborator. (policy.json:6-8)
+  Evidence: Before loading the target collaborator, the handler rejects callers who are neither site administrators, nor querying their own username, nor repository administrators, returning HTTP 403. (collaborators.go:35-39)
+  Evidence: The accepted policy states the same bounded rejection rule before target loading. (policy.json:6-8)
+  Evidence: After authorization and target loading, the handler obtains the individual repository permission and returns it in an HTTP 200 JSON response. (collaborators.go:41-57)
+  Evidence: The selected collaborator username is obtained from the request path, and the declared target is a different collaborator. (collaborators.go:22-25)
+  Evidence: The source-visible allow alternatives are site administration, same username, or repository administration; the declared conditions negate each alternative. (collaborators.go:35-38)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

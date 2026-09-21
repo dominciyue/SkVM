@@ -1,0 +1,28 @@
+Authorization assessment
+Session: 20260921T222230761Z-8f7533bd
+Status: completed
+Task: gitea-issue-assignee-nonwriter
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- deny-nonwriter-assignee-add::post-issue-assignees: source_refuted — For the declared authenticated caller who lacks repository issue-write permission, the fixed source enforces the policy expectation of denial. The POST entry invokes the add path, which selects the existing issue by repository and index, checks repository issue-or-pull-request write permission, returns HTTP 403 on failure, and only afterward resolves assignee names and calls the assignee mutation. The issue-write token scope does not appear as a substitute for the repository permission check in the supplied source.
+  Evidence: The declared POST operation is bound to the add-assignees handler, which parses the request and invokes the update path with addition enabled. (issue_assignee.go:4-8, issue_assignee.go:47-49)
+  Evidence: The selected issue is bound to the repository in the request context and the issue index path parameter. (issue_assignee.go:53-58)
+  Evidence: The runtime caller represented by the request context's Doer is passed to the assignee mutation and later used for the response conversion; the supplied crop does not show how authentication middleware binds the token to that Doer. (issue_assignee.go:80-83, issue_assignee.go:91-101)
+  Evidence: The requested assignee is represented separately by user IDs resolved from the submitted assignee names, while the protected issue is the issue selected earlier. (issue_assignee.go:54-54, issue_assignee.go:70-70)
+  Evidence: The decisive authorization control checks whether the repository permission permits writing issues or pull requests for the selected issue type; failure immediately returns HTTP 403. (issue_assignee.go:60-63)
+  Evidence: No separate role or ownership branch is visible in the supplied crop; the visible authorization decision is the result of CanWriteIssuesOrPulls(issue.IsPull). (issue_assignee.go:60-62)
+  Evidence: The protected effect is the add-assignees service call, and the success response is reached only after that call completes without error. (issue_assignee.go:80-89, issue_assignee.go:97-101)
+  Evidence: Under the declared condition that repository issue-write permission is absent, the permission check fails and prevents assignee resolution and mutation, even though the bounded scenario states that the requested assignee exists. (policy.json:6-8, issue_assignee.go:60-63, issue_assignee.go:70-81)
+
+Coverage
+- authorization-core-v1.authorization-decision × deny-nonwriter-assignee-add::post-issue-assignees: addressed — The strongest source-visible decision is denial for a caller lacking repository issue-write permission: the repository permission predicate is checked for the selected issue and failure returns HTTP 403. The crop exposes no additional role or ownership branch that overrides this control.
+- authorization-core-v1.effect-reachability × deny-nonwriter-assignee-add::post-issue-assignees: addressed — With repository issue-write permission absent, the request reaches the forbidden response branch and cannot reach assignee resolution or the add-assignees mutation. The protected effect is reachable only on the source-visible branch where the permission check succeeds and subsequent validation also succeeds.
+- authorization-core-v1.entry-control × deny-nonwriter-assignee-add::post-issue-assignees: addressed — The declared entry is the POST handler, which invokes the update function with addition enabled. The first visible authorization gate after issue lookup is the repository issue-or-pull-request write-permission check.
+- authorization-core-v1.external-assumption × deny-nonwriter-assignee-add::post-issue-assignees: unknown — The crop does not show authentication middleware or deployment routing, so it does not independently establish how an external token is bound to ctx.Doer or whether the request reaches this handler. The bounded scenario supplies those caller and entry assumptions for this assessment, but a different external binding or route could change applicability. Deciding that external question requires observing the authentication and routing path outside the supplied crop.
+- authorization-core-v1.identity-binding × deny-nonwriter-assignee-add::post-issue-assignees: addressed — The assessed operation uses ctx.Doer as the caller identity supplied to the assignee mutation and response conversion. The exact token-to-Doer authentication binding is outside the crop, but the bounded principal is analyzed as the authenticated caller represented by that context identity.
+- authorization-core-v1.resource-binding × deny-nonwriter-assignee-add::post-issue-assignees: addressed — The request-selected issue is obtained using the repository ID and the index path parameter. The requested assignee is a distinct resource input resolved into user IDs, so assignee identity does not replace or conflate the issue resource used by the authorization check.
+
+Condition analysis
+- deny-nonwriter-assignee-add::post-issue-assignees: bounded; 4 branch(es)

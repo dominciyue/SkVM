@@ -2,13 +2,13 @@
   "schemaVersion": "authorization-dsl-transfer-value-development/v1",
   "taskbook": "docs/superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md",
   "createdAt": "2026-09-22T00:51:02+08:00",
-  "updatedAt": "2026-09-22T06:14:00+08:00",
+  "updatedAt": "2026-09-22T06:38:44+08:00",
   "branch": "skill-ir-aot",
   "startHead": "b3a1a44",
   "codeBaseline": "abe470f2a887f35ca1d6782cfbd5343965856620",
   "stage": "Y11",
   "taskStatus": "in-progress",
-  "nextAction": "Commit the exact v2 config and freeze record, then execute its fixed 12 P/C units without reading evaluator-only material; preserve every terminal or completion-unknown result and do not replace inputs.",
+  "nextAction": "Commit the completed 12-unit generation freeze, then read the already-frozen evaluator material, create hash-bound semantic reviews, run the deterministic changed-input check, and decide whether any shared defect justifies a separately identified revision.",
   "stages": {
     "Y0": {
       "status": "completed",
@@ -119,7 +119,8 @@
         "The existing experiment/v1 intentionally remains one P/L/C unit per case; a separate experiment/v2 accepts ordinary normalized assessments and freezes P/C repetition plus reversed second-order semantics.",
         "v2 materializes the normalized assessment and exact source bytes into the run root, then reuses executeLocalAuthorizationRun for every immutable fresh session; no second host, repair, or telemetry path was introduced.",
         "The focused red state was a missing v2 schema export. The v2 mock completed four P-C/C-P units with four distinct sessions; combined v1/v2/evaluator/local regression passed 15 tests with 194 assertions and typecheck passed.",
-        "The implementation-bound v2 config froze three cases and 12 units at SHA-256 b5477832c05b2f239eb8b893d5b923695e3db4a6d85a39ce0c583ef84ea88bfa; provider-free check found zero diagnostics and confirmed P hides ledger/condition while C exposes both."
+        "The implementation-bound v2 config froze three cases and 12 units at SHA-256 b5477832c05b2f239eb8b893d5b923695e3db4a6d85a39ce0c583ef84ea88bfa; provider-free check found zero diagnostics and confirmed P hides ledger/condition while C exposes both.",
+        "All 12 fixed migration units completed in distinct sessions before evaluator content was read. The run used 20 provider calls (12 schema-tool, 8 prompt-parse, 0 domain repair), 61413 input, 44347 output, and 41472 cache-read tokens; all 20 cost observations were absent and target execution remained zero."
       ]
     },
     "Y12": { "status": "planned", "evidence": [] },
@@ -172,11 +173,11 @@
     "conditionLayer": "opt-in"
   },
   "unresolvedIssues": [
-    "The Gitea default-profile migration tasks/evaluator and the compatible normalized-input runner are ready, but the implementation-bound 12-unit config, execution, and evaluation remain.",
+    "The Gitea default-profile migration generation is frozen at 12/12 completed; evaluator-based quality review, changed-input proof, and final value decision remain.",
     "Actual provider USD is not reported and must remain unknown unless the provider supplies it."
   ],
   "operations": {
-    "developmentProviderCalls": 25,
+    "developmentProviderCalls": 45,
     "evaluationProviderCalls": 0,
     "targetExecutions": 0,
     "actualUsd": null,
@@ -320,6 +321,23 @@
       "focusedRegression": { "passed": 15, "failed": 0, "assertions": 194 },
       "typecheck": "passed",
       "remoteProviderCalls": 0,
+      "targetExecutions": 0
+    },
+    "y11Generation": {
+      "configSha256": "b5477832c05b2f239eb8b893d5b923695e3db4a6d85a39ce0c583ef84ea88bfa",
+      "units": { "planned": 12, "completed": 12, "failedTerminal": 0, "completionUnknown": 0, "timeouts": 0, "distinctSessions": 12 },
+      "providerCalls": 20,
+      "schemaToolCalls": 12,
+      "promptParseCalls": 8,
+      "domainRepairCalls": 0,
+      "knownTokens": { "input": 61413, "output": 44347, "cacheRead": 41472, "cacheWrite": 0 },
+      "byArmProviderCalls": { "P": 8, "C": 12 },
+      "byArmKnownTokenTotals": { "P": 37489, "C": 109743 },
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 20,
+      "actualUsd": null,
+      "actualUsdStatus": "unknown",
+      "evaluatorContentReadBeforeCompletion": false,
       "targetExecutions": 0
     }
   }

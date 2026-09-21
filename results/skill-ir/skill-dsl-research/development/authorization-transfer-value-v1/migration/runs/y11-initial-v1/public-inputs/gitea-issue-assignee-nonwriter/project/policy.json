@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "authorization-migration-public-policy/v1",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "upstreamSource": "routers/api/v1/repo/issue_assignee.go#L20-L65,L189-L238",
+  "normativePolicy": "Adding issue assignees requires repository permission to write the issue or pull request. A caller without that repository permission receives HTTP 403 before assignee names are resolved or the issue's assignees are mutated.",
+  "boundedScenario": "The caller is authenticated and has an issue-write token scope but lacks repository issue-write permission; the issue and requested user both exist.",
+  "claimBoundary": "Token scope and repository permission are distinct in this bounded task. The policy is accepted only for the declared fixed source entry."
+}

@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260921T222928961Z-713ffa9e",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\migration\\runs\\y11-initial-v1\\units\\09-lock-r1-P\\sessions\\20260921T222928961Z-713ffa9e",
+  "createdAt": "2026-09-21T22:29:28.961Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\migration\\runs\\y11-initial-v1\\public-inputs\\gitea-issue-lock-writer-nonadmin\\assessment.json",
+  "taskId": "gitea-issue-lock-writer-nonadmin",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "studyArm": "P",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 3866,
+      "publicAnalysis": 763,
+      "source": 4857,
+      "outputContract": 1690,
+      "total": 11677,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "gitea-issue-lock-writer-nonadmin",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "results": [
+      {
+        "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+        "conclusion": "source_refuted",
+        "explanation": "The declared policy expectation is enforced by the supplied source: the lock route applies a repository/site-administrator gate before the handler, and the bounded principal is expressly neither kind of administrator. Therefore the request is rejected before issue lookup, the issue-write check, or the lock mutation. The authenticated caller is bound only by the fixed scenario; the supplied route crop shows token middleware but not the omitted parent authentication binding, so no stronger runtime identity-binding claim is made. The request-selected issue is bound in the handler by the repository context and path-derived issue index, while repository issue-write permission is a distinct later check on that issue. Under the declared conditions, the strongest visible decision is denial at reqAdmin, with no ownership or alternative role branch shown that permits this nonadmin caller. The protected effect is conditional on an unlocked issue and passing the write-permission check, but the route gate prevents this principal from reaching it. The only potentially answer-changing external fact would be whether the deployed route differs from the supplied fixed source or whether the caller actually has administrator status; the former is outside the fixed source and deployment is not tested, while the latter is fixed false by the scenario. This result covers the sole runnable expanded obligation and does not assert repository-wide completeness.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The handler obtains the issue using the repository context and the request path's issue index, then checks issue-write permission before the lock path.",
+              "citations": [
+                {
+                  "path": "issue_lock.go",
+                  "startLine": 42,
+                  "endLine": 51,
+                  "quote": "\treason := web.GetForm[*api.LockIssueOption](ctx).Reason\n\tissue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.PathParamInt64(\"index\"))\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.APIError(http.StatusForbidden, \"no permission to lock this issue\")\n\t\treturn"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The fixed scenario supplies an authenticated caller and fixes repository/site administrator status as false; the route crop shows token middleware but the parent authentication binding is omitted.",
+              "citations": [
+                {
+                  "path": "policy.json",
+                  "startLine": 9,
+                  "endLine": 11,
+                  "quote": "  \"normativePolicy\": \"The issue-lock route requires the caller to be a repository administrator or site administrator. After that route gate, the handler also requires permission to write the issue or pull request before it may lock an unlocked issue.\",\n  \"boundedScenario\": \"The caller is authenticated, has full token scope and repository issue-write permission, but is neither a repository administrator nor a site administrator; the issue exists, is readable, and is currently unlocked.\",\n  \"claimBoundary\": \"The assessment concerns the declared API route and fixed source only. It does not infer deployment state or permissions outside the supplied scenario.\""
+                },
+                {
+                  "path": "route_guard.go",
+                  "startLine": 14,
+                  "endLine": 20,
+                  "quote": "// Upstream route tree outside the declared lock group is omitted.\n\nm.Group(\"/lock\", func() {\n\tm.Combo(\"\").\n\t\tPut(bind(api.LockIssueOption{}), repo.LockIssue).\n\t\tDelete(repo.UnlockIssue)\n}, reqToken(), reqAdmin())"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "The route-level control rejects the request unless the caller is a repository administrator or a site administrator.",
+              "citations": [
+                {
+                  "path": "route_guard.go",
+                  "startLine": 4,
+                  "endLine": 11,
+                  "quote": "// reqAdmin user should be an owner or a collaborator with admin write of a repository, or site admin\nfunc reqAdmin() func(ctx *context.APIContext) {\n\treturn func(ctx *context.APIContext) {\n\t\tif !ctx.IsUserRepoAdmin() && !ctx.IsUserSiteAdmin() {\n\t\t\tctx.APIError(http.StatusForbidden, \"user should be an owner or a collaborator with admin write of a repository\")\n\t\t\treturn\n\t\t}\n\t}"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "If reached, the handler locks an unlocked issue using the selected issue and returns no content; the mutation is after the issue-write check.",
+              "citations": [
+                {
+                  "path": "issue_lock.go",
+                  "startLine": 49,
+                  "endLine": 69,
+                  "quote": "\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.APIError(http.StatusForbidden, \"no permission to lock this issue\")\n\t\treturn\n\t}\n\n\tif !issue.IsLocked {\n\t\topt := &issues_model.IssueLockOptions{\n\t\t\tDoer:   ctx.ContextUser,\n\t\t\tIssue:  issue,\n\t\t\tReason: reason,\n\t\t}\n\n\t\tissue.Repo = ctx.Repo.Repository\n\t\terr = issues_model.LockIssue(ctx, opt)\n\t\tif err != nil {\n\t\t\tctx.APIErrorInternal(err)\n\t\t\treturn\n\t\t}\n\t}\n\n\tctx.Status(http.StatusNoContent)"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The caller has repository issue-write permission, the issue exists and is readable, and the issue is currently unlocked, while administrator status is absent.",
+              "citations": [
+                {
+                  "path": "policy.json",
+                  "startLine": 9,
+                  "endLine": 11,
+                  "quote": "  \"normativePolicy\": \"The issue-lock route requires the caller to be a repository administrator or site administrator. After that route gate, the handler also requires permission to write the issue or pull request before it may lock an unlocked issue.\",\n  \"boundedScenario\": \"The caller is authenticated, has full token scope and repository issue-write permission, but is neither a repository administrator nor a site administrator; the issue exists, is readable, and is currently unlocked.\",\n  \"claimBoundary\": \"The assessment concerns the declared API route and fixed source only. It does not infer deployment state or permissions outside the supplied scenario.\""
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": [
+          "If assessing deployment rather than the fixed source, observe the effective route registration and middleware chain for PUT /repos/{owner}/{repo}/issues/{index}/lock.",
+          "If the caller's administrator status is not fixed by scenario, observe the effective repository-administrator and site-administrator evaluations for that caller."
+        ]
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Assessment covers only deny-nonadmin-issue-lock::put-issue-lock, the sole declared runnable expanded obligation, using only the supplied fixed source context; source discovery is not-tested and no repository-wide completeness is claimed."
+    }
+  },
+  "relationCoverage": [],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 3385,
+      "output": 816,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}
