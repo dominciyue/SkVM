@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto"
 import { appendFile, mkdir, readFile, stat, writeFile } from "node:fs/promises"
 import path from "node:path"
+import { z } from "zod"
 import type { LLMProvider } from "../../providers/types.ts"
 import {
   measureAuthorizationPromptCharacters,
@@ -11,7 +12,11 @@ import {
 import type { AnalysisDiagnostic } from "../../task-dsl/authorization/relations.ts"
 import type { AuthorizationResultV0 } from "../../task-dsl/authorization/schema.ts"
 import { compileAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
-import { runAuthorizationTask, type AuthorizationTaskRun } from "./host.ts"
+import {
+  runAuthorizationTask,
+  type AuthorizationTaskRun,
+  type RunAuthorizationTaskOptions,
+} from "./host.ts"
 import { renderSourceBundle } from "./inputs.ts"
 import {
   loadLocalAuthorizationInput,
@@ -45,6 +50,71 @@ export type LocalAuthorizationSessionStatus =
   | "provider-unavailable"
   | "completion-unknown"
   | "initialized"
+
+const NonEmptyString = z.string().trim().min(1)
+const LocalAuthorizationSessionStatusSchema = z.enum([
+  "completed",
+  "completed-with-diagnostics",
+  "needs-input",
+  "input-invalid",
+  "transport-failed",
+  "timeout-unknown",
+  "provider-unavailable",
+  "completion-unknown",
+  "initialized",
+])
+const AuthorizationTaskRunStatusSchema = z.enum([
+  "completed",
+  "completed-with-diagnostics",
+  "needs-input",
+  "input-invalid",
+  "transport-failed",
+  "timeout-unknown",
+])
+const PersistedLocalSessionSchema = z.object({
+  schemaVersion: z.literal("authorization-local-session/v1"),
+  sessionId: NonEmptyString,
+  createdAt: NonEmptyString,
+  inputPath: NonEmptyString.optional(),
+  inputSha256: z.string().regex(/^[a-f0-9]{64}$/i).optional(),
+  model: NonEmptyString.optional(),
+  arm: z.enum(["N", "B", "D"]).optional(),
+  analysisProfile: z.unknown().optional(),
+  noAutomaticResend: z.literal(true).optional(),
+}).passthrough()
+const PersistedLocalSessionReportSchema = z.object({
+  schemaVersion: z.literal("authorization-local-result/v1"),
+  sessionId: NonEmptyString,
+  sessionPath: NonEmptyString,
+  createdAt: NonEmptyString,
+  status: LocalAuthorizationSessionStatusSchema,
+  inputPath: NonEmptyString.optional(),
+  taskId: NonEmptyString.optional(),
+  model: NonEmptyString.optional(),
+  arm: z.enum(["N", "B", "D"]).optional(),
+  finalKind: z.enum(["initial", "repair"]).optional(),
+}).passthrough()
+const PersistedLocalDispatchSchema = z.object({
+  schemaVersion: z.literal("authorization-local-dispatch/v1"),
+  sessionId: NonEmptyString,
+  model: NonEmptyString,
+  arm: z.enum(["N", "B", "D"]),
+}).passthrough()
+const PersistedAuthorizationRunSchema = z.object({
+  status: AuthorizationTaskRunStatusSchema,
+  arm: z.enum(["N", "B", "D"]),
+  finalKind: z.enum(["initial", "repair"]).optional(),
+  initial: z.unknown().optional(),
+  repair: z.unknown().optional(),
+}).passthrough()
+const LocalSessionIndexEntrySchema = z.object({
+  schemaVersion: z.literal("authorization-local-session-index-entry/v1"),
+  sessionId: NonEmptyString,
+  relativePath: NonEmptyString,
+  status: z.union([LocalAuthorizationSessionStatusSchema, z.literal("running")]),
+  createdAt: NonEmptyString,
+  updatedAt: NonEmptyString.optional(),
+}).strict()
 
 export interface LocalAuthorizationSessionReport {
   schemaVersion: "authorization-local-result/v1"
@@ -303,6 +373,7 @@ export async function executeLocalAuthorizationRun(input: {
   model: string
   outRoot: string
   arm?: AuthorizationRenderArm
+  executionOptions?: RunAuthorizationTaskOptions
   providerFactory?: LocalAuthorizationProviderFactory
   env?: LocalAuthorizationRunnerEnv
 }): Promise<LocalAuthorizationSessionReport | LocalAuthorizationCheckReport> {
@@ -375,6 +446,13 @@ export async function executeLocalAuthorizationRun(input: {
 
   const env = input.env ?? process.env
   env.SKVM_AUTO_PROBE = "0"
+  const executionOptions: RunAuthorizationTaskOptions = input.executionOptions ?? {
+    timeoutMs: 180_000,
+    unitTimeoutMs: 600_000,
+    maxTokens: 6_000,
+    maxProviderDispatches: 4,
+    maxDomainRepairs: 1,
+  }
   let provider: LLMProvider
   try {
     provider = await (input.providerFactory ?? defaultProviderFactory)(input.model)
@@ -399,6 +477,7 @@ export async function executeLocalAuthorizationRun(input: {
     sessionId: session.sessionId,
     model: input.model,
     arm,
+    executionOptions,
     startedAt: new Date().toISOString(),
     completionUnknownUntilRunArtifact: true,
     noAutomaticResend: true,
@@ -410,13 +489,7 @@ export async function executeLocalAuthorizationRun(input: {
       analysisRequirements: loaded.analysisRequirements,
       provider,
       arm,
-      options: {
-        timeoutMs: 180_000,
-        unitTimeoutMs: 600_000,
-        maxTokens: 6_000,
-        maxProviderDispatches: 4,
-        maxDomainRepairs: 1,
-      },
+      options: executionOptions,
       onLifecycleEvent: event => appendFile(
         path.join(session.sessionPath, runArtifacts.events!),
         `${JSON.stringify(event)}\n`,
@@ -455,20 +528,143 @@ function validSessionId(value: string): boolean {
   return /^\d{8}T\d{9}Z-[a-f0-9]{8}$/i.test(value)
 }
 
+function parsePersistedArtifact<T>(
+  schema: z.ZodType<T>,
+  raw: string,
+  label: string,
+): T {
+  let value: unknown
+  try {
+    value = JSON.parse(raw)
+  } catch (error) {
+    throw new LocalAuthorizationRunnerError(`${label} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`)
+  }
+  const parsed = schema.safeParse(value)
+  if (!parsed.success) {
+    throw new LocalAuthorizationRunnerError(
+      `${label} is invalid: ${parsed.error.issues.map(issue => `${issue.path.join(".") || "$"}: ${issue.message}`).join("; ")}`,
+    )
+  }
+  return parsed.data
+}
+
+function samePersistedValue(left: unknown, right: unknown): boolean {
+  return JSON.stringify(left ?? null) === JSON.stringify(right ?? null)
+}
+
+async function readSessionDescriptor(sessionPath: string, sessionId: string) {
+  const descriptor = parsePersistedArtifact(
+    PersistedLocalSessionSchema,
+    await readFile(path.join(sessionPath, "session.json"), "utf8"),
+    `Session descriptor for ${sessionId}`,
+  )
+  if (descriptor.sessionId !== sessionId) {
+    throw new LocalAuthorizationRunnerError(`Persisted session identity does not match directory ${sessionId}.`)
+  }
+  return descriptor
+}
+
+async function validateDispatchIdentity(
+  sessionPath: string,
+  sessionId: string,
+  session: z.infer<typeof PersistedLocalSessionSchema>,
+) {
+  const dispatch = parsePersistedArtifact(
+    PersistedLocalDispatchSchema,
+    await readFile(path.join(sessionPath, "dispatch.json"), "utf8"),
+    `Dispatch artifact for ${sessionId}`,
+  )
+  if (
+    dispatch.sessionId !== sessionId
+    || (session.model !== undefined && dispatch.model !== session.model)
+    || (session.arm !== undefined && dispatch.arm !== session.arm)
+  ) {
+    throw new LocalAuthorizationRunnerError(`Dispatch artifact identity does not match session ${sessionId}.`)
+  }
+  return dispatch
+}
+
+async function validateTerminalSession(input: {
+  sessionPath: string
+  sessionId: string
+  session: z.infer<typeof PersistedLocalSessionSchema>
+  report: z.infer<typeof PersistedLocalSessionReportSchema>
+}): Promise<LocalAuthorizationSessionReport> {
+  const { sessionPath, sessionId, session, report } = input
+  if (
+    report.sessionId !== sessionId
+    || path.resolve(report.sessionPath) !== path.resolve(sessionPath)
+    || report.createdAt !== session.createdAt
+    || (session.inputPath !== undefined && path.resolve(report.inputPath ?? "") !== path.resolve(session.inputPath))
+    || (session.model !== undefined && report.model !== session.model)
+    || (session.arm !== undefined && report.arm !== session.arm)
+  ) {
+    throw new LocalAuthorizationRunnerError(`Persisted session identity does not match directory ${sessionId}.`)
+  }
+
+  const checkPath = path.join(sessionPath, "check.json")
+  if (await pathKind(checkPath) === "file") {
+    const check = JSON.parse(await readFile(checkPath, "utf8")) as { inputPath?: string; taskId?: string }
+    if (
+      (check.inputPath !== undefined && path.resolve(report.inputPath ?? "") !== path.resolve(check.inputPath))
+      || (check.taskId !== undefined && report.taskId !== check.taskId)
+    ) {
+      throw new LocalAuthorizationRunnerError(`Persisted session identity does not match check artifact for ${sessionId}.`)
+    }
+  }
+
+  const dispatchPath = path.join(sessionPath, "dispatch.json")
+  const runPath = path.join(sessionPath, "run.json")
+  if (AuthorizationTaskRunStatusSchema.safeParse(report.status).success) {
+    if (await pathKind(dispatchPath) !== "file" || await pathKind(runPath) !== "file") {
+      throw new LocalAuthorizationRunnerError(`Terminal run artifact set is incomplete for ${sessionId}.`)
+    }
+    await validateDispatchIdentity(sessionPath, sessionId, session)
+    const run = parsePersistedArtifact(
+      PersistedAuthorizationRunSchema,
+      await readFile(runPath, "utf8"),
+      `Run artifact for ${sessionId}`,
+    )
+    const runRecord = run as unknown as AuthorizationTaskRun
+    const artifact = finalArtifact(runRecord)
+    if (
+      run.status !== report.status
+      || run.arm !== report.arm
+      || run.finalKind !== report.finalKind
+      || !samePersistedValue(artifact?.result, report.canonicalResult)
+      || !samePersistedValue(artifact?.relationCoverage, report.relationCoverage)
+      || !samePersistedValue(artifact?.coverageValidation, report.coverageValidation)
+    ) {
+      throw new LocalAuthorizationRunnerError(`Persisted result does not match run artifact for ${sessionId}.`)
+    }
+  } else if (report.status === "provider-unavailable") {
+    if (await pathKind(dispatchPath) === "file" || await pathKind(runPath) === "file") {
+      throw new LocalAuthorizationRunnerError(`Provider-unavailable session ${sessionId} contains a dispatch or run artifact.`)
+    }
+  } else if (report.status === "completion-unknown") {
+    if (await pathKind(dispatchPath) !== "file") {
+      throw new LocalAuthorizationRunnerError(`Completion-unknown session ${sessionId} has no dispatch artifact.`)
+    }
+    await validateDispatchIdentity(sessionPath, sessionId, session)
+  } else {
+    throw new LocalAuthorizationRunnerError(`Initialized status must not be persisted as a terminal result for ${sessionId}.`)
+  }
+  return report as LocalAuthorizationSessionReport
+}
+
 async function inspectSession(sessionPath: string, sessionId: string): Promise<LocalAuthorizationSessionReport> {
+  const session = await readSessionDescriptor(sessionPath, sessionId)
   const resultPath = path.join(sessionPath, "result.json")
   if (await pathKind(resultPath) === "file") {
-    return JSON.parse(await readFile(resultPath, "utf8")) as LocalAuthorizationSessionReport
-  }
-  const sessionRaw = await readFile(path.join(sessionPath, "session.json"), "utf8")
-  const session = JSON.parse(sessionRaw) as {
-    createdAt?: string
-    inputPath?: string
-    model?: string
-    arm?: AuthorizationRenderArm
-    analysisProfile?: LocalAnalysisProfile
+    const report = parsePersistedArtifact(
+      PersistedLocalSessionReportSchema,
+      await readFile(resultPath, "utf8"),
+      `Result artifact for ${sessionId}`,
+    )
+    return validateTerminalSession({ sessionPath, sessionId, session, report })
   }
   const dispatched = await pathKind(path.join(sessionPath, "dispatch.json")) === "file"
+  if (dispatched) await validateDispatchIdentity(sessionPath, sessionId, session)
   return {
     schemaVersion: "authorization-local-result/v1",
     sessionId,
@@ -478,7 +674,7 @@ async function inspectSession(sessionPath: string, sessionId: string): Promise<L
     ...(session.inputPath ? { inputPath: session.inputPath } : {}),
     ...(session.model ? { model: session.model } : {}),
     ...(session.arm ? { arm: session.arm } : {}),
-    ...(session.analysisProfile ? { analysisProfile: session.analysisProfile } : {}),
+    ...(session.analysisProfile ? { analysisProfile: session.analysisProfile as LocalAnalysisProfile } : {}),
   }
 }
 
@@ -497,7 +693,11 @@ export async function inspectLocalAuthorizationOutput(out: string): Promise<Loca
   const entries = (await readFile(indexPath, "utf8"))
     .split(/\r?\n/)
     .filter(line => line.trim().length > 0)
-    .map(line => JSON.parse(line) as LocalSessionIndexEntry)
+    .map((line, index) => parsePersistedArtifact(
+      LocalSessionIndexEntrySchema,
+      line,
+      `Session index entry ${index + 1}`,
+    ) as LocalSessionIndexEntry)
   const latestById = new Map<string, LocalSessionIndexEntry>()
   for (const entry of entries) latestById.set(entry.sessionId, entry)
   const latest = [...latestById.values()]
@@ -507,7 +707,12 @@ export async function inspectLocalAuthorizationOutput(out: string): Promise<Loca
   }
   const sessionsRoot = path.join(absolute, "sessions")
   const sessionPath = path.resolve(sessionsRoot, latest.sessionId)
-  if (!isWithinRoot(sessionsRoot, sessionPath) || await pathKind(sessionPath) !== "directory") {
+  const indexedPath = path.resolve(absolute, ...latest.relativePath.replaceAll("\\", "/").split("/"))
+  if (
+    !isWithinRoot(sessionsRoot, sessionPath)
+    || indexedPath !== sessionPath
+    || await pathKind(sessionPath) !== "directory"
+  ) {
     throw new LocalAuthorizationRunnerError(`Indexed session is missing or escapes the output root: ${latest.sessionId}`)
   }
   return inspectSession(sessionPath, latest.sessionId)

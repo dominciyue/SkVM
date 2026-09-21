@@ -262,6 +262,35 @@ describe("local authorization runner", () => {
     expect(await readFile(path.join(secondReport.sessionPath, "result.json"), "utf8")).not.toBe("")
   })
 
+  it("rejects a terminal session whose persisted identity or run status was tampered", async () => {
+    const fixture = await makeFixture()
+    const calls = { factory: 0, provider: 0 }
+    const output: string[] = []
+    expect(await runLocalAuthorizationCli([
+      "run",
+      `--input=${fixture.inputPath}`,
+      "--model=mock/model",
+      `--out=${fixture.outRoot}`,
+      "--arm=D",
+    ], dependencies(fixture.inputPath, calls, output))).toBe(0)
+    const report = JSON.parse(output.at(-1)!) as { sessionId: string; sessionPath: string }
+    const resultPath = path.join(report.sessionPath, "result.json")
+    const resultBytes = await readFile(resultPath, "utf8")
+    const tamperedResult = JSON.parse(resultBytes)
+    tamperedResult.sessionId = "20260921T000000000Z-deadbeef"
+    await writeFile(resultPath, `${JSON.stringify(tamperedResult, null, 2)}\n`, "utf8")
+    await expect(inspectLocalAuthorizationOutput(fixture.outRoot)).rejects.toThrow("session identity")
+    await writeFile(resultPath, resultBytes, "utf8")
+
+    const runPath = path.join(report.sessionPath, "run.json")
+    const runBytes = await readFile(runPath, "utf8")
+    const tamperedRun = JSON.parse(runBytes)
+    tamperedRun.status = "needs-input"
+    await writeFile(runPath, `${JSON.stringify(tamperedRun, null, 2)}\n`, "utf8")
+    await expect(inspectLocalAuthorizationOutput(fixture.outRoot)).rejects.toThrow("run artifact")
+    await writeFile(runPath, runBytes, "utf8")
+  })
+
   it("reports an interrupted dispatched session as completion-unknown without resending", async () => {
     const fixture = await makeFixture()
     const sessionId = "20260921T000000000Z-deadbeef"
@@ -272,7 +301,12 @@ describe("local authorization runner", () => {
       sessionId,
       createdAt: "2026-09-21T00:00:00.000Z",
     })}\n`, "utf8")
-    await writeFile(path.join(sessionPath, "dispatch.json"), "{}\n", "utf8")
+    await writeFile(path.join(sessionPath, "dispatch.json"), `${JSON.stringify({
+      schemaVersion: "authorization-local-dispatch/v1",
+      sessionId,
+      model: "mock/model",
+      arm: "D",
+    })}\n`, "utf8")
     await writeFile(path.join(fixture.outRoot, "sessions.jsonl"), `${JSON.stringify({
       schemaVersion: "authorization-local-session-index-entry/v1",
       sessionId,
