@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "authorization-value-study-experiment/v2",
+  "studyId": "authorization-transfer-value-y11-migration-initial-v1",
+  "createdAt": "2026-09-22T06:10:00+08:00",
+  "implementationRevision": "d1afddc8e2e823ed27f0428938bccd0e996b7941",
+  "paths": {
+    "runRoot": "results/skill-ir/skill-dsl-research/development/authorization-transfer-value-v1/migration/runs/y11-initial-v1",
+    "evaluatorRubrics": "results/skill-ir/skill-dsl-research/development/authorization-transfer-value-v1/migration/evaluator/rubrics-v1.json"
+  },
+  "model": {
+    "modelId": "xty/gpt-5.6-sol",
+    "routeMatch": "xty/*",
+    "cacheDir": ".skvm",
+    "temperature": 0,
+    "timeoutMs": 180000,
+    "unitTimeoutMs": 600000,
+    "maxTokens": 6000,
+    "maxProviderDispatches": 4,
+    "maxDomainRepairs": 1,
+    "autoProbe": false,
+    "contextLimitTokens": null,
+    "contextLimitStatus": "provider-not-reported"
+  },
+  "design": {
+    "expectedCaseCount": 3,
+    "expectedUnitCount": 12,
+    "freshContextPerUnit": true,
+    "evaluateAfterAllGeneration": true,
+    "comparisonArms": ["P", "C"],
+    "repetitionsPerArm": 2,
+    "reverseSecondRepetition": true,
+    "analysisProfileId": "authorization-core-v1"
+  },
+  "execution": {
+    "sourceMode": "fixed-context",
+    "targetExecution": "forbidden",
+    "modelExecutableTools": false,
+    "evaluatorVisibleDuringGeneration": false
+  },
+  "cases": [
+    {
+      "caseId": "gitea-collaborator-cross-user-permission",
+      "input": "results/skill-ir/skill-dsl-research/development/authorization-transfer-value-v1/migration/public-inputs/gitea-collaborator-cross-user-permission/assessment.json",
+      "sourceRoot": "results/skill-ir/skill-dsl-research/development/authorization-transfer-value-v1/migration/public-inputs/gitea-collaborator-cross-user-permission/source",
+      "sources": ["policy.json", "collaborators.go"],
+      "unitOrder": ["P", "C", "C", "P"]
+    },
+    {
+      "caseId": "gitea-issue-assignee-nonwriter",
+      "input": "results/skill-ir/skill-dsl-research/development/authorization-transfer-value-v1/migration/public-inputs/gitea-issue-assignee-nonwriter/assessment.json",
+      "sourceRoot": "results/skill-ir/skill-dsl-research/development/authorization-transfer-value-v1/migration/public-inputs/gitea-issue-assignee-nonwriter/source",
+      "sources": ["policy.json", "issue_assignee.go"],
+      "unitOrder": ["C", "P", "P", "C"]
+    },
+    {
+      "caseId": "gitea-issue-lock-writer-nonadmin",
+      "input": "results/skill-ir/skill-dsl-research/development/authorization-transfer-value-v1/migration/public-inputs/gitea-issue-lock-writer-nonadmin/assessment.json",
+      "sourceRoot": "results/skill-ir/skill-dsl-research/development/authorization-transfer-value-v1/migration/public-inputs/gitea-issue-lock-writer-nonadmin/source",
+      "sources": ["policy.json", "route_guard.go", "issue_lock.go"],
+      "unitOrder": ["P", "C", "C", "P"]
+    }
+  ],
+  "units": [
+    { "id": "01-collaborator-r1-P", "caseId": "gitea-collaborator-cross-user-permission", "repetition": 1, "studyArm": "P", "renderArm": "B" },
+    { "id": "02-collaborator-r1-C", "caseId": "gitea-collaborator-cross-user-permission", "repetition": 1, "studyArm": "C", "renderArm": "B" },
+    { "id": "03-collaborator-r2-C", "caseId": "gitea-collaborator-cross-user-permission", "repetition": 2, "studyArm": "C", "renderArm": "B" },
+    { "id": "04-collaborator-r2-P", "caseId": "gitea-collaborator-cross-user-permission", "repetition": 2, "studyArm": "P", "renderArm": "B" },
+    { "id": "05-assignee-r1-C", "caseId": "gitea-issue-assignee-nonwriter", "repetition": 1, "studyArm": "C", "renderArm": "B" },
+    { "id": "06-assignee-r1-P", "caseId": "gitea-issue-assignee-nonwriter", "repetition": 1, "studyArm": "P", "renderArm": "B" },
+    { "id": "07-assignee-r2-P", "caseId": "gitea-issue-assignee-nonwriter", "repetition": 2, "studyArm": "P", "renderArm": "B" },
+    { "id": "08-assignee-r2-C", "caseId": "gitea-issue-assignee-nonwriter", "repetition": 2, "studyArm": "C", "renderArm": "B" },
+    { "id": "09-lock-r1-P", "caseId": "gitea-issue-lock-writer-nonadmin", "repetition": 1, "studyArm": "P", "renderArm": "B" },
+    { "id": "10-lock-r1-C", "caseId": "gitea-issue-lock-writer-nonadmin", "repetition": 1, "studyArm": "C", "renderArm": "B" },
+    { "id": "11-lock-r2-C", "caseId": "gitea-issue-lock-writer-nonadmin", "repetition": 2, "studyArm": "C", "renderArm": "B" },
+    { "id": "12-lock-r2-P", "caseId": "gitea-issue-lock-writer-nonadmin", "repetition": 2, "studyArm": "P", "renderArm": "B" }
+  ],
+  "stoppingRules": {
+    "retainAllInitialUnitsInDenominator": true,
+    "continueAfterTerminalUnitFailure": true,
+    "noPostHocRequirementChanges": true
+  },
+  "revisionPolicy": {
+    "sharedContractOrImplementationDefectOnly": true,
+    "maxAdditionalUnits": 6,
+    "preserveInitialResults": true
+  },
+  "resumePolicy": {
+    "terminalUnitsAreNotResent": true,
+    "dispatchedWithoutResultIsCompletionUnknown": true
+  }
+}
