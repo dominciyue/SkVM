@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "authorization-analysis-relation-contract/v1",
+  "status": "x3-frozen-for-implementation",
+  "requirementKinds": [
+    {
+      "kind": "entry-control",
+      "questionTemplate": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "defaultApplicability": "required",
+      "semanticBoundary": "Identify the gate and its branch meaning; do not prefill whether it succeeds in this task."
+    },
+    {
+      "kind": "identity-binding",
+      "questionTemplate": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "defaultApplicability": "required",
+      "semanticBoundary": "Trace identity binding without assuming authentication alone authorizes the resource operation."
+    },
+    {
+      "kind": "resource-binding",
+      "questionTemplate": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "defaultApplicability": "required",
+      "semanticBoundary": "Keep source and destination, owner and object, or identity and session resources distinct when the task distinguishes them."
+    },
+    {
+      "kind": "authorization-decision",
+      "questionTemplate": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "defaultApplicability": "required",
+      "semanticBoundary": "Compare source behavior with accepted policy; the requirement does not state the observed allow or deny result."
+    },
+    {
+      "kind": "effect-reachability",
+      "questionTemplate": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "defaultApplicability": "required",
+      "semanticBoundary": "Trace the effect rather than treating a local sink or a cited function name as a complete causal claim."
+    },
+    {
+      "kind": "external-assumption",
+      "questionTemplate": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "defaultApplicability": "when-present",
+      "semanticBoundary": "Use not-applicable only when the fixed source decides the obligation without an external branch; otherwise preserve a reasoned unknown."
+    }
+  ],
+  "defaultProfile": {
+    "id": "authorization-core-v1",
+    "construction": "Instantiate all six templates over the task's explicitly authored obligation IDs. The first five are required; external-assumption is when-present.",
+    "prerequisites": {
+      "entry-control": [],
+      "identity-binding": [],
+      "resource-binding": [],
+      "authorization-decision": ["identity-binding", "resource-binding"],
+      "effect-reachability": ["entry-control", "authorization-decision"],
+      "external-assumption": ["effect-reachability"]
+    },
+    "prerequisiteMeaning": "Analysis dependencies help organize a same-obligation ledger. They are not a source control-flow order and never supply a conclusion.",
+    "scopeRule": "A prerequisite is resolved for the same expanded obligation only. A requirement may cover several authored obligations, but compilation creates only the declared requirement-obligation pairs."
+  },
+  "crossTaskWalkthrough": [
+    {
+      "taskId": "owui-process-file-write",
+      "requiredKinds": ["entry-control", "identity-binding", "resource-binding", "authorization-decision", "effect-reachability"],
+      "whenPresentKinds": ["external-assumption"],
+      "challenge": "The source-file ownership control must not be mistaken for authorization on the caller-selected destination collection."
+    },
+    {
+      "taskId": "owui-process-text-controlled",
+      "requiredKinds": ["entry-control", "identity-binding", "resource-binding", "authorization-decision", "effect-reachability"],
+      "whenPresentKinds": ["external-assumption"],
+      "challenge": "The strongest decision is upstream through a caller validator and shared write policy, not at the local vector sink."
+    },
+    {
+      "taskId": "owui-trusted-header-deployment",
+      "requiredKinds": ["entry-control", "identity-binding", "resource-binding", "authorization-decision", "effect-reachability", "external-assumption"],
+      "whenPresentKinds": [],
+      "challenge": "Configuration, authentication, and deployment branches are not a universal sequence; actual ingress and proxy facts remain source-external."
+    },
+    {
+      "taskId": "fastapi-items-foreign-update",
+      "requiredKinds": ["entry-control", "identity-binding", "resource-binding", "authorization-decision", "effect-reachability"],
+      "whenPresentKinds": ["external-assumption"],
+      "challenge": "The task uses item ownership and a role exception without signup, proxy, or deployment topology."
+    },
+    {
+      "taskId": "fastapi-items-superuser-read",
+      "requiredKinds": ["entry-control", "identity-binding", "resource-binding", "authorization-decision", "effect-reachability"],
+      "whenPresentKinds": ["external-assumption"],
+      "challenge": "The same source branch must express an allowed role override without turning the requirement ledger into a deny-only checklist."
+    }
+  ],
+  "decision": {
+    "kindsChanged": false,
+    "reason": "The second project confirms that the six kinds cover ownership and role branches without requiring login-specific provisioning or proxy nodes. Repetition of a kind supports task-specific branch questions without adding project-specific categories.",
+    "optionalBranchRule": "A task may add a when-present requirement of an existing kind for an optional branch such as provisioning. Absence may be explained as not-applicable; it is not inserted into the common profile.",
+    "compilerResponsibilities": [
+      "parse strict requirement shapes and unique IDs",
+      "resolve authored obligation IDs to only their expanded obligation IDs",
+      "validate prerequisite IDs, same-obligation applicability, and dependency cycles",
+      "emit ledger questions and structural diagnostics without source truth"
+    ],
+    "modelResponsibilities": [
+      "analyze source-visible gates, bindings, policy branches, and effects",
+      "state causal claims with facts and citations",
+      "mark a when-present branch not applicable only with a source-based explanation",
+      "name decisive external facts and preserve unknown when they are absent"
+    ],
+    "forbiddenPrefill": [
+      "expected source disposition",
+      "oracle facts or evaluator criteria",
+      "observed allow or deny branch truth",
+      "attack path, safe path, or source finding written as a ledger answer"
+    ]
+  }
+}

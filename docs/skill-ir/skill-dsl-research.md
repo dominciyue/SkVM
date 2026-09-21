@@ -613,7 +613,7 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 ### 7.21 X 完整能力阶段设计
 
-2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X3`：X0–X2 已完成，尚无 X 真实模型结果。
+2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X4`：X0–X3 已完成，尚无 X 真实模型结果。
 
 **为什么扩大本轮范围。** W 的模型消费与计量已经可用，继续只修旧案例会降低获取新信息的速度。现有 B/D 共用 canonical declaration、输出合同和宿主，主要差异位于领域方法指令。接下来既要检验这种组织方式，也要让作者实际写任务、用自备输入运行，并检验换项目后的语义适配。
 
@@ -621,7 +621,9 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 X1 已把该原则落为 evaluator-only `authorization-evaluation-rubrics/v2`、hash-bound `authorization-semantic-review/v1` 和六个判例。`ENABLE_PASSWORD_AUTH` 必须为真与“为假时路径被阻断”等价；精确 HTTP 403 是解释完整性。header→email→authentication 是必要因果，optional signup 只单列覆盖；条件源码能力、实际 gate/ingress/proxy/authentication 缺失是正确 unknown 的必要语义。标签正确但必要语义未陈述记 partial，决定性因果被反转才记 incorrect；可选细节缺失不改变 `semanticDecisionCorrect`、`taskDecisionCorrect` 或在其余层完整时的 full-success。W B/D 复用旧生成做只读 v2 重评：必要语义和 unknown 均支持，两臂仍因未枚举完整条件结果而 partial；W 原 review/summary 字节未改。
 
-**领域关系。** 不将五节点登录链变成所有授权任务的必经顺序。初始六类分析要求为 entry-control、identity-binding、resource-binding、authorization-decision、effect-reachability、external-assumption，带关联 obligation、公开 question、required/when-present 和 prerequisiteIds。编译器检查引用与分析依赖并展开 ledger；模型发现源码里的条件、分支和结果，并用本次 facts/citations 说明。源码循环不等于分析依赖循环，程序不代替模型求解源码控制流。
+**领域关系。** 不将五节点登录链变成所有授权任务的必经顺序。X3 在原 file/text/header 与 FastAPI owner/role 两项义务上走查后，六类保持为 entry-control、identity-binding、resource-binding、authorization-decision、effect-reachability、external-assumption。共同 profile 的前五类 required，external-assumption 默认为 when-present；task 可把外部事实提升为 required，或用既有 kind 增加 task-specific when-present 分支，但 signup/proxy 不进入共同要求。默认分析依赖为 decision → identity/resource、effect → entry/decision、external → effect，只在同一 expanded obligation 内解析，不表示源码控制流顺序。编译器检查 ID、显式 obligation 映射、依赖适用性和环，并只展开作者声明的 requirement-obligation 对；模型发现源码里的条件、分支、适用性和结果，并用本次 facts/citations 说明。源码循环不等于分析依赖循环，程序不代替模型求解源码控制流。
+
+**X3 反例结论。** 资源所有权与 superuser override 不需要新增项目专属类别；同一 kind 可按义务重复，因而两条 authored obligation 能拥有各自 decision/effect 问题而不产生跨入口笛卡尔积。trusted-header 的 deployment facts 是 task-specific required external assumption，可选 provisioning 则是 identity-binding 的 when-present 补充。两个声明示例只含公开问题和字段来源，不含 observed branch truth、oracle、expected finding 或评价标准。冻结机器合同位于 `authorization-capability-v1/relation-contract-v1.json`，示例位于其 `relation-examples/`；X4 将以 strict schema 和 pure compiler 验证其可实现性。
 
 **覆盖记录。** 每项 coverage 关联 requirementId、expanded obligationId、addressed/unknown/not-applicable、说明及当前答案 fact pointers。addressed 表示已回应，语义仍需 review；required 不允许静默跳过，when-present 的不适用须有理由。缺部署事实可成为有内容的 unknown。若第二项目显示六类边界不合理，依据反例修订这一设计，不按项目名写成功分支。
 
@@ -955,6 +957,10 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 **X1-EVAL-01。** 先以新增测试确认 v2 导出不存在，再实现三层 rubric/review/evaluation 路径并保留 v0/v1。六个判例覆盖等价否定、漏 signup、正确 unknown、代码引用无因果、错因果和漏决定性控制；归档 W B/D 只读重评都为 necessary supported、decision correct、explanation partial。授权回归 80/80、465 assertions 通过，typecheck 通过；provider/目标调用均为 0。
 
 **X2-PROJECT-01。** 首个候选 FastAPI full-stack template 满足非 fork、MIT、固定 ref、明确 owner/superuser 分支和公开回归依据，故按预设 first-qualified 规则停止候选搜索。归档的 `items.py`、`test_items.py`、LICENSE 分别匹配官方 blob `f0eb30e`、`3e82cd0`、`f11987b`；两项任务与 evaluator 分离，公开 development 状态和未执行目标限制明确。下一步用五个任务检验六类分析要求。
+
+### 2026-09-21 X3 跨任务关系合同
+
+**X3-RELATION-01。** 五个任务走查没有推翻六类边界：共同 profile 前五类 required、external-assumption when-present；trusted-header 可显式提升 external 为 required，optional provisioning 用重复的 identity-binding when-present 表示。FastAPI 的 owner/role 反例证明不应把 signup/proxy 固化，也证明 decision/effect 要能按 authored obligation 分开。冻结合同明确同义务依赖、显式 pair 展开、compiler/model 分工与禁止答案预填；两个 answer-free 示例的 task 均通过 v0 schema。未调用模型或目标，X4 先以失败测试实现 strict requirement 与 ledger compiler。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 

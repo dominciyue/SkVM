@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、现有 Zod、SkVM provider/telemetry；一个轻量本地脚本和公开函数，不另建 CLI 框架、Web 页面或通用工作流引擎。
 
-- 制定日期：2026-09-21；状态：`active-X3`（X0–X2 已完成；跨任务关系合同推进中）。
+- 制定日期：2026-09-21；状态：`active-X4`（X0–X3 已完成；analysis ledger 实现推进中）。
 - 基线：W 发布 `fa6b064`；工程已完成，原始三例结论 6/6 正确、关键事实支持 4/6，D 有较低调用/token 的初步观察。
 - 工作分支：`skill-ir-aot`；仅向用户 `origin` 推送。保留其他任务的源码改动与本地材料。
 - 设计正文：[研究总文档 §7.21](../../skill-ir/skill-dsl-research.md#721-x-完整能力阶段设计)；持续合同：[spec 14.34](../../skill-ir/skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。不另建一份 design 或逐阶段总结 Markdown。
@@ -51,7 +51,7 @@ interface RelationCoverage {
 
 编译器检查 ID、依赖、对象引用和适用义务，形成 ledger；不推断源码里的权限事实。模型说明控制成立/不成立时的路径、条件依赖和未知外部事实，以已有 fact+citation 支撑。`addressed` 只表示模型已作回应，语义是否支持仍由 review 判断；required 项不得用 not-applicable 消失，when-present 项需给适用性理由。分析依赖环报诊断，源码中的循环不因此被判非法。
 
-六类是本轮实现起点。X2 的第二项目若给出反例，允许合并或修正类别并记录理由；只增加字段不能算方法完成。不得根据 oracle 给每个案例填好分支真值、正确结论或专属提示。
+X3 用原 file/text/header 与 FastAPI owner/role 两项义务走查后，六类保持不变：前五类为共同 profile 的 required，`external-assumption` 默认为 `when-present`；task 可把它提升为 required，也可用既有 kind 增加 task-specific `when-present` 分支（例如可选 provisioning），但不把 signup/proxy 写进共同 profile。默认依赖为 authorization-decision → identity/resource binding、effect-reachability → entry/authorization decision、external-assumption → effect；箭头表示同一 expanded obligation 内的分析前置，不是源码控制流顺序。编译只展开作者显式声明的 requirement-obligation 对，不对主体、资源或入口做笛卡尔积。不得根据 oracle 给每个案例填好分支真值、正确结论或专属提示。冻结合同与两个无答案示例见 `relation-contract-v1.json` 和 `relation-examples/`。
 
 ### 2.2 普通输入与兼容
 
@@ -74,8 +74,11 @@ interface AnalysisPlan {
   entries: Array<{
     requirementId: string;
     obligationId: string;
+    kind: RequirementKind;
+    question: string;
     applicability: "required" | "when-present";
     prerequisiteIds: string[];
+    status: "pending";
   }>;
   diagnostics: AnalysisDiagnostic[];
 }
@@ -160,10 +163,10 @@ check 应输出字段、输入和分析要求检查结果且零模型调用；ru
 
 ### X3：形成跨任务的关系合同
 
-- [ ] 用原 file/text/header 与第二项目两项走查六类要求。明确哪些是必需、可选、分支、外部未知；资源授权反例不能被迫填 signup/proxy。
-- [ ] 编写领域问题模板及两个不含答案的声明示例，标明字段来自任务、规范还是源码入口；模型应分析的关系留给模型。
-- [ ] 更新 §2 类型及研究 §7.21，说明编译器能检查的结构与模型负责的语义。若默认六类需调整，按实际反例修改后继续；不重新发起一轮纯调研。
-- [ ] X3 完成仅要求模型接口和反例可实现；不以旧案例达到满分为条件。
+- [x] 用原 file/text/header 与第二项目两项走查六类要求。明确哪些是必需、可选、分支、外部未知；资源授权反例不能被迫填 signup/proxy。
+- [x] 编写领域问题模板及两个不含答案的声明示例，标明字段来自任务、规范还是源码入口；模型应分析的关系留给模型。
+- [x] 更新 §2 类型及研究 §7.21，说明编译器能检查的结构与模型负责的语义。若默认六类需调整，按实际反例修改后继续；不重新发起一轮纯调研。
+- [x] X3 完成仅要求模型接口和反例可实现；不以旧案例达到满分为条件。
 
 ### X4：实现分析要求与义务 ledger
 

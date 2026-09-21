@@ -1,0 +1,143 @@
+{
+  "schemaVersion": "authorization-relation-example/v1",
+  "exampleId": "trusted-header-conditional-deployment",
+  "answerFree": true,
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "owui-trusted-header-deployment",
+    "request": "Determine whether an unauthenticated external client can impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin.",
+    "repository": "https://github.com/open-webui/open-webui",
+    "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "trusted-proxy-identity-policy",
+        "kind": "study-author-policy-from-pinned-project-guidance",
+        "text": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.",
+        "location": "inputs/owui-trusted-header-deployment/task.json#/sourceOfRequirement",
+        "revision": "open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "study-task-author",
+          "reason": "The task author accepts the bounded policy without accepting any actual deployment fact."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "unauthenticated-external-client",
+        "role": "unauthenticated external client",
+        "description": "A client not authenticated by the trusted identity proxy that may control headers on an ingress it can reach.",
+        "startingCapabilities": ["can-send-client-controlled-request-headers-to-a-reachable-ingress"]
+      }
+    ],
+    "resources": [
+      {
+        "id": "existing-user-session",
+        "type": "authenticated-user-identity-and-session",
+        "description": "The identity and session of an existing user selected by the trusted-email header."
+      }
+    ],
+    "entries": [
+      {
+        "id": "post-signin-trusted-email",
+        "name": "POST /signin trusted-email path",
+        "locations": [
+          { "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py", "startLine": 1, "endLine": 13 },
+          { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 1, "endLine": 62 }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "external-client-trusted-header-impersonation",
+        "principalId": "unauthenticated-external-client",
+        "resourceId": "existing-user-session",
+        "relation": "external-client-to-arbitrary-existing-user-identity",
+        "operation": "obtain-session-as-header-selected-user",
+        "expectation": "deny",
+        "conditions": [
+          { "name": "password-auth-signin-entry-enabled", "basis": "The supplied entry contains a password-auth sign-in gate." },
+          { "name": "trusted-email-header-name-configured", "basis": "The supplied environment source controls the header name." },
+          { "name": "email-authentication-produces-user", "basis": "The task concerns a session as a selected user." },
+          { "name": "deployment-ingress-enforces-header-trust", "basis": "The accepted policy requires exclusive trusted ingress and header replacement." }
+        ],
+        "policySourceId": "trusted-proxy-identity-policy",
+        "entryIds": ["post-signin-trusted-email"]
+      }
+    ],
+    "scopeAssurance": "The fixed sources expose the application entry and configuration surface but do not supply actual deployment topology or configuration.",
+    "requiredAnalysis": [
+      "identify configuration and identity binding",
+      "separate source capability from actual deployment facts",
+      "name decisive missing facts"
+    ],
+    "constraints": ["Use only the supplied fixed context.", "Do not contact a deployment."]
+  },
+  "analysisRequirements": [
+    {
+      "id": "header.entry-control",
+      "kind": "entry-control",
+      "obligationIds": ["external-client-trusted-header-impersonation"],
+      "question": "Which source-visible gates must be traversed before the trusted-email path can process the request?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "header.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": ["external-client-trusted-header-impersonation"],
+      "question": "How, if at all, does a request value become the identity used by this entry?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "header.session-resource",
+      "kind": "resource-binding",
+      "obligationIds": ["external-client-trusted-header-impersonation"],
+      "question": "How is the selected identity bound to the existing-user session resource named by the obligation?",
+      "applicability": "required",
+      "prerequisiteIds": ["header.identity-binding"]
+    },
+    {
+      "id": "header.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": ["external-client-trusted-header-impersonation"],
+      "question": "What source-visible application and accepted-policy controls decide whether this principal may obtain the selected user's session?",
+      "applicability": "required",
+      "prerequisiteIds": ["header.identity-binding", "header.session-resource"]
+    },
+    {
+      "id": "header.session-effect",
+      "kind": "effect-reachability",
+      "obligationIds": ["external-client-trusted-header-impersonation"],
+      "question": "Under which source-visible branch can processing reach the protected session effect?",
+      "applicability": "required",
+      "prerequisiteIds": ["header.entry-control", "header.authorization-decision"]
+    },
+    {
+      "id": "header.deployment-assumptions",
+      "kind": "external-assumption",
+      "obligationIds": ["external-client-trusted-header-impersonation"],
+      "question": "Which actual configuration, ingress, proxy, or authentication fact can change the deployment answer, and is it present in this fixed context?",
+      "applicability": "required",
+      "prerequisiteIds": ["header.session-effect"]
+    },
+    {
+      "id": "header.optional-provisioning",
+      "kind": "identity-binding",
+      "obligationIds": ["external-client-trusted-header-impersonation"],
+      "question": "If an optional provisioning branch is present, how does it affect identity binding before authentication?",
+      "applicability": "when-present",
+      "prerequisiteIds": ["header.identity-binding"]
+    }
+  ],
+  "fieldSources": [
+    { "paths": ["/task/request", "/task/principals", "/task/resources", "/task/obligations"], "authority": "task", "location": "cases/authorization/inputs/owui-trusted-header-deployment/task.json" },
+    { "paths": ["/task/policySources"], "authority": "normative-policy", "location": "open-webui/docs hardening guidance pinned in task.json" },
+    { "paths": ["/task/entries"], "authority": "source-entry", "location": "env_trusted_headers.py and auths_signin.py fixed crops" },
+    { "paths": ["/analysisRequirements/0", "/analysisRequirements/1", "/analysisRequirements/2", "/analysisRequirements/3", "/analysisRequirements/4", "/analysisRequirements/5"], "authority": "authorization-core-v1", "location": "relation-contract-v1.json#/defaultProfile" },
+    { "paths": ["/analysisRequirements/6"], "authority": "task-specific-source-question", "location": "auths_signin.py entry crop; question only, no branch truth" }
+  ],
+  "excludedAnswerMaterial": ["conclusion", "observed branch truth", "oracle", "expected source finding", "evaluation criteria"]
+}
