@@ -71,7 +71,16 @@ export type ResolveAuthorizationSourceCitationResult =
   | { success: false; diagnostics: AuthorizationSourceDiagnostic[] }
 
 export interface SourceInputDiagnostic {
-  code: "unsafe-input-path" | "missing-input" | "symlink-escape" | "not-a-file" | "input-read-failed"
+  code:
+    | "unsafe-input-path"
+    | "duplicate-source-path"
+    | "missing-input"
+    | "missing-root"
+    | "root-not-directory"
+    | "root-read-failed"
+    | "symlink-escape"
+    | "not-a-file"
+    | "input-read-failed"
   message: string
   path: string
 }
@@ -84,9 +93,26 @@ export interface LoadExactSourceBundleOptions {
   originalLocationsByFile?: Record<string, string[]>
 }
 
+export interface LoadPortableSourceBundleOptions {
+  sourceRoot: string
+  repository: string
+  sourceRef: string
+  sourceFiles: string[]
+  originalLocationsByFile?: Record<string, string[]>
+}
+
 export type LoadExactSourceBundleResult =
   | { success: true; bundle: SourceBundle; diagnostics: [] }
   | { success: false; diagnostics: SourceInputDiagnostic[] }
+
+function normalizePortableRelativePath(value: string): string | undefined {
+  if (value.length === 0 || value.includes("\\")) return undefined
+  if (path.isAbsolute(value) || path.win32.isAbsolute(value) || path.posix.isAbsolute(value)) return undefined
+  const normalized = path.posix.normalize(value)
+  if (normalized === "." || normalized === ".." || normalized.startsWith("../")) return undefined
+  if (normalized.split("/").some(segment => segment === "" || segment === "..")) return undefined
+  return normalized
+}
 
 function isPortableRelativeInputPath(value: string): boolean {
   if (value.length === 0 || value.includes("\\")) return false
@@ -253,28 +279,85 @@ function diagnostic(
   code: SourceInputDiagnostic["code"],
   index: number,
   message: string,
+  collection = "allowedInputFiles",
 ): SourceInputDiagnostic {
-  return { code, path: `allowedInputFiles.${index}`, message }
+  return { code, path: `${collection}.${index}`, message }
 }
 
-export async function loadExactSourceBundle(
-  options: LoadExactSourceBundleOptions,
-): Promise<LoadExactSourceBundleResult> {
+async function loadSourceBundleFromRoot(options: {
+  root: string
+  repository: string
+  sourceRef: string
+  files: string[]
+  collection: "allowedInputFiles" | "sources"
+  inputsOnly: boolean
+  originalLocationsByFile?: Record<string, string[]>
+}): Promise<LoadExactSourceBundleResult> {
   const diagnostics: SourceInputDiagnostic[] = []
   const files: SourceBundleFile[] = []
-  const canonicalRoot = await realpath(options.caseRoot)
+  let canonicalRoot: string
+  try {
+    canonicalRoot = await realpath(options.root)
+    const rootStats = await stat(canonicalRoot)
+    if (!rootStats.isDirectory()) {
+      return {
+        success: false,
+        diagnostics: [{
+          code: "root-not-directory",
+          path: options.collection === "sources" ? "sourceRoot" : "caseRoot",
+          message: `Source root is not a directory: ${options.root}`,
+        }],
+      }
+    }
+  } catch (error) {
+    const code = typeof error === "object" && error !== null && "code" in error
+      ? String((error as { code?: unknown }).code)
+      : ""
+    return {
+      success: false,
+      diagnostics: [{
+        code: code === "ENOENT" ? "missing-root" : "root-read-failed",
+        path: options.collection === "sources" ? "sourceRoot" : "caseRoot",
+        message: code === "ENOENT"
+          ? `Source root does not exist: ${options.root}`
+          : `Could not resolve source root ${options.root}: ${String(error)}`,
+      }],
+    }
+  }
 
-  for (const [index, relativePath] of options.allowedInputFiles.entries()) {
-    if (!isPortableRelativeInputPath(relativePath)) {
+  const seenRelativePaths = new Set<string>()
+  const seenCanonicalTargets = new Set<string>()
+
+  for (const [index, sourcePath] of options.files.entries()) {
+    const normalizedPath = normalizePortableRelativePath(sourcePath)
+    if (!normalizedPath || (options.inputsOnly && !isPortableRelativeInputPath(sourcePath))) {
       diagnostics.push(diagnostic(
         "unsafe-input-path",
         index,
-        `Allowed input must be a portable path beneath inputs/: ${relativePath}`,
+        options.inputsOnly
+          ? `Allowed input must be a portable path beneath inputs/: ${sourcePath}`
+          : `Source must be a portable path beneath sourceRoot: ${sourcePath}`,
+        options.collection,
       ))
       continue
     }
 
-    const candidate = path.resolve(canonicalRoot, ...relativePath.split("/"))
+    const normalizedIdentity = normalizedPath.normalize("NFC")
+    const portableIdentity = process.platform === "win32"
+      ? normalizedIdentity.toLocaleLowerCase("en-US")
+      : normalizedIdentity
+    if (seenRelativePaths.has(portableIdentity)) {
+      diagnostics.push(diagnostic(
+        "duplicate-source-path",
+        index,
+        `Source path normalizes to an already listed path: ${sourcePath} -> ${normalizedPath}`,
+        options.collection,
+      ))
+      continue
+    }
+    seenRelativePaths.add(portableIdentity)
+
+    const candidate = path.resolve(canonicalRoot, ...normalizedPath.split("/"))
     let canonicalCandidate: string
     try {
       canonicalCandidate = await realpath(candidate)
@@ -286,8 +369,9 @@ export async function loadExactSourceBundle(
         code === "ENOENT" ? "missing-input" : "input-read-failed",
         index,
         code === "ENOENT"
-          ? `Allowlisted input does not exist: ${relativePath}`
-          : `Could not resolve allowlisted input ${relativePath}: ${String(error)}`,
+          ? `Allowlisted input does not exist: ${normalizedPath}`
+          : `Could not resolve allowlisted input ${normalizedPath}: ${String(error)}`,
+        options.collection,
       ))
       continue
     }
@@ -296,31 +380,68 @@ export async function loadExactSourceBundle(
       diagnostics.push(diagnostic(
         "symlink-escape",
         index,
-        `Allowlisted input resolves outside the case root: ${relativePath}`,
+        `Allowlisted input resolves outside the source root: ${normalizedPath}`,
+        options.collection,
       ))
       continue
     }
 
-    const fileStats = await stat(canonicalCandidate)
+    const normalizedCanonicalIdentity = canonicalCandidate.normalize("NFC")
+    const canonicalIdentity = process.platform === "win32"
+      ? normalizedCanonicalIdentity.toLocaleLowerCase("en-US")
+      : normalizedCanonicalIdentity
+    if (seenCanonicalTargets.has(canonicalIdentity)) {
+      diagnostics.push(diagnostic(
+        "duplicate-source-path",
+        index,
+        `Source resolves to a file already listed by another path: ${normalizedPath}`,
+        options.collection,
+      ))
+      continue
+    }
+    seenCanonicalTargets.add(canonicalIdentity)
+
+    let fileStats
+    try {
+      fileStats = await stat(canonicalCandidate)
+    } catch (error) {
+      diagnostics.push(diagnostic(
+        "input-read-failed",
+        index,
+        `Could not inspect allowlisted input ${normalizedPath}: ${String(error)}`,
+        options.collection,
+      ))
+      continue
+    }
     if (!fileStats.isFile()) {
-      diagnostics.push(diagnostic("not-a-file", index, `Allowlisted input is not a file: ${relativePath}`))
+      diagnostics.push(diagnostic(
+        "not-a-file",
+        index,
+        `Allowlisted input is not a file: ${normalizedPath}`,
+        options.collection,
+      ))
       continue
     }
 
     try {
       const content = await readFile(canonicalCandidate, "utf8")
       files.push({
-        relativePath,
+        relativePath: normalizedPath,
         content,
         sha256: createHash("sha256").update(content, "utf8").digest("hex"),
         cropRange: { startLine: 1, endLine: countLines(content) },
-        originalLocations: [...(options.originalLocationsByFile?.[relativePath] ?? [])],
+        originalLocations: [...(
+          options.originalLocationsByFile?.[sourcePath]
+          ?? options.originalLocationsByFile?.[normalizedPath]
+          ?? []
+        )],
       })
     } catch (error) {
       diagnostics.push(diagnostic(
         "input-read-failed",
         index,
-        `Could not read allowlisted input ${relativePath} as UTF-8: ${String(error)}`,
+        `Could not read allowlisted input ${normalizedPath} as UTF-8: ${String(error)}`,
+        options.collection,
       ))
     }
   }
@@ -338,6 +459,38 @@ export async function loadExactSourceBundle(
       files,
     },
   }
+}
+
+export async function loadExactSourceBundle(
+  options: LoadExactSourceBundleOptions,
+): Promise<LoadExactSourceBundleResult> {
+  return loadSourceBundleFromRoot({
+    root: options.caseRoot,
+    repository: options.repository,
+    sourceRef: options.sourceRef,
+    files: options.allowedInputFiles,
+    collection: "allowedInputFiles",
+    inputsOnly: true,
+    ...(options.originalLocationsByFile
+      ? { originalLocationsByFile: options.originalLocationsByFile }
+      : {}),
+  })
+}
+
+export async function loadPortableSourceBundle(
+  options: LoadPortableSourceBundleOptions,
+): Promise<LoadExactSourceBundleResult> {
+  return loadSourceBundleFromRoot({
+    root: options.sourceRoot,
+    repository: options.repository,
+    sourceRef: options.sourceRef,
+    files: options.sourceFiles,
+    collection: "sources",
+    inputsOnly: false,
+    ...(options.originalLocationsByFile
+      ? { originalLocationsByFile: options.originalLocationsByFile }
+      : {}),
+  })
 }
 
 export function renderSourceBundle(bundle: SourceBundle): string {

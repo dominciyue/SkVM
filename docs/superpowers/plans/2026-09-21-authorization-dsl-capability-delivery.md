@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、现有 Zod、SkVM provider/telemetry；一个轻量本地脚本和公开函数，不另建 CLI 框架、Web 页面或通用工作流引擎。
 
-- 制定日期：2026-09-21；状态：`active-X6`（X0–X5 已完成；自备输入入口推进中）。
+- 制定日期：2026-09-21；状态：`active-X7`（X0–X6 已完成；同事实 N/B/D 与作者体验推进中）。
 - 基线：W 发布 `fa6b064`；工程已完成，原始三例结论 6/6 正确、关键事实支持 4/6，D 有较低调用/token 的初步观察。
 - 工作分支：`skill-ir-aot`；仅向用户 `origin` 推送。保留其他任务的源码改动与本地材料。
 - 设计正文：[研究总文档 §7.21](../../skill-ir/skill-dsl-research.md#721-x-完整能力阶段设计)；持续合同：[spec 14.34](../../skill-ir/skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。不另建一份 design 或逐阶段总结 Markdown。
@@ -108,7 +108,9 @@ X4 已实现 `AnalysisRequirementSchema`、`AnalysisRequirementsSchema` 与 `com
 
 X5 新增 `source-authorization-assessment-wire/v2` 与 `authorization-wire-normalizer/v2`；v2 只在显式 analysis requirements 时使用，并在 v1 的窄结果上增加 `authorization-relation-coverage/v1` sidecar，canonical result 仍为 v0。`validateRelationCoverage` 对精确 requirement/expanded-obligation pair、重复/缺失/陌生项、同义务 fact pointer 和 required/when-present 状态做机械验证，始终把语义支持留为 `unreviewed`。host 保存 raw wire、canonical、coverage 及两类 diagnostics，coverage 错误复用一次既有 repair；持续错误保留 canonical 但只能 `completed-with-diagnostics`。未提供 requirements 的旧 wire/v1、runner 和 replay 不变。
 
-普通入口交付后的验收命令（本计划阶段尚不可执行）：
+X6 实现了 `authorization-assessment-input/v1` 与本地 check/run/inspect。为使 ref 一致性可实际检查，输入在既有 `task/sourceRoot/sources/analysisRequirements` 外显式携带 `sourceIdentity.repository/sourceRef`；两者必须与 task 相同。`sourceRoot` 从输入文件目录解析且 canonical 结果仍在该目录内，普通 `src/...` 路径用共享 exact-reader 核心读取，旧 `inputs/` 规则不变。缺 requirements 时实例化 `authorization-core-v1` 六项共同 profile。每次 run 在输出根下新建不可覆盖 session，保存 input/task/source bundle/profile/preview、JSONL events、run/result JSON 和文本摘要；append-only `sessions.jsonl` 定位最新 session。check/inspect 不初始化 provider，dispatch 后缺终态只显示 completion-unknown，不自动重发。
+
+普通入口验收命令（X6 已可执行；X7 将补仓内自包含示例路径）：
 
 ```powershell
 bun ./src/benchmarks/authorization-dsl/local-run.ts check --input=./examples/authorization-assessment/assessment.json
@@ -189,12 +191,12 @@ check 应输出字段、输入和分析要求检查结果且零模型调用；ru
 
 ### X6：实现自备输入入口
 
-- [ ] `local-input.ts` 解析单个输入 JSON，从输入文件目录解析 sourceRoot，读取显式 sources；验证路径在指定根内、ref/task 一致、缺文件诊断和同名路径冲突。调用前完成这些确定性检查。
-- [ ] 新读取接口允许用户的 `src/...` 等普通路径；复用安全的 exact-reader 核心。旧研究读取器的 `inputs/` 协议维持兼容，不靠拼历史 caseId 假装普通输入。
-- [ ] `local-run.ts` 实现 `check --input=...`、`run --input=... --model=... --out=...`、`inspect --out=...`，复用 host 和现有 provider。只有 run 初始化模型，未知完成状态不自动重发。
-- [ ] 空输出目录或新 session 自动建立；已有 session 不覆盖，返回实际输出位置。结果保存 JSON、逐次事件和一份简明文本说明，列结论、依据、覆盖及未知项，不生成 HTML。
-- [ ] mock 测试：任意合法 taskId/repository 可运行；不给 manifest/oracle 也能完成；坏输入在 provider factory 前失败；重新 inspect 为零调用；新增调用必须显式新 session。
-- [ ] 一次授权测试兼容检查即可，不借此搬迁整个 benchmark 目录或重构旧优化器。
+- [x] `local-input.ts` 解析单个输入 JSON，从输入文件目录解析 sourceRoot，读取显式 sources；验证路径在指定根内、ref/task 一致、缺文件诊断和同名路径冲突。调用前完成这些确定性检查。
+- [x] 新读取接口允许用户的 `src/...` 等普通路径；复用安全的 exact-reader 核心。旧研究读取器的 `inputs/` 协议维持兼容，不靠拼历史 caseId 假装普通输入。
+- [x] `local-run.ts` 实现 `check --input=...`、`run --input=... --model=... --out=...`、`inspect --out=...`，复用 host 和现有 provider。只有 run 初始化模型，未知完成状态不自动重发。
+- [x] 空输出目录或新 session 自动建立；已有 session 不覆盖，返回实际输出位置。结果保存 JSON、逐次事件和一份简明文本说明，列结论、依据、覆盖及未知项，不生成 HTML。
+- [x] mock 测试：任意合法 taskId/repository 可运行；不给 manifest/oracle 也能完成；坏输入在 provider factory 前失败；重新 inspect 为零调用；新增调用必须显式新 session。
+- [x] 一次授权测试兼容检查即可，不借此搬迁整个 benchmark 目录或重构旧优化器。
 
 ### X7：同事实 N/B/D 渲染与任务作者体验
 

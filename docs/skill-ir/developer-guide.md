@@ -24,6 +24,8 @@
 - `buildAuthorizationSourceCatalog(bundle)` / `resolveAuthorizationSourceCitation(...)`：为全部 exact source 生成 ref-bound ID 与 crop 行标签，并由宿主派生 canonical path/quote。
 - `AuthorizationWireResultV1Schema` / `normalizeAuthorizationWireResult(...)`：解析不含请求元数据、path 或 quote 的窄模型 wire，显式绑定 canonical result v0；不猜 obligation、结论或缺失语义，任一 error 级归一化诊断都不交付 canonical result。显式 analysis requirements 使用独立 `AuthorizationWireResultV2Schema` / `normalizeAuthorizationWireResultV2(...)`，canonical 仍为 v0，只增加 coverage sidecar；旧 v1 strict schema 不接受新字段。
 - `RelationCoverageSchema` / `validateRelationCoverage(plan, canonical, coverage)`：检查每个 exact requirement × expanded obligation 的 coverage、状态和同义务 fact pointer；返回机械 valid/invalid、计数和诊断，`semanticSupport` 固定 `unreviewed`，不把引用存在性升级为因果支持。
+- `loadLocalAuthorizationInput(inputFile)`：strict 解析 `authorization-assessment-input/v1`，校验 task 与 `sourceIdentity` 的 repository/ref、相对 sourceRoot、普通 portable source 路径、junction/symlink 边界、声明行范围及 ready analysis plan；无显式 requirements 时实例化 `authorization-core-v1`。
+- `checkLocalAuthorizationInput(...)` / `executeLocalAuthorizationRun(...)` / `inspectLocalAuthorizationOutput(...)`：普通自备输入的 provider-free 检查、每次新 session 运行和离线读取。session 不覆盖，dispatch 后缺终态标 `completion-unknown`，不会自动重发。
 - `validateAuthorizationResult(compiled, answer, sourceBundle)`：分别检查结构、声明义务、引用存在、范围声明和依赖快照；语义支持仍为 `unreviewed`。
 - `runAuthorizationTask(...)`：在注入 provider、精确源码束和固定预算下生成；每次 dispatch 固定 phase，per-call/unit deadline、四次派发上限、closed state 和 JSONL lifecycle event 防止 timeout 后新 fallback；没有可执行工具。
 - `evaluateAuthorizationGeneration`、`summarizeAuthorizationRun` 与 `summarizeAuthorizationPair`：消费哈希绑定的 development-agent review，不能从关键词或 citation 存在性推断正确性；v1 单列 semantic decision、evidence semantics、transport 与 delivery，旧 `taskDecisionCorrect` 仍按 v0 口径保留。
@@ -35,7 +37,17 @@
 
 coverage item 为 `requirementId/obligationId/status/explanation/factPointers`。addressed 与 not-applicable 至少指向一个本次 canonical result 中同义务的 `/results/<n>/facts/<group>/<n>` fact；required 不可标 not-applicable，when-present 的不适用仍需 source-backed explanation，无法判断则为有理由的 unknown。host 输入有 `analysisRequirements` 时先要求 plan ready，再把 ledger 和闭集 pair 放入 prompt，使用 wire/v2；initial/repair artifact 分别保留 raw wire、canonical v0、coverage 和 validation。coverage 错误只触发既有一次 deterministic repair，不调用隐藏 reviewer；一次后仍错时 run 为 `completed-with-diagnostics` 而非完整交付。修改关系/coverage 时运行 `bun test ./src/task-dsl/authorization/relations.test.ts ./src/task-dsl/authorization/relation-result.test.ts ./src/task-dsl/authorization/transport.test.ts ./src/benchmarks/authorization-dsl/host.test.ts`，再运行授权全套与 typecheck。
 
-在仓库根使用五条开发命令；当前 W 配置可直接复查，V 路径仅用于历史 replay：
+自备输入入口在仓库根使用以下命令；只有 `run` 初始化 provider：
+
+```powershell
+bun ./src/benchmarks/authorization-dsl/local-run.ts check --input=<assessment.json>
+bun ./src/benchmarks/authorization-dsl/local-run.ts run --input=<assessment.json> --model=<provider/model> --out=<output-root>
+bun ./src/benchmarks/authorization-dsl/local-run.ts inspect --out=<output-root-or-session>
+```
+
+输入顶层为 `schemaVersion/task/sourceIdentity/sourceRoot/sources` 及可选 `analysisRequirements`。`sourceIdentity` 必须与 task repository/ref 相同；sourceRoot 相对输入文件目录且解析后不得越出该目录；sources 是相对 sourceRoot 的显式普通路径，不需要 case manifest、oracle 或 review。run 在 `<output-root>/sessions/<id>/` 保存 input、task、source bundle、profile、preview、dispatch、events、host run、result 与文本摘要，根目录的 append-only `sessions.jsonl` 只用于定位；再次 run 总是新 session。
+
+历史比较 runner 仍使用以下五条开发命令；当前 W 配置可直接复查，V 路径仅用于历史 replay：
 
 ```powershell
 bun ./src/benchmarks/authorization-dsl/run.ts check --config=./results/skill-ir/skill-dsl-research/development/authorization-transport-v1/comparison-config.json
@@ -47,7 +59,7 @@ bun ./src/benchmarks/authorization-dsl/run.ts status --run-dir=./results/skill-i
 
 只有 `run` 初始化并调用模型；help、check、evaluate、status 和离线 replay 都不调用 provider。check 写 previews；run 按 attempt 写 run metadata、index 及逐单元 declaration/source/prompt/dispatch、`events.jsonl`、run；evaluate 从事件归并迟到调用事实，再写 hash-bound review template、evaluation 和 summary。V 原件仍在 `authorization-v0`；W 新产物归 `authorization-transport-v1`。
 
-常见错误含：字段路径解析错误；`declaration-source-location-invalid`；`foreign-obligation-result`/`missing-obligation-result`；`unknown-source-id`/`citation-out-of-range`；`missing-relation-coverage`/`foreign-coverage-obligation`/`dangling-fact-pointer`；`semantic-review-missing`；`timeout-unknown`。按诊断修改输入、输出合同或本地结果；wire 归一化为 invalid 时只保留原 wire 和诊断，一次 repair 后仍 invalid 则终态为 `transport-failed`，不得退回该带错结果。canonical 正确但 coverage invalid 时可保留两者供诊断，但不得标 completed。review 缺失时必须在全部生成结束后依据 evaluator-only rubric 填写，不能交还被测模型；timeout 表示已发请求的 completion/usage 可能未知，禁止自动重发。运行器在 provider 创建前设置 `SKVM_AUTO_PROBE=0` 和指定 cache；有 `run.json` 的终态及只有 dispatch 的 completion-unknown 单元都不会自动发送。确需新 revision 时使用新 attempt、明确原因和独立目录，保留旧结果。`replay` 只读旧 run/review，`--output` 必须指向新的派生位置；其中 v1 分解是再分析而不是新 review。
+常见错误含：`unsafe-source-root`/`unsafe-input-path`/`duplicate-source-path`/`missing-input`；字段路径解析错误；`declaration-source-location-invalid`；`foreign-obligation-result`/`missing-obligation-result`；`unknown-source-id`/`citation-out-of-range`；`missing-relation-coverage`/`foreign-coverage-obligation`/`dangling-fact-pointer`；`semantic-review-missing`；`timeout-unknown`。按诊断修改输入、输出合同或本地结果；wire 归一化为 invalid 时只保留原 wire 和诊断，一次 repair 后仍 invalid 则终态为 `transport-failed`，不得退回该带错结果。canonical 正确但 coverage invalid 时可保留两者供诊断，但不得标 completed。review 缺失时必须在全部生成结束后依据 evaluator-only rubric 填写，不能交还被测模型；timeout 或本地 dispatch 后缺 run 表示已发请求的 completion/usage 可能未知，禁止自动重发。运行器在 provider 创建前设置 `SKVM_AUTO_PROBE=0`；历史比较 runner 另设置 cache。确需新 revision 时使用新 attempt、明确原因和独立 session，保留旧结果。`replay` 只读旧 run/review，`--output` 必须指向新的派生位置；其中 v1 分解是再分析而不是新 review。
 
 9 月 21 日 W1–W9 工程与验证已完成：超时在 wrapped provider 边界关闭生命周期，迟到 response/error 只结算原 attempt，不生成实验答案；repair 失败保留 initial。六个 W 真实单元全部完成，证明窄 wire、宿主引用绑定和分层评价可运行；trusted-header 的共同漏项仍限制方法结论。无 abort 接口的底层请求可能迟到，进程终止后仍无法取得的 usage/cost 必须保持 unknown，禁止自动重发。
 

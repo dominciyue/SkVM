@@ -48,6 +48,67 @@ export const AnalysisRequirementsSchema = z.array(AnalysisRequirementSchema).min
 export type RequirementKind = z.infer<typeof RequirementKindSchema>
 export type AnalysisRequirement = z.infer<typeof AnalysisRequirementSchema>
 
+export const DEFAULT_AUTHORIZATION_ANALYSIS_PROFILE_ID = "authorization-core-v1" as const
+
+const DEFAULT_REQUIREMENT_DEFINITIONS: Array<{
+  suffix: RequirementKind
+  question: string
+  applicability: AnalysisRequirement["applicability"]
+  prerequisites: RequirementKind[]
+}> = [
+  {
+    suffix: "entry-control",
+    question: "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+    applicability: "required",
+    prerequisites: [],
+  },
+  {
+    suffix: "identity-binding",
+    question: "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+    applicability: "required",
+    prerequisites: [],
+  },
+  {
+    suffix: "resource-binding",
+    question: "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+    applicability: "required",
+    prerequisites: [],
+  },
+  {
+    suffix: "authorization-decision",
+    question: "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+    applicability: "required",
+    prerequisites: ["identity-binding", "resource-binding"],
+  },
+  {
+    suffix: "effect-reachability",
+    question: "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+    applicability: "required",
+    prerequisites: ["entry-control", "authorization-decision"],
+  },
+  {
+    suffix: "external-assumption",
+    question: "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+    applicability: "when-present",
+    prerequisites: ["effect-reachability"],
+  },
+]
+
+export function createDefaultAnalysisRequirements(task: AuthorizationTaskV0): AnalysisRequirement[] {
+  const obligationIds = [...new Set(task.obligations.map(obligation => obligation.id))]
+    .sort((left, right) => left.localeCompare(right))
+  return DEFAULT_REQUIREMENT_DEFINITIONS.map(definition => ({
+    id: `${DEFAULT_AUTHORIZATION_ANALYSIS_PROFILE_ID}.${definition.suffix}`,
+    kind: definition.suffix,
+    obligationIds: [...obligationIds],
+    question: definition.question,
+    applicability: definition.applicability,
+    prerequisiteIds: definition.prerequisites.map(
+      prerequisite => `${DEFAULT_AUTHORIZATION_ANALYSIS_PROFILE_ID}.${prerequisite}`,
+    ),
+  }))
+}
+
 export interface AnalysisDiagnostic {
   code: string
   message: string

@@ -613,7 +613,7 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 ### 7.21 X 完整能力阶段设计
 
-2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X6`：X0–X5 已完成，尚无 X 真实模型结果。
+2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X7`：X0–X6 已完成，尚无 X 真实模型结果。
 
 **为什么扩大本轮范围。** W 的模型消费与计量已经可用，继续只修旧案例会降低获取新信息的速度。现有 B/D 共用 canonical declaration、输出合同和宿主，主要差异位于领域方法指令。接下来既要检验这种组织方式，也要让作者实际写任务、用自备输入运行，并检验换项目后的语义适配。
 
@@ -631,7 +631,9 @@ X1 已把该原则落为 evaluator-only `authorization-evaluation-rubrics/v2`、
 
 X5 已把这份记录接入版本化 `source-authorization-assessment-wire/v2`。只有显式提供 analysis requirements 的运行采用 v2，归一化结果仍是 canonical v0，coverage 独立保存为 sidecar；旧 wire/v1、run 与 replay 继续按原合同工作。`validateRelationCoverage` 机械检查遗漏、重复、陌生 requirement、错误 expanded obligation、同义务 fact pointer、required 跳过和 unknown 理由，并把正确关联的状态明确标为 `semanticSupport: unreviewed`，不从 citation 存在推断因果正确。宿主在同一条一次修复路径中返回可操作诊断；持续无效 coverage 以 diagnostics 结束，不能伪装完整交付。
 
-**输入、接口与兼容。** 一个 `authorization-assessment-input/v1` 文件包含 task v0、sourceRoot、显式 sources 和可选 analysisRequirements。相对路径以该输入文件为基准；普通使用不需要研究 caseId、manifest、oracle 或评审资料。计划增加 `loadLocalAuthorizationInput`、`compileAnalysisRequirements`、`validateRelationCoverage`，实现文件与测试位置见任务书。新 wire 扩展显式版本化，归一化生成 canonical v0 及 coverage sidecar；W 的 wire/v1 与历史评价继续可读。普通入口暂复用 benchmark 目录中的宿主，不借本轮重构整个运行架构。
+**输入、接口与兼容。** 一个 `authorization-assessment-input/v1` 文件包含 task v0、`sourceIdentity`、sourceRoot、显式 sources 和可选 analysisRequirements。`sourceIdentity` 是 X6 为可检查 ref/task 一致性加入的明确绑定，repository/ref 必须与 task 相同；不是 manifest 或 oracle。相对 root 以该输入文件为基准，canonical root 仍须位于输入目录内；普通使用不需要研究 caseId、manifest、oracle 或评审资料。`loadLocalAuthorizationInput` 复用 exact-reader 核心但允许 `src/...`，旧 reader 仍限制 `inputs/`。新 wire 扩展显式版本化，归一化生成 canonical v0 及 coverage sidecar；W 的 wire/v1 与历史评价继续可读。普通入口复用 benchmark 宿主，没有重构整个运行架构。
+
+**X6 实现结果。** 缺显式 requirements 时，输入装载器从 authored obligations 实例化公开 `authorization-core-v1` 六项 profile；显式要求则原样 strict 编译，只有 ready plan 才能运行。sourceRoot/path、junction/symlink、缺文件、normalized duplicate、task/ref、声明行范围都在 provider factory 前检查。check/inspect 是纯离线路径；run 每次生成时间+nonce session，以 `wx` 文件和新目录避免覆盖，append-only index 只定位 session。session 保存 JSON/JSONL/文本三类产物；provider 不可用时不谎称 dispatch，dispatch 后缺终态统一显示 completion-unknown。独立复核找到 root junction 外逃和失败 artifact 清单两项问题，均先以红测复现再修复。
 
 **使用交付。** 薄脚本支持 check/run/inspect，输出机器 JSON、事件和简明文本结论；只有 run 调模型。一个自包含 synthetic 例子用于上手，真实两项目用于结果验证；另从现有语料选两份独立 skill，明确授权职责到 DSL 的映射及剩余职责。skill 来源与目标代码项目分开计数，人工/agent 辅助映射不称自动转换整个 skill。作者步骤、字段修改与诊断可观察；未测真人时间时不称人工节省。X 最终以实际可运行命令替换任务书中的接口设计说明。
 
@@ -973,6 +975,10 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 ### 2026-09-21 X5 coverage sidecar 与宿主检查
 
 **X5-COVERAGE-01。** 新测试先分别暴露缺失的 `relation-result` 模块、wire/v2 导出和宿主仍按 v1 拒绝 v2 answer。实现后，v2 仅附加 coverage sidecar，canonical v0 不变；validator 检查 requirement/expanded obligation、required/when-present 状态、理由及同义务 source-backed fact pointer，把语义支持留作 `unreviewed`。宿主保存 initial/repair 的 raw wire、canonical、coverage 与诊断，并只复用既有一次确定性修复；持续无效 coverage 以 `completed-with-diagnostics` 收束。旧 v1 与 replay 回归继续通过。授权全套 105/105、547 assertions 和 typecheck 新鲜通过；独立只读复核无 critical/important，仅指出两个已有下层测试覆盖的 minor 测试粒度建议。无 provider 调用、网络获取或目标执行。X6 转入自备输入与 provider-free 检查。
+
+### 2026-09-21 X6 自备输入与不可覆盖 session
+
+**X6-LOCAL-01。** `local-input.test.ts` 与 `local-run.test.ts` 先因模块缺失红灯；实现普通 path reader、source/task/ref 与行范围检查、默认/显式 profile、check/run/inspect 及 immutable session 后转绿。独立只读审查无 Critical，指出 `sourceRoot` junction 可先解析到输入目录外以及 provider-unavailable 报告列出未生成 artifact；两项均新增红测，改为读源码前验证 canonical root，并让 artifact 清单只声明实存/将写文件。授权全套 115/115、607 assertions 通过；typecheck 与文档检查随阶段提交新鲜复验。mock provider 只验证本地接线，不计真实 provider 调用；无目标执行。X7 开始同事实 N/B/D 与自包含例子。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 
