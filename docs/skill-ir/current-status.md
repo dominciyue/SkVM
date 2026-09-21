@@ -6,11 +6,13 @@
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)及 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成，W 最终发布为 `fa6b064`。[X0–X13 完整能力交付](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)已启动：X0–X4 完成，六类跨任务合同与 pure analysis ledger compiler 已实现，当前进入 X5 coverage sidecar 与宿主检查；尚未开始新真实模型实验。
+[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)及 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成，W 最终发布为 `fa6b064`。[X0–X13 完整能力交付](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)已启动：X0–X5 完成，六类跨任务合同、pure analysis ledger compiler、版本化 coverage sidecar 与宿主机械检查已实现；当前进入 X6 自备输入与 provider-free 检查，尚未开始新真实模型实验。
 
 用户在 W 复核后确认按完整能力阶段推进：评价要求校准、可选/分支关系、普通自备输入、第二项目 development 与小型对照放入同一轮。第二项目提前检验共性，旧三例不必先全部满分；内部仍小步测试和提交。研究与开发复盘统一维护在[研究总文档 §7.21](skill-dsl-research.md#721-x-完整能力阶段设计)。
 
 X1 已冻结 evaluator-only v2：必要语义、解释完整性、可选细节分别报告，接受逻辑等价表述但不以代码引用替代未陈述因果。旧 W B/D 只读重评后均保持结论正确；共同缺完整条件枚举而为 partial，可选 signup/default 不再改写结论正确性。X2 选择 `fastapi/full-stack-fastapi-template@cb740b6`，以普通用户更新他人 item 的 deny 与 superuser 读取他人 item 的 allow 作为两项新义务；官方源码、测试、MIT 许可证及 development 暴露状态已分账归档，目标未执行。
+
+X5 的 wire/v2 只在显式 analysis requirements 时加入 coverage sidecar，canonical result 继续是 v0。宿主机械核对 requirement、expanded obligation、状态、理由和同义务 fact pointer，并把语义支持保留为 `unreviewed`；无效 coverage 只沿用一次修复，持续失败不会成为完整交付。旧 wire/v1 与 replay 保持兼容。
 
 ## W 阶段实际结果
 

@@ -1,5 +1,6 @@
 import { extractStructured } from "../../providers/structured.ts"
 import type { LLMProvider } from "../../providers/types.ts"
+import type { ZodType } from "zod"
 import {
   measureAuthorizationPromptCharacters,
   renderAuthorizationTask,
@@ -8,13 +9,27 @@ import {
   type RenderedAuthorizationTask,
 } from "../../task-dsl/authorization/render.ts"
 import { validateAuthorizationResult, type AuthorizationValidation } from "../../task-dsl/authorization/result.ts"
+import {
+  validateRelationCoverage,
+  type CoverageValidation,
+  type RelationCoverage,
+} from "../../task-dsl/authorization/relation-result.ts"
+import {
+  compileAnalysisRequirements,
+  type AnalysisPlan,
+  type AnalysisRequirement,
+} from "../../task-dsl/authorization/relations.ts"
 import type { AuthorizationResultV0, AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
 import { compileAuthorizationTask, type CompiledAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
 import {
   AuthorizationWireResultV1Schema,
+  AuthorizationWireResultV2Schema,
   normalizeAuthorizationWireResult,
+  normalizeAuthorizationWireResultV2,
   type AuthorizationWireNormalization,
+  type AuthorizationWireNormalizationV2,
   type AuthorizationWireResultV1,
+  type AuthorizationWireResultV2,
 } from "../../task-dsl/authorization/transport.ts"
 import { renderSourceBundle, type SourceBundle } from "./inputs.ts"
 import {
@@ -40,7 +55,19 @@ const ACTIONABLE_DIAGNOSTICS = new Set([
   "missing-fact-group",
   "uninformative-unknown",
   "unsupported-completeness",
+  "coverage-schema-invalid",
+  "missing-relation-coverage",
+  "duplicate-relation-coverage",
+  "foreign-requirement-coverage",
+  "foreign-coverage-obligation",
+  "dangling-fact-pointer",
+  "fact-pointer-obligation-mismatch",
+  "coverage-fact-pointer-required",
+  "required-coverage-not-applicable",
 ])
+
+type AuthorizationWireResult = AuthorizationWireResultV1 | AuthorizationWireResultV2
+type AuthorizationWireNormalizationResult = AuthorizationWireNormalization | AuthorizationWireNormalizationV2
 
 export interface RunAuthorizationTaskOptions {
   timeoutMs: number
@@ -52,8 +79,10 @@ export interface RunAuthorizationTaskOptions {
 
 export interface AuthorizationGenerationArtifact {
   result: AuthorizationResultV0
-  wireResult?: AuthorizationWireResultV1
-  normalization?: AuthorizationWireNormalization
+  wireResult?: AuthorizationWireResult
+  normalization?: AuthorizationWireNormalizationResult
+  relationCoverage?: RelationCoverage[]
+  coverageValidation?: CoverageValidation
   rawResponse: string
   providerAttemptIds: string[]
   outputAttemptId: string
@@ -61,8 +90,8 @@ export interface AuthorizationGenerationArtifact {
 }
 
 export interface AuthorizationTransportArtifact {
-  wireResult: AuthorizationWireResultV1
-  normalization: AuthorizationWireNormalization
+  wireResult: AuthorizationWireResult
+  normalization: AuthorizationWireNormalizationResult
   rawResponse: string
   providerAttemptIds: string[]
   outputAttemptId: string
@@ -78,6 +107,7 @@ export interface AuthorizationTaskRun {
     | "timeout-unknown"
   arm: AuthorizationRenderArm
   compiled: CompiledAuthorizationTask
+  analysisPlan?: AnalysisPlan
   renderedPrompt: string
   promptCharacters?: AuthorizationRunPromptCharacters
   initialTransport?: AuthorizationTransportArtifact
@@ -110,6 +140,7 @@ export interface AuthorizationRunPromptCharacters {
 export interface RunAuthorizationTaskInput {
   task: AuthorizationTaskV0
   sourceBundle: SourceBundle
+  analysisRequirements?: AnalysisRequirement[]
   provider: LLMProvider
   arm: AuthorizationRenderArm
   options: RunAuthorizationTaskOptions
@@ -123,8 +154,12 @@ function errorArtifact(error: unknown): { name: string; message: string } {
   }
 }
 
-function hasActionableDiagnostics(validation: AuthorizationValidation): boolean {
-  return validation.diagnostics.some(diagnostic => ACTIONABLE_DIAGNOSTICS.has(diagnostic.code))
+function hasActionableDiagnostics(
+  validation: AuthorizationValidation,
+  coverageValidation?: CoverageValidation,
+): boolean {
+  return [...validation.diagnostics, ...(coverageValidation?.diagnostics ?? [])]
+    .some(diagnostic => ACTIONABLE_DIAGNOSTICS.has(diagnostic.code))
 }
 
 function buildRepairPrompt(
@@ -132,13 +167,15 @@ function buildRepairPrompt(
   sourceContext: string,
   initial: AuthorizationTransportArtifact,
   validation?: AuthorizationValidation,
+  coverageValidation?: CoverageValidation,
 ): { prompt: string; characters: AuthorizationRepairPromptCharacterBreakdown } {
   const actionable = [
     ...initial.normalization.diagnostics,
     ...(validation?.diagnostics ?? []),
+    ...(coverageValidation?.diagnostics ?? []),
   ]
     .filter(diagnostic => ACTIONABLE_DIAGNOSTICS.has(diagnostic.code))
-    .map(diagnostic => ({ code: diagnostic.code, path: diagnostic.path, message: diagnostic.message }))
+    .map(diagnostic => ({ code: diagnostic.code, path: diagnostic.path ?? "coverage", message: diagnostic.message }))
   const sections = {
     instructions: "# Authorization wire repair\n\nThe current structured answer did not satisfy deterministic host checks. Revise only that answer from the same declaration and exact source. Do not add unavailable facts or infer a requested conclusion.",
     declaration: `## Canonical declaration\n${rendered.sections.declaration}`,
@@ -175,7 +212,10 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     throw new Error("maxDomainRepairs must be 0 or 1")
   }
   const compiled = compileAuthorizationTask(input.task)
-  const rendered = renderAuthorizationTask(compiled, input.arm)
+  const analysisPlan = input.analysisRequirements
+    ? compileAnalysisRequirements(input.task, input.analysisRequirements)
+    : undefined
+  const rendered = renderAuthorizationTask(compiled, input.arm, analysisPlan)
   const sourceContext = renderSourceBundle(input.sourceBundle)
   const renderedPrompt = rendered.prompt.replace("<SOURCE_CONTEXT_INSERTED_BY_HOST>", sourceContext)
   const promptCharacters: AuthorizationRunPromptCharacters = {
@@ -194,6 +234,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     await telemetry.close(`host-return:${partial.status}`)
     return {
       ...partial,
+      ...(analysisPlan ? { analysisPlan } : {}),
       promptCharacters,
       attempts: telemetry.attempts,
       events: telemetry.events,
@@ -203,6 +244,18 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
 
   if (compiled.runnableObligations.length === 0) {
     return finish({ status: "needs-input", arm: input.arm, compiled, renderedPrompt })
+  }
+  if (analysisPlan && analysisPlan.status !== "ready") {
+    return finish({
+      status: "input-invalid",
+      arm: input.arm,
+      compiled,
+      renderedPrompt,
+      error: {
+        name: "AuthorizationAnalysisPlanInvalid",
+        message: "Analysis requirements must compile to a ready plan before generation.",
+      },
+    })
   }
   if (
     input.sourceBundle.repository !== input.task.repository
@@ -221,13 +274,20 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     })
   }
 
+  const wireSchema = (analysisPlan
+    ? AuthorizationWireResultV2Schema
+    : AuthorizationWireResultV1Schema) as ZodType<AuthorizationWireResult>
+  const normalizeWire = (wireInput: unknown): AuthorizationWireNormalizationResult => analysisPlan
+    ? normalizeAuthorizationWireResultV2({ compiled, sourceBundle: input.sourceBundle, input: wireInput })
+    : normalizeAuthorizationWireResult({ compiled, sourceBundle: input.sourceBundle, input: wireInput })
+
   const extract = async (phase: "initial" | "domain-repair", prompt: string) => {
     const firstAttemptIndex = telemetry.attempts.length
     const extracted = await telemetry.inPhase(
       phase,
       provider => extractStructured({
         provider,
-        schema: AuthorizationWireResultV1Schema,
+        schema: wireSchema,
         schemaName: RESULT_TOOL_NAME,
         schemaDescription: "Return the bounded authorization assessment result. This schema tool is an output container and is never executed.",
         prompt,
@@ -246,6 +306,40 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     return { ...extracted, providerAttemptIds, outputAttemptId }
   }
 
+  const buildGenerationArtifact = (
+    transport: AuthorizationTransportArtifact,
+  ): AuthorizationGenerationArtifact | undefined => {
+    const result = transport.normalization.result
+    if (!result) return undefined
+    const validation = validateAuthorizationResult(compiled, result, input.sourceBundle)
+    if (analysisPlan) {
+      if (transport.normalization.normalizerVersion !== "authorization-wire-normalizer/v2") {
+        throw new Error("Analysis plan requires wire normalizer v2.")
+      }
+      const relationCoverage = transport.normalization.coverage ?? []
+      return {
+        result,
+        wireResult: transport.wireResult,
+        normalization: transport.normalization,
+        relationCoverage,
+        coverageValidation: validateRelationCoverage(analysisPlan, result, relationCoverage),
+        rawResponse: transport.rawResponse,
+        providerAttemptIds: transport.providerAttemptIds,
+        outputAttemptId: transport.outputAttemptId,
+        validation,
+      }
+    }
+    return {
+      result,
+      wireResult: transport.wireResult,
+      normalization: transport.normalization,
+      rawResponse: transport.rawResponse,
+      providerAttemptIds: transport.providerAttemptIds,
+      outputAttemptId: transport.outputAttemptId,
+      validation,
+    }
+  }
+
   let initialTransport: AuthorizationTransportArtifact | undefined
   let initial: AuthorizationGenerationArtifact | undefined
   let repairTransport: AuthorizationTransportArtifact | undefined
@@ -253,60 +347,40 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
   let finalKind: "initial" | "repair" = "initial"
   try {
     const extractedInitial = await extract("initial", renderedPrompt)
-    const initialNormalization = normalizeAuthorizationWireResult({
-      compiled,
-      sourceBundle: input.sourceBundle,
-      input: extractedInitial.result,
-    })
+    const initialNormalization = normalizeWire(extractedInitial.result)
     initialTransport = {
-      wireResult: extractedInitial.result,
+      wireResult: extractedInitial.result as AuthorizationWireResult,
       normalization: initialNormalization,
       rawResponse: extractedInitial.rawResponse,
       providerAttemptIds: extractedInitial.providerAttemptIds,
       outputAttemptId: extractedInitial.outputAttemptId,
     }
-    initial = initialNormalization.result
-      ? {
-        result: initialNormalization.result,
-        wireResult: extractedInitial.result,
-        normalization: initialNormalization,
-        rawResponse: extractedInitial.rawResponse,
-        providerAttemptIds: extractedInitial.providerAttemptIds,
-        outputAttemptId: extractedInitial.outputAttemptId,
-        validation: validateAuthorizationResult(compiled, initialNormalization.result, input.sourceBundle),
-      }
-      : undefined
+    initial = buildGenerationArtifact(initialTransport)
     const repairNeeded = initialNormalization.status === "invalid"
-      || (initial !== undefined && hasActionableDiagnostics(initial.validation))
+      || (initial !== undefined && hasActionableDiagnostics(initial.validation, initial.coverageValidation))
     if (input.options.maxDomainRepairs === 1 && repairNeeded) {
-      const repairPrompt = buildRepairPrompt(rendered, sourceContext, initialTransport!, initial?.validation)
+      const repairPrompt = buildRepairPrompt(
+        rendered,
+        sourceContext,
+        initialTransport,
+        initial?.validation,
+        initial?.coverageValidation,
+      )
       promptCharacters.repair = repairPrompt.characters
       const extractedRepair = await extract(
         "domain-repair",
         repairPrompt.prompt,
       )
-      const repairNormalization = normalizeAuthorizationWireResult({
-        compiled,
-        sourceBundle: input.sourceBundle,
-        input: extractedRepair.result,
-      })
+      const repairNormalization = normalizeWire(extractedRepair.result)
       repairTransport = {
-        wireResult: extractedRepair.result,
+        wireResult: extractedRepair.result as AuthorizationWireResult,
         normalization: repairNormalization,
         rawResponse: extractedRepair.rawResponse,
         providerAttemptIds: extractedRepair.providerAttemptIds,
         outputAttemptId: extractedRepair.outputAttemptId,
       }
-      if (repairNormalization.result) {
-        repair = {
-          result: repairNormalization.result,
-          wireResult: extractedRepair.result,
-          normalization: repairNormalization,
-          rawResponse: extractedRepair.rawResponse,
-          providerAttemptIds: extractedRepair.providerAttemptIds,
-          outputAttemptId: extractedRepair.outputAttemptId,
-          validation: validateAuthorizationResult(compiled, repairNormalization.result, input.sourceBundle),
-        }
+      repair = buildGenerationArtifact(repairTransport)
+      if (repair) {
         finalKind = "repair"
       }
     }
@@ -333,6 +407,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     const finalDiagnostics = [
       ...finalTransport.normalization.diagnostics,
       ...finalArtifact.validation.diagnostics,
+      ...(finalArtifact.coverageValidation?.diagnostics ?? []),
       ...(repairTransport && finalKind !== "repair" ? repairTransport.normalization.diagnostics : []),
     ]
     return finish({

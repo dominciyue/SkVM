@@ -8,7 +8,9 @@ import { compileAuthorizationTask } from "./semantics.ts"
 import type { AuthorizationTaskV0 } from "./schema.ts"
 import {
   AuthorizationWireResultV1Schema,
+  AuthorizationWireResultV2Schema,
   normalizeAuthorizationWireResult,
+  normalizeAuthorizationWireResultV2,
 } from "./transport.ts"
 
 const sourcePath = "inputs/generic/source.ts"
@@ -224,5 +226,57 @@ describe("AuthorizationWireResultV1", () => {
     expect(parsed.success).toBe(false)
     const serializedSchemaShape = Object.keys(AuthorizationWireResultV1Schema.shape)
     expect(serializedSchemaShape).toEqual(["schemaVersion", "results", "scopeClaim"])
+  })
+})
+
+describe("AuthorizationWireResultV2", () => {
+  it("normalizes the same canonical v0 result and retains a versioned coverage sidecar", () => {
+    const v1 = wire()
+    const v2 = {
+      ...v1,
+      schemaVersion: "source-authorization-assessment-wire/v2",
+      coverage: [{
+        requirementId: "control",
+        obligationId: "deny-save::save",
+        status: "addressed" as const,
+        explanation: "The control fact answers the analysis question.",
+        factPointers: ["/results/0/facts/control/0"],
+      }],
+    }
+    const normalized = normalizeAuthorizationWireResultV2({
+      compiled: compileAuthorizationTask(task()),
+      sourceBundle: bundle(),
+      input: v2,
+    })
+
+    expect(normalized.status).toBe("valid")
+    expect(normalized.normalizerVersion).toBe("authorization-wire-normalizer/v2")
+    expect(normalized.result?.schemaVersion).toBe("source-authorization-assessment-result/v0")
+    expect(normalized.coverage).toEqual(v2.coverage)
+    expect(normalized.wireResult?.schemaVersion).toBe("source-authorization-assessment-wire/v2")
+  })
+
+  it("keeps coverage strict and leaves the v1 schema unchanged", () => {
+    const v1 = wire()
+    const missingCoverage = {
+      ...v1,
+      schemaVersion: "source-authorization-assessment-wire/v2",
+    }
+    const malformedCoverage = {
+      ...missingCoverage,
+      coverage: [{
+        requirementId: "control",
+        obligationId: "deny-save::save",
+        status: "addressed",
+        explanation: "Answered.",
+        factPointers: [],
+        expectedFinding: "deny",
+      }],
+    }
+
+    expect(AuthorizationWireResultV2Schema.safeParse(missingCoverage).success).toBe(false)
+    expect(AuthorizationWireResultV2Schema.safeParse(malformedCoverage).success).toBe(false)
+    expect(AuthorizationWireResultV1Schema.safeParse(v1).success).toBe(true)
+    expect(AuthorizationWireResultV1Schema.safeParse({ ...v1, coverage: [] }).success).toBe(false)
   })
 })

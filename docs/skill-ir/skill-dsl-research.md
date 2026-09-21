@@ -613,7 +613,7 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 ### 7.21 X 完整能力阶段设计
 
-2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X5`：X0–X4 已完成，尚无 X 真实模型结果。
+2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X6`：X0–X5 已完成，尚无 X 真实模型结果。
 
 **为什么扩大本轮范围。** W 的模型消费与计量已经可用，继续只修旧案例会降低获取新信息的速度。现有 B/D 共用 canonical declaration、输出合同和宿主，主要差异位于领域方法指令。接下来既要检验这种组织方式，也要让作者实际写任务、用自备输入运行，并检验换项目后的语义适配。
 
@@ -628,6 +628,8 @@ X1 已把该原则落为 evaluator-only `authorization-evaluation-rubrics/v2`、
 **X4 实现结果。** `relations.ts` 以 strict schema 隔离单项 shape 错误，拒绝重复 requirement、陌生/歧义/不可运行 obligation、陌生或不同 expanded obligation 的 prerequisite 与 dependency cycle。候选 entry 只来自作者显式映射并稳定排序；cycle 或局部引用错误不会抹掉其他义务的有效 pending question。compiler 不写入 allow/deny、源码控制、攻击路径或适用性答案。独立复核未发现 critical/important，指出字符串组合 key 与 `author::entry` delimiter 可碰撞；两项先加红测，再分别改为结构化 tuple key 与 `%`/`:` segment escaping，普通已有 ID 不变。
 
 **覆盖记录。** 每项 coverage 关联 requirementId、expanded obligationId、addressed/unknown/not-applicable、说明及当前答案 fact pointers。addressed 表示已回应，语义仍需 review；required 不允许静默跳过，when-present 的不适用须有理由。缺部署事实可成为有内容的 unknown。若第二项目显示六类边界不合理，依据反例修订这一设计，不按项目名写成功分支。
+
+X5 已把这份记录接入版本化 `source-authorization-assessment-wire/v2`。只有显式提供 analysis requirements 的运行采用 v2，归一化结果仍是 canonical v0，coverage 独立保存为 sidecar；旧 wire/v1、run 与 replay 继续按原合同工作。`validateRelationCoverage` 机械检查遗漏、重复、陌生 requirement、错误 expanded obligation、同义务 fact pointer、required 跳过和 unknown 理由，并把正确关联的状态明确标为 `semanticSupport: unreviewed`，不从 citation 存在推断因果正确。宿主在同一条一次修复路径中返回可操作诊断；持续无效 coverage 以 diagnostics 结束，不能伪装完整交付。
 
 **输入、接口与兼容。** 一个 `authorization-assessment-input/v1` 文件包含 task v0、sourceRoot、显式 sources 和可选 analysisRequirements。相对路径以该输入文件为基准；普通使用不需要研究 caseId、manifest、oracle 或评审资料。计划增加 `loadLocalAuthorizationInput`、`compileAnalysisRequirements`、`validateRelationCoverage`，实现文件与测试位置见任务书。新 wire 扩展显式版本化，归一化生成 canonical v0 及 coverage sidecar；W 的 wire/v1 与历史评价继续可读。普通入口暂复用 benchmark 目录中的宿主，不借本轮重构整个运行架构。
 
@@ -967,6 +969,10 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 ### 2026-09-21 X4 analysis ledger compiler
 
 **X4-LEDGER-01。** `relations.test.ts` 先因模块缺失红灯，随后 strict requirement schema、局部诊断、同义务 prerequisite、cycle 隔离、when-present pending、跨 expanded obligation 展开、顺序稳定与无笛卡尔积转绿。窄只读复核发现 NUL 组合 key 及 `::` expanded ID segment 两个 minor collision；各自新增可复现红测后用结构化 key 与可逆 segment escaping 修正。聚焦 23/23，授权全套 93/93、500 assertions 与 typecheck 通过；无网络、模型或目标执行。X5 接通 coverage sidecar 与宿主机械验证。
+
+### 2026-09-21 X5 coverage sidecar 与宿主检查
+
+**X5-COVERAGE-01。** 新测试先分别暴露缺失的 `relation-result` 模块、wire/v2 导出和宿主仍按 v1 拒绝 v2 answer。实现后，v2 仅附加 coverage sidecar，canonical v0 不变；validator 检查 requirement/expanded obligation、required/when-present 状态、理由及同义务 source-backed fact pointer，把语义支持留作 `unreviewed`。宿主保存 initial/repair 的 raw wire、canonical、coverage 与诊断，并只复用既有一次确定性修复；持续无效 coverage 以 `completed-with-diagnostics` 收束。旧 v1 与 replay 回归继续通过。授权全套 105/105、547 assertions 和 typecheck 新鲜通过；独立只读复核无 critical/important，仅指出两个已有下层测试覆盖的 minor 测试粒度建议。无 provider 调用、网络获取或目标执行。X6 转入自备输入与 provider-free 检查。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 

@@ -3,6 +3,7 @@ import { createHash } from "node:crypto"
 import type { CompletionParams, LLMProvider, LLMResponse } from "../../providers/types.ts"
 import { ProviderNetworkError } from "../../providers/errors.ts"
 import type { AuthorizationResultV0, AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
+import type { AnalysisRequirement } from "../../task-dsl/authorization/relations.ts"
 import { buildAuthorizationSourceCatalog, type SourceBundle } from "./inputs.ts"
 import { runAuthorizationTask } from "./host.ts"
 
@@ -146,6 +147,31 @@ function makeWireAnswer(
   }
 }
 
+function makeAnalysisRequirements(): AnalysisRequirement[] {
+  return [{
+    id: "control",
+    kind: "authorization-decision",
+    obligationIds: ["deny-unrelated-update"],
+    question: "Which visible authorization control decides this update?",
+    applicability: "required",
+    prerequisiteIds: [],
+  }]
+}
+
+function makeWireAnswerV2(coverage: unknown[] = [{
+  requirementId: "control",
+  obligationId: "deny-unrelated-update::update-record",
+  status: "addressed",
+  explanation: "The control fact answers the declared analysis question.",
+  factPointers: ["/results/0/facts/control/0"],
+}]): Record<string, unknown> {
+  return {
+    ...makeWireAnswer(),
+    schemaVersion: "source-authorization-assessment-wire/v2",
+    coverage,
+  }
+}
+
 function toolResponse(argumentsValue: Record<string, unknown>, name = "submit_authorization_result"): LLMResponse {
   return {
     text: "",
@@ -243,6 +269,79 @@ describe("runAuthorizationTask", () => {
       .not.toHaveProperty("quote")
     expect(continuationCalls.value).toBe(0)
     expect(run.attempts[0]?.request.executableTools).toBe(false)
+  })
+
+  it("uses wire v2 with a mechanically validated coverage sidecar when requirements are supplied", async () => {
+    const calls: CompletionParams[] = []
+    const run = await runAuthorizationTask({
+      task: makeTask(),
+      sourceBundle: makeBundle(),
+      analysisRequirements: makeAnalysisRequirements(),
+      provider: sequenceProvider([toolResponse(makeWireAnswerV2())], calls, { value: 0 }),
+      arm: "D",
+      options: { timeoutMs: 1_000, maxTokens: 2_000, maxDomainRepairs: 1 },
+    })
+
+    expect(run.status).toBe("completed")
+    expect(run.analysisPlan?.status).toBe("ready")
+    expect(run.initial?.result.schemaVersion).toBe("source-authorization-assessment-result/v0")
+    expect(run.initial?.relationCoverage).toHaveLength(1)
+    expect(run.initial?.coverageValidation).toEqual(expect.objectContaining({
+      status: "valid",
+      semanticSupport: "unreviewed",
+    }))
+    expect(run.initial?.normalization?.normalizerVersion).toBe("authorization-wire-normalizer/v2")
+    expect(calls[0]?.messages[0]?.content).toContain("Which visible authorization control decides this update?")
+    const toolSchema = calls[0]?.tools?.[0]?.inputSchema as { properties?: Record<string, unknown> }
+    expect(toolSchema.properties).toHaveProperty("coverage")
+    expect(toolSchema.properties).not.toHaveProperty("taskId")
+    expect(calls).toHaveLength(1)
+  })
+
+  it("repairs invalid coverage once using only mechanical diagnostics", async () => {
+    const calls: CompletionParams[] = []
+    const run = await runAuthorizationTask({
+      task: makeTask(),
+      sourceBundle: makeBundle(),
+      analysisRequirements: makeAnalysisRequirements(),
+      provider: sequenceProvider([
+        toolResponse(makeWireAnswerV2([])),
+        toolResponse(makeWireAnswerV2()),
+      ], calls, { value: 0 }),
+      arm: "B",
+      options: { timeoutMs: 1_000, maxTokens: 2_000, maxDomainRepairs: 1 },
+    })
+
+    expect(run.status).toBe("completed")
+    expect(run.initial?.coverageValidation?.status).toBe("invalid")
+    expect(run.initial?.coverageValidation?.diagnostics).toContainEqual(expect.objectContaining({
+      code: "missing-relation-coverage",
+    }))
+    expect(run.repair?.coverageValidation?.status).toBe("valid")
+    expect(run.finalKind).toBe("repair")
+    expect(calls).toHaveLength(2)
+    expect(calls[1]?.messages[0]?.content).toContain("missing-relation-coverage")
+    expect(calls[1]?.messages[0]?.content.toLowerCase()).not.toContain("expected finding")
+  })
+
+  it("does not report complete delivery when coverage remains invalid after repair", async () => {
+    const invalid = makeWireAnswerV2([])
+    const run = await runAuthorizationTask({
+      task: makeTask(),
+      sourceBundle: makeBundle(),
+      analysisRequirements: makeAnalysisRequirements(),
+      provider: sequenceProvider([
+        toolResponse(invalid),
+        toolResponse(invalid),
+      ], [], { value: 0 }),
+      arm: "D",
+      options: { timeoutMs: 1_000, maxTokens: 2_000, maxDomainRepairs: 1 },
+    })
+
+    expect(run.status).toBe("completed-with-diagnostics")
+    expect(run.finalKind).toBe("repair")
+    expect(run.repair?.coverageValidation?.status).toBe("invalid")
+    expect(run.repair?.result).toBeDefined()
   })
 
   it("preserves initial diagnostics and performs at most one oracle-free domain repair", async () => {

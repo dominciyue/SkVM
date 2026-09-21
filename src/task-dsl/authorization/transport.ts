@@ -7,6 +7,10 @@ import {
 } from "../../benchmarks/authorization-dsl/inputs.ts"
 import type { CompiledAuthorizationTask } from "./semantics.ts"
 import type { AuthorizationResultV0 } from "./schema.ts"
+import {
+  RelationCoverageListSchema,
+  type RelationCoverage,
+} from "./relation-result.ts"
 
 const NonEmptyString = z.string().trim().min(1)
 
@@ -49,6 +53,16 @@ export const AuthorizationWireResultV1Schema = z.object({
 
 export type AuthorizationWireResultV1 = z.infer<typeof AuthorizationWireResultV1Schema>
 
+export const AuthorizationWireResultV2Schema = AuthorizationWireResultV1Schema
+  .omit({ schemaVersion: true })
+  .extend({
+    schemaVersion: z.literal("source-authorization-assessment-wire/v2"),
+    coverage: RelationCoverageListSchema,
+  })
+  .strict()
+
+export type AuthorizationWireResultV2 = z.infer<typeof AuthorizationWireResultV2Schema>
+
 export interface AuthorizationTransportDiagnostic {
   code: string
   message: string
@@ -64,6 +78,18 @@ export interface AuthorizationWireNormalization {
   wireResult?: AuthorizationWireResultV1
   sourceCatalog?: AuthorizationSourceCatalog
   result?: AuthorizationResultV0
+}
+
+export interface AuthorizationWireNormalizationV2 {
+  normalizerVersion: "authorization-wire-normalizer/v2"
+  canonicalResultVersion: "source-authorization-assessment-result/v0"
+  coverageVersion: "authorization-relation-coverage/v1"
+  status: "valid" | "invalid"
+  diagnostics: AuthorizationTransportDiagnostic[]
+  wireResult?: AuthorizationWireResultV2
+  sourceCatalog?: AuthorizationSourceCatalog
+  result?: AuthorizationResultV0
+  coverage?: RelationCoverage[]
 }
 
 function transportDiagnostic(code: string, message: string, path: string): AuthorizationTransportDiagnostic {
@@ -223,5 +249,48 @@ export function normalizeAuthorizationWireResult(input: {
     wireResult,
     sourceCatalog: built.catalog,
     ...(canonicalResult ? { result: canonicalResult } : {}),
+  }
+}
+
+export function normalizeAuthorizationWireResultV2(input: {
+  compiled: CompiledAuthorizationTask
+  sourceBundle: SourceBundle
+  input: unknown
+}): AuthorizationWireNormalizationV2 {
+  const base = {
+    normalizerVersion: "authorization-wire-normalizer/v2" as const,
+    canonicalResultVersion: "source-authorization-assessment-result/v0" as const,
+    coverageVersion: "authorization-relation-coverage/v1" as const,
+  }
+  const parsed = AuthorizationWireResultV2Schema.safeParse(input.input)
+  if (!parsed.success) {
+    return {
+      ...base,
+      status: "invalid",
+      diagnostics: parsed.error.issues.map(issue => transportDiagnostic(
+        "wire-schema-invalid",
+        issue.message,
+        formatPath(issue.path),
+      )),
+    }
+  }
+
+  const { coverage, ...wireWithoutCoverage } = parsed.data
+  const v1 = normalizeAuthorizationWireResult({
+    compiled: input.compiled,
+    sourceBundle: input.sourceBundle,
+    input: {
+      ...wireWithoutCoverage,
+      schemaVersion: "source-authorization-assessment-wire/v1",
+    },
+  })
+  return {
+    ...base,
+    status: v1.status,
+    diagnostics: v1.diagnostics,
+    wireResult: parsed.data,
+    ...(v1.sourceCatalog ? { sourceCatalog: v1.sourceCatalog } : {}),
+    ...(v1.result ? { result: v1.result } : {}),
+    coverage,
   }
 }

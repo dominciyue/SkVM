@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、现有 Zod、SkVM provider/telemetry；一个轻量本地脚本和公开函数，不另建 CLI 框架、Web 页面或通用工作流引擎。
 
-- 制定日期：2026-09-21；状态：`active-X5`（X0–X4 已完成；coverage 与宿主检查推进中）。
+- 制定日期：2026-09-21；状态：`active-X6`（X0–X5 已完成；自备输入入口推进中）。
 - 基线：W 发布 `fa6b064`；工程已完成，原始三例结论 6/6 正确、关键事实支持 4/6，D 有较低调用/token 的初步观察。
 - 工作分支：`skill-ir-aot`；仅向用户 `origin` 推送。保留其他任务的源码改动与本地材料。
 - 设计正文：[研究总文档 §7.21](../../skill-ir/skill-dsl-research.md#721-x-完整能力阶段设计)；持续合同：[spec 14.34](../../skill-ir/skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。不另建一份 design 或逐阶段总结 Markdown。
@@ -106,6 +106,8 @@ validateRelationCoverage(plan: AnalysisPlan, canonical: AuthorizationResultV0, c
 
 X4 已实现 `AnalysisRequirementSchema`、`AnalysisRequirementsSchema` 与 `compileAnalysisRequirements`。编译逐 requirement 隔离 strict shape 错误，拒绝重复 requirement、陌生/歧义/不可运行 obligation、陌生或不同义务 prerequisite 及 dependency cycle；有局部错误时仍保留独立有效 ledger，输出按 expanded obligation 与 requirement ID 稳定排序。内部组合 key 使用结构化 tuple；既有 `author::entry` expanded ID 对 `%` 和 `:` 做 segment escaping，普通 ID 字节不变，避免合法特殊 ID 碰撞。ledger entry 只有 kind/question/applicability/prerequisite/pending 状态，不含源码或政策答案。
 
+X5 新增 `source-authorization-assessment-wire/v2` 与 `authorization-wire-normalizer/v2`；v2 只在显式 analysis requirements 时使用，并在 v1 的窄结果上增加 `authorization-relation-coverage/v1` sidecar，canonical result 仍为 v0。`validateRelationCoverage` 对精确 requirement/expanded-obligation pair、重复/缺失/陌生项、同义务 fact pointer 和 required/when-present 状态做机械验证，始终把语义支持留为 `unreviewed`。host 保存 raw wire、canonical、coverage 及两类 diagnostics，coverage 错误复用一次既有 repair；持续错误保留 canonical 但只能 `completed-with-diagnostics`。未提供 requirements 的旧 wire/v1、runner 和 replay 不变。
+
 普通入口交付后的验收命令（本计划阶段尚不可执行）：
 
 ```powershell
@@ -179,11 +181,11 @@ check 应输出字段、输入和分析要求检查结果且零模型调用；ru
 
 ### X5：接通模型 coverage 与宿主检查
 
-- [ ] 在新 wire 版本中附 coverage，保持原 canonical v0 作为结论/事实容器。为 missing/duplicate/foreign requirement、错误 expanded ID、悬空 fact pointer、required 被跳过、unknown 无理由写失败测试。
-- [ ] 实现 `validateRelationCoverage`，将规范化失败与语义 unreviewed 区分。`addressed` 必须指向本次相应义务的事实；有引用不自动表示因果正确。
-- [ ] `not-applicable` 仅用于 when-present，必须说明源码中为何无该路径；无法判断是否存在则为 unknown，不允许空对象消失。
-- [ ] host 保存 canonical result、coverage sidecar、两者诊断和 initial/repair 原件；复用 W 的一次可操作修复，禁止追加隐形语义 reviewer 调用。
-- [ ] 运行关系与 host 聚焦测试，覆盖错误 coverage 不被当成完整交付，同时旧 wire/v1 和历史 replay 仍可用。
+- [x] 在新 wire 版本中附 coverage，保持原 canonical v0 作为结论/事实容器。为 missing/duplicate/foreign requirement、错误 expanded ID、悬空 fact pointer、required 被跳过、unknown 无理由写失败测试。
+- [x] 实现 `validateRelationCoverage`，将规范化失败与语义 unreviewed 区分。`addressed` 必须指向本次相应义务的事实；有引用不自动表示因果正确。
+- [x] `not-applicable` 仅用于 when-present，必须说明源码中为何无该路径；无法判断是否存在则为 unknown，不允许空对象消失。
+- [x] host 保存 canonical result、coverage sidecar、两者诊断和 initial/repair 原件；复用 W 的一次可操作修复，禁止追加隐形语义 reviewer 调用。
+- [x] 运行关系与 host 聚焦测试，覆盖错误 coverage 不被当成完整交付，同时旧 wire/v1 和历史 replay 仍可用。
 
 ### X6：实现自备输入入口
 

@@ -53,6 +53,7 @@ export interface AnalysisDiagnostic {
   message: string
   requirementId?: string
   obligationId?: string
+  path?: string
 }
 
 export interface AnalysisLedgerEntry {
