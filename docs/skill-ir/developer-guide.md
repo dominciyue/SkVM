@@ -69,6 +69,15 @@ bun ./src/benchmarks/authorization-dsl/capability-evaluate.ts replay --config=./
 
 若单元已有合法终态或 dispatch 后缺终态，恢复只记录并跳过，不自动重发；只有 session 已初始化且没有 dispatch artifact 时可建立新 session 继续。`dispatch-claim.json`、`unit-result.json` 和 local session artifacts 都绑定 config/revision/unit/task/model/arm/input；不一致时在 provider 创建前失败。真实运行前必须先提交配置及其 `implementationRevision`。
 
+Y7的P/L/C价值面板使用独立study runner，不改写上述历史capability配置：
+
+```powershell
+bun ./src/benchmarks/authorization-dsl/value-study.ts check --config=./results/skill-ir/skill-dsl-research/development/authorization-transfer-value-v1/study/experiment-config-v1.json
+bun ./src/benchmarks/authorization-dsl/value-study.ts run --config=./results/skill-ir/skill-dsl-research/development/authorization-transfer-value-v1/study/experiment-config-v1.json
+```
+
+`check`只检查五个公开development任务、条件request、15单元轮换和prompt隔离，不初始化provider或读取evaluator内容。`run`将`studyArm`与`renderArm=B`同时绑定到unit/session/result；P保存plain public-question snapshot且`ledgerGenerated=false`，L/C保存实际plan。冻结实现为`4524bfe25ec4c8cc66948872609f05f56c91512e`，配置SHA为`b0aa6278c14526e95be138cc56c5325f911c58a85f1b6396b55601827b27140b`；Y7 mock用exact config临时副本和空evaluator占位完成15/15，只验证机械链，不进入真实结果分母。
+
 X11 的一次有依据修订没有扩展主面板 runner，而是用同一普通 `local-run.ts` 为两个受影响任务的 B/D 各建一个 session。冻结身份在 `revision-config-v1.json`，新输出 review 绑定在 `revision-review-plan-v1.json`；以下命令只从已存在的 run/source/review policy 离线重算四份评价与独立 revision summary，不创建 provider：
 
 ```powershell

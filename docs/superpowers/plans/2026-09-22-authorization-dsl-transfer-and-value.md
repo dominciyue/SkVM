@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 SkVM provider 与 CLI。机器结果写一处，研究与问题复盘持续追加研究总文档，不新增 HTML、通用工作流引擎或整套产品 CLI。
 
-- 日期：2026-09-22；状态：`in-progress`。Y0–Y6 已完成，机器状态位于本任务书指定的新结果根；当前进入 Y7。
+- 日期：2026-09-22；状态：`in-progress`。Y0–Y7 已完成，机器状态位于本任务书指定的新结果根；当前进入 Y8。
 - 代码基线：`abe470f2a887f35ca1d6782cfbd5343965856620`；接手时读取本任务书登记提交后的最新 HEAD。
 - 分支：`skill-ir-aot`；只提交归属文件并推送用户 `origin/skill-ir-aot`。
 - 设计：[研究总文档 §7.22](../../skill-ir/skill-dsl-research.md#722-y-条件表达默认迁移与价值验证)；持续合同：spec 14.34。
@@ -175,7 +175,7 @@ init/check/inspect 不初始化 provider；run 显式使用 `--model`。没有 a
 - [x] 新 study 配置明确 studyArm 与历史 renderArm分离；P 不借用一个仍带 ledger 的 N 冒充无 helper；保留同一 host、来源和基础计量。
 - [x] 失败测试涵盖三臂公共事实/政策/源码等价、各自真实干预差异、P 文字条件解释正常得分、C 空分支不凭字段得分，以及 oracle 路径不进入 prompt。
 - [x] 复用 evaluator 的逐义务语义 review，输出每臂质量、结构问题、first response/after fallback/after repair、分字段 token/cache、调用和时间。实际费用未知明确保留。
-- [ ] 配置开发 15 单元、预定轮换顺序与停止/修订规则；mock dry-run一次通过后记录实现 commit 和配置，不叠加新归档链。
+- [x] 配置开发 15 单元、预定轮换顺序与停止/修订规则；mock dry-run一次通过后记录实现 commit 和配置，不叠加新归档链。
 
 ### Y8：真实开发面板
 - [ ] 用 `xty/gpt-5.6-sol` 同路由、temperature 0、auto-probe off，单调用180秒、单元600秒、max output6000、最多4 dispatch、1次有诊断修复。Y7若输出规模需调整，在所有调用前统一记录。

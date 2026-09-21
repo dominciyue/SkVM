@@ -2,13 +2,13 @@
   "schemaVersion": "authorization-dsl-transfer-value-development/v1",
   "taskbook": "docs/superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md",
   "createdAt": "2026-09-22T00:51:02+08:00",
-  "updatedAt": "2026-09-22T03:04:01+08:00",
+  "updatedAt": "2026-09-22T03:12:00+08:00",
   "branch": "skill-ir-aot",
   "startHead": "b3a1a44",
   "codeBaseline": "abe470f2a887f35ca1d6782cfbd5343965856620",
-  "stage": "Y7",
+  "stage": "Y8",
   "taskStatus": "in-progress",
-  "nextAction": "Commit the tested Y7 study implementation, then freeze the five-case/15-unit rotation config against that implementation revision and complete one mock dry-run.",
+  "nextAction": "Commit the frozen Y7 config and mock evidence, then run the 15-unit real development panel with xty/gpt-5.6-sol under the recorded budgets and no automatic resend.",
   "stages": {
     "Y0": {
       "status": "completed",
@@ -73,12 +73,14 @@
       ]
     },
     "Y7": {
-      "status": "in-progress",
+      "status": "completed",
       "evidence": [
         "The first focused test failed because value-study.ts did not exist; the implementation now separates studyArm P/L/C from historical renderArm and fixes every study unit to renderArm B.",
         "P receives a complete natural declaration plus the same public questions but no model-visible ledger, coverage, or condition sidecar and uses wire/v1; L uses ledger/wire-v2; C adds condition analysis/wire-v3.",
         "Study summaries consume evaluator-v2 semantic judgments rather than scoring field presence, and separately record structural diagnostics, first response, fallback, repair, tokens/cache, calls, time, and unknown actual USD.",
-        "A three-unit mock execution and resume completed without provider reuse on terminal units; the frozen five-case/15-unit config and implementation revision remain pending."
+        "A three-unit mock execution and resume completed without provider reuse on terminal units.",
+        "Implementation revision 4524bfe25ec4c8cc66948872609f05f56c91512e was committed before the five-case/15-unit config; the frozen config SHA-256 is b0aa6278c14526e95be138cc56c5325f911c58a85f1b6396b55601827b27140b.",
+        "Provider-free config check returned 5 cases, 15 units, and zero diagnostics. An exact-config temporary-copy mechanical mock completed all 15 units with no evaluator/oracle content exposed, no remote provider, and no target execution."
       ]
     },
     "Y8": { "status": "planned", "evidence": [] },
@@ -135,7 +137,7 @@
     "conditionLayer": "opt-in"
   },
   "unresolvedIssues": [
-    "Condition wire/v3, authoring normalization, and the top-level CLI are integrated, but the P/L/C study and third-project migration remain.",
+    "The P/L/C study is frozen but its real 15-unit generation/evaluation and the third-project migration remain.",
     "Actual provider USD is not reported and must remain unknown unless the provider supplies it."
   ],
   "operations": {
@@ -191,9 +193,14 @@
     "y7StudyWiring": {
       "focused": { "passed": 5, "failed": 0, "assertions": 59 },
       "integrationRegression": { "passed": 37, "failed": 0, "assertions": 389 },
+      "authorizationSuite": { "passed": 160, "failed": 0, "assertions": 1079 },
       "typecheck": "passed",
       "redState": "value-study.ts module missing",
-      "mockUnits": 3,
+      "implementationRevision": "4524bfe25ec4c8cc66948872609f05f56c91512e",
+      "frozenConfigSha256": "b0aa6278c14526e95be138cc56c5325f911c58a85f1b6396b55601827b27140b",
+      "configCheck": { "status": "valid", "cases": 5, "units": 15, "diagnostics": 0 },
+      "coreMockUnits": 3,
+      "frozenConfigMock": { "passed": 1, "failed": 0, "assertions": 55, "completedUnits": 15 },
       "remoteProviderCalls": 0,
       "targetExecutions": 0
     }
