@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "authorization-migration-authoring-assistance/v1",
+  "stage": "Y10",
+  "implementationBase": "f34da6e323b0282f5c2ab8e305cad7ed115dd32b",
+  "authorMode": "development-agent-assisted-public-source-migration",
+  "projectSelection": {
+    "manualProfessionalJudgmentUsed": true,
+    "description": "The development agent chose three bounded authorization relationships after the metadata order and inclusion rule were frozen. The choice was based on locatable public policy controls and evaluation feasibility, not model performance, label balance, vulnerability status, or protected inputs."
+  },
+  "sourceReading": {
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "selectedFiles": [
+      { "path": "LICENSE", "relevantRanges": ["1-21"], "use": "public-license eligibility" },
+      { "path": "routers/api/v1/api.go", "relevantRanges": ["451-459", "1364-1372", "1642-1766"], "use": "shared role middleware and route binding" },
+      { "path": "routers/api/v1/repo/collaborators.go", "relevantRanges": ["247-301"], "use": "self/repository-admin/site-admin permission-query control" },
+      { "path": "routers/api/v1/repo/issue_assignee.go", "relevantRanges": ["20-65", "189-238"], "use": "issue-write control and assignee mutation" },
+      { "path": "routers/api/v1/repo/issue_lock.go", "relevantRanges": ["15-81"], "use": "secondary writer control and lock effect" },
+      { "path": "tests/integration/api_repo_collaborator_test.go", "relevantRanges": ["92-147"], "use": "evaluator-only public integration evidence" },
+      { "path": "tests/integration/api_issue_test.go", "relevantRanges": ["500-568"], "use": "evaluator-only public integration evidence" },
+      { "path": "tests/integration/api_issue_lock_test.go", "relevantRanges": ["22-74"], "use": "evaluator-only public integration evidence" }
+    ],
+    "consideredThenExcluded": [
+      {
+        "path": "routers/api/v1/repo/issue.go",
+        "relevantRange": "655-820",
+        "reason": "The poster-or-writer edit relation had less direct public negative-test evidence than the selected assignee relation; it was excluded before generation and was not replaced based on a model answer."
+      }
+    ],
+    "accidentalBroadRead": {
+      "path": "routers/api/v1/api.go",
+      "range": "481-1949",
+      "reason": "A paginated local-file continuation returned the remainder of the file. It remained public candidate source read after method freeze and did not cross a protected-input boundary."
+    }
+  },
+  "authoredOutput": {
+    "taskCount": 3,
+    "obligationCount": 3,
+    "conditionCount": 16,
+    "conditionBindingCount": 8,
+    "publicSourceSnapshotFileCount": 7,
+    "evaluatorCriterionCount": 18,
+    "taskSpecificAnalysisRequirements": false,
+    "analysisProfile": "authorization-core-v1",
+    "analysisProfileOrigin": "derived",
+    "sharedTaskRequiredAnalysis": {
+      "identicalAcrossTasks": true,
+      "itemCountPerTask": 2,
+      "reason": "source-authorization-assessment/v0 requires public requiredAnalysis text; the same generic completion contract is used for all tasks, while the six analysis requirements are deterministically derived from the default profile."
+    }
+  },
+  "normalizationHistory": [
+    {
+      "sequence": 1,
+      "operation": "authorization init",
+      "taskCountAttempted": 1,
+      "status": "needs-input",
+      "diagnostics": [
+        { "code": "author-task-schema-invalid", "path": "task.requiredAnalysis", "message": "Required" }
+      ],
+      "repair": "Added the same two-item generic public completion contract to all three task declarations; no task-specific analysis profile or answer was added."
+    },
+    {
+      "sequence": 2,
+      "operation": "authorization init",
+      "taskCountAttempted": 3,
+      "status": "created",
+      "sourceRefVerification": "authored",
+      "derivedRequirementCountPerTask": 6
+    },
+    {
+      "sequence": 3,
+      "operation": "authorization check",
+      "taskCountAttempted": 3,
+      "status": "valid",
+      "diagnosticCount": 0
+    },
+    {
+      "sequence": 4,
+      "operation": "bounded-author-review",
+      "taskCountAttempted": 1,
+      "status": "revised",
+      "detail": "Removed an assignability condition not directly represented by the selected source crop, regenerated that normalized assessment, and retained the existing-user condition that has an explicit error branch."
+    },
+    {
+      "sequence": 5,
+      "operation": "authorization check",
+      "taskCountAttempted": 3,
+      "status": "valid",
+      "diagnosticCount": 0,
+      "profile": "authorization-core-v1",
+      "conditionPlanEntryCountPerTask": 1
+    }
+  ],
+  "snapshotVerification": {
+    "method": "byte-exact line comparison after newline normalization",
+    "checks": [
+      { "id": "collaborators", "upstream": "routers/api/v1/repo/collaborators.go:247-301", "snapshot": "gitea-collaborator-cross-user-permission/source/collaborators.go:4-58", "exact": true },
+      { "id": "issue-assignee-entry", "upstream": "routers/api/v1/repo/issue_assignee.go:20-65", "snapshot": "gitea-issue-assignee-nonwriter/source/issue_assignee.go:4-49", "exact": true },
+      { "id": "issue-assignee-helper", "upstream": "routers/api/v1/repo/issue_assignee.go:189-238", "snapshot": "gitea-issue-assignee-nonwriter/source/issue_assignee.go:53-102", "exact": true },
+      { "id": "req-admin", "upstream": "routers/api/v1/api.go:451-459", "snapshot": "gitea-issue-lock-writer-nonadmin/source/route_guard.go:4-12", "exact": true },
+      { "id": "lock-route", "upstream": "routers/api/v1/api.go:1741-1745", "snapshot": "gitea-issue-lock-writer-nonadmin/source/route_guard.go:16-20", "exact": true },
+      { "id": "lock-handler", "upstream": "routers/api/v1/repo/issue_lock.go:15-81", "snapshot": "gitea-issue-lock-writer-nonadmin/source/issue_lock.go:4-70", "exact": true }
+    ]
+  },
+  "accounting": {
+    "authoringInitCalls": 4,
+    "authoringCheckCalls": 6,
+    "providerCalls": 0,
+    "targetExecutions": 0,
+    "deploymentContacts": 0,
+    "humanParticipants": 0,
+    "humanTimeMinutes": null,
+    "humanSavingsClaimed": false,
+    "actualUsd": null,
+    "actualUsdStatus": "unknown"
+  },
+  "sourceRefClaim": {
+    "normalizedAssessmentValue": "authored",
+    "externalAcquisitionEvidence": "verified fixed git ref in source-acquisition-v1.json",
+    "reason": "The public normalizer intentionally records authored sourceRef provenance; repository acquisition verification is retained separately and is not relabeled inside the assessment."
+  },
+  "claimBoundary": "This trace measures development-agent source reading, edits, diagnostics, and deterministic checks. It is not evidence of human time savings, target execution, deployment behavior, or whole-repository completeness."
+}

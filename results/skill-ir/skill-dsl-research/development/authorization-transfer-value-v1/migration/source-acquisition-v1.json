@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "authorization-migration-source-acquisition/v1",
+  "stage": "Y10",
+  "methodFreeze": "y10-method-freeze-v1.json",
+  "selection": {
+    "candidateRank": 1,
+    "repository": "https://github.com/go-gitea/gitea",
+    "rule": "first-eligible-candidate",
+    "decision": "included",
+    "remainingCandidatesInspectedAfterEligibility": false,
+    "manualProfessionalJudgmentUsed": true,
+    "judgmentBoundary": "The development agent selected bounded authorization relationships and source crops after the metadata order was frozen. Selection did not use model outputs, labels, vulnerabilities, or protected inputs."
+  },
+  "metadataEvidence": {
+    "provider": "official-github-api-and-git",
+    "fullName": "go-gitea/gitea",
+    "private": false,
+    "archived": false,
+    "fork": false,
+    "defaultBranch": "main",
+    "licenseSpdx": "MIT",
+    "updatedAt": "2026-09-21T20:53:45Z",
+    "fixedSourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "fixedCommitTime": "2026-09-21T12:23:03-04:00",
+    "fixedCommitSubject": "chore(deps): update dependencies (#39367)",
+    "licensePath": "LICENSE",
+    "licenseBlobSha": "a8d4b49dd073a4a38a7e58385eeff7cc52568697"
+  },
+  "eligibility": {
+    "publiclyReadableLicense": true,
+    "explicitPolicyBasis": true,
+    "locatableAuthorizationEntry": true,
+    "distinctPermissionRelationships": 3,
+    "eligible": true,
+    "reasons": [
+      "MIT license bytes are available at the fixed commit.",
+      "The fixed API source contains explicit 403 authorization branches and route middleware.",
+      "Public integration tests exercise collaborator self/admin permission queries, non-writer assignee denial, and non-admin issue-lock denial.",
+      "The three bounded tasks cover self-versus-other access, repository issue-write permission, and repository/site administrator gates."
+    ]
+  },
+  "cache": {
+    "path": "D:/skill优化/.cache/y10-go-gitea-gitea-fc28937",
+    "cloneMode": "shallow partial clone, initially no checkout",
+    "remote": "https://github.com/go-gitea/gitea.git",
+    "retained": true,
+    "targetExecution": false
+  },
+  "acquisitionEvents": [
+    {
+      "sequence": 1,
+      "operation": "metadata-and-license-query",
+      "status": "completed",
+      "provider": "gh api"
+    },
+    {
+      "sequence": 2,
+      "operation": "fixed-ref-discovery",
+      "status": "completed",
+      "provider": "git ls-remote"
+    },
+    {
+      "sequence": 3,
+      "operation": "shallow-partial-clone",
+      "status": "completed"
+    },
+    {
+      "sequence": 4,
+      "operation": "selected-blob-hydration",
+      "status": "retryable-error",
+      "detail": "The first partial-clone restore could not read the LICENSE and issue_lock.go blobs; no task input was changed or dropped."
+    },
+    {
+      "sequence": 5,
+      "operation": "fixed-ref-fetch-without-filter",
+      "status": "completed",
+      "detail": "The same fixed ref was fetched and all selected blobs were then materialized."
+    }
+  ],
+  "fixedFiles": [
+    { "path": "LICENSE", "blobSha": "a8d4b49dd073a4a38a7e58385eeff7cc52568697", "role": "license" },
+    { "path": "routers/api/v1/api.go", "blobSha": "8953647a99aa918d96512e9a170722427be5430a", "role": "route-and-middleware-policy" },
+    { "path": "routers/api/v1/repo/collaborators.go", "blobSha": "bf74299f3d505ec75cb47d55dc3189f063fa5157", "role": "cross-user-permission-control" },
+    { "path": "routers/api/v1/repo/issue_assignee.go", "blobSha": "adc0240eee162e928837ff7ab4431ff9be150ce9", "role": "issue-writer-control" },
+    { "path": "routers/api/v1/repo/issue_lock.go", "blobSha": "14f2768fe3114d99ad85898b86025e4e2c9741fd", "role": "issue-lock-effect" },
+    { "path": "tests/integration/api_repo_collaborator_test.go", "blobSha": "00afa3ea47955dc281716db7033d17743cb9e7ca", "role": "evaluator-evidence" },
+    { "path": "tests/integration/api_issue_test.go", "blobSha": "b77775d1730427919e704137af5601bde0f11a8d", "role": "evaluator-evidence" },
+    { "path": "tests/integration/api_issue_lock_test.go", "blobSha": "86f7b0eab2380faa0a68def58f73b196cde92e78", "role": "evaluator-evidence" }
+  ],
+  "isolation": {
+    "protectedHeldOutRead": false,
+    "q1ReserveRead": false,
+    "readinessInputRead": false,
+    "prospectiveInputRead": false,
+    "targetOrDeploymentExecuted": false
+  }
+}

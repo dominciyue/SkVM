@@ -667,7 +667,7 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 
 ### 7.22 Y 条件表达、默认迁移与价值验证
 
-2026-09-22 用户确认沿用“分类确定范围、按类/任务设计 DSL、效果包含多维收益”的路线，并授权任务书写完后派发新线程连续开发。新任务为 [Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)，此处登记设计与逐阶段结果；Y0–Y9 已完成，当前进入第三项目迁移。开发模型 `gpt-5.6-sol / max` 与实验 provider 设置分别记录。
+2026-09-22 用户确认沿用“分类确定范围、按类/任务设计 DSL、效果包含多维收益”的路线，并授权任务书写完后派发新线程连续开发。新任务为 [Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)，此处登记设计与逐阶段结果；Y0–Y10 已完成，当前进入第三项目迁移运行。开发模型 `gpt-5.6-sol / max` 与实验 provider 设置分别记录。
 
 **复核发现。** X 的 23 个单位来自五任务和两项目；最终标签正确19/23，完整成功14/23。143条coverage为125 addressed、5 unknown、13 not-applicable；必要分析事实supported与coverage-valid不能合写成23次正确判断。真实面板使用逐任务问题清单，默认六类profile仍缺新项目直接迁移证据。Y1 已先以两项失败测试复现 CLI 省略arm为B、公开check/run函数仍默认D的分歧，再把两个公开默认统一为B；显式D和旧session不变，示例README同步。sourceIdentity当前是作者声明互校及字节绑定，普通界面须说明来源核验状态。
 
@@ -694,6 +694,8 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 评价实现先用红测补上两处边界：review answer pointer可指向同一hash-bound wire中的coverage/condition sidecar；候选选择按缺失的解释 criterion 数量比较，而不是把所有partial单元压成同一个计数。最终P/L/C均为5/5结论和必要语义正确；解释缺口分别为2/2/1，因此按预定次序选择C用于有限迁移比较。这个增量只来自trusted-header条件枚举；C同时使用11次调用和101,151 known tokens，L为8次和59,952，P为6次和28,050。故当前是一个窄条件完整性增益及明显运行开销取舍，不改变ordinary默认B/L，C仍为opt-in。离线replay以0模型调用、0目标执行重现summary SHA-256 `41fd0b9...b45c`，实际USD继续unknown。
 
 **Y10 读取新项目之前的方法冻结。** 提交`76b1c13a`之后、读取任何候选源码/README/政策正文之前，机器记录固定C为结构化迁移候选，ordinary默认仍为B/ledger，迁移只用`authorization-core-v1`而禁止task-specific requirements。每任务P/C各两次fresh context，第二次反序；零基偶数任务P-C/C-P，奇数任务C-P/P-C。正常三任务12单元，只有两项合格则8单元，不替换失败任务或单元。metadata-only候选顺序为Gitea、Vikunja、Memos；按公开非归档、非既有项目fork、许可、固定commit，再按政策依据、authorization entry、至少两种权限关系和可封闭源码筛选，遇首个合格即停止，不能按答案难度或标签组合换项目。该迁移是method-fixed development evidence，不冒充旧受保护held-out。
+
+**Y10 第三项目获取与任务冻结。** 首个候选`go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b`满足公开、非fork/归档、MIT许可、固定源码、显式403/role gate、公开integration evidence与至少三种可封闭权限关系，故按first-eligible规则纳入并停止查看Vikunja/Memos。首次partial-clone blob hydration缺LICENSE与`issue_lock.go`，保留该retryable错误后对同一ref作unfiltered fetch成功，未换项目或输入。三任务依次是：read collaborator跨用户读取另一协作者权限（self/repo-admin/site-admin例外）、有issue-write token scope但无repository issue-write时添加assignee、已有repository issue-write但无repo/site admin时锁issue；三者都固定deny expectation，不为了标签平衡改样本。作者输入、七个模型可见source snapshot、三个normalized assessment与evaluator-only oracle/rubric物理分开；六段Go snapshot经换行归一后逐行等于fixed commit，公开integration test只进入evaluator evidence。三个普通`authorization init --from`均派生`authorization-core-v1`六类问题，task v0要求的两条`requiredAnalysis`在三任务逐字相同而非task-specific清单；`authorization check`均为valid、1 condition plan、0 diagnostics。首次init真实暴露缺`task.requiredAnalysis`，补共享泛化文本；随后作者复核移除源码crop未直接表达的assignability条件并重新规范化，不以模型结果调题。assessment的sourceRef provenance保持`authored`，git固定ref核验证据只在acquisition记录中写verified。项目/任务选择确含开发代理专业判断，真人参与/时间节省主张、provider调用、目标/部署执行与保护集读取均为0；18项criterion已在Y11生成前冻结。
 
 **公平比较。** P是信息齐全的普通说明及基础引用/计量；L增加默认领域ledger/coverage；C再加条件层。三者共享业务事实、公开分析要求、源码、模型和修复机会，协议差异和成本显式记录。共同评价接受P的等价文字分析，不因缺少专用字段扣语义分。本轮评估表达与运行支持组合，不把效果单独归因于JSON语法。原五任务开发面板15单元；最多6修订单元。方法固定后再读取第三项目正文，用默认profile而非任务专属问题清单，P与选定结构化方法在2–3任务上各两次重复，正常12单元。选择先看必要质量，再看条件完整性、成本和编写负担；C无增量就保留L。
 

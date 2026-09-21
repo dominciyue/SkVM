@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "authorization-migration-task-freeze/v1",
+  "stage": "Y10",
+  "frozenAt": "2026-09-22T05:29:03+08:00",
+  "methodRevision": "76b1c13a51961af1459d2fa434243f2d903adc33",
+  "methodFreezeCommit": "f34da6e323b0282f5c2ab8e305cad7ed115dd32b",
+  "methodFreeze": "y10-method-freeze-v1.json",
+  "sourceAcquisition": "source-acquisition-v1.json",
+  "authoringAssistance": "y10-authoring-assistance-v1.json",
+  "generationStartedBeforeFreeze": false,
+  "protectedInputsRead": false,
+  "project": {
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "license": "MIT",
+    "developmentMigration": true,
+    "heldOutClaim": false
+  },
+  "taskContract": {
+    "taskCount": 3,
+    "defaultProfile": "authorization-core-v1",
+    "taskSpecificAnalysisRequirements": false,
+    "sharedGenericTaskRequiredAnalysis": true,
+    "structuredCandidate": "C",
+    "comparisonArm": "P",
+    "repetitionsPerTaskArm": 2,
+    "freshContextPerUnit": true,
+    "reverseSecondRepetition": true,
+    "targetExecution": "forbidden"
+  },
+  "tasks": [
+    {
+      "index": 0,
+      "caseId": "gitea-collaborator-cross-user-permission",
+      "permissionRelationship": "different collaborator versus self/repository-admin/site-admin exceptions",
+      "expectation": "deny",
+      "authoring": { "path": "public-inputs/gitea-collaborator-cross-user-permission/authoring.json", "sha256": "709247852d66631ce073639f504070e554d755f6d63ff6e39f6e167c0a5a4cce" },
+      "assessment": { "path": "public-inputs/gitea-collaborator-cross-user-permission/assessment.json", "sha256": "9d4a034f5308895ddeba3f97b44684b64834f629956bfb9b899489afe0d64124" },
+      "sourceRefVerification": "authored",
+      "unitOrder": ["P", "C", "C", "P"]
+    },
+    {
+      "index": 1,
+      "caseId": "gitea-issue-assignee-nonwriter",
+      "permissionRelationship": "token scope versus repository issue-write permission",
+      "expectation": "deny",
+      "authoring": { "path": "public-inputs/gitea-issue-assignee-nonwriter/authoring.json", "sha256": "e6b3770bf04ff524cacd81b9d68bc12a7c999591df1ad902185b732f767221f3" },
+      "assessment": { "path": "public-inputs/gitea-issue-assignee-nonwriter/assessment.json", "sha256": "cffef599fb92aeb0b224f5854d2abb4119fdcc03b144ee8b87a8e25b45b5355a" },
+      "sourceRefVerification": "authored",
+      "unitOrder": ["C", "P", "P", "C"]
+    },
+    {
+      "index": 2,
+      "caseId": "gitea-issue-lock-writer-nonadmin",
+      "permissionRelationship": "repository issue writer versus route-level repository/site administrator",
+      "expectation": "deny",
+      "authoring": { "path": "public-inputs/gitea-issue-lock-writer-nonadmin/authoring.json", "sha256": "dca24ff054610c32bef282561d19b7bd1eb7927e6f2383ef6853113683908566" },
+      "assessment": { "path": "public-inputs/gitea-issue-lock-writer-nonadmin/assessment.json", "sha256": "46d93f03b40bd246ba75aca4b3b697d4edbcc7c7374cb8b23b7b93a218e081ef" },
+      "sourceRefVerification": "authored",
+      "unitOrder": ["P", "C", "C", "P"]
+    }
+  ],
+  "evaluator": {
+    "rubrics": { "path": "evaluator/rubrics-v1.json", "sha256": "5056b87fcf215544aade1528432674ef8f1b05681bd106eb2ec9ad960c66edb3" },
+    "oracleEvidence": { "path": "evaluator/oracle-evidence-v1.json", "sha256": "1685090fb3db9821f5d89a534b4e8ce04f64afbc8eeda0e0fefb1b1c41727380" },
+    "visibleDuringGeneration": false,
+    "criterionCounts": [6, 6, 6]
+  },
+  "sourceSnapshots": [
+    { "path": "public-inputs/gitea-collaborator-cross-user-permission/source/collaborators.go", "sha256": "edbacf431c736f78e6e5beef3c6329ff89210a6463438cedc0be48cdc246a012" },
+    { "path": "public-inputs/gitea-collaborator-cross-user-permission/source/policy.json", "sha256": "b24208490332fc562670d2b533d24d3f3214cdf2ac2f770f4df8296ea53b771c" },
+    { "path": "public-inputs/gitea-issue-assignee-nonwriter/source/issue_assignee.go", "sha256": "e404ff3be258bc56363c979205d962200b5d6565271a83c6707407c65327666e" },
+    { "path": "public-inputs/gitea-issue-assignee-nonwriter/source/policy.json", "sha256": "cb7253c01bbabc6f8bee4c024a7fb4543c079d51005232c93372df9532e4b41b" },
+    { "path": "public-inputs/gitea-issue-lock-writer-nonadmin/source/issue_lock.go", "sha256": "727c99966e125af80b036544e7beb091824f502f57ce741fab9a7946f44014c5" },
+    { "path": "public-inputs/gitea-issue-lock-writer-nonadmin/source/policy.json", "sha256": "d7dbd7317a73fdcfa1ac12ea4af4e0add98afe862d6d8acfb848be9a5717b005" },
+    { "path": "public-inputs/gitea-issue-lock-writer-nonadmin/source/route_guard.go", "sha256": "8bc95a31887ad3bbaac3349e6a0f596dc1d8833f72aa8b4ccbb68df1f415a292" }
+  ],
+  "plannedUnits": [
+    { "id": "01-collaborator-r1-P", "caseId": "gitea-collaborator-cross-user-permission", "repetition": 1, "studyArm": "P" },
+    { "id": "02-collaborator-r1-C", "caseId": "gitea-collaborator-cross-user-permission", "repetition": 1, "studyArm": "C" },
+    { "id": "03-collaborator-r2-C", "caseId": "gitea-collaborator-cross-user-permission", "repetition": 2, "studyArm": "C" },
+    { "id": "04-collaborator-r2-P", "caseId": "gitea-collaborator-cross-user-permission", "repetition": 2, "studyArm": "P" },
+    { "id": "05-assignee-r1-C", "caseId": "gitea-issue-assignee-nonwriter", "repetition": 1, "studyArm": "C" },
+    { "id": "06-assignee-r1-P", "caseId": "gitea-issue-assignee-nonwriter", "repetition": 1, "studyArm": "P" },
+    { "id": "07-assignee-r2-P", "caseId": "gitea-issue-assignee-nonwriter", "repetition": 2, "studyArm": "P" },
+    { "id": "08-assignee-r2-C", "caseId": "gitea-issue-assignee-nonwriter", "repetition": 2, "studyArm": "C" },
+    { "id": "09-lock-r1-P", "caseId": "gitea-issue-lock-writer-nonadmin", "repetition": 1, "studyArm": "P" },
+    { "id": "10-lock-r1-C", "caseId": "gitea-issue-lock-writer-nonadmin", "repetition": 1, "studyArm": "C" },
+    { "id": "11-lock-r2-C", "caseId": "gitea-issue-lock-writer-nonadmin", "repetition": 2, "studyArm": "C" },
+    { "id": "12-lock-r2-P", "caseId": "gitea-issue-lock-writer-nonadmin", "repetition": 2, "studyArm": "P" }
+  ],
+  "model": {
+    "modelId": "xty/gpt-5.6-sol",
+    "temperature": 0,
+    "autoProbe": false,
+    "timeoutMs": 180000,
+    "unitTimeoutMs": 600000,
+    "maxTokens": 6000,
+    "maxProviderDispatches": 4,
+    "maxDomainRepairs": 1
+  }
+}

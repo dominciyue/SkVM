@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v1",
+  "sourceRoot": "source",
+  "sources": [
+    "policy.json",
+    "collaborators.go"
+  ],
+  "analysisProfile": {
+    "id": "authorization-core-v1"
+  },
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "gitea-collaborator-cross-user-permission",
+    "request": "Determine whether an authenticated read collaborator who is neither a repository administrator nor a site administrator may query a different collaborator's repository permission through GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission.",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "collaborator-permission-query-policy",
+        "kind": "study-task-author-policy-from-public-source",
+        "text": "A caller may query a collaborator's repository permission only when the caller is a site administrator, is a repository administrator, or is querying their own username; otherwise the endpoint rejects the request before loading the target collaborator.",
+        "location": "policy.json#/normativePolicy",
+        "revision": "gitea@fc28937:routers/api/v1/repo/collaborators.go#L247-L301",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "study-task-author",
+          "reason": "The fixed public source states this bounded endpoint policy and rejection branch explicitly."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "authenticated-read-collaborator",
+        "role": "authenticated repository read collaborator",
+        "description": "A repository collaborator with read access who is not the target collaborator, a repository administrator, or a site administrator.",
+        "startingCapabilities": [
+          "authenticated",
+          "repository-read",
+          "repository-collaborator"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "other-collaborator-permission",
+        "type": "repository collaborator permission",
+        "description": "The permission record of a different existing collaborator in the same repository."
+      }
+    ],
+    "entries": [
+      {
+        "id": "get-collaborator-permission",
+        "name": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+        "locations": [
+          {
+            "path": "collaborators.go",
+            "startLine": 4,
+            "endLine": 58
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "deny-cross-user-permission-query",
+        "principalId": "authenticated-read-collaborator",
+        "resourceId": "other-collaborator-permission",
+        "relation": "different-collaborator-without-repository-or-site-admin-role",
+        "operation": "read-collaborator-permission",
+        "expectation": "deny",
+        "conditions": [
+          {
+            "name": "requester-authenticated",
+            "basis": "The bounded scenario fixes the requester as authenticated."
+          },
+          {
+            "name": "requester-is-target-collaborator",
+            "basis": "False in the bounded scenario: the requested username belongs to a different collaborator."
+          },
+          {
+            "name": "requester-is-repository-admin",
+            "basis": "False in the bounded scenario: the requester has read collaborator access only."
+          },
+          {
+            "name": "requester-is-site-admin",
+            "basis": "False in the bounded scenario."
+          },
+          {
+            "name": "target-collaborator-exists",
+            "basis": "The bounded scenario fixes an existing target collaborator so the authorization branch is decisive."
+          }
+        ],
+        "policySourceId": "collaborator-permission-query-policy",
+        "entryIds": [
+          "get-collaborator-permission"
+        ]
+      }
+    ],
+    "scopeAssurance": "The fixed crop contains the declared GET entry, its self/repository-admin/site-admin decision, the HTTP 403 branch, target lookup, and permission response. No other Gitea endpoint or deployment is assessed.",
+    "requiredAnalysis": [
+      "Trace the declared principal, resource relation, authorization control, and protected effect through the supplied fixed source.",
+      "State any decisive fact unavailable from the fixed source instead of inferring it, and explain how the declared conditions change reachability."
+    ],
+    "constraints": [
+      "Use only policy.json and collaborators.go from the supplied fixed source context.",
+      "Do not execute or modify Gitea and do not contact a deployment.",
+      "Distinguish repository read access from repository administrator permission."
+    ]
+  },
+  "conditionAnalysisRequest": {
+    "schemaVersion": "authorization-condition-analysis-request/v1",
+    "requests": [
+      {
+        "obligationId": "deny-cross-user-permission-query",
+        "conditionBindings": [
+          {
+            "id": "requester-is-target-collaborator",
+            "name": "requester-is-target-collaborator"
+          },
+          {
+            "id": "requester-is-repository-admin",
+            "name": "requester-is-repository-admin"
+          },
+          {
+            "id": "requester-is-site-admin",
+            "name": "requester-is-site-admin"
+          }
+        ],
+        "maxBranches": 6
+      }
+    ]
+  }
+}

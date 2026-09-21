@@ -1,0 +1,308 @@
+{
+  "schemaVersion": "authorization-evaluation-rubrics/v2",
+  "protocolVersion": "authorization-evaluation-protocol/v2",
+  "provenance": {
+    "preparedBy": "codex-development-agent",
+    "preparedAt": "2026-09-22T05:29:03+08:00",
+    "publicInputs": [
+      "migration/public-inputs/gitea-collaborator-cross-user-permission/",
+      "migration/public-inputs/gitea-issue-assignee-nonwriter/",
+      "migration/public-inputs/gitea-issue-lock-writer-nonadmin/"
+    ],
+    "evaluatorOnlyInputs": [
+      "migration/evaluator/oracle-evidence-v1.json"
+    ],
+    "historicalArtifactsModified": false,
+    "exposureStatus": "Frozen after fixed-source authoring and before any Y11 migration generation. Evaluator-only integration-test evidence is not model-visible. These are method-fixed development migration tasks, not protected held-out inputs."
+  },
+  "calibration": {
+    "publicRequirements": [
+      "Trace the declared principal, resource relation, authorization control, and protected effect through the supplied fixed source.",
+      "State any decisive fact unavailable from the fixed source instead of inferring it.",
+      "Explain how the declared conditions change reachability.",
+      "Keep conclusions bounded to the fixed source crop."
+    ],
+    "rules": [
+      "A source-enforced deny expectation uses source_refuted; a supported policy failure uses source_supported_failure.",
+      "Token scope and repository authorization are separate facts and must not be collapsed.",
+      "A correct conclusion without a necessary identity, relation, gate, or effect fact is partial.",
+      "Equivalent causal wording is accepted; exact symbol names are not required when the relation is unambiguous.",
+      "Condition explanation is evaluated independently from the current bounded decision and may be incomplete without reversing that decision.",
+      "Citations do not substitute for an answer claim connecting the entry, control, and effect."
+    ],
+    "cases": [
+      {
+        "id": "correct-deny-with-causal-path",
+        "expectedQuality": "full-success",
+        "rationale": "The answer uses source_refuted, binds the scenario to the runtime checks, and explains why the protected effect is blocked."
+      },
+      {
+        "id": "correct-label-missing-role-distinction",
+        "expectedQuality": "partial",
+        "rationale": "A correct label without the decisive repository-role or self/other distinction omits necessary semantics."
+      },
+      {
+        "id": "token-scope-treated-as-repository-permission",
+        "expectedQuality": "incorrect",
+        "rationale": "Collapsing token scope into repository authorization reverses the assignee or lock decision."
+      },
+      {
+        "id": "condition-variants-omitted",
+        "expectedQuality": "partial",
+        "rationale": "The current decision may remain correct while the requested bounded condition explanation is incomplete."
+      }
+    ]
+  },
+  "cases": [
+    {
+      "caseId": "gitea-collaborator-cross-user-permission",
+      "taskId": "gitea-collaborator-cross-user-permission",
+      "rubricVersion": "gitea-collaborator-cross-user-permission/v1",
+      "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "oracle-evidence-v1.json#/cases/0/expectedDisposition",
+        "sourceLocations": [
+          { "path": "policy.json", "startLine": 6, "endLine": 7 },
+          { "path": "collaborators.go", "startLine": 35, "endLine": 39 }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "oracle-evidence-v1.json#/limits",
+        "sourceLocations": [
+          { "path": "policy.json", "startLine": 6, "endLine": 8 }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "collaborator-requester-target-binding",
+          "layer": "necessary-semantics",
+          "requirement": "Bind the requester to ctx.Doer and the requested collaborator to the collaborator path parameter used in the username comparison.",
+          "decisionRelevance": "The self-versus-other relation cannot be evaluated without connecting both identities to the guard.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/0",
+          "sourceLocations": [
+            { "path": "collaborators.go", "startLine": 35, "endLine": 36 }
+          ]
+        },
+        {
+          "id": "collaborator-three-way-guard",
+          "layer": "necessary-semantics",
+          "requirement": "State that rejection requires all three facts: not site admin, not the target username, and not repository admin.",
+          "decisionRelevance": "This conjunctive guard is the strongest visible authorization decision for the declared query.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/1",
+          "sourceLocations": [
+            { "path": "collaborators.go", "startLine": 35, "endLine": 39 }
+          ]
+        },
+        {
+          "id": "collaborator-current-cross-user-denial",
+          "layer": "necessary-semantics",
+          "requirement": "Apply the bounded different-user, non-repository-admin, non-site-admin facts to conclude that this request is rejected.",
+          "decisionRelevance": "The declared deny expectation is enforced only if the scenario is applied to the guard rather than merely restated.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/2",
+          "sourceLocations": [
+            { "path": "policy.json", "startLine": 6, "endLine": 7 },
+            { "path": "collaborators.go", "startLine": 35, "endLine": 39 }
+          ]
+        },
+        {
+          "id": "collaborator-permission-read-after-guard",
+          "layer": "necessary-semantics",
+          "requirement": "State that target lookup, permission loading, and the permission response occur only after a caller survives the authorization guard.",
+          "decisionRelevance": "This establishes that the bounded denied branch cannot reach the protected read effect.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/3",
+          "sourceLocations": [
+            { "path": "collaborators.go", "startLine": 36, "endLine": 57 }
+          ]
+        },
+        {
+          "id": "collaborator-http-403-detail",
+          "layer": "explanation-completeness",
+          "requirement": "Identify the explicit HTTP 403 response on the rejected branch before target lookup.",
+          "decisionRelevance": "The response completes the control-flow explanation but does not independently determine the policy result.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/2",
+          "sourceLocations": [
+            { "path": "collaborators.go", "startLine": 36, "endLine": 39 }
+          ]
+        },
+        {
+          "id": "collaborator-condition-outcomes",
+          "layer": "explanation-completeness",
+          "requirement": "Explain that self-query, repository-admin, or site-admin status independently avoids this guard's rejection, while all three absent blocks the read.",
+          "decisionRelevance": "This is the bounded condition-change explanation shared by P and C evaluation.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/conditionExplanation",
+          "sourceLocations": [
+            { "path": "collaborators.go", "startLine": 35, "endLine": 39 }
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "gitea-issue-assignee-nonwriter",
+      "taskId": "gitea-issue-assignee-nonwriter",
+      "rubricVersion": "gitea-issue-assignee-nonwriter/v1",
+      "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "oracle-evidence-v1.json#/cases/1/expectedDisposition",
+        "sourceLocations": [
+          { "path": "policy.json", "startLine": 6, "endLine": 8 },
+          { "path": "issue_assignee.go", "startLine": 54, "endLine": 63 }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "oracle-evidence-v1.json#/limits",
+        "sourceLocations": [
+          { "path": "policy.json", "startLine": 6, "endLine": 8 }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "assignee-post-add-mode",
+          "layer": "necessary-semantics",
+          "requirement": "State that the POST entry delegates to updateIssueAssignees with isAdd=true.",
+          "decisionRelevance": "This binds the declared add operation to the shared mutation helper and its authorization branch.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/0",
+          "sourceLocations": [
+            { "path": "issue_assignee.go", "startLine": 47, "endLine": 49 }
+          ]
+        },
+        {
+          "id": "assignee-issue-index-binding",
+          "layer": "necessary-semantics",
+          "requirement": "State that the route index selects the issue before its repository issue-write permission is checked.",
+          "decisionRelevance": "The permission check must be tied to the declared existing issue rather than an unrelated repository action.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/1",
+          "sourceLocations": [
+            { "path": "issue_assignee.go", "startLine": 53, "endLine": 60 }
+          ]
+        },
+        {
+          "id": "assignee-repository-permission-not-token-scope",
+          "layer": "necessary-semantics",
+          "requirement": "Distinguish the declared issue-write token scope from ctx.Repo.Permission.CanWriteIssuesOrPulls and state that the latter is false for this caller.",
+          "decisionRelevance": "Treating token scope as repository authorization would reverse the bounded decision.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2",
+          "sourceLocations": [
+            { "path": "policy.json", "startLine": 6, "endLine": 8 },
+            { "path": "issue_assignee.go", "startLine": 60, "endLine": 63 }
+          ]
+        },
+        {
+          "id": "assignee-effect-after-permission",
+          "layer": "necessary-semantics",
+          "requirement": "State that user-name resolution and AddAssignees occur after the permission guard and are unreachable for the bounded non-writer.",
+          "decisionRelevance": "This connects the rejection to the protected assignee mutation effect.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/3",
+          "sourceLocations": [
+            { "path": "issue_assignee.go", "startLine": 60, "endLine": 84 }
+          ]
+        },
+        {
+          "id": "assignee-http-403-detail",
+          "layer": "explanation-completeness",
+          "requirement": "Identify the explicit HTTP 403 response before assignee-name resolution.",
+          "decisionRelevance": "The exact response completes the rejected-path explanation.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2",
+          "sourceLocations": [
+            { "path": "issue_assignee.go", "startLine": 60, "endLine": 63 }
+          ]
+        },
+        {
+          "id": "assignee-condition-outcomes",
+          "layer": "explanation-completeness",
+          "requirement": "Explain that repository issue-write false blocks before user lookup; if true, an existing user reaches AddAssignees while a missing user is rejected before that call.",
+          "decisionRelevance": "This evaluates the requested bounded condition explanation without changing the current deny decision.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/conditionExplanation",
+          "sourceLocations": [
+            { "path": "issue_assignee.go", "startLine": 60, "endLine": 84 }
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "gitea-issue-lock-writer-nonadmin",
+      "taskId": "gitea-issue-lock-writer-nonadmin",
+      "rubricVersion": "gitea-issue-lock-writer-nonadmin/v1",
+      "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "oracle-evidence-v1.json#/cases/2/expectedDisposition",
+        "sourceLocations": [
+          { "path": "policy.json", "startLine": 9, "endLine": 10 },
+          { "path": "route_guard.go", "startLine": 4, "endLine": 20 }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "oracle-evidence-v1.json#/limits",
+        "sourceLocations": [
+          { "path": "policy.json", "startLine": 9, "endLine": 11 }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "lock-route-admin-middleware",
+          "layer": "necessary-semantics",
+          "requirement": "State that the PUT lock route applies reqToken and reqAdmin before dispatching LockIssue.",
+          "decisionRelevance": "The route middleware is reached before the handler's issue-write control.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0",
+          "sourceLocations": [
+            { "path": "route_guard.go", "startLine": 16, "endLine": 20 }
+          ]
+        },
+        {
+          "id": "lock-nonadmin-http-403",
+          "layer": "necessary-semantics",
+          "requirement": "State that reqAdmin returns HTTP 403 when both repository-admin and site-admin status are false.",
+          "decisionRelevance": "This is the strongest visible control for the bounded non-admin writer.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1",
+          "sourceLocations": [
+            { "path": "route_guard.go", "startLine": 4, "endLine": 12 }
+          ]
+        },
+        {
+          "id": "lock-writer-does-not-bypass-admin",
+          "layer": "necessary-semantics",
+          "requirement": "Apply the bounded facts to state that full token scope and repository issue-write permission do not bypass the route-level administrator gate.",
+          "decisionRelevance": "Collapsing writer permission or token scope into admin status would reverse the task decision.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2",
+          "sourceLocations": [
+            { "path": "policy.json", "startLine": 9, "endLine": 10 },
+            { "path": "route_guard.go", "startLine": 7, "endLine": 10 }
+          ]
+        },
+        {
+          "id": "lock-secondary-writer-and-effect",
+          "layer": "necessary-semantics",
+          "requirement": "State that a caller surviving reqAdmin must still pass the handler's issue-write check before an unlocked issue can reach LockIssue.",
+          "decisionRelevance": "This preserves the order and distinction between the route administrator gate and protected mutation effect.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3",
+          "sourceLocations": [
+            { "path": "issue_lock.go", "startLine": 43, "endLine": 69 }
+          ]
+        },
+        {
+          "id": "lock-route-http-403-detail",
+          "layer": "explanation-completeness",
+          "requirement": "Identify the route-level HTTP 403 response for the current non-admin branch before handler dispatch.",
+          "decisionRelevance": "The response and ordering complete the bounded rejection explanation.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1",
+          "sourceLocations": [
+            { "path": "route_guard.go", "startLine": 7, "endLine": 10 }
+          ]
+        },
+        {
+          "id": "lock-condition-outcomes",
+          "layer": "explanation-completeness",
+          "requirement": "Explain that both admin conditions false blocks regardless of issue-write; either admin condition true passes this route gate, after which issue-write still controls reachability to the lock mutation.",
+          "decisionRelevance": "This is the requested bounded condition explanation for the layered controls.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation",
+          "sourceLocations": [
+            { "path": "route_guard.go", "startLine": 4, "endLine": 20 },
+            { "path": "issue_lock.go", "startLine": 43, "endLine": 62 }
+          ]
+        }
+      ]
+    }
+  ]
+}

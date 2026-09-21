@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "authorization-migration-oracle-evidence/v1",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "preparedAt": "2026-09-22T05:29:03+08:00",
+  "frozenBeforeMigrationGeneration": true,
+  "modelVisibleDuringGeneration": false,
+  "cases": [
+    {
+      "caseId": "gitea-collaborator-cross-user-permission",
+      "expectedDisposition": "source_refuted",
+      "policyExpectation": "deny",
+      "necessaryFacts": [
+        "The path collaborator is compared case-insensitively with the runtime caller username.",
+        "The endpoint rejects only when the caller is not a site admin, is not the target username, and is not a repository admin.",
+        "The bounded caller satisfies all three rejecting terms and receives HTTP 403 before target lookup.",
+        "Only a surviving branch loads the target permission and returns it."
+      ],
+      "conditionExplanation": "Explain that self-query, repository-admin, or site-admin status independently prevents this guard's rejection, while the all-false combination blocks the read.",
+      "publicIntegrationEvidence": [
+        {
+          "path": "tests/integration/api_repo_collaborator_test.go",
+          "startLine": 92,
+          "endLine": 116,
+          "observation": "A read collaborator queries their own permission and receives HTTP 200 with read access."
+        },
+        {
+          "path": "tests/integration/api_repo_collaborator_test.go",
+          "startLine": 134,
+          "endLine": 147,
+          "observation": "A repository admin queries another collaborator's permission and receives HTTP 200."
+        }
+      ]
+    },
+    {
+      "caseId": "gitea-issue-assignee-nonwriter",
+      "expectedDisposition": "source_refuted",
+      "policyExpectation": "deny",
+      "necessaryFacts": [
+        "The POST wrapper calls updateIssueAssignees with isAdd=true.",
+        "The issue index is resolved before the repository issue-write decision.",
+        "The source checks repository permission, not the caller's token scope, and returns HTTP 403 when repository issue-write is absent.",
+        "User-name resolution and AddAssignees are after the permission branch and cannot be reached by the bounded caller."
+      ],
+      "conditionExplanation": "Explain that repository issue-write false blocks before user lookup; with repository issue-write true, an existing requested user can reach AddAssignees, while a missing user is rejected before that effect.",
+      "publicIntegrationEvidence": [
+        {
+          "path": "tests/integration/api_issue_test.go",
+          "startLine": 515,
+          "endLine": 519,
+          "observation": "A non-writer using an issue-write-scoped token receives HTTP 403 when adding an assignee."
+        },
+        {
+          "path": "tests/integration/api_issue_test.go",
+          "startLine": 561,
+          "endLine": 568,
+          "observation": "The repository owner reaches the add-assignee effect and receives HTTP 201."
+        }
+      ]
+    },
+    {
+      "caseId": "gitea-issue-lock-writer-nonadmin",
+      "expectedDisposition": "source_refuted",
+      "policyExpectation": "deny",
+      "necessaryFacts": [
+        "The PUT issue-lock route is guarded by reqToken and reqAdmin before LockIssue.",
+        "reqAdmin returns HTTP 403 when both repository-admin and site-admin status are false.",
+        "Repository issue-write permission and full token scope do not bypass the route-level admin gate.",
+        "Only after the route gate does LockIssue check issue-write permission and conditionally call the lock mutation for an unlocked issue."
+      ],
+      "conditionExplanation": "Explain that both admin conditions false blocks regardless of issue-write; either admin condition true passes this route gate, after which issue-write still controls handler reachability to the lock mutation.",
+      "publicIntegrationEvidence": [
+        {
+          "path": "tests/integration/api_issue_lock_test.go",
+          "startLine": 25,
+          "endLine": 39,
+          "observation": "The repository owner locks the issue successfully and the persisted lock state becomes true."
+        },
+        {
+          "path": "tests/integration/api_issue_lock_test.go",
+          "startLine": 41,
+          "endLine": 46,
+          "observation": "Another authenticated user with an all-scope token receives HTTP 403 on the lock request."
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "These are development migration tasks selected after method freeze, not protected held-out tasks.",
+    "The evaluator decides only the declared fixed-context obligations and does not assert whole-repository or deployment coverage.",
+    "Integration tests corroborate bounded relations but were not included in model-visible generation sources."
+  ]
+}

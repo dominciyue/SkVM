@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v1",
+  "sourceRoot": "source",
+  "sources": [
+    "policy.json",
+    "issue_assignee.go"
+  ],
+  "analysisProfile": {
+    "id": "authorization-core-v1"
+  },
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "gitea-issue-assignee-nonwriter",
+    "request": "Determine whether an authenticated caller whose token has issue-write scope, but who lacks repository issue-write permission, may add an existing user to an existing issue through POST /repos/{owner}/{repo}/issues/{index}/assignees.",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "issue-assignee-write-policy",
+        "kind": "study-task-author-policy-from-public-source",
+        "text": "Adding issue assignees requires repository permission to write the issue or pull request; a caller without that permission is rejected before assignee resolution or mutation.",
+        "location": "policy.json#/normativePolicy",
+        "revision": "gitea@fc28937:routers/api/v1/repo/issue_assignee.go#L20-L65,L189-L238",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "study-task-author",
+          "reason": "The fixed public source places the repository permission check before assignee resolution and mutation."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "authenticated-token-holder-without-repo-issue-write",
+        "role": "authenticated issue-scope token holder without repository issue-write permission",
+        "description": "The caller has an issue-write token scope and can identify the issue, but has no repository permission to write issues or pull requests.",
+        "startingCapabilities": [
+          "authenticated",
+          "token-scope-write-issue",
+          "repository-issue-read"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "existing-issue-assignee-set",
+        "type": "issue assignee set",
+        "description": "The assignee set of an existing issue, with an existing user requested for addition."
+      }
+    ],
+    "entries": [
+      {
+        "id": "post-issue-assignees",
+        "name": "POST /repos/{owner}/{repo}/issues/{index}/assignees",
+        "locations": [
+          {
+            "path": "issue_assignee.go",
+            "startLine": 4,
+            "endLine": 49
+          },
+          {
+            "path": "issue_assignee.go",
+            "startLine": 53,
+            "endLine": 102
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "deny-nonwriter-assignee-add",
+        "principalId": "authenticated-token-holder-without-repo-issue-write",
+        "resourceId": "existing-issue-assignee-set",
+        "relation": "token-authorized-but-without-repository-issue-write-permission",
+        "operation": "add-issue-assignee",
+        "expectation": "deny",
+        "conditions": [
+          {
+            "name": "requester-authenticated",
+            "basis": "The bounded scenario fixes an authenticated caller."
+          },
+          {
+            "name": "token-has-issue-write-scope",
+            "basis": "True in the bounded scenario; token scope alone does not supply repository permission."
+          },
+          {
+            "name": "issue-exists",
+            "basis": "The bounded scenario fixes an existing issue."
+          },
+          {
+            "name": "requester-has-repository-issue-write",
+            "basis": "False in the bounded scenario."
+          },
+          {
+            "name": "assignee-exists",
+            "basis": "The requested assignee exists in the bounded scenario."
+          }
+        ],
+        "policySourceId": "issue-assignee-write-policy",
+        "entryIds": [
+          "post-issue-assignees"
+        ]
+      }
+    ],
+    "scopeAssurance": "The fixed crop contains the declared POST wrapper, issue lookup, repository issue-write check, HTTP 403 branch, assignee resolution, mutation call, and success response. Token authentication middleware and other endpoints are outside this crop.",
+    "requiredAnalysis": [
+      "Trace the declared principal, resource relation, authorization control, and protected effect through the supplied fixed source.",
+      "State any decisive fact unavailable from the fixed source instead of inferring it, and explain how the declared conditions change reachability."
+    ],
+    "constraints": [
+      "Use only policy.json and issue_assignee.go from the supplied fixed source context.",
+      "Do not execute or modify Gitea and do not contact a deployment.",
+      "Do not treat an issue-write token scope as repository issue-write permission."
+    ]
+  },
+  "conditionAnalysisRequest": {
+    "schemaVersion": "authorization-condition-analysis-request/v1",
+    "requests": [
+      {
+        "obligationId": "deny-nonwriter-assignee-add",
+        "conditionBindings": [
+          {
+            "id": "requester-has-repository-issue-write",
+            "name": "requester-has-repository-issue-write"
+          },
+          {
+            "id": "assignee-exists",
+            "name": "assignee-exists"
+          }
+        ],
+        "maxBranches": 4
+      }
+    ]
+  }
+}
