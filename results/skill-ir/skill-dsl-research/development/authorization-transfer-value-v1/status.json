@@ -2,13 +2,13 @@
   "schemaVersion": "authorization-dsl-transfer-value-development/v1",
   "taskbook": "docs/superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md",
   "createdAt": "2026-09-22T00:51:02+08:00",
-  "updatedAt": "2026-09-22T01:12:00+08:00",
+  "updatedAt": "2026-09-22T01:22:04+08:00",
   "branch": "skill-ir-aot",
   "startHead": "b3a1a44",
   "codeBaseline": "abe470f2a887f35ca1d6782cfbd5343965856620",
-  "stage": "Y3",
+  "stage": "Y4",
   "taskStatus": "in-progress",
-  "nextAction": "Write the Y3 condition compiler and validator failing tests against the frozen request/result sidecar contract, then implement the minimal pure functions.",
+  "nextAction": "Write failing render/transport/host integration tests for wire v3 and condition diagnostics, then connect the optional condition sidecar through the existing one-repair host path.",
   "stages": {
     "Y0": {
       "status": "completed",
@@ -34,8 +34,16 @@
         "Separated public completion requirements from evaluator-only necessary-decision, condition-explanation, and optional-detail calibration cases; both JSON files parse successfully."
       ]
     },
-    "Y3": { "status": "in-progress", "evidence": [] },
-    "Y4": { "status": "planned", "evidence": [] },
+    "Y3": {
+      "status": "completed",
+      "evidence": [
+        "The first focused run failed because conditions.ts did not exist, establishing the expected missing-feature red state.",
+        "Implemented strict request/result schemas, authored-to-expanded compilation, branch/condition/completeness validation, same-obligation fact binding, and an explicit not-requested path without symbolic execution.",
+        "Focused condition tests passed 11/11; the full authorization suite passed 144/144 with 860 assertions; typecheck passed.",
+        "A narrow read-only independent review found no critical or important issue and confirmed missing-fact semantics remain evaluator-owned."
+      ]
+    },
+    "Y4": { "status": "in-progress", "evidence": [] },
     "Y5": { "status": "planned", "evidence": [] },
     "Y6": { "status": "planned", "evidence": [] },
     "Y7": { "status": "planned", "evidence": [] },
@@ -93,7 +101,7 @@
     "conditionLayer": "opt-in"
   },
   "unresolvedIssues": [
-    "The frozen condition result contract is not implemented or wired yet; authoring normalization, top-level CLI, P/L/C study, and third-project migration also remain.",
+    "The condition pure functions are implemented but not wired into renderer/transport/host yet; authoring normalization, top-level CLI, P/L/C study, and third-project migration also remain.",
     "Actual provider USD is not reported and must remain unknown unless the provider supplies it."
   ],
   "operations": {
@@ -116,6 +124,13 @@
       "failed": 0,
       "assertions": 59,
       "redState": "2 expected failures: omitted public check/run arm returned D instead of B"
+    },
+    "y3Conditions": {
+      "focused": { "passed": 11, "failed": 0, "assertions": 17 },
+      "authorizationSuite": { "passed": 144, "failed": 0, "assertions": 860 },
+      "typecheck": "passed",
+      "redState": "conditions.ts module missing",
+      "independentReview": "no critical or important issue"
     }
   }
 }

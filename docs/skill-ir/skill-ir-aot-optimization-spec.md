@@ -2498,4 +2498,6 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **Y2 条件版本合同。** strict task v0 不变；稳定条件 ID 由可选 request/v1 sidecar 的 authored-obligation-scoped `conditionBindings` 显式提供，并按唯一 authored condition name 绑定，不能按数组位置推断。编译只做 authored→expanded obligation 映射。result/v1 sidecar 用 assumptions、effect、fact pointers、missing facts、unexamined IDs 和 completeness 表达有界结果；条件开启时走显式 wire/v3，未开启仍用旧 v1/v2。宿主核对结构和同义务引用，不推导可达性。bounded 表示所请求条件均被考虑而非穷举真值表；incomplete 必须显式列遗漏。公共 owner/role、配置 gate、外部代理未知走查与 evaluator-only 判例在生成前分开冻结。
 
+**Y3 条件纯函数边界。** request compiler 只从 authored condition 的唯一 name 取回 basis，并把请求展开到同 authored obligation 的 runnable expanded IDs；任何 ambiguous request 不生成其部分执行 plan。result validator 检查 schema、闭集ID、同分支赋值、branch uniqueness/bound、显式未分析集合、unknown missing facts 和 canonical same-obligation fact pointer，语义支持仍是 `unreviewed`。省略请求返回 `not-requested`，旧任务不需要空sidecar。源码循环与这些分析假设不等价，validator不做符号执行或部署事实推断。
+
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。

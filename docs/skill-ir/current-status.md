@@ -6,9 +6,9 @@
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)及 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成，W 最终发布为 `fa6b064`。[X0–X13 完整能力交付](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)已完成并发布至 `abe470f`。用户现授权新线程连续执行 [Y0–Y14 条件表达、默认迁移与价值验证](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)；Y0–Y2 已完成，当前进入 Y3 条件纯函数实现，进度由 Y 结果根的机器状态记录。
+[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)及 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成，W 最终发布为 `fa6b064`。[X0–X13 完整能力交付](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)已完成并发布至 `abe470f`。用户现授权新线程连续执行 [Y0–Y14 条件表达、默认迁移与价值验证](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)；Y0–Y3 已完成，当前进入 Y4 renderer/wire/host 接线，进度由 Y 结果根的机器状态记录。
 
-Y 同轮推进：CLI/公开函数默认已统一为 B；条件合同已冻结为可选 request/result sidecar 与条件启用时的显式 wire/v3，当前实现纯函数，随后继续 authoring 规范化、薄顶层命令、P/L/C 开发比较和方法固定后第三项目默认 profile 迁移。新设计见[研究 §7.22](skill-dsl-research.md#722-y-条件表达默认迁移与价值验证)。继续当前任务类别与 fixed-context 范围；不以 CLI 接线单独充当方法进展。开发模型为 `gpt-5.6-sol / max`，被测 provider 配置单列。旧受保护 held-out/Q1 reserve 不读，新来源按任务书独立选择。
+Y 同轮推进：CLI/公开函数默认已统一为 B；条件 request/result pure compiler/validator 已实现，条件聚焦 11/11、授权全套144/144与typecheck通过，当前接入显式wire/v3和现有一次诊断修复；随后继续 authoring 规范化、薄顶层命令、P/L/C 开发比较和方法固定后第三项目默认 profile 迁移。新设计见[研究 §7.22](skill-dsl-research.md#722-y-条件表达默认迁移与价值验证)。继续当前任务类别与 fixed-context 范围；不以 CLI 接线单独充当方法进展。开发模型为 `gpt-5.6-sol / max`，被测 provider 配置单列。旧受保护 held-out/Q1 reserve 不读，新来源按任务书独立选择。
 
 用户在 W 复核后确认按完整能力阶段推进：评价要求校准、可选/分支关系、普通自备输入、第二项目 development 与小型对照放入同一轮。第二项目提前检验共性，旧三例不必先全部满分；内部仍小步测试和提交。研究与开发复盘统一维护在[研究总文档 §7.21](skill-dsl-research.md#721-x-完整能力阶段设计)。
 

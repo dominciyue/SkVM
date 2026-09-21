@@ -149,9 +149,9 @@ init/check/inspect 不初始化 provider；run 显式使用 `--model`。没有 a
 - [x] 将条件解释的公开完成要求和 evaluator 判例同时定稿，区分“必要决策”“完整解释”“可选细节”；可选细节缺失不冒充决策错误。
 
 ### Y3：实现条件层纯函数与反例
-- [ ] 写失败测试：重复条件、true/false 冲突、跨义务、未知 ID、重复分支、unknown 无缺失事实、无条件任务、分支上限、未分析条件显式保留。
-- [ ] 实现条件 schema/compiler/validator。最小行为断言：同一分支同一条件 true+false 返回诊断；缺部署事实返回内容明确的 unknown 可合法；无条件输入不强制伪造分支。
-- [ ] 运行 `bun test ./src/task-dsl/authorization/conditions.test.ts` 红绿；将源码循环与分析条件矛盾区分，不做通用符号执行。
+- [x] 写失败测试：重复条件、true/false 冲突、跨义务、未知 ID、重复分支、unknown 无缺失事实、无条件任务、分支上限、未分析条件显式保留。
+- [x] 实现条件 schema/compiler/validator。最小行为断言：同一分支同一条件 true+false 返回诊断；缺部署事实返回内容明确的 unknown 可合法；无条件输入不强制伪造分支。
+- [x] 运行 `bun test ./src/task-dsl/authorization/conditions.test.ts` 红绿；将源码循环与分析条件矛盾区分，不做通用符号执行。
 
 ### Y4：接通 renderer、wire、host 与结果
 - [ ] 先写 host/transport 失败用例：模型返回外义务 condition/fact pointer 不得成为有效条件结果；旧 wire v1/v2 保持原行为。

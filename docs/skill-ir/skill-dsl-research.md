@@ -677,6 +677,8 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 
 三个无项目名公共走查分别覆盖 owner/role override、配置 gate 和外部代理部署未知；均只给 authored policy、condition name/basis、公开问题和上限，不给 source outcome。公共完成要求与 evaluator-only 判例在生成前同时冻结但物理分开：评价先看 necessary decision，再看 condition explanation，最后单列 optional detail；正确标签但漏请求的条件变化是 partial，反转决定性 gate 或把部署假设写成事实是 incorrect，未请求的默认值/可选路径不降级。机器合同见 Y 结果根的 `contract/condition-contract-v1.json` 与 `evaluator/condition-evaluation-cases-v1.json`。
 
+**Y3 纯函数实现。** `conditions.ts` 已实现 strict request/result schema、authored condition name→显式 ID 编译和机械结果校验。编译器遇到同请求重复 ID/name、task 内重复 condition name、陌生义务/condition 或无 runnable expansion 时给定位诊断；单个 authored request 有歧义时不输出其部分 plan，独立义务仍可保留为 partial。validator 拒绝同分支相反赋值、跨义务/陌生 ID、相同 assumptions 的重复或冲突 effect、超出 branch 上限、遗漏未显式列出、无缺失事实的 unknown，以及跨义务/悬空 fact pointer；合法 incomplete 可以显式保留未分析条件。无 request 返回 `not-requested`，不改变旧任务。红态为缺失模块；实现后条件聚焦 11/11、授权全套 144/144（860 assertions）及 typecheck 通过。窄只读独立核验无 critical/important，未把 missingFacts 文字内容的语义判断错误塞给宿主。
+
 **公平比较。** P是信息齐全的普通说明及基础引用/计量；L增加默认领域ledger/coverage；C再加条件层。三者共享业务事实、公开分析要求、源码、模型和修复机会，协议差异和成本显式记录。共同评价接受P的等价文字分析，不因缺少专用字段扣语义分。本轮评估表达与运行支持组合，不把效果单独归因于JSON语法。原五任务开发面板15单元；最多6修订单元。方法固定后再读取第三项目正文，用默认profile而非任务专属问题清单，P与选定结构化方法在2–3任务上各两次重复，正常12单元。选择先看必要质量，再看条件完整性、成本和编写负担；C无增量就保留L。
 
 **编写与交付。** 新authoring输入复用现有task，派生重复sourceIdentity/default requirements；缺政策与expectation集中报needs-input，不猜测填充。`skvm authorization init/check/run/inspect`复用现有宿主，init示例明确synthetic，普通输入保留作者来源，只有run调用模型。method与历史N/B/D分开，默认ledger/B，条件层opt-in。新项目来源独立选择，不读取旧保护集；首次迁移后修方法时保留首次结果，后续记development。允许工程完成而效果mixed/negative，按缺项而非阶段终态数判交付。
