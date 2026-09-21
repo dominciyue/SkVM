@@ -1,10 +1,10 @@
 # Skill 分类与领域 DSL 研究总文档
 
-更新于 2026-09-21。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并 S0–S11、D0–D11 及后续研究，并记录 DSL 实现中发现和解决的问题。实时执行状态仍由 [current-status](current-status.md) 维护，待办见[当前计划](skill-ir-aot-optimization-plan.md)。
+更新于 2026-09-22。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并 S0–S11、D0–D11 及后续研究，并记录 DSL 实现中发现和解决的问题。实时执行状态仍由 [current-status](current-status.md) 维护，待办见[当前计划](skill-ir-aot-optimization-plan.md)。
 
 ## 1. 当前结论
 
-**W 已完成并发布，X0–X8 已完成，当前为 `active-X9`。** W 的六单元传输、交付及结论判断成功，关键事实支持为 4/6；D 的调用与 token 较少，是值得继续验证的开销观察。X 已完成评价校准、关系支持、普通输入、第二项目与 23 单元配置的离线接线，尚未形成本轮真实模型结果；设计见 §7.21，本地化 I1 暂缓。W 原始效果判断和数据保持原记录。
+**V/W/X 已完成，Y0–Y14 已获用户授权、准备派发。** X在两项目五任务的23次初轮中得到14 full、5 partial、4标签错误；共同标签合同复测4/4 full。D未增加必要语义或coverage收益，调用/token更多，CLI默认改为B；公开函数默认不一致由Y修复。当前能力为单repo/ref、显式源码与授权义务的有界开发能力。Y将补条件结果、编写入口、P/L/C对照和第三项目默认profile迁移，设计见§7.22；尚无Y结果。本地化I1暂缓，W和X初轮历史数据保持原记录。
 
 已经站得住的判断：
 
@@ -641,7 +641,7 @@ X5 已把这份记录接入版本化 `source-authorization-assessment-wire/v2`�
 
 **X8 离线接线与运行冻结。** 五个任务已通过同一 ordinary parser、analysis ledger、精确 source catalog、wire/v2 mock host、coverage validator 和 v2 evaluator template 入口；四种 synthetic 变化分别证明 prerequisite 删除、声明条件反转、when-present 问题删除及 required external fact 缺失会改变 plan、prompt 或诊断，而不被计作新项目证据。复制自包含例子到临时普通目录后完成 check/run(mock)/inspect，没有研究绝对路径、manifest 或 oracle 依赖。新增的 experiment-only capability runner 只编排已存在的 local-run/host 语义：在 provider 创建前冻结 config/revision/顺序，逐单元创建不可覆盖 session，终态与 completion-unknown 不重发；仅“已有 session 但尚无 dispatch”可新建 session 继续。恢复时交叉核验 unit result、session、dispatch、run 与 result 身份，篡改在 provider factory 前失败。实现固定为 `dccd83099dd4f2779604d18f9ad36e62aa8f5a31`，配置 SHA-256 为 `23e22d8e3f6f49728d1ba1eb2db8afde7b861053bace435607b6222a64b57fec`；五任务、20 个 B/D 重复及 3 个 N 补充共 23 单元的 provider-free check 为 valid。评价路径只写入 metadata，生成结束前不读取 rubric。授权回归 129/129、813 assertions 与 typecheck 通过；真实 provider 和目标执行仍为 0。
 
-**X9 初轮真实生成。** 冻结面板按提交顺序一次执行：五任务 × B/D × 两次 fresh context 加三个预定 N 补充，23/23 都完成；没有 completion-unknown、timeout、terminal failure、domain repair 或目标执行。30 次 provider 调用由 23 次 schema-tool 与 7 次 prompt-parse 组成，后者是结构转换，不是 fallback 或 repair。provider 报告 input 102,579、output 61,942、cache-read 45,824、cache-write 0 tokens，response duration 已知小计 2,273,732.1484 ms；30 次实际 USD 均未报告，故总额为 unknown 而不是零。全部生成结束后才向 evaluator 提供 rubric；原始 response、attempt、session 与 unit identity 不因后续评价而改变。
+**X9 初轮真实生成。** 冻结面板按提交顺序一次执行：五任务 × B/D × 两次 fresh context 加三个预定 N 补充，23/23 都完成；没有 completion-unknown、timeout、terminal failure、domain repair 或目标执行。30 次 provider 调用由 23 次 schema-tool 与 7 次 prompt-parse 组成。2026-09-22 复核纠正旧记述：后者是结构输出失败后的 transport fallback，按原任务附 JSON 要求重新请求模型；没有将旧答案交给模型做纯格式转换，也不是带领域诊断的 domain repair。调用和 token 已包含这些请求，历史事件不改。provider 报告 input 102,579、output 61,942、cache-read 45,824、cache-write 0 tokens，response duration 已知小计 2,273,732.1484 ms；30 次实际 USD 均未报告，故总额为 unknown 而不是零。全部生成结束后才向 evaluator 提供 rubric；原始 response、attempt、session 与 unit identity 不因后续评价而改变。
 
 **X10 逐义务评价与方法结论。** 23 份 development-agent review 绑定 raw-output digest、attempt、rubric、answer pointer 与 evaluator source；程序另载入仅用于评价、未曾进入 prompt 的 rubric source，并以同一入口重放。结果为 14 full-success、5 partial、4 incorrect，且 23/23 necessary semantics supported、coverage valid、scope accepted、transport valid、delivery complete。四个 incorrect 不是授权因果缺失：text B 一次、FastAPI foreign-update D 两次和 N 一次都正确解释 deny 在 effect 前生效，却把应为 `source_refuted` 的结论写成相反的 `source_supported_failure`。五个 trusted-header 结果均正确 unknown、必要语义 supported，但未完整枚举 closed gate、failed authentication、safe proxy 与 attacker-header-reachable 四种结果，且漏 optional default-None detail，故均为 partial。
 
@@ -664,6 +664,20 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 **比较与因果。** 主面板为五任务 × B/D × 两次 fresh-context 重复，共 20 单元；再对原 file、原 trusted-header、第二项目首任务各跑一次 N 自然说明，共三单元。三臂事实、公共要求、源码和输出协议相同；D 的 ledger 方法组织差异明确保存。N 共享底层支持，结果只能解释模型可见结构组织的作用，不归因为整个 SkVM 相比原始 agent 的总收益。两次重复用于观察逐任务波动，不作总体可靠性估计。
 
 **连续执行与决定。** X1 评价与 X2 获取可独立推进，随后关系支持和普通输入接线在同轮完成。有证据的实现问题先加反例再修，最多一轮受影响 B/D 追加；缺少正向研究结果不阻止普通入口与独立任务。若 D 无额外帮助，采用更合适的表达并保留共同声明/helper；若第二项目未完成，整体标部分交付。原始失败、未知费用、开发成本和版本分别记录。
+
+### 7.22 Y 条件表达、默认迁移与价值验证
+
+2026-09-22 用户确认沿用“分类确定范围、按类/任务设计 DSL、效果包含多维收益”的路线，并授权任务书写完后派发新线程连续开发。新任务为 [Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)，此处登记设计，尚无 Y 实验结果。开发模型 `gpt-5.6-sol / max` 与实验 provider 设置分别记录。
+
+**复核发现。** X 的 23 个单位来自五任务和两项目；最终标签正确19/23，完整成功14/23。143条coverage为125 addressed、5 unknown、13 not-applicable；必要分析事实supported与coverage-valid不能合写成23次正确判断。真实面板使用逐任务问题清单，默认六类profile仍缺新项目直接迁移证据。CLI省略arm为B，但两个公开check/run函数仍默认D，示例README仍写D；Y1修复一致性。sourceIdentity当前是作者声明互校及字节绑定，普通界面须说明来源核验状态。
+
+**方法选择。** 同轮补充轻量条件请求与条件结果sidecar、作者输入派生、现有CLI薄适配、P/L/C对照及第三项目默认profile迁移。暂不扩为全仓发现或通用程序分析。条件请求只指定公开义务/条件及有界规模，分支真假、可达性和依据由模型回答；假设不得变成实际部署事实。宿主检查ID、赋值、重复、指针和显式遗漏，语义仍由评价者判断。旧版本继续可读，无条件任务不强制生成分支。具体类型、兼容、测试和文件责任以Y任务书为准。
+
+**公平比较。** P是信息齐全的普通说明及基础引用/计量；L增加默认领域ledger/coverage；C再加条件层。三者共享业务事实、公开分析要求、源码、模型和修复机会，协议差异和成本显式记录。共同评价接受P的等价文字分析，不因缺少专用字段扣语义分。本轮评估表达与运行支持组合，不把效果单独归因于JSON语法。原五任务开发面板15单元；最多6修订单元。方法固定后再读取第三项目正文，用默认profile而非任务专属问题清单，P与选定结构化方法在2–3任务上各两次重复，正常12单元。选择先看必要质量，再看条件完整性、成本和编写负担；C无增量就保留L。
+
+**编写与交付。** 新authoring输入复用现有task，派生重复sourceIdentity/default requirements；缺政策与expectation集中报needs-input，不猜测填充。`skvm authorization init/check/run/inspect`复用现有宿主，init示例明确synthetic，普通输入保留作者来源，只有run调用模型。method与历史N/B/D分开，默认ledger/B，条件层opt-in。新项目来源独立选择，不读取旧保护集；首次迁移后修方法时保留首次结果，后续记development。允许工程完成而效果mixed/negative，按缺项而非阶段终态数判交付。
+
+**研究问题与开发复盘。** Y期间继续在本节补充实际条件合同、默认profile失配、编写负担与比较结论，§12只写短记录；机器材料进入`development/authorization-transfer-value-v1/`。不另建每轮设计正文或重复历史审计。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

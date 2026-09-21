@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-21
 
-**当前已确认路线：** 第 14.34 节的“按 skill/task 范围设计领域表达并验证实际价值”。S/D/E/T/V 已完成；单 repo/ref、source-visible authorization/trust-boundary assessment 的 development 原型已经实现并真实运行。工程闭环可用，效果证据因只有一个完整 initial pair、三个 completion-unknown 请求及普遍 citation repair 而保持 `not-established`。下一步先简化 result/citation transport，不自动扩入口、项目或生产系统。研究和开发复盘见[研究总文档](skill-dsl-research.md)，执行顺序见[当前计划](skill-ir-aot-optimization-plan.md)。第 14.32–14.33 节及更早阶段保留为历史合同与工程基础，I1 保留后备。
+**当前已确认路线：** 第 14.34 节的“按 skill/task 范围设计领域表达并验证实际价值”。S/D/E/T/V/W/X已完成；当前具有单repo/ref、显式源码与授权义务的有界分析能力。X初轮五任务23次运行得到14 full/5 partial/4 incorrect，D未显示额外收益。2026-09-22用户授权Y完整阶段，推进条件结果、普通编写/薄CLI、共同支持效果比较及默认profile新项目迁移；尚无Y实验结果。研究和开发复盘见[研究总文档](skill-dsl-research.md)，执行顺序见[当前计划](skill-ir-aot-optimization-plan.md)。第14.32–14.33节及更早阶段保留为历史合同与工程基础，I1保留后备。
 
 本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；新工作以第 14.34 节为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
@@ -2493,5 +2493,7 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **X7–X12 已实现边界。** `AuthorizationRenderArm` 显式为 N/B/D，不接受第三臂落入旧二分支。三臂从同一事实、analysis plan、source 与 wire/result contract 生成；N 只将 canonical facts 确定性自然化，B/D 保留 JSON declaration，D 增加授权因果链与 prerequisite 方法。本地 check/run 允许 `--arm`，并把 arm、分节字符、provider usage 和 session 身份一同保存；字符不能替代 token。冻结面板中 B/D necessary semantics 与 coverage 都为 10/10，D 无额外收益且调用/token 更多，故 ordinary entry 默认 B，N/D 继续可显式选择；历史 arm 与产物保持可读。单次 evaluator 可记录 N，配对 evaluator 仍只接受 B/D。两份真实 skill 只做有来源的职责切片映射，剩余 full-audit/dependency/secret/patch 等职责不吸收；合成例子和作者诊断不构成生产系统、自动 skill 转换或人工节省证据。
 
 **X 实际能力判定。** 五任务 23 单元初轮为 14 full、5 partial、4 conclusion-label incorrect；必要语义、coverage、scope、transport 与 delivery 均为 23/23。共享合同补充 label 相对 policy expectation 的定义后，限定的 text 与 FastAPI update B/D 四单元为 4/4 full；该 revision 只支持缺陷诊断，不覆盖初轮或建立一般可靠性。ordinary entry 已用同实现产物离线复验 Open WebUI 与 FastAPI，检查/inspect 不依赖 evaluator，也不新增 provider 或目标执行。当前交付定为 bounded development capability：支持单 repo/ref、作者显式源码与义务的 source-visible 判断、引用、coverage 和 unknown；不支持 repository discovery、目标/部署执行、自动 whole-skill 转换、patch 或 production-default security decision。下一轮最小实现是把现有严格 check/run/inspect 包成 opt-in 顶层 SkVM 命令，并先在一个新 held-out repo/task 验证；不在本轮扩成完整生产系统。
+
+**Y当前授权合同（2026-09-22）。** 用户确认继续任务分类与领域表达路线，授权新线程执行[Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)。本轮取代X结束时“只做薄CLI加单一迁移任务”的建议，完整推进条件结果层、普通作者输入、现有CLI薄适配、公平P/L/C比较与第三项目默认profile迁移。条件输入不预填真值；宿主检查结构关联，模型与评价者负责源码语义。默认ledger/B、条件层opt-in；旧schema/wire及历史结果保留。P与结构化配置共用业务事实、公开要求、源码和评价，允许不同输出形状的等价语义，结论归于表达与运行支持组合。新项目在方法固定后获取，源暴露与事后修订如实记账；不读取旧保护集。工程交付和多维收益分别判断；当前设计详见研究§7.22。
 
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。
