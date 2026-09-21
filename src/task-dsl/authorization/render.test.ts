@@ -144,6 +144,27 @@ describe("renderAuthorizationTask", () => {
     }
   })
 
+  it("defines every conclusion label relative to the declared policy expectation for all arms", () => {
+    const compiled = compileAuthorizationTask(task)
+
+    for (const arm of ["N", "B", "D"] as const) {
+      const resultContract = renderAuthorizationTask(compiled, arm).sections.outputContract
+
+      expect(resultContract).toContain(
+        "Interpret conclusion labels relative to the declared policy expectation, not as direct synonyms for allow or deny",
+      )
+      expect(resultContract).toContain(
+        "source_supported_failure: the fixed source supports that the declared policy expectation fails",
+      )
+      expect(resultContract).toContain(
+        "source_refuted: the fixed source supports that the declared policy expectation is enforced",
+      )
+      expect(resultContract).toContain(
+        "unknown: the fixed source and declared context are insufficient to decide whether the expectation fails or is enforced",
+      )
+    }
+  })
+
   it("renders source attachment once rather than duplicating it per obligation", () => {
     const expandedTask = structuredClone(task)
     expandedTask.obligations.push({

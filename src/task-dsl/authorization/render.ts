@@ -90,6 +90,10 @@ Exact analysis coverage pairs (closed list):
 ${analysisPlan.entries.map(entry => `- ${entry.requirementId} @ ${entry.obligationId} (${entry.applicability})`).join("\n") || "- (none)"}`
     : ""
   return `Return exactly one result for every runnable expanded obligation, with one of: ${AUTHORIZATION_CONCLUSIONS.join(", ")}.
+Interpret conclusion labels relative to the declared policy expectation, not as direct synonyms for allow or deny:
+- source_supported_failure: the fixed source supports that the declared policy expectation fails under the stated conditions.
+- source_refuted: the fixed source supports that the declared policy expectation is enforced under the stated conditions, refuting a policy failure.
+- unknown: the fixed source and declared context are insufficient to decide whether the expectation fails or is enforced.
 Exact runnable obligation IDs (closed list):
 ${renderedIds}
 Use each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.
