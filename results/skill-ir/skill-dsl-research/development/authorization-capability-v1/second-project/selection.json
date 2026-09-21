@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "authorization-second-project-selection/v1",
+  "selectedAt": "2026-09-21T06:20:00+08:00",
+  "selectionMethod": {
+    "existingSourceIndexCheckedFirst": true,
+    "existingIndexFinding": "The authorization case index contains Open WebUI target source only; external skill sources are not a second target code project.",
+    "maximumCandidates": 3,
+    "candidatesExamined": 1,
+    "selectionRule": "Select the first non-Open-WebUI-fork public project with a fixed legal source ref, explicit authorization policy, locatable entries, and two source-verifiable obligations; do not select by model performance."
+  },
+  "candidates": [
+    {
+      "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+      "status": "included",
+      "reason": "The project is not a fork, has an MIT license, and exposes owner-only plus superuser-override branches at compact read/update entry points with public regression tests.",
+      "selected": true
+    }
+  ],
+  "project": {
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "ownerAndName": "fastapi/full-stack-fastapi-template",
+    "defaultBranch": "master",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "sourceRefDate": "2026-09-01T18:42:01Z",
+    "fork": false,
+    "license": {
+      "spdx": "MIT",
+      "path": "LICENSE",
+      "gitBlobSha": "f11987b50cfa15ae4f99d4c559137458c87d7a69",
+      "officialUrl": "https://github.com/fastapi/full-stack-fastapi-template/blob/cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7/LICENSE"
+    },
+    "officialSources": [
+      {
+        "path": "backend/app/api/routes/items.py",
+        "purpose": "model-visible authorization entry and effect source",
+        "gitBlobSha": "f0eb30e4cee50ac09904df0e3e30e5949b1edb04",
+        "sizeBytes": 3446,
+        "officialUrl": "https://github.com/fastapi/full-stack-fastapi-template/blob/cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7/backend/app/api/routes/items.py"
+      },
+      {
+        "path": "backend/tests/api/routes/test_items.py",
+        "purpose": "evaluator-only public regression evidence",
+        "gitBlobSha": "3e82cd0134757608c8f95e6084d7c967f52230d6",
+        "sizeBytes": 5165,
+        "officialUrl": "https://github.com/fastapi/full-stack-fastapi-template/blob/cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7/backend/tests/api/routes/test_items.py"
+      }
+    ]
+  },
+  "plannedObligations": [
+    {
+      "caseId": "fastapi-items-foreign-update",
+      "principal": "authenticated non-superuser",
+      "resource": "item owned by another user",
+      "operation": "update",
+      "policyExpectation": "deny"
+    },
+    {
+      "caseId": "fastapi-items-superuser-read",
+      "principal": "authenticated active superuser",
+      "resource": "item owned by another user",
+      "operation": "read",
+      "policyExpectation": "allow"
+    }
+  ],
+  "acquisition": {
+    "transport": "authenticated GitHub CLI against official REST contents and repository metadata endpoints",
+    "initialRoutingIssue": "The first raw-contents request used ambiguous PowerShell interpolation and returned HTTP 404. The endpoint was rebuilt with explicit formatting and succeeded; candidate selection and prior evidence were retained.",
+    "targetExecuted": false,
+    "testsExecuted": false,
+    "exposureStatus": "Public development source already read by the development agent; evaluator tests are archived separately and are not claimed held out."
+  }
+}

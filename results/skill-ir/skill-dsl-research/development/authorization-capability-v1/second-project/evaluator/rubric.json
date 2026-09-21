@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "authorization-second-project-evaluator/v1",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "status": "development-public-not-held-out",
+  "generationVisibility": "This file and test_items.py are evaluator-only and are not copied into model-input.",
+  "cases": [
+    {
+      "caseId": "fastapi-items-foreign-update",
+      "expectedDisposition": "source_refuted",
+      "reason": "The route loads the item, rejects a non-superuser whose id differs from owner_id, and performs mutation only after that guard.",
+      "necessaryFacts": [
+        "current_user is the assessed caller",
+        "the existing item's owner_id differs from current_user.id",
+        "the non-superuser branch raises HTTP 403 before sqlmodel_update and commit",
+        "the protected effect is item mutation and persistence"
+      ],
+      "sourceLocations": ["model-input/items.py:75-96"],
+      "publicRegressionLocations": ["evaluator/test_items.py:114-126"]
+    },
+    {
+      "caseId": "fastapi-items-superuser-read",
+      "expectedDisposition": "source_refuted",
+      "reason": "The ownership denial is guarded by not current_user.is_superuser, so a superuser reaches return item even when ownership differs.",
+      "necessaryFacts": [
+        "current_user is the assessed caller",
+        "the item exists and is owned by another user",
+        "the ownership rejection applies only when current_user.is_superuser is false",
+        "the protected read effect is returning the item"
+      ],
+      "sourceLocations": ["model-input/items.py:48-58"],
+      "publicRegressionLocations": ["evaluator/test_items.py:27-40", "evaluator/test_items.py:55-65"]
+    }
+  ],
+  "limits": [
+    "Public tests corroborate the bounded branches but were not executed in this study.",
+    "The evaluator does not establish framework authentication outside the supplied CurrentUser dependency contract.",
+    "Both labels are source-decidable policy-conformance results; no vulnerability label is required."
+  ]
+}

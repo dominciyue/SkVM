@@ -613,11 +613,13 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 ### 7.21 X 完整能力阶段设计
 
-2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X1-X2`：X0 基线已完成，尚无 X 真实模型结果。
+2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X3`：X0–X2 已完成，尚无 X 真实模型结果。
 
 **为什么扩大本轮范围。** W 的模型消费与计量已经可用，继续只修旧案例会降低获取新信息的速度。现有 B/D 共用 canonical declaration、输出合同和宿主，主要差异位于领域方法指令。接下来既要检验这种组织方式，也要让作者实际写任务、用自备输入运行，并检验换项目后的语义适配。
 
 **先校准任务与评价。** trusted-header 的公开 requiredAnalysis 要求识别配置/身份关系、区分源码与部署、说明缺失事实；严格 review 另外要求显式四种条件结果、signup 和 403。新评价 v2 分开必要语义、解释完整性与可选细节，接受逻辑等价表述，保留源码引用不足以替代因果解释的要求。规则在新生成前确定，旧 W review 不改；关系层缺失只是当前原因假设，须与表述要求和提示组织一起检验。
+
+X1 已把该原则落为 evaluator-only `authorization-evaluation-rubrics/v2`、hash-bound `authorization-semantic-review/v1` 和六个判例。`ENABLE_PASSWORD_AUTH` 必须为真与“为假时路径被阻断”等价；精确 HTTP 403 是解释完整性。header→email→authentication 是必要因果，optional signup 只单列覆盖；条件源码能力、实际 gate/ingress/proxy/authentication 缺失是正确 unknown 的必要语义。标签正确但必要语义未陈述记 partial，决定性因果被反转才记 incorrect；可选细节缺失不改变 `semanticDecisionCorrect`、`taskDecisionCorrect` 或在其余层完整时的 full-success。W B/D 复用旧生成做只读 v2 重评：必要语义和 unknown 均支持，两臂仍因未枚举完整条件结果而 partial；W 原 review/summary 字节未改。
 
 **领域关系。** 不将五节点登录链变成所有授权任务的必经顺序。初始六类分析要求为 entry-control、identity-binding、resource-binding、authorization-decision、effect-reachability、external-assumption，带关联 obligation、公开 question、required/when-present 和 prerequisiteIds。编译器检查引用与分析依赖并展开 ledger；模型发现源码里的条件、分支和结果，并用本次 facts/citations 说明。源码循环不等于分析依赖循环，程序不代替模型求解源码控制流。
 
@@ -628,6 +630,8 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 **使用交付。** 薄脚本支持 check/run/inspect，输出机器 JSON、事件和简明文本结论；只有 run 调模型。一个自包含 synthetic 例子用于上手，真实两项目用于结果验证；另从现有语料选两份独立 skill，明确授权职责到 DSL 的映射及剩余职责。skill 来源与目标代码项目分开计数，人工/agent 辅助映射不称自动转换整个 skill。作者步骤、字段修改与诊断可观察；未测真人时间时不称人工节省。X 最终以实际可运行命令替换任务书中的接口设计说明。
 
 **第二项目。** 先从现有外部研究来源选取，再用官方源码/认证 GitHub 补全；最多考察三个候选，按政策和源码证据是否可定位选取首个合格者，不按模型成功筛选。选非 Open WebUI fork 的项目，准备两个有不同权限关系的任务，优先挑战只适用于登录/proxy 的结构。模型输入与评价资料分开；已暴露资料按 development 记录。来源获取受阻时继续其他独立工作，并如实标记跨项目部分未交付。
+
+X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7`；它不是 fork，许可证为 MIT。两项新义务分别是普通认证用户更新他人 item 应被拒绝，以及 active superuser 读取他人 item 应被允许，直接挑战 owner relation 与 role override，不含 signup/proxy。`items.py`、公开回归测试和许可证的归档字节与官方 git blob SHA 一致；任务/源码和 evaluator 资料物理分开，development 暴露已记录，目标项目及测试均未执行。首次 contents URL 因 PowerShell 插值形成错误路由并返回 404，修正 endpoint 后继续同一候选，没有重启或换容易案例。
 
 **比较与因果。** 主面板为五任务 × B/D × 两次 fresh-context 重复，共 20 单元；再对原 file、原 trusted-header、第二项目首任务各跑一次 N 自然说明，共三单元。三臂事实、公共要求、源码和输出协议相同；D 的 ledger 方法组织差异明确保存。N 共享底层支持，结果只能解释模型可见结构组织的作用，不归因为整个 SkVM 相比原始 agent 的总收益。两次重复用于观察逐任务波动，不作总体可靠性估计。
 
@@ -945,6 +949,12 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 ### 2026-09-21 X0 恢复与基线
 
 **X0-BASELINE-01。** 从与 `origin/skill-ir-aot` 一致的 `9204239` 普通 checkout 启动，保留 7 个既有 tracked 源码修改和 233 个 untracked porcelain 条目。建立 `authorization-capability-v1/status.json` 与单一 `journal.jsonl`；授权基线新鲜通过 77/77、449 assertions。未重放 V/W、未调用模型或目标。下一步交错执行 X1 评价 v2 校准与 X2 第二项目获取。
+
+### 2026-09-21 X1–X2 评价校准与第二项目
+
+**X1-EVAL-01。** 先以新增测试确认 v2 导出不存在，再实现三层 rubric/review/evaluation 路径并保留 v0/v1。六个判例覆盖等价否定、漏 signup、正确 unknown、代码引用无因果、错因果和漏决定性控制；归档 W B/D 只读重评都为 necessary supported、decision correct、explanation partial。授权回归 80/80、465 assertions 通过，typecheck 通过；provider/目标调用均为 0。
+
+**X2-PROJECT-01。** 首个候选 FastAPI full-stack template 满足非 fork、MIT、固定 ref、明确 owner/superuser 分支和公开回归依据，故按预设 first-qualified 规则停止候选搜索。归档的 `items.py`、`test_items.py`、LICENSE 分别匹配官方 blob `f0eb30e`、`3e82cd0`、`f11987b`；两项任务与 evaluator 分离，公开 development 状态和未执行目标限制明确。下一步用五个任务检验六类分析要求。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 

@@ -25,6 +25,7 @@
 - `validateAuthorizationResult(compiled, answer, sourceBundle)`：分别检查结构、声明义务、引用存在、范围声明和依赖快照；语义支持仍为 `unreviewed`。
 - `runAuthorizationTask(...)`：在注入 provider、精确源码束和固定预算下生成；每次 dispatch 固定 phase，per-call/unit deadline、四次派发上限、closed state 和 JSONL lifecycle event 防止 timeout 后新 fallback；没有可执行工具。
 - `evaluateAuthorizationGeneration`、`summarizeAuthorizationRun` 与 `summarizeAuthorizationPair`：消费哈希绑定的 development-agent review，不能从关键词或 citation 存在性推断正确性；v1 单列 semantic decision、evidence semantics、transport 与 delivery，旧 `taskDecisionCorrect` 仍按 v0 口径保留。
+- `AuthorizationEvaluationRubricsV2Schema`、`createAuthorizationReviewTemplateV2` 与 `evaluateAuthorizationGenerationV2`：新增 evaluator-only v2 路径，逐 criterion 标注 `necessary-semantics | explanation-completeness | optional-detail`。必要语义 missing 为 partial、contradicted 为 incorrect；可选细节 missing 单列但不改变结论正确性。review 继续绑定 output hash、attempt、rubric 与精确源码位置；代码引文不能替代未陈述的因果。v0/v1 API 与 W 产物保持兼容。
 
 声明顶层字段为 `schemaVersion/taskId/request/repository/sourceRef/sourceMode/policySources/principals/resources/entries/obligations/scopeAssurance/requiredAnalysis/constraints`。每条 obligation 明确 `principalId/resourceId/relation/operation/expectation/conditions/policySourceId/entryIds`；`expectation` 是规范方向，不是源码观察。模型 wire 按 exact expanded ID 返回 `source_supported_failure | source_refuted | unknown`，并给出 entry、binding、control、effect、condition 事实、`sourceId/startLine/endLine`、缺失事实/最小观察和 bounded scope claim。宿主另存 canonical task/repository/ref/path/quote。
 

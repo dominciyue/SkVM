@@ -2460,7 +2460,7 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **已有基础。** 复用现有捕获、资源与参数索引、验证、局部修复、执行和包导出能力，但不强制新 DSL 先经过旧统一 IR 或既有 action 格式才能成立。保留通用基础设施与领域语义的区别；不预设新 CLI、文件扩展名、完整编译器或大规模框架迁移。旧 IR 和已发布接口继续兼容，历史研究结果不回写。
 
-**下一步。** T/V/W 已完成。用户随后确认按 [X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)推进完整能力阶段，合并评价、关系支持、普通输入、第二项目及对照；状态为 planned-not-started。单任务仍为 fixed-context，历史 held-out、冻结身份和 readiness 保持各自记录。
+**下一步。** T/V/W 已完成。用户随后确认按 [X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)推进完整能力阶段，合并评价、关系支持、普通输入、第二项目及对照；X0–X2 已完成，当前进入 X3。单任务仍为 fixed-context，历史 held-out、冻结身份和 readiness 保持各自记录。
 
 **已有研究。** S0–S11 方法准备、D0–D11 语义深化/探针与 E0–E10 外部类别研究已完成；分类、标准比较、候选设计、45 项旧探针边界、外部任务/反例、方法对照、消费设计、范围决定与复核发现统一维护在[研究总文档](skill-dsl-research.md)，旧来源和结果保持原件。D 阶段的 `proceed-narrow` 只表示当时对技术文档本地化候选的有界可实施性建议，未证明真实模型消费和效果。
 
@@ -2485,5 +2485,7 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **X 完整能力阶段合同（2026-09-21 用户确认）。** 下一轮将评价口径、关系支持、普通自备输入、第二项目 development 和实际对照合为一轮。第二项目提前检验类共性，不以旧三例全满分为条件；保留单任务 fixed-context 与共同引用/计量基础。领域要求允许可选节点、条件依赖和分支，不把登录/provisioning/proxy 顺序固化成所有授权任务的必经链。要求描述公开分析职责，事实和路径由模型从源码分析，宿主只检查关联与覆盖。新 wire/coverage 显式版本化，历史接口兼容。
 
 **X 评价与使用。** 在新生成前区分决定性语义、解释完整性和可选细节，接受逻辑等价表达；原 W 评分保留。主 B/D 面板覆盖原三例与第二项目两义务，各两次重复，另以三次同事实自然说明 N 作机制观察。N/B/D 共用底层引用和计量，不能据此归因整个运行平台的收益。普通开发者通过一个任务/源码输入文件调用现有宿主，无需研究 manifest/oracle；例子和结果说明属于工程交付。样本不足或 partial 不阻止独立工作，真实失败和方法无收益均保留。详见 [X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)。
+
+**X1–X2 已实现边界。** evaluator v2 将 necessary semantics、explanation completeness 和 optional detail 作为独立维度；逻辑等价 gate 可获支持，引用存在不代替答案中的因果主张，必要语义缺失使答案为 partial，optional detail 缺失不改写结论正确性。W 旧生成与 review/summary 原件不变，只在 X 目录保存 development-agent 再评价。第二项目固定为公开 MIT 的 `fastapi/full-stack-fastapi-template@cb740b6`，两项义务覆盖 non-superuser foreign-item update deny 与 superuser foreign-item read allow；官方 source/test/license 字节分别归入 model input 与 evaluator，均已暴露为 development，未执行目标或测试。后续关系实现不得按项目名分支。
 
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。

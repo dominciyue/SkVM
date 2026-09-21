@@ -1,0 +1,314 @@
+{
+  "schemaVersion": "authorization-evaluation-rubrics/v2",
+  "protocolVersion": "authorization-evaluation-protocol/v2",
+  "provenance": {
+    "preparedBy": "codex-development-agent",
+    "preparedAt": "2026-09-21T06:05:00+08:00",
+    "publicInputs": [
+      "results/skill-ir/skill-dsl-research/cases/authorization/inputs/owui-process-file-write/",
+      "results/skill-ir/skill-dsl-research/cases/authorization/inputs/owui-process-text-controlled/",
+      "results/skill-ir/skill-dsl-research/cases/authorization/inputs/owui-trusted-header-deployment/"
+    ],
+    "evaluatorOnlyInputs": [
+      "results/skill-ir/skill-dsl-research/cases/authorization/oracles/",
+      "results/skill-ir/skill-dsl-research/development/authorization-v0/evaluation/",
+      "results/skill-ir/skill-dsl-research/development/authorization-transport-v1/runs/initial-wire-v1/units/05-owui-trusted-header-deployment-B/review.initial.json",
+      "results/skill-ir/skill-dsl-research/development/authorization-transport-v1/runs/initial-wire-v1/units/06-owui-trusted-header-deployment-D/review.initial.json"
+    ],
+    "historicalArtifactsModified": false,
+    "exposureStatus": "Development calibration over already public and already reviewed material; not held out and not exposed to historical W generation."
+  },
+  "calibration": {
+    "publicRequirements": [
+      "Identify the configuration condition and how the header becomes a principal identity.",
+      "Separate application-source capability from actual deployment reachability and proxy behavior.",
+      "Name the minimum missing facts needed to decide the real deployment question.",
+      "Return a bounded disposition with exact input locations."
+    ],
+    "rules": [
+      "Accept logically equivalent positive and negative statements of a gate; exact status-code wording is explanation detail unless the code itself decides the requested disposition.",
+      "A citation or quoted branch does not substitute for an answer claim that connects entry, binding, control, and effect.",
+      "Missing necessary semantics makes a label-correct answer partial; a contradicted decisive relation makes it incorrect.",
+      "Missing optional detail is reported but does not change semanticDecisionCorrect, taskDecisionCorrect, or full-success when all necessary semantics and explanation-completeness criteria are satisfied.",
+      "A correct unknown must retain the supported conditional capability and identify the source-external fact that can change the answer."
+    ],
+    "cases": [
+      {
+        "id": "equivalent-negative-condition",
+        "expectedQuality": "full-success",
+        "rationale": "Saying the protected branch is unreachable when the gate is false is logically equivalent to saying the gate must be true."
+      },
+      {
+        "id": "omitted-signup",
+        "expectedQuality": "full-success",
+        "rationale": "The optional provisioning path is not needed to establish header-to-email binding, authentication gating, or deployment uncertainty."
+      },
+      {
+        "id": "correct-unknown",
+        "expectedQuality": "full-success",
+        "rationale": "A supported conditional path plus the decisive absent deployment facts justifies unknown without claiming a real deployment outcome."
+      },
+      {
+        "id": "code-quote-without-causal-claim",
+        "expectedQuality": "partial",
+        "rationale": "Quoted code can make evidence transport valid while the answer still omits the causal identity or control claim."
+      },
+      {
+        "id": "wrong-causality",
+        "expectedQuality": "incorrect",
+        "rationale": "Reversing a gate or claiming unconditional reachability contradicts the decisive source relation."
+      },
+      {
+        "id": "missing-decisive-control",
+        "expectedQuality": "partial",
+        "rationale": "A correct label without the gate or external fact that changes the answer lacks necessary semantics."
+      }
+    ]
+  },
+  "cases": [
+    {
+      "caseId": "owui-process-file-write",
+      "taskId": "owui-process-file-write",
+      "rubricVersion": "owui-process-file-write-oracle/v2",
+      "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+      "expectedDisposition": "source_supported_failure",
+      "dispositionRule": {
+        "oracleRule": "oracles/owui-process-file-write.json#/disposition",
+        "sourceLocations": [
+          { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 14, "endLine": 18 },
+          { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 40, "endLine": 50 },
+          { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 62, "endLine": 74 }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0",
+        "sourceLocations": [
+          { "path": "inputs/owui-process-file-write/task.json", "startLine": 6, "endLine": 18 }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "source-file-ownership-check",
+          "layer": "necessary-semantics",
+          "requirement": "State that the visible ownership check is on the supplied source file.",
+          "decisionRelevance": "Treating this check as destination authorization would reverse the result.",
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/0",
+          "sourceLocations": [
+            { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 40, "endLine": 44 }
+          ]
+        },
+        {
+          "id": "destination-is-distinct",
+          "layer": "necessary-semantics",
+          "requirement": "Distinguish the caller-selected destination collection from the owned source file.",
+          "decisionRelevance": "The policy applies to the destination resource, not merely to the source file.",
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/1",
+          "sourceLocations": [
+            { "path": "inputs/owui-process-file-write/task.json", "startLine": 6, "endLine": 8 },
+            { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 45, "endLine": 50 }
+          ]
+        },
+        {
+          "id": "destination-write-control-absent",
+          "layer": "necessary-semantics",
+          "requirement": "State that no destination knowledge-base write check occurs before save_docs_to_vector_db in the complete fixed crop.",
+          "decisionRelevance": "The absent destination control is the decisive policy failure.",
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/2",
+          "sourceLocations": [
+            { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 45, "endLine": 53 },
+            { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 55, "endLine": 74 }
+          ]
+        },
+        {
+          "id": "destination-reaches-insert",
+          "layer": "necessary-semantics",
+          "requirement": "Trace the supplied collection name through save_docs_to_vector_db to VECTOR_DB_CLIENT.insert.",
+          "decisionRelevance": "The policy gap matters only if the caller-selected destination reaches the protected effect.",
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/3",
+          "sourceLocations": [
+            { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 14, "endLine": 18 },
+            { "path": "inputs/owui-process-file-write/retrieval_process_file.py", "startLine": 62, "endLine": 74 }
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "owui-process-text-controlled",
+      "taskId": "owui-process-text-controlled",
+      "rubricVersion": "owui-process-text-controlled-oracle/v2",
+      "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "oracles/owui-process-text-controlled.json#/disposition",
+        "sourceLocations": [
+          { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 13, "endLine": 44 },
+          { "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py", "startLine": 42, "endLine": 52 }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1",
+        "sourceLocations": [
+          { "path": "inputs/owui-process-text-controlled/task.json", "startLine": 6, "endLine": 18 }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "caller-write-validator",
+          "layer": "necessary-semantics",
+          "requirement": "State that process_text calls the validator with access_type='write' before the sink.",
+          "decisionRelevance": "The upstream write validator prevents a sink-local false positive.",
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/0",
+          "sourceLocations": [
+            { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 13, "endLine": 28 }
+          ]
+        },
+        {
+          "id": "denied-set-enforcement",
+          "layer": "necessary-semantics",
+          "requirement": "State that the validator rejects requested names absent from the allowed set.",
+          "decisionRelevance": "This is the control that blocks the ungranted destination before the effect.",
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/1",
+          "sourceLocations": [
+            { "path": "inputs/owui-process-text-controlled/retrieval_process_text.py", "startLine": 31, "endLine": 44 }
+          ]
+        },
+        {
+          "id": "knowledge-base-write-policy",
+          "layer": "necessary-semantics",
+          "requirement": "State that an existing knowledge base is allowed only when check_access_by_user_id grants write access.",
+          "decisionRelevance": "The allowed set is policy-backed rather than an unrelated name filter.",
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/2",
+          "sourceLocations": [
+            { "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py", "startLine": 42, "endLine": 52 }
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "owui-trusted-header-deployment",
+      "taskId": "owui-trusted-header-deployment",
+      "rubricVersion": "owui-trusted-header-oracle/v2",
+      "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+      "expectedDisposition": "unknown",
+      "dispositionRule": {
+        "oracleRule": "trusted-header-oracle-revision.json#/revisedDisposition",
+        "sourceLocations": [
+          { "path": "inputs/owui-trusted-header-deployment/task.json", "startLine": 6, "endLine": 18 },
+          { "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py", "startLine": 10, "endLine": 13 },
+          { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 11, "endLine": 62 }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "evaluation-protocol-revision.json#/scoringEffect",
+        "sourceLocations": [
+          { "path": "inputs/owui-trusted-header-deployment/task.json", "startLine": 6, "endLine": 18 }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "password-auth-entry-gate",
+          "layer": "necessary-semantics",
+          "requirement": "State that trusted-header processing requires the preceding ENABLE_PASSWORD_AUTH gate; an equivalent statement that the path is blocked when the gate is false is accepted.",
+          "decisionRelevance": "The application capability does not exist through this entry when the gate is closed.",
+          "oracleRule": "evaluation-protocol-v2#/trusted-header/password-auth-entry-gate",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 11, "endLine": 15 }
+          ]
+        },
+        {
+          "id": "trusted-header-configuration-gate",
+          "layer": "necessary-semantics",
+          "requirement": "State that the trusted-email header name is environment-controlled and the branch requires it to be configured and present.",
+          "decisionRelevance": "Without this configuration, sending an arbitrary header cannot enter the assessed branch.",
+          "oracleRule": "evaluation-protocol-v2#/trusted-header/configuration-gate",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py", "startLine": 10, "endLine": 13 },
+            { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 17, "endLine": 21 }
+          ]
+        },
+        {
+          "id": "identity-binding",
+          "layer": "necessary-semantics",
+          "requirement": "Trace the configured request-header value into the email identity used for authentication.",
+          "decisionRelevance": "This binding connects caller-controlled input to the identity whose session is requested.",
+          "oracleRule": "evaluation-protocol-v2#/trusted-header/identity-binding",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 21, "endLine": 40 }
+          ]
+        },
+        {
+          "id": "authentication-and-session-condition",
+          "layer": "necessary-semantics",
+          "requirement": "State that email authentication must yield a user before session creation; the false path does not issue a session.",
+          "decisionRelevance": "A supplied identity header alone is not sufficient for the protected effect.",
+          "oracleRule": "evaluation-protocol-v2#/trusted-header/authentication-session-condition",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 40, "endLine": 62 }
+          ]
+        },
+        {
+          "id": "deployment-facts-absent",
+          "layer": "necessary-semantics",
+          "requirement": "Name the actual gate values, ingress reachability, proxy header handling, and deployed authentication outcome as unavailable when they decide the actual-deployment question.",
+          "decisionRelevance": "Those source-external facts can change the requested deployment answer and justify unknown.",
+          "oracleRule": "evaluation-protocol-v2#/trusted-header/deployment-facts-absent",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/task.json", "startLine": 6, "endLine": 18 }
+          ]
+        },
+        {
+          "id": "conditional-capability-boundary",
+          "layer": "necessary-semantics",
+          "requirement": "State both that the source exposes a conditional header-to-session capability and that it does not establish the actual deployment outcome.",
+          "decisionRelevance": "Bare abstention omits available source semantics, while a deployment claim overstates them.",
+          "oracleRule": "evaluation-protocol-v2#/trusted-header/conditional-capability-boundary",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/task.json", "startLine": 6, "endLine": 18 },
+            { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 17, "endLine": 62 }
+          ]
+        },
+        {
+          "id": "password-auth-403-detail",
+          "layer": "explanation-completeness",
+          "requirement": "When spelling out the closed gate, state that this route returns HTTP 403 before trusted-header handling.",
+          "decisionRelevance": "The exact response completes the branch explanation but is not needed to establish that the path is blocked.",
+          "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/0",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 11, "endLine": 15 }
+          ]
+        },
+        {
+          "id": "conditional-outcome-enumeration",
+          "layer": "explanation-completeness",
+          "requirement": "Explicitly distinguish closed-gate, failed-authentication, trusted-proxy-safe, and attacker-header-reachable outcomes without asserting which deployment branch is real.",
+          "decisionRelevance": "Enumeration makes the explanation complete; the necessary capability boundary and missing facts already determine the bounded unknown disposition.",
+          "oracleRule": "trusted-header-oracle-revision.json#/new/conditionalOutcomes",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/task.json", "startLine": 6, "endLine": 18 },
+            { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 11, "endLine": 62 }
+          ]
+        },
+        {
+          "id": "optional-signup-path",
+          "layer": "optional-detail",
+          "requirement": "Mention that a missing user may be passed through signup_handler before email authentication.",
+          "decisionRelevance": "Provisioning is a useful path detail but does not change the required gate, binding, authentication, or deployment-uncertainty reasoning.",
+          "oracleRule": "trusted-header-oracle-revision.json#/new/sourceSupportedFacts/2",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/auths_signin.py", "startLine": 31, "endLine": 38 }
+          ]
+        },
+        {
+          "id": "optional-default-none-detail",
+          "layer": "optional-detail",
+          "requirement": "Mention that WEBUI_AUTH_TRUSTED_EMAIL_HEADER defaults to None when the environment does not set it.",
+          "decisionRelevance": "The default is useful context, but the actual deployed value remains unknown and is the decisive fact.",
+          "oracleRule": "oracles/owui-trusted-header-deployment.json#/sourceSupportedFacts/0",
+          "sourceLocations": [
+            { "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py", "startLine": 10, "endLine": 10 }
+          ]
+        }
+      ]
+    }
+  ]
+}

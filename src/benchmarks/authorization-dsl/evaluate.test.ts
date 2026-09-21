@@ -9,11 +9,16 @@ import type { AuthorizationResultV0, AuthorizationTaskV0 } from "../../task-dsl/
 import { compileAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
 import {
   AuthorizationEvaluationRubricsV0Schema,
+  AuthorizationEvaluationRubricsV2Schema,
   evaluateAuthorizationGeneration,
+  evaluateAuthorizationGenerationV2,
   hashAuthorizationRawOutput,
   summarizeAuthorizationPair,
   summarizeAuthorizationRun,
   type AuthorizationCaseEvaluationRubric,
+  type AuthorizationCaseEvaluationRubricV2,
+  type AuthorizationGenerationEvaluationV2,
+  type AuthorizationSemanticReviewV1,
   type AuthorizationSemanticReviewV0,
   type SemanticReviewStatus,
 } from "./evaluate.ts"
@@ -251,6 +256,128 @@ function evaluateCandidate(
     artifact: made.artifact,
     generation: "initial",
     review: reviewFor(candidateRubric, made.artifact.rawResponse, overrides),
+  })
+}
+
+function rubricV2(): AuthorizationCaseEvaluationRubricV2 {
+  return {
+    caseId: "semantic-review-example",
+    taskId: "semantic-review-example",
+    rubricVersion: "semantic-review-example/v2",
+    obligationId: "deny-write::write-entry",
+    expectedDisposition: "unknown",
+    dispositionRule: {
+      oracleRule: "example-oracle-v2#/disposition",
+      sourceLocations: [location(1, 5)],
+    },
+    scopeRule: {
+      oracleRule: "example-protocol-v2#/bounded-scope",
+      sourceLocations: [location(1, 5)],
+    },
+    criteria: [
+      {
+        id: "entry-gate",
+        layer: "necessary-semantics",
+        requirement: "State the entry gate, accepting either positive or logically equivalent negative form.",
+        decisionRelevance: "Without the gate, the conditional capability is misstated.",
+        oracleRule: "example-oracle-v2#/criteria/entry-gate",
+        sourceLocations: [location(1), location(2)],
+      },
+      {
+        id: "identity-binding",
+        layer: "necessary-semantics",
+        requirement: "Explain how the caller-controlled value becomes the assessed identity.",
+        decisionRelevance: "The binding is part of the causal path, not citation decoration.",
+        oracleRule: "example-oracle-v2#/criteria/identity-binding",
+        sourceLocations: [location(1), location(5)],
+      },
+      {
+        id: "decisive-external-gap",
+        layer: "necessary-semantics",
+        requirement: "Name the absent external fact that makes the final disposition unknown.",
+        decisionRelevance: "The missing fact can change the actual-deployment answer.",
+        oracleRule: "example-oracle-v2#/criteria/decisive-external-gap",
+        sourceLocations: [location(4), location(5)],
+      },
+      {
+        id: "conditional-outcomes",
+        layer: "explanation-completeness",
+        requirement: "Spell out the safe and unsafe conditional outcomes.",
+        decisionRelevance: "This improves explanation completeness but does not change a supported unknown label.",
+        oracleRule: "example-oracle-v2#/criteria/conditional-outcomes",
+        sourceLocations: [location(2, 5)],
+      },
+      {
+        id: "optional-signup-detail",
+        layer: "optional-detail",
+        requirement: "Mention the optional provisioning branch when it helps explain the full path.",
+        decisionRelevance: "Provisioning is not needed to justify the bounded disposition.",
+        oracleRule: "example-oracle-v2#/criteria/optional-signup-detail",
+        sourceLocations: [location(3)],
+      },
+    ],
+  }
+}
+
+function reviewForV2(
+  candidateRubric: AuthorizationCaseEvaluationRubricV2,
+  rawResponse: string,
+  overrides: {
+    criterionStatuses?: Record<string, SemanticReviewStatus>
+    dispositionStatus?: SemanticReviewStatus
+  } = {},
+): AuthorizationSemanticReviewV1 {
+  return {
+    schemaVersion: "authorization-semantic-review/v1",
+    caseId: candidateRubric.caseId,
+    taskId: candidateRubric.taskId,
+    generation: "initial",
+    attemptId: "provider-attempt-1",
+    rawOutputSha256: hashAuthorizationRawOutput(rawResponse),
+    rubricVersion: candidateRubric.rubricVersion,
+    reviewer: { kind: "development-agent", identity: "codex-development-agent" },
+    criterionReviews: candidateRubric.criteria.map((criterion) => {
+      const status = overrides.criterionStatuses?.[criterion.id] ?? "supported"
+      return {
+        criterionId: criterion.id,
+        ...assessment(
+          status,
+          status === "missing" ? null : "/results/0/explanation",
+          criterion.oracleRule,
+          criterion.sourceLocations,
+        ),
+      }
+    }),
+    dispositionReview: assessment(
+      overrides.dispositionStatus ?? "supported",
+      overrides.dispositionStatus === "missing" ? null : "/results/0/conclusion",
+      candidateRubric.dispositionRule.oracleRule,
+      candidateRubric.dispositionRule.sourceLocations,
+    ),
+    scopeReview: assessment(
+      "supported",
+      "/scopeClaim",
+      candidateRubric.scopeRule.oracleRule,
+      candidateRubric.scopeRule.sourceLocations,
+    ),
+  }
+}
+
+function evaluateCandidateV2(
+  explanation: string,
+  overrides?: Parameters<typeof reviewForV2>[2],
+) {
+  const candidateRubric = rubricV2()
+  const result = answer("unknown", explanation)
+  result.results[0]!.decisiveMissingFacts = ["The external deployment fact is absent from the fixed source."]
+  result.results[0]!.suggestedObservations = ["Observe the external deployment fact through an authorized channel."]
+  const made = artifact(result)
+  return evaluateAuthorizationGenerationV2({
+    rubric: candidateRubric,
+    sourceBundle: bundle(),
+    artifact: made.artifact,
+    generation: "initial",
+    review: reviewForV2(candidateRubric, made.artifact.rawResponse, overrides),
   })
 }
 
@@ -560,5 +687,141 @@ describe("authorization semantic evaluation", () => {
       "authentication-and-session-condition",
       "deployment-facts-absent",
     ]))
+  })
+})
+
+describe("authorization semantic evaluation v2", () => {
+  it("separates necessary semantics, explanation completeness, and optional detail", () => {
+    const cases = [
+      {
+        id: "equivalent-negative-condition",
+        evaluation: evaluateCandidateV2(
+          "When the entry gate is not satisfied, the protected effect is unreachable; deployment facts still decide the actual outcome.",
+        ),
+        expectedQuality: "full-success",
+      },
+      {
+        id: "omitted-signup",
+        evaluation: evaluateCandidateV2(
+          "The gate and identity binding are explicit, and the absent deployment fact keeps the answer unknown.",
+          { criterionStatuses: { "optional-signup-detail": "missing" } },
+        ),
+        expectedQuality: "full-success",
+      },
+      {
+        id: "correct-unknown",
+        evaluation: evaluateCandidateV2(
+          "The source proves a conditional path but lacks the external fact that selects the safe or unsafe outcome.",
+        ),
+        expectedQuality: "full-success",
+      },
+      {
+        id: "code-quote-without-causal-claim",
+        evaluation: evaluateCandidateV2(
+          "The answer reproduces the entry code but never states how the value becomes the assessed identity.",
+          { criterionStatuses: { "identity-binding": "missing" } },
+        ),
+        expectedQuality: "partial",
+      },
+      {
+        id: "wrong-causality",
+        evaluation: evaluateCandidateV2(
+          "The entry gate causes the untrusted caller to reach the protected effect unconditionally.",
+          {
+            criterionStatuses: { "entry-gate": "contradicted" },
+            dispositionStatus: "contradicted",
+          },
+        ),
+        expectedQuality: "incorrect",
+      },
+      {
+        id: "missing-decisive-control",
+        evaluation: evaluateCandidateV2(
+          "The source has a conditional path, but the answer omits the external fact that decides the deployment outcome.",
+          { criterionStatuses: { "decisive-external-gap": "missing" } },
+        ),
+        expectedQuality: "partial",
+      },
+    ]
+
+    expect(cases.map(candidate => [candidate.id, candidate.evaluation.qualityStatus]))
+      .toEqual(cases.map(candidate => [candidate.id, candidate.expectedQuality]))
+    expect(cases[0]?.evaluation.dimensions.necessarySemantics).toBe("supported")
+    expect(cases[1]?.evaluation.dimensions.optionalDetails).toBe("partial")
+    expect(cases[1]?.evaluation.semanticDecisionCorrect).toBe(true)
+    expect(cases[1]?.evaluation.taskDecisionCorrect).toBe(true)
+    expect(cases[3]?.evaluation.transportValid).toBe(true)
+    expect(cases[3]?.evaluation.dimensions.necessarySemantics).toBe("missing")
+    expect(cases[3]?.evaluation.taskDecisionCorrect).toBe(true)
+    expect(cases[4]?.evaluation.taskDecisionCorrect).toBe(false)
+    expect(cases[5]?.evaluation.dimensions.necessarySemantics).toBe("missing")
+  })
+
+  it("parses the calibrated evaluator-only v2 rubric", async () => {
+    const file = path.resolve(
+      import.meta.dir,
+      "../../../results/skill-ir/skill-dsl-research/development/authorization-capability-v1/evaluation-v2.json",
+    )
+    const parsed = AuthorizationEvaluationRubricsV2Schema.parse(JSON.parse(await readFile(file, "utf8")))
+    const trustedHeader = parsed.cases.find(candidate => candidate.caseId === "owui-trusted-header-deployment")
+
+    expect(trustedHeader?.criteria.map(criterion => [criterion.id, criterion.layer])).toEqual(expect.arrayContaining([
+      ["password-auth-entry-gate", "necessary-semantics"],
+      ["password-auth-403-detail", "explanation-completeness"],
+      ["optional-signup-path", "optional-detail"],
+    ]))
+  })
+
+  it("reassesses the archived trusted-header B/D answers without changing their generation identity", async () => {
+    const capabilityRoot = path.resolve(
+      import.meta.dir,
+      "../../../results/skill-ir/skill-dsl-research/development/authorization-capability-v1",
+    )
+    const transportRoot = path.resolve(
+      import.meta.dir,
+      "../../../results/skill-ir/skill-dsl-research/development/authorization-transport-v1/runs/initial-wire-v1/units",
+    )
+    const rubrics = AuthorizationEvaluationRubricsV2Schema.parse(JSON.parse(
+      await readFile(path.join(capabilityRoot, "evaluation-v2.json"), "utf8"),
+    ))
+    const rubric = rubrics.cases.find(candidate => candidate.caseId === "owui-trusted-header-deployment")!
+    const reassessment = JSON.parse(
+      await readFile(path.join(capabilityRoot, "trusted-header-w-reassessment-v2.json"), "utf8"),
+    ) as {
+      identity: { historicalArtifactsModified: boolean; generationReused: boolean; newProviderCalls: number }
+      reviews: Record<"B" | "D", unknown>
+      expectedSummary: Record<"B" | "D",
+      AuthorizationGenerationEvaluationV2["dimensions"]
+      & Pick<AuthorizationGenerationEvaluationV2, "semanticDecisionCorrect" | "taskDecisionCorrect" | "qualityStatus">>
+    }
+
+    expect(reassessment.identity).toEqual(expect.objectContaining({
+      historicalArtifactsModified: false,
+      generationReused: true,
+      newProviderCalls: 0,
+    }))
+
+    for (const [arm, unit] of [
+      ["B", "05-owui-trusted-header-deployment-B"],
+      ["D", "06-owui-trusted-header-deployment-D"],
+    ] as const) {
+      const unitRoot = path.join(transportRoot, unit)
+      const run = JSON.parse(await readFile(path.join(unitRoot, "run.json"), "utf8")) as AuthorizationTaskRun
+      const sourceBundle = JSON.parse(await readFile(path.join(unitRoot, "source-bundle.json"), "utf8")) as SourceBundle
+      expect(run.initial).toBeDefined()
+      const evaluated = evaluateAuthorizationGenerationV2({
+        rubric,
+        sourceBundle,
+        artifact: run.initial!,
+        generation: "initial",
+        review: reassessment.reviews[arm],
+      })
+      expect({
+        ...evaluated.dimensions,
+        semanticDecisionCorrect: evaluated.semanticDecisionCorrect,
+        taskDecisionCorrect: evaluated.taskDecisionCorrect,
+        qualityStatus: evaluated.qualityStatus,
+      }).toEqual(reassessment.expectedSummary[arm])
+    }
   })
 })
