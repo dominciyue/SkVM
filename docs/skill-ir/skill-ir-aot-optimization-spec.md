@@ -2496,4 +2496,6 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **Y当前授权合同（2026-09-22）。** 用户确认继续任务分类与领域表达路线，授权新线程执行[Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)。本轮取代X结束时“只做薄CLI加单一迁移任务”的建议，完整推进条件结果层、普通作者输入、现有CLI薄适配、公平P/L/C比较与第三项目默认profile迁移。条件输入不预填真值；宿主检查结构关联，模型与评价者负责源码语义。默认ledger/B、条件层opt-in；旧schema/wire及历史结果保留。P与结构化配置共用业务事实、公开要求、源码和评价，允许不同输出形状的等价语义，结论归于表达与运行支持组合。新项目在方法固定后获取，源暴露与事后修订如实记账；不读取旧保护集。工程交付和多维收益分别判断；当前设计详见研究§7.22。
 
+**Y2 条件版本合同。** strict task v0 不变；稳定条件 ID 由可选 request/v1 sidecar 的 authored-obligation-scoped `conditionBindings` 显式提供，并按唯一 authored condition name 绑定，不能按数组位置推断。编译只做 authored→expanded obligation 映射。result/v1 sidecar 用 assumptions、effect、fact pointers、missing facts、unexamined IDs 和 completeness 表达有界结果；条件开启时走显式 wire/v3，未开启仍用旧 v1/v2。宿主核对结构和同义务引用，不推导可达性。bounded 表示所请求条件均被考虑而非穷举真值表；incomplete 必须显式列遗漏。公共 owner/role、配置 gate、外部代理未知走查与 evaluator-only 判例在生成前分开冻结。
+
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。

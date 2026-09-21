@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "authorization-condition-evaluation-cases/v1",
+  "status": "y2-frozen-before-condition-generation",
+  "visibility": "evaluator-only; this file must not enter generation prompts or repair diagnostics",
+  "layers": [
+    {
+      "id": "necessary-decision",
+      "meaning": "The disposition and decisive source relation remain correct for the declared policy expectation.",
+      "failureEffect": "A contradicted decisive relation is incorrect; a correct label without a decisive relation is partial."
+    },
+    {
+      "id": "condition-explanation",
+      "meaning": "Requested condition changes are explained with distinguishable assumptions, or omissions are explicit and bounded.",
+      "failureEffect": "Missing or unsupported condition variation is partial unless it reverses the necessary decision."
+    },
+    {
+      "id": "optional-detail",
+      "meaning": "Useful details outside the declared condition request are reported separately.",
+      "failureEffect": "Omission does not change decision correctness or full-success when all required layers are complete."
+    }
+  ],
+  "calibrationCases": [
+    {
+      "id": "equivalent-negative-gate",
+      "expectedQuality": "full-success",
+      "rationale": "Saying the effect is blocked when the gate is false is equivalent to saying reachability requires the gate to be true."
+    },
+    {
+      "id": "correct-bounded-owner-role-analysis",
+      "expectedQuality": "full-success",
+      "rationale": "Distinct ownership and role assumptions support distinct effects without requiring every Boolean combination."
+    },
+    {
+      "id": "correct-external-unknown",
+      "expectedQuality": "full-success",
+      "rationale": "Source-visible capability plus a decisive missing deployment fact supports unknown without asserting deployed behavior."
+    },
+    {
+      "id": "label-correct-missing-condition-change",
+      "expectedQuality": "partial",
+      "rationale": "The main decision can be correct while a requested true/false or external-unknown variation remains unexplained."
+    },
+    {
+      "id": "citation-without-condition-causality",
+      "expectedQuality": "partial",
+      "rationale": "A legal pointer does not substitute for explaining which assumption changes reachability."
+    },
+    {
+      "id": "optional-unrequested-detail-omitted",
+      "expectedQuality": "full-success",
+      "rationale": "An unrequested default value or provisioning path is optional detail, not a condition-completeness failure."
+    },
+    {
+      "id": "deployment-assumption-stated-as-fact",
+      "expectedQuality": "incorrect",
+      "rationale": "Turning an unresolved external-agent assumption into a deployed fact creates an unsupported decisive claim."
+    },
+    {
+      "id": "reversed-gate-effect",
+      "expectedQuality": "incorrect",
+      "rationale": "Claiming reachable under the source branch that blocks the effect contradicts the necessary decision relation."
+    }
+  ],
+  "walkthroughOracles": [
+    {
+      "publicWalkthroughId": "owner-role-override",
+      "requiredSemantics": [
+        "ownership and the privileged-role override are separate sufficient or blocking relations according to the fixed source",
+        "branches with different effects identify different assumptions",
+        "the result does not assume the caller's actual ownership or role unless the fixed context supplies it"
+      ],
+      "optionalDetails": ["exact error status or message when the operation is blocked"]
+    },
+    {
+      "publicWalkthroughId": "configuration-gate",
+      "requiredSemantics": [
+        "enabled and disabled gate assumptions have their source-supported reachability effects",
+        "unknown runtime configuration names the minimum missing observation rather than choosing a value"
+      ],
+      "optionalDetails": ["the default configuration value when it is not needed to decide the fixed task"]
+    },
+    {
+      "publicWalkthroughId": "external-agent-unknown",
+      "requiredSemantics": [
+        "application source capability is separated from actual external-agent validation",
+        "the unresolved deployment branch remains unknown with a concrete missing fact",
+        "no source citation is represented as proof of deployed behavior"
+      ],
+      "optionalDetails": ["vendor-specific proxy or agent configuration not supplied by the task"]
+    }
+  ]
+}

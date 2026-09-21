@@ -673,6 +673,10 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 
 **方法选择。** 同轮补充轻量条件请求与条件结果sidecar、作者输入派生、现有CLI薄适配、P/L/C对照及第三项目默认profile迁移。暂不扩为全仓发现或通用程序分析。条件请求只指定公开义务/条件及有界规模，分支真假、可达性和依据由模型回答；假设不得变成实际部署事实。宿主检查ID、赋值、重复、指针和显式遗漏，语义仍由评价者判断。旧版本继续可读，无条件任务不强制生成分支。具体类型、兼容、测试和文件责任以Y任务书为准。
 
+**Y2 条件合同定稿。** task v0 继续 strict，不为加 ID 静默扩字段；可选 `authorization-condition-analysis-request/v1` sidecar 以 authored obligation 为范围，用 `conditionBindings: [{id, name}]` 将稳定显式 ID 绑定到该义务内唯一的既有 condition 名，basis 仍取原 task。这样避免数组序号身份，也不把 name/basis/结果复制成第二份真相。编译只把请求展开到同 authored obligation 的 runnable expanded obligations。输出 `authorization-condition-analysis-result/v1` 保存 branch assumptions、effect、explanation、同义务 fact pointers、missing facts、显式未分析 ID 和 `bounded|incomplete`；启用时用 wire/v3，未启用继续原 v1/v2。`bounded` 只证明每个请求条件至少被某个假设考虑，不声称穷举所有组合或程序路径；`incomplete` 必须列出遗漏与限制。reachable/blocked 至少有同义务事实，unknown effect 或 unknown-valued assumption 至少有决定性缺失事实。宿主只判结构，`semanticSupport` 保持 unreviewed。
+
+三个无项目名公共走查分别覆盖 owner/role override、配置 gate 和外部代理部署未知；均只给 authored policy、condition name/basis、公开问题和上限，不给 source outcome。公共完成要求与 evaluator-only 判例在生成前同时冻结但物理分开：评价先看 necessary decision，再看 condition explanation，最后单列 optional detail；正确标签但漏请求的条件变化是 partial，反转决定性 gate 或把部署假设写成事实是 incorrect，未请求的默认值/可选路径不降级。机器合同见 Y 结果根的 `contract/condition-contract-v1.json` 与 `evaluator/condition-evaluation-cases-v1.json`。
+
 **公平比较。** P是信息齐全的普通说明及基础引用/计量；L增加默认领域ledger/coverage；C再加条件层。三者共享业务事实、公开分析要求、源码、模型和修复机会，协议差异和成本显式记录。共同评价接受P的等价文字分析，不因缺少专用字段扣语义分。本轮评估表达与运行支持组合，不把效果单独归因于JSON语法。原五任务开发面板15单元；最多6修订单元。方法固定后再读取第三项目正文，用默认profile而非任务专属问题清单，P与选定结构化方法在2–3任务上各两次重复，正常12单元。选择先看必要质量，再看条件完整性、成本和编写负担；C无增量就保留L。
 
 **编写与交付。** 新authoring输入复用现有task，派生重复sourceIdentity/default requirements；缺政策与expectation集中报needs-input，不猜测填充。`skvm authorization init/check/run/inspect`复用现有宿主，init示例明确synthetic，普通输入保留作者来源，只有run调用模型。method与历史N/B/D分开，默认ledger/B，条件层opt-in。新项目来源独立选择，不读取旧保护集；首次迁移后修方法时保留首次结果，后续记development。允许工程完成而效果mixed/negative，按缺项而非阶段终态数判交付。

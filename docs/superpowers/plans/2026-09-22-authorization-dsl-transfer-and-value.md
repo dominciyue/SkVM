@@ -74,6 +74,8 @@ interface ConditionAnalysisResult {
 
 “结构完整”“按所列条件有界分析”“语义正确”分开输出。宿主只能核对引用、ID、赋值一致性和显式遗漏；不从 fact pointer 推导可达性，不宣称完整枚举实际程序。无条件的普通任务仍能运行，分支层可省略。旧 task/wire/result 版本继续严格解析；新增字段通过显式版本或 sidecar 接线，禁止旧 strict schema 静默吞字段。
 
+**Y2 定稿。** 保持严格 task v0 不变，以可选 `authorization-condition-analysis-request/v1` sidecar 增加稳定身份。每个 authored obligation request 用 `conditionBindings: [{id, name}]` 把显式 ID 绑定到该义务内唯一的既有 condition 名；不以数组位置推导 ID，也不重复 basis 或预填结果。编译后只展开到该 authored obligation 的 runnable expanded obligations。结果为 `authorization-condition-analysis-result/v1` sidecar；启用时计划由显式 wire/v3 承载，未启用仍走既有 v1/v2。`bounded` 只表示所有请求条件至少在一项假设中被考虑，不表示指数真值表或完整程序路径；遗漏须进入 `unexaminedConditionIds` 并标 `incomplete`。公共例子与 evaluator-only 判例物理分开保存在 Y 结果根。
+
 ### 3.2 用户编写与普通入口
 
 新增 opt-in `skvm authorization init/check/run/inspect`，复用现有 CLI 和授权宿主。`init --out=./assessment.json` 写一个明确标为 synthetic 的完整可编辑示例；存在目标文件时不覆盖。支持 `--from=<authoring.json>` 确定性规范化已给出的领域声明，派生 sourceIdentity 和默认 requirements，集中输出缺项；不凭模板替用户决定政策事实。
@@ -142,9 +144,9 @@ init/check/inspect 不初始化 provider；run 显式使用 `--model`。没有 a
 - [x] 验证 `bun test ./src/benchmarks/authorization-dsl/local-run.test.ts`，提交本轮共享修复。
 
 ### Y2：条件领域合同与公开要求对齐
-- [ ] 用 synthetic owner/role、配置 gate、外部代理未知三个例子走查 §3.1，确认不含项目名和预填答案。
-- [ ] 在研究 §7.22 记录 condition ID/assumption/fact 的分工、版本分发、无条件任务行为和不完整输出规则。
-- [ ] 将条件解释的公开完成要求和 evaluator 判例同时定稿，区分“必要决策”“完整解释”“可选细节”；可选细节缺失不冒充决策错误。
+- [x] 用 synthetic owner/role、配置 gate、外部代理未知三个例子走查 §3.1，确认不含项目名和预填答案。
+- [x] 在研究 §7.22 记录 condition ID/assumption/fact 的分工、版本分发、无条件任务行为和不完整输出规则。
+- [x] 将条件解释的公开完成要求和 evaluator 判例同时定稿，区分“必要决策”“完整解释”“可选细节”；可选细节缺失不冒充决策错误。
 
 ### Y3：实现条件层纯函数与反例
 - [ ] 写失败测试：重复条件、true/false 冲突、跨义务、未知 ID、重复分支、unknown 无缺失事实、无条件任务、分支上限、未分析条件显式保留。

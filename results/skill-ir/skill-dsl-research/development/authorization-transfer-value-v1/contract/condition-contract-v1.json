@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "authorization-condition-contract/v1",
+  "status": "y2-frozen-for-implementation",
+  "purpose": "Request and return bounded condition-sensitive reachability analysis without placing source truth or deployment truth in the authored input.",
+  "compatibility": {
+    "taskSchema": "source-authorization-assessment/v0 remains strict and unchanged",
+    "requestSchema": "authorization-condition-analysis-request/v1 is an optional sidecar",
+    "resultSchema": "authorization-condition-analysis-result/v1 is an optional sidecar",
+    "wirePlan": "source-authorization-assessment-wire/v3 extends v2 only when a condition request is present; v1 and v2 remain unchanged",
+    "noRequestBehavior": "A task without the optional request uses the existing result and coverage path and must not invent condition branches."
+  },
+  "requestContract": {
+    "shape": {
+      "schemaVersion": "authorization-condition-analysis-request/v1",
+      "requests": [
+        {
+          "obligationId": "authored obligation ID",
+          "conditionBindings": [
+            { "id": "stable explicit condition ID", "name": "exact authored condition name" }
+          ],
+          "maxBranches": "integer 1..12; default 8"
+        }
+      ]
+    },
+    "identityRule": "The sidecar adds explicit IDs because v0 task conditions have names but no IDs. A binding resolves by exact name within one authored obligation; array position is never identity.",
+    "compilationRule": "One valid authored request is expanded only to that authored obligation's runnable expanded obligations. The compiled condition definition carries the existing authored name and basis; the request never supplies an effect.",
+    "diagnostics": [
+      "duplicate condition names within the requested authored obligation",
+      "duplicate binding IDs or names",
+      "unknown or ambiguous authored obligation",
+      "binding to an unknown authored condition name",
+      "duplicate request for one authored obligation",
+      "invalid branch bound outside 1..12"
+    ],
+    "forbiddenPrefill": [
+      "reachable, blocked, or unknown effect",
+      "observed true or false condition value",
+      "oracle facts or evaluator scoring criteria",
+      "deployment truth inferred from source capability"
+    ]
+  },
+  "resultContract": {
+    "shape": {
+      "schemaVersion": "authorization-condition-analysis-result/v1",
+      "analyses": [
+        {
+          "obligationId": "expanded obligation ID",
+          "branches": [
+            {
+              "id": "stable branch ID",
+              "obligationId": "same expanded obligation ID",
+              "assumptions": [
+                { "conditionId": "requested condition ID", "value": "true|false|unknown" }
+              ],
+              "effect": "reachable|blocked|unknown",
+              "explanation": "non-empty causal explanation",
+              "factPointers": ["canonical result fact pointer from the same obligation"],
+              "missingFacts": ["decisive fact absent from fixed context"]
+            }
+          ],
+          "unexaminedConditionIds": ["requested condition ID not analyzed in any branch"],
+          "completeness": "bounded|incomplete",
+          "limitations": ["non-empty limitation when incomplete"]
+        }
+      ]
+    },
+    "boundedMeaning": "Every requested condition is considered in at least one returned assumption and none is listed unexamined. Bounded does not mean an exhaustive truth table or complete program-path enumeration.",
+    "incompleteMeaning": "Every requested condition not considered in a branch is listed exactly once in unexaminedConditionIds and limitations explains the bound or missing evidence.",
+    "unknownRule": "An unknown effect or an unknown-valued assumption requires at least one decisive missing fact. A reachable or blocked claim requires at least one same-obligation fact pointer.",
+    "branchIdentityRule": "A branch may assign each condition at most once. Identical normalized assumption sets may not be repeated; two different effects must be distinguished by different assumptions.",
+    "hostBoundary": "The host validates schema, IDs, obligation mapping, assignment consistency, branch bound, explicit omissions, missing-fact requirements, and same-obligation fact pointers. It never derives reachability or upgrades semantic support from a pointer.",
+    "semanticSupport": "unreviewed"
+  },
+  "publicCompletionRequirements": [
+    "Explain how each requested condition can change whether the protected effect is reachable, or list it as explicitly unexamined.",
+    "Keep analysis assumptions separate from source-observed or deployment-observed facts.",
+    "Use a concrete unknown with decisive missing facts when fixed source context cannot decide an external condition.",
+    "Cite same-obligation facts for reachable or blocked effects and do not treat a citation as proof of semantic correctness.",
+    "Respect maxBranches without generating an exponential truth table."
+  ],
+  "publicWalkthroughs": [
+    {
+      "id": "owner-role-override",
+      "authoredObligation": "Assess whether a caller may modify a resource under the accepted owner-or-privileged-role policy.",
+      "authoredConditions": [
+        { "name": "caller owns resource", "basis": "The accepted policy names ownership as one authorization relation." },
+        { "name": "caller has privileged role", "basis": "The accepted policy names an explicit role override." }
+      ],
+      "conditionBindings": [
+        { "id": "is-owner", "name": "caller owns resource" },
+        { "id": "is-privileged", "name": "caller has privileged role" }
+      ],
+      "publicQuestion": "Explain how ownership and the role override alter effect reachability, including any branch the fixed source cannot decide.",
+      "prefilledOutcome": false
+    },
+    {
+      "id": "configuration-gate",
+      "authoredObligation": "Assess whether a protected entry can reach its effect when a declared configuration gate controls the path.",
+      "authoredConditions": [
+        { "name": "feature gate enabled", "basis": "The task declares the configuration gate as relevant but does not state its runtime value." }
+      ],
+      "conditionBindings": [
+        { "id": "feature-enabled", "name": "feature gate enabled" }
+      ],
+      "publicQuestion": "Describe the enabled, disabled, and unresolved gate cases using source evidence and explicit missing facts.",
+      "prefilledOutcome": false
+    },
+    {
+      "id": "external-agent-unknown",
+      "authoredObligation": "Assess whether an external caller-controlled identity assertion can reach a protected operation through a configured agent boundary.",
+      "authoredConditions": [
+        { "name": "external agent validates identity assertion", "basis": "The source assumes an upstream assertion, while deployment validation behavior is outside the fixed source context." }
+      ],
+      "conditionBindings": [
+        { "id": "agent-validates-identity", "name": "external agent validates identity assertion" }
+      ],
+      "publicQuestion": "Separate source-visible capability from the unknown deployed agent behavior and name the minimum observation needed to decide it.",
+      "prefilledOutcome": false
+    }
+  ],
+  "responsibilities": {
+    "author": [
+      "provide accepted policy, explicit obligation, authored condition name and basis",
+      "opt in by binding stable condition IDs and a branch bound"
+    ],
+    "compiler": [
+      "resolve exact names and authored-to-expanded obligation mapping",
+      "emit only structural plans and diagnostics"
+    ],
+    "model": [
+      "derive condition assumptions, effects, explanations, source facts, and missing facts from the fixed context"
+    ],
+    "host": [
+      "perform mechanical validation and at most the existing diagnostics-only repair"
+    ],
+    "evaluator": [
+      "judge decision semantics, condition explanation completeness, unsupported claims, and equivalently expressed branches"
+    ]
+  }
+}
