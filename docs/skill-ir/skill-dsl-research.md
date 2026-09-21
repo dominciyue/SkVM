@@ -613,7 +613,7 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 ### 7.21 X 完整能力阶段设计
 
-2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X4`：X0–X3 已完成，尚无 X 真实模型结果。
+2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X5`：X0–X4 已完成，尚无 X 真实模型结果。
 
 **为什么扩大本轮范围。** W 的模型消费与计量已经可用，继续只修旧案例会降低获取新信息的速度。现有 B/D 共用 canonical declaration、输出合同和宿主，主要差异位于领域方法指令。接下来既要检验这种组织方式，也要让作者实际写任务、用自备输入运行，并检验换项目后的语义适配。
 
@@ -624,6 +624,8 @@ X1 已把该原则落为 evaluator-only `authorization-evaluation-rubrics/v2`、
 **领域关系。** 不将五节点登录链变成所有授权任务的必经顺序。X3 在原 file/text/header 与 FastAPI owner/role 两项义务上走查后，六类保持为 entry-control、identity-binding、resource-binding、authorization-decision、effect-reachability、external-assumption。共同 profile 的前五类 required，external-assumption 默认为 when-present；task 可把外部事实提升为 required，或用既有 kind 增加 task-specific when-present 分支，但 signup/proxy 不进入共同要求。默认分析依赖为 decision → identity/resource、effect → entry/decision、external → effect，只在同一 expanded obligation 内解析，不表示源码控制流顺序。编译器检查 ID、显式 obligation 映射、依赖适用性和环，并只展开作者声明的 requirement-obligation 对；模型发现源码里的条件、分支、适用性和结果，并用本次 facts/citations 说明。源码循环不等于分析依赖循环，程序不代替模型求解源码控制流。
 
 **X3 反例结论。** 资源所有权与 superuser override 不需要新增项目专属类别；同一 kind 可按义务重复，因而两条 authored obligation 能拥有各自 decision/effect 问题而不产生跨入口笛卡尔积。trusted-header 的 deployment facts 是 task-specific required external assumption，可选 provisioning 则是 identity-binding 的 when-present 补充。两个声明示例只含公开问题和字段来源，不含 observed branch truth、oracle、expected finding 或评价标准。冻结机器合同位于 `authorization-capability-v1/relation-contract-v1.json`，示例位于其 `relation-examples/`；X4 将以 strict schema 和 pure compiler 验证其可实现性。
+
+**X4 实现结果。** `relations.ts` 以 strict schema 隔离单项 shape 错误，拒绝重复 requirement、陌生/歧义/不可运行 obligation、陌生或不同 expanded obligation 的 prerequisite 与 dependency cycle。候选 entry 只来自作者显式映射并稳定排序；cycle 或局部引用错误不会抹掉其他义务的有效 pending question。compiler 不写入 allow/deny、源码控制、攻击路径或适用性答案。独立复核未发现 critical/important，指出字符串组合 key 与 `author::entry` delimiter 可碰撞；两项先加红测，再分别改为结构化 tuple key 与 `%`/`:` segment escaping，普通已有 ID 不变。
 
 **覆盖记录。** 每项 coverage 关联 requirementId、expanded obligationId、addressed/unknown/not-applicable、说明及当前答案 fact pointers。addressed 表示已回应，语义仍需 review；required 不允许静默跳过，when-present 的不适用须有理由。缺部署事实可成为有内容的 unknown。若第二项目显示六类边界不合理，依据反例修订这一设计，不按项目名写成功分支。
 
@@ -961,6 +963,10 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 ### 2026-09-21 X3 跨任务关系合同
 
 **X3-RELATION-01。** 五个任务走查没有推翻六类边界：共同 profile 前五类 required、external-assumption when-present；trusted-header 可显式提升 external 为 required，optional provisioning 用重复的 identity-binding when-present 表示。FastAPI 的 owner/role 反例证明不应把 signup/proxy 固化，也证明 decision/effect 要能按 authored obligation 分开。冻结合同明确同义务依赖、显式 pair 展开、compiler/model 分工与禁止答案预填；两个 answer-free 示例的 task 均通过 v0 schema。未调用模型或目标，X4 先以失败测试实现 strict requirement 与 ledger compiler。
+
+### 2026-09-21 X4 analysis ledger compiler
+
+**X4-LEDGER-01。** `relations.test.ts` 先因模块缺失红灯，随后 strict requirement schema、局部诊断、同义务 prerequisite、cycle 隔离、when-present pending、跨 expanded obligation 展开、顺序稳定与无笛卡尔积转绿。窄只读复核发现 NUL 组合 key 及 `::` expanded ID segment 两个 minor collision；各自新增可复现红测后用结构化 key 与可逆 segment escaping 修正。聚焦 23/23，授权全套 93/93、500 assertions 与 typecheck 通过；无网络、模型或目标执行。X5 接通 coverage sidecar 与宿主机械验证。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 

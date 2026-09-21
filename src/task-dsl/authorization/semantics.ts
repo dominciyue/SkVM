@@ -95,6 +95,10 @@ function addReferenceDiagnostic(
   })
 }
 
+function encodeExpandedObligationIdPart(id: string): string {
+  return id.replaceAll("%", "%25").replaceAll(":", "%3A")
+}
+
 export function compileAuthorizationTask(task: AuthorizationTaskV0): CompiledAuthorizationTask {
   const diagnostics: Diagnostic[] = []
   const policies = indexEntities(task.policySources, "policySources", diagnostics)
@@ -227,7 +231,7 @@ export function compileAuthorizationTask(task: AuthorizationTaskV0): CompiledAut
       }
 
       const compiled: CompiledAuthorizationObligation = {
-        id: `${obligation.id}::${entryId}`,
+        id: `${encodeExpandedObligationIdPart(obligation.id)}::${encodeExpandedObligationIdPart(entryId)}`,
         authorObligationId: obligation.id,
         entryId,
         obligation,

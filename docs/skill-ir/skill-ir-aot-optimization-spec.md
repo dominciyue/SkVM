@@ -2460,7 +2460,7 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **已有基础。** 复用现有捕获、资源与参数索引、验证、局部修复、执行和包导出能力，但不强制新 DSL 先经过旧统一 IR 或既有 action 格式才能成立。保留通用基础设施与领域语义的区别；不预设新 CLI、文件扩展名、完整编译器或大规模框架迁移。旧 IR 和已发布接口继续兼容，历史研究结果不回写。
 
-**下一步。** T/V/W 已完成。用户随后确认按 [X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)推进完整能力阶段，合并评价、关系支持、普通输入、第二项目及对照；X0–X3 已完成，当前进入 X4。跨任务合同保留六类 requirement，共同 profile 前五类 required、external-assumption when-present；依赖只在同一 expanded obligation 内解析，程序只展开显式 requirement-obligation 对且不预填源码真值。单任务仍为 fixed-context，历史 held-out、冻结身份和 readiness 保持各自记录。
+**下一步。** T/V/W 已完成。用户随后确认按 [X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)推进完整能力阶段，合并评价、关系支持、普通输入、第二项目及对照；X0–X4 已完成，当前进入 X5。跨任务合同保留六类 requirement，共同 profile 前五类 required、external-assumption when-present；pure compiler 只展开显式 requirement-obligation 对，在同一 expanded obligation 内检查依赖与环并输出 pending ledger，不预填源码真值。单任务仍为 fixed-context，历史 held-out、冻结身份和 readiness 保持各自记录。
 
 **已有研究。** S0–S11 方法准备、D0–D11 语义深化/探针与 E0–E10 外部类别研究已完成；分类、标准比较、候选设计、45 项旧探针边界、外部任务/反例、方法对照、消费设计、范围决定与复核发现统一维护在[研究总文档](skill-dsl-research.md)，旧来源和结果保持原件。D 阶段的 `proceed-narrow` 只表示当时对技术文档本地化候选的有界可实施性建议，未证明真实模型消费和效果。
 

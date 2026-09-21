@@ -13,12 +13,13 @@
 
 ### 1.1 授权 DSL 开发原型
 
-[V0–V10 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9 任务书](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)和[研究 §7.19–7.20](skill-dsl-research.md#719-v-开发合同与持续复盘)描述已实现接口。它处理单 repository/ref、fixed-context、source-visible authorization obligation。领域代码位于 `src/task-dsl/authorization/`，实验代码位于 `src/benchmarks/authorization-dsl/`。
+[V0–V10 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9 任务书](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)、[X0–X13 任务书](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)和[研究 §7.19–7.21](skill-dsl-research.md#719-v-开发合同与持续复盘)描述已实现接口及当前扩展。它处理单 repository/ref、fixed-context、source-visible authorization obligation。领域代码位于 `src/task-dsl/authorization/`，实验代码位于 `src/benchmarks/authorization-dsl/`。
 
 公开边界如下：
 
 - `parseAuthorizationTask(input)`：strict 解析 canonical declaration，错误带字段路径。
 - `compileAuthorizationTask(task)`：解析引用与政策状态，只把显式 obligation × entry 展开为稳定 `author::entry` ID。
+- `AnalysisRequirementSchema` / `compileAnalysisRequirements(task, requirements)`：strict 解析六类公开分析问题，并把作者显式 requirement × authored obligation 映射到 runnable expanded obligation；同义务检查 prerequisite 和 cycle，局部错误不抹掉独立有效 ledger。
 - `renderAuthorizationTask(compiled, "B" | "D")`：两臂共用同一 canonical declaration、result contract 与 source marker，只让方法说明不同；`measureAuthorizationPromptCharacters` 分节记录字符但不推算 token。
 - `buildAuthorizationSourceCatalog(bundle)` / `resolveAuthorizationSourceCitation(...)`：为全部 exact source 生成 ref-bound ID 与 crop 行标签，并由宿主派生 canonical path/quote。
 - `AuthorizationWireResultV1Schema` / `normalizeAuthorizationWireResult(...)`：解析不含请求元数据、path 或 quote 的窄模型 wire，显式绑定 canonical result v0；不猜 obligation、结论或缺失语义，任一 error 级归一化诊断都不交付 canonical result。
@@ -28,6 +29,8 @@
 - `AuthorizationEvaluationRubricsV2Schema`、`createAuthorizationReviewTemplateV2` 与 `evaluateAuthorizationGenerationV2`：新增 evaluator-only v2 路径，逐 criterion 标注 `necessary-semantics | explanation-completeness | optional-detail`。必要语义 missing 为 partial、contradicted 为 incorrect；可选细节 missing 单列但不改变结论正确性。review 继续绑定 output hash、attempt、rubric 与精确源码位置；代码引文不能替代未陈述的因果。v0/v1 API 与 W 产物保持兼容。
 
 声明顶层字段为 `schemaVersion/taskId/request/repository/sourceRef/sourceMode/policySources/principals/resources/entries/obligations/scopeAssurance/requiredAnalysis/constraints`。每条 obligation 明确 `principalId/resourceId/relation/operation/expectation/conditions/policySourceId/entryIds`；`expectation` 是规范方向，不是源码观察。模型 wire 按 exact expanded ID 返回 `source_supported_failure | source_refuted | unknown`，并给出 entry、binding、control、effect、condition 事实、`sourceId/startLine/endLine`、缺失事实/最小观察和 bounded scope claim。宿主另存 canonical task/repository/ref/path/quote。
+
+关系 ledger 的 requirement 字段为 `id/kind/obligationIds/question/applicability/prerequisiteIds`，kind 限于 entry-control、identity-binding、resource-binding、authorization-decision、effect-reachability、external-assumption。运行时先复用义务 compiler，再按显式 authored ID 展开；不搜索未声明主体/资源组合，也不判定问题答案。entry 固定为 `pending`，包含 kind、公开 question、required/when-present 和同 expanded obligation 的 prerequisite IDs。重复 ID、陌生/不可运行 obligation、陌生或跨义务依赖、dependency cycle 返回结构诊断；有独立有效 entry 时 plan 为 partial，否则 blocked。`author::entry` 的两个 segment 对 `%`/`:` 转义以保持特殊 ID 唯一，现有普通 ID 不变。修改关系 compiler 时至少运行 `bun test ./src/task-dsl/authorization/relations.test.ts ./src/task-dsl/authorization/semantics.test.ts`，再运行授权全套与 typecheck。
 
 在仓库根使用五条开发命令；当前 W 配置可直接复查，V 路径仅用于历史 replay：
 

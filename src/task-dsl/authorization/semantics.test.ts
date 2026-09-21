@@ -170,6 +170,31 @@ describe("compileAuthorizationTask", () => {
     )
   })
 
+  it("encodes expanded ID parts so authored delimiters cannot collide", () => {
+    const task = makeTask()
+    task.obligations[0]!.id = "a::b"
+    task.entries[0]!.id = "c"
+    task.obligations[0]!.entryIds = ["c"]
+    task.entries.push({
+      id: "b::c",
+      name: "alternateUpdateRecord",
+      locations: [{ path: "src/alternate.ts", startLine: 5, endLine: 15 }],
+    })
+    task.obligations.push({
+      ...task.obligations[0]!,
+      id: "a",
+      entryIds: ["b::c"],
+    })
+
+    const compiled = compileAuthorizationTask(task)
+    const ids = compiled.runnableObligations.map(obligation => obligation.id)
+
+    expect(ids).toHaveLength(2)
+    expect(new Set(ids).size).toBe(2)
+    expect(ids).toContain("a%3A%3Ab::c")
+    expect(ids).toContain("a::b%3A%3Ac")
+  })
+
   it("adds only the explicit write-grantee obligation when that relation is declared", () => {
     const task = makeTask()
     const before = compileAuthorizationTask(task)

@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、现有 Zod、SkVM provider/telemetry；一个轻量本地脚本和公开函数，不另建 CLI 框架、Web 页面或通用工作流引擎。
 
-- 制定日期：2026-09-21；状态：`active-X4`（X0–X3 已完成；analysis ledger 实现推进中）。
+- 制定日期：2026-09-21；状态：`active-X5`（X0–X4 已完成；coverage 与宿主检查推进中）。
 - 基线：W 发布 `fa6b064`；工程已完成，原始三例结论 6/6 正确、关键事实支持 4/6，D 有较低调用/token 的初步观察。
 - 工作分支：`skill-ir-aot`；仅向用户 `origin` 推送。保留其他任务的源码改动与本地材料。
 - 设计正文：[研究总文档 §7.21](../../skill-ir/skill-dsl-research.md#721-x-完整能力阶段设计)；持续合同：[spec 14.34](../../skill-ir/skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。不另建一份 design 或逐阶段总结 Markdown。
@@ -104,6 +104,8 @@ validateRelationCoverage(plan: AnalysisPlan, canonical: AuthorizationResultV0, c
 
 以上是待实现类型合同，`AuthorizationTaskV0`、`AuthorizationResultV0`、`SourceBundle` 复用现有类型。编译出的 prerequisiteIds 在同一 expanded obligation 内解析，不可悄悄跨义务借用结论。解析失败不初始化 provider。实现若需要调整字段，同步研究正文和后续调用。例子和入口使用同一接口；不要求用户准备研究 caseId、oracle、review 或成对实验配置。
 
+X4 已实现 `AnalysisRequirementSchema`、`AnalysisRequirementsSchema` 与 `compileAnalysisRequirements`。编译逐 requirement 隔离 strict shape 错误，拒绝重复 requirement、陌生/歧义/不可运行 obligation、陌生或不同义务 prerequisite 及 dependency cycle；有局部错误时仍保留独立有效 ledger，输出按 expanded obligation 与 requirement ID 稳定排序。内部组合 key 使用结构化 tuple；既有 `author::entry` expanded ID 对 `%` 和 `:` 做 segment escaping，普通 ID 字节不变，避免合法特殊 ID 碰撞。ledger entry 只有 kind/question/applicability/prerequisite/pending 状态，不含源码或政策答案。
+
 普通入口交付后的验收命令（本计划阶段尚不可执行）：
 
 ```powershell
@@ -170,10 +172,10 @@ check 应输出字段、输入和分析要求检查结果且零模型调用；ru
 
 ### X4：实现分析要求与义务 ledger
 
-- [ ] 在 `relations.test.ts` 先写重复 requirement、未知 obligation、未知依赖、依赖环、空可选项、when-present、跨多个 expanded obligation 和数组重排测试，再实现 `compileAnalysisRequirements`。
-- [ ] 验收例：两个 authored obligation 分别指向不同入口时，每条 requirement 只关联声明指定的义务，不对所有主体/资源做笛卡尔积。循环依赖返回诊断，其他独立义务仍可定位。
-- [ ] 运行 `bun test ./src/task-dsl/authorization/relations.test.ts`，先记录红灯，再实现、确认绿灯；无网络、无模型。
-- [ ] 输出 ledger 只列待分析问题与状态，不预填 allow/deny、源码控制或攻击路径真值。
+- [x] 在 `relations.test.ts` 先写重复 requirement、未知 obligation、未知依赖、依赖环、空可选项、when-present、跨多个 expanded obligation 和数组重排测试，再实现 `compileAnalysisRequirements`。
+- [x] 验收例：两个 authored obligation 分别指向不同入口时，每条 requirement 只关联声明指定的义务，不对所有主体/资源做笛卡尔积。循环依赖返回诊断，其他独立义务仍可定位。
+- [x] 运行 `bun test ./src/task-dsl/authorization/relations.test.ts`，先记录红灯，再实现、确认绿灯；无网络、无模型。
+- [x] 输出 ledger 只列待分析问题与状态，不预填 allow/deny、源码控制或攻击路径真值。
 
 ### X5：接通模型 coverage 与宿主检查
 
