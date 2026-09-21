@@ -667,7 +667,7 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 
 ### 7.22 Y 条件表达、默认迁移与价值验证
 
-2026-09-22 用户确认沿用“分类确定范围、按类/任务设计 DSL、效果包含多维收益”的路线，并授权任务书写完后派发新线程连续开发。新任务为 [Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)，此处登记设计与逐阶段结果；Y0–Y10 已完成，当前进入第三项目迁移运行。开发模型 `gpt-5.6-sol / max` 与实验 provider 设置分别记录。
+2026-09-22 用户确认沿用“分类确定范围、按类/任务设计 DSL、效果包含多维收益”的路线，并授权任务书写完后派发新线程连续开发。新任务为 [Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)，此处登记设计与逐阶段结果；Y0–Y12 已完成，当前进入统一验证与发布。开发模型 `gpt-5.6-sol / max` 与实验 provider 设置分别记录。
 
 **复核发现。** X 的 23 个单位来自五任务和两项目；最终标签正确19/23，完整成功14/23。143条coverage为125 addressed、5 unknown、13 not-applicable；必要分析事实supported与coverage-valid不能合写成23次正确判断。真实面板使用逐任务问题清单，默认六类profile仍缺新项目直接迁移证据。Y1 已先以两项失败测试复现 CLI 省略arm为B、公开check/run函数仍默认D的分歧，再把两个公开默认统一为B；显式D和旧session不变，示例README同步。sourceIdentity当前是作者声明互校及字节绑定，普通界面须说明来源核验状态。
 
@@ -706,6 +706,10 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 **Y11 迁移评价与变化输入。** 冻结生成后才读取rubric/oracle并物化hash-bound review。12/12结论、semantic/task decision、scope、transport与delivery正确；8项full、4项partial。collaborator和assignee各四项全部full；lock四项都正确区分route admin gate、writer gate与lock effect，但只写forbidden/denied/rejected，没有答案级明确写`HTTP 403`，因而同时缺一项necessary和一项explanation criterion。P/C各为4 full、2 partial、2个解释缺口，未观察到C的决定、必要语义或条件完整性增量；C却使用12比8次调用、109,743比37,489 known tokens及919,329比388,763毫秒。独立只读复核同意统一HTTP状态遗漏，另对assignee-P和lock-P各一项condition outcome判missing；主评审按完整答案的control/effect/condition连接位置维持supported，并保留分歧。
 
 该重复lock遗漏不足以证明共享生成合同/实现缺陷：同一冻结合同在另外两例稳定产出显式HTTP 403，事后加lock专属提示会泄入评价知识，因此追加provider单元为0。真正发现的共享实现缺陷是离线选择器把零样本L当成零缺口赢家；以红测修复为零样本候选不参与比较，随后0-call replay重现summary SHA `66dfb36...946`。另将collaborator任务从different-user/deny改成self-query/allow，保持固定Go代码字节不变；普通authoring init/check仍valid、默认六项profile不变，declaration及P/C prompt SHA均确定性变化，且不新增模型单元。可表示性在三种权限关系上成立，但编写仍需专业项目/源码/关系/政策/条件/evaluator选择；没有真人时间或节省证据。ordinary默认继续B/L，C保留opt-in而不扩为默认。
+
+**Y12 能力与实际价值判定。** 最终判定为`mixed`，而不是“结构可运行即整体正向”。默认profile迁移在三种Gitea权限关系上无需task-specific analysis requirements，12/12最终决策正确，证明有界表示和同一执行链可以迁移；但lock这一任务的两臂两次重复都漏答案级HTTP 403，所以必要语义只有8/12，不能称一致full。P/C各4 full、2 partial且解释缺口相同，C在迁移中没有质量增益，却为1.5倍调用、2.93倍known tokens、2.36倍known time。逐任务也都是质量持平且C更贵，不是平均数掩盖的结论。
+
+条件层唯一正向证据仍是Y9 trusted-header的一项预定条件结果枚举，且没有观察到决定性质量退化；但它未转移到本轮三任务并伴随明显运行负担，所以只构成局部正向与总体取舍。共同declaration/helper在ordinary authoring、source/path绑定、共享profile、immutable session、结构校验、telemetry、hash-bound review与离线replay上建立工程价值；两个面板共27个观察单元的决策全对，但P共享大部分底层支持且没有unsupported-platform control，不能把正确率因果归给DSL。authoring自动派生sourceIdentity与六项requirements，却仍需专业选择项目、七份source snapshot、三种关系/expectation、16项条件、8项binding和18项evaluator criterion；未测真人时间，不声称节省。故ordinary继续默认B/L；C只在交付物明确需要有界条件分支时opt-in，停止默认扩展及额外推理/复核调用。八个task definition、重复与三个项目都不计作八个独立skill来源；本轮仍是development证据。
 
 **公平比较。** P是信息齐全的普通说明及基础引用/计量；L增加默认领域ledger/coverage；C再加条件层。三者共享业务事实、公开分析要求、源码、模型和修复机会，协议差异和成本显式记录。共同评价接受P的等价文字分析，不因缺少专用字段扣语义分。本轮评估表达与运行支持组合，不把效果单独归因于JSON语法。原五任务开发面板15单元；最多6修订单元。方法固定后再读取第三项目正文，用默认profile而非任务专属问题清单，P与选定结构化方法在2–3任务上各两次重复，正常12单元。选择先看必要质量，再看条件完整性、成本和编写负担；C无增量就保留L。
 
