@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260921T151444889Z-1be10758
+Status: completed
+Task: fastapi-items-foreign-update
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: task-supplied (input)
+
+Conclusions
+- deny-non-superuser-foreign-update::put-item-by-id: source_refuted — The fixed source enforces the declared deny expectation. The PUT entry binds an authenticated current_user and an item selected by the path id; for a non-superuser whose id differs from the selected item's owner_id, the visible authorization check raises HTTP 403 before the mutation and persistence statements. The superuser branch is an explicit override, but it is false under the declared non-superuser condition.
+  Evidence: The declared operation enters the update_item handler for PUT /items/{id}, with session, current_user, path id, and item_in parameters. (items.py:75-82)
+  Evidence: The declared principal is an authenticated non-superuser current_user, and the handler reads current_user.is_superuser and current_user.id for authorization. (items.py:78-80)
+  Evidence: The task fixes the principal as an authenticated non-superuser whose id differs from item.owner_id, and fixes the operation as updating item fields through the PUT entry. (task.json:20-26)
+  Evidence: After loading the item, the strongest visible authorization control rejects when the caller is not a superuser and the item's owner_id differs from current_user.id, returning HTTP 403. (items.py:86-90)
+  Evidence: Only after the authorization check does the handler apply item_in updates, add the item to the session, commit, refresh, and return it. (items.py:91-96)
+  Evidence: Under the declared foreign non-superuser condition, the preceding 403 branch prevents reaching these mutation and persistence statements. (items.py:89-96)
+  Evidence: The selected resource is fixed by the task as an existing item owned by another user; therefore the item-exists condition is part of the declared path. (task.json:20-25)
+  Evidence: The policy expectation for an authenticated non-superuser modifying a foreign item is deny. (task.json:3-5)
+
+Coverage
+- items.entry-control × deny-non-superuser-foreign-update::put-item-by-id: addressed — The declared PUT entry and its handler parameters are visible, including current_user, the path id, and the update payload.
+- items.external-assumption × deny-non-superuser-foreign-update::put-item-by-id: not-applicable — No decisive source-external fact remains for this bounded obligation: the task directly fixes an existing foreign item, the non-superuser identity relation, the operation, and the deny expectation, while the supplied handler visibly contains the relevant lookup, authorization, and mutation path.
+- items.identity-binding × deny-non-superuser-foreign-update::put-item-by-id: addressed — The handler binds the caller to current_user and tests its superuser role and id; the task fixes that caller as authenticated and non-superuser.
+- items.non-superuser-update-decision × deny-non-superuser-foreign-update::put-item-by-id: addressed — The source-visible decision is the compound guard that denies when the caller is not a superuser and does not own the selected item. The declared non-superuser foreign-item facts satisfy that guard.
+- items.non-superuser-update-effect × deny-non-superuser-foreign-update::put-item-by-id: addressed — The mutation and persistence effect occurs only after the authorization guard. Because the declared branch raises 403, it cannot reach item update, session add, commit, refresh, or return.
+- items.resource-binding × deny-non-superuser-foreign-update::put-item-by-id: addressed — The path id is used in session.get(Item, id) to select the item, and the selected item's owner_id is compared with current_user.id in the authorization condition.

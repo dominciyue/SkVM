@@ -613,7 +613,7 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 ### 7.21 X 完整能力阶段设计
 
-2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X11`：X0–X10 已完成，初轮真实结果、逐义务评价和方法比较均已保留；当前只做一次有依据的共同合同修订。
+2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X12`：X0–X11 已完成，初轮真实结果、逐义务评价、方法比较和一次共享合同修订均已保留；当前复验普通入口并给出有界能力判定。
 
 **为什么扩大本轮范围。** W 的模型消费与计量已经可用，继续只修旧案例会降低获取新信息的速度。现有 B/D 共用 canonical declaration、输出合同和宿主，主要差异位于领域方法指令。接下来既要检验这种组织方式，也要让作者实际写任务、用自备输入运行，并检验换项目后的语义适配。
 
@@ -646,6 +646,10 @@ X5 已把这份记录接入版本化 `source-authorization-assessment-wire/v2`�
 **X10 逐义务评价与方法结论。** 23 份 development-agent review 绑定 raw-output digest、attempt、rubric、answer pointer 与 evaluator source；程序另载入仅用于评价、未曾进入 prompt 的 rubric source，并以同一入口重放。结果为 14 full-success、5 partial、4 incorrect，且 23/23 necessary semantics supported、coverage valid、scope accepted、transport valid、delivery complete。四个 incorrect 不是授权因果缺失：text B 一次、FastAPI foreign-update D 两次和 N 一次都正确解释 deny 在 effect 前生效，却把应为 `source_refuted` 的结论写成相反的 `source_supported_failure`。五个 trusted-header 结果均正确 unknown、必要语义 supported，但未完整枚举 closed gate、failed authentication、safe proxy 与 attacker-header-reachable 四种结果，且漏 optional default-None detail，故均为 partial。
 
 B 的十个主单元为 7 full、2 partial、1 incorrect，first response accepted 8/10，12 次调用，input/output/cache-read 为 31,082/25,314/27,520；D 为 6/2/2、6/10、14 次调用和 52,755/28,136/18,304。两臂 necessary semantics 与 coverage 都为 10/10；D 在 text repeat 1 改善一次，却在 FastAPI update 两次退化，因而当前数据没有显示 D 的额外关系覆盖或总体质量收益。D 的已知 duration 小计较短，但受顺序和 cache 混杂，不能抵消其更多调用/token 或被写成速度因果。共同 profile、ledger、coverage 和普通入口的工程价值体现在五任务同链交付和遗漏可见性；因为 N 也共享这些底层支持，本实验不能把它们归为 DSL 相对原始 agent 的独立因果收益。三个无重复 N 仅为 1 full、1 partial、1 incorrect，不能作稳定性判断。离线 replay 的 summary digest 一致；第七次窄只读复核确认四个标签错误、B/D totals、D 无额外 necessary/coverage 收益及 N 的限制。X11 的唯一共享缺陷假设因此是输出合同列出 enum 却没有解释其相对“声明期待”的方向；先加反例，再仅修改共同 renderer，并把追加验证与初轮分开。
+
+**X11 单一共享合同修订。** 新测试先证明 N/B/D 的共同 output contract 只列 enum、没有解释方向；最小修改明确三个 label 都相对 declared policy expectation，而非 allow/deny 的同义词。`source_supported_failure` 是固定源码支持规范期待在声明条件下失败，`source_refuted` 是固定源码支持规范期待被执行并反驳 failure，`unknown` 是现有源码/上下文不足。没有改变 facts、analysis requirements、source、rubric、wire、评价口径或 B/D method difference。修订实现 `7b619b4d9afc1bd950fd86613f1f538fe109a249` 在调用前提交，四单元顺序与停止规则写入 `revision-config-v1.json`。
+
+唯一追加轮为 text B/D 与 FastAPI foreign-update D/B 各一次。四项均初次 generation 结束为正确 `source_refuted`、full-success、necessary semantics supported、coverage valid、scope/transport/delivery accepted；3/4 first response accepted，FastAPI B 的 schema response 把 coverage 放错层，随后一次 prompt-parse 成功，仍无 domain repair。合计 5 次 provider 调用、input 25,674、output 9,836、cache 0，actual USD 5/5 unknown，目标执行 0。普通入口首次未带仓库本地 `SKVM_CACHE` 时在 provider 创建前失败、无 dispatch；保留该 infrastructure session 后设置与 X9 相同 route location，才运行预定单元。revision 的 4/4 只支持“标签合同是可修共享缺陷”的诊断；不覆盖初轮 14/5/4、不证明一般可靠性，也不触发继续增样。D 的有用共同 declaration、source/citation、ledger 与 coverage 被保留，但当前没有理由让普通入口为了 D 名称默认承担额外方法指令。
 
 **使用交付。** 薄脚本支持 check/run/inspect，输出机器 JSON、事件和简明文本结论；只有 run 调模型。一个自包含 synthetic 例子用于上手，真实两项目用于结果验证；另从现有语料选两份独立 skill，明确授权职责到 DSL 的映射及剩余职责。skill 来源与目标代码项目分开计数，人工/agent 辅助映射不称自动转换整个 skill。作者步骤、字段修改与诊断可观察；未测真人时间时不称人工节省。X 最终以实际可运行命令替换任务书中的接口设计说明。
 
@@ -1007,6 +1011,10 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 ### 2026-09-21 X10 逐义务评价与独立结论核验
 
 **X10-EVAL-01。** 新 evaluator 先以缺模块和 evaluator-only source path 不在 model bundle 的红测暴露边界；实现 hash-bound review materialization、逐单元 v2 评价、项目/案例/臂/重复聚合与离线 replay，并把 rubric-only source 独立载入，不污染模型输入。23 个初轮单位评价为 14 full、5 partial、4 incorrect；全部 necessary semantics、coverage、scope、transport 与 delivery 均通过。四个错误都是 explanation 正确而 conclusion enum 方向相反。B 为 7/2/1、12 calls，D 为 6/2/2、14 calls；两臂 necessary/coverage 都是 10/10，当前不支持 D 额外收益。N 无重复，不能作稳定或全系统因果结论。独立只读核验点验四个错误单元和聚合 totals，未发现摘要矛盾；离线 replay digest 一致。聚焦测试 13/13、70 assertions 与 typecheck 通过。下一步只修共同 label 语义合同，并用受影响 text、FastAPI update 的 B/D 各一次作唯一追加验证。
+
+### 2026-09-21 X11 共享 conclusion 合同与唯一追加验证
+
+**X11-REVISION-01。** renderer 红测先在 N/B/D 三臂共同失败；修订只解释三个 conclusion label 相对 declared expectation 的方向，聚焦测试 9/9、142 assertions 转绿。实现 `7b619b4` 与四单元配置在 provider 调用前提交。text B/D、FastAPI update D/B 四单元最终均为 source_refuted/full-success，必要语义与 coverage 4/4；三项 first response 直接接受，FastAPI B 使用一次 prompt-parse，总调用 5、input 25,674、output 9,836、actual USD unknown、domain repair 0、目标执行 0。离线脚本以新 raw-output hash 绑定四份 review，评价均 valid；typecheck 通过。首次普通 run 因未传 `SKVM_CACHE` 在 provider factory 前失败、provider calls 0，保留后安全继续。初轮结果未重评换身份，revision 不替代四个旧错误；停止继续调用并转 X12。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 

@@ -6,7 +6,7 @@
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)及 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成，W 最终发布为 `fa6b064`。[X0–X13 完整能力交付](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)已启动：X0–X10 完成，关系/coverage、普通自备输入、同事实 N/B/D、跨项目真实面板及逐义务评价已完成；当前进入 X11 单一共享合同修订与限量追加验证。
+[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)及 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成，W 最终发布为 `fa6b064`。[X0–X13 完整能力交付](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)已启动：X0–X11 完成，关系/coverage、普通自备输入、同事实 N/B/D、跨项目真实面板、逐义务评价和一次共享合同修订已完成；当前进入 X12 普通使用复验与能力判定。
 
 用户在 W 复核后确认按完整能力阶段推进：评价要求校准、可选/分支关系、普通自备输入、第二项目 development 与小型对照放入同一轮。第二项目提前检验共性，旧三例不必先全部满分；内部仍小步测试和提交。研究与开发复盘统一维护在[研究总文档 §7.21](skill-dsl-research.md#721-x-完整能力阶段设计)。
 
@@ -24,6 +24,8 @@ X9 按冻结顺序完成 23/23 fresh-context 单元，全部为 `completed`，�
 
 X10 的 hash-bound v2 评价得到 14 full、5 partial、4 incorrect；23/23 necessary semantics supported、coverage valid、scope accepted、transport valid、delivery complete。四个 incorrect 都是解释正确描述 deny control、却把 `source_refuted` 写成相反的 `source_supported_failure`：text B 一次、FastAPI update D 两次及 N 一次。B 汇总为 7/2/1，D 为 6/2/2；两臂 necessary/coverage 都是 10/10，D 未显示额外关系收益，且观察到更多调用和 token。三个 N 单元无重复，只说明当前自然说明形状下的机制表现，不能作稳定性或整个 SkVM 对原始 agent 的因果比较。离线 replay 摘要哈希一致；独立只读复核确认上述结论。X11 只修共同输出合同中未解释 conclusion enum 的缺陷，不改初轮身份。
 
+X11 先以失败测试固定三臂共同缺少标签方向定义，再只在 result contract 说明：结论相对 declared policy expectation，`source_supported_failure` 表示期待失败，`source_refuted` 表示期待被执行，`unknown` 表示固定上下文不足；事实、requirements、源码、rubric 与 B/D 方法差异均未改。预先冻结的 text B/D 与 FastAPI update D/B 四单元各一次，全部为 `source_refuted`、full-success、necessary supported、coverage valid；3/4 first response accepted，FastAPI B 另有一次 prompt-parse，无 domain repair。共 5 次调用、input 25,674、output 9,836，实际 USD 仍 unknown。一次 `SKVM_CACHE` 未传入导致的 provider-unavailable 发生在创建 provider/dispatch 前，原 session 保留后安全继续。revision 与初轮分开，支持共享合同诊断但不替代初轮失败或证明一般可靠性；不再追加调用。
+
 ## W 阶段实际结果
 
 - 工程闭环稳定运行：窄 wire、宿主引用归一化、schema/fallback/repair 计量、关闭与迟到事件、分层评价、恢复和离线 replay 均有确定性测试；任一 error 级 wire 归一化诊断都不会产生 canonical result。
@@ -38,7 +40,7 @@ X10 的 hash-bound v2 评价得到 14 full、5 partial、4 incorrect；23/23 nec
 
 | 路线 | 当前可用能力 | 当前效果记录 |
 |---|---|---|
-| 授权领域 DSL 原型 | canonical JSON、显式义务、关系/coverage、编号源码、窄 wire、宿主引用绑定、关闭/迟到计量、分层评价、N/B/D 渲染、普通输入与可恢复面板入口 | X9 23/23 生成完成；X10 评价为 14 full、5 partial、4 label-incorrect，必要语义与 coverage 均 23/23。D 未显示额外关系收益；X11 正限量验证共同结论标签合同修订 |
+| 授权领域 DSL 原型 | canonical JSON、显式义务、关系/coverage、编号源码、窄 wire、宿主引用绑定、关闭/迟到计量、分层评价、N/B/D 渲染、普通输入与可恢复面板入口 | 初轮为 14 full、5 partial、4 label-incorrect，必要语义与 coverage 均 23/23；D 未显示额外关系收益。共享标签合同 revision 为 4/4 full，仅支持缺陷诊断；X12 正复验普通入口与最终能力范围 |
 | Trace 驱动 skill 包优化 | bare-agent 自动捕获、日志导入、模型修改说明和脚本、局部验证与修复、原子包导出、自然消费记录 | F 后继包三次实际消费通过；配对工具调用 62→64、输入 token 58,828→190,516，效果 negative |
 | 既有确定性基础 | IR parser/validator、lowering、API Tester/Env 后端、artifact 与显式 recipe import | 保留各自有界案例及原评价口径 |
 

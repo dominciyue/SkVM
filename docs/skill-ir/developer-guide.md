@@ -60,6 +60,14 @@ bun ./src/benchmarks/authorization-dsl/capability-evaluate.ts replay --config=./
 
 若单元已有合法终态或 dispatch 后缺终态，恢复只记录并跳过，不自动重发；只有 session 已初始化且没有 dispatch artifact 时可建立新 session 继续。`dispatch-claim.json`、`unit-result.json` 和 local session artifacts 都绑定 config/revision/unit/task/model/arm/input；不一致时在 provider 创建前失败。真实运行前必须先提交配置及其 `implementationRevision`。
 
+X11 的一次有依据修订没有扩展主面板 runner，而是用同一普通 `local-run.ts` 为两个受影响任务的 B/D 各建一个 session。冻结身份在 `revision-config-v1.json`，新输出 review 绑定在 `revision-review-plan-v1.json`；以下命令只从已存在的 run/source/review policy 离线重算四份评价与独立 revision summary，不创建 provider：
+
+```powershell
+bun ./results/skill-ir/skill-dsl-research/development/authorization-capability-v1/revision-evaluate.ts
+```
+
+revision 结果不覆盖或替代 X9 初轮；普通入口在自定义 `xty/*` route 下需把 `SKVM_CACHE` 指到仓库 `.skvm`，否则会在 provider 创建前返回 `provider-unavailable` 且没有 dispatch。此类无 dispatch 的 setup failure 可在修正 route location 后建立新 session；已有 dispatch 的未知完成仍禁止自动重发。
+
 历史比较 runner 仍使用以下五条开发命令；当前 W 配置可直接复查，V 路径仅用于历史 replay：
 
 ```powershell
