@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、现有 Zod、SkVM provider/telemetry；一个轻量本地脚本和公开函数，不另建 CLI 框架、Web 页面或通用工作流引擎。
 
-- 制定日期：2026-09-21；状态：`active-X10`（X0–X9 已完成；23 单元已生成，逐义务评价推进中）。
+- 制定日期：2026-09-21；状态：`active-X13`（X0–X12 已完成；统一验证与发布推进中）。
 - 基线：W 发布 `fa6b064`；工程已完成，原始三例结论 6/6 正确、关键事实支持 4/6，D 有较低调用/token 的初步观察。
 - 工作分支：`skill-ir-aot`；仅向用户 `origin` 推送。保留其他任务的源码改动与本地材料。
 - 设计正文：[研究总文档 §7.21](../../skill-ir/skill-dsl-research.md#721-x-完整能力阶段设计)；持续合同：[spec 14.34](../../skill-ir/skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。不另建一份 design 或逐阶段总结 Markdown。
@@ -118,7 +118,7 @@ bun ./src/benchmarks/authorization-dsl/local-run.ts run --input=./examples/autho
 bun ./src/benchmarks/authorization-dsl/local-run.ts inspect --out=./.skvm/authorization-demo
 ```
 
-check 应输出字段、输入和分析要求检查结果且零模型调用；run 打印实际 session 路径与结果摘要；inspect 只读取已有 session。check/run 可显式增加 `--arm=N|B|D`，省略时使用 D。输出根下允许多个 session，最新一次路径由索引定位，不覆盖以前结果。
+check 应输出字段、输入和分析要求检查结果且零模型调用；run 打印实际 session 路径与结果摘要；inspect 只读取已有 session。check/run 可显式增加 `--arm=N|B|D`；X12 根据冻结面板把省略值定为 B，N/D 继续作为显式研究选项。输出根下允许多个 session，最新一次路径由索引定位，不覆盖以前结果。
 
 ### 2.3 评价与比较
 
@@ -237,16 +237,16 @@ check 应输出字段、输入和分析要求检查结果且零模型调用；ru
 
 ### X12：普通使用复验与能力判定
 
-- [ ] 原项目和第二项目分别通过 X6 普通入口运行或 inspect 已有同入口结果，所用实现版本与研究单元一致。优先复用同次执行产物，避免为截图/报告重复付费。
-- [ ] 确认任务作者能从例子编辑任务并收到字段/路径/依赖诊断；运行不依赖 evaluator，结果带明确未知项。文档写出最终精确命令、文件内容和恢复方式。
-- [ ] 工程验收：普通输入可用、来源与覆盖可追溯、旧接口兼容、错误不泄漏成功、无关工作树保留。迁移验收：同一实现处理两项目，差异通过声明/资料表达，无项目名成功分支。
-- [ ] 效果验收：按观察报告质量、完整性、效率和使用步骤的改善与退化。旧任务 partial 不阻塞工程交付；必要语义错误仍明确记失败。第二项目未完成时整体为部分交付，列原因，不称全部完成。
+- [x] 原项目和第二项目分别通过 X6 普通入口运行或 inspect 已有同入口结果，所用实现版本与研究单元一致。优先复用同次执行产物，避免为截图/报告重复付费。
+- [x] 确认任务作者能从例子编辑任务并收到字段/路径/依赖诊断；运行不依赖 evaluator，结果带明确未知项。文档写出最终精确命令、文件内容和恢复方式。
+- [x] 工程验收：普通输入可用、来源与覆盖可追溯、旧接口兼容、错误不泄漏成功、无关工作树保留。迁移验收：同一实现处理两项目，差异通过声明/资料表达，无项目名成功分支。
+- [x] 效果验收：按观察报告质量、完整性、效率和使用步骤的改善与退化。旧任务 partial 不阻塞工程交付；必要语义错误仍明确记失败。第二项目未完成时整体为部分交付，列原因，不称全部完成。
 
 ### X13：统一复盘、验证与发布
 
-- [ ] 运行 `bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl` 与 `bun run typecheck`；改 provider 才加相应 provider 回归。一次离线 replay 验证新摘要可重算。
-- [ ] 更新研究 §7.21 的实际设计及 §12 短记录，状态页/plan/spec/usage 同步；机器结果保存 status、summary、单元、评价与费用，不另写大量分轮 Markdown。
-- [ ] 运行文档单测、链接检查和本轮 JSON/JSONL 解析，检查暂存归属及敏感信息。修复后只复跑受影响检查，不重复历史全量审计。
+- [x] 运行 `bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl` 与 `bun run typecheck`；改 provider 才加相应 provider 回归。一次离线 replay 验证新摘要可重算。
+- [x] 更新研究 §7.21 的实际设计及 §12 短记录，状态页/plan/spec/usage 同步；机器结果保存 status、summary、单元、评价与费用，不另写大量分轮 Markdown。
+- [x] 运行文档单测、链接检查和本轮 JSON/JSONL 解析，检查暂存归属及敏感信息。修复后只复跑受影响检查，不重复历史全量审计。
 - [ ] 提交并推送用户 `origin/skill-ir-aot`，确认远端一致；交付可运行入口、两个项目的实际结果、收益/退化和下一步决定。
 - [ ] 所有承诺项按完成/有具体原因未完成记录，不用统计任务终态数量冒充目标达成。完成本任务后停止自动扩展，不靠重复执行拉长时间。
 

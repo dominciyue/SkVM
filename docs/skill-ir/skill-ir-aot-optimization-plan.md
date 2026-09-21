@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-21
 - 路线：按 skill/task 范围设计领域 DSL
-- 状态：V/W `completed-development`；X0–X8 完成，X9 进行中
+- 状态：V/W `completed-development`；X0–X12 完成，X13 统一验证与发布进行中
 - 唯一实时状态：[current-status.md](current-status.md)
 - 方法依据：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)
@@ -21,8 +21,9 @@ W 已解决主要输出与计量问题。用户确认下一轮扩大为完整能
 | X6 | 普通输入（已完成） | 一个输入文件、公开函数、provider-free check/inspect、不可覆盖 session |
 | X7 | 同事实 N/B/D 与作者体验（已完成） | 三臂公开事实、skill 职责映射、可编辑例子、两项实际 authoring 诊断 |
 | X8 | 离线接线（已完成） | 两项目共用实现、兼容与错误路径验证；5-case/23-unit 配置 valid |
-| X9–X11 | 真实运行、评价、共享修订（X9 进行中） | 主面板 20 单元、补充 N 三单元；有依据时一次修订 |
-| X12–X13 | 使用复验与交付 | 自备任务用法、两项目结果、实际取舍、提交发布 |
+| X9–X11 | 真实运行、评价、共享修订（已完成） | 23 单元初轮 14 full/5 partial/4 incorrect；共享标签合同的限定 revision 4/4 full |
+| X12 | 使用复验与能力判定（已完成） | 两项目普通 inspect、作者诊断、默认 B、bounded-development 范围与未决项 |
+| X13 | 统一验证与发布（进行中） | 全授权回归、typecheck、离线 replay、文档/JSON/归属检查、提交与 origin 推送 |
 
 ## 验收与效果
 
@@ -32,7 +33,7 @@ W 已解决主要输出与计量问题。用户确认下一轮扩大为完整能
 
 已知 partial 不阻塞独立工程与第二项目。共享缺陷在本轮补反例、修复，并按 X11 最多追加一次受影响配对；初始结果保留。第二项目无法完成时列实际阻碍并标为部分交付，不能仅因各阶段有终态便称目标完成。
 
-W 的 `no-revision / study-missing-domain-relations` 保留为历史决定。X 根据后续讨论扩大工作队列：关系支持应接受第二项目反证，评价先分清语义与表述粒度。D 有收益则记录具体维度；无额外收益时可采用较简单表达，保留有用的声明和共同 helper。
+W 的 `no-revision / study-missing-domain-relations` 保留为历史决定。X 的第二项目没有要求项目专属关系类型；评价先分清语义与表述粒度。冻结初轮中 B/D necessary semantics 与 coverage 均为 10/10，D 未增加收益且调用/token 更多，故普通入口默认采用 B，同时保留 N/D 显式模式、声明和共同 helper。
 
 ## 工作边界与复用
 
@@ -47,4 +48,4 @@ W 的 `no-revision / study-missing-domain-relations` 保留为历史决定。X �
 
 S/D 完成结构与语义准备，E/T 建立外部任务依据、授权范围与真实案例，V 完成首次可运行原型及模型观察，W 完成共享传输/生命周期修复和三组新配对。旧 trace 优化路线的 U/G/H/R/C/F 记录由[历史](history.md)和[证据索引](evidence-index.md)承载，本计划不重复维护其逐轮数据。
 
-恢复时读取状态页、X 任务书、研究 §7.20–7.21、W summary 与 X `status.json`。X0–X8 已完成；当前严格按已提交的 `experiment-config-v1.json` 与实现 revision `dccd830` 运行五任务 B/D 两重复及三个 N 补充，全部生成结束前不读取 evaluator。
+恢复时读取状态页、X 任务书、研究 §7.20–7.21 与 X `status.json`。X0–X12 已完成；当前不再生成样本或追加修订，只执行 X13 新鲜验证、证据/文档一致性、归属检查与发布。当前能力只定为单 repo/ref、显式 source/obligation 的 bounded development capability；下一轮最小实现候选是 opt-in 顶层命令适配器加一个新 held-out repo/task，不在本轮提前生产化。

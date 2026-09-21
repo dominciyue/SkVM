@@ -613,7 +613,7 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 ### 7.21 X 完整能力阶段设计
 
-2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X12`：X0–X11 已完成，初轮真实结果、逐义务评价、方法比较和一次共享合同修订均已保留；当前复验普通入口并给出有界能力判定。
+2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X13`：X0–X12 已完成，初轮真实结果、逐义务评价、方法比较、一次共享合同修订和普通使用复验均已保留；当前执行统一验证与发布。
 
 **为什么扩大本轮范围。** W 的模型消费与计量已经可用，继续只修旧案例会降低获取新信息的速度。现有 B/D 共用 canonical declaration、输出合同和宿主，主要差异位于领域方法指令。接下来既要检验这种组织方式，也要让作者实际写任务、用自备输入运行，并检验换项目后的语义适配。
 
@@ -635,7 +635,7 @@ X5 已把这份记录接入版本化 `source-authorization-assessment-wire/v2`�
 
 **X6 实现结果。** 缺显式 requirements 时，输入装载器从 authored obligations 实例化公开 `authorization-core-v1` 六项 profile；显式要求则原样 strict 编译，只有 ready plan 才能运行。sourceRoot/path、junction/symlink、缺文件、normalized duplicate、task/ref、声明行范围都在 provider factory 前检查。check/inspect 是纯离线路径；run 每次生成时间+nonce session，以 `wx` 文件和新目录避免覆盖，append-only index 只定位 session。session 保存 JSON/JSONL/文本三类产物；provider 不可用时不谎称 dispatch，dispatch 后缺终态统一显示 completion-unknown。独立复核找到 root junction 外逃和失败 artifact 清单两项问题，均先以红测复现再修复。
 
-**X7 同事实三臂与作者体验。** renderer 现显式接受 N/B/D，switch 阻止第三臂落入旧 D 分支。三臂从同一 `AuthorizationRenderFacts`、公开 analysis plan、source catalog、wire/v2 与 result contract 生成：N 把全部 schema 字段确定性写成自然说明，B/D 共用 canonical JSON，D 只额外给出授权因果链和 prerequisite-order 方法。普通 check/run 的 `--arm` 从 preview 贯穿 session、dispatch、host、inspect、字符分项与 telemetry；默认 D，非法值在读 input/建 provider 前拒绝。合成例子三次 provider-free check 均 valid，N/B/D prompt 分别为 11,141/11,837/12,177 characters；字符不冒充 token，真实 token 只采用 provider response，当前 X7 尚无真实调用。单次 evaluator summary 可记录 N，B/D pair summary 仍在运行时拒绝非 B→D 配对。
+**X7 同事实三臂与作者体验。** renderer 现显式接受 N/B/D，switch 阻止第三臂落入旧 D 分支。三臂从同一 `AuthorizationRenderFacts`、公开 analysis plan、source catalog、wire/v2 与 result contract 生成：N 把全部 schema 字段确定性写成自然说明，B/D 共用 canonical JSON，D 只额外给出授权因果链和 prerequisite-order 方法。普通 check/run 的 `--arm` 从 preview 贯穿 session、dispatch、host、inspect、字符分项与 telemetry；X7 初始默认 D，X12 根据实际面板改为 B，非法值始终在读 input/建 provider 前拒绝。合成例子三次 provider-free check 均 valid，N/B/D prompt 分别为 11,141/11,837/12,177 characters；字符不冒充 token，真实 token 只采用 provider response，当前 X7 尚无真实调用。单次 evaluator summary 可记录 N，B/D pair summary 仍在运行时拒绝非 B→D 配对。
 
 两份真实 skill 映射来自固定 MIT 版本的 Cloudflare security-audit 与 GitHub awesome-copilot security-review。人工/agent 辅助只映射其 fixed-ref 授权敏感操作切片到 declaration 与六类 requirements；全审计编排、dependency、secret、patch 等剩余职责继续属于原 skill，不声称自动转换。skill 来源数 2 与目标代码项目数 2 分账。自包含例子以 synthetic 标记，不是漏洞或 evaluator fixture。作者变化 trace 做四次 deterministic check：基线 valid，遗漏 sourceIdentity 同步得到 `source-identity-mismatch`，移动 entry 未更新 sources 得到 `declaration-source-location-invalid`，补齐后 valid；两次错误、零 provider、零目标执行，未测真人时间，不主张人工节省。机器记录为 `render-interventions-v1.json`、`skill-responsibility-mappings-v1.json` 与 `authoring-experience-v1.json`；独立只读复核未发现 critical/important。
 
@@ -650,6 +650,10 @@ B 的十个主单元为 7 full、2 partial、1 incorrect，first response accept
 **X11 单一共享合同修订。** 新测试先证明 N/B/D 的共同 output contract 只列 enum、没有解释方向；最小修改明确三个 label 都相对 declared policy expectation，而非 allow/deny 的同义词。`source_supported_failure` 是固定源码支持规范期待在声明条件下失败，`source_refuted` 是固定源码支持规范期待被执行并反驳 failure，`unknown` 是现有源码/上下文不足。没有改变 facts、analysis requirements、source、rubric、wire、评价口径或 B/D method difference。修订实现 `7b619b4d9afc1bd950fd86613f1f538fe109a249` 在调用前提交，四单元顺序与停止规则写入 `revision-config-v1.json`。
 
 唯一追加轮为 text B/D 与 FastAPI foreign-update D/B 各一次。四项均初次 generation 结束为正确 `source_refuted`、full-success、necessary semantics supported、coverage valid、scope/transport/delivery accepted；3/4 first response accepted，FastAPI B 的 schema response 把 coverage 放错层，随后一次 prompt-parse 成功，仍无 domain repair。合计 5 次 provider 调用、input 25,674、output 9,836、cache 0，actual USD 5/5 unknown，目标执行 0。普通入口首次未带仓库本地 `SKVM_CACHE` 时在 provider 创建前失败、无 dispatch；保留该 infrastructure session 后设置与 X9 相同 route location，才运行预定单元。revision 的 4/4 只支持“标签合同是可修共享缺陷”的诊断；不覆盖初轮 14/5/4、不证明一般可靠性，也不触发继续增样。D 的有用共同 declaration、source/citation、ledger 与 coverage 被保留，但当前没有理由让普通入口为了 D 名称默认承担额外方法指令。
+
+**X12 普通使用复验与能力判定。** X12 不为报告重复付费，而是通过当前 `local-run.ts inspect` 读取 X11 同一普通入口、同一修订实现生成的 Open WebUI controlled-text B 与 FastAPI foreign-update B session。两者都为 completed、正确 `source_refuted`、coverage valid；inspect 不初始化 provider、无需 evaluator，也不执行目标。省略 `--arm` 的 synthetic check 返回 B、`authorization-core-v1` 六项要求和零诊断；作者四步 deterministic trace 仍以 `source-identity-mismatch` 和 `declaration-source-location-invalid` 精确指出 identity/path 漂移。结果 JSON 对每个义务固定保留 decisive missing facts 与 suggested observations；unknown 时须具体填充，非 unknown 时为空数组而不是隐去合同。
+
+冻结初轮的 B/D necessary semantics 与 coverage 都为 10/10，D 没有额外收益，first-response acceptance 更少且调用/input/output token 更多；因此普通入口默认由 D 改为 B，N/D 继续显式可用，历史 arm/session/replay 不改。工程与迁移验收支持同一实现处理两项目，差异全部来自 declaration、requirements 和显式 source，没有生产代码项目名成功分支。效果仍保留 14 full、5 partial、4 initial incorrect；trusted-header 的 incomplete condition enumeration 和四项旧 label 错误不因工程交付消失。能力状态定为 `bounded-development-capability`：推荐单 repo/ref、作者显式源码与义务的 source-visible 授权/信任边界分析；不推荐 repository discovery、目标/部署执行、whole-skill 自动转换、patch 或 production-default security decision。下一轮最小实现是把现有严格 check/run/inspect 包为 opt-in 顶层 SkVM 命令，并先在一个新 held-out repo/task 验证，不提前扩成完整生产系统。机器记录为 `usage-verification-v1.json`。
 
 **使用交付。** 薄脚本支持 check/run/inspect，输出机器 JSON、事件和简明文本结论；只有 run 调模型。一个自包含 synthetic 例子用于上手，真实两项目用于结果验证；另从现有语料选两份独立 skill，明确授权职责到 DSL 的映射及剩余职责。skill 来源与目标代码项目分开计数，人工/agent 辅助映射不称自动转换整个 skill。作者步骤、字段修改与诊断可观察；未测真人时间时不称人工节省。X 最终以实际可运行命令替换任务书中的接口设计说明。
 
@@ -1016,6 +1020,10 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 
 **X11-REVISION-01。** renderer 红测先在 N/B/D 三臂共同失败；修订只解释三个 conclusion label 相对 declared expectation 的方向，聚焦测试 9/9、142 assertions 转绿。实现 `7b619b4` 与四单元配置在 provider 调用前提交。text B/D、FastAPI update D/B 四单元最终均为 source_refuted/full-success，必要语义与 coverage 4/4；三项 first response 直接接受，FastAPI B 使用一次 prompt-parse，总调用 5、input 25,674、output 9,836、actual USD unknown、domain repair 0、目标执行 0。离线脚本以新 raw-output hash 绑定四份 review，评价均 valid；typecheck 通过。首次普通 run 因未传 `SKVM_CACHE` 在 provider factory 前失败、provider calls 0，保留后安全继续。初轮结果未重评换身份，revision 不替代四个旧错误；停止继续调用并转 X12。
 
+### 2026-09-21 X12 普通使用复验与能力判定
+
+**X12-USAGE-01。** 先以失败测试锁定省略 arm 应采用 B，再把 ordinary check/run 默认从 D 改为 B；显式 N/B/D 和旧 session 读取不变。synthetic example 的省略-arm check 为 valid/B/六项要求/零诊断；作者 trace 三项测试与 local input/run 共 14/14、104 assertions 通过。通过普通 inspect 复用 Open WebUI controlled-text B 与 FastAPI foreign-update B 的 X11 session，两项目均 completed/source_refuted/coverage valid，新增 provider 与目标执行为零，且不装载 evaluator。机器记录绑定两个 result 与 authoring artifact 的 SHA-256。能力定为 bounded development：单 repo/ref、显式 source/obligation 可用；仓库 discovery、目标/部署执行、whole-skill 自动转换、patch 和生产默认均不在范围。初轮 14/5/4、header partial、N 无重复、USD/human time unknown 继续保留。下一轮最小实现仅为 opt-in 顶层命令适配器加一个新 held-out repo/task，不在本轮提前生产化。X13 只做统一验证、文档/证据同步与发布。
+
 ## 13. 原始证据索引（只在需要细节时读取）
 
 | 内容 | 原件 |
@@ -1029,5 +1037,6 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | E 外部来源、观察、方法对照、反例与持续状态 | [sources](../../results/skill-ir/skill-dsl-research/sources.jsonl)、[observations](../../results/skill-ir/skill-dsl-research/observations.jsonl)、[method comparisons](../../results/skill-ir/skill-dsl-research/method-comparisons.json)、[consumption](../../results/skill-ir/skill-dsl-research/consumption-design.json)、[challenge](../../results/skill-ir/skill-dsl-research/challenge-review.json)、[status](../../results/skill-ir/skill-dsl-research/status.json) |
 | T 授权真实案例、允许输入、独立答案与原型决定 | [manifest](../../results/skill-ir/skill-dsl-research/cases/authorization/manifest.json)、[walkthrough](../../results/skill-ir/skill-dsl-research/manual-design-walkthrough.json)、[prototype decision](../../results/skill-ir/skill-dsl-research/prototype-readiness-decision.json)、[targeted status](../../results/skill-ir/skill-dsl-research/targeted-study-status.json) |
 | V 授权 DSL 开发、真实运行、复验与总结果 | [status](../../results/skill-ir/skill-dsl-research/development/authorization-v0/status.json)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-v0/summary.json)、[offline replay](../../results/skill-ir/skill-dsl-research/development/authorization-v0/offline-replay.json)、[initial](../../results/skill-ir/skill-dsl-research/development/authorization-v0/runs/initial)、[revision](../../results/skill-ir/skill-dsl-research/development/authorization-v0/runs/revision-1-expanded-id-contract) |
+| X 授权完整能力、初轮评价、合同 revision 与普通使用复验 | [status](../../results/skill-ir/skill-dsl-research/development/authorization-capability-v1/status.json)、[initial evaluation](../../results/skill-ir/skill-dsl-research/development/authorization-capability-v1/runs/x9-initial-v1/evaluation-summary-v2.json)、[revision evaluation](../../results/skill-ir/skill-dsl-research/development/authorization-capability-v1/runs/x11-conclusion-contract-v1/revision-evaluation-v1.json)、[usage verification](../../results/skill-ir/skill-dsl-research/development/authorization-capability-v1/usage-verification-v1.json) |
 
 原件中的 nextAction、frozen、proceed-narrow 代表当时阶段；当前选择以本文件第 1 节及 current-status 为准，不因保留原件而重新启动旧任务。

@@ -53,17 +53,27 @@ Three LLM provider route kinds under `src/providers/`, selected per model id via
 
 ### Bounded local authorization assessment (development)
 
-The source-visible authorization prototype has a standalone development entry for an ordinary task and explicit source files. It is not a top-level product CLI or a repository-wide scanner.
+The source-visible authorization capability has a standalone development entry for an ordinary task and explicit source files. It is a bounded development capability, not a top-level product CLI, repository-wide scanner, target executor, patch generator, or production security decision.
 
 ```powershell
-bun ./src/benchmarks/authorization-dsl/local-run.ts check --input=./examples/authorization-assessment/assessment.json [--arm=N|B|D]
-bun ./src/benchmarks/authorization-dsl/local-run.ts run --input=./examples/authorization-assessment/assessment.json --model=<id> --out=<output-root> [--arm=N|B|D]
-bun ./src/benchmarks/authorization-dsl/local-run.ts inspect --out=<output-root-or-session>
+bun ./src/benchmarks/authorization-dsl/local-run.ts check --input=./examples/authorization-assessment/assessment.json
+bun ./src/benchmarks/authorization-dsl/local-run.ts run --input=./examples/authorization-assessment/assessment.json --model=<provider/model> --out=./.skvm/authorization-demo
+bun ./src/benchmarks/authorization-dsl/local-run.ts inspect --out=./.skvm/authorization-demo
 ```
 
-The strict `authorization-assessment-input/v1` object contains `task`, `sourceIdentity`, `sourceRoot`, `sources`, and optional `analysisRequirements`. `sourceIdentity.repository/sourceRef` must equal the task fields. `sourceRoot` is resolved from the input file's directory and must remain beneath it after junction/symlink resolution; each source is an explicit portable path beneath that root, including ordinary paths such as `src/routes/items.py`. No research manifest, oracle, case id, or review is required. If requirements are omitted, the public six-question `authorization-core-v1` profile is used.
+Copy `examples/authorization-assessment/`, then edit its `assessment.json` and files under `project/`. The strict `authorization-assessment-input/v1` object contains:
 
-`check` and `inspect` never initialize a provider. `--arm` is optional and defaults to D; N, B, and D share task facts, analysis questions, source and output protocol while changing the visible organization. Each `run` creates a new non-overwriting directory under `<output-root>/sessions/`, prints its absolute path, and records JSON inputs/results, provider lifecycle JSONL, the exact preview, character sections, provider-reported token usage, and a text summary. Character counts are not token estimates. `<output-root>/sessions.jsonl` locates the latest session. A dispatched session with no terminal result is reported as `completion-unknown` and is never automatically resent; invoke `run` again only when you intentionally want a separate session.
+- `sourceIdentity.repository/sourceRef`, which must exactly match the task identity;
+- `sourceRoot`, resolved from the input file's directory and confined beneath that directory after junction/symlink resolution;
+- `sources`, an explicit list of portable files beneath `sourceRoot`, including ordinary paths such as `src/routes/items.py`;
+- `task`, including policy sources, principals, resources, entries, obligations, bounded scope and constraints; and
+- optional `analysisRequirements`; when omitted, the public six-question `authorization-core-v1` profile is used.
+
+No research manifest, oracle, case id, evaluator, or review is required. `check` and `inspect` never initialize a provider. The optional `--arm=N|B|D` is available on `check` and `run`; it defaults to B because the frozen development panel found no additional necessary-semantics or coverage benefit from D and observed more calls and tokens. N and D remain explicit research alternatives. All arms share the task facts, questions, source and output protocol.
+
+Each `run` creates a new non-overwriting directory under `<output-root>/sessions/`, prints its absolute path, and records JSON inputs/results, provider lifecycle JSONL, the exact preview, character sections, provider-reported token usage, and a text summary. Character counts are not token estimates. Every obligation result includes `decisiveMissingFacts` and `suggestedObservations`; an `unknown` conclusion must populate them. `<output-root>/sessions.jsonl` locates the latest session, while passing an exact session directory to `inspect` avoids ambiguity.
+
+Recovery is state-dependent. An invalid `check` or a `provider-unavailable` session without `dispatch.json` made no provider request; fix the reported field/path/dependency or provider route and deliberately start a new session. A dispatched session with no terminal result is `completion-unknown`: inspect it, preserve it, and do not automatically resend it. Invoke `run` again only when you intentionally want a separate attempt. A completed session is always reusable through `inspect`, independently of the evaluator. Custom routes stored in the repository cache may require `$env:SKVM_CACHE = "$PWD/.skvm"` before `run`.
 
 ## `profile`
 
