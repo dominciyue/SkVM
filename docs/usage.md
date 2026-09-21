@@ -56,14 +56,14 @@ Three LLM provider route kinds under `src/providers/`, selected per model id via
 The source-visible authorization prototype has a standalone development entry for an ordinary task and explicit source files. It is not a top-level product CLI or a repository-wide scanner.
 
 ```powershell
-bun ./src/benchmarks/authorization-dsl/local-run.ts check --input=<assessment.json>
-bun ./src/benchmarks/authorization-dsl/local-run.ts run --input=<assessment.json> --model=<id> --out=<output-root>
+bun ./src/benchmarks/authorization-dsl/local-run.ts check --input=./examples/authorization-assessment/assessment.json [--arm=N|B|D]
+bun ./src/benchmarks/authorization-dsl/local-run.ts run --input=./examples/authorization-assessment/assessment.json --model=<id> --out=<output-root> [--arm=N|B|D]
 bun ./src/benchmarks/authorization-dsl/local-run.ts inspect --out=<output-root-or-session>
 ```
 
 The strict `authorization-assessment-input/v1` object contains `task`, `sourceIdentity`, `sourceRoot`, `sources`, and optional `analysisRequirements`. `sourceIdentity.repository/sourceRef` must equal the task fields. `sourceRoot` is resolved from the input file's directory and must remain beneath it after junction/symlink resolution; each source is an explicit portable path beneath that root, including ordinary paths such as `src/routes/items.py`. No research manifest, oracle, case id, or review is required. If requirements are omitted, the public six-question `authorization-core-v1` profile is used.
 
-`check` and `inspect` never initialize a provider. Each `run` creates a new non-overwriting directory under `<output-root>/sessions/`, prints its absolute path, and records JSON inputs/results, provider lifecycle JSONL, the exact preview, and a text summary. `<output-root>/sessions.jsonl` locates the latest session. A dispatched session with no terminal result is reported as `completion-unknown` and is never automatically resent; invoke `run` again only when you intentionally want a separate session.
+`check` and `inspect` never initialize a provider. `--arm` is optional and defaults to D; N, B, and D share task facts, analysis questions, source and output protocol while changing the visible organization. Each `run` creates a new non-overwriting directory under `<output-root>/sessions/`, prints its absolute path, and records JSON inputs/results, provider lifecycle JSONL, the exact preview, character sections, provider-reported token usage, and a text summary. Character counts are not token estimates. `<output-root>/sessions.jsonl` locates the latest session. A dispatched session with no terminal result is reported as `completion-unknown` and is never automatically resent; invoke `run` again only when you intentionally want a separate session.
 
 ## `profile`
 

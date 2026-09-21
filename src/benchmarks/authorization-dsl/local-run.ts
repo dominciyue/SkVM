@@ -2,7 +2,12 @@ import { createHash, randomUUID } from "node:crypto"
 import { appendFile, mkdir, readFile, stat, writeFile } from "node:fs/promises"
 import path from "node:path"
 import type { LLMProvider } from "../../providers/types.ts"
-import { renderAuthorizationTask } from "../../task-dsl/authorization/render.ts"
+import {
+  measureAuthorizationPromptCharacters,
+  renderAuthorizationTask,
+  type AuthorizationPromptCharacterBreakdown,
+  type AuthorizationRenderArm,
+} from "../../task-dsl/authorization/render.ts"
 import type { AnalysisDiagnostic } from "../../task-dsl/authorization/relations.ts"
 import type { AuthorizationResultV0 } from "../../task-dsl/authorization/schema.ts"
 import { compileAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
@@ -26,10 +31,12 @@ export interface LocalAuthorizationCheckReport {
   sourceRef?: string
   sourceRoot?: string
   sourceFiles?: string[]
+  arm?: AuthorizationRenderArm
   analysisProfile?: LocalAnalysisProfile
   requirementCount?: number
   ledgerEntryCount?: number
   preview?: string
+  promptCharacters?: AuthorizationPromptCharacterBreakdown
   diagnostics: AnalysisDiagnostic[]
 }
 
@@ -50,13 +57,14 @@ export interface LocalAuthorizationSessionReport {
   repository?: string
   sourceRef?: string
   model?: string
-  arm?: "D"
+  arm?: AuthorizationRenderArm
   analysisProfile?: LocalAnalysisProfile
   finalKind?: "initial" | "repair"
   canonicalResult?: AuthorizationResultV0
   relationCoverage?: unknown[]
   coverageValidation?: unknown
   telemetry?: AuthorizationTaskRun["telemetry"]
+  promptCharacters?: AuthorizationTaskRun["promptCharacters"]
   artifacts?: {
     session: string
     check: string
@@ -132,7 +140,7 @@ function errorArtifact(error: unknown): { name: string; message: string } {
   }
 }
 
-function checkReport(loaded: LocalInputResult): LocalAuthorizationCheckReport {
+function checkReport(loaded: LocalInputResult, arm: AuthorizationRenderArm): LocalAuthorizationCheckReport {
   if (loaded.status === "invalid") {
     return {
       schemaVersion: "authorization-local-check/v1",
@@ -143,8 +151,8 @@ function checkReport(loaded: LocalInputResult): LocalAuthorizationCheckReport {
   }
   const compiled = compileAuthorizationTask(loaded.task)
   const sourceContext = renderSourceBundle(loaded.sourceBundle)
-  const renderedPrompt = renderAuthorizationTask(compiled, "D", loaded.analysisPlan)
-    .prompt.replace("<SOURCE_CONTEXT_INSERTED_BY_HOST>", sourceContext)
+  const rendered = renderAuthorizationTask(compiled, arm, loaded.analysisPlan)
+  const renderedPrompt = rendered.prompt.replace("<SOURCE_CONTEXT_INSERTED_BY_HOST>", sourceContext)
   const preview = [
     `<!-- analysis-profile: ${loaded.analysisProfile.id}; origin: ${loaded.analysisProfile.origin} -->`,
     renderedPrompt,
@@ -158,16 +166,21 @@ function checkReport(loaded: LocalInputResult): LocalAuthorizationCheckReport {
     sourceRef: loaded.task.sourceRef,
     sourceRoot: loaded.sourceRoot,
     sourceFiles: loaded.sourceBundle.files.map(file => file.relativePath),
+    arm,
     analysisProfile: loaded.analysisProfile,
     requirementCount: loaded.analysisRequirements.length,
     ledgerEntryCount: loaded.analysisPlan.entries.length,
     preview,
+    promptCharacters: measureAuthorizationPromptCharacters(rendered, sourceContext),
     diagnostics: [],
   }
 }
 
-export async function checkLocalAuthorizationInput(inputFile: string): Promise<LocalAuthorizationCheckReport> {
-  return checkReport(await loadLocalAuthorizationInput(inputFile))
+export async function checkLocalAuthorizationInput(
+  inputFile: string,
+  arm: AuthorizationRenderArm = "D",
+): Promise<LocalAuthorizationCheckReport> {
+  return checkReport(await loadLocalAuthorizationInput(inputFile), arm)
 }
 
 function sessionIdFor(now = new Date()): string {
@@ -289,11 +302,13 @@ export async function executeLocalAuthorizationRun(input: {
   inputFile: string
   model: string
   outRoot: string
+  arm?: AuthorizationRenderArm
   providerFactory?: LocalAuthorizationProviderFactory
   env?: LocalAuthorizationRunnerEnv
 }): Promise<LocalAuthorizationSessionReport | LocalAuthorizationCheckReport> {
+  const arm = input.arm ?? "D"
   const loaded = await loadLocalAuthorizationInput(input.inputFile)
-  const checked = checkReport(loaded)
+  const checked = checkReport(loaded, arm)
   if (loaded.status === "invalid") return checked
 
   const session = await createSession(input.outRoot)
@@ -317,7 +332,7 @@ export async function executeLocalAuthorizationRun(input: {
     inputPath: loaded.inputPath,
     inputSha256: sha256(inputBytes),
     model: input.model,
-    arm: "D",
+    arm,
     analysisProfile: loaded.analysisProfile,
     noAutomaticResend: true,
   })
@@ -352,8 +367,9 @@ export async function executeLocalAuthorizationRun(input: {
     repository: loaded.task.repository,
     sourceRef: loaded.task.sourceRef,
     model: input.model,
-    arm: "D" as const,
+    arm,
     analysisProfile: loaded.analysisProfile,
+    ...(checked.promptCharacters ? { promptCharacters: { initial: checked.promptCharacters } } : {}),
     artifacts: baseArtifacts,
   }
 
@@ -382,6 +398,7 @@ export async function executeLocalAuthorizationRun(input: {
     schemaVersion: "authorization-local-dispatch/v1",
     sessionId: session.sessionId,
     model: input.model,
+    arm,
     startedAt: new Date().toISOString(),
     completionUnknownUntilRunArtifact: true,
     noAutomaticResend: true,
@@ -392,7 +409,7 @@ export async function executeLocalAuthorizationRun(input: {
       sourceBundle: loaded.sourceBundle,
       analysisRequirements: loaded.analysisRequirements,
       provider,
-      arm: "D",
+      arm,
       options: {
         timeoutMs: 180_000,
         unitTimeoutMs: 600_000,
@@ -418,6 +435,7 @@ export async function executeLocalAuthorizationRun(input: {
         coverageValidation: artifact.coverageValidation,
       } : {}),
       telemetry: run.telemetry,
+      promptCharacters: run.promptCharacters,
       ...(run.error ? { error: run.error } : {}),
     }
     await persistTerminalSession({ outRoot: input.outRoot, session, report, run })
@@ -447,6 +465,7 @@ async function inspectSession(sessionPath: string, sessionId: string): Promise<L
     createdAt?: string
     inputPath?: string
     model?: string
+    arm?: AuthorizationRenderArm
     analysisProfile?: LocalAnalysisProfile
   }
   const dispatched = await pathKind(path.join(sessionPath, "dispatch.json")) === "file"
@@ -458,6 +477,7 @@ async function inspectSession(sessionPath: string, sessionId: string): Promise<L
     status: dispatched ? "completion-unknown" : "initialized",
     ...(session.inputPath ? { inputPath: session.inputPath } : {}),
     ...(session.model ? { model: session.model } : {}),
+    ...(session.arm ? { arm: session.arm } : {}),
     ...(session.analysisProfile ? { analysisProfile: session.analysisProfile } : {}),
   }
 }
@@ -516,13 +536,19 @@ function requireOption(options: Record<string, string>, name: string, command: s
   return value
 }
 
+function parseArm(value: string | undefined): AuthorizationRenderArm {
+  const arm = value ?? "D"
+  if (arm === "N" || arm === "B" || arm === "D") return arm
+  throw new LocalAuthorizationRunnerError("arm must be one of N, B, or D.")
+}
+
 function helpText(): string {
   return [
     "Authorization local assessment",
     "",
     "Commands:",
-    "  check --input=<assessment.json>",
-    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root>",
+    "  check --input=<assessment.json> [--arm=N|B|D]",
+    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--arm=N|B|D]",
     "  inspect --out=<output-root-or-session>",
     "",
     "Only run initializes a provider. Every run creates a new immutable session; inspect never resends it.",
@@ -540,17 +566,21 @@ export async function runLocalAuthorizationCli(
   const command = argv[0]!
   try {
     if (command === "check") {
-      const options = parseOptions(argv.slice(1), new Set(["input"]))
-      const report = await checkLocalAuthorizationInput(requireOption(options, "input", "check"))
+      const options = parseOptions(argv.slice(1), new Set(["input", "arm"]))
+      const report = await checkLocalAuthorizationInput(
+        requireOption(options, "input", "check"),
+        parseArm(options.arm),
+      )
       dependencies.stdout(JSON.stringify(report, null, 2))
       return report.status === "valid" ? 0 : 1
     }
     if (command === "run") {
-      const options = parseOptions(argv.slice(1), new Set(["input", "model", "out"]))
+      const options = parseOptions(argv.slice(1), new Set(["input", "model", "out", "arm"]))
       const report = await executeLocalAuthorizationRun({
         inputFile: requireOption(options, "input", "run"),
         model: requireOption(options, "model", "run"),
         outRoot: requireOption(options, "out", "run"),
+        arm: parseArm(options.arm),
         ...(dependencies.providerFactory ? { providerFactory: dependencies.providerFactory } : {}),
         ...(dependencies.env ? { env: dependencies.env } : {}),
       })

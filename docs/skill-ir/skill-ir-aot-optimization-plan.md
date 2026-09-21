@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-21
 - 路线：按 skill/task 范围设计领域 DSL
-- 状态：V/W `completed-development`；X0–X6 完成，X7 进行中
+- 状态：V/W `completed-development`；X0–X7 完成，X8 进行中
 - 唯一实时状态：[current-status.md](current-status.md)
 - 方法依据：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)
@@ -19,8 +19,8 @@ W 已解决主要输出与计量问题。用户确认下一轮扩大为完整能
 | X1–X2 | 评价校准与第二项目获取（已完成） | v2 rubric 六类判例；FastAPI template 两个所有权/角色义务 |
 | X3–X5 | 关系合同、ledger 与 coverage（已完成） | 适用义务、可选分支、引用关联与明确 unknown |
 | X6 | 普通输入（已完成） | 一个输入文件、公开函数、provider-free check/inspect、不可覆盖 session |
-| X7 | 同事实 N/B/D 与作者体验（进行中） | 三臂公开事实、skill 职责映射、可编辑例子 |
-| X8 | 离线接线 | 两项目共用实现、兼容与错误路径验证 |
+| X7 | 同事实 N/B/D 与作者体验（已完成） | 三臂公开事实、skill 职责映射、可编辑例子、两项实际 authoring 诊断 |
+| X8 | 离线接线（进行中） | 两项目共用实现、兼容与错误路径验证 |
 | X9–X11 | 真实运行、评价、共享修订 | 主面板 20 单元、补充 N 三单元；有依据时一次修订 |
 | X12–X13 | 使用复验与交付 | 自备任务用法、两项目结果、实际取舍、提交发布 |
 
@@ -47,4 +47,4 @@ W 的 `no-revision / study-missing-domain-relations` 保留为历史决定。X �
 
 S/D 完成结构与语义准备，E/T 建立外部任务依据、授权范围与真实案例，V 完成首次可运行原型及模型观察，W 完成共享传输/生命周期修复和三组新配对。旧 trace 优化路线的 U/G/H/R/C/F 记录由[历史](history.md)和[证据索引](evidence-index.md)承载，本计划不重复维护其逐轮数据。
 
-恢复时读取状态页、X 任务书、研究 §7.20–7.21、W summary 与 X `status.json`。X0–X6 已完成；当前扩展 renderer/host 到同事实 N/B/D，写两份真实 skill 的职责映射和可编辑 synthetic 例子。
+恢复时读取状态页、X 任务书、研究 §7.20–7.21、W summary 与 X `status.json`。X0–X7 已完成；当前让五项任务与 synthetic 变化通过同一 parser/ledger/source/host/coverage/evaluator 离线链，并在临时普通目录复验 check/run(mock)/inspect。

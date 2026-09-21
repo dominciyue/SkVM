@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "authorization-authoring-experience/v1",
+  "recordedAt": "2026-09-21T17:56:01+08:00",
+  "exampleInput": "examples/authorization-assessment/assessment.json",
+  "test": "src/benchmarks/authorization-dsl/authoring-example.test.ts",
+  "method": "deterministic scripted authoring trace; no human timing study",
+  "taskChangeChecklist": {
+    "identity": [
+      "task.taskId",
+      "task.request",
+      "task.repository",
+      "task.sourceRef",
+      "sourceIdentity.repository",
+      "sourceIdentity.sourceRef"
+    ],
+    "sourceSelection": [
+      "sourceRoot",
+      "sources",
+      "task.entries[].locations[]"
+    ],
+    "domainDeclaration": [
+      "task.policySources",
+      "task.principals",
+      "task.resources",
+      "task.entries",
+      "task.obligations",
+      "task.scopeAssurance",
+      "task.requiredAnalysis",
+      "task.constraints"
+    ],
+    "optionalMethodQuestions": [
+      "analysisRequirements"
+    ],
+    "runtimeConfiguration": [
+      "--model",
+      "--out",
+      "--arm"
+    ]
+  },
+  "actualTrace": [
+    {
+      "attempt": 1,
+      "operation": "check unchanged example",
+      "changedFields": [],
+      "status": "valid",
+      "diagnostics": []
+    },
+    {
+      "attempt": 2,
+      "operation": "change task identity but leave sourceIdentity stale",
+      "changedFields": [
+        "task.taskId",
+        "task.request",
+        "task.repository",
+        "task.sourceRef",
+        "task.policySources[0].revision"
+      ],
+      "status": "invalid",
+      "diagnostics": ["source-identity-mismatch"]
+    },
+    {
+      "attempt": 3,
+      "operation": "synchronize sourceIdentity and move the declared entry but leave sources stale",
+      "changedFields": [
+        "sourceIdentity.repository",
+        "sourceIdentity.sourceRef",
+        "task.entries[0].locations[0].path"
+      ],
+      "status": "invalid",
+      "diagnostics": ["declaration-source-location-invalid"]
+    },
+    {
+      "attempt": 4,
+      "operation": "add the revised source and update sources",
+      "changedFields": [
+        "project/src/archive-v2.ts",
+        "sources[0]"
+      ],
+      "status": "valid",
+      "diagnostics": []
+    }
+  ],
+  "observedCounts": {
+    "deterministicChecks": 4,
+    "invalidChecks": 2,
+    "diagnosticEvents": 2,
+    "providerCalls": 0,
+    "targetExecutions": 0
+  },
+  "humanTiming": {
+    "measured": false,
+    "claim": "No human-time or labor-savings claim is made."
+  }
+}

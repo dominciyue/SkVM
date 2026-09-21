@@ -1006,7 +1006,7 @@ export interface AuthorizationRunOperationSummary {
 
 export interface AuthorizationRunEvaluationSummary {
   caseId: string
-  arm: "B" | "D"
+  arm: AuthorizationTaskRun["arm"]
   runStatus: AuthorizationTaskRun["status"]
   repairUsed: boolean
   initialQuality: AuthorizationGenerationEvaluation["qualityStatus"] | null

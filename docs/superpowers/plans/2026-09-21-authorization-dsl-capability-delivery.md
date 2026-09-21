@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、现有 Zod、SkVM provider/telemetry；一个轻量本地脚本和公开函数，不另建 CLI 框架、Web 页面或通用工作流引擎。
 
-- 制定日期：2026-09-21；状态：`active-X7`（X0–X6 已完成；同事实 N/B/D 与作者体验推进中）。
+- 制定日期：2026-09-21；状态：`active-X8`（X0–X7 已完成；离线接线与跨项目 dry-run 推进中）。
 - 基线：W 发布 `fa6b064`；工程已完成，原始三例结论 6/6 正确、关键事实支持 4/6，D 有较低调用/token 的初步观察。
 - 工作分支：`skill-ir-aot`；仅向用户 `origin` 推送。保留其他任务的源码改动与本地材料。
 - 设计正文：[研究总文档 §7.21](../../skill-ir/skill-dsl-research.md#721-x-完整能力阶段设计)；持续合同：[spec 14.34](../../skill-ir/skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。不另建一份 design 或逐阶段总结 Markdown。
@@ -118,7 +118,7 @@ bun ./src/benchmarks/authorization-dsl/local-run.ts run --input=./examples/autho
 bun ./src/benchmarks/authorization-dsl/local-run.ts inspect --out=./.skvm/authorization-demo
 ```
 
-check 应输出字段、输入和分析要求检查结果且零模型调用；run 打印实际 session 路径与结果摘要；inspect 只读取已有 session。输出根下允许多个 session，最新一次路径由索引定位，不覆盖以前结果。
+check 应输出字段、输入和分析要求检查结果且零模型调用；run 打印实际 session 路径与结果摘要；inspect 只读取已有 session。check/run 可显式增加 `--arm=N|B|D`，省略时使用 D。输出根下允许多个 session，最新一次路径由索引定位，不覆盖以前结果。
 
 ### 2.3 评价与比较
 
@@ -200,11 +200,11 @@ check 应输出字段、输入和分析要求检查结果且零模型调用；ru
 
 ### X7：同事实 N/B/D 渲染与任务作者体验
 
-- [ ] B/D 共用公开事实和要求；B 以清晰说明组织，D 用依赖与 ledger 组织。N 将同样事实写为自然任务说明，三臂使用同一新输出协议和底层支持。记录干预差异，检查不遗漏任一政策或作用范围。
-- [ ] 为 N/B/D 分发写失败测试，避免第三个 arm 被旧二分支默认为 D。保存 instruction/declaration/source/output-contract 字符分项与模型实测 token。
-- [ ] 从已有 E/T 外部语料选两份独立来源的相关 skill，列出其授权职责如何映射到声明与 analysisRequirements，剩余职责如何保留。真实 skill 来源与目标代码项目分别计数，不把第二个源码项目自动算作第二个 skill；该映射人工/agent 辅助编写，如实记录，不声称自动转换整个 skill。
-- [ ] 在 `examples/authorization-assessment/` 写自包含 synthetic 例子及来源标记，以新普通入口执行；用户只需改输入、源码位置和模型配置。
-- [ ] 记录作者从一个任务改成另一个任务需要改哪些字段、获得哪些诊断；用实际操作/错误次数说明易用性，未做真人计时则不称人工节省。
+- [x] B/D 共用公开事实和要求；B 以清晰说明组织，D 用依赖与 ledger 组织。N 将同样事实写为自然任务说明，三臂使用同一新输出协议和底层支持。记录干预差异，检查不遗漏任一政策或作用范围。
+- [x] 为 N/B/D 分发写失败测试，避免第三个 arm 被旧二分支默认为 D。保存 instruction/declaration/source/output-contract 字符分项；run 将 provider 实测 token 保存到 run/result telemetry，X7 mock 验证持久化但不冒充真实模型计量，实际值留待 X9。
+- [x] 从已有 E/T 外部语料选两份独立来源的相关 skill，列出其授权职责如何映射到声明与 analysisRequirements，剩余职责如何保留。真实 skill 来源与目标代码项目分别计数，不把第二个源码项目自动算作第二个 skill；该映射人工/agent 辅助编写，如实记录，不声称自动转换整个 skill。
+- [x] 在 `examples/authorization-assessment/` 写自包含 synthetic 例子及来源标记，以新普通入口对 N/B/D 分别执行 provider-free check；用户只需改输入、源码位置和模型配置。
+- [x] 记录作者从一个任务改成另一个任务需要改哪些字段、获得哪些诊断；确定性 trace 共四次 check、两次 invalid 和两个精确诊断，零 provider/目标执行；未做真人计时，不称人工节省。
 
 ### X8：离线接线与跨项目 dry-run
 

@@ -638,6 +638,7 @@ describe("authorization semantic evaluation", () => {
     }
 
     const summary = summarizeAuthorizationRun(run, { initial: generation })
+    const naturalSummary = summarizeAuthorizationRun({ ...run, arm: "N" }, { initial: generation })
     const pair = summarizeAuthorizationPair("semantic-review-example", summary, {
       ...summary,
       arm: "D",
@@ -666,6 +667,11 @@ describe("authorization semantic evaluation", () => {
     }))
     expect(pair.arms.B.operation.totalActualUsd).toBeNull()
     expect(pair.arms.D.operation.providerAttempts).toBe(2)
+    expect(naturalSummary.arm).toBe("N")
+    expect(() => summarizeAuthorizationPair("semantic-review-example", naturalSummary, {
+      ...summary,
+      arm: "D",
+    })).toThrow("requires B baseline")
   })
 
   it("parses the three evaluator-only real-case rubrics including the revised trusted-header facts", async () => {

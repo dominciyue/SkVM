@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "authorization-skill-responsibility-mapping/v1",
+  "createdAt": "2026-09-21T17:56:01+08:00",
+  "method": {
+    "mappingMode": "human-agent-assisted",
+    "wholeSkillConversionClaimed": false,
+    "automaticConversionExecuted": false,
+    "statement": "The mapping selects one bounded source-authorization assessment slice from each skill. It does not convert either complete skill and does not execute either skill."
+  },
+  "boundedSlice": "At one fixed repository/ref, assess one named source-visible authorization-sensitive operation for a declared principal/resource relation, without executing the target or inferring deployment behavior.",
+  "sourceSkills": [
+    {
+      "sourceId": "src-cloudflare-security-audit",
+      "family": "cloudflare/security-audit-skill",
+      "url": "https://github.com/cloudflare/security-audit-skill/blob/c1c8a8c1471069fb0e188eeaff69b8e8db6564a8/skills/security-audit/SKILL.md",
+      "commit": "c1c8a8c1471069fb0e188eeaff69b8e8db6564a8",
+      "path": "skills/security-audit/SKILL.md",
+      "license": "MIT",
+      "sourceIndex": "results/skill-ir/skill-dsl-research/sources.jsonl#src-cloudflare-security-audit",
+      "declarationMappings": [
+        {
+          "responsibility": "fixed source scope and reconnaissance input",
+          "dslFields": ["sourceIdentity.repository", "sourceIdentity.sourceRef", "sourceRoot", "sources", "task.scopeAssurance"],
+          "sourceLocations": ["skills/security-audit/SKILL.md:35-40", "skills/security-audit/RECONNAISSANCE.md:5-25"]
+        },
+        {
+          "responsibility": "principal, protected resource, operation, and declared entry",
+          "dslFields": ["task.principals", "task.resources", "task.obligations", "task.entries"],
+          "sourceLocations": ["skills/security-audit/SKILL.md:6", "skills/security-audit/SKILL.md:109-117", "skills/security-audit/HUNTING.md:20-81", "skills/security-audit/ATTACK-CLASSES.md:31-38"]
+        },
+        {
+          "responsibility": "source-located verdict and bounded evidence output",
+          "dslFields": ["task.policySources", "task.requiredAnalysis", "task.constraints", "wire results and citations"],
+          "sourceLocations": ["skills/security-audit/SKILL.md:118-131", "skills/security-audit/VALIDATION-AND-REPORTING.md:78-125"]
+        }
+      ],
+      "analysisRequirementMappings": [
+        {
+          "requirementKinds": ["entry-control", "identity-binding", "resource-binding", "authorization-decision", "effect-reachability"],
+          "responsibility": "trace the declared operation through bindings, visible controls, and protected effect",
+          "sourceLocations": ["skills/security-audit/HUNTING.md:20-81", "skills/security-audit/HUNTING.md:119-137"]
+        },
+        {
+          "requirementKinds": ["external-assumption"],
+          "responsibility": "record decisive source-external or deployment-dependent facts as bounded unknowns",
+          "sourceLocations": ["skills/security-audit/VALIDATION-AND-REPORTING.md:6-40"]
+        }
+      ],
+      "retainedResponsibilities": [
+        "guidance versus full-audit mode choice",
+        "run profiles and strict agent budget",
+        "coverage-led multi-agent orchestration",
+        "sandboxed target execution and race-safe artifact promotion",
+        "prior-run merge",
+        "schema validation and report derivation"
+      ]
+    },
+    {
+      "sourceId": "src-github-security-review",
+      "family": "github/awesome-copilot",
+      "url": "https://github.com/github/awesome-copilot/blob/7e375eac04fa04f291859ca962a4d8a3bb8b7564/skills/security-review/SKILL.md",
+      "commit": "7e375eac04fa04f291859ca962a4d8a3bb8b7564",
+      "path": "skills/security-review/SKILL.md",
+      "license": "MIT",
+      "sourceIndex": "results/skill-ir/skill-dsl-research/sources.jsonl#src-github-security-review",
+      "declarationMappings": [
+        {
+          "responsibility": "review trigger, source boundary, and technology context",
+          "dslFields": ["task.request", "sourceIdentity.repository", "sourceIdentity.sourceRef", "sourceRoot", "sources"],
+          "sourceLocations": ["skills/security-review/SKILL.md:11-23", "skills/security-review/SKILL.md:32-41"]
+        },
+        {
+          "responsibility": "authorization-sensitive principal, resource, operation, and upstream controls",
+          "dslFields": ["task.principals", "task.resources", "task.obligations", "task.entries", "task.policySources"],
+          "sourceLocations": ["skills/security-review/SKILL.md:69-75", "skills/security-review/SKILL.md:94-106", "skills/security-review/references/vuln-categories.md:97-140"]
+        },
+        {
+          "responsibility": "finding evidence, confidence boundary, and report result",
+          "dslFields": ["task.requiredAnalysis", "task.constraints", "wire results and citations"],
+          "sourceLocations": ["skills/security-review/SKILL.md:108-134", "skills/security-review/references/report-format.md:42-72", "skills/security-review/references/report-format.md:169-179"]
+        }
+      ],
+      "analysisRequirementMappings": [
+        {
+          "requirementKinds": ["entry-control", "identity-binding", "resource-binding", "authorization-decision", "effect-reachability"],
+          "responsibility": "trace an authorization-sensitive source/sink path and test the strongest visible upstream control",
+          "sourceLocations": ["skills/security-review/SKILL.md:94-106", "skills/security-review/references/vuln-categories.md:97-140"]
+        },
+        {
+          "requirementKinds": ["external-assumption"],
+          "responsibility": "separate source-supported exploitability from unresolved environmental facts",
+          "sourceLocations": ["skills/security-review/SKILL.md:100-106"]
+        }
+      ],
+      "retainedResponsibilities": [
+        "dependency audit",
+        "secret and exposure scan",
+        "broad vulnerability categories",
+        "language-specific scanning",
+        "severity-grouped report",
+        "critical and high patch proposals"
+      ]
+    }
+  ],
+  "boundary": {
+    "notAbsorbed": ["dependency review", "secret scanning", "patch production", "full-audit orchestration", "differential history and blast-radius analysis"],
+    "targetCodeProjects": [
+      "open-webui/open-webui",
+      "fastapi/full-stack-fastapi-template"
+    ],
+    "sourceSkillsAreNotTargetProjects": true
+  },
+  "counting": {
+    "independentSkillSources": 2,
+    "targetCodeProjects": 2
+  },
+  "execution": {
+    "sourceSkillsExecuted": false,
+    "targetProjectsExecuted": false,
+    "providerCalls": 0
+  }
+}

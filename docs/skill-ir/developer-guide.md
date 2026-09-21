@@ -20,12 +20,12 @@
 - `parseAuthorizationTask(input)`：strict 解析 canonical declaration，错误带字段路径。
 - `compileAuthorizationTask(task)`：解析引用与政策状态，只把显式 obligation × entry 展开为稳定 `author::entry` ID。
 - `AnalysisRequirementSchema` / `compileAnalysisRequirements(task, requirements)`：strict 解析六类公开分析问题，并把作者显式 requirement × authored obligation 映射到 runnable expanded obligation；同义务检查 prerequisite 和 cycle，局部错误不抹掉独立有效 ledger。
-- `renderAuthorizationTask(compiled, "B" | "D")`：两臂共用同一 canonical declaration、result contract 与 source marker，只让方法说明不同；`measureAuthorizationPromptCharacters` 分节记录字符但不推算 token。
+- `renderAuthorizationTask(compiled, "N" | "B" | "D")`：三臂共用同一事实、analysis requirements、result contract 与 source marker；N 把 canonical facts 确定性写成自然说明，B/D 共用 JSON declaration，D 增加领域因果与 prerequisite 方法。`measureAuthorizationPromptCharacters` 分节记录字符但不推算 token。
 - `buildAuthorizationSourceCatalog(bundle)` / `resolveAuthorizationSourceCitation(...)`：为全部 exact source 生成 ref-bound ID 与 crop 行标签，并由宿主派生 canonical path/quote。
 - `AuthorizationWireResultV1Schema` / `normalizeAuthorizationWireResult(...)`：解析不含请求元数据、path 或 quote 的窄模型 wire，显式绑定 canonical result v0；不猜 obligation、结论或缺失语义，任一 error 级归一化诊断都不交付 canonical result。显式 analysis requirements 使用独立 `AuthorizationWireResultV2Schema` / `normalizeAuthorizationWireResultV2(...)`，canonical 仍为 v0，只增加 coverage sidecar；旧 v1 strict schema 不接受新字段。
 - `RelationCoverageSchema` / `validateRelationCoverage(plan, canonical, coverage)`：检查每个 exact requirement × expanded obligation 的 coverage、状态和同义务 fact pointer；返回机械 valid/invalid、计数和诊断，`semanticSupport` 固定 `unreviewed`，不把引用存在性升级为因果支持。
 - `loadLocalAuthorizationInput(inputFile)`：strict 解析 `authorization-assessment-input/v1`，校验 task 与 `sourceIdentity` 的 repository/ref、相对 sourceRoot、普通 portable source 路径、junction/symlink 边界、声明行范围及 ready analysis plan；无显式 requirements 时实例化 `authorization-core-v1`。
-- `checkLocalAuthorizationInput(...)` / `executeLocalAuthorizationRun(...)` / `inspectLocalAuthorizationOutput(...)`：普通自备输入的 provider-free 检查、每次新 session 运行和离线读取。session 不覆盖，dispatch 后缺终态标 `completion-unknown`，不会自动重发。
+- `checkLocalAuthorizationInput(...)` / `executeLocalAuthorizationRun(...)` / `inspectLocalAuthorizationOutput(...)`：普通自备输入的 provider-free 检查、每次新 session 运行和离线读取。check/run 接受 N/B/D，默认 D；arm、字符分项和 provider-reported token 随 session 保存。session 不覆盖，dispatch 后缺终态标 `completion-unknown`，不会自动重发。
 - `validateAuthorizationResult(compiled, answer, sourceBundle)`：分别检查结构、声明义务、引用存在、范围声明和依赖快照；语义支持仍为 `unreviewed`。
 - `runAuthorizationTask(...)`：在注入 provider、精确源码束和固定预算下生成；每次 dispatch 固定 phase，per-call/unit deadline、四次派发上限、closed state 和 JSONL lifecycle event 防止 timeout 后新 fallback；没有可执行工具。
 - `evaluateAuthorizationGeneration`、`summarizeAuthorizationRun` 与 `summarizeAuthorizationPair`：消费哈希绑定的 development-agent review，不能从关键词或 citation 存在性推断正确性；v1 单列 semantic decision、evidence semantics、transport 与 delivery，旧 `taskDecisionCorrect` 仍按 v0 口径保留。
@@ -40,12 +40,12 @@ coverage item 为 `requirementId/obligationId/status/explanation/factPointers`�
 自备输入入口在仓库根使用以下命令；只有 `run` 初始化 provider：
 
 ```powershell
-bun ./src/benchmarks/authorization-dsl/local-run.ts check --input=<assessment.json>
-bun ./src/benchmarks/authorization-dsl/local-run.ts run --input=<assessment.json> --model=<provider/model> --out=<output-root>
+bun ./src/benchmarks/authorization-dsl/local-run.ts check --input=./examples/authorization-assessment/assessment.json [--arm=N|B|D]
+bun ./src/benchmarks/authorization-dsl/local-run.ts run --input=./examples/authorization-assessment/assessment.json --model=<provider/model> --out=<output-root> [--arm=N|B|D]
 bun ./src/benchmarks/authorization-dsl/local-run.ts inspect --out=<output-root-or-session>
 ```
 
-输入顶层为 `schemaVersion/task/sourceIdentity/sourceRoot/sources` 及可选 `analysisRequirements`。`sourceIdentity` 必须与 task repository/ref 相同；sourceRoot 相对输入文件目录且解析后不得越出该目录；sources 是相对 sourceRoot 的显式普通路径，不需要 case manifest、oracle 或 review。run 在 `<output-root>/sessions/<id>/` 保存 input、task、source bundle、profile、preview、dispatch、events、host run、result 与文本摘要，根目录的 append-only `sessions.jsonl` 只用于定位；再次 run 总是新 session。
+输入顶层为 `schemaVersion/task/sourceIdentity/sourceRoot/sources` 及可选 `analysisRequirements`。`sourceIdentity` 必须与 task repository/ref 相同；sourceRoot 相对输入文件目录且解析后不得越出该目录；sources 是相对 sourceRoot 的显式普通路径，不需要 case manifest、oracle 或 review。可复制 `examples/authorization-assessment/` 后修改输入、项目源码和模型配置。run 在 `<output-root>/sessions/<id>/` 保存 input、task、source bundle、profile、preview、dispatch、events、host run、result 与文本摘要，根目录的 append-only `sessions.jsonl` 只用于定位；再次 run 总是新 session。
 
 历史比较 runner 仍使用以下五条开发命令；当前 W 配置可直接复查，V 路径仅用于历史 replay：
 

@@ -167,11 +167,18 @@ describe("local authorization runner", () => {
     const output: string[] = []
     const deps = dependencies(fixture.inputPath, calls, output)
 
-    expect(await runLocalAuthorizationCli(["check", `--input=${fixture.inputPath}`], deps)).toBe(0)
+    expect(await runLocalAuthorizationCli(["check", `--input=${fixture.inputPath}`, "--arm=B"], deps)).toBe(0)
     expect(calls).toEqual({ factory: 0, provider: 0 })
     expect(output.join("\n")).toContain('"taskId": "free-form-task-91"')
+    expect(output.join("\n")).toContain('"arm": "B"')
+    expect(output.join("\n")).toContain("Organized authorization assessment instruction (B)")
     expect(output.join("\n")).not.toContain("manifest")
     expect(output.join("\n")).not.toContain("oracle")
+
+    output.length = 0
+    expect(await runLocalAuthorizationCli(["check", `--input=${fixture.inputPath}`, "--arm=Z"], deps)).toBe(2)
+    expect(calls).toEqual({ factory: 0, provider: 0 })
+    expect(output.join("\n")).toContain("arm must be one of N, B, or D")
 
     const invalidPath = path.join(fixture.root, "invalid.json")
     await writeFile(invalidPath, "{}\n", "utf8")
@@ -196,13 +203,38 @@ describe("local authorization runner", () => {
       `--input=${fixture.inputPath}`,
       "--model=mock/model",
       `--out=${fixture.outRoot}`,
+      "--arm=N",
     ]
 
     expect(await runLocalAuthorizationCli(runArgs, deps)).toBe(0)
     expect(calls).toEqual({ factory: 1, provider: 1 })
-    const firstReport = JSON.parse(output.at(-1)!) as { sessionId: string; sessionPath: string; status: string }
+    const firstReport = JSON.parse(output.at(-1)!) as {
+      sessionId: string
+      sessionPath: string
+      status: string
+      arm: string
+      telemetry: { knownTokens: { input: number; output: number }; tokensStatus: string }
+      promptCharacters: { initial: { instructions: number; declaration: number; source: number; outputContract: number; total: number } }
+    }
     expect(firstReport.status).toBe("completed")
+    expect(firstReport.arm).toBe("N")
+    expect(firstReport.telemetry).toEqual(expect.objectContaining({
+      knownTokens: expect.objectContaining({ input: 100, output: 40 }),
+      tokensStatus: "complete",
+    }))
+    expect(firstReport.promptCharacters.initial).toEqual(expect.objectContaining({
+      instructions: expect.any(Number),
+      declaration: expect.any(Number),
+      source: expect.any(Number),
+      outputContract: expect.any(Number),
+      total: expect.any(Number),
+    }))
     expect(firstReport.sessionPath.startsWith(path.resolve(fixture.outRoot))).toBe(true)
+    expect(await readFile(path.join(firstReport.sessionPath, "session.json"), "utf8")).toContain('"arm": "N"')
+    expect(await readFile(path.join(firstReport.sessionPath, "check.json"), "utf8")).toContain('"arm": "N"')
+    expect(await readFile(path.join(firstReport.sessionPath, "preview.md"), "utf8")).toContain("Natural authorization task (N)")
+    expect(await readFile(path.join(firstReport.sessionPath, "preview.md"), "utf8")).not.toContain("Authorization domain method (D)")
+    expect(await readFile(path.join(firstReport.sessionPath, "run.json"), "utf8")).toContain('"arm": "N"')
     const firstResultBytes = await readFile(path.join(firstReport.sessionPath, "result.json"), "utf8")
     expect(await readFile(path.join(firstReport.sessionPath, "events.jsonl"), "utf8")).toContain('"kind":"dispatch"')
     expect(await readFile(path.join(firstReport.sessionPath, "summary.txt"), "utf8")).toContain("source_refuted")

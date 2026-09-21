@@ -2,7 +2,7 @@ import type { AuthorizationTaskV0 } from "./schema.ts"
 import type { CompiledAuthorizationTask } from "./semantics.ts"
 import type { AnalysisPlan } from "./relations.ts"
 
-export type AuthorizationRenderArm = "B" | "D"
+export type AuthorizationRenderArm = "N" | "B" | "D"
 
 export const AUTHORIZATION_CONCLUSIONS = [
   "source_supported_failure",
@@ -102,6 +102,58 @@ function renderBaselineInstructions(hasAnalysisPlan: boolean): string {
 Analyze each runnable obligation in the canonical declaration. Follow the declared required analysis, constraints, policy authority, and scope assurance. Explain the source-visible decision without assuming repository discovery or deployment facts.${hasAnalysisPlan ? " Address every supplied analysis question and report its coverage without inventing an answer." : ""}`
 }
 
+function renderNaturalInstructions(hasAnalysisPlan: boolean): string {
+  return `# Natural authorization task (N)
+
+Assess the authorization question described below using only the supplied fixed source. Explain what the visible source establishes, what it refutes, and what remains unknown. Keep the conclusion bounded to the declared entries and source context.${hasAnalysisPlan ? " Answer every public analysis question and report its coverage without inventing missing facts." : ""}`
+}
+
+function renderNaturalDeclaration(facts: AuthorizationRenderFacts): string {
+  const lines = [
+    `This is task ${facts.taskId}, expressed with ${facts.schemaVersion}. ${facts.request}`,
+    `Assess repository ${facts.repository} at source ref ${facts.sourceRef} in ${facts.sourceMode} mode. Source discovery status is ${facts.discoveryStatus}.`,
+    "",
+    "The accepted policy material is:",
+    ...facts.policySources.map(policy => [
+      `- ${policy.id} is a ${policy.kind} at ${policy.location}, revision ${policy.revision}.`,
+      `  Policy text: ${policy.text}`,
+      `  Acceptance is ${policy.acceptance.status}; accepting actor role: ${policy.acceptance.actorRole}; reason: ${policy.acceptance.reason}`,
+    ].join("\n")),
+    "",
+    "The principals are:",
+    ...facts.principals.map(principal => [
+      `- ${principal.id} has role ${principal.role}. ${principal.description}`,
+      `  Starting capabilities: ${principal.startingCapabilities.length > 0 ? principal.startingCapabilities.join(", ") : "none declared"}.`,
+    ].join("\n")),
+    "",
+    "The resources are:",
+    ...facts.resources.map(resource => `- ${resource.id} is a ${resource.type}. ${resource.description}`),
+    "",
+    "The declared source entries are:",
+    ...facts.entries.map(entry => [
+      `- ${entry.id} names ${entry.name}.`,
+      ...entry.locations.map(location => `  Source location: ${location.path}, startLine ${location.startLine}, endLine ${location.endLine}.`),
+    ].join("\n")),
+    "",
+    "The authorization obligations are:",
+    ...facts.obligations.map(obligation => [
+      `- ${obligation.id}: principal ${obligation.principalId}, resource ${obligation.resourceId}, relation ${obligation.relation}, operation ${obligation.operation}, expected policy disposition ${obligation.expectation}.`,
+      `  Policy source: ${obligation.policySourceId}. Declared entries: ${obligation.entryIds.join(", ")}.`,
+      ...(obligation.conditions.length > 0
+        ? obligation.conditions.map(condition => `  Condition ${condition.name}: ${condition.basis}`)
+        : ["  Conditions: none declared."]),
+    ].join("\n")),
+    "",
+    `Scope assurance: ${facts.scopeAssurance}`,
+    "Required analysis:",
+    ...facts.requiredAnalysis.map(value => `- ${value}`),
+    "Constraints:",
+    ...facts.constraints.map(value => `- ${value}`),
+    `Allowed conclusions: ${facts.allowedConclusions.join(", ")}.`,
+  ]
+  return lines.join("\n")
+}
+
 function renderDomainInstructions(compiled: CompiledAuthorizationTask, hasAnalysisPlan: boolean): string {
   const runnable = compiled.runnableObligations.map(obligation => obligation.id)
   const blocked = compiled.blockedObligations.map(obligation => ({ id: obligation.id, blockedBy: obligation.blockedBy }))
@@ -153,11 +205,16 @@ export function renderAuthorizationTask(
     ...compiled.runnableObligations.map(obligation => obligation.id),
     ...compiled.blockedObligations.map(obligation => obligation.id),
   ]
+  const instructions = (() => {
+    switch (arm) {
+      case "N": return renderNaturalInstructions(analysisPlan !== undefined)
+      case "B": return renderBaselineInstructions(analysisPlan !== undefined)
+      case "D": return renderDomainInstructions(compiled, analysisPlan !== undefined)
+    }
+  })()
   const sections: AuthorizationPromptSections = {
-    instructions: arm === "B"
-      ? renderBaselineInstructions(analysisPlan !== undefined)
-      : renderDomainInstructions(compiled, analysisPlan !== undefined),
-    declaration: JSON.stringify(facts, null, 2),
+    instructions,
+    declaration: arm === "N" ? renderNaturalDeclaration(facts) : JSON.stringify(facts, null, 2),
     ...(analysisPlan
       ? {
           analysisLedger: JSON.stringify({

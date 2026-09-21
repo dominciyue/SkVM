@@ -2460,7 +2460,7 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **已有基础。** 复用现有捕获、资源与参数索引、验证、局部修复、执行和包导出能力，但不强制新 DSL 先经过旧统一 IR 或既有 action 格式才能成立。保留通用基础设施与领域语义的区别；不预设新 CLI、文件扩展名、完整编译器或大规模框架迁移。旧 IR 和已发布接口继续兼容，历史研究结果不回写。
 
-**下一步。** T/V/W 已完成。用户随后确认按 [X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)推进完整能力阶段，合并评价、关系支持、普通输入、第二项目及对照；X0–X6 已完成，当前进入 X7。跨任务合同保留六类 requirement，共同 profile 前五类 required、external-assumption when-present；pure compiler 只展开显式 requirement-obligation 对，在同一 expanded obligation 内检查依赖与环并输出 pending ledger，不预填源码真值。wire/v2 以 sidecar 携带 coverage，canonical v0 不变；宿主只做同义务关联、状态和理由等机械验证，语义支持仍是 review 责任。普通输入已可在 provider 前封闭 path/ref/ledger 并产生不可覆盖 session。单任务仍为 fixed-context，历史 held-out、冻结身份和 readiness 保持各自记录。
+**下一步。** T/V/W 已完成。用户随后确认按 [X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)推进完整能力阶段，合并评价、关系支持、普通输入、第二项目及对照；X0–X7 已完成，当前进入 X8。跨任务合同保留六类 requirement，共同 profile 前五类 required、external-assumption when-present；pure compiler 只展开显式 requirement-obligation 对，在同一 expanded obligation 内检查依赖与环并输出 pending ledger，不预填源码真值。wire/v2 以 sidecar 携带 coverage，canonical v0 不变；宿主只做同义务关联、状态和理由等机械验证，语义支持仍是 review 责任。普通输入已可在 provider 前封闭 path/ref/ledger 并产生不可覆盖 session；N/B/D 都显式走同一 host 与计量，只有可见组织按预先记录的干预变化。单任务仍为 fixed-context，历史 held-out、冻结身份和 readiness 保持各自记录。
 
 **已有研究。** S0–S11 方法准备、D0–D11 语义深化/探针与 E0–E10 外部类别研究已完成；分类、标准比较、候选设计、45 项旧探针边界、外部任务/反例、方法对照、消费设计、范围决定与复核发现统一维护在[研究总文档](skill-dsl-research.md)，旧来源和结果保持原件。D 阶段的 `proceed-narrow` 只表示当时对技术文档本地化候选的有界可实施性建议，未证明真实模型消费和效果。
 
@@ -2489,5 +2489,7 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **X1–X2 已实现边界。** evaluator v2 将 necessary semantics、explanation completeness 和 optional detail 作为独立维度；逻辑等价 gate 可获支持，引用存在不代替答案中的因果主张，必要语义缺失使答案为 partial，optional detail 缺失不改写结论正确性。W 旧生成与 review/summary 原件不变，只在 X 目录保存 development-agent 再评价。第二项目固定为公开 MIT 的 `fastapi/full-stack-fastapi-template@cb740b6`，两项义务覆盖 non-superuser foreign-item update deny 与 superuser foreign-item read allow；官方 source/test/license 字节分别归入 model input 与 evaluator，均已暴露为 development，未执行目标或测试。后续关系实现不得按项目名分支。
 
 **X3–X6 已实现边界。** 六类 requirement 与显式 pair compiler 不做源码真值推断；wire/v2 coverage 只做 pair、状态、理由和同义务 fact-pointer 验证，canonical v0 与旧 v1 不变。普通输入用 strict `authorization-assessment-input/v1`，显式 `sourceIdentity` 与 task ref 互校，sourceRoot 及 portable sources 在 canonical path 上封闭，默认 profile 与作者 profile 都须 ready。check/inspect 不创建 provider；run 每次写新的 session、append-only index、JSON/JSONL/文本产物，provider 不可用不伪造 dispatch，dispatch 后无终态保持 completion-unknown。
+
+**X7 已实现边界。** `AuthorizationRenderArm` 显式为 N/B/D，不接受第三臂落入旧二分支。三臂从同一事实、analysis plan、source 与 wire/result contract 生成；N 只将 canonical facts 确定性自然化，B/D 保留 JSON declaration，D 增加授权因果链与 prerequisite 方法。本地 check/run 允许 `--arm`、默认 D，并把 arm、分节字符、provider usage 和 session 身份一同保存；字符不能替代 token。单次 evaluator 可记录 N，配对 evaluator 仍只接受 B/D。两份真实 skill 只做有来源的职责切片映射，剩余 full-audit/dependency/secret/patch 等职责不吸收；合成例子和作者诊断不构成生产系统、自动 skill 转换或人工节省证据。
 
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。

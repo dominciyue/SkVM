@@ -613,7 +613,7 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 ### 7.21 X 完整能力阶段设计
 
-2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X7`：X0–X6 已完成，尚无 X 真实模型结果。
+2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X8`：X0–X7 已完成，尚无 X 真实模型结果。
 
 **为什么扩大本轮范围。** W 的模型消费与计量已经可用，继续只修旧案例会降低获取新信息的速度。现有 B/D 共用 canonical declaration、输出合同和宿主，主要差异位于领域方法指令。接下来既要检验这种组织方式，也要让作者实际写任务、用自备输入运行，并检验换项目后的语义适配。
 
@@ -634,6 +634,10 @@ X5 已把这份记录接入版本化 `source-authorization-assessment-wire/v2`�
 **输入、接口与兼容。** 一个 `authorization-assessment-input/v1` 文件包含 task v0、`sourceIdentity`、sourceRoot、显式 sources 和可选 analysisRequirements。`sourceIdentity` 是 X6 为可检查 ref/task 一致性加入的明确绑定，repository/ref 必须与 task 相同；不是 manifest 或 oracle。相对 root 以该输入文件为基准，canonical root 仍须位于输入目录内；普通使用不需要研究 caseId、manifest、oracle 或评审资料。`loadLocalAuthorizationInput` 复用 exact-reader 核心但允许 `src/...`，旧 reader 仍限制 `inputs/`。新 wire 扩展显式版本化，归一化生成 canonical v0 及 coverage sidecar；W 的 wire/v1 与历史评价继续可读。普通入口复用 benchmark 宿主，没有重构整个运行架构。
 
 **X6 实现结果。** 缺显式 requirements 时，输入装载器从 authored obligations 实例化公开 `authorization-core-v1` 六项 profile；显式要求则原样 strict 编译，只有 ready plan 才能运行。sourceRoot/path、junction/symlink、缺文件、normalized duplicate、task/ref、声明行范围都在 provider factory 前检查。check/inspect 是纯离线路径；run 每次生成时间+nonce session，以 `wx` 文件和新目录避免覆盖，append-only index 只定位 session。session 保存 JSON/JSONL/文本三类产物；provider 不可用时不谎称 dispatch，dispatch 后缺终态统一显示 completion-unknown。独立复核找到 root junction 外逃和失败 artifact 清单两项问题，均先以红测复现再修复。
+
+**X7 同事实三臂与作者体验。** renderer 现显式接受 N/B/D，switch 阻止第三臂落入旧 D 分支。三臂从同一 `AuthorizationRenderFacts`、公开 analysis plan、source catalog、wire/v2 与 result contract 生成：N 把全部 schema 字段确定性写成自然说明，B/D 共用 canonical JSON，D 只额外给出授权因果链和 prerequisite-order 方法。普通 check/run 的 `--arm` 从 preview 贯穿 session、dispatch、host、inspect、字符分项与 telemetry；默认 D，非法值在读 input/建 provider 前拒绝。合成例子三次 provider-free check 均 valid，N/B/D prompt 分别为 11,141/11,837/12,177 characters；字符不冒充 token，真实 token 只采用 provider response，当前 X7 尚无真实调用。单次 evaluator summary 可记录 N，B/D pair summary 仍在运行时拒绝非 B→D 配对。
+
+两份真实 skill 映射来自固定 MIT 版本的 Cloudflare security-audit 与 GitHub awesome-copilot security-review。人工/agent 辅助只映射其 fixed-ref 授权敏感操作切片到 declaration 与六类 requirements；全审计编排、dependency、secret、patch 等剩余职责继续属于原 skill，不声称自动转换。skill 来源数 2 与目标代码项目数 2 分账。自包含例子以 synthetic 标记，不是漏洞或 evaluator fixture。作者变化 trace 做四次 deterministic check：基线 valid，遗漏 sourceIdentity 同步得到 `source-identity-mismatch`，移动 entry 未更新 sources 得到 `declaration-source-location-invalid`，补齐后 valid；两次错误、零 provider、零目标执行，未测真人时间，不主张人工节省。机器记录为 `render-interventions-v1.json`、`skill-responsibility-mappings-v1.json` 与 `authoring-experience-v1.json`；独立只读复核未发现 critical/important。
 
 **使用交付。** 薄脚本支持 check/run/inspect，输出机器 JSON、事件和简明文本结论；只有 run 调模型。一个自包含 synthetic 例子用于上手，真实两项目用于结果验证；另从现有语料选两份独立 skill，明确授权职责到 DSL 的映射及剩余职责。skill 来源与目标代码项目分开计数，人工/agent 辅助映射不称自动转换整个 skill。作者步骤、字段修改与诊断可观察；未测真人时间时不称人工节省。X 最终以实际可运行命令替换任务书中的接口设计说明。
 
@@ -979,6 +983,10 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 ### 2026-09-21 X6 自备输入与不可覆盖 session
 
 **X6-LOCAL-01。** `local-input.test.ts` 与 `local-run.test.ts` 先因模块缺失红灯；实现普通 path reader、source/task/ref 与行范围检查、默认/显式 profile、check/run/inspect 及 immutable session 后转绿。独立只读审查无 Critical，指出 `sourceRoot` junction 可先解析到输入目录外以及 provider-unavailable 报告列出未生成 artifact；两项均新增红测，改为读源码前验证 canonical root，并让 artifact 清单只声明实存/将写文件。授权全套 115/115、607 assertions 通过；typecheck 与文档检查随阶段提交新鲜复验。mock provider 只验证本地接线，不计真实 provider 调用；无目标执行。X7 开始同事实 N/B/D 与自包含例子。
+
+### 2026-09-21 X7 同事实 N/B/D 与作者体验
+
+**X7-RENDER-01。** 失败测试先证明传入 N 会静默使用 D，且本地 CLI 不接受 `--arm`；改为显式三分支后，N 使用自然说明、B 使用 organized instruction、D 使用因果/prerequisite method，三者共用同一 facts、公开 requirements、source、wire/v2 和输出合同。arm 与分节字符贯穿 check/session/dispatch/host/inspect，provider token 仍只取真实 response。单次 evaluator summary 扩为 N/B/D，pair summary 的 B→D guard 保留。自包含 synthetic 例子三臂 check 均 valid；prompt 字符为 N 11,141、B 11,837、D 12,177，不解释为 token。两份 pinned MIT skill 仅映射授权切片，剩余职责保留；authoring trace 四次 check 中两次给出精确诊断，未测真人时间。授权全套 120/120、709 assertions 通过；typecheck 的 per-run/pair 类型耦合经 N 回归修复后通过。独立只读复核未发现 critical/important；无真实 provider 或目标执行。X8 转入五任务与 synthetic 变化的共同离线链。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 
