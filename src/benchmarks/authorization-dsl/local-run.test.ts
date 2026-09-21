@@ -176,6 +176,12 @@ describe("local authorization runner", () => {
     expect(output.join("\n")).not.toContain("oracle")
 
     output.length = 0
+    expect(await runLocalAuthorizationCli(["check", `--input=${fixture.inputPath}`], deps)).toBe(0)
+    expect(calls).toEqual({ factory: 0, provider: 0 })
+    expect(output.join("\n")).toContain('"arm": "B"')
+    expect(output.join("\n")).toContain("Organized authorization assessment instruction (B)")
+
+    output.length = 0
     expect(await runLocalAuthorizationCli(["check", `--input=${fixture.inputPath}`, "--arm=Z"], deps)).toBe(2)
     expect(calls).toEqual({ factory: 0, provider: 0 })
     expect(output.join("\n")).toContain("arm must be one of N, B, or D")

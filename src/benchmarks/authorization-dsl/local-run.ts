@@ -742,7 +742,7 @@ function requireOption(options: Record<string, string>, name: string, command: s
 }
 
 function parseArm(value: string | undefined): AuthorizationRenderArm {
-  const arm = value ?? "D"
+  const arm = value ?? "B"
   if (arm === "N" || arm === "B" || arm === "D") return arm
   throw new LocalAuthorizationRunnerError("arm must be one of N, B, or D.")
 }
@@ -752,8 +752,8 @@ function helpText(): string {
     "Authorization local assessment",
     "",
     "Commands:",
-    "  check --input=<assessment.json> [--arm=N|B|D]",
-    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--arm=N|B|D]",
+    "  check --input=<assessment.json> [--arm=N|B|D]  (default: B)",
+    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--arm=N|B|D]  (default: B)",
     "  inspect --out=<output-root-or-session>",
     "",
     "Only run initializes a provider. Every run creates a new immutable session; inspect never resends it.",
