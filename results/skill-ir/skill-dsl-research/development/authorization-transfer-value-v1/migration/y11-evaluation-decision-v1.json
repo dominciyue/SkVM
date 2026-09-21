@@ -1,0 +1,169 @@
+{
+  "schemaVersion": "authorization-migration-y11-decision/v1",
+  "status": "completed",
+  "configSha256": "b5477832c05b2f239eb8b893d5b923695e3db4a6d85a39ce0c583ef84ea88bfa",
+  "generationImplementationRevision": "d1afddc8e2e823ed27f0428938bccd0e996b7941",
+  "evaluationImplementationRevision": "d85c1a1ba7db3a2488bd874de602ed912f0db2de",
+  "generationClosedBeforeOracleReview": true,
+  "modelCallsDuringEvaluation": 0,
+  "targetExecutionsDuringEvaluation": 0,
+  "review": {
+    "plan": "y11-review-plan-v1.json",
+    "reviewPlanSha256": "bd591cc4641d0317e4fc4970b87571d2ffdcbe70da20e5f56d75511cff41f108",
+    "developmentReviewer": "codex-development-agent-y11",
+    "independentReviewer": "codex-independent-semantic-reviewer-y11",
+    "independentScope": "all twelve frozen initial answers against the frozen three-case rubric",
+    "disagreementCount": 2,
+    "disagreementResolution": "The assignee P answer and first lock P answer retain supported condition outcomes because their answer-level control, effect, and condition facts jointly state the requested variants. Exact pointers and both judgments are preserved in the review plan."
+  },
+  "initialPanel": {
+    "units": 12,
+    "labelCorrect": 12,
+    "semanticDecisionCorrect": 12,
+    "taskDecisionCorrect": 12,
+    "necessarySemanticsSupported": 8,
+    "necessarySemanticsMissing": 4,
+    "fullSuccess": 8,
+    "partial": 4,
+    "incorrect": 0,
+    "needsReview": 0,
+    "scopeAccepted": 12,
+    "transportValid": 12,
+    "deliveryComplete": 12,
+    "explanationCriterionGaps": 4,
+    "retainedStructuralIssues": 0,
+    "citations": 120,
+    "providerCalls": 20,
+    "knownTokens": {
+      "input": 61413,
+      "output": 44347,
+      "cacheRead": 41472,
+      "cacheWrite": 0
+    },
+    "actualUsd": null,
+    "actualUsdStatus": "unknown-provider-not-reported"
+  },
+  "byTask": {
+    "gitea-collaborator-cross-user-permission": {
+      "units": 4,
+      "labelCorrect": 4,
+      "necessarySemanticsSupported": 4,
+      "fullSuccess": 4,
+      "partial": 0,
+      "finding": "Both P and C repetitions bind requester and target, apply the three-way guard, place the permission read after it, state HTTP 403, and explain all bounded role variants."
+    },
+    "gitea-issue-assignee-nonwriter": {
+      "units": 4,
+      "labelCorrect": 4,
+      "necessarySemanticsSupported": 4,
+      "fullSuccess": 4,
+      "partial": 0,
+      "finding": "Both P and C repetitions distinguish token scope from repository issue-write permission, trace the add helper and effect, state HTTP 403, and explain existing versus missing assignee outcomes."
+    },
+    "gitea-issue-lock-writer-nonadmin": {
+      "units": 4,
+      "labelCorrect": 4,
+      "necessarySemanticsSupported": 0,
+      "fullSuccess": 0,
+      "partial": 4,
+      "finding": "All four answers preserve the route-admin gate, writer/admin distinction, later writer gate, lock effect, and condition variants, but say forbidden, denied, or rejected without the required answer-level claim that reqAdmin returns HTTP 403. Citations do not substitute for that claim."
+    }
+  },
+  "armComparison": {
+    "P": {
+      "units": 6,
+      "labelCorrect": 6,
+      "necessarySemanticsSupported": 4,
+      "fullSuccess": 4,
+      "partial": 2,
+      "explanationCriterionGaps": 2,
+      "firstResponseAccepted": 4,
+      "providerCalls": 8,
+      "knownTokenTotal": 37489,
+      "knownDurationMs": 388763.0587,
+      "actualUsd": null
+    },
+    "C": {
+      "units": 6,
+      "labelCorrect": 6,
+      "necessarySemanticsSupported": 4,
+      "fullSuccess": 4,
+      "partial": 2,
+      "explanationCriterionGaps": 2,
+      "firstResponseAccepted": 0,
+      "providerCalls": 12,
+      "knownTokenTotal": 109743,
+      "knownDurationMs": 919328.923,
+      "actualUsd": null
+    },
+    "qualityDifference": "none-observed",
+    "conditionCompletenessDifference": "none-observed",
+    "costRatiosCOverP": {
+      "providerCalls": 1.5,
+      "knownTokens": 2.9273386860145645,
+      "knownDuration": 2.364753806789616
+    },
+    "interpretation": "The condition layer produced mechanically valid coverage and bounded condition sidecars but no answer-level decision, necessary-semantics, full-success, or explanation-gap improvement on these three default-profile migration tasks. It required more calls, known tokens, and known elapsed time."
+  },
+  "representability": {
+    "status": "supported-with-bounded-authoring",
+    "taskCount": 3,
+    "permissionRelationshipCount": 3,
+    "defaultProfile": "authorization-core-v1",
+    "derivedRequirementsPerTask": 6,
+    "taskSpecificAnalysisRequirements": false,
+    "conditionPlanEntriesPerTask": 1,
+    "ordinaryInputChecksValid": 3,
+    "conclusionCorrectUnits": 12,
+    "scopeAcceptedUnits": 12,
+    "boundary": "This proves bounded representation and source-visible analysis for the three selected Gitea relations, not whole-repository discovery or authorization completeness."
+  },
+  "authoringBurden": {
+    "manualProfessionalJudgmentUsed": true,
+    "taskCount": 3,
+    "obligationCount": 3,
+    "conditionCount": 16,
+    "conditionBindingCount": 8,
+    "publicSourceSnapshotFileCount": 7,
+    "evaluatorCriterionCount": 18,
+    "sharedRequiredAnalysisItemsPerTask": 2,
+    "initialNeedsInputEvents": 1,
+    "boundedAuthorRevisions": 1,
+    "authoringInitCalls": 4,
+    "authoringCheckCalls": 6,
+    "humanTimeMinutes": null,
+    "humanSavingsClaimed": false,
+    "interpretation": "Normalization removes repeated source identity and six default analysis requirements, but an expert still selected the project, source crops, permission relations, policy expectations, conditions, condition bindings, and evaluation criteria. No human-time or savings claim is supported."
+  },
+  "changedInput": {
+    "artifact": "y11-changed-input-check-v1.json",
+    "status": "passed",
+    "expectationChanged": "deny-to-allow",
+    "resourceRelationChanged": "different-collaborator-to-self-collaborator",
+    "declarationChanged": true,
+    "plainPromptChanged": true,
+    "conditionPromptChanged": true,
+    "modelCalls": 0,
+    "targetExecutions": 0,
+    "addedStudyUnits": 0
+  },
+  "sharedRevision": {
+    "justified": false,
+    "additionalProviderUnits": 0,
+    "generationIdentityChanged": false,
+    "reason": "The repeated lock omission is an answer-quality pattern, not a localized shared generation-contract or implementation defect: the same frozen contract produced explicit HTTP 403 claims for the collaborator and assignee cases, and a post-hoc lock-specific instruction would inject evaluator knowledge. The zero-sample candidate-selection defect was evaluator-only and was fixed and replayed offline without changing prompts, rubrics, answers, or the initial denominator."
+  },
+  "methodDecision": {
+    "ordinaryDefault": "B-with-ledger",
+    "conditionLayer": "opt-in",
+    "expandConditionLayerByDefault": false,
+    "migrationOutcome": "no-observed-C-quality-gain-with-higher-runtime-burden",
+    "rationale": "C tied P on every primary and secondary semantic quality measure in the method-fixed migration while consuming 1.5x calls, 2.93x known tokens, and 2.36x known elapsed time. The earlier Y9 condition-enumeration gain remains real but narrow, so it does not justify a default change."
+  },
+  "artifacts": {
+    "summary": "runs/y11-initial-v1/value-evaluation-summary-v1.json",
+    "replay": "y11-evaluation-replay-v1.json",
+    "replayStatus": "reproduced",
+    "summarySha256": "66dfb36ab587fab940b99862ee43ca5ead9a605939a18b61f61441c538dfc946"
+  }
+}

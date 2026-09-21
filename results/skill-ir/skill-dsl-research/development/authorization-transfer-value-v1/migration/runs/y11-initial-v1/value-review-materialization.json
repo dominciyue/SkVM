@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "authorization-value-study-review-materialization/v1",
+  "status": "completed",
+  "modelCalls": 0,
+  "targetExecutions": 0,
+  "configSha256": "b5477832c05b2f239eb8b893d5b923695e3db4a6d85a39ce0c583ef84ea88bfa",
+  "reviewPlanSha256": "bd591cc4641d0317e4fc4970b87571d2ffdcbe70da20e5f56d75511cff41f108",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "codex-development-agent-y11"
+  },
+  "reviewedAt": "2026-09-22T06:54:16.5032464+08:00",
+  "independentVerification": {
+    "status": "completed",
+    "identities": [
+      "codex-independent-semantic-reviewer-y11"
+    ],
+    "note": "A read-only independent reviewer checked the frozen rubric against all twelve initial answers. It agreed on the uniform absence of answer-level HTTP 403 wording in the four lock units and otherwise agreed except for two condition-outcome judgments resolved below. The reviewer also proposed treating the repeated lock omission as a shared generation defect; the development review rejects that escalation because the same frozen generation contract produced explicit HTTP 403 claims for both other cases, while a lock-specific prompt repair would introduce post-hoc task-specific evaluator knowledge.",
+    "disagreements": [
+      {
+        "anonymousUnitId": "06-assignee-r1-P",
+        "topic": "assignee-condition-outcomes",
+        "developmentStatus": "supported",
+        "independentStatus": "missing",
+        "resolution": "Retain supported. The answer states that mutation is reachable only when repository issue-write permission is true at /results/0/explanation, identifies AddAssignees on the surviving path at /results/0/facts/effect/0, and separately states that a nonexistent requested user returns an error before that effect at /results/0/facts/condition/1. Together these claims enumerate the false-permission, true-permission/existing-user, and true-permission/missing-user outcomes without relying on citations alone."
+      },
+      {
+        "anonymousUnitId": "09-lock-r1-P",
+        "topic": "lock-condition-outcomes",
+        "developmentStatus": "supported",
+        "independentStatus": "missing",
+        "resolution": "Retain supported. The answer states that the admin middleware rejects unless repository-admin or site-admin is true, that issue-write permission does not bypass the all-false admin branch, and that a surviving request must still pass the handler's issue-write guard before the lock effect. Those connected claims appear at /results/0/explanation, /results/0/facts/control/0, /results/0/facts/effect/0, and /results/0/facts/condition/0 and are causally equivalent to the requested bounded variants."
+      }
+    ]
+  },
+  "reviewCount": 12
+}

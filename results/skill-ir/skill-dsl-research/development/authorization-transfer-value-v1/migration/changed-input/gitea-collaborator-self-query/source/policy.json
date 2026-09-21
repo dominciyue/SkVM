@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "authorization-migration-public-policy/v1",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "upstreamSource": "routers/api/v1/repo/collaborators.go#L247-L301",
+  "normativePolicy": "A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.",
+  "boundedScenario": "The caller is authenticated and has repository read access, is a collaborator, is not a site or repository administrator, and queries their own collaborator permission.",
+  "claimBoundary": "This policy is accepted for the declared fixed source entry only. It is not a claim about every Gitea version, endpoint, or deployment."
+}

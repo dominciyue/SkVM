@@ -1,0 +1,273 @@
+{
+  "evaluationVersion": "authorization-evaluation/v2",
+  "caseId": "gitea-collaborator-cross-user-permission",
+  "taskId": "gitea-collaborator-cross-user-permission",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "2e77d247b1238277b71306b2e603ac201b95d9f33c49972225d31cab08182372",
+  "expectedDisposition": "source_refuted",
+  "actualDisposition": "source_refuted",
+  "labelCorrect": true,
+  "reviewValidation": {
+    "status": "valid",
+    "diagnostics": [],
+    "review": {
+      "schemaVersion": "authorization-semantic-review/v1",
+      "caseId": "gitea-collaborator-cross-user-permission",
+      "taskId": "gitea-collaborator-cross-user-permission",
+      "generation": "initial",
+      "attemptId": "provider-attempt-1",
+      "rawOutputSha256": "2e77d247b1238277b71306b2e603ac201b95d9f33c49972225d31cab08182372",
+      "rubricVersion": "gitea-collaborator-cross-user-permission/v1",
+      "reviewer": {
+        "kind": "development-agent",
+        "identity": "codex-development-agent-y11"
+      },
+      "criterionReviews": [
+        {
+          "status": "supported",
+          "reason": "The answer binds the runtime requester to ctx.Doer and the target collaborator to the path username used by the comparison.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 35,
+              "endLine": 36
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/0",
+          "criterionId": "collaborator-requester-target-binding"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer states the conjunctive not-site-admin, not-self, and not-repository-admin rejecting guard.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 35,
+              "endLine": 39
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/1",
+          "criterionId": "collaborator-three-way-guard"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer applies the declared different-user and non-admin facts to conclude that the bounded request is rejected.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "policy.json",
+              "startLine": 6,
+              "endLine": 7
+            },
+            {
+              "path": "collaborators.go",
+              "startLine": 35,
+              "endLine": 39
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/2",
+          "criterionId": "collaborator-current-cross-user-denial"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer places target lookup, permission loading, and the response after the authorization guard and outside the denied branch.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 36,
+              "endLine": 57
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/3",
+          "criterionId": "collaborator-permission-read-after-guard"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer explicitly identifies HTTP 403 before target lookup on the rejected branch.",
+          "answerLocation": "/results/0",
+          "sourceLocations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 36,
+              "endLine": 39
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/2",
+          "criterionId": "collaborator-http-403-detail"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer explains that self-query, repository-admin, or site-admin status independently avoids rejection and that their joint absence blocks the read.",
+          "answerLocation": "/results/0",
+          "sourceLocations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 35,
+              "endLine": 39
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/conditionExplanation",
+          "criterionId": "collaborator-condition-outcomes"
+        }
+      ],
+      "dispositionReview": {
+        "status": "supported",
+        "reason": "source_refuted correctly reports that the fixed source enforces the declared deny expectation.",
+        "answerLocation": "/results/0/conclusion",
+        "sourceLocations": [
+          {
+            "path": "policy.json",
+            "startLine": 6,
+            "endLine": 7
+          },
+          {
+            "path": "collaborators.go",
+            "startLine": 35,
+            "endLine": 39
+          }
+        ],
+        "oracleRule": "oracle-evidence-v1.json#/cases/0/expectedDisposition"
+      },
+      "scopeReview": {
+        "status": "supported",
+        "reason": "The answer keeps the conclusion bounded to the supplied files and declared obligation.",
+        "answerLocation": "/scopeClaim",
+        "sourceLocations": [
+          {
+            "path": "policy.json",
+            "startLine": 6,
+            "endLine": 8
+          }
+        ],
+        "oracleRule": "oracle-evidence-v1.json#/limits"
+      }
+    }
+  },
+  "criteria": [
+    {
+      "id": "collaborator-requester-target-binding",
+      "layer": "necessary-semantics",
+      "requirement": "Bind the requester to ctx.Doer and the requested collaborator to the collaborator path parameter used in the username comparison.",
+      "decisionRelevance": "The self-versus-other relation cannot be evaluated without connecting both identities to the guard.",
+      "status": "supported",
+      "reason": "The answer binds the runtime requester to ctx.Doer and the target collaborator to the path username used by the comparison.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 35,
+          "endLine": 36
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/0"
+    },
+    {
+      "id": "collaborator-three-way-guard",
+      "layer": "necessary-semantics",
+      "requirement": "State that rejection requires all three facts: not site admin, not the target username, and not repository admin.",
+      "decisionRelevance": "This conjunctive guard is the strongest visible authorization decision for the declared query.",
+      "status": "supported",
+      "reason": "The answer states the conjunctive not-site-admin, not-self, and not-repository-admin rejecting guard.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 35,
+          "endLine": 39
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/1"
+    },
+    {
+      "id": "collaborator-current-cross-user-denial",
+      "layer": "necessary-semantics",
+      "requirement": "Apply the bounded different-user, non-repository-admin, non-site-admin facts to conclude that this request is rejected.",
+      "decisionRelevance": "The declared deny expectation is enforced only if the scenario is applied to the guard rather than merely restated.",
+      "status": "supported",
+      "reason": "The answer applies the declared different-user and non-admin facts to conclude that the bounded request is rejected.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "policy.json",
+          "startLine": 6,
+          "endLine": 7
+        },
+        {
+          "path": "collaborators.go",
+          "startLine": 35,
+          "endLine": 39
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/2"
+    },
+    {
+      "id": "collaborator-permission-read-after-guard",
+      "layer": "necessary-semantics",
+      "requirement": "State that target lookup, permission loading, and the permission response occur only after a caller survives the authorization guard.",
+      "decisionRelevance": "This establishes that the bounded denied branch cannot reach the protected read effect.",
+      "status": "supported",
+      "reason": "The answer places target lookup, permission loading, and the response after the authorization guard and outside the denied branch.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 36,
+          "endLine": 57
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/3"
+    },
+    {
+      "id": "collaborator-http-403-detail",
+      "layer": "explanation-completeness",
+      "requirement": "Identify the explicit HTTP 403 response on the rejected branch before target lookup.",
+      "decisionRelevance": "The response completes the control-flow explanation but does not independently determine the policy result.",
+      "status": "supported",
+      "reason": "The answer explicitly identifies HTTP 403 before target lookup on the rejected branch.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 36,
+          "endLine": 39
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/2"
+    },
+    {
+      "id": "collaborator-condition-outcomes",
+      "layer": "explanation-completeness",
+      "requirement": "Explain that self-query, repository-admin, or site-admin status independently avoids this guard's rejection, while all three absent blocks the read.",
+      "decisionRelevance": "This is the bounded condition-change explanation shared by P and C evaluation.",
+      "status": "supported",
+      "reason": "The answer explains that self-query, repository-admin, or site-admin status independently avoids rejection and that their joint absence blocks the read.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 35,
+          "endLine": 39
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/conditionExplanation"
+    }
+  ],
+  "dimensions": {
+    "necessarySemantics": "supported",
+    "explanationCompleteness": "complete",
+    "optionalDetails": "not-applicable"
+  },
+  "scopeHonesty": "accepted",
+  "semanticDecisionCorrect": true,
+  "evidenceSemanticSupport": "supported",
+  "transportValid": true,
+  "deliveryComplete": true,
+  "taskDecisionCorrect": true,
+  "qualityStatus": "full-success",
+  "errorClasses": [],
+  "deterministicDiagnostics": []
+}

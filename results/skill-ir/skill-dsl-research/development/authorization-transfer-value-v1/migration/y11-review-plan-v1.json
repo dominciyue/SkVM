@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "authorization-value-study-review-plan/v1",
+  "configSha256": "b5477832c05b2f239eb8b893d5b923695e3db4a6d85a39ce0c583ef84ea88bfa",
+  "reviewedAt": "2026-09-22T06:54:16.5032464+08:00",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "codex-development-agent-y11"
+  },
+  "independentVerification": {
+    "status": "completed",
+    "identities": [
+      "codex-independent-semantic-reviewer-y11"
+    ],
+    "note": "A read-only independent reviewer checked the frozen rubric against all twelve initial answers. It agreed on the uniform absence of answer-level HTTP 403 wording in the four lock units and otherwise agreed except for two condition-outcome judgments resolved below. The reviewer also proposed treating the repeated lock omission as a shared generation defect; the development review rejects that escalation because the same frozen generation contract produced explicit HTTP 403 claims for both other cases, while a lock-specific prompt repair would introduce post-hoc task-specific evaluator knowledge.",
+    "disagreements": [
+      {
+        "anonymousUnitId": "06-assignee-r1-P",
+        "topic": "assignee-condition-outcomes",
+        "developmentStatus": "supported",
+        "independentStatus": "missing",
+        "resolution": "Retain supported. The answer states that mutation is reachable only when repository issue-write permission is true at /results/0/explanation, identifies AddAssignees on the surviving path at /results/0/facts/effect/0, and separately states that a nonexistent requested user returns an error before that effect at /results/0/facts/condition/1. Together these claims enumerate the false-permission, true-permission/existing-user, and true-permission/missing-user outcomes without relying on citations alone."
+      },
+      {
+        "anonymousUnitId": "09-lock-r1-P",
+        "topic": "lock-condition-outcomes",
+        "developmentStatus": "supported",
+        "independentStatus": "missing",
+        "resolution": "Retain supported. The answer states that the admin middleware rejects unless repository-admin or site-admin is true, that issue-write permission does not bypass the all-false admin branch, and that a surviving request must still pass the handler's issue-write guard before the lock effect. Those connected claims appear at /results/0/explanation, /results/0/facts/control/0, /results/0/facts/effect/0, and /results/0/facts/condition/0 and are causally equivalent to the requested bounded variants."
+      }
+    ]
+  },
+  "cases": [
+    {
+      "caseId": "gitea-collaborator-cross-user-permission",
+      "criterionReviews": [
+        {
+          "criterionId": "collaborator-requester-target-binding",
+          "status": "supported",
+          "reason": "The answer binds the runtime requester to ctx.Doer and the target collaborator to the path username used by the comparison.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "collaborator-three-way-guard",
+          "status": "supported",
+          "reason": "The answer states the conjunctive not-site-admin, not-self, and not-repository-admin rejecting guard.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "collaborator-current-cross-user-denial",
+          "status": "supported",
+          "reason": "The answer applies the declared different-user and non-admin facts to conclude that the bounded request is rejected.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "collaborator-permission-read-after-guard",
+          "status": "supported",
+          "reason": "The answer places target lookup, permission loading, and the response after the authorization guard and outside the denied branch.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "collaborator-http-403-detail",
+          "status": "supported",
+          "reason": "The answer explicitly identifies HTTP 403 before target lookup on the rejected branch.",
+          "answerLocation": "/results/0"
+        },
+        {
+          "criterionId": "collaborator-condition-outcomes",
+          "status": "supported",
+          "reason": "The answer explains that self-query, repository-admin, or site-admin status independently avoids rejection and that their joint absence blocks the read.",
+          "answerLocation": "/results/0"
+        }
+      ],
+      "dispositionReview": {
+        "status": "supported",
+        "reason": "source_refuted correctly reports that the fixed source enforces the declared deny expectation.",
+        "answerLocation": "/results/0/conclusion"
+      },
+      "scopeReview": {
+        "status": "supported",
+        "reason": "The answer keeps the conclusion bounded to the supplied files and declared obligation.",
+        "answerLocation": "/scopeClaim"
+      }
+    },
+    {
+      "caseId": "gitea-issue-assignee-nonwriter",
+      "criterionReviews": [
+        {
+          "criterionId": "assignee-post-add-mode",
+          "status": "supported",
+          "reason": "The answer binds the POST entry to updateIssueAssignees with add mode enabled.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "assignee-issue-index-binding",
+          "status": "supported",
+          "reason": "The answer states that the route issue index resolves the issue before its repository issue-write permission is checked.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "assignee-repository-permission-not-token-scope",
+          "status": "supported",
+          "reason": "The answer distinguishes the declared issue-write token scope from the false repository permission checked by the handler.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "assignee-effect-after-permission",
+          "status": "supported",
+          "reason": "The answer places assignee resolution and AddAssignees after the permission guard and outside the bounded non-writer path.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "assignee-http-403-detail",
+          "status": "supported",
+          "reason": "The answer explicitly identifies HTTP 403 before assignee-name resolution on the denied branch.",
+          "answerLocation": "/results/0"
+        },
+        {
+          "criterionId": "assignee-condition-outcomes",
+          "status": "supported",
+          "reason": "The answer connects false repository permission to an early block and true permission to either AddAssignees for an existing user or an earlier lookup error for a missing user.",
+          "answerLocation": "/results/0"
+        }
+      ],
+      "dispositionReview": {
+        "status": "supported",
+        "reason": "source_refuted correctly reports that the fixed source enforces the declared deny expectation.",
+        "answerLocation": "/results/0/conclusion"
+      },
+      "scopeReview": {
+        "status": "supported",
+        "reason": "The answer keeps the conclusion bounded to the supplied files and declared operation.",
+        "answerLocation": "/scopeClaim"
+      }
+    },
+    {
+      "caseId": "gitea-issue-lock-writer-nonadmin",
+      "criterionReviews": [
+        {
+          "criterionId": "lock-route-admin-middleware",
+          "status": "supported",
+          "reason": "The answer states that reqToken and reqAdmin guard the PUT route before LockIssue dispatch.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "lock-nonadmin-http-403",
+          "status": "missing",
+          "reason": "The answer says forbidden, denied, rejected, or blocked but never makes the required answer-level claim that reqAdmin returns HTTP 403 when both admin conditions are false; source citations do not substitute for that claim.",
+          "answerLocation": null
+        },
+        {
+          "criterionId": "lock-writer-does-not-bypass-admin",
+          "status": "supported",
+          "reason": "The answer applies the bounded facts and states that full token scope and repository issue-write permission do not bypass the route administrator gate.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "lock-secondary-writer-and-effect",
+          "status": "supported",
+          "reason": "The answer preserves the later handler issue-write check and the conditional LockIssue mutation after a caller survives reqAdmin.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "lock-route-http-403-detail",
+          "status": "missing",
+          "reason": "The answer never explicitly states the route-level HTTP 403 response before handler dispatch; forbidden-style wording and citations alone do not satisfy this detail criterion.",
+          "answerLocation": null
+        },
+        {
+          "criterionId": "lock-condition-outcomes",
+          "status": "supported",
+          "reason": "The answer explains that the all-false admin state blocks regardless of issue-write, either admin role avoids this route rejection, and the later issue-write check still controls access to the mutation.",
+          "answerLocation": "/results/0"
+        }
+      ],
+      "dispositionReview": {
+        "status": "supported",
+        "reason": "source_refuted correctly reports that the fixed source enforces the declared deny expectation for the non-admin writer.",
+        "answerLocation": "/results/0/conclusion"
+      },
+      "scopeReview": {
+        "status": "supported",
+        "reason": "The answer remains bounded to the supplied route, handler, policy, and declared operation.",
+        "answerLocation": "/scopeClaim"
+      }
+    }
+  ],
+  "units": [
+    { "unitId": "01-collaborator-r1-P", "caseId": "gitea-collaborator-cross-user-permission", "generation": "initial" },
+    { "unitId": "02-collaborator-r1-C", "caseId": "gitea-collaborator-cross-user-permission", "generation": "initial" },
+    { "unitId": "03-collaborator-r2-C", "caseId": "gitea-collaborator-cross-user-permission", "generation": "initial" },
+    { "unitId": "04-collaborator-r2-P", "caseId": "gitea-collaborator-cross-user-permission", "generation": "initial" },
+    { "unitId": "05-assignee-r1-C", "caseId": "gitea-issue-assignee-nonwriter", "generation": "initial" },
+    { "unitId": "06-assignee-r1-P", "caseId": "gitea-issue-assignee-nonwriter", "generation": "initial" },
+    { "unitId": "07-assignee-r2-P", "caseId": "gitea-issue-assignee-nonwriter", "generation": "initial" },
+    { "unitId": "08-assignee-r2-C", "caseId": "gitea-issue-assignee-nonwriter", "generation": "initial" },
+    { "unitId": "09-lock-r1-P", "caseId": "gitea-issue-lock-writer-nonadmin", "generation": "initial" },
+    { "unitId": "10-lock-r1-C", "caseId": "gitea-issue-lock-writer-nonadmin", "generation": "initial" },
+    { "unitId": "11-lock-r2-C", "caseId": "gitea-issue-lock-writer-nonadmin", "generation": "initial" },
+    { "unitId": "12-lock-r2-P", "caseId": "gitea-issue-lock-writer-nonadmin", "generation": "initial" }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "authorization-migration-changed-input-check/v1",
+  "checkedAt": "2026-09-22T07:08:27.5605637+08:00",
+  "status": "passed",
+  "method": "ordinary-authoring-init-plus-local-study-check",
+  "base": {
+    "inputPath": "migration/public-inputs/gitea-collaborator-cross-user-permission/assessment.json",
+    "inputSha256": "9d4a034f5308895ddeba3f97b44684b64834f629956bfb9b899489afe0d64124",
+    "taskId": "gitea-collaborator-cross-user-permission",
+    "expectation": "deny",
+    "resourceId": "other-collaborator-permission",
+    "relation": "different-collaborator-without-repository-or-site-admin-role",
+    "declarationSha256": "d7861ba6257e3c5ae26c9c183813827f5f524762fae1650634ad3f46dfe1d956"
+  },
+  "changed": {
+    "authoringPath": "migration/changed-input/gitea-collaborator-self-query/authoring.json",
+    "authoringSha256": "e091070fd1494065fcfe7edf53720c87c933293746094cdf6d00a1e258c7db1c",
+    "inputPath": "migration/changed-input/gitea-collaborator-self-query/assessment.json",
+    "inputSha256": "21ebd4cd30b89453419279d0105100a0d30741dee5925c37f517f0b3adf41f28",
+    "taskId": "gitea-collaborator-self-permission",
+    "expectation": "allow",
+    "resourceId": "own-collaborator-permission",
+    "relation": "same-collaborator-self-query-without-admin-role",
+    "declarationSha256": "669623c2d7ecf1d08d8e6d0770da518c69e3c30c7903c22f570b5a37dc37aa3c",
+    "ordinaryCheck": {
+      "status": "valid",
+      "analysisProfileId": "authorization-core-v1",
+      "analysisProfileOrigin": "derived",
+      "requirementCount": 6,
+      "conditionRequestCount": 1,
+      "diagnosticCount": 0
+    }
+  },
+  "sourceControl": {
+    "fixedCodePath": "source/collaborators.go",
+    "baseSha256": "edbacf431c736f78e6e5beef3c6329ff89210a6463438cedc0be48cdc246a012",
+    "changedSha256": "edbacf431c736f78e6e5beef3c6329ff89210a6463438cedc0be48cdc246a012",
+    "codeBytesUnchanged": true,
+    "policyScenarioChanged": true
+  },
+  "deterministicComparison": {
+    "declarationChanged": true,
+    "prompts": {
+      "P": {
+        "beforeSha256": "764758229a21287a6910df2b0c076b4cfd1e59c63364187a350a37682fde2942",
+        "afterSha256": "448a1bce34f9b5874673654debbdf4a17139384ba1c49d9d37df1e857b324b62",
+        "changed": true,
+        "beforeCharacters": 10553,
+        "afterCharacters": 10497
+      },
+      "C": {
+        "beforeSha256": "51e633bdcfb060079235f10dcf862044479ee86b151d77c0125373f23da4beb0",
+        "afterSha256": "0db843ec4e56529fe7a287ed6cb6fa76e643ed0baa1c6b3441b407d006860513",
+        "changed": true,
+        "beforeCharacters": 19740,
+        "afterCharacters": 19559
+      }
+    }
+  },
+  "execution": {
+    "modelCalls": 0,
+    "providerInitialized": false,
+    "targetExecutions": 0,
+    "addedStudyUnits": 0
+  },
+  "claimBoundary": "This deterministic check proves that an explicit expectation and principal-resource relation change survives ordinary authoring normalization and changes both study prompts. It does not add a model-quality observation or a Gitea execution."
+}

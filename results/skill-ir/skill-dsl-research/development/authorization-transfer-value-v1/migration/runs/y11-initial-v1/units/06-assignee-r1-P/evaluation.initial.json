@@ -1,0 +1,273 @@
+{
+  "evaluationVersion": "authorization-evaluation/v2",
+  "caseId": "gitea-issue-assignee-nonwriter",
+  "taskId": "gitea-issue-assignee-nonwriter",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "48d5868b1c352ee17a4328ef9407ff8261f267d31e528fe46d32433824404482",
+  "expectedDisposition": "source_refuted",
+  "actualDisposition": "source_refuted",
+  "labelCorrect": true,
+  "reviewValidation": {
+    "status": "valid",
+    "diagnostics": [],
+    "review": {
+      "schemaVersion": "authorization-semantic-review/v1",
+      "caseId": "gitea-issue-assignee-nonwriter",
+      "taskId": "gitea-issue-assignee-nonwriter",
+      "generation": "initial",
+      "attemptId": "provider-attempt-1",
+      "rawOutputSha256": "48d5868b1c352ee17a4328ef9407ff8261f267d31e528fe46d32433824404482",
+      "rubricVersion": "gitea-issue-assignee-nonwriter/v1",
+      "reviewer": {
+        "kind": "development-agent",
+        "identity": "codex-development-agent-y11"
+      },
+      "criterionReviews": [
+        {
+          "status": "supported",
+          "reason": "The answer binds the POST entry to updateIssueAssignees with add mode enabled.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "issue_assignee.go",
+              "startLine": 47,
+              "endLine": 49
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/0",
+          "criterionId": "assignee-post-add-mode"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer states that the route issue index resolves the issue before its repository issue-write permission is checked.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "issue_assignee.go",
+              "startLine": 53,
+              "endLine": 60
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/1",
+          "criterionId": "assignee-issue-index-binding"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer distinguishes the declared issue-write token scope from the false repository permission checked by the handler.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "policy.json",
+              "startLine": 6,
+              "endLine": 8
+            },
+            {
+              "path": "issue_assignee.go",
+              "startLine": 60,
+              "endLine": 63
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2",
+          "criterionId": "assignee-repository-permission-not-token-scope"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer places assignee resolution and AddAssignees after the permission guard and outside the bounded non-writer path.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "issue_assignee.go",
+              "startLine": 60,
+              "endLine": 84
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/3",
+          "criterionId": "assignee-effect-after-permission"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer explicitly identifies HTTP 403 before assignee-name resolution on the denied branch.",
+          "answerLocation": "/results/0",
+          "sourceLocations": [
+            {
+              "path": "issue_assignee.go",
+              "startLine": 60,
+              "endLine": 63
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2",
+          "criterionId": "assignee-http-403-detail"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer connects false repository permission to an early block and true permission to either AddAssignees for an existing user or an earlier lookup error for a missing user.",
+          "answerLocation": "/results/0",
+          "sourceLocations": [
+            {
+              "path": "issue_assignee.go",
+              "startLine": 60,
+              "endLine": 84
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/conditionExplanation",
+          "criterionId": "assignee-condition-outcomes"
+        }
+      ],
+      "dispositionReview": {
+        "status": "supported",
+        "reason": "source_refuted correctly reports that the fixed source enforces the declared deny expectation.",
+        "answerLocation": "/results/0/conclusion",
+        "sourceLocations": [
+          {
+            "path": "policy.json",
+            "startLine": 6,
+            "endLine": 8
+          },
+          {
+            "path": "issue_assignee.go",
+            "startLine": 54,
+            "endLine": 63
+          }
+        ],
+        "oracleRule": "oracle-evidence-v1.json#/cases/1/expectedDisposition"
+      },
+      "scopeReview": {
+        "status": "supported",
+        "reason": "The answer keeps the conclusion bounded to the supplied files and declared operation.",
+        "answerLocation": "/scopeClaim",
+        "sourceLocations": [
+          {
+            "path": "policy.json",
+            "startLine": 6,
+            "endLine": 8
+          }
+        ],
+        "oracleRule": "oracle-evidence-v1.json#/limits"
+      }
+    }
+  },
+  "criteria": [
+    {
+      "id": "assignee-post-add-mode",
+      "layer": "necessary-semantics",
+      "requirement": "State that the POST entry delegates to updateIssueAssignees with isAdd=true.",
+      "decisionRelevance": "This binds the declared add operation to the shared mutation helper and its authorization branch.",
+      "status": "supported",
+      "reason": "The answer binds the POST entry to updateIssueAssignees with add mode enabled.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 47,
+          "endLine": 49
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/0"
+    },
+    {
+      "id": "assignee-issue-index-binding",
+      "layer": "necessary-semantics",
+      "requirement": "State that the route index selects the issue before its repository issue-write permission is checked.",
+      "decisionRelevance": "The permission check must be tied to the declared existing issue rather than an unrelated repository action.",
+      "status": "supported",
+      "reason": "The answer states that the route issue index resolves the issue before its repository issue-write permission is checked.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 53,
+          "endLine": 60
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/1"
+    },
+    {
+      "id": "assignee-repository-permission-not-token-scope",
+      "layer": "necessary-semantics",
+      "requirement": "Distinguish the declared issue-write token scope from ctx.Repo.Permission.CanWriteIssuesOrPulls and state that the latter is false for this caller.",
+      "decisionRelevance": "Treating token scope as repository authorization would reverse the bounded decision.",
+      "status": "supported",
+      "reason": "The answer distinguishes the declared issue-write token scope from the false repository permission checked by the handler.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "policy.json",
+          "startLine": 6,
+          "endLine": 8
+        },
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 63
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "id": "assignee-effect-after-permission",
+      "layer": "necessary-semantics",
+      "requirement": "State that user-name resolution and AddAssignees occur after the permission guard and are unreachable for the bounded non-writer.",
+      "decisionRelevance": "This connects the rejection to the protected assignee mutation effect.",
+      "status": "supported",
+      "reason": "The answer places assignee resolution and AddAssignees after the permission guard and outside the bounded non-writer path.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 84
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/3"
+    },
+    {
+      "id": "assignee-http-403-detail",
+      "layer": "explanation-completeness",
+      "requirement": "Identify the explicit HTTP 403 response before assignee-name resolution.",
+      "decisionRelevance": "The exact response completes the rejected-path explanation.",
+      "status": "supported",
+      "reason": "The answer explicitly identifies HTTP 403 before assignee-name resolution on the denied branch.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 63
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "id": "assignee-condition-outcomes",
+      "layer": "explanation-completeness",
+      "requirement": "Explain that repository issue-write false blocks before user lookup; if true, an existing user reaches AddAssignees while a missing user is rejected before that call.",
+      "decisionRelevance": "This evaluates the requested bounded condition explanation without changing the current deny decision.",
+      "status": "supported",
+      "reason": "The answer connects false repository permission to an early block and true permission to either AddAssignees for an existing user or an earlier lookup error for a missing user.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 84
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/conditionExplanation"
+    }
+  ],
+  "dimensions": {
+    "necessarySemantics": "supported",
+    "explanationCompleteness": "complete",
+    "optionalDetails": "not-applicable"
+  },
+  "scopeHonesty": "accepted",
+  "semanticDecisionCorrect": true,
+  "evidenceSemanticSupport": "supported",
+  "transportValid": true,
+  "deliveryComplete": true,
+  "taskDecisionCorrect": true,
+  "qualityStatus": "full-success",
+  "errorClasses": [],
+  "deterministicDiagnostics": []
+}

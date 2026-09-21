@@ -703,6 +703,10 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 
 **Y11 迁移生成冻结。** 绑定实现`d1afddc8`与配置SHA `b5477832...88bfa`的三任务12单元全部completed，12个session互异；没有timeout、completion-unknown、terminal failure、domain repair或目标执行。20次provider调用由12次schema-tool和8次prompt-parse组成；P为8次调用、known input/output/cache-read `20,211/9,982/7,296`，C为12次、`41,202/34,365/34,176`，合计`61,413/44,347/41,472`，cache-write为0。20次usage完整但费用均未报告，actual USD继续unknown。生成关闭前没有读取evaluator内容，全部首答/fallback与初轮身份保持原样；本记录尚不作语义质量判断。
 
+**Y11 迁移评价与变化输入。** 冻结生成后才读取rubric/oracle并物化hash-bound review。12/12结论、semantic/task decision、scope、transport与delivery正确；8项full、4项partial。collaborator和assignee各四项全部full；lock四项都正确区分route admin gate、writer gate与lock effect，但只写forbidden/denied/rejected，没有答案级明确写`HTTP 403`，因而同时缺一项necessary和一项explanation criterion。P/C各为4 full、2 partial、2个解释缺口，未观察到C的决定、必要语义或条件完整性增量；C却使用12比8次调用、109,743比37,489 known tokens及919,329比388,763毫秒。独立只读复核同意统一HTTP状态遗漏，另对assignee-P和lock-P各一项condition outcome判missing；主评审按完整答案的control/effect/condition连接位置维持supported，并保留分歧。
+
+该重复lock遗漏不足以证明共享生成合同/实现缺陷：同一冻结合同在另外两例稳定产出显式HTTP 403，事后加lock专属提示会泄入评价知识，因此追加provider单元为0。真正发现的共享实现缺陷是离线选择器把零样本L当成零缺口赢家；以红测修复为零样本候选不参与比较，随后0-call replay重现summary SHA `66dfb36...946`。另将collaborator任务从different-user/deny改成self-query/allow，保持固定Go代码字节不变；普通authoring init/check仍valid、默认六项profile不变，declaration及P/C prompt SHA均确定性变化，且不新增模型单元。可表示性在三种权限关系上成立，但编写仍需专业项目/源码/关系/政策/条件/evaluator选择；没有真人时间或节省证据。ordinary默认继续B/L，C保留opt-in而不扩为默认。
+
 **公平比较。** P是信息齐全的普通说明及基础引用/计量；L增加默认领域ledger/coverage；C再加条件层。三者共享业务事实、公开分析要求、源码、模型和修复机会，协议差异和成本显式记录。共同评价接受P的等价文字分析，不因缺少专用字段扣语义分。本轮评估表达与运行支持组合，不把效果单独归因于JSON语法。原五任务开发面板15单元；最多6修订单元。方法固定后再读取第三项目正文，用默认profile而非任务专属问题清单，P与选定结构化方法在2–3任务上各两次重复，正常12单元。选择先看必要质量，再看条件完整性、成本和编写负担；C无增量就保留L。
 
 **编写与交付。** 新authoring输入复用现有task，派生重复sourceIdentity/default requirements；缺政策与expectation集中报needs-input，不猜测填充。`skvm authorization init/check/run/inspect`复用现有宿主，init示例明确synthetic，普通输入保留作者来源，只有run调用模型。method与历史N/B/D分开，默认ledger/B，条件层opt-in。新项目来源独立选择，不读取旧保护集；首次迁移后修方法时保留首次结果，后续记development。允许工程完成而效果mixed/negative，按缺项而非阶段终态数判交付。
