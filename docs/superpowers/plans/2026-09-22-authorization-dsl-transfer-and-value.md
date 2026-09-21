@@ -209,10 +209,10 @@ init/check/inspect 不初始化 provider；run 显式使用 `--model`。没有 a
 - [x] 确认是否继续默认L/B、让C opt-in，或停止C扩展。没有证据时不默认添加更多推理链、模型审查轮数或复杂表达。
 
 ### Y13：统一复盘与有限验证
-- [ ] 同一研究正文记录问题→证据→修改→验证→影响；更新usage、developer-guide、current-status、plan/spec及唯一status/summary。
-- [ ] 跑 `bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts`、`bun run typecheck`，再跑被改动CLI路由或provider的直接相关测试。
-- [ ] 文档验证：`python scripts/check_skill_ir_doc_links_test.py`、`python scripts/check_skill_ir_doc_links.py --root .`；按当前文档约定带治理manifest参数。只扫描本轮JSON/JSONL；一次离线重放新summary足够。
-- [ ] 检查 staged归属、敏感信息和可复制命令。修复后仅复跑受影响检查，不重复历史全量测试/clean archive审核。
+- [x] 同一研究正文记录问题→证据→修改→验证→影响；更新usage、developer-guide、current-status、plan/spec及唯一status/summary。
+- [x] 跑 `bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts`、`bun run typecheck`，再跑被改动CLI路由或provider的直接相关测试。
+- [x] 文档验证：`python scripts/check_skill_ir_doc_links_test.py`、`python scripts/check_skill_ir_doc_links.py --root .`；按当前文档约定带治理manifest参数。只扫描本轮JSON/JSONL；一次离线重放新summary足够。
+- [x] 检查 staged归属、敏感信息和可复制命令。修复后仅复跑受影响检查，不重复历史全量测试/clean archive审核。
 
 ### Y14：发布与停止
 - [ ] 按实际功能/方法拆提交，保留七项基线改动和历史untracked；推送用户origin/skill-ir-aot并核对远端。

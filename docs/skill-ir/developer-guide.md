@@ -9,11 +9,11 @@
 3. 需要整体背景时阅读 [架构](../architecture.md)、[使用说明](../usage.md)和[JIT Boost](../jit-boost.md)。
 4. 检查工作树，保留其他线程的未提交修改。
 
-已实现的通用流程是“真实 trace → 模型优化 → 新 skill 包 → agent 消费”。授权方向另有一个窄域开发原型，用 canonical declaration、义务展开、固定上下文零工具宿主和逐事实评价比较 organized instruction 与领域支持；它不是产品 CLI、通用安全 DSL 或生产默认路径。下文说明可复用的现有工程流程，当前领域工作见[当前计划](skill-ir-aot-optimization-plan.md)与 spec 14.34。
+已实现的通用流程是“真实 trace → 模型优化 → 新 skill 包 → agent 消费”。授权方向另有一个窄域开发能力，用 canonical declaration、义务展开、固定上下文零工具宿主和逐事实评价比较 organized instruction 与领域支持；它已有 opt-in 顶层命令，但不是通用安全 DSL、目标执行器或生产默认安全决策。下文说明可复用的现有工程流程，当前领域工作见[当前计划](skill-ir-aot-optimization-plan.md)与 spec 14.34。
 
 ### 1.1 授权 DSL 开发原型
 
-[V0–V10 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9 任务书](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)、[X0–X13 任务书](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)和[研究 §7.19–7.21](skill-dsl-research.md#719-v-开发合同与持续复盘)描述已实现接口及当前扩展。它处理单 repository/ref、fixed-context、source-visible authorization obligation。领域代码位于 `src/task-dsl/authorization/`，实验代码位于 `src/benchmarks/authorization-dsl/`。
+[V0–V10 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9 任务书](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)、[X0–X13 任务书](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)、[Y0–Y14 任务书](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)和[研究 §7.19–7.22](skill-dsl-research.md#719-v-开发合同与持续复盘)描述已实现接口及当前扩展。它处理单 repository/ref、fixed-context、source-visible authorization obligation。领域代码位于 `src/task-dsl/authorization/`，实验代码位于 `src/benchmarks/authorization-dsl/`。
 
 公开边界如下：
 
@@ -35,8 +35,8 @@
 - `evaluateAuthorizationGeneration`、`summarizeAuthorizationRun` 与 `summarizeAuthorizationPair`：消费哈希绑定的 development-agent review，不能从关键词或 citation 存在性推断正确性；v1 单列 semantic decision、evidence semantics、transport 与 delivery，旧 `taskDecisionCorrect` 仍按 v0 口径保留。
 - `AuthorizationEvaluationRubricsV2Schema`、`createAuthorizationReviewTemplateV2` 与 `evaluateAuthorizationGenerationV2`：新增 evaluator-only v2 路径，逐 criterion 标注 `necessary-semantics | explanation-completeness | optional-detail`。必要语义 missing 为 partial、contradicted 为 incorrect；可选细节 missing 单列但不改变结论正确性。review 继续绑定 output hash、attempt、rubric 与精确源码位置；代码引文不能替代未陈述的因果。v0/v1 API 与 W 产物保持兼容。
 - `materializeAuthorizationCapabilityReviews(...)`、`evaluateAuthorizationCapabilityRunDirectory(...)` 与 `replayAuthorizationCapabilityEvaluation(...)`：在真实生成全部结束后离线绑定 review、写逐单元和项目/案例/臂/重复聚合，并从原始 run/review 重算摘要；rubric-only source 与模型 source bundle 分离装载，三个入口均不创建 provider 或执行目标。
-- `buildAuthorizationStudyMethods(...)` / `checkAuthorizationValueStudyExperiment(...)` / `executeAuthorizationValueStudyExperiment(...)`：Y 的实验专用 P/L/C 接线，`studyArm` 与历史 `renderArm` 分开且三者都固定 `renderArm=B`。P 看完整自然任务事实和与 L/C 相同的公共问题，但不生成 ledger/coverage、使用 wire/v1；L 增加 ledger/coverage、使用 wire/v2；C 再增加 answer-free condition request/result、使用 wire/v3。check 只验证并物化公开输入，evaluator 路径不进入 prompt；run 在 provider 前冻结 config SHA、实现 revision、顺序和规则，每单元独立 session，终态或未知完成不自动重发。`summarizeAuthorizationStudyUnit` 只消费 evaluator v2 的语义结论，字段存在本身不产生质量分，并分列 first response、prompt fallback、repair、token/cache、调用、时间和未知费用。
-- `materializeAuthorizationValueStudyReviews(...)` / `evaluateAuthorizationValueStudyRunDirectory(...)` / `replayAuthorizationValueStudyEvaluation(...)`：在全部P/L/C生成关闭后离线物化hash-bound v2 review、写逐单元与按项目/案例/臂汇总，并从原run/review重放。review必须显式选择保留的initial或repair，答案pointer可指canonical result以及同次wire的coverage/condition sidecar；rubric source仍与模型source bundle分开读取。P缺coverage记`not-applicable`，L/C缺失才记`missing`。候选按结论/必要语义/decision、逐criterion解释缺口、调用/token、作者负担依次选择，三个命令均不创建provider或执行目标。
+- `buildAuthorizationStudyMethods(...)` / `checkAuthorizationValueStudyExperiment(...)` / `executeAuthorizationValueStudyExperiment(...)`：Y 的实验专用 P/L/C 接线，`studyArm` 与历史 `renderArm` 分开且三者都固定 `renderArm=B`。experiment/v1继续要求每例各一次P/L/C；experiment/v2从普通normalized input物化exact source，只要求每例P/C各两次和第二次反序。P 看完整自然任务事实和与 L/C 相同的公共问题，但不生成 ledger/coverage、使用 wire/v1；L 增加 ledger/coverage、使用 wire/v2；C 再增加 answer-free condition request/result、使用 wire/v3。check 只验证并物化公开输入，evaluator 路径不进入 prompt；run 在 provider 前冻结 config SHA、实现 revision、顺序和规则，每单元独立 session，终态或未知完成不自动重发。`summarizeAuthorizationStudyUnit` 只消费 evaluator v2 的语义结论，字段存在本身不产生质量分，并分列 first response、prompt fallback、repair、token/cache、调用、时间和未知费用。
+- `materializeAuthorizationValueStudyReviews(...)` / `evaluateAuthorizationValueStudyRunDirectory(...)` / `replayAuthorizationValueStudyEvaluation(...)`：在全部生成关闭后离线物化hash-bound v2 review、写逐单元与按项目/案例/臂汇总，并从原run/review重放。review必须显式选择保留的initial或repair，答案pointer可指canonical result以及同次wire的coverage/condition sidecar；rubric source仍与模型source bundle分开读取。P缺coverage记`not-applicable`，L/C缺失才记`missing`。候选按结论/必要语义/decision、逐criterion解释缺口、调用/token、作者负担依次选择；零单元候选不得以零缺口参与比较。三个命令均不创建provider或执行目标。
 
 声明顶层字段为 `schemaVersion/taskId/request/repository/sourceRef/sourceMode/policySources/principals/resources/entries/obligations/scopeAssurance/requiredAnalysis/constraints`。每条 obligation 明确 `principalId/resourceId/relation/operation/expectation/conditions/policySourceId/entryIds`；`expectation` 是规范方向，不是源码观察。模型 wire 按 exact expanded ID 返回结论：`source_supported_failure` 表示固定源码支持该规范期待在声明条件下失败，`source_refuted` 表示固定源码支持规范期待被执行、从而反驳 failure，`unknown` 表示固定源码与声明上下文不足以在两者间判断；它们不是 allow/deny 的直接同义词。答案还须给出 entry、binding、control、effect、condition 事实、`sourceId/startLine/endLine`、缺失事实/最小观察和 bounded scope claim。宿主另存 canonical task/repository/ref/path/quote。
 
@@ -81,6 +81,15 @@ bun ./src/benchmarks/authorization-dsl/value-evaluate.ts replay --config=./resul
 ```
 
 `check`只检查五个公开development任务、条件request、15单元轮换和prompt隔离，不初始化provider或读取evaluator内容。`run`将`studyArm`与`renderArm=B`同时绑定到unit/session/result；P保存plain public-question snapshot且`ledgerGenerated=false`，L/C保存实际plan。冻结实现为`4524bfe25ec4c8cc66948872609f05f56c91512e`，配置SHA为`b0aa6278c14526e95be138cc56c5325f911c58a85f1b6396b55601827b27140b`；Y7 mock用exact config临时副本和空evaluator占位完成15/15，只验证机械链，不进入真实结果分母。Y9 review/evaluate/replay全程离线，15/15结论与必要语义正确；C因一个真实条件枚举增量按预定规则胜出，但调用/token更高，ordinary默认仍为B/L且condition layer保持opt-in。
+
+Y11迁移配置使用experiment/v2。真实`run`已经冻结，不应为复查重复调用provider；以下`check`与`replay`是零provider、零目标执行的可复制验证：
+
+```powershell
+bun ./src/benchmarks/authorization-dsl/value-study.ts check --config=./results/skill-ir/skill-dsl-research/development/authorization-transfer-value-v1/migration/experiment-config-v2.json
+bun ./src/benchmarks/authorization-dsl/value-evaluate.ts replay --config=./results/skill-ir/skill-dsl-research/development/authorization-transfer-value-v1/migration/experiment-config-v2.json --output=./results/skill-ir/skill-dsl-research/development/authorization-transfer-value-v1/migration/y11-evaluation-replay-v1.json
+```
+
+迁移三任务12/12决策正确、8 full/4 partial；P/C各4 full、2 partial，C没有质量增量，却使用12比8次调用、109,743比37,489 known tokens和约2.36倍known time。lock四答共同漏答案级HTTP 403，属于保留的task-level输出缺口，不以task-specific post-hoc prompt修补。当前默认仍为B/L，C仅在交付物明确需要有界条件分支时opt-in。机器结论位于`y12-value-judgment-v1.json`；这仍是development/method-fixed migration，不是held-out可靠性或人工节省证据。
 
 X11 的一次有依据修订没有扩展主面板 runner，而是用同一普通 `local-run.ts` 为两个受影响任务的 B/D 各建一个 session。冻结身份在 `revision-config-v1.json`，新输出 review 绑定在 `revision-review-plan-v1.json`；以下命令只从已存在的 run/source/review policy 离线重算四份评价与独立 revision summary，不创建 provider：
 
@@ -161,7 +170,7 @@ skvm proposals accept <id>
 | Q1/Q2 分类、能力图、发放边界 | [classification-and-routing.md](classification-and-routing.md) |
 | 外部 skill closure | [external-skill-import.md](external-skill-import.md) |
 | 代表案例与适用范围 | [real-skill-pilots.md](real-skill-pilots.md) |
-| 授权任务 DSL 声明、义务、渲染、消费与评价 | [研究开发合同](skill-dsl-research.md#719-v-开发合同与持续复盘)及 [W 任务书](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md) |
+| 授权任务 DSL 声明、义务、条件、普通入口、迁移与评价 | [研究开发合同 §7.22](skill-dsl-research.md#722-y-条件表达默认迁移与价值验证)及 [Y 任务书](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md) |
 
 ## 4. 实现纪律
 

@@ -6,11 +6,11 @@
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)及 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成，W 最终发布为 `fa6b064`。[X0–X13 完整能力交付](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)已完成并发布至 `abe470f`。用户现授权新线程连续执行 [Y0–Y14 条件表达、默认迁移与价值验证](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)；Y0–Y10 已完成，当前进入 Y11 的第三项目普通入口迁移与变化输入检查，进度由 Y 结果根的机器状态记录。
+[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)及 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成，W 最终发布为 `fa6b064`。[X0–X13 完整能力交付](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)已完成并发布至 `abe470f`。[Y0–Y14 条件表达、默认迁移与价值验证](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)的Y0–Y12已完成，当前进行Y13统一验证与Y14发布，进度由Y结果根的机器状态记录。
 
 Y 同轮推进：条件wire/v3、authoring/v1与顶层`skvm authorization init/check/run/inspect`均已接通；init不覆盖，check/inspect零provider，run默认B/新session，条件请求显式opt-in。Y7把P/L/C与历史N/B/D分开：三者均固定render B，P没有ledger/coverage，L增加ledger，C再增加condition sidecar；实现revision `4524bfe`后冻结五任务15单元配置（SHA `b0aa6278...7140b`）。Y8完成15/15，25次provider调用与已知input 122,593/output 56,192/cache-read 10,368 tokens完整保留，实际USD均未报告。Y9的hash-bound评价得到15/15结论、必要语义和task decision正确，12 full/3 partial；匿名独立复核确认只有C在trusted-header案例补齐四类条件结果。解释criterion缺口P/L/C为2/2/1，因此按预定规则选择C用于迁移比较，但C的11次调用/101,151 known tokens高于L的8次/59,952；未发现共享生成缺陷，追加单元0，默认仍为B/L、C保持opt-in。Y10按冻结候选顺序纳入首个合格项目`go-gitea/gitea@fc28937`：MIT、公开、非fork/归档；三任务分别覆盖跨用户自查例外、repository issue-write、route-level repo/site admin。三个普通authoring输入只用派生`authorization-core-v1`六类要求，同一泛化requiredAnalysis文本，CLI check均valid；七个模型可见source snapshot与evaluator-only的18项criterion物理分开，六个代码范围逐行一致。assessment仍诚实写`sourceRefVerification=authored`，固定git ref证据另存；选择含开发代理专业判断，目标执行和保护集读取均为0。离线replay重现Y9 summary SHA `41fd0b9...b45c`。新设计与结果见[研究 §7.22](skill-dsl-research.md#722-y-条件表达默认迁移与价值验证)。继续当前任务类别与fixed-context范围；CLI是opt-in development能力，不声称npm已发布或生产安全决策。开发模型为`gpt-5.6-sol / max`，被测provider配置单列。旧受保护held-out/Q1 reserve不读。
 
-Y11已用向后兼容的experiment/v2把三份普通normalized assessment接到同一local invocation；v1历史语义不变。冻结配置SHA为`b5477832...88bfa`，12个P/C fresh-context单元全部completed：20次provider调用（12 schema-tool、8 prompt-parse、0 domain repair），known input/output/cache-read为`61,413/44,347/41,472`，实际USD仍unknown，目标执行0。生成关闭前未读evaluator；下一步是hash-bound离线评价、变化输入确定性检查与价值结论。
+Y11用向后兼容experiment/v2把三份普通normalized assessment接到同一local invocation；冻结配置SHA为`b5477832...88bfa`，12个P/C fresh-context单元全部completed。冻结评价为12/12决策正确、8 full/4 partial；lock四答均漏答案级HTTP 403。P/C各4 full、2 partial且解释缺口相同；C为12次调用、109,743 known tokens、919,329ms，P为8次、37,489、388,763ms。变化输入从different-user/deny到self-query/allow后，声明与P/C prompt SHA都确定性变化且固定代码字节不变。Y12总体判定`mixed`：C仅在Y9一个development任务上补一项条件枚举，未形成迁移质量增益且运行负担更高；ordinary继续默认B/L，C只在明确需要有界条件分支时opt-in。共同helper建立工程价值但未隔离模型正确率因果；专业编写与human time/savings仍未测。两个面板共45次provider调用，actual USD全部unknown，目标执行0。
 
 用户在 W 复核后确认按完整能力阶段推进：评价要求校准、可选/分支关系、普通自备输入、第二项目 development 与小型对照放入同一轮。第二项目提前检验共性，旧三例不必先全部满分；内部仍小步测试和提交。研究与开发复盘统一维护在[研究总文档 §7.21](skill-dsl-research.md#721-x-完整能力阶段设计)。
 
@@ -48,7 +48,7 @@ X13 新鲜验证为授权测试 131/131、836 assertions，typecheck 通过；�
 
 | 路线 | 当前可用能力 | 当前效果记录 |
 |---|---|---|
-| 授权领域 DSL 有界开发能力 | canonical JSON、显式义务、关系/coverage、编号源码、窄 wire、宿主引用绑定、关闭/迟到计量、分层评价、N/B/D 渲染、普通输入与可恢复面板入口 | 初轮为 14 full、5 partial、4 label-incorrect，必要语义与 coverage 均 23/23；D 未显示额外关系收益。共享标签合同 revision 为 4/4 full，仅支持缺陷诊断；两项目 ordinary inspect 已通过，普通入口默认 B，但仍非生产默认 |
+| 授权领域 DSL 有界开发能力 | canonical JSON、显式义务、关系/coverage、可选condition sidecar、authoring、顶层init/check/run/inspect、编号源码、窄wire、宿主引用绑定、关闭/迟到计量、分层评价与可恢复研究入口 | Y开发面板15/15决策正确，C只补一个task的一项条件解释；Gitea迁移12/12决策正确、8 full/4 partial，P/C质量持平而C成本更高。结论mixed，默认B/L、C opt-in，仍非生产安全默认 |
 | Trace 驱动 skill 包优化 | bare-agent 自动捕获、日志导入、模型修改说明和脚本、局部验证与修复、原子包导出、自然消费记录 | F 后继包三次实际消费通过；配对工具调用 62→64、输入 token 58,828→190,516，效果 negative |
 | 既有确定性基础 | IR parser/validator、lowering、API Tester/Env 后端、artifact 与显式 recipe import | 保留各自有界案例及原评价口径 |
 
@@ -58,7 +58,7 @@ X13 新鲜验证为授权测试 131/131、836 assertions，typecheck 通过；�
 skvm run --prompt="<task>" --skill=./skill --workdir=./project --model=<id> --optimize
 ```
 
-优化模型默认沿用 `--model`；具体选项、已有日志与恢复见[使用说明](../usage.md)。当前授权原型使用开发脚本，命令与类型见[开发指南](developer-guide.md)。
+优化模型默认沿用 `--model`；具体选项、已有日志与恢复见[使用说明](../usage.md)。授权能力的opt-in顶层命令见同一使用说明，研究复现与类型见[开发指南](developer-guide.md)。
 
 ## 文档与历史入口
 
