@@ -613,7 +613,7 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 ### 7.21 X 完整能力阶段设计
 
-2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X9`：X0–X8 已完成，尚无 X 真实模型结果。
+2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `active-X11`：X0–X10 已完成，初轮真实结果、逐义务评价和方法比较均已保留；当前只做一次有依据的共同合同修订。
 
 **为什么扩大本轮范围。** W 的模型消费与计量已经可用，继续只修旧案例会降低获取新信息的速度。现有 B/D 共用 canonical declaration、输出合同和宿主，主要差异位于领域方法指令。接下来既要检验这种组织方式，也要让作者实际写任务、用自备输入运行，并检验换项目后的语义适配。
 
@@ -640,6 +640,12 @@ X5 已把这份记录接入版本化 `source-authorization-assessment-wire/v2`�
 两份真实 skill 映射来自固定 MIT 版本的 Cloudflare security-audit 与 GitHub awesome-copilot security-review。人工/agent 辅助只映射其 fixed-ref 授权敏感操作切片到 declaration 与六类 requirements；全审计编排、dependency、secret、patch 等剩余职责继续属于原 skill，不声称自动转换。skill 来源数 2 与目标代码项目数 2 分账。自包含例子以 synthetic 标记，不是漏洞或 evaluator fixture。作者变化 trace 做四次 deterministic check：基线 valid，遗漏 sourceIdentity 同步得到 `source-identity-mismatch`，移动 entry 未更新 sources 得到 `declaration-source-location-invalid`，补齐后 valid；两次错误、零 provider、零目标执行，未测真人时间，不主张人工节省。机器记录为 `render-interventions-v1.json`、`skill-responsibility-mappings-v1.json` 与 `authoring-experience-v1.json`；独立只读复核未发现 critical/important。
 
 **X8 离线接线与运行冻结。** 五个任务已通过同一 ordinary parser、analysis ledger、精确 source catalog、wire/v2 mock host、coverage validator 和 v2 evaluator template 入口；四种 synthetic 变化分别证明 prerequisite 删除、声明条件反转、when-present 问题删除及 required external fact 缺失会改变 plan、prompt 或诊断，而不被计作新项目证据。复制自包含例子到临时普通目录后完成 check/run(mock)/inspect，没有研究绝对路径、manifest 或 oracle 依赖。新增的 experiment-only capability runner 只编排已存在的 local-run/host 语义：在 provider 创建前冻结 config/revision/顺序，逐单元创建不可覆盖 session，终态与 completion-unknown 不重发；仅“已有 session 但尚无 dispatch”可新建 session 继续。恢复时交叉核验 unit result、session、dispatch、run 与 result 身份，篡改在 provider factory 前失败。实现固定为 `dccd83099dd4f2779604d18f9ad36e62aa8f5a31`，配置 SHA-256 为 `23e22d8e3f6f49728d1ba1eb2db8afde7b861053bace435607b6222a64b57fec`；五任务、20 个 B/D 重复及 3 个 N 补充共 23 单元的 provider-free check 为 valid。评价路径只写入 metadata，生成结束前不读取 rubric。授权回归 129/129、813 assertions 与 typecheck 通过；真实 provider 和目标执行仍为 0。
+
+**X9 初轮真实生成。** 冻结面板按提交顺序一次执行：五任务 × B/D × 两次 fresh context 加三个预定 N 补充，23/23 都完成；没有 completion-unknown、timeout、terminal failure、domain repair 或目标执行。30 次 provider 调用由 23 次 schema-tool 与 7 次 prompt-parse 组成，后者是结构转换，不是 fallback 或 repair。provider 报告 input 102,579、output 61,942、cache-read 45,824、cache-write 0 tokens，response duration 已知小计 2,273,732.1484 ms；30 次实际 USD 均未报告，故总额为 unknown 而不是零。全部生成结束后才向 evaluator 提供 rubric；原始 response、attempt、session 与 unit identity 不因后续评价而改变。
+
+**X10 逐义务评价与方法结论。** 23 份 development-agent review 绑定 raw-output digest、attempt、rubric、answer pointer 与 evaluator source；程序另载入仅用于评价、未曾进入 prompt 的 rubric source，并以同一入口重放。结果为 14 full-success、5 partial、4 incorrect，且 23/23 necessary semantics supported、coverage valid、scope accepted、transport valid、delivery complete。四个 incorrect 不是授权因果缺失：text B 一次、FastAPI foreign-update D 两次和 N 一次都正确解释 deny 在 effect 前生效，却把应为 `source_refuted` 的结论写成相反的 `source_supported_failure`。五个 trusted-header 结果均正确 unknown、必要语义 supported，但未完整枚举 closed gate、failed authentication、safe proxy 与 attacker-header-reachable 四种结果，且漏 optional default-None detail，故均为 partial。
+
+B 的十个主单元为 7 full、2 partial、1 incorrect，first response accepted 8/10，12 次调用，input/output/cache-read 为 31,082/25,314/27,520；D 为 6/2/2、6/10、14 次调用和 52,755/28,136/18,304。两臂 necessary semantics 与 coverage 都为 10/10；D 在 text repeat 1 改善一次，却在 FastAPI update 两次退化，因而当前数据没有显示 D 的额外关系覆盖或总体质量收益。D 的已知 duration 小计较短，但受顺序和 cache 混杂，不能抵消其更多调用/token 或被写成速度因果。共同 profile、ledger、coverage 和普通入口的工程价值体现在五任务同链交付和遗漏可见性；因为 N 也共享这些底层支持，本实验不能把它们归为 DSL 相对原始 agent 的独立因果收益。三个无重复 N 仅为 1 full、1 partial、1 incorrect，不能作稳定性判断。离线 replay 的 summary digest 一致；第七次窄只读复核确认四个标签错误、B/D totals、D 无额外 necessary/coverage 收益及 N 的限制。X11 的唯一共享缺陷假设因此是输出合同列出 enum 却没有解释其相对“声明期待”的方向；先加反例，再仅修改共同 renderer，并把追加验证与初轮分开。
 
 **使用交付。** 薄脚本支持 check/run/inspect，输出机器 JSON、事件和简明文本结论；只有 run 调模型。一个自包含 synthetic 例子用于上手，真实两项目用于结果验证；另从现有语料选两份独立 skill，明确授权职责到 DSL 的映射及剩余职责。skill 来源与目标代码项目分开计数，人工/agent 辅助映射不称自动转换整个 skill。作者步骤、字段修改与诊断可观察；未测真人时间时不称人工节省。X 最终以实际可运行命令替换任务书中的接口设计说明。
 
@@ -993,6 +999,14 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 ### 2026-09-21 X8 离线接线、恢复协议与面板冻结
 
 **X8-OFFLINE-01。** 五个真实任务和四种 synthetic 变化通过共同 parser/ledger/source/mock-host/coverage/evaluator-template 路径；普通例子复制到临时目录后完成 check/run(mock)/inspect，确认不依赖研究绝对路径、历史 manifest 或 oracle。为 23 单元真实面板增加 experiment-only 薄编排器，先以失败测试锁定分母、顺序、预算、path-safe ID、终态恢复、claim-only 禁止重发、initialized-without-dispatch 安全继续及跨 artifact 篡改拒绝。独立只读复核确认恢复边界无阻断问题。实现 revision `dccd83099dd4f2779604d18f9ad36e62aa8f5a31`；冻结配置 `experiment-config-v1.json` 的 SHA-256 为 `23e22d8e3f6f49728d1ba1eb2db8afde7b861053bace435607b6222a64b57fec`，provider-free check 得到 5 cases/23 units/0 diagnostics。授权回归 129/129、813 assertions 与 typecheck 通过；模型、付费和目标执行均未发生。X9 将严格按已提交配置生成，全部生成后才进入 evaluator。
+
+### 2026-09-21 X9 冻结真实面板生成
+
+**X9-RUN-01。** 已提交的实现 `dccd830` 和配置 `23e22d8...57fec` 按既定顺序完成 20 个 B/D 主单元与 3 个 N 补充；23/23 completed，无未知完成、timeout、terminal failure、domain repair 或目标执行。30 次 provider 调用中 23 次为 schema-tool、7 次为 prompt-parse；总 token input 102,579、output 61,942、cache-read 45,824，实际 USD 30/30 unknown。所有生成完成后才开放 evaluator，初轮原始身份不因后续 review 改写。
+
+### 2026-09-21 X10 逐义务评价与独立结论核验
+
+**X10-EVAL-01。** 新 evaluator 先以缺模块和 evaluator-only source path 不在 model bundle 的红测暴露边界；实现 hash-bound review materialization、逐单元 v2 评价、项目/案例/臂/重复聚合与离线 replay，并把 rubric-only source 独立载入，不污染模型输入。23 个初轮单位评价为 14 full、5 partial、4 incorrect；全部 necessary semantics、coverage、scope、transport 与 delivery 均通过。四个错误都是 explanation 正确而 conclusion enum 方向相反。B 为 7/2/1、12 calls，D 为 6/2/2、14 calls；两臂 necessary/coverage 都是 10/10，当前不支持 D 额外收益。N 无重复，不能作稳定或全系统因果结论。独立只读核验点验四个错误单元和聚合 totals，未发现摘要矛盾；离线 replay digest 一致。聚焦测试 13/13、70 assertions 与 typecheck 通过。下一步只修共同 label 语义合同，并用受影响 text、FastAPI update 的 B/D 各一次作唯一追加验证。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 

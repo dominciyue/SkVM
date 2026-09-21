@@ -1,0 +1,201 @@
+{
+  "evaluationVersion": "authorization-evaluation/v2",
+  "caseId": "fastapi-items-superuser-read",
+  "taskId": "fastapi-items-superuser-read",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "ef0c6599732c772448fe046c552c606c7e8652398598ccd9c6084eb8dcd9ac8b",
+  "expectedDisposition": "source_refuted",
+  "actualDisposition": "source_refuted",
+  "labelCorrect": true,
+  "reviewValidation": {
+    "status": "valid",
+    "diagnostics": [],
+    "review": {
+      "schemaVersion": "authorization-semantic-review/v1",
+      "caseId": "fastapi-items-superuser-read",
+      "taskId": "fastapi-items-superuser-read",
+      "generation": "initial",
+      "attemptId": "provider-attempt-1",
+      "rawOutputSha256": "ef0c6599732c772448fe046c552c606c7e8652398598ccd9c6084eb8dcd9ac8b",
+      "rubricVersion": "fastapi-items-superuser-read/v2",
+      "reviewer": {
+        "kind": "development-agent",
+        "identity": "codex-development-agent-x10"
+      },
+      "criterionReviews": [
+        {
+          "status": "supported",
+          "reason": "The answer binds the declared active superuser to current_user and its role state.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "items.py",
+              "startLine": 48,
+              "endLine": 57
+            }
+          ],
+          "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/0",
+          "criterionId": "superuser-role-binding"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer binds the path id to an existing item owned by another user.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "items.py",
+              "startLine": 49,
+              "endLine": 56
+            }
+          ],
+          "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/1",
+          "criterionId": "read-foreign-item-binding"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer states that the not-superuser conjunct prevents the owner-mismatch rejection from denying the declared superuser.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "items.py",
+              "startLine": 56,
+              "endLine": 57
+            }
+          ],
+          "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/2",
+          "criterionId": "superuser-override-decision"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer traces the surviving superuser branch to return item.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "items.py",
+              "startLine": 56,
+              "endLine": 58
+            }
+          ],
+          "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/3",
+          "criterionId": "read-effect-after-guard"
+        }
+      ],
+      "dispositionReview": {
+        "status": "supported",
+        "reason": "The source visibly enforces the declared allow expectation for the active superuser, so source_refuted is supported.",
+        "answerLocation": "/results/0/conclusion",
+        "sourceLocations": [
+          {
+            "path": "items.py",
+            "startLine": 48,
+            "endLine": 58
+          }
+        ],
+        "oracleRule": "second-project/evaluator/rubric.json#/cases/1"
+      },
+      "scopeReview": {
+        "status": "supported",
+        "reason": "The answer limits the claim to the declared GET obligation and supplied fixed source.",
+        "answerLocation": "/scopeClaim",
+        "sourceLocations": [
+          {
+            "path": "task.json",
+            "startLine": 18,
+            "endLine": 47
+          },
+          {
+            "path": "items.py",
+            "startLine": 48,
+            "endLine": 58
+          }
+        ],
+        "oracleRule": "second-project/evaluator/rubric.json#/limits"
+      }
+    }
+  },
+  "criteria": [
+    {
+      "id": "superuser-role-binding",
+      "layer": "necessary-semantics",
+      "requirement": "Bind the assessed active superuser principal to current_user and its is_superuser role state.",
+      "decisionRelevance": "The role state controls whether the ownership denial branch applies.",
+      "status": "supported",
+      "reason": "The answer binds the declared active superuser to current_user and its role state.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 48,
+          "endLine": 57
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/0"
+    },
+    {
+      "id": "read-foreign-item-binding",
+      "layer": "necessary-semantics",
+      "requirement": "State that the path id selects an existing item owned by another user.",
+      "decisionRelevance": "The case tests the role override specifically on a foreign item.",
+      "status": "supported",
+      "reason": "The answer binds the path id to an existing item owned by another user.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 49,
+          "endLine": 56
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/1"
+    },
+    {
+      "id": "superuser-override-decision",
+      "layer": "necessary-semantics",
+      "requirement": "State that the owner-mismatch rejection is guarded by not current_user.is_superuser and therefore does not reject the declared superuser.",
+      "decisionRelevance": "This is the strongest visible authorization decision for the foreign-item read.",
+      "status": "supported",
+      "reason": "The answer states that the not-superuser conjunct prevents the owner-mismatch rejection from denying the declared superuser.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 56,
+          "endLine": 57
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "id": "read-effect-after-guard",
+      "layer": "necessary-semantics",
+      "requirement": "State that the branch surviving the role and ownership guard reaches return item.",
+      "decisionRelevance": "Returning the item is the protected read effect requested by the task.",
+      "status": "supported",
+      "reason": "The answer traces the surviving superuser branch to return item.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 56,
+          "endLine": 58
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/3"
+    }
+  ],
+  "dimensions": {
+    "necessarySemantics": "supported",
+    "explanationCompleteness": "not-applicable",
+    "optionalDetails": "not-applicable"
+  },
+  "scopeHonesty": "accepted",
+  "semanticDecisionCorrect": true,
+  "evidenceSemanticSupport": "supported",
+  "transportValid": true,
+  "deliveryComplete": true,
+  "taskDecisionCorrect": true,
+  "qualityStatus": "full-success",
+  "errorClasses": [],
+  "deterministicDiagnostics": []
+}

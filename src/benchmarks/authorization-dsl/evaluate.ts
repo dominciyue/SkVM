@@ -362,12 +362,14 @@ function sameSourceLocations(
   return leftKeys.length === rightKeys.length && leftKeys.every((key, index) => key === rightKeys[index])
 }
 
-function sourceLocationExists(location: AuthorizationEvaluationSourceLocation, sourceBundle: SourceBundle): boolean {
-  const file = sourceBundle.files.find(candidate => candidate.relativePath === location.path)
-  return Boolean(file
-    && location.startLine >= file.cropRange.startLine
-    && location.endLine <= file.cropRange.endLine
-    && location.endLine >= location.startLine)
+function sourceLocationExists(location: AuthorizationEvaluationSourceLocation, sourceBundles: SourceBundle[]): boolean {
+  return sourceBundles.some(sourceBundle => {
+    const file = sourceBundle.files.find(candidate => candidate.relativePath === location.path)
+    return Boolean(file
+      && location.startLine >= file.cropRange.startLine
+      && location.endLine <= file.cropRange.endLine
+      && location.endLine >= location.startLine)
+  })
 }
 
 function decodeJsonPointerSegment(segment: string): string {
@@ -400,6 +402,7 @@ function validateAssessment(
   expectedRule: z.infer<typeof EvaluationRuleSchema>,
   answer: AuthorizationResultV0,
   sourceBundle: SourceBundle,
+  reviewSourceBundle: SourceBundle | undefined,
   path: string,
   diagnostics: AuthorizationEvaluationDiagnostic[],
 ): void {
@@ -418,7 +421,7 @@ function validateAssessment(
     ))
   }
   assessment.sourceLocations.forEach((location, index) => {
-    if (!sourceLocationExists(location, sourceBundle)) {
+    if (!sourceLocationExists(location, reviewSourceBundle ? [sourceBundle, reviewSourceBundle] : [sourceBundle])) {
       diagnostics.push(diagnostic(
         "review-source-location-invalid",
         `Review source location is outside the exact source bundle: ${sourceLocationKey(location)}.`,
@@ -462,6 +465,7 @@ function validateSemanticReview(input: {
   artifact: AuthorizationGenerationArtifact
   generation: "initial" | "repair"
   review: unknown
+  reviewSourceBundle?: SourceBundle
 }): AuthorizationReviewValidation {
   const parsed = AuthorizationSemanticReviewV0Schema.safeParse(input.review)
   if (!parsed.success) {
@@ -517,7 +521,15 @@ function validateSemanticReview(input: {
       ))
       return
     }
-    validateAssessment(factReview, expected, input.artifact.result, input.sourceBundle, `factReviews.${index}`, diagnostics)
+    validateAssessment(
+      factReview,
+      expected,
+      input.artifact.result,
+      input.sourceBundle,
+      input.reviewSourceBundle,
+      `factReviews.${index}`,
+      diagnostics,
+    )
   })
   for (const [factId] of expectedFacts) {
     const count = reviewCounts.get(factId) ?? 0
@@ -533,6 +545,7 @@ function validateSemanticReview(input: {
     input.rubric.dispositionRule,
     input.artifact.result,
     input.sourceBundle,
+    input.reviewSourceBundle,
     "dispositionReview",
     diagnostics,
   )
@@ -541,6 +554,7 @@ function validateSemanticReview(input: {
     input.rubric.scopeRule,
     input.artifact.result,
     input.sourceBundle,
+    input.reviewSourceBundle,
     "scopeReview",
     diagnostics,
   )
@@ -558,6 +572,7 @@ function validateSemanticReviewV2(input: {
   artifact: AuthorizationGenerationArtifact
   generation: "initial" | "repair"
   review: unknown
+  reviewSourceBundle?: SourceBundle
 }): AuthorizationReviewValidationV2 {
   const parsed = AuthorizationSemanticReviewV1Schema.safeParse(input.review)
   if (!parsed.success) {
@@ -618,6 +633,7 @@ function validateSemanticReviewV2(input: {
       expected,
       input.artifact.result,
       input.sourceBundle,
+      input.reviewSourceBundle,
       `criterionReviews.${index}`,
       diagnostics,
     )
@@ -636,6 +652,7 @@ function validateSemanticReviewV2(input: {
     input.rubric.dispositionRule,
     input.artifact.result,
     input.sourceBundle,
+    input.reviewSourceBundle,
     "dispositionReview",
     diagnostics,
   )
@@ -644,6 +661,7 @@ function validateSemanticReviewV2(input: {
     input.rubric.scopeRule,
     input.artifact.result,
     input.sourceBundle,
+    input.reviewSourceBundle,
     "scopeReview",
     diagnostics,
   )
@@ -693,6 +711,7 @@ export function evaluateAuthorizationGeneration(input: {
   artifact: AuthorizationGenerationArtifact
   generation: "initial" | "repair"
   review: unknown
+  reviewSourceBundle?: SourceBundle
 }): AuthorizationGenerationEvaluation {
   const reviewValidation = validateSemanticReview(input)
   const review = reviewValidation.review
@@ -847,6 +866,7 @@ export function evaluateAuthorizationGenerationV2(input: {
   artifact: AuthorizationGenerationArtifact
   generation: "initial" | "repair"
   review: unknown
+  reviewSourceBundle?: SourceBundle
 }): AuthorizationGenerationEvaluationV2 {
   const reviewValidation = validateSemanticReviewV2(input)
   const review = reviewValidation.review

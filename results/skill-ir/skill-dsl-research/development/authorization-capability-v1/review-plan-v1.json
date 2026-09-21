@@ -1,0 +1,336 @@
+{
+  "schemaVersion": "authorization-capability-review-plan/v1",
+  "configSha256": "23e22d8e3f6f49728d1ba1eb2db8afde7b861053bace435607b6222a64b57fec",
+  "reviewedAt": "2026-09-21T22:45:00+08:00",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "codex-development-agent-x10"
+  },
+  "independentVerification": {
+    "status": "completed",
+    "identities": [
+      "codex-read-only-file-reviewer",
+      "codex-read-only-text-reviewer",
+      "codex-read-only-header-reviewer",
+      "codex-read-only-fastapi-update-reviewer",
+      "codex-read-only-fastapi-read-reviewer",
+      "codex-read-only-telemetry-reviewer",
+      "codex-read-only-key-conclusion-reviewer"
+    ],
+    "note": "Six independent read-only passes checked the five case families and lifecycle telemetry; a seventh checked the corrected four-error aggregate, B/D comparison, and N limits. They supplied source/pointer evidence; the development agent retained responsibility for every formal status and hash-bound review."
+  },
+  "cases": [
+    {
+      "caseId": "owui-process-file-write",
+      "criterionReviews": [
+        {
+          "criterionId": "source-file-ownership-check",
+          "status": "supported",
+          "reason": "The answer explicitly limits the visible ownership check to the supplied source file.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "destination-is-distinct",
+          "status": "supported",
+          "reason": "The answer distinguishes the caller-selected destination collection from the owned source file.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "destination-write-control-absent",
+          "status": "supported",
+          "reason": "The answer states that no destination ownership or write-grant check appears before the write path in the complete fixed crop.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "destination-reaches-insert",
+          "status": "supported",
+          "reason": "The answer traces the caller-selected collection through save_docs_to_vector_db to VECTOR_DB_CLIENT.insert.",
+          "answerLocation": "/results/0/explanation"
+        }
+      ],
+      "dispositionReview": {
+        "status": "supported",
+        "reason": "The source-visible path violates the declared destination-write policy, so source_supported_failure is supported.",
+        "answerLocation": "/results/0/conclusion"
+      },
+      "scopeReview": {
+        "status": "supported",
+        "reason": "The scope is limited to the declared obligation and supplied fixed source rather than the repository or deployment.",
+        "answerLocation": "/scopeClaim"
+      }
+    },
+    {
+      "caseId": "owui-process-text-controlled",
+      "criterionReviews": [
+        {
+          "criterionId": "caller-write-validator",
+          "status": "supported",
+          "reason": "The answer states that process_text invokes the validator for write access before the sink.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "denied-set-enforcement",
+          "status": "supported",
+          "reason": "The answer states that a requested knowledge-base name outside the allowed set is rejected.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "knowledge-base-write-policy",
+          "status": "supported",
+          "reason": "The answer connects the allowed set to check_access_by_user_id write permission rather than an unrelated name filter.",
+          "answerLocation": "/results/0/explanation"
+        }
+      ],
+      "dispositionReview": {
+        "status": "supported",
+        "reason": "The visible validator enforces the declared deny expectation, so source_refuted is supported.",
+        "answerLocation": "/results/0/conclusion"
+      },
+      "scopeReview": {
+        "status": "supported",
+        "reason": "The answer makes only the declared fixed-context process-text claim.",
+        "answerLocation": "/scopeClaim"
+      }
+    },
+    {
+      "caseId": "owui-trusted-header-deployment",
+      "criterionReviews": [
+        {
+          "criterionId": "password-auth-entry-gate",
+          "status": "supported",
+          "reason": "The answer states that the trusted-header path depends on the preceding password-authentication gate.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "trusted-header-configuration-gate",
+          "status": "supported",
+          "reason": "The answer states that the configured header name must be enabled and present in the request.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "identity-binding",
+          "status": "supported",
+          "reason": "The answer traces the configured request-header value into the email identity used for authentication.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "authentication-and-session-condition",
+          "status": "supported",
+          "reason": "The answer says authentication must yield a user before session creation and the false path issues no session.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "deployment-facts-absent",
+          "status": "supported",
+          "reason": "The answer lists the missing gate values, ingress, proxy handling, and authentication outcome that decide the deployment question.",
+          "answerLocation": "/results/0/decisiveMissingFacts/0"
+        },
+        {
+          "criterionId": "conditional-capability-boundary",
+          "status": "supported",
+          "reason": "The answer retains the conditional header-to-session source capability while withholding an actual-deployment outcome.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "password-auth-403-detail",
+          "status": "supported",
+          "reason": "The answer identifies the closed password-authentication branch and its HTTP 403 response.",
+          "answerLocation": "/results/0/facts/control/0"
+        },
+        {
+          "criterionId": "conditional-outcome-enumeration",
+          "status": "missing",
+          "reason": "The answer does not explicitly distinguish all four required outcomes: closed gate, failed authentication, trusted-proxy-safe, and attacker-header-reachable.",
+          "answerLocation": null
+        },
+        {
+          "criterionId": "optional-signup-path",
+          "status": "supported",
+          "reason": "The answer states that a missing email user may pass through signup_handler before authentication.",
+          "answerLocation": "/results/0/facts/binding/1"
+        },
+        {
+          "criterionId": "optional-default-none-detail",
+          "status": "missing",
+          "reason": "The answer calls the header environment-controlled but does not state that WEBUI_AUTH_TRUSTED_EMAIL_HEADER defaults to None.",
+          "answerLocation": null
+        }
+      ],
+      "dispositionReview": {
+        "status": "supported",
+        "reason": "The answer supports a conditional source capability and names decisive unavailable deployment facts, so unknown is supported.",
+        "answerLocation": "/results/0/conclusion"
+      },
+      "scopeReview": {
+        "status": "supported",
+        "reason": "The answer explicitly avoids repository-wide and deployment-wide completeness claims.",
+        "answerLocation": "/scopeClaim"
+      }
+    },
+    {
+      "caseId": "fastapi-items-foreign-update",
+      "criterionReviews": [
+        {
+          "criterionId": "update-current-user-binding",
+          "status": "supported",
+          "reason": "The answer binds the assessed caller to current_user at the PUT entry.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "foreign-item-binding",
+          "status": "supported",
+          "reason": "The answer binds the path id to an existing item whose owner differs from current_user.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "non-superuser-foreign-update-decision",
+          "status": "supported",
+          "reason": "The answer states that the declared non-superuser owner mismatch is rejected before the update.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "update-effect-after-guard",
+          "status": "supported",
+          "reason": "The answer places mutation and persistence after the ownership-or-role guard.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "update-http-403-detail",
+          "status": "supported",
+          "reason": "The answer identifies the visible HTTP 403 response before mutation.",
+          "answerLocation": "/results/0/explanation"
+        }
+      ],
+      "dispositionReview": {
+        "status": "supported",
+        "reason": "When the answer labels the enforced deny expectation source_refuted, the disposition is supported.",
+        "answerLocation": "/results/0/conclusion"
+      },
+      "scopeReview": {
+        "status": "supported",
+        "reason": "The answer is limited to the declared PUT obligation and supplied fixed source.",
+        "answerLocation": "/scopeClaim"
+      }
+    },
+    {
+      "caseId": "fastapi-items-superuser-read",
+      "criterionReviews": [
+        {
+          "criterionId": "superuser-role-binding",
+          "status": "supported",
+          "reason": "The answer binds the declared active superuser to current_user and its role state.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "read-foreign-item-binding",
+          "status": "supported",
+          "reason": "The answer binds the path id to an existing item owned by another user.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "superuser-override-decision",
+          "status": "supported",
+          "reason": "The answer states that the not-superuser conjunct prevents the owner-mismatch rejection from denying the declared superuser.",
+          "answerLocation": "/results/0/explanation"
+        },
+        {
+          "criterionId": "read-effect-after-guard",
+          "status": "supported",
+          "reason": "The answer traces the surviving superuser branch to return item.",
+          "answerLocation": "/results/0/explanation"
+        }
+      ],
+      "dispositionReview": {
+        "status": "supported",
+        "reason": "The source visibly enforces the declared allow expectation for the active superuser, so source_refuted is supported.",
+        "answerLocation": "/results/0/conclusion"
+      },
+      "scopeReview": {
+        "status": "supported",
+        "reason": "The answer limits the claim to the declared GET obligation and supplied fixed source.",
+        "answerLocation": "/scopeClaim"
+      }
+    }
+  ],
+  "units": [
+    { "unitId": "01-r1-file-B", "caseId": "owui-process-file-write" },
+    { "unitId": "02-r1-file-D", "caseId": "owui-process-file-write" },
+    {
+      "unitId": "03-r1-text-B",
+      "caseId": "owui-process-text-controlled",
+      "dispositionReviewOverride": {
+        "status": "contradicted",
+        "reason": "The explanation correctly says the deny expectation is enforced, but the conclusion uses source_supported_failure, the opposite disposition for this task contract.",
+        "answerLocation": "/results/0/conclusion"
+      }
+    },
+    { "unitId": "04-r1-text-D", "caseId": "owui-process-text-controlled" },
+    {
+      "unitId": "05-r1-header-B",
+      "caseId": "owui-trusted-header-deployment",
+      "criterionReviewOverrides": [
+        { "criterionId": "optional-signup-path", "answerLocation": "/results/0/facts/binding/2" }
+      ]
+    },
+    {
+      "unitId": "06-r1-header-D",
+      "caseId": "owui-trusted-header-deployment",
+      "criterionReviewOverrides": [
+        { "criterionId": "password-auth-403-detail", "answerLocation": "/results/0/facts/entry/0" }
+      ]
+    },
+    { "unitId": "07-r1-fastapi-update-B", "caseId": "fastapi-items-foreign-update" },
+    {
+      "unitId": "08-r1-fastapi-update-D",
+      "caseId": "fastapi-items-foreign-update",
+      "dispositionReviewOverride": {
+        "status": "contradicted",
+        "reason": "The explanation correctly says the deny expectation is enforced, but the conclusion uses source_supported_failure, the opposite disposition for this task contract.",
+        "answerLocation": "/results/0/conclusion"
+      }
+    },
+    { "unitId": "09-r1-fastapi-read-B", "caseId": "fastapi-items-superuser-read" },
+    { "unitId": "10-r1-fastapi-read-D", "caseId": "fastapi-items-superuser-read" },
+    { "unitId": "11-r2-file-D", "caseId": "owui-process-file-write" },
+    { "unitId": "12-r2-file-B", "caseId": "owui-process-file-write" },
+    { "unitId": "13-r2-text-D", "caseId": "owui-process-text-controlled" },
+    { "unitId": "14-r2-text-B", "caseId": "owui-process-text-controlled" },
+    {
+      "unitId": "15-r2-header-D",
+      "caseId": "owui-trusted-header-deployment",
+      "criterionReviewOverrides": [
+        { "criterionId": "password-auth-403-detail", "answerLocation": "/results/0/facts/entry/0" }
+      ]
+    },
+    { "unitId": "16-r2-header-B", "caseId": "owui-trusted-header-deployment" },
+    {
+      "unitId": "17-r2-fastapi-update-D",
+      "caseId": "fastapi-items-foreign-update",
+      "dispositionReviewOverride": {
+        "status": "contradicted",
+        "reason": "The explanation correctly says the deny expectation is enforced, but the conclusion uses source_supported_failure, the opposite disposition for this task contract.",
+        "answerLocation": "/results/0/conclusion"
+      }
+    },
+    { "unitId": "18-r2-fastapi-update-B", "caseId": "fastapi-items-foreign-update" },
+    { "unitId": "19-r2-fastapi-read-D", "caseId": "fastapi-items-superuser-read" },
+    { "unitId": "20-r2-fastapi-read-B", "caseId": "fastapi-items-superuser-read" },
+    { "unitId": "21-natural-file-N", "caseId": "owui-process-file-write" },
+    {
+      "unitId": "22-natural-header-N",
+      "caseId": "owui-trusted-header-deployment",
+      "criterionReviewOverrides": [
+        { "criterionId": "optional-signup-path", "answerLocation": "/results/0/facts/condition/0" }
+      ]
+    },
+    {
+      "unitId": "23-natural-fastapi-update-N",
+      "caseId": "fastapi-items-foreign-update",
+      "dispositionReviewOverride": {
+        "status": "contradicted",
+        "reason": "The explanation correctly says the deny expectation is enforced, but the conclusion uses source_supported_failure, the opposite disposition for this task contract.",
+        "answerLocation": "/results/0/conclusion"
+      }
+    }
+  ]
+}
