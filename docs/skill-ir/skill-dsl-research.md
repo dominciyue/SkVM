@@ -667,7 +667,7 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 
 ### 7.22 Y 条件表达、默认迁移与价值验证
 
-2026-09-22 用户确认沿用“分类确定范围、按类/任务设计 DSL、效果包含多维收益”的路线，并授权任务书写完后派发新线程连续开发。新任务为 [Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)，此处登记设计，尚无 Y 实验结果。开发模型 `gpt-5.6-sol / max` 与实验 provider 设置分别记录。
+2026-09-22 用户确认沿用“分类确定范围、按类/任务设计 DSL、效果包含多维收益”的路线，并授权任务书写完后派发新线程连续开发。新任务为 [Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)，此处登记设计与逐阶段结果；Y0–Y9 已完成，当前进入第三项目迁移。开发模型 `gpt-5.6-sol / max` 与实验 provider 设置分别记录。
 
 **复核发现。** X 的 23 个单位来自五任务和两项目；最终标签正确19/23，完整成功14/23。143条coverage为125 addressed、5 unknown、13 not-applicable；必要分析事实supported与coverage-valid不能合写成23次正确判断。真实面板使用逐任务问题清单，默认六类profile仍缺新项目直接迁移证据。Y1 已先以两项失败测试复现 CLI 省略arm为B、公开check/run函数仍默认D的分歧，再把两个公开默认统一为B；显式D和旧session不变，示例README同步。sourceIdentity当前是作者声明互校及字节绑定，普通界面须说明来源核验状态。
 
@@ -688,6 +688,10 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 **Y7 研究接线与冻结。** 新`authorization-value-study-experiment/v1`把`studyArm=P|L|C`与历史`renderArm=N|B|D`分开，所有研究单元固定`renderArm=B`。P使用自然化完整声明、与L/C逐字相同的公共问题及基础wire/v1，不把已编译ledger、coverage或condition sidecar放进模型上下文或结果；L使用ledger/wire-v2；C在L上增加answer-free condition plan和wire/v3。三者复用相同local host、source reader、repair与telemetry。研究摘要直接消费evaluator v2的语义review，分别保存结构诊断、first response、prompt fallback、repair、四类token、调用、时间和实际USD未知；C字段存在或空结构不会覆盖缺失的语义评价。首个测试先因`value-study.ts`不存在失败；核心五项测试（59 assertions）和render/host/local/value聚焦回归37/37（389 assertions）通过。实现固定为`4524bfe25ec4c8cc66948872609f05f56c91512e`，随后冻结原五任务各P/L/C一次共15单元，轮换为P-L-C、L-C-P、C-P-L、P-L-C、L-C-P，config SHA-256为`b0aa6278...7140b`。provider-free check得到5 cases、15 units、0 diagnostics；exact config临时副本的15单元机械mock全部completed，评价路径用空占位且未进入任何prompt，remote provider与目标执行仍为0。新鲜授权全套160/160（1079 assertions）及typecheck通过。该mock只证明路由、transport、持久化和恢复，不是质量或成本证据；Y8才运行真实provider。
 
 **Y8 冻结真实开发面板。** 在未改变Y7配置、顺序或预算的情况下，`xty/gpt-5.6-sol`完成五任务P/L/C各一次，15/15为completed，没有timeout、completion-unknown或terminal failure，也没有目标执行。25次provider调用由17次schema-tool和8次prompt-parse组成，trusted-header的L、C各使用一次diagnostics-only domain repair；P/L/C调用分别为6/8/11。已知token合计input 122,593、output 56,192、cache-read 10,368、cache-write 0；P为19,623/8,427/0，L为38,522/16,950/4,480，C为64,448/30,815/5,888。25次usage均完整，但provider均未返回费用，已知USD小计0不代表免费，总额继续为unknown。初轮身份、失败transport与repair都保留在分母；本记录只冻结生成和运行负担，不在读取evaluator前判断质量，也不允许后续review改写原始答案。
+
+**Y9 离线评价与候选。** 全部生成关闭后才读取 evaluator-only rubric。15/15 结论、必要语义、task decision、scope 和 review binding 均正确；12项 full-success，trusted-header 的三项均因解释细节为 partial，没有 incorrect、unsupported deployment claim 或 needs-review。三个匿名候选的独立只读复核确认必要决策无差异，只有带有界 condition branches 的候选明确区分 closed gate、failed authentication、trusted-proxy-safe 与 attacker-header-reachable；它还严格确认“forbidden error”不等于答案显式写出 HTTP 403，“may be unset”不等于显式写出默认 None。独立packet漏录P答案的一条 environment-controlled fact，导致一项 supported/missing 分歧；分歧和身份均保留，最终按完整 hash-bound 答案位置维持 supported。未发现需要重跑模型的共享生成合同/实现缺陷，追加单元为0。
+
+评价实现先用红测补上两处边界：review answer pointer可指向同一hash-bound wire中的coverage/condition sidecar；候选选择按缺失的解释 criterion 数量比较，而不是把所有partial单元压成同一个计数。最终P/L/C均为5/5结论和必要语义正确；解释缺口分别为2/2/1，因此按预定次序选择C用于有限迁移比较。这个增量只来自trusted-header条件枚举；C同时使用11次调用和101,151 known tokens，L为8次和59,952，P为6次和28,050。故当前是一个窄条件完整性增益及明显运行开销取舍，不改变ordinary默认B/L，C仍为opt-in。离线replay以0模型调用、0目标执行重现summary SHA-256 `41fd0b9...b45c`，实际USD继续unknown。
 
 **公平比较。** P是信息齐全的普通说明及基础引用/计量；L增加默认领域ledger/coverage；C再加条件层。三者共享业务事实、公开分析要求、源码、模型和修复机会，协议差异和成本显式记录。共同评价接受P的等价文字分析，不因缺少专用字段扣语义分。本轮评估表达与运行支持组合，不把效果单独归因于JSON语法。原五任务开发面板15单元；最多6修订单元。方法固定后再读取第三项目正文，用默认profile而非任务专属问题清单，P与选定结构化方法在2–3任务上各两次重复，正常12单元。选择先看必要质量，再看条件完整性、成本和编写负担；C无增量就保留L。
 

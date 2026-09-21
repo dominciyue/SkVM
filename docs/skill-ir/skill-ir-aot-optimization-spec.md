@@ -2508,4 +2508,6 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **Y7公平研究接线边界。** 新study contract显式记录`studyArm=P|L|C`，不重写历史N/B/D，且所有研究单元固定历史`renderArm=B`。P不是带ledger的N别名：它只收到完整自然任务事实、同一组公共问题、固定源码和基础引用/result合同，输出wire/v1且没有coverage/condition字段；L增加默认或作者已冻结的ledger与wire/v2；C再增加answer-free condition request和wire/v3。三者共用host、source、预算、最多一次机械诊断repair和telemetry。配置冻结case、顺序、停止与最多6个共享缺陷修订单元；evaluator路径只存metadata，生成期不读其内容。共同v2语义review接受P的逻辑等价文字，任何专用字段的存在不代替必要语义或条件解释；结构问题与first response/fallback/repair及token/cache/calls/time/cost分别报告，provider未报告USD时保持unknown。
 
+**Y8–Y9开发面板边界。** 冻结五任务15单元生成全部完成后才开始语义评价；原始answer、fallback与repair不改写。hash-bound review可把答案位置绑定到canonical result以及同次wire中的coverage/condition sidecar，但字段存在本身不产生semantic credit。候选先比较结论错误、必要语义缺口与decision correctness，再比较逐criterion解释缺口，之后才比较调用、known tokens与编写负担；不能把两个都为partial的单元视为解释质量完全相同。初轮P/L/C均5/5结论和必要语义正确，解释缺口为2/2/1，故C按冻结规则进入第三项目有限比较；这只证明一个trusted-header条件枚举增量，同时C的11次调用/101,151 known tokens高于L的8次/59,952。未发现共享生成缺陷，不追加provider单元；默认仍为B/L，condition layer保持opt-in，迁移结果出来前不升级默认或推广收益。
+
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。

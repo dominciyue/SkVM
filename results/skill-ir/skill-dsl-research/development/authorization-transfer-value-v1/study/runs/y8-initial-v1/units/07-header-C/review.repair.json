@@ -1,0 +1,206 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "owui-trusted-header-deployment",
+  "taskId": "owui-trusted-header-deployment",
+  "generation": "repair",
+  "attemptId": "provider-attempt-3",
+  "rawOutputSha256": "c3c38e0d6954cc85fd5608608db72d69ac88551e0aef72c47c7582996ae696d4",
+  "rubricVersion": "owui-trusted-header-oracle/v2",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "codex-development-agent-y9"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "password-auth-entry-gate",
+      "status": "supported",
+      "reason": "The answer states that ENABLE_PASSWORD_AUTH precedes and gates trusted-header processing.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+          "startLine": 11,
+          "endLine": 15
+        }
+      ],
+      "oracleRule": "evaluation-protocol-v2#/trusted-header/password-auth-entry-gate"
+    },
+    {
+      "criterionId": "trusted-header-configuration-gate",
+      "status": "supported",
+      "reason": "The answer states that the trusted-email header name is environment-controlled and that the branch requires configuration and request presence.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+          "startLine": 10,
+          "endLine": 13
+        },
+        {
+          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+          "startLine": 17,
+          "endLine": 21
+        }
+      ],
+      "oracleRule": "evaluation-protocol-v2#/trusted-header/configuration-gate"
+    },
+    {
+      "criterionId": "identity-binding",
+      "status": "supported",
+      "reason": "The answer traces the configured request-header value through lowercasing into the email identity used for lookup and authentication.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+          "startLine": 21,
+          "endLine": 40
+        }
+      ],
+      "oracleRule": "evaluation-protocol-v2#/trusted-header/identity-binding"
+    },
+    {
+      "criterionId": "authentication-and-session-condition",
+      "status": "supported",
+      "reason": "The answer states that authentication must yield a user before session creation and that failure does not issue a session.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+          "startLine": 40,
+          "endLine": 62
+        }
+      ],
+      "oracleRule": "evaluation-protocol-v2#/trusted-header/authentication-session-condition"
+    },
+    {
+      "criterionId": "deployment-facts-absent",
+      "status": "supported",
+      "reason": "The answer names effective gate values, reachability, proxy handling, and authentication outcome as unavailable deployment facts.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/task.json",
+          "startLine": 6,
+          "endLine": 18
+        }
+      ],
+      "oracleRule": "evaluation-protocol-v2#/trusted-header/deployment-facts-absent"
+    },
+    {
+      "criterionId": "conditional-capability-boundary",
+      "status": "supported",
+      "reason": "The answer preserves the conditional header-to-session capability while refusing to infer which deployment branch is real.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/task.json",
+          "startLine": 6,
+          "endLine": 18
+        },
+        {
+          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+          "startLine": 17,
+          "endLine": 62
+        }
+      ],
+      "oracleRule": "evaluation-protocol-v2#/trusted-header/conditional-capability-boundary"
+    },
+    {
+      "criterionId": "password-auth-403-detail",
+      "status": "missing",
+      "reason": "The answer text never explicitly identifies HTTP 403 as the closed-gate response; a source citation or the phrase forbidden error does not satisfy the answer-level detail criterion.",
+      "answerLocation": null,
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+          "startLine": 11,
+          "endLine": 15
+        }
+      ],
+      "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/0"
+    },
+    {
+      "criterionId": "conditional-outcome-enumeration",
+      "status": "supported",
+      "reason": "The bounded condition analysis separately states the closed password gate, failed authentication, trusted-proxy-safe, and attacker-reachable outcomes while retaining the real deployment as unknown.",
+      "answerLocation": "/conditionAnalysis/analyses/0/branches",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/task.json",
+          "startLine": 6,
+          "endLine": 18
+        },
+        {
+          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+          "startLine": 11,
+          "endLine": 62
+        }
+      ],
+      "oracleRule": "trusted-header-oracle-revision.json#/new/conditionalOutcomes"
+    },
+    {
+      "criterionId": "optional-signup-path",
+      "status": "supported",
+      "reason": "The answer mentions signup_handler or equivalent optional provisioning before email authentication when the user is absent.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+          "startLine": 31,
+          "endLine": 38
+        }
+      ],
+      "oracleRule": "trusted-header-oracle-revision.json#/new/sourceSupportedFacts/2"
+    },
+    {
+      "criterionId": "optional-default-none-detail",
+      "status": "missing",
+      "reason": "The answer says that configuration may be absent or unset but does not explicitly state that os.environ.get defaults the value to None.",
+      "answerLocation": null,
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+          "startLine": 10,
+          "endLine": 10
+        }
+      ],
+      "oracleRule": "oracles/owui-trusted-header-deployment.json#/sourceSupportedFacts/0"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "unknown correctly combines a source-visible conditional capability with absent decisive deployment facts.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-trusted-header-deployment/task.json",
+        "startLine": 6,
+        "endLine": 18
+      },
+      {
+        "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+        "startLine": 10,
+        "endLine": 13
+      },
+      {
+        "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+        "startLine": 11,
+        "endLine": 62
+      }
+    ],
+    "oracleRule": "trusted-header-oracle-revision.json#/revisedDisposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer limits itself to the supplied entry and source crops and does not claim deployed behavior.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-trusted-header-deployment/task.json",
+        "startLine": 6,
+        "endLine": 18
+      }
+    ],
+    "oracleRule": "evaluation-protocol-revision.json#/scoringEffect"
+  }
+}

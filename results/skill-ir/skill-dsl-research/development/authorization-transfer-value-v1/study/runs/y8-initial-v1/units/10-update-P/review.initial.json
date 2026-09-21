@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "fastapi-items-foreign-update",
+  "taskId": "fastapi-items-foreign-update",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "ba87f5b27f6272d739251fbc3b53855ad850f04e4bdb0f60f4d218016bad4266",
+  "rubricVersion": "fastapi-items-foreign-update/v2",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "codex-development-agent-y9"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "update-current-user-binding",
+      "status": "supported",
+      "reason": "The answer binds the declared non-superuser caller to current_user at the PUT entry.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 75,
+          "endLine": 86
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/0"
+    },
+    {
+      "criterionId": "foreign-item-binding",
+      "status": "supported",
+      "reason": "The answer binds the path-selected existing item to the stated owner mismatch with current_user.id.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 80,
+          "endLine": 90
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/1"
+    },
+    {
+      "criterionId": "non-superuser-foreign-update-decision",
+      "status": "supported",
+      "reason": "The answer states that the non-superuser foreign-owner combination is rejected before update operations.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 89,
+          "endLine": 90
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/2"
+    },
+    {
+      "criterionId": "update-effect-after-guard",
+      "status": "supported",
+      "reason": "The answer places mutation and persistence after the authorization guard.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 89,
+          "endLine": 96
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/3"
+    },
+    {
+      "criterionId": "update-http-403-detail",
+      "status": "supported",
+      "reason": "The answer explicitly identifies HTTP 403 before mutation for the rejected branch.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 89,
+          "endLine": 90
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/2"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "source_refuted correctly reports enforcement of the declared deny expectation.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "items.py",
+        "startLine": 75,
+        "endLine": 96
+      }
+    ],
+    "oracleRule": "second-project/evaluator/rubric.json#/cases/0"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer remains bounded to the declared PUT entry and fixed files.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "task.json",
+        "startLine": 18,
+        "endLine": 47
+      },
+      {
+        "path": "items.py",
+        "startLine": 75,
+        "endLine": 96
+      }
+    ],
+    "oracleRule": "second-project/evaluator/rubric.json#/limits"
+  }
+}

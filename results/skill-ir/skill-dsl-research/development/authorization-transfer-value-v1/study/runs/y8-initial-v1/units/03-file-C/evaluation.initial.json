@@ -1,0 +1,236 @@
+{
+  "evaluationVersion": "authorization-evaluation/v2",
+  "caseId": "owui-process-file-write",
+  "taskId": "owui-process-file-write",
+  "generation": "initial",
+  "attemptId": "provider-attempt-2",
+  "rawOutputSha256": "53a2fe02dc90525e110fd062a594cdc15d6aade605e83a5f40e53a748d71dfed",
+  "expectedDisposition": "source_supported_failure",
+  "actualDisposition": "source_supported_failure",
+  "labelCorrect": true,
+  "reviewValidation": {
+    "status": "valid",
+    "diagnostics": [],
+    "review": {
+      "schemaVersion": "authorization-semantic-review/v1",
+      "caseId": "owui-process-file-write",
+      "taskId": "owui-process-file-write",
+      "generation": "initial",
+      "attemptId": "provider-attempt-2",
+      "rawOutputSha256": "53a2fe02dc90525e110fd062a594cdc15d6aade605e83a5f40e53a748d71dfed",
+      "rubricVersion": "owui-process-file-write-oracle/v2",
+      "reviewer": {
+        "kind": "development-agent",
+        "identity": "codex-development-agent-y9"
+      },
+      "criterionReviews": [
+        {
+          "status": "supported",
+          "reason": "The answer identifies the non-admin user-scoped lookup as a check on the supplied source file rather than on the destination.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+              "startLine": 40,
+              "endLine": 44
+            }
+          ],
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/0",
+          "criterionId": "source-file-ownership-check"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer distinguishes the caller-selected collection from the separately ownership-checked source file.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-process-file-write/task.json",
+              "startLine": 6,
+              "endLine": 8
+            },
+            {
+              "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+              "startLine": 45,
+              "endLine": 50
+            }
+          ],
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/1",
+          "criterionId": "destination-is-distinct"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer states that no destination collection ownership or write-grant control appears before dispatch in the complete crop.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+              "startLine": 45,
+              "endLine": 53
+            },
+            {
+              "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+              "startLine": 55,
+              "endLine": 74
+            }
+          ],
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/2",
+          "criterionId": "destination-write-control-absent"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer traces the selected collection through save_docs_to_vector_db to the vector database insertion.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+              "startLine": 14,
+              "endLine": 18
+            },
+            {
+              "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+              "startLine": 62,
+              "endLine": 74
+            }
+          ],
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/3",
+          "criterionId": "destination-reaches-insert"
+        }
+      ],
+      "dispositionReview": {
+        "status": "supported",
+        "reason": "source_supported_failure correctly reports the visible absence of the required destination authorization before the write effect.",
+        "answerLocation": "/results/0/conclusion",
+        "sourceLocations": [
+          {
+            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+            "startLine": 14,
+            "endLine": 18
+          },
+          {
+            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+            "startLine": 40,
+            "endLine": 50
+          },
+          {
+            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+            "startLine": 62,
+            "endLine": 74
+          }
+        ],
+        "oracleRule": "oracles/owui-process-file-write.json#/disposition"
+      },
+      "scopeReview": {
+        "status": "supported",
+        "reason": "The answer limits its claim to the declared obligation and supplied fixed crop.",
+        "answerLocation": "/scopeClaim",
+        "sourceLocations": [
+          {
+            "path": "inputs/owui-process-file-write/task.json",
+            "startLine": 6,
+            "endLine": 18
+          }
+        ],
+        "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0"
+      }
+    }
+  },
+  "criteria": [
+    {
+      "id": "source-file-ownership-check",
+      "layer": "necessary-semantics",
+      "requirement": "State that the visible ownership check is on the supplied source file.",
+      "decisionRelevance": "Treating this check as destination authorization would reverse the result.",
+      "status": "supported",
+      "reason": "The answer identifies the non-admin user-scoped lookup as a check on the supplied source file rather than on the destination.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 40,
+          "endLine": 44
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/0"
+    },
+    {
+      "id": "destination-is-distinct",
+      "layer": "necessary-semantics",
+      "requirement": "Distinguish the caller-selected destination collection from the owned source file.",
+      "decisionRelevance": "The policy applies to the destination resource, not merely to the source file.",
+      "status": "supported",
+      "reason": "The answer distinguishes the caller-selected collection from the separately ownership-checked source file.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/task.json",
+          "startLine": 6,
+          "endLine": 8
+        },
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 45,
+          "endLine": 50
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/1"
+    },
+    {
+      "id": "destination-write-control-absent",
+      "layer": "necessary-semantics",
+      "requirement": "State that no destination knowledge-base write check occurs before save_docs_to_vector_db in the complete fixed crop.",
+      "decisionRelevance": "The absent destination control is the decisive policy failure.",
+      "status": "supported",
+      "reason": "The answer states that no destination collection ownership or write-grant control appears before dispatch in the complete crop.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 45,
+          "endLine": 53
+        },
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 55,
+          "endLine": 74
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/2"
+    },
+    {
+      "id": "destination-reaches-insert",
+      "layer": "necessary-semantics",
+      "requirement": "Trace the supplied collection name through save_docs_to_vector_db to VECTOR_DB_CLIENT.insert.",
+      "decisionRelevance": "The policy gap matters only if the caller-selected destination reaches the protected effect.",
+      "status": "supported",
+      "reason": "The answer traces the selected collection through save_docs_to_vector_db to the vector database insertion.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 14,
+          "endLine": 18
+        },
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 62,
+          "endLine": 74
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/3"
+    }
+  ],
+  "dimensions": {
+    "necessarySemantics": "supported",
+    "explanationCompleteness": "not-applicable",
+    "optionalDetails": "not-applicable"
+  },
+  "scopeHonesty": "accepted",
+  "semanticDecisionCorrect": true,
+  "evidenceSemanticSupport": "supported",
+  "transportValid": true,
+  "deliveryComplete": true,
+  "taskDecisionCorrect": true,
+  "qualityStatus": "full-success",
+  "errorClasses": [],
+  "deterministicDiagnostics": []
+}

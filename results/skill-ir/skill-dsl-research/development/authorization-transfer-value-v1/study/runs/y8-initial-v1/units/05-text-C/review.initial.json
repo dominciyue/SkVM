@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "owui-process-text-controlled",
+  "taskId": "owui-process-text-controlled",
+  "generation": "initial",
+  "attemptId": "provider-attempt-2",
+  "rawOutputSha256": "929b44ef4bd0d2de969ef2ddf3d5c4adcfcdbbbdbfc9fd25a3aeaade1790382c",
+  "rubricVersion": "owui-process-text-controlled-oracle/v2",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "codex-development-agent-y9"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "caller-write-validator",
+      "status": "supported",
+      "reason": "The answer states that process_text applies the collection validator with write access before the save sink.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+          "startLine": 13,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/0"
+    },
+    {
+      "criterionId": "denied-set-enforcement",
+      "status": "supported",
+      "reason": "The answer explains that a requested collection absent from the allowed set is denied before the write.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+          "startLine": 31,
+          "endLine": 44
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/1"
+    },
+    {
+      "criterionId": "knowledge-base-write-policy",
+      "status": "supported",
+      "reason": "The answer ties admission of the existing knowledge base to the caller-specific write permission check.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+          "startLine": 42,
+          "endLine": 52
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/2"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "source_refuted correctly reports that the declared ungranted write is blocked before the effect.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+        "startLine": 13,
+        "endLine": 44
+      },
+      {
+        "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+        "startLine": 42,
+        "endLine": 52
+      }
+    ],
+    "oracleRule": "oracles/owui-process-text-controlled.json#/disposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer makes only the declared fixed-entry claim and disclaims broader discovery.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-text-controlled/task.json",
+        "startLine": 6,
+        "endLine": 18
+      }
+    ],
+    "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1"
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "authorization-value-independent-review-packet/v1",
+  "purpose": "Read-only independent semantic review of the representative unknown case and any condition-explanation gain. Candidate names are anonymized and do not identify study arms.",
+  "question": "Determine whether an unauthenticated external client can impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin.",
+  "acceptedPolicy": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.",
+  "sourceEvidence": [
+    "auths_signin.py:11-15 rejects with HTTP 403 before trusted-header handling when ENABLE_PASSWORD_AUTH is false.",
+    "auths_signin.py:17-22 requires WEBUI_AUTH_TRUSTED_EMAIL_HEADER to be configured and present, then lowercases its request value into email.",
+    "auths_signin.py:31-40 optionally invokes signup_handler for a missing email, then calls authenticate_user_by_email.",
+    "auths_signin.py:59-62 creates a session only when authentication yields a user; otherwise it raises invalid credentials.",
+    "env_trusted_headers.py:10 defines WEBUI_AUTH_TRUSTED_EMAIL_HEADER with os.environ.get(..., None).",
+    "The fixed inputs do not supply effective gate values, ingress reachability, proxy stripping/replacement behavior, or the deployed authentication result."
+  ],
+  "criteria": [
+    { "id": "password-auth-entry-gate", "layer": "necessary-semantics", "requirement": "State that trusted-header processing requires ENABLE_PASSWORD_AUTH, or equivalently is blocked when false." },
+    { "id": "trusted-header-configuration-gate", "layer": "necessary-semantics", "requirement": "State that the header name is environment-controlled and the branch requires it configured and present." },
+    { "id": "identity-binding", "layer": "necessary-semantics", "requirement": "Trace the configured request-header value into the email identity used for authentication." },
+    { "id": "authentication-and-session-condition", "layer": "necessary-semantics", "requirement": "State that email authentication must yield a user before session creation and the false path issues no session." },
+    { "id": "deployment-facts-absent", "layer": "necessary-semantics", "requirement": "Name actual gate values, ingress reachability, proxy handling, and deployed authentication outcome as unavailable." },
+    { "id": "conditional-capability-boundary", "layer": "necessary-semantics", "requirement": "State both the conditional source capability and that it does not establish the actual deployment outcome." },
+    { "id": "password-auth-403-detail", "layer": "explanation-completeness", "requirement": "When spelling out the closed gate, explicitly state that the route returns HTTP 403 before trusted-header handling." },
+    { "id": "conditional-outcome-enumeration", "layer": "explanation-completeness", "requirement": "Explicitly distinguish closed-gate, failed-authentication, trusted-proxy-safe, and attacker-header-reachable outcomes without selecting a real deployment branch." },
+    { "id": "optional-signup-path", "layer": "optional-detail", "requirement": "Mention signup_handler before email authentication when no user exists." },
+    { "id": "optional-default-none-detail", "layer": "optional-detail", "requirement": "Mention that WEBUI_AUTH_TRUSTED_EMAIL_HEADER defaults to None when the environment does not set it." }
+  ],
+  "candidates": [
+    {
+      "anonymousUnitId": "candidate-birch",
+      "conclusion": "unknown",
+      "explanation": "The fixed source shows a conditional application path, not the actual deployment result. Processing must first pass the password-authentication gate, have the trusted-email header setting enabled, include the configured header, and obtain a user through email authentication before the session response is created. The request header value is lowercased and supplied as the email used for lookup, optional provisioning, and authentication; after successful authentication, that user is passed to session creation. The optional provisioning branch creates a user when no matching email exists, so it can establish identity binding before authentication rather than independently bypassing the later authentication check. The source does not provide the deployment values for password authentication or the trusted-header name, whether the external client can reach this ingress, whether a trusted proxy strips and replaces client-supplied identity headers, or whether authentication succeeds for the selected email. The accepted policy requires sole trusted-proxy ingress with removal and replacement of client-supplied identity headers. Because those decisive deployment and authentication facts are absent, the source neither supports a policy failure nor refutes one.",
+      "facts": [
+        "The trusted-email path is conditional on the trusted-email header configuration being truthy, and it rejects the request when the configured header is absent.",
+        "The request value from the configured trusted-email header is lowercased and assigned as the email used by the trusted-header path.",
+        "The selected email is used first for existing-user lookup and optional signup; authentication then resolves a user by that email.",
+        "ENABLE_PASSWORD_AUTH rejects processing before the trusted-header branch when disabled.",
+        "The header must be configured and present and email authentication must return a user before the session effect.",
+        "A returned user reaches create_session_response; otherwise invalid credentials is raised.",
+        "The fixed source lacks actual ingress reachability, proxy stripping or replacement, and sole-ingress deployment facts."
+      ],
+      "conditionBranches": []
+    },
+    {
+      "anonymousUnitId": "candidate-maple",
+      "conclusion": "unknown",
+      "explanation": "The fixed source supports an application capability: when password authentication is enabled and the configured trusted-email header is present, its value selects an email identity, and successful email authentication can lead to a session response. The accepted policy requires trusted-proxy-only ingress plus removal and replacement of client-supplied identity headers, but the fixed context does not supply the actual deployment configuration, ingress reachability, proxy behavior, or authentication outcome. Therefore the declared deny expectation is neither source-supported as a failure nor source-refuted as enforced.",
+      "facts": [
+        "POST /signin first applies the password-authentication gate.",
+        "A configured and present trusted-email header is lowercased and used as the email identity.",
+        "The trusted-email header name is environment-controlled.",
+        "The application gates on ENABLE_PASSWORD_AUTH, configuration, and header presence.",
+        "The shown branch does not show proxy authentication, client-header removal, or replacement.",
+        "A user returned by authentication reaches session creation; otherwise invalid credentials is raised.",
+        "A missing user may pass through signup handling before email authentication.",
+        "Effective gates, reachability, proxy behavior, and deployed authentication outcome are absent."
+      ],
+      "conditionBranches": []
+    },
+    {
+      "anonymousUnitId": "candidate-spruce",
+      "conclusion": "unknown",
+      "explanation": "The fixed source exposes a conditional POST /signin path that, when password authentication is enabled and a configured trusted-email header is present, takes the header value as the email identity, optionally provisions that email, authenticates it, and creates a session for the returned user. The accepted policy requires sole trusted-proxy ingress plus removal and replacement of client-supplied identity headers, but the fixed context does not provide the actual deployment ingress or proxy behavior. It also does not provide the deployment values for password authentication or the trusted-email header, or the runtime authentication result. Therefore the declared deny expectation cannot be determined from this fixed context.",
+      "facts": [
+        "The first gate rejects the request when password authentication is disabled.",
+        "A configured and present trusted-email header is lowercased and used as the email identity.",
+        "A missing user may pass through signup_handler before authenticating that email.",
+        "The header name is environment-controlled and may be unset; deployment values are absent.",
+        "A user returned by authentication reaches session creation; otherwise invalid credentials is raised.",
+        "The source-visible path depends on password authentication, header configuration and presence, and successful authentication."
+      ],
+      "conditionBranches": [
+        "Trusted proxy enforced: the external client is blocked because sole proxy ingress removes or replaces the client-supplied identity header.",
+        "Untrusted ingress plus all application conditions true: the header-selected identity reaches session creation.",
+        "Password authentication disabled: a forbidden error occurs before trusted-header handling and the session effect is blocked.",
+        "Trusted-email header configuration absent: the trusted-header branch is not entered.",
+        "Header path entered but authentication yields no user: no session is created and invalid credentials is raised.",
+        "Deployment values, ingress/proxy behavior, and authentication result all unobserved: the selected real branch remains unknown."
+      ]
+    }
+  ],
+  "requestedOutput": {
+    "perCandidate": "For each criterion, return supported, missing, contradicted, or uncertain with a short reason.",
+    "comparison": "State whether any candidate has a real condition-explanation gain and whether any necessary-decision difference exists.",
+    "disagreements": "Flag borderline wording, especially whether 'forbidden error' satisfies the explicit 'HTTP 403' criterion and whether 'may be unset' satisfies explicit default None."
+  }
+}

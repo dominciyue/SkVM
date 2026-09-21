@@ -1,0 +1,170 @@
+{
+  "evaluationVersion": "authorization-evaluation/v2",
+  "caseId": "owui-process-text-controlled",
+  "taskId": "owui-process-text-controlled",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "6ead85f31c9c5e088228fab4de9b68b8282fdf6027b25610fb6b521ee148e887",
+  "expectedDisposition": "source_refuted",
+  "actualDisposition": "source_refuted",
+  "labelCorrect": true,
+  "reviewValidation": {
+    "status": "valid",
+    "diagnostics": [],
+    "review": {
+      "schemaVersion": "authorization-semantic-review/v1",
+      "caseId": "owui-process-text-controlled",
+      "taskId": "owui-process-text-controlled",
+      "generation": "initial",
+      "attemptId": "provider-attempt-1",
+      "rawOutputSha256": "6ead85f31c9c5e088228fab4de9b68b8282fdf6027b25610fb6b521ee148e887",
+      "rubricVersion": "owui-process-text-controlled-oracle/v2",
+      "reviewer": {
+        "kind": "development-agent",
+        "identity": "codex-development-agent-y9"
+      },
+      "criterionReviews": [
+        {
+          "status": "supported",
+          "reason": "The answer states that process_text applies the collection validator with write access before the save sink.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+              "startLine": 13,
+              "endLine": 28
+            }
+          ],
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/0",
+          "criterionId": "caller-write-validator"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer explains that a requested collection absent from the allowed set is denied before the write.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+              "startLine": 31,
+              "endLine": 44
+            }
+          ],
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/1",
+          "criterionId": "denied-set-enforcement"
+        },
+        {
+          "status": "supported",
+          "reason": "The answer ties admission of the existing knowledge base to the caller-specific write permission check.",
+          "answerLocation": "/results/0/explanation",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+              "startLine": 42,
+              "endLine": 52
+            }
+          ],
+          "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/2",
+          "criterionId": "knowledge-base-write-policy"
+        }
+      ],
+      "dispositionReview": {
+        "status": "supported",
+        "reason": "source_refuted correctly reports that the declared ungranted write is blocked before the effect.",
+        "answerLocation": "/results/0/conclusion",
+        "sourceLocations": [
+          {
+            "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+            "startLine": 13,
+            "endLine": 44
+          },
+          {
+            "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+            "startLine": 42,
+            "endLine": 52
+          }
+        ],
+        "oracleRule": "oracles/owui-process-text-controlled.json#/disposition"
+      },
+      "scopeReview": {
+        "status": "supported",
+        "reason": "The answer makes only the declared fixed-entry claim and disclaims broader discovery.",
+        "answerLocation": "/scopeClaim",
+        "sourceLocations": [
+          {
+            "path": "inputs/owui-process-text-controlled/task.json",
+            "startLine": 6,
+            "endLine": 18
+          }
+        ],
+        "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1"
+      }
+    }
+  },
+  "criteria": [
+    {
+      "id": "caller-write-validator",
+      "layer": "necessary-semantics",
+      "requirement": "State that process_text calls the validator with access_type='write' before the sink.",
+      "decisionRelevance": "The upstream write validator prevents a sink-local false positive.",
+      "status": "supported",
+      "reason": "The answer states that process_text applies the collection validator with write access before the save sink.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+          "startLine": 13,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/0"
+    },
+    {
+      "id": "denied-set-enforcement",
+      "layer": "necessary-semantics",
+      "requirement": "State that the validator rejects requested names absent from the allowed set.",
+      "decisionRelevance": "This is the control that blocks the ungranted destination before the effect.",
+      "status": "supported",
+      "reason": "The answer explains that a requested collection absent from the allowed set is denied before the write.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+          "startLine": 31,
+          "endLine": 44
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/1"
+    },
+    {
+      "id": "knowledge-base-write-policy",
+      "layer": "necessary-semantics",
+      "requirement": "State that an existing knowledge base is allowed only when check_access_by_user_id grants write access.",
+      "decisionRelevance": "The allowed set is policy-backed rather than an unrelated name filter.",
+      "status": "supported",
+      "reason": "The answer ties admission of the existing knowledge base to the caller-specific write permission check.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+          "startLine": 42,
+          "endLine": 52
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/2"
+    }
+  ],
+  "dimensions": {
+    "necessarySemantics": "supported",
+    "explanationCompleteness": "not-applicable",
+    "optionalDetails": "not-applicable"
+  },
+  "scopeHonesty": "accepted",
+  "semanticDecisionCorrect": true,
+  "evidenceSemanticSupport": "supported",
+  "transportValid": true,
+  "deliveryComplete": true,
+  "taskDecisionCorrect": true,
+  "qualityStatus": "full-success",
+  "errorClasses": [],
+  "deterministicDiagnostics": []
+}

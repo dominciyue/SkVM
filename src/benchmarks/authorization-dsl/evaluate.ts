@@ -397,10 +397,18 @@ function jsonPointerResolves(value: unknown, pointer: string): boolean {
   return true
 }
 
+function semanticAnswerDocument(artifact: AuthorizationGenerationArtifact): Record<string, unknown> {
+  return {
+    ...artifact.result,
+    ...(artifact.relationCoverage ? { coverage: artifact.relationCoverage } : {}),
+    ...(artifact.conditionAnalysis ? { conditionAnalysis: artifact.conditionAnalysis } : {}),
+  }
+}
+
 function validateAssessment(
   assessment: z.infer<typeof SemanticAssessmentSchema>,
   expectedRule: z.infer<typeof EvaluationRuleSchema>,
-  answer: AuthorizationResultV0,
+  answer: unknown,
   sourceBundle: SourceBundle,
   reviewSourceBundle: SourceBundle | undefined,
   path: string,
@@ -481,6 +489,7 @@ function validateSemanticReview(input: {
 
   const review = parsed.data
   const diagnostics: AuthorizationEvaluationDiagnostic[] = []
+  const answer = semanticAnswerDocument(input.artifact)
   if (review.caseId !== input.rubric.caseId) {
     diagnostics.push(diagnostic("review-case-mismatch", "Review case does not match the rubric.", "caseId"))
   }
@@ -524,7 +533,7 @@ function validateSemanticReview(input: {
     validateAssessment(
       factReview,
       expected,
-      input.artifact.result,
+      answer,
       input.sourceBundle,
       input.reviewSourceBundle,
       `factReviews.${index}`,
@@ -543,7 +552,7 @@ function validateSemanticReview(input: {
   validateAssessment(
     review.dispositionReview,
     input.rubric.dispositionRule,
-    input.artifact.result,
+    answer,
     input.sourceBundle,
     input.reviewSourceBundle,
     "dispositionReview",
@@ -552,7 +561,7 @@ function validateSemanticReview(input: {
   validateAssessment(
     review.scopeReview,
     input.rubric.scopeRule,
-    input.artifact.result,
+    answer,
     input.sourceBundle,
     input.reviewSourceBundle,
     "scopeReview",
@@ -588,6 +597,7 @@ function validateSemanticReviewV2(input: {
 
   const review = parsed.data
   const diagnostics: AuthorizationEvaluationDiagnostic[] = []
+  const answer = semanticAnswerDocument(input.artifact)
   if (review.caseId !== input.rubric.caseId) {
     diagnostics.push(diagnostic("review-case-mismatch", "Review case does not match the rubric.", "caseId"))
   }
@@ -631,7 +641,7 @@ function validateSemanticReviewV2(input: {
     validateAssessment(
       criterionReview,
       expected,
-      input.artifact.result,
+      answer,
       input.sourceBundle,
       input.reviewSourceBundle,
       `criterionReviews.${index}`,
@@ -650,7 +660,7 @@ function validateSemanticReviewV2(input: {
   validateAssessment(
     review.dispositionReview,
     input.rubric.dispositionRule,
-    input.artifact.result,
+    answer,
     input.sourceBundle,
     input.reviewSourceBundle,
     "dispositionReview",
@@ -659,7 +669,7 @@ function validateSemanticReviewV2(input: {
   validateAssessment(
     review.scopeReview,
     input.rubric.scopeRule,
-    input.artifact.result,
+    answer,
     input.sourceBundle,
     input.reviewSourceBundle,
     "scopeReview",
