@@ -770,11 +770,32 @@ describe("authorization semantic evaluation v2", () => {
     )
     const parsed = AuthorizationEvaluationRubricsV2Schema.parse(JSON.parse(await readFile(file, "utf8")))
     const trustedHeader = parsed.cases.find(candidate => candidate.caseId === "owui-trusted-header-deployment")
+    const fastapiUpdate = parsed.cases.find(candidate => candidate.caseId === "fastapi-items-foreign-update")
+    const fastapiRead = parsed.cases.find(candidate => candidate.caseId === "fastapi-items-superuser-read")
 
+    expect(parsed.cases).toHaveLength(5)
     expect(trustedHeader?.criteria.map(criterion => [criterion.id, criterion.layer])).toEqual(expect.arrayContaining([
       ["password-auth-entry-gate", "necessary-semantics"],
       ["password-auth-403-detail", "explanation-completeness"],
       ["optional-signup-path", "optional-detail"],
+    ]))
+    expect(fastapiUpdate).toEqual(expect.objectContaining({
+      expectedDisposition: "source_refuted",
+      obligationId: "deny-non-superuser-foreign-update::put-item-by-id",
+    }))
+    expect(fastapiUpdate?.criteria.map(criterion => criterion.id)).toEqual(expect.arrayContaining([
+      "foreign-item-binding",
+      "non-superuser-foreign-update-decision",
+      "update-effect-after-guard",
+    ]))
+    expect(fastapiRead).toEqual(expect.objectContaining({
+      expectedDisposition: "source_refuted",
+      obligationId: "allow-superuser-foreign-read::get-item-by-id",
+    }))
+    expect(fastapiRead?.criteria.map(criterion => criterion.id)).toEqual(expect.arrayContaining([
+      "superuser-role-binding",
+      "superuser-override-decision",
+      "read-effect-after-guard",
     ]))
   })
 
