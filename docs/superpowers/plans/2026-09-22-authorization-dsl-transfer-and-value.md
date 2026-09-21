@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 SkVM provider 与 CLI。机器结果写一处，研究与问题复盘持续追加研究总文档，不新增 HTML、通用工作流引擎或整套产品 CLI。
 
-- 日期：2026-09-22；状态：`in-progress`。Y0–Y4 已完成，机器状态位于本任务书指定的新结果根；当前进入 Y5。
+- 日期：2026-09-22；状态：`in-progress`。Y0–Y5 已完成，机器状态位于本任务书指定的新结果根；当前进入 Y6。
 - 代码基线：`abe470f2a887f35ca1d6782cfbd5343965856620`；接手时读取本任务书登记提交后的最新 HEAD。
 - 分支：`skill-ir-aot`；只提交归属文件并推送用户 `origin/skill-ir-aot`。
 - 设计：[研究总文档 §7.22](../../skill-ir/skill-dsl-research.md#722-y-条件表达默认迁移与价值验证)；持续合同：spec 14.34。
@@ -160,10 +160,10 @@ init/check/inspect 不初始化 provider；run 显式使用 `--model`。没有 a
 - [x] 跑 conditions/render/transport/host 聚焦测试，当前有效任务不得因未启用条件层改变输出。
 
 ### Y5：减少声明编写负担
-- [ ] 写 authoring 规范化红测：同一 task 派生唯一 sourceIdentity；缺政策或 expectation 返回 needs-input；原输入保持；显式 requirements 不被默认覆盖；路径解析与普通入口一致。
-- [ ] 实现 authoring/v1 → 严格运行输入，保留字段来源和派生项。错误集中报告可修位置，不通过模型猜测填空。
-- [ ] 复用当前默认六类，避免复制 requiredAnalysis 成另一份逐任务同义清单；修复实测存在的重复说明。
-- [ ] 记录一次实际“改主体/资源关系/入口/条件”的 agent-assisted 编写流程、改字段数、check次数及诊断；未使用真人不写人工节省。
+- [x] 写 authoring 规范化红测：同一 task 派生唯一 sourceIdentity；缺政策或 expectation 返回 needs-input；原输入保持；显式 requirements 不被默认覆盖；路径解析与普通入口一致。
+- [x] 实现 authoring/v1 → 严格运行输入，保留字段来源和派生项。错误集中报告可修位置，不通过模型猜测填空。
+- [x] 复用当前默认六类，避免复制 requiredAnalysis 成另一份逐任务同义清单；修复实测存在的重复说明。
+- [x] 记录一次实际“改主体/资源关系/入口/条件”的 agent-assisted 编写流程、改字段数、check次数及诊断；未使用真人不写人工节省。
 
 ### Y6：接入现有 SkVM CLI
 - [ ] 在 `src/cli/authorization.test.ts` 先覆盖 init 不覆盖、check/inspect 不建 provider、run 默认 B、错误 exit code、未知参数提示与新 session。

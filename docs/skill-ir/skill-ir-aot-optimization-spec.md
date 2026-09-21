@@ -2502,4 +2502,6 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **Y4 条件运行边界。** renderer 对N/B/D使用同一 answer-free condition plan，并明确 assumption 只是分析假设。ready condition request 必须与 ready analysis plan 组合，选择 strict wire/v3；v3 在v2之上保存 condition result/v1，canonical result 继续v0。host分别保存 initial/repair wire、sidecar和validation，condition与coverage机械诊断共用最多一次repair；最终仍错则保留诊断，不提升为完整语义交付。未启用条件层时v1/v2 schema、normalizer与输出不变；生成链不读取evaluator。
 
+**Y5 authoring边界。** authoring/v1接受作者task、sourceRoot、sources及可选profile/condition request；sourceIdentity只能从task repository/ref确定性派生并标为authored而非远端verified。默认requirements只来自共享`authorization-core-v1`，不得复制task.requiredAnalysis形成第二份逐任务同义清单；显式requirements保持作者来源。normalized input与原authoring分开，原对象/文件不改写；普通loader继续执行路径与源码位置封闭检查。缺政策、expectation、源码范围或引用返回带修复位置的needs-input，不从当前实现、模板或模型补规范事实；上游task不ready时不级联输出下游profile噪声。
+
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。

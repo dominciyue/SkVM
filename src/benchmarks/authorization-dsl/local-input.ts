@@ -10,11 +10,28 @@ import {
   type AnalysisPlan,
   type AnalysisRequirement,
 } from "../../task-dsl/authorization/relations.ts"
+import {
+  AuthorizationConditionAnalysisRequestV1Schema,
+  compileConditionAnalysisRequest,
+  type AuthorizationConditionAnalysisRequestV1,
+  type ConditionAnalysisPlan,
+} from "../../task-dsl/authorization/conditions.ts"
 import { AuthorizationTaskV0Schema, type AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
 import { compileAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
 import { loadPortableSourceBundle, type SourceBundle } from "./inputs.ts"
 
 const NonEmptyString = z.string().trim().min(1)
+
+export const LocalAnalysisProfileSchema = z.union([
+  z.object({
+    id: z.literal(DEFAULT_AUTHORIZATION_ANALYSIS_PROFILE_ID),
+    origin: z.enum(["default", "derived"]),
+  }).strict(),
+  z.object({
+    id: z.literal("task-supplied"),
+    origin: z.literal("input"),
+  }).strict(),
+])
 
 export const LocalAuthorizationInputSchema = z.object({
   schemaVersion: z.literal("authorization-assessment-input/v1"),
@@ -25,15 +42,13 @@ export const LocalAuthorizationInputSchema = z.object({
   sourceRoot: NonEmptyString,
   sources: z.array(NonEmptyString).min(1),
   task: AuthorizationTaskV0Schema,
+  analysisProfile: LocalAnalysisProfileSchema.optional(),
   analysisRequirements: AnalysisRequirementsSchema.optional(),
+  conditionAnalysisRequest: AuthorizationConditionAnalysisRequestV1Schema.optional(),
 }).strict()
 
 export type LocalAuthorizationInput = z.infer<typeof LocalAuthorizationInputSchema>
-
-export interface LocalAnalysisProfile {
-  id: typeof DEFAULT_AUTHORIZATION_ANALYSIS_PROFILE_ID | "task-supplied"
-  origin: "default" | "input"
-}
+export type LocalAnalysisProfile = z.infer<typeof LocalAnalysisProfileSchema>
 
 export type LocalInputResult =
   | {
@@ -45,6 +60,8 @@ export type LocalInputResult =
     analysisProfile: LocalAnalysisProfile
     analysisRequirements: AnalysisRequirement[]
     analysisPlan: AnalysisPlan
+    conditionAnalysisRequest?: AuthorizationConditionAnalysisRequestV1
+    conditionPlan?: ConditionAnalysisPlan
   }
   | { status: "invalid"; inputPath: string; diagnostics: AnalysisDiagnostic[] }
 
@@ -195,12 +212,30 @@ export async function loadLocalAuthorizationInput(inputFile: string): Promise<Lo
     diagnostics.push(...declarationLocationDiagnostics(input.task, loadedBundle.bundle))
   }
 
-  const analysisProfile: LocalAnalysisProfile = input.analysisRequirements
+  const analysisProfile: LocalAnalysisProfile = input.analysisProfile ?? (input.analysisRequirements
     ? { id: "task-supplied", origin: "input" }
-    : { id: DEFAULT_AUTHORIZATION_ANALYSIS_PROFILE_ID, origin: "default" }
+    : { id: DEFAULT_AUTHORIZATION_ANALYSIS_PROFILE_ID, origin: "default" })
   const analysisRequirements = input.analysisRequirements
     ? [...input.analysisRequirements]
     : createDefaultAnalysisRequirements(input.task)
+  if (input.analysisProfile && !input.analysisRequirements) {
+    diagnostics.push(localDiagnostic(
+      "analysis-profile-requirements-missing",
+      "A materialized analysisProfile requires its analysisRequirements in the same normalized input.",
+      "analysisRequirements",
+    ))
+  }
+  if (
+    input.analysisProfile?.id === DEFAULT_AUTHORIZATION_ANALYSIS_PROFILE_ID
+    && input.analysisRequirements
+    && JSON.stringify(input.analysisRequirements) !== JSON.stringify(createDefaultAnalysisRequirements(input.task))
+  ) {
+    diagnostics.push(localDiagnostic(
+      "analysis-profile-drift",
+      `Materialized ${DEFAULT_AUTHORIZATION_ANALYSIS_PROFILE_ID} requirements do not match the deterministic shared profile.`,
+      "analysisRequirements",
+    ))
+  }
   const analysisPlan = compileAnalysisRequirements(input.task, analysisRequirements)
   if (analysisPlan.status !== "ready") {
     diagnostics.push(...analysisPlan.diagnostics.map(item => ({
@@ -212,6 +247,23 @@ export async function loadLocalAuthorizationInput(inputFile: string): Promise<Lo
         "analysis-plan-not-ready",
         `Analysis requirements compiled with status ${analysisPlan.status}.`,
         "analysisRequirements",
+      ))
+    }
+  }
+  const conditionPlan = input.conditionAnalysisRequest
+    ? compileConditionAnalysisRequest(input.task, input.conditionAnalysisRequest)
+    : undefined
+  if (conditionPlan && conditionPlan.status !== "ready") {
+    diagnostics.push(...conditionPlan.diagnostics.map(item => localDiagnostic(
+      item.code,
+      item.message,
+      item.path ?? "conditionAnalysisRequest",
+    )))
+    if (conditionPlan.diagnostics.length === 0) {
+      diagnostics.push(localDiagnostic(
+        "condition-plan-not-ready",
+        `Condition analysis request compiled with status ${conditionPlan.status}.`,
+        "conditionAnalysisRequest",
       ))
     }
   }
@@ -228,5 +280,8 @@ export async function loadLocalAuthorizationInput(inputFile: string): Promise<Lo
     analysisProfile,
     analysisRequirements,
     analysisPlan,
+    ...(input.conditionAnalysisRequest
+      ? { conditionAnalysisRequest: input.conditionAnalysisRequest, conditionPlan }
+      : {}),
   }
 }

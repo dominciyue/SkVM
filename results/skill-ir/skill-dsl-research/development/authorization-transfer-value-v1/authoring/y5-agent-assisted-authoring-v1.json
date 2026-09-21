@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "authorization-agent-assisted-authoring-experience/v1",
+  "stage": "Y5",
+  "implementationBase": "71c56b9",
+  "sourceAuthoringPath": "examples/authorization-assessment/authoring.json",
+  "sourceAuthoringSha256": "8920a92f6ef5fbf1f48c0715e63f2aa6b98f1a41357f05dd0f8d624f954eb460",
+  "authorMode": "development-agent-assisted-synthetic",
+  "originalAuthoringPreserved": true,
+  "sourceRefVerification": "authored",
+  "editCount": 22,
+  "editsByCategory": {
+    "taskIdentityAndRequest": 2,
+    "policy": 2,
+    "principal": 4,
+    "resource": 3,
+    "entry": 2,
+    "obligationRelationAndCondition": 8,
+    "publicAnalysis": 1
+  },
+  "edits": [
+    { "stage": "draft", "path": "task.taskId", "from": "synthetic-record-archive", "to": "synthetic-record-audit-export" },
+    { "stage": "draft", "path": "task.request", "from": "Assess whether an authenticated support agent who is neither the record owner nor a supervisor may archive the declared record.", "to": "Assess whether an assigned records auditor may export the declared audit record." },
+    { "stage": "draft", "path": "task.policySources.0.text", "from": "Only the record owner or a supervisor may archive a record.", "to": "Only an assigned records auditor may export an audit record." },
+    { "stage": "draft", "path": "task.policySources.0.revision", "from": "synthetic-policy-v1", "to": "synthetic-policy-v2" },
+    { "stage": "draft", "path": "task.principals.0.id", "from": "support-agent", "to": "records-auditor" },
+    { "stage": "draft", "path": "task.principals.0.role", "from": "authenticated support agent", "to": "assigned records auditor" },
+    { "stage": "draft", "path": "task.principals.0.description", "from": "A support agent who is not the selected record owner and has no supervisor role.", "to": "An authenticated auditor assigned to the selected record." },
+    { "stage": "draft", "path": "task.principals.0.startingCapabilities", "from": ["authenticated", "support-agent"], "to": ["authenticated", "records-auditor"] },
+    { "stage": "draft", "path": "task.resources.0.id", "from": "customer-record", "to": "audit-record" },
+    { "stage": "draft", "path": "task.resources.0.type", "from": "record", "to": "audit record" },
+    { "stage": "draft", "path": "task.resources.0.description", "from": "An existing customer record owned by another principal.", "to": "A record assigned to the declared auditor." },
+    { "stage": "draft", "path": "task.entries.0.id", "from": "archive-record", "to": "export-record" },
+    { "stage": "draft", "path": "task.entries.0.name", "from": "archiveRecord", "to": "exportRecord" },
+    { "stage": "draft", "path": "task.obligations.0.relation", "from": "different-owner-without-supervisor-role", "to": "assigned-auditor" },
+    { "stage": "draft", "path": "task.obligations.0.operation", "from": "archive", "to": "export" },
+    { "stage": "draft", "path": "task.obligations.0.expectation", "from": "deny", "to": "allow" },
+    { "stage": "draft", "path": "task.obligations.0.conditions.1.name", "from": "not-supervisor", "to": "auditor-assigned" },
+    { "stage": "draft", "path": "task.obligations.0.conditions.1.basis", "from": "The task fixes the caller as having no supervisor role.", "to": "The task fixes the caller as assigned to this record." },
+    { "stage": "draft", "path": "task.requiredAnalysis.0", "from": "Trace the principal, record ownership relation, supervisor override, rejection branch, and archive effect.", "to": "Trace the auditor assignment, selected record, visible export control, and export effect." },
+    { "stage": "repair", "path": "task.obligations.0.principalId", "from": "support-agent", "to": "records-auditor" },
+    { "stage": "repair", "path": "task.obligations.0.resourceId", "from": "customer-record", "to": "audit-record" },
+    { "stage": "repair", "path": "task.obligations.0.entryIds.0", "from": "archive-record", "to": "export-record" }
+  ],
+  "checks": [
+    {
+      "sequence": 1,
+      "label": "original-authoring",
+      "status": "ready",
+      "diagnostics": []
+    },
+    {
+      "sequence": 2,
+      "label": "changed-declarations-with-stale-obligation-references",
+      "status": "needs-input",
+      "diagnostics": [
+        { "code": "author-task-dangling-reference", "path": "task.obligations.0.entryIds.0" },
+        { "code": "author-task-dangling-reference", "path": "task.obligations.0.principalId" },
+        { "code": "author-task-dangling-reference", "path": "task.obligations.0.resourceId" }
+      ]
+    },
+    {
+      "sequence": 3,
+      "label": "changed-declarations-with-aligned-references",
+      "status": "ready",
+      "diagnostics": [],
+      "normalizedInputSha256": "f0a462d733a666a79a5886f25e939ed5d90551ca0db69f1fdd41673cc57fca55",
+      "derivedRequirementCount": 6
+    }
+  ],
+  "accounting": {
+    "normalizationChecks": 3,
+    "providerCalls": 0,
+    "targetExecutions": 0,
+    "humanParticipants": 0,
+    "humanTimeMinutes": null,
+    "humanSavingsClaimed": false,
+    "actualUsd": null,
+    "actualUsdStatus": "unknown"
+  },
+  "claimBoundary": "This is an agent-assisted synthetic authoring trace. It measures fields, checks, and diagnostics only; it is not evidence of human time savings or semantic model quality."
+}

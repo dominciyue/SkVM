@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v1",
+  "sourceRoot": "project",
+  "sources": [
+    "src/record.ts"
+  ],
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "synthetic-record-archive",
+    "request": "Assess whether an authenticated support agent who is neither the record owner nor a supervisor may archive the declared record.",
+    "repository": "https://example.test/synthetic/records",
+    "sourceRef": "synthetic-v1",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "archive-policy",
+        "kind": "explicit-task-requirement",
+        "text": "Only the record owner or a supervisor may archive a record.",
+        "location": "authoring.json#/task/policySources/0",
+        "revision": "synthetic-policy-v1",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The synthetic task author controls this bounded requirement."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "support-agent",
+        "role": "authenticated support agent",
+        "description": "A support agent who is not the selected record owner and has no supervisor role.",
+        "startingCapabilities": [
+          "authenticated",
+          "support-agent"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "customer-record",
+        "type": "record",
+        "description": "An existing customer record owned by another principal."
+      }
+    ],
+    "entries": [
+      {
+        "id": "archive-record",
+        "name": "archiveRecord",
+        "locations": [
+          {
+            "path": "src/record.ts",
+            "startLine": 11,
+            "endLine": 16
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "deny-unrelated-agent-archive",
+        "principalId": "support-agent",
+        "resourceId": "customer-record",
+        "relation": "different-owner-without-supervisor-role",
+        "operation": "archive",
+        "expectation": "deny",
+        "conditions": [
+          {
+            "name": "authenticated",
+            "basis": "The task fixes the caller as authenticated."
+          },
+          {
+            "name": "not-supervisor",
+            "basis": "The task fixes the caller as having no supervisor role."
+          }
+        ],
+        "policySourceId": "archive-policy",
+        "entryIds": [
+          "archive-record"
+        ]
+      }
+    ],
+    "scopeAssurance": "The explicit source covers the declared archive entry only; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace the principal, record ownership relation, supervisor override, rejection branch, and archive effect.",
+      "Name any decisive fact that is unavailable from the fixed source."
+    ],
+    "constraints": [
+      "Use only the supplied fixed source context.",
+      "Do not execute or modify the target and do not claim whole-repository coverage."
+    ]
+  }
+}

@@ -2,13 +2,13 @@
   "schemaVersion": "authorization-dsl-transfer-value-development/v1",
   "taskbook": "docs/superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md",
   "createdAt": "2026-09-22T00:51:02+08:00",
-  "updatedAt": "2026-09-22T01:42:00+08:00",
+  "updatedAt": "2026-09-22T02:07:01+08:00",
   "branch": "skill-ir-aot",
   "startHead": "b3a1a44",
   "codeBaseline": "abe470f2a887f35ca1d6782cfbd5343965856620",
-  "stage": "Y5",
+  "stage": "Y6",
   "taskStatus": "in-progress",
-  "nextAction": "Write failing authoring normalization tests for deterministic sourceIdentity/default requirement derivation, preserved author input, needs-input diagnostics, and shared path handling.",
+  "nextAction": "Write failing top-level authorization CLI tests for safe init, provider-free check/inspect, default B, method routing, --from normalization, exit codes, and new immutable sessions.",
   "stages": {
     "Y0": {
       "status": "completed",
@@ -52,8 +52,17 @@
         "Focused render/transport/host verification passed 35/35 with 318 assertions; the full authorization suite passed 148/148 with 903 assertions; typecheck passed."
       ]
     },
-    "Y5": { "status": "in-progress", "evidence": [] },
-    "Y6": { "status": "planned", "evidence": [] },
+    "Y5": {
+      "status": "completed",
+      "evidence": [
+        "The first authoring test failed because authoring.ts did not exist; a later anti-cascade test first exposed six duplicate default-profile diagnostics in addition to three actionable stale references.",
+        "authoring/v1 now derives sourceIdentity and the shared six-class profile deterministically, materializes provenance, preserves explicit requirements and optional condition requests, and returns fix-located needs-input diagnostics without guessing policy or expectation.",
+        "A separate normalized input reuses the ordinary sourceRoot/source path boundary; the source authoring object and file remain unchanged.",
+        "The replayed synthetic agent-assisted trace changed 22 fields across principal, resource, relation, entry, condition, policy, and public analysis; three checks found three stale references and then reached ready. No human time or savings is claimed.",
+        "Focused authoring tests passed 6/6 with 62 assertions; the full authorization suite passed 154/154 with 965 assertions; typecheck passed."
+      ]
+    },
+    "Y6": { "status": "in-progress", "evidence": [] },
     "Y7": { "status": "planned", "evidence": [] },
     "Y8": { "status": "planned", "evidence": [] },
     "Y9": { "status": "planned", "evidence": [] },
@@ -109,7 +118,7 @@
     "conditionLayer": "opt-in"
   },
   "unresolvedIssues": [
-    "Condition wire/v3 is integrated, but authoring normalization, top-level CLI, P/L/C study, and third-project migration remain.",
+    "Condition wire/v3 and authoring normalization are integrated, but the top-level CLI, P/L/C study, and third-project migration remain.",
     "Actual provider USD is not reported and must remain unknown unless the provider supplies it."
   ],
   "operations": {
@@ -145,6 +154,13 @@
       "authorizationSuite": { "passed": 148, "failed": 0, "assertions": 903 },
       "typecheck": "passed",
       "redState": "renderer lacked a condition plan; wire/v3 export was missing; host parsed v3 as v2"
+    },
+    "y5Authoring": {
+      "focused": { "passed": 6, "failed": 0, "assertions": 62 },
+      "authorizationSuite": { "passed": 154, "failed": 0, "assertions": 965 },
+      "typecheck": "passed",
+      "redState": "authoring.ts module missing; stale task references also produced six cascading default-profile diagnostics before the focused repair",
+      "agentAssistedTrace": { "fieldEdits": 22, "checks": 3, "actionableDiagnostics": 3, "humanSavingsClaimed": false }
     }
   }
 }
