@@ -9,8 +9,10 @@ import type { AuthorizationTaskV0 } from "./schema.ts"
 import {
   AuthorizationWireResultV1Schema,
   AuthorizationWireResultV2Schema,
+  AuthorizationWireResultV3Schema,
   normalizeAuthorizationWireResult,
   normalizeAuthorizationWireResultV2,
+  normalizeAuthorizationWireResultV3,
 } from "./transport.ts"
 
 const sourcePath = "inputs/generic/source.ts"
@@ -278,5 +280,72 @@ describe("AuthorizationWireResultV2", () => {
     expect(AuthorizationWireResultV2Schema.safeParse(malformedCoverage).success).toBe(false)
     expect(AuthorizationWireResultV1Schema.safeParse(v1).success).toBe(true)
     expect(AuthorizationWireResultV1Schema.safeParse({ ...v1, coverage: [] }).success).toBe(false)
+  })
+})
+
+describe("AuthorizationWireResultV3", () => {
+  it("retains a versioned condition sidecar while preserving canonical v0 and coverage", () => {
+    const v3 = {
+      ...wire(),
+      schemaVersion: "source-authorization-assessment-wire/v3",
+      coverage: [{
+        requirementId: "control",
+        obligationId: "deny-save::save",
+        status: "addressed" as const,
+        explanation: "The control fact answers the analysis question.",
+        factPointers: ["/results/0/facts/control/0"],
+      }],
+      conditionAnalysis: {
+        schemaVersion: "authorization-condition-analysis-result/v1" as const,
+        analyses: [{
+          obligationId: "deny-save::save",
+          branches: [{
+            id: "not-permitted-blocked",
+            obligationId: "deny-save::save",
+            assumptions: [{ conditionId: "is-permitted", value: "false" as const }],
+            effect: "blocked" as const,
+            explanation: "The visible control blocks an unpermitted caller.",
+            factPointers: ["/results/0/facts/control/0"],
+            missingFacts: [],
+          }],
+          unexaminedConditionIds: [],
+          completeness: "bounded" as const,
+          limitations: [],
+        }],
+      },
+    }
+    const normalized = normalizeAuthorizationWireResultV3({
+      compiled: compileAuthorizationTask(task()),
+      sourceBundle: bundle(),
+      input: v3,
+    })
+
+    expect(normalized.status).toBe("valid")
+    expect(normalized.normalizerVersion).toBe("authorization-wire-normalizer/v3")
+    expect(normalized.result?.schemaVersion).toBe("source-authorization-assessment-result/v0")
+    expect(normalized.coverage).toEqual(v3.coverage)
+    expect(normalized.conditionAnalysis).toEqual(v3.conditionAnalysis)
+    expect(normalized.wireResult?.schemaVersion).toBe("source-authorization-assessment-wire/v3")
+  })
+
+  it("keeps the old wire schemas strict when the condition sidecar is present", () => {
+    const conditionAnalysis = {
+      schemaVersion: "authorization-condition-analysis-result/v1",
+      analyses: [],
+    }
+    const v1 = wire({ conditionAnalysis })
+    const v2 = {
+      ...wire(),
+      schemaVersion: "source-authorization-assessment-wire/v2",
+      coverage: [],
+      conditionAnalysis,
+    }
+
+    expect(AuthorizationWireResultV1Schema.safeParse(v1).success).toBe(false)
+    expect(AuthorizationWireResultV2Schema.safeParse(v2).success).toBe(false)
+    expect(AuthorizationWireResultV3Schema.safeParse({
+      ...v2,
+      schemaVersion: "source-authorization-assessment-wire/v3",
+    }).success).toBe(true)
   })
 })

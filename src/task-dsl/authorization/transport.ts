@@ -11,6 +11,10 @@ import {
   RelationCoverageListSchema,
   type RelationCoverage,
 } from "./relation-result.ts"
+import {
+  AuthorizationConditionAnalysisResultV1Schema,
+  type AuthorizationConditionAnalysisResultV1,
+} from "./conditions.ts"
 
 const NonEmptyString = z.string().trim().min(1)
 
@@ -63,6 +67,16 @@ export const AuthorizationWireResultV2Schema = AuthorizationWireResultV1Schema
 
 export type AuthorizationWireResultV2 = z.infer<typeof AuthorizationWireResultV2Schema>
 
+export const AuthorizationWireResultV3Schema = AuthorizationWireResultV2Schema
+  .omit({ schemaVersion: true })
+  .extend({
+    schemaVersion: z.literal("source-authorization-assessment-wire/v3"),
+    conditionAnalysis: AuthorizationConditionAnalysisResultV1Schema,
+  })
+  .strict()
+
+export type AuthorizationWireResultV3 = z.infer<typeof AuthorizationWireResultV3Schema>
+
 export interface AuthorizationTransportDiagnostic {
   code: string
   message: string
@@ -90,6 +104,20 @@ export interface AuthorizationWireNormalizationV2 {
   sourceCatalog?: AuthorizationSourceCatalog
   result?: AuthorizationResultV0
   coverage?: RelationCoverage[]
+}
+
+export interface AuthorizationWireNormalizationV3 {
+  normalizerVersion: "authorization-wire-normalizer/v3"
+  canonicalResultVersion: "source-authorization-assessment-result/v0"
+  coverageVersion: "authorization-relation-coverage/v1"
+  conditionResultVersion: "authorization-condition-analysis-result/v1"
+  status: "valid" | "invalid"
+  diagnostics: AuthorizationTransportDiagnostic[]
+  wireResult?: AuthorizationWireResultV3
+  sourceCatalog?: AuthorizationSourceCatalog
+  result?: AuthorizationResultV0
+  coverage?: RelationCoverage[]
+  conditionAnalysis?: AuthorizationConditionAnalysisResultV1
 }
 
 function transportDiagnostic(code: string, message: string, path: string): AuthorizationTransportDiagnostic {
@@ -292,5 +320,50 @@ export function normalizeAuthorizationWireResultV2(input: {
     ...(v1.sourceCatalog ? { sourceCatalog: v1.sourceCatalog } : {}),
     ...(v1.result ? { result: v1.result } : {}),
     coverage,
+  }
+}
+
+export function normalizeAuthorizationWireResultV3(input: {
+  compiled: CompiledAuthorizationTask
+  sourceBundle: SourceBundle
+  input: unknown
+}): AuthorizationWireNormalizationV3 {
+  const base = {
+    normalizerVersion: "authorization-wire-normalizer/v3" as const,
+    canonicalResultVersion: "source-authorization-assessment-result/v0" as const,
+    coverageVersion: "authorization-relation-coverage/v1" as const,
+    conditionResultVersion: "authorization-condition-analysis-result/v1" as const,
+  }
+  const parsed = AuthorizationWireResultV3Schema.safeParse(input.input)
+  if (!parsed.success) {
+    return {
+      ...base,
+      status: "invalid",
+      diagnostics: parsed.error.issues.map(issue => transportDiagnostic(
+        "wire-schema-invalid",
+        issue.message,
+        formatPath(issue.path),
+      )),
+    }
+  }
+
+  const { conditionAnalysis, ...wireWithoutConditionAnalysis } = parsed.data
+  const v2 = normalizeAuthorizationWireResultV2({
+    compiled: input.compiled,
+    sourceBundle: input.sourceBundle,
+    input: {
+      ...wireWithoutConditionAnalysis,
+      schemaVersion: "source-authorization-assessment-wire/v2",
+    },
+  })
+  return {
+    ...base,
+    status: v2.status,
+    diagnostics: v2.diagnostics,
+    wireResult: parsed.data,
+    ...(v2.sourceCatalog ? { sourceCatalog: v2.sourceCatalog } : {}),
+    ...(v2.result ? { result: v2.result } : {}),
+    coverage: v2.coverage,
+    conditionAnalysis,
   }
 }

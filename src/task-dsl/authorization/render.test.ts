@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import { compileAuthorizationTask } from "./semantics.ts"
+import { compileConditionAnalysisRequest } from "./conditions.ts"
 import {
   measureAuthorizationPromptCharacters,
   renderAuthorizationTask,
@@ -214,6 +215,35 @@ describe("renderAuthorizationTask", () => {
       expect(natural.prompt).toContain(requirement.question)
       expect(baseline.prompt).toContain(requirement.question)
       expect(domain.prompt).toContain(requirement.question)
+    }
+  })
+
+  it("shares one answer-free condition plan across arms and marks assumptions as hypotheses", () => {
+    const compiled = compileAuthorizationTask(task)
+    const analysisPlan = compileAnalysisRequirements(task, createDefaultAnalysisRequirements(task))
+    const conditionPlan = compileConditionAnalysisRequest(task, {
+      schemaVersion: "authorization-condition-analysis-request/v1",
+      requests: [{
+        obligationId: "deny-cross-team-delete",
+        conditionBindings: [{ id: "is-authenticated", name: "authenticated" }],
+        maxBranches: 3,
+      }],
+    })
+    const renders = (["N", "B", "D"] as const).map(
+      arm => renderAuthorizationTask(compiled, arm, analysisPlan, conditionPlan),
+    )
+
+    expect(conditionPlan.status).toBe("ready")
+    expect(renders[0]!.sections.conditionAnalysis).toBe(renders[1]!.sections.conditionAnalysis)
+    expect(renders[2]!.sections.conditionAnalysis).toBe(renders[1]!.sections.conditionAnalysis)
+    expect(renders[0]!.sections.outputContract).toBe(renders[1]!.sections.outputContract)
+    expect(renders[2]!.sections.outputContract).toBe(renders[1]!.sections.outputContract)
+    for (const rendered of renders) {
+      expect(rendered.prompt).toContain("is-authenticated")
+      expect(rendered.prompt).toContain("Analysis assumptions are hypotheses")
+      expect(rendered.prompt).toContain("unexaminedConditionIds")
+      expect(rendered.sections.conditionAnalysis).not.toContain('"effect"')
+      expect(rendered.conditionPlan).toEqual(conditionPlan)
     }
   })
 

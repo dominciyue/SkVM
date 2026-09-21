@@ -4,6 +4,7 @@ import type { CompletionParams, LLMProvider, LLMResponse } from "../../providers
 import { ProviderNetworkError } from "../../providers/errors.ts"
 import type { AuthorizationResultV0, AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
 import type { AnalysisRequirement } from "../../task-dsl/authorization/relations.ts"
+import type { AuthorizationConditionAnalysisRequestV1 } from "../../task-dsl/authorization/conditions.ts"
 import { buildAuthorizationSourceCatalog, type SourceBundle } from "./inputs.ts"
 import { runAuthorizationTask } from "./host.ts"
 
@@ -172,6 +173,126 @@ function makeWireAnswerV2(coverage: unknown[] = [{
   }
 }
 
+function makeTwoObligationTask(): AuthorizationTaskV0 {
+  const task = makeTask()
+  task.entries.push({
+    id: "read-record",
+    name: "readRecord",
+    locations: [{ path: "inputs/sample/source.ts", startLine: 1, endLine: 5 }],
+  })
+  task.obligations.push({
+    id: "allow-owned-read",
+    principalId: "member",
+    resourceId: "record",
+    relation: "owner",
+    operation: "read",
+    expectation: "allow",
+    conditions: [{ name: "caller owns record", basis: "The accepted policy names ownership." }],
+    policySourceId: "record-write-policy",
+    entryIds: ["read-record"],
+  })
+  return task
+}
+
+function makeTwoObligationRequirements(): AnalysisRequirement[] {
+  return [{
+    id: "control",
+    kind: "authorization-decision",
+    obligationIds: ["deny-unrelated-update", "allow-owned-read"],
+    question: "Which visible authorization control decides each operation?",
+    applicability: "required",
+    prerequisiteIds: [],
+  }]
+}
+
+function makeConditionRequest(): AuthorizationConditionAnalysisRequestV1 {
+  return {
+    schemaVersion: "authorization-condition-analysis-request/v1",
+    requests: [
+      {
+        obligationId: "deny-unrelated-update",
+        conditionBindings: [{ id: "is-authenticated", name: "authenticated" }],
+        maxBranches: 2,
+      },
+      {
+        obligationId: "allow-owned-read",
+        conditionBindings: [{ id: "is-owner", name: "caller owns record" }],
+        maxBranches: 2,
+      },
+    ],
+  }
+}
+
+function makeWireAnswerV3(invalidCrossObligation = false): Record<string, unknown> {
+  const base = makeWireAnswer()
+  const results = base.results as Array<Record<string, any>>
+  const secondResult = structuredClone(results[0]!)
+  secondResult.obligationId = "allow-owned-read::read-record"
+  secondResult.conclusion = "source_refuted"
+  secondResult.explanation = "The visible owner branch permits the declared read."
+  results.push(secondResult)
+  return {
+    ...base,
+    schemaVersion: "source-authorization-assessment-wire/v3",
+    coverage: [
+      {
+        requirementId: "control",
+        obligationId: "deny-unrelated-update::update-record",
+        status: "addressed",
+        explanation: "The first control fact answers the update question.",
+        factPointers: ["/results/0/facts/control/0"],
+      },
+      {
+        requirementId: "control",
+        obligationId: "allow-owned-read::read-record",
+        status: "addressed",
+        explanation: "The second control fact answers the read question.",
+        factPointers: ["/results/1/facts/control/0"],
+      },
+    ],
+    conditionAnalysis: {
+      schemaVersion: "authorization-condition-analysis-result/v1",
+      analyses: [
+        {
+          obligationId: "deny-unrelated-update::update-record",
+          branches: [{
+            id: "authenticated-update",
+            obligationId: "deny-unrelated-update::update-record",
+            assumptions: [{
+              conditionId: invalidCrossObligation ? "is-owner" : "is-authenticated",
+              value: "true",
+            }],
+            effect: "blocked",
+            explanation: "The visible write control blocks the unrelated update.",
+            factPointers: [invalidCrossObligation
+              ? "/results/1/facts/control/0"
+              : "/results/0/facts/control/0"],
+            missingFacts: [],
+          }],
+          unexaminedConditionIds: [],
+          completeness: "bounded",
+          limitations: [],
+        },
+        {
+          obligationId: "allow-owned-read::read-record",
+          branches: [{
+            id: "owner-read",
+            obligationId: "allow-owned-read::read-record",
+            assumptions: [{ conditionId: "is-owner", value: "true" }],
+            effect: "reachable",
+            explanation: "The visible owner branch permits the read.",
+            factPointers: ["/results/1/facts/control/0"],
+            missingFacts: [],
+          }],
+          unexaminedConditionIds: [],
+          completeness: "bounded",
+          limitations: [],
+        },
+      ],
+    },
+  }
+}
+
 function toolResponse(argumentsValue: Record<string, unknown>, name = "submit_authorization_result"): LLMResponse {
   return {
     text: "",
@@ -322,6 +443,44 @@ describe("runAuthorizationTask", () => {
     expect(calls).toHaveLength(2)
     expect(calls[1]?.messages[0]?.content).toContain("missing-relation-coverage")
     expect(calls[1]?.messages[0]?.content.toLowerCase()).not.toContain("expected finding")
+  })
+
+  it("uses wire v3 and repairs cross-obligation condition IDs and fact pointers once", async () => {
+    const calls: CompletionParams[] = []
+    const run = await runAuthorizationTask({
+      task: makeTwoObligationTask(),
+      sourceBundle: makeBundle(),
+      analysisRequirements: makeTwoObligationRequirements(),
+      conditionAnalysisRequest: makeConditionRequest(),
+      provider: sequenceProvider([
+        toolResponse(makeWireAnswerV3(true)),
+        toolResponse(makeWireAnswerV3(false)),
+      ], calls, { value: 0 }),
+      arm: "B",
+      options: { timeoutMs: 1_000, maxTokens: 2_000, maxDomainRepairs: 1 },
+    })
+
+    expect(run.status).toBe("completed")
+    expect(run.conditionPlan?.status).toBe("ready")
+    expect(run.initial?.conditionValidation?.status).toBe("invalid")
+    expect(run.initial?.conditionValidation?.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "condition-obligation-mismatch" }),
+      expect.objectContaining({ code: "condition-fact-pointer-obligation-mismatch" }),
+    ]))
+    expect(run.repair?.conditionValidation).toEqual(expect.objectContaining({
+      status: "valid",
+      semanticSupport: "unreviewed",
+    }))
+    expect(run.repair?.conditionAnalysis?.schemaVersion).toBe("authorization-condition-analysis-result/v1")
+    expect(run.repair?.normalization?.normalizerVersion).toBe("authorization-wire-normalizer/v3")
+    expect(run.finalKind).toBe("repair")
+    expect(calls).toHaveLength(2)
+    expect(calls[0]?.messages[0]?.content).toContain("Analysis assumptions are hypotheses")
+    expect(calls[1]?.messages[0]?.content).toContain("condition-obligation-mismatch")
+    expect(calls[1]?.messages[0]?.content).toContain("condition-fact-pointer-obligation-mismatch")
+    expect(calls[1]?.messages[0]?.content.toLowerCase()).not.toContain("expected condition answer")
+    const toolSchema = calls[0]?.tools?.[0]?.inputSchema as { properties?: Record<string, unknown> }
+    expect(toolSchema.properties).toHaveProperty("conditionAnalysis")
   })
 
   it("does not report complete delivery when coverage remains invalid after repair", async () => {

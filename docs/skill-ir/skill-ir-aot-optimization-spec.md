@@ -2500,4 +2500,6 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **Y3 条件纯函数边界。** request compiler 只从 authored condition 的唯一 name 取回 basis，并把请求展开到同 authored obligation 的 runnable expanded IDs；任何 ambiguous request 不生成其部分执行 plan。result validator 检查 schema、闭集ID、同分支赋值、branch uniqueness/bound、显式未分析集合、unknown missing facts 和 canonical same-obligation fact pointer，语义支持仍是 `unreviewed`。省略请求返回 `not-requested`，旧任务不需要空sidecar。源码循环与这些分析假设不等价，validator不做符号执行或部署事实推断。
 
+**Y4 条件运行边界。** renderer 对N/B/D使用同一 answer-free condition plan，并明确 assumption 只是分析假设。ready condition request 必须与 ready analysis plan 组合，选择 strict wire/v3；v3 在v2之上保存 condition result/v1，canonical result 继续v0。host分别保存 initial/repair wire、sidecar和validation，condition与coverage机械诊断共用最多一次repair；最终仍错则保留诊断，不提升为完整语义交付。未启用条件层时v1/v2 schema、normalizer与输出不变；生成链不读取evaluator。
+
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。

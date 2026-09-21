@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 SkVM provider 与 CLI。机器结果写一处，研究与问题复盘持续追加研究总文档，不新增 HTML、通用工作流引擎或整套产品 CLI。
 
-- 日期：2026-09-22；状态：`in-progress`。Y0–Y1 已完成，机器状态位于本任务书指定的新结果根；当前进入 Y2。
+- 日期：2026-09-22；状态：`in-progress`。Y0–Y4 已完成，机器状态位于本任务书指定的新结果根；当前进入 Y5。
 - 代码基线：`abe470f2a887f35ca1d6782cfbd5343965856620`；接手时读取本任务书登记提交后的最新 HEAD。
 - 分支：`skill-ir-aot`；只提交归属文件并推送用户 `origin/skill-ir-aot`。
 - 设计：[研究总文档 §7.22](../../skill-ir/skill-dsl-research.md#722-y-条件表达默认迁移与价值验证)；持续合同：spec 14.34。
@@ -154,10 +154,10 @@ init/check/inspect 不初始化 provider；run 显式使用 `--model`。没有 a
 - [x] 运行 `bun test ./src/task-dsl/authorization/conditions.test.ts` 红绿；将源码循环与分析条件矛盾区分，不做通用符号执行。
 
 ### Y4：接通 renderer、wire、host 与结果
-- [ ] 先写 host/transport 失败用例：模型返回外义务 condition/fact pointer 不得成为有效条件结果；旧 wire v1/v2 保持原行为。
-- [ ] 通过显式新 wire/sidecar接入同一请求，host 复用一次 diagnostics-only repair；最终诊断与语义未评状态清楚显示。
-- [ ] 保存初始与修复响应、条件 sidecar、实际使用模式；无 evaluator 数据参与生成。假设取值不得写成来源已验证事实。
-- [ ] 跑 conditions/render/transport/host 聚焦测试，当前有效任务不得因未启用条件层改变输出。
+- [x] 先写 host/transport 失败用例：模型返回外义务 condition/fact pointer 不得成为有效条件结果；旧 wire v1/v2 保持原行为。
+- [x] 通过显式新 wire/sidecar接入同一请求，host 复用一次 diagnostics-only repair；最终诊断与语义未评状态清楚显示。
+- [x] 保存初始与修复响应、条件 sidecar、实际使用模式；无 evaluator 数据参与生成。假设取值不得写成来源已验证事实。
+- [x] 跑 conditions/render/transport/host 聚焦测试，当前有效任务不得因未启用条件层改变输出。
 
 ### Y5：减少声明编写负担
 - [ ] 写 authoring 规范化红测：同一 task 派生唯一 sourceIdentity；缺政策或 expectation 返回 needs-input；原输入保持；显式 requirements 不被默认覆盖；路径解析与普通入口一致。

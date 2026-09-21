@@ -2,13 +2,13 @@
   "schemaVersion": "authorization-dsl-transfer-value-development/v1",
   "taskbook": "docs/superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md",
   "createdAt": "2026-09-22T00:51:02+08:00",
-  "updatedAt": "2026-09-22T01:22:04+08:00",
+  "updatedAt": "2026-09-22T01:42:00+08:00",
   "branch": "skill-ir-aot",
   "startHead": "b3a1a44",
   "codeBaseline": "abe470f2a887f35ca1d6782cfbd5343965856620",
-  "stage": "Y4",
+  "stage": "Y5",
   "taskStatus": "in-progress",
-  "nextAction": "Write failing render/transport/host integration tests for wire v3 and condition diagnostics, then connect the optional condition sidecar through the existing one-repair host path.",
+  "nextAction": "Write failing authoring normalization tests for deterministic sourceIdentity/default requirement derivation, preserved author input, needs-input diagnostics, and shared path handling.",
   "stages": {
     "Y0": {
       "status": "completed",
@@ -43,8 +43,16 @@
         "A narrow read-only independent review found no critical or important issue and confirmed missing-fact semantics remain evaluator-owned."
       ]
     },
-    "Y4": { "status": "in-progress", "evidence": [] },
-    "Y5": { "status": "planned", "evidence": [] },
+    "Y4": {
+      "status": "completed",
+      "evidence": [
+        "Renderer tests first failed because the answer-free condition plan and hypothesis warning were absent; transport and host tests likewise failed before wire v3 existed.",
+        "wire/v3 extends v2 only when a ready condition request is present, retains canonical v0 plus relation coverage and condition sidecars, and leaves strict v1/v2 behavior unchanged.",
+        "The host preserves initial and repair artifacts, validates cross-obligation condition IDs and canonical fact pointers, and reuses the existing single diagnostics-only repair without evaluator input.",
+        "Focused render/transport/host verification passed 35/35 with 318 assertions; the full authorization suite passed 148/148 with 903 assertions; typecheck passed."
+      ]
+    },
+    "Y5": { "status": "in-progress", "evidence": [] },
     "Y6": { "status": "planned", "evidence": [] },
     "Y7": { "status": "planned", "evidence": [] },
     "Y8": { "status": "planned", "evidence": [] },
@@ -101,7 +109,7 @@
     "conditionLayer": "opt-in"
   },
   "unresolvedIssues": [
-    "The condition pure functions are implemented but not wired into renderer/transport/host yet; authoring normalization, top-level CLI, P/L/C study, and third-project migration also remain.",
+    "Condition wire/v3 is integrated, but authoring normalization, top-level CLI, P/L/C study, and third-project migration remain.",
     "Actual provider USD is not reported and must remain unknown unless the provider supplies it."
   ],
   "operations": {
@@ -131,6 +139,12 @@
       "typecheck": "passed",
       "redState": "conditions.ts module missing",
       "independentReview": "no critical or important issue"
+    },
+    "y4ConditionIntegration": {
+      "focused": { "passed": 35, "failed": 0, "assertions": 318 },
+      "authorizationSuite": { "passed": 148, "failed": 0, "assertions": 903 },
+      "typecheck": "passed",
+      "redState": "renderer lacked a condition plan; wire/v3 export was missing; host parsed v3 as v2"
     }
   }
 }

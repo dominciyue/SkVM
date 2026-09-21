@@ -19,17 +19,29 @@ import {
   type AnalysisPlan,
   type AnalysisRequirement,
 } from "../../task-dsl/authorization/relations.ts"
+import {
+  compileConditionAnalysisRequest,
+  validateConditionAnalysisResult,
+  type AuthorizationConditionAnalysisRequestV1,
+  type AuthorizationConditionAnalysisResultV1,
+  type ConditionAnalysisPlan,
+  type ConditionAnalysisValidation,
+} from "../../task-dsl/authorization/conditions.ts"
 import type { AuthorizationResultV0, AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
 import { compileAuthorizationTask, type CompiledAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
 import {
   AuthorizationWireResultV1Schema,
   AuthorizationWireResultV2Schema,
+  AuthorizationWireResultV3Schema,
   normalizeAuthorizationWireResult,
   normalizeAuthorizationWireResultV2,
+  normalizeAuthorizationWireResultV3,
   type AuthorizationWireNormalization,
   type AuthorizationWireNormalizationV2,
+  type AuthorizationWireNormalizationV3,
   type AuthorizationWireResultV1,
   type AuthorizationWireResultV2,
+  type AuthorizationWireResultV3,
 } from "../../task-dsl/authorization/transport.ts"
 import { renderSourceBundle, type SourceBundle } from "./inputs.ts"
 import {
@@ -64,10 +76,36 @@ const ACTIONABLE_DIAGNOSTICS = new Set([
   "fact-pointer-obligation-mismatch",
   "coverage-fact-pointer-required",
   "required-coverage-not-applicable",
+  "condition-result-schema-invalid",
+  "missing-condition-analysis",
+  "duplicate-condition-analysis",
+  "foreign-condition-analysis",
+  "condition-branch-limit-exceeded",
+  "duplicate-condition-branch-id",
+  "condition-branch-obligation-mismatch",
+  "unknown-condition-id",
+  "condition-obligation-mismatch",
+  "duplicate-condition-assignment",
+  "conflicting-condition-assignment",
+  "duplicate-condition-branch",
+  "conflicting-condition-branch-effect",
+  "unknown-condition-missing-fact",
+  "condition-fact-pointer-required",
+  "dangling-condition-fact-pointer",
+  "condition-fact-pointer-obligation-mismatch",
+  "duplicate-unexamined-condition",
+  "condition-both-examined-and-unexamined",
+  "missing-condition-coverage",
+  "bounded-condition-analysis-has-unexamined",
+  "incomplete-condition-analysis-has-no-unexamined",
+  "incomplete-condition-analysis-missing-limitation",
 ])
 
-type AuthorizationWireResult = AuthorizationWireResultV1 | AuthorizationWireResultV2
-type AuthorizationWireNormalizationResult = AuthorizationWireNormalization | AuthorizationWireNormalizationV2
+type AuthorizationWireResult = AuthorizationWireResultV1 | AuthorizationWireResultV2 | AuthorizationWireResultV3
+type AuthorizationWireNormalizationResult =
+  | AuthorizationWireNormalization
+  | AuthorizationWireNormalizationV2
+  | AuthorizationWireNormalizationV3
 
 export interface RunAuthorizationTaskOptions {
   timeoutMs: number
@@ -83,6 +121,8 @@ export interface AuthorizationGenerationArtifact {
   normalization?: AuthorizationWireNormalizationResult
   relationCoverage?: RelationCoverage[]
   coverageValidation?: CoverageValidation
+  conditionAnalysis?: AuthorizationConditionAnalysisResultV1
+  conditionValidation?: ConditionAnalysisValidation
   rawResponse: string
   providerAttemptIds: string[]
   outputAttemptId: string
@@ -108,6 +148,7 @@ export interface AuthorizationTaskRun {
   arm: AuthorizationRenderArm
   compiled: CompiledAuthorizationTask
   analysisPlan?: AnalysisPlan
+  conditionPlan?: ConditionAnalysisPlan
   renderedPrompt: string
   promptCharacters?: AuthorizationRunPromptCharacters
   initialTransport?: AuthorizationTransportArtifact
@@ -141,6 +182,7 @@ export interface RunAuthorizationTaskInput {
   task: AuthorizationTaskV0
   sourceBundle: SourceBundle
   analysisRequirements?: AnalysisRequirement[]
+  conditionAnalysisRequest?: AuthorizationConditionAnalysisRequestV1
   provider: LLMProvider
   arm: AuthorizationRenderArm
   options: RunAuthorizationTaskOptions
@@ -157,8 +199,13 @@ function errorArtifact(error: unknown): { name: string; message: string } {
 function hasActionableDiagnostics(
   validation: AuthorizationValidation,
   coverageValidation?: CoverageValidation,
+  conditionValidation?: ConditionAnalysisValidation,
 ): boolean {
-  return [...validation.diagnostics, ...(coverageValidation?.diagnostics ?? [])]
+  return [
+    ...validation.diagnostics,
+    ...(coverageValidation?.diagnostics ?? []),
+    ...(conditionValidation?.diagnostics ?? []),
+  ]
     .some(diagnostic => ACTIONABLE_DIAGNOSTICS.has(diagnostic.code))
 }
 
@@ -168,14 +215,16 @@ function buildRepairPrompt(
   initial: AuthorizationTransportArtifact,
   validation?: AuthorizationValidation,
   coverageValidation?: CoverageValidation,
+  conditionValidation?: ConditionAnalysisValidation,
 ): { prompt: string; characters: AuthorizationRepairPromptCharacterBreakdown } {
   const actionable = [
     ...initial.normalization.diagnostics,
     ...(validation?.diagnostics ?? []),
     ...(coverageValidation?.diagnostics ?? []),
+    ...(conditionValidation?.diagnostics ?? []),
   ]
     .filter(diagnostic => ACTIONABLE_DIAGNOSTICS.has(diagnostic.code))
-    .map(diagnostic => ({ code: diagnostic.code, path: diagnostic.path ?? "coverage", message: diagnostic.message }))
+    .map(diagnostic => ({ code: diagnostic.code, path: diagnostic.path ?? "result", message: diagnostic.message }))
   const sections = {
     instructions: "# Authorization wire repair\n\nThe current structured answer did not satisfy deterministic host checks. Revise only that answer from the same declaration and exact source. Do not add unavailable facts or infer a requested conclusion.",
     declaration: `## Canonical declaration\n${rendered.sections.declaration}`,
@@ -215,7 +264,10 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
   const analysisPlan = input.analysisRequirements
     ? compileAnalysisRequirements(input.task, input.analysisRequirements)
     : undefined
-  const rendered = renderAuthorizationTask(compiled, input.arm, analysisPlan)
+  const conditionPlan = input.conditionAnalysisRequest
+    ? compileConditionAnalysisRequest(input.task, input.conditionAnalysisRequest)
+    : undefined
+  const rendered = renderAuthorizationTask(compiled, input.arm, analysisPlan, conditionPlan)
   const sourceContext = renderSourceBundle(input.sourceBundle)
   const renderedPrompt = rendered.prompt.replace("<SOURCE_CONTEXT_INSERTED_BY_HOST>", sourceContext)
   const promptCharacters: AuthorizationRunPromptCharacters = {
@@ -235,6 +287,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     return {
       ...partial,
       ...(analysisPlan ? { analysisPlan } : {}),
+      ...(conditionPlan ? { conditionPlan } : {}),
       promptCharacters,
       attempts: telemetry.attempts,
       events: telemetry.events,
@@ -257,6 +310,20 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
       },
     })
   }
+  if (conditionPlan && (!analysisPlan || conditionPlan.status !== "ready")) {
+    return finish({
+      status: "input-invalid",
+      arm: input.arm,
+      compiled,
+      renderedPrompt,
+      error: {
+        name: "AuthorizationConditionPlanInvalid",
+        message: !analysisPlan
+          ? "Condition analysis requires a ready public analysis plan before generation."
+          : "Condition analysis requests must compile to a ready plan before generation.",
+      },
+    })
+  }
   if (
     input.sourceBundle.repository !== input.task.repository
     || input.sourceBundle.sourceRef !== input.task.sourceRef
@@ -274,12 +341,16 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     })
   }
 
-  const wireSchema = (analysisPlan
-    ? AuthorizationWireResultV2Schema
-    : AuthorizationWireResultV1Schema) as ZodType<AuthorizationWireResult>
-  const normalizeWire = (wireInput: unknown): AuthorizationWireNormalizationResult => analysisPlan
-    ? normalizeAuthorizationWireResultV2({ compiled, sourceBundle: input.sourceBundle, input: wireInput })
-    : normalizeAuthorizationWireResult({ compiled, sourceBundle: input.sourceBundle, input: wireInput })
+  const wireSchema = (conditionPlan
+    ? AuthorizationWireResultV3Schema
+    : analysisPlan
+      ? AuthorizationWireResultV2Schema
+      : AuthorizationWireResultV1Schema) as ZodType<AuthorizationWireResult>
+  const normalizeWire = (wireInput: unknown): AuthorizationWireNormalizationResult => conditionPlan
+    ? normalizeAuthorizationWireResultV3({ compiled, sourceBundle: input.sourceBundle, input: wireInput })
+    : analysisPlan
+      ? normalizeAuthorizationWireResultV2({ compiled, sourceBundle: input.sourceBundle, input: wireInput })
+      : normalizeAuthorizationWireResult({ compiled, sourceBundle: input.sourceBundle, input: wireInput })
 
   const extract = async (phase: "initial" | "domain-repair", prompt: string) => {
     const firstAttemptIndex = telemetry.attempts.length
@@ -312,6 +383,29 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     const result = transport.normalization.result
     if (!result) return undefined
     const validation = validateAuthorizationResult(compiled, result, input.sourceBundle)
+    if (conditionPlan) {
+      if (transport.normalization.normalizerVersion !== "authorization-wire-normalizer/v3") {
+        throw new Error("Condition analysis plan requires wire normalizer v3.")
+      }
+      const relationCoverage = transport.normalization.coverage ?? []
+      const conditionAnalysis = transport.normalization.conditionAnalysis
+      if (!conditionAnalysis) {
+        throw new Error("Wire normalizer v3 returned no condition analysis.")
+      }
+      return {
+        result,
+        wireResult: transport.wireResult,
+        normalization: transport.normalization,
+        relationCoverage,
+        coverageValidation: validateRelationCoverage(analysisPlan!, result, relationCoverage),
+        conditionAnalysis,
+        conditionValidation: validateConditionAnalysisResult(conditionPlan, result, conditionAnalysis),
+        rawResponse: transport.rawResponse,
+        providerAttemptIds: transport.providerAttemptIds,
+        outputAttemptId: transport.outputAttemptId,
+        validation,
+      }
+    }
     if (analysisPlan) {
       if (transport.normalization.normalizerVersion !== "authorization-wire-normalizer/v2") {
         throw new Error("Analysis plan requires wire normalizer v2.")
@@ -357,7 +451,11 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     }
     initial = buildGenerationArtifact(initialTransport)
     const repairNeeded = initialNormalization.status === "invalid"
-      || (initial !== undefined && hasActionableDiagnostics(initial.validation, initial.coverageValidation))
+      || (initial !== undefined && hasActionableDiagnostics(
+        initial.validation,
+        initial.coverageValidation,
+        initial.conditionValidation,
+      ))
     if (input.options.maxDomainRepairs === 1 && repairNeeded) {
       const repairPrompt = buildRepairPrompt(
         rendered,
@@ -365,6 +463,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
         initialTransport,
         initial?.validation,
         initial?.coverageValidation,
+        initial?.conditionValidation,
       )
       promptCharacters.repair = repairPrompt.characters
       const extractedRepair = await extract(
@@ -408,6 +507,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
       ...finalTransport.normalization.diagnostics,
       ...finalArtifact.validation.diagnostics,
       ...(finalArtifact.coverageValidation?.diagnostics ?? []),
+      ...(finalArtifact.conditionValidation?.diagnostics ?? []),
       ...(repairTransport && finalKind !== "repair" ? repairTransport.normalization.diagnostics : []),
     ]
     return finish({

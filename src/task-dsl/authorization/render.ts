@@ -1,6 +1,7 @@
 import type { AuthorizationTaskV0 } from "./schema.ts"
 import type { CompiledAuthorizationTask } from "./semantics.ts"
 import type { AnalysisPlan } from "./relations.ts"
+import type { ConditionAnalysisPlan } from "./conditions.ts"
 
 export type AuthorizationRenderArm = "N" | "B" | "D"
 
@@ -36,12 +37,14 @@ export interface RenderedAuthorizationTask {
   expandedObligationIds: string[]
   sections: AuthorizationPromptSections
   analysisPlan?: AnalysisPlan
+  conditionPlan?: ConditionAnalysisPlan
 }
 
 export interface AuthorizationPromptSections {
   instructions: string
   declaration: string
   analysisLedger?: string
+  conditionAnalysis?: string
   outputContract: string
   sourceMarker: "<SOURCE_CONTEXT_INSERTED_BY_HOST>"
 }
@@ -50,6 +53,7 @@ export interface AuthorizationPromptCharacterBreakdown {
   instructions: number
   declaration: number
   analysisLedger?: number
+  conditionAnalysis?: number
   source: number
   outputContract: number
   total: number
@@ -80,6 +84,7 @@ function collectFacts(task: AuthorizationTaskV0): AuthorizationRenderFacts {
 function renderSharedResultRequirements(
   compiled: CompiledAuthorizationTask,
   analysisPlan?: AnalysisPlan,
+  conditionPlan?: ConditionAnalysisPlan,
 ): string {
   const runnableIds = compiled.runnableObligations.map(obligation => obligation.id)
   const renderedIds = runnableIds.length > 0 ? runnableIds.map(value => `- ${value}`).join("\n") : "- (none)"
@@ -89,6 +94,15 @@ Return exactly one coverage item for every analysis-ledger pair below. Use the e
 Exact analysis coverage pairs (closed list):
 ${analysisPlan.entries.map(entry => `- ${entry.requirementId} @ ${entry.obligationId} (${entry.applicability})`).join("\n") || "- (none)"}`
     : ""
+  const conditionContract = conditionPlan
+    ? `
+Return one conditionAnalysis entry for every expanded obligation in the condition plan. Use authorization-condition-analysis-result/v1 and the exact condition IDs. Each branch needs a unique id, explicit assumptions, one reachable/blocked/unknown effect, a causal explanation, same-obligation factPointers for reachable or blocked effects, and decisive missingFacts for an unknown effect or unknown-valued assumption. Analysis assumptions are hypotheses for comparing branches; never present them as source-observed or deployment-observed facts. Every requested condition must appear in at least one branch assumption or exactly once in unexaminedConditionIds. Use completeness bounded only when none are unexamined; otherwise use incomplete and explain limitations. bounded means all requested conditions were considered within the authored branch limit, not that every truth assignment or program path was enumerated.
+Exact condition analysis obligations and bounds (closed list):
+${conditionPlan.entries.map(entry => [
+      `- ${entry.obligationId}; maxBranches=${entry.maxBranches}`,
+      ...entry.conditions.map(condition => `  - ${condition.id}: ${condition.name} — ${condition.basis}`),
+    ].join("\n")).join("\n") || "- (none)"}`
+    : ""
   return `Return exactly one result for every runnable expanded obligation, with one of: ${AUTHORIZATION_CONCLUSIONS.join(", ")}.
 Interpret conclusion labels relative to the declared policy expectation, not as direct synonyms for allow or deny:
 - source_supported_failure: the fixed source supports that the declared policy expectation fails under the stated conditions.
@@ -97,7 +111,7 @@ Interpret conclusion labels relative to the declared policy expectation, not as 
 Exact runnable obligation IDs (closed list):
 ${renderedIds}
 Use each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.
-Support the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.${coverageContract}`
+Support the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.${coverageContract}${conditionContract}`
 }
 
 function renderBaselineInstructions(hasAnalysisPlan: boolean): string {
@@ -175,7 +189,7 @@ function composeAuthorizationPrompt(sections: AuthorizationPromptSections): stri
 ## Canonical declaration
 ${sections.declaration}
 
-${sections.analysisLedger ? `## Analysis requirement ledger\n${sections.analysisLedger}\n\n` : ""}## Result contract
+${sections.analysisLedger ? `## Analysis requirement ledger\n${sections.analysisLedger}\n\n` : ""}${sections.conditionAnalysis ? `## Condition analysis request\n${sections.conditionAnalysis}\n\n` : ""}## Result contract
 ${sections.outputContract}
 
 ## Fixed source context
@@ -192,6 +206,9 @@ export function measureAuthorizationPromptCharacters(
     ...(rendered.sections.analysisLedger
       ? { analysisLedger: rendered.sections.analysisLedger.length }
       : {}),
+    ...(rendered.sections.conditionAnalysis
+      ? { conditionAnalysis: rendered.sections.conditionAnalysis.length }
+      : {}),
     source: sourceContext.length,
     outputContract: rendered.sections.outputContract.length,
     total: rendered.prompt.replace(rendered.sections.sourceMarker, sourceContext).length,
@@ -203,6 +220,7 @@ export function renderAuthorizationTask(
   compiled: CompiledAuthorizationTask,
   arm: AuthorizationRenderArm,
   analysisPlan?: AnalysisPlan,
+  conditionPlan?: ConditionAnalysisPlan,
 ): RenderedAuthorizationTask {
   const facts = collectFacts(compiled.task)
   const expandedObligationIds = [
@@ -228,7 +246,15 @@ export function renderAuthorizationTask(
           }, null, 2),
         }
       : {}),
-    outputContract: renderSharedResultRequirements(compiled, analysisPlan),
+    ...(conditionPlan
+      ? {
+          conditionAnalysis: JSON.stringify({
+            status: conditionPlan.status,
+            entries: conditionPlan.entries,
+          }, null, 2),
+        }
+      : {}),
+    outputContract: renderSharedResultRequirements(compiled, analysisPlan, conditionPlan),
     sourceMarker: "<SOURCE_CONTEXT_INSERTED_BY_HOST>",
   }
   return {
@@ -238,5 +264,6 @@ export function renderAuthorizationTask(
     expandedObligationIds,
     sections,
     ...(analysisPlan ? { analysisPlan } : {}),
+    ...(conditionPlan ? { conditionPlan } : {}),
   }
 }
