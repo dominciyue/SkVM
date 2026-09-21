@@ -1,0 +1,3066 @@
+{
+  "status": "completed",
+  "arm": "D",
+  "compiled": {
+    "task": {
+      "schemaVersion": "source-authorization-assessment/v0",
+      "taskId": "owui-process-file-write",
+      "request": "At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "sourceMode": "fixed-context",
+      "policySources": [
+        {
+          "id": "destination-knowledge-write-policy",
+          "kind": "explicit-task-requirement",
+          "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+          "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+          "revision": "authorization-case-input/v1@841c9045",
+          "acceptance": {
+            "status": "accepted",
+            "actorRole": "study-task-author",
+            "reason": "The study task author supplied this bounded normative requirement for the comparison."
+          }
+        }
+      ],
+      "principals": [
+        {
+          "id": "verified-non-admin-file-owner",
+          "role": "verified non-administrator who owns the supplied source file",
+          "description": "A signed-in non-admin whose file ownership is distinct from authorization on the destination knowledge base.",
+          "startingCapabilities": [
+            "authenticated-as-verified-user",
+            "owns-supplied-source-file",
+            "can-submit-process-file-form"
+          ]
+        }
+      ],
+      "resources": [
+        {
+          "id": "existing-destination-knowledge-base",
+          "type": "knowledge-base-vector-collection",
+          "description": "An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal."
+        }
+      ],
+      "entries": [
+        {
+          "id": "post-process-file",
+          "name": "POST /process/file -> process_file",
+          "locations": [
+            {
+              "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+              "startLine": 1,
+              "endLine": 74
+            }
+          ]
+        }
+      ],
+      "obligations": [
+        {
+          "id": "file-owner-without-destination-write-grant",
+          "principalId": "verified-non-admin-file-owner",
+          "resourceId": "existing-destination-knowledge-base",
+          "relation": "owns-source-file-but-no-destination-write-grant",
+          "operation": "write-file-content-to-existing-knowledge-base",
+          "expectation": "deny",
+          "conditions": [
+            {
+              "name": "caller-supplies-existing-collection-name",
+              "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+            },
+            {
+              "name": "principal-is-not-admin",
+              "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+            }
+          ],
+          "policySourceId": "destination-knowledge-write-policy",
+          "entryIds": [
+            "post-process-file"
+          ]
+        }
+      ],
+      "scopeAssurance": "The allowed source crops contain the complete authorization-relevant entry-to-write path for this bounded request. General authentication is visible, but a target-specific knowledge-base write check must be traced in these inputs rather than presumed from authentication.",
+      "requiredAnalysis": [
+        "identify the principal, operation, target resource relation, entry, and write sink",
+        "trace the user-controlled collection name through any target-specific authorization control",
+        "distinguish file ownership from destination knowledge-base write permission",
+        "return source_supported_failure, source_refuted, or unknown with exact input locations"
+      ],
+      "constraints": [
+        "Use only the allowed case inputs.",
+        "Do not search for advisories, fixes, later versions, or deployment behavior.",
+        "Do not execute the project or propose a patch."
+      ]
+    },
+    "status": "ready",
+    "runnableObligations": [
+      {
+        "id": "file-owner-without-destination-write-grant::post-process-file",
+        "authorObligationId": "file-owner-without-destination-write-grant",
+        "entryId": "post-process-file",
+        "obligation": {
+          "id": "file-owner-without-destination-write-grant",
+          "principalId": "verified-non-admin-file-owner",
+          "resourceId": "existing-destination-knowledge-base",
+          "relation": "owns-source-file-but-no-destination-write-grant",
+          "operation": "write-file-content-to-existing-knowledge-base",
+          "expectation": "deny",
+          "conditions": [
+            {
+              "name": "caller-supplies-existing-collection-name",
+              "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+            },
+            {
+              "name": "principal-is-not-admin",
+              "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+            }
+          ],
+          "policySourceId": "destination-knowledge-write-policy",
+          "entryIds": [
+            "post-process-file"
+          ]
+        },
+        "principal": {
+          "id": "verified-non-admin-file-owner",
+          "role": "verified non-administrator who owns the supplied source file",
+          "description": "A signed-in non-admin whose file ownership is distinct from authorization on the destination knowledge base.",
+          "startingCapabilities": [
+            "authenticated-as-verified-user",
+            "owns-supplied-source-file",
+            "can-submit-process-file-form"
+          ]
+        },
+        "resource": {
+          "id": "existing-destination-knowledge-base",
+          "type": "knowledge-base-vector-collection",
+          "description": "An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal."
+        },
+        "entry": {
+          "id": "post-process-file",
+          "name": "POST /process/file -> process_file",
+          "locations": [
+            {
+              "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+              "startLine": 1,
+              "endLine": 74
+            }
+          ]
+        },
+        "policySource": {
+          "id": "destination-knowledge-write-policy",
+          "kind": "explicit-task-requirement",
+          "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+          "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+          "revision": "authorization-case-input/v1@841c9045",
+          "acceptance": {
+            "status": "accepted",
+            "actorRole": "study-task-author",
+            "reason": "The study task author supplied this bounded normative requirement for the comparison."
+          }
+        }
+      }
+    ],
+    "blockedObligations": [],
+    "diagnostics": [],
+    "dependencies": {
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "sourceMode": "fixed-context",
+      "policies": [
+        {
+          "id": "destination-knowledge-write-policy",
+          "revision": "authorization-case-input/v1@841c9045",
+          "acceptanceStatus": "accepted"
+        }
+      ]
+    }
+  },
+  "renderedPrompt": "# Authorization domain method (D)\n\nFor every runnable obligation, trace this causal chain before deciding: declared entry -> principal and resource bindings -> stated relation and conditions -> strongest source-visible authorization control -> protected effect. Compare the observed chain with the accepted policy expectation. Use unknown only when a named missing fact is decisive, and bound scope to the declared fixed context. Work through the supplied analysis ledger in prerequisite order for each expanded obligation, then record coverage against facts from that same obligation.\n\nMethod execution state:\n{\n  \"status\": \"ready\",\n  \"runnableObligationIds\": [\n    \"file-owner-without-destination-write-grant::post-process-file\"\n  ],\n  \"blocked\": []\n}\n\n## Canonical declaration\n{\n  \"schemaVersion\": \"source-authorization-assessment/v0\",\n  \"taskId\": \"owui-process-file-write\",\n  \"request\": \"At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.\",\n  \"repository\": \"https://github.com/open-webui/open-webui\",\n  \"sourceRef\": \"841c9045d789005145274955e7ef60b1b11a9be9\",\n  \"sourceMode\": \"fixed-context\",\n  \"policySources\": [\n    {\n      \"id\": \"destination-knowledge-write-policy\",\n      \"kind\": \"explicit-task-requirement\",\n      \"text\": \"Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.\",\n      \"location\": \"inputs/owui-process-file-write/task.json#/normativeRequirement\",\n      \"revision\": \"authorization-case-input/v1@841c9045\",\n      \"acceptance\": {\n        \"status\": \"accepted\",\n        \"actorRole\": \"study-task-author\",\n        \"reason\": \"The study task author supplied this bounded normative requirement for the comparison.\"\n      }\n    }\n  ],\n  \"principals\": [\n    {\n      \"id\": \"verified-non-admin-file-owner\",\n      \"role\": \"verified non-administrator who owns the supplied source file\",\n      \"description\": \"A signed-in non-admin whose file ownership is distinct from authorization on the destination knowledge base.\",\n      \"startingCapabilities\": [\n        \"authenticated-as-verified-user\",\n        \"owns-supplied-source-file\",\n        \"can-submit-process-file-form\"\n      ]\n    }\n  ],\n  \"resources\": [\n    {\n      \"id\": \"existing-destination-knowledge-base\",\n      \"type\": \"knowledge-base-vector-collection\",\n      \"description\": \"An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal.\"\n    }\n  ],\n  \"entries\": [\n    {\n      \"id\": \"post-process-file\",\n      \"name\": \"POST /process/file -> process_file\",\n      \"locations\": [\n        {\n          \"path\": \"inputs/owui-process-file-write/retrieval_process_file.py\",\n          \"startLine\": 1,\n          \"endLine\": 74\n        }\n      ]\n    }\n  ],\n  \"obligations\": [\n    {\n      \"id\": \"file-owner-without-destination-write-grant\",\n      \"principalId\": \"verified-non-admin-file-owner\",\n      \"resourceId\": \"existing-destination-knowledge-base\",\n      \"relation\": \"owns-source-file-but-no-destination-write-grant\",\n      \"operation\": \"write-file-content-to-existing-knowledge-base\",\n      \"expectation\": \"deny\",\n      \"conditions\": [\n        {\n          \"name\": \"caller-supplies-existing-collection-name\",\n          \"basis\": \"The natural task fixes a caller-selected existing knowledge-base collection.\"\n        },\n        {\n          \"name\": \"principal-is-not-admin\",\n          \"basis\": \"The task asks about a verified non-admin and the source exposes a separate admin branch.\"\n        }\n      ],\n      \"policySourceId\": \"destination-knowledge-write-policy\",\n      \"entryIds\": [\n        \"post-process-file\"\n      ]\n    }\n  ],\n  \"scopeAssurance\": \"The allowed source crops contain the complete authorization-relevant entry-to-write path for this bounded request. General authentication is visible, but a target-specific knowledge-base write check must be traced in these inputs rather than presumed from authentication.\",\n  \"requiredAnalysis\": [\n    \"identify the principal, operation, target resource relation, entry, and write sink\",\n    \"trace the user-controlled collection name through any target-specific authorization control\",\n    \"distinguish file ownership from destination knowledge-base write permission\",\n    \"return source_supported_failure, source_refuted, or unknown with exact input locations\"\n  ],\n  \"constraints\": [\n    \"Use only the allowed case inputs.\",\n    \"Do not search for advisories, fixes, later versions, or deployment behavior.\",\n    \"Do not execute the project or propose a patch.\"\n  ],\n  \"allowedConclusions\": [\n    \"source_supported_failure\",\n    \"source_refuted\",\n    \"unknown\"\n  ],\n  \"discoveryStatus\": \"not-tested\"\n}\n\n## Analysis requirement ledger\n{\n  \"status\": \"ready\",\n  \"requirements\": [\n    {\n      \"id\": \"authorization-core-v1.authorization-decision\",\n      \"kind\": \"authorization-decision\",\n      \"obligationIds\": [\n        \"file-owner-without-destination-write-grant\"\n      ],\n      \"question\": \"What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?\",\n      \"applicability\": \"required\",\n      \"prerequisiteIds\": [\n        \"authorization-core-v1.identity-binding\",\n        \"authorization-core-v1.resource-binding\"\n      ]\n    },\n    {\n      \"id\": \"authorization-core-v1.effect-reachability\",\n      \"kind\": \"effect-reachability\",\n      \"obligationIds\": [\n        \"file-owner-without-destination-write-grant\"\n      ],\n      \"question\": \"After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?\",\n      \"applicability\": \"required\",\n      \"prerequisiteIds\": [\n        \"authorization-core-v1.authorization-decision\",\n        \"authorization-core-v1.entry-control\"\n      ]\n    },\n    {\n      \"id\": \"authorization-core-v1.entry-control\",\n      \"kind\": \"entry-control\",\n      \"obligationIds\": [\n        \"file-owner-without-destination-write-grant\"\n      ],\n      \"question\": \"Which source-visible condition or control gates the declared entry before the assessed path proceeds?\",\n      \"applicability\": \"required\",\n      \"prerequisiteIds\": []\n    },\n    {\n      \"id\": \"authorization-core-v1.external-assumption\",\n      \"kind\": \"external-assumption\",\n      \"obligationIds\": [\n        \"file-owner-without-destination-write-grant\"\n      ],\n      \"question\": \"Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?\",\n      \"applicability\": \"when-present\",\n      \"prerequisiteIds\": [\n        \"authorization-core-v1.effect-reachability\"\n      ]\n    },\n    {\n      \"id\": \"authorization-core-v1.identity-binding\",\n      \"kind\": \"identity-binding\",\n      \"obligationIds\": [\n        \"file-owner-without-destination-write-grant\"\n      ],\n      \"question\": \"How is the declared principal bound to the runtime caller or identity used by the assessed operation?\",\n      \"applicability\": \"required\",\n      \"prerequisiteIds\": []\n    },\n    {\n      \"id\": \"authorization-core-v1.resource-binding\",\n      \"kind\": \"resource-binding\",\n      \"obligationIds\": [\n        \"file-owner-without-destination-write-grant\"\n      ],\n      \"question\": \"How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?\",\n      \"applicability\": \"required\",\n      \"prerequisiteIds\": []\n    }\n  ],\n  \"entries\": [\n    {\n      \"requirementId\": \"authorization-core-v1.authorization-decision\",\n      \"obligationId\": \"file-owner-without-destination-write-grant::post-process-file\",\n      \"kind\": \"authorization-decision\",\n      \"question\": \"What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?\",\n      \"applicability\": \"required\",\n      \"prerequisiteIds\": [\n        \"authorization-core-v1.identity-binding\",\n        \"authorization-core-v1.resource-binding\"\n      ],\n      \"status\": \"pending\"\n    },\n    {\n      \"requirementId\": \"authorization-core-v1.effect-reachability\",\n      \"obligationId\": \"file-owner-without-destination-write-grant::post-process-file\",\n      \"kind\": \"effect-reachability\",\n      \"question\": \"After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?\",\n      \"applicability\": \"required\",\n      \"prerequisiteIds\": [\n        \"authorization-core-v1.authorization-decision\",\n        \"authorization-core-v1.entry-control\"\n      ],\n      \"status\": \"pending\"\n    },\n    {\n      \"requirementId\": \"authorization-core-v1.entry-control\",\n      \"obligationId\": \"file-owner-without-destination-write-grant::post-process-file\",\n      \"kind\": \"entry-control\",\n      \"question\": \"Which source-visible condition or control gates the declared entry before the assessed path proceeds?\",\n      \"applicability\": \"required\",\n      \"prerequisiteIds\": [],\n      \"status\": \"pending\"\n    },\n    {\n      \"requirementId\": \"authorization-core-v1.external-assumption\",\n      \"obligationId\": \"file-owner-without-destination-write-grant::post-process-file\",\n      \"kind\": \"external-assumption\",\n      \"question\": \"Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?\",\n      \"applicability\": \"when-present\",\n      \"prerequisiteIds\": [\n        \"authorization-core-v1.effect-reachability\"\n      ],\n      \"status\": \"pending\"\n    },\n    {\n      \"requirementId\": \"authorization-core-v1.identity-binding\",\n      \"obligationId\": \"file-owner-without-destination-write-grant::post-process-file\",\n      \"kind\": \"identity-binding\",\n      \"question\": \"How is the declared principal bound to the runtime caller or identity used by the assessed operation?\",\n      \"applicability\": \"required\",\n      \"prerequisiteIds\": [],\n      \"status\": \"pending\"\n    },\n    {\n      \"requirementId\": \"authorization-core-v1.resource-binding\",\n      \"obligationId\": \"file-owner-without-destination-write-grant::post-process-file\",\n      \"kind\": \"resource-binding\",\n      \"question\": \"How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?\",\n      \"applicability\": \"required\",\n      \"prerequisiteIds\": [],\n      \"status\": \"pending\"\n    }\n  ]\n}\n\n## Result contract\nReturn exactly one result for every runnable expanded obligation, with one of: source_supported_failure, source_refuted, unknown.\nExact runnable obligation IDs (closed list):\n- file-owner-without-destination-write-grant::post-process-file\nUse each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.\nSupport the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.\nReturn exactly one coverage item for every analysis-ledger pair below. Use the exact requirementId and expanded obligationId. Status must be addressed, unknown, or not-applicable. Every item needs a substantive explanation. addressed and not-applicable require one or more factPointers to fact objects in this same answer, using /results/<index>/facts/<group>/<index>. unknown must explain what prevents an answer. not-applicable is allowed only for when-present questions and must explain from source-backed facts why the branch is absent.\nExact analysis coverage pairs (closed list):\n- authorization-core-v1.authorization-decision @ file-owner-without-destination-write-grant::post-process-file (required)\n- authorization-core-v1.effect-reachability @ file-owner-without-destination-write-grant::post-process-file (required)\n- authorization-core-v1.entry-control @ file-owner-without-destination-write-grant::post-process-file (required)\n- authorization-core-v1.external-assumption @ file-owner-without-destination-write-grant::post-process-file (when-present)\n- authorization-core-v1.identity-binding @ file-owner-without-destination-write-grant::post-process-file (required)\n- authorization-core-v1.resource-binding @ file-owner-without-destination-write-grant::post-process-file (required)\n\n## Fixed source context\n===== BEGIN ALLOWED INPUT: inputs/owui-process-file-write/retrieval_process_file.py =====\nSource ID: src-d16d16c4ed4e3039\nLocation note: crop lines 1-74; original locations: not separately supplied\nCitation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.\n1 | # Cropped from backend/open_webui/routers/retrieval.py at\n2 | # https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9\n3 | # Original lines 1517-1531, inside save_docs_to_vector_db.\n4 | items = [\n5 |     {\n6 |         'id': str(uuid.uuid4()),\n7 |         'text': text,\n8 |         'vector': embeddings[idx],\n9 |         'metadata': metadatas[idx],\n10 |     }\n11 |     for idx, text in enumerate(texts)\n12 | ]\n13 | \n14 | log.info(f'adding to collection {collection_name}')\n15 | VECTOR_DB_CLIENT.insert(\n16 |     collection_name=collection_name,\n17 |     items=items,\n18 | )\n19 | \n20 | # Original lines 1540-1570.\n21 | class ProcessFileForm(BaseModel):\n22 |     file_id: str\n23 |     content: Optional[str] = None\n24 |     collection_name: Optional[str] = None\n25 | \n26 | \n27 | @router.post('/process/file')\n28 | async def process_file(\n29 |     request: Request,\n30 |     form_data: ProcessFileForm,\n31 |     user=Depends(get_verified_user),\n32 |     db: AsyncSession = Depends(get_async_session),\n33 | ):\n34 |     \"\"\"\n35 |     Process a file and save its content to the vector database.\n36 |     Process a file and save its content to the vector database.\n37 |     Note: granular session management is used to prevent connection pool exhaustion.\n38 |     The session is committed before external API calls, and updates use a fresh session.\n39 |     \"\"\"\n40 |     if user.role == 'admin':\n41 |         file = await Files.get_file_by_id(form_data.file_id, db=db)\n42 |     else:\n43 |         file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n44 | \n45 |     if file:\n46 |         try:\n47 |             collection_name = form_data.collection_name\n48 | \n49 |             if collection_name is None:\n50 |                 collection_name = f'file-{file.id}'\n51 | \n52 | # Original lines 1571-1687 load content, build metadata, and commit file updates;\n53 | # they contain no call that authorizes collection_name and are omitted from this crop.\n54 | \n55 | # Original lines 1688-1706.\n56 |             # External embedding API takes time (5-60s+).\n57 |             # Subsequent updates use fresh async sessions.\n58 |             # NOTE: save_docs_to_vector_db is a sync function that\n59 |             # calls asyncio.run_coroutine_threadsafe(..., main_loop).result()\n60 |             # which blocks the calling thread.  We MUST run it in a\n61 |             # worker thread to avoid deadlocking the event loop.\n62 |             result = await run_in_threadpool(\n63 |                 save_docs_to_vector_db,\n64 |                 request,\n65 |                 docs=docs,\n66 |                 collection_name=collection_name,\n67 |                 metadata={\n68 |                     'file_id': file.id,\n69 |                     'name': file.filename,\n70 |                     'hash': hash,\n71 |                 },\n72 |                 add=(True if form_data.collection_name else False),\n73 |                 user=user,\n74 |             )\n===== END ALLOWED INPUT: inputs/owui-process-file-write/retrieval_process_file.py =====",
+  "initialTransport": {
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "conclusion": "source_supported_failure",
+          "explanation": "The verified-user dependency gates entry, and a non-admin caller is restricted to retrieving a file by both file ID and user ID, which binds the caller to a file the caller owns. The caller-controlled collection_name is then assigned directly, with a file-derived fallback only when it is absent. The supplied source explicitly states that the intervening load/commit portion contains no call authorizing collection_name, and the resulting collection_name is passed to save_docs_to_vector_db, whose visible sink inserts items into that collection. Thus file ownership is checked, but no destination knowledge-base ownership or explicit write grant is checked before the protected write effect. Under the accepted policy expectation, the described non-admin/no-destination-grant case should be denied; the source-visible chain instead reaches the write sink.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The assessed entry is POST /process/file, implemented by process_file, and it receives the submitted form and verified user.",
+                "citations": [
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 21,
+                    "endLine": 32
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "For a non-admin user, the source file is retrieved by file ID together with user.id, binding the entry to a file owned by that caller.",
+                "citations": [
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 40,
+                    "endLine": 45
+                  }
+                ]
+              },
+              {
+                "statement": "The selected destination is bound to the caller-supplied form_data.collection_name; if absent, the code instead derives a file-specific collection name.",
+                "citations": [
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 45,
+                    "endLine": 50
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The strongest visible authorization control is verified-user entry gating plus the non-admin file ownership check; the source states that the intervening processing and commit portion contains no call authorizing collection_name.",
+                "citations": [
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 27,
+                    "endLine": 32
+                  },
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 40,
+                    "endLine": 43
+                  },
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 52,
+                    "endLine": 53
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The processed documents are passed with collection_name to save_docs_to_vector_db, and that function inserts the items into the named collection.",
+                "citations": [
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 14,
+                    "endLine": 18
+                  },
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 62,
+                    "endLine": 67
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The assessed conditions are a verified non-admin caller and a caller-supplied collection name identifying the existing destination collection.",
+                "citations": [
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 27,
+                    "endLine": 32
+                  }
+                ]
+              },
+              {
+                "statement": "The source has a distinct admin branch, while the non-admin branch uses the user-bound file lookup.",
+                "citations": [
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 40,
+                    "endLine": 43
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [
+            "To independently validate the bounded conclusion outside this supplied source crop, observe a non-admin request with a caller-selected existing collection for which the caller lacks ownership or an explicit write grant, and verify whether the collection insertion occurs; such runtime validation is outside this source-only assessment."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Assessment is limited to the single declared expanded obligation and the supplied fixed source crop for POST /process/file; it makes no repository-wide or all-entry discovery claim."
+      },
+      "schemaVersion": "source-authorization-assessment-wire/v2",
+      "coverage": [
+        {
+          "requirementId": "authorization-core-v1.authorization-decision",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "After binding the non-admin caller to the owned source file and the destination to the submitted collection_name, the strongest visible control is file ownership plus verified-user entry gating. The source exposes no destination-specific ownership or write-grant decision before the write path.",
+          "factPointers": [
+            "/results/0/facts/binding/0",
+            "/results/0/facts/binding/1",
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.effect-reachability",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The selected collection_name reaches save_docs_to_vector_db and the visible sink inserts the generated items into that collection, so the protected write effect is reachable under the non-admin file-owner branch.",
+          "factPointers": [
+            "/results/0/facts/effect/0",
+            "/results/0/facts/entry/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.entry-control",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "Entry is gated by get_verified_user, and the non-admin branch requires the file lookup to match both the submitted file ID and the authenticated user's ID.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.external-assumption",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "No decisive source-external fact is needed for this bounded assessment: the supplied crop identifies the complete authorization-relevant path for the request and expressly records that the omitted processing/commit section contains no collection_name authorization call. This does not assert repository-wide completeness.",
+          "factPointers": [
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.identity-binding",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The runtime caller is supplied by get_verified_user, and the non-admin file lookup uses user.id, binding the declared verified principal to the ownership check used by the operation.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/binding/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.resource-binding",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The source file is bound through file_id and user.id, while the destination resource is independently selected through form_data.collection_name; the source shows no control conflating file ownership with destination write permission.",
+          "factPointers": [
+            "/results/0/facts/binding/0",
+            "/results/0/facts/binding/1",
+            "/results/0/facts/control/0"
+          ]
+        }
+      ]
+    },
+    "normalization": {
+      "normalizerVersion": "authorization-wire-normalizer/v2",
+      "canonicalResultVersion": "source-authorization-assessment-result/v0",
+      "coverageVersion": "authorization-relation-coverage/v1",
+      "status": "valid",
+      "diagnostics": [],
+      "wireResult": {
+        "results": [
+          {
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "conclusion": "source_supported_failure",
+            "explanation": "The verified-user dependency gates entry, and a non-admin caller is restricted to retrieving a file by both file ID and user ID, which binds the caller to a file the caller owns. The caller-controlled collection_name is then assigned directly, with a file-derived fallback only when it is absent. The supplied source explicitly states that the intervening load/commit portion contains no call authorizing collection_name, and the resulting collection_name is passed to save_docs_to_vector_db, whose visible sink inserts items into that collection. Thus file ownership is checked, but no destination knowledge-base ownership or explicit write grant is checked before the protected write effect. Under the accepted policy expectation, the described non-admin/no-destination-grant case should be denied; the source-visible chain instead reaches the write sink.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "The assessed entry is POST /process/file, implemented by process_file, and it receives the submitted form and verified user.",
+                  "citations": [
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 21,
+                      "endLine": 32
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "For a non-admin user, the source file is retrieved by file ID together with user.id, binding the entry to a file owned by that caller.",
+                  "citations": [
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 40,
+                      "endLine": 45
+                    }
+                  ]
+                },
+                {
+                  "statement": "The selected destination is bound to the caller-supplied form_data.collection_name; if absent, the code instead derives a file-specific collection name.",
+                  "citations": [
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 45,
+                      "endLine": 50
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "The strongest visible authorization control is verified-user entry gating plus the non-admin file ownership check; the source states that the intervening processing and commit portion contains no call authorizing collection_name.",
+                  "citations": [
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 27,
+                      "endLine": 32
+                    },
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 40,
+                      "endLine": 43
+                    },
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 52,
+                      "endLine": 53
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "The processed documents are passed with collection_name to save_docs_to_vector_db, and that function inserts the items into the named collection.",
+                  "citations": [
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 14,
+                      "endLine": 18
+                    },
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 62,
+                      "endLine": 67
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The assessed conditions are a verified non-admin caller and a caller-supplied collection name identifying the existing destination collection.",
+                  "citations": [
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 27,
+                      "endLine": 32
+                    }
+                  ]
+                },
+                {
+                  "statement": "The source has a distinct admin branch, while the non-admin branch uses the user-bound file lookup.",
+                  "citations": [
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 40,
+                      "endLine": 43
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [],
+            "suggestedObservations": [
+              "To independently validate the bounded conclusion outside this supplied source crop, observe a non-admin request with a caller-selected existing collection for which the caller lacks ownership or an explicit write grant, and verify whether the collection insertion occurs; such runtime validation is outside this source-only assessment."
+            ]
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "Assessment is limited to the single declared expanded obligation and the supplied fixed source crop for POST /process/file; it makes no repository-wide or all-entry discovery claim."
+        },
+        "schemaVersion": "source-authorization-assessment-wire/v2",
+        "coverage": [
+          {
+            "requirementId": "authorization-core-v1.authorization-decision",
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "status": "addressed",
+            "explanation": "After binding the non-admin caller to the owned source file and the destination to the submitted collection_name, the strongest visible control is file ownership plus verified-user entry gating. The source exposes no destination-specific ownership or write-grant decision before the write path.",
+            "factPointers": [
+              "/results/0/facts/binding/0",
+              "/results/0/facts/binding/1",
+              "/results/0/facts/control/0"
+            ]
+          },
+          {
+            "requirementId": "authorization-core-v1.effect-reachability",
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "status": "addressed",
+            "explanation": "The selected collection_name reaches save_docs_to_vector_db and the visible sink inserts the generated items into that collection, so the protected write effect is reachable under the non-admin file-owner branch.",
+            "factPointers": [
+              "/results/0/facts/effect/0",
+              "/results/0/facts/entry/0"
+            ]
+          },
+          {
+            "requirementId": "authorization-core-v1.entry-control",
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "status": "addressed",
+            "explanation": "Entry is gated by get_verified_user, and the non-admin branch requires the file lookup to match both the submitted file ID and the authenticated user's ID.",
+            "factPointers": [
+              "/results/0/facts/entry/0",
+              "/results/0/facts/control/0"
+            ]
+          },
+          {
+            "requirementId": "authorization-core-v1.external-assumption",
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "status": "addressed",
+            "explanation": "No decisive source-external fact is needed for this bounded assessment: the supplied crop identifies the complete authorization-relevant path for the request and expressly records that the omitted processing/commit section contains no collection_name authorization call. This does not assert repository-wide completeness.",
+            "factPointers": [
+              "/results/0/facts/control/0"
+            ]
+          },
+          {
+            "requirementId": "authorization-core-v1.identity-binding",
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "status": "addressed",
+            "explanation": "The runtime caller is supplied by get_verified_user, and the non-admin file lookup uses user.id, binding the declared verified principal to the ownership check used by the operation.",
+            "factPointers": [
+              "/results/0/facts/entry/0",
+              "/results/0/facts/binding/0"
+            ]
+          },
+          {
+            "requirementId": "authorization-core-v1.resource-binding",
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "status": "addressed",
+            "explanation": "The source file is bound through file_id and user.id, while the destination resource is independently selected through form_data.collection_name; the source shows no control conflating file ownership with destination write permission.",
+            "factPointers": [
+              "/results/0/facts/binding/0",
+              "/results/0/facts/binding/1",
+              "/results/0/facts/control/0"
+            ]
+          }
+        ]
+      },
+      "sourceCatalog": {
+        "schemaVersion": "authorization-source-catalog/v1",
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "sources": [
+          {
+            "sourceId": "src-d16d16c4ed4e3039",
+            "relativePath": "inputs/owui-process-file-write/retrieval_process_file.py",
+            "sha256": "2548edb22139e5eb6bc4b3df7ef4a813fc9dcaef8b1630c8fe1f485a7ba29cae",
+            "cropRange": {
+              "startLine": 1,
+              "endLine": 74
+            },
+            "originalLocations": [],
+            "lines": [
+              {
+                "lineNumber": 1,
+                "text": "# Cropped from backend/open_webui/routers/retrieval.py at"
+              },
+              {
+                "lineNumber": 2,
+                "text": "# https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9"
+              },
+              {
+                "lineNumber": 3,
+                "text": "# Original lines 1517-1531, inside save_docs_to_vector_db."
+              },
+              {
+                "lineNumber": 4,
+                "text": "items = ["
+              },
+              {
+                "lineNumber": 5,
+                "text": "    {"
+              },
+              {
+                "lineNumber": 6,
+                "text": "        'id': str(uuid.uuid4()),"
+              },
+              {
+                "lineNumber": 7,
+                "text": "        'text': text,"
+              },
+              {
+                "lineNumber": 8,
+                "text": "        'vector': embeddings[idx],"
+              },
+              {
+                "lineNumber": 9,
+                "text": "        'metadata': metadatas[idx],"
+              },
+              {
+                "lineNumber": 10,
+                "text": "    }"
+              },
+              {
+                "lineNumber": 11,
+                "text": "    for idx, text in enumerate(texts)"
+              },
+              {
+                "lineNumber": 12,
+                "text": "]"
+              },
+              {
+                "lineNumber": 13,
+                "text": ""
+              },
+              {
+                "lineNumber": 14,
+                "text": "log.info(f'adding to collection {collection_name}')"
+              },
+              {
+                "lineNumber": 15,
+                "text": "VECTOR_DB_CLIENT.insert("
+              },
+              {
+                "lineNumber": 16,
+                "text": "    collection_name=collection_name,"
+              },
+              {
+                "lineNumber": 17,
+                "text": "    items=items,"
+              },
+              {
+                "lineNumber": 18,
+                "text": ")"
+              },
+              {
+                "lineNumber": 19,
+                "text": ""
+              },
+              {
+                "lineNumber": 20,
+                "text": "# Original lines 1540-1570."
+              },
+              {
+                "lineNumber": 21,
+                "text": "class ProcessFileForm(BaseModel):"
+              },
+              {
+                "lineNumber": 22,
+                "text": "    file_id: str"
+              },
+              {
+                "lineNumber": 23,
+                "text": "    content: Optional[str] = None"
+              },
+              {
+                "lineNumber": 24,
+                "text": "    collection_name: Optional[str] = None"
+              },
+              {
+                "lineNumber": 25,
+                "text": ""
+              },
+              {
+                "lineNumber": 26,
+                "text": ""
+              },
+              {
+                "lineNumber": 27,
+                "text": "@router.post('/process/file')"
+              },
+              {
+                "lineNumber": 28,
+                "text": "async def process_file("
+              },
+              {
+                "lineNumber": 29,
+                "text": "    request: Request,"
+              },
+              {
+                "lineNumber": 30,
+                "text": "    form_data: ProcessFileForm,"
+              },
+              {
+                "lineNumber": 31,
+                "text": "    user=Depends(get_verified_user),"
+              },
+              {
+                "lineNumber": 32,
+                "text": "    db: AsyncSession = Depends(get_async_session),"
+              },
+              {
+                "lineNumber": 33,
+                "text": "):"
+              },
+              {
+                "lineNumber": 34,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 35,
+                "text": "    Process a file and save its content to the vector database."
+              },
+              {
+                "lineNumber": 36,
+                "text": "    Process a file and save its content to the vector database."
+              },
+              {
+                "lineNumber": 37,
+                "text": "    Note: granular session management is used to prevent connection pool exhaustion."
+              },
+              {
+                "lineNumber": 38,
+                "text": "    The session is committed before external API calls, and updates use a fresh session."
+              },
+              {
+                "lineNumber": 39,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 40,
+                "text": "    if user.role == 'admin':"
+              },
+              {
+                "lineNumber": 41,
+                "text": "        file = await Files.get_file_by_id(form_data.file_id, db=db)"
+              },
+              {
+                "lineNumber": 42,
+                "text": "    else:"
+              },
+              {
+                "lineNumber": 43,
+                "text": "        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+              },
+              {
+                "lineNumber": 44,
+                "text": ""
+              },
+              {
+                "lineNumber": 45,
+                "text": "    if file:"
+              },
+              {
+                "lineNumber": 46,
+                "text": "        try:"
+              },
+              {
+                "lineNumber": 47,
+                "text": "            collection_name = form_data.collection_name"
+              },
+              {
+                "lineNumber": 48,
+                "text": ""
+              },
+              {
+                "lineNumber": 49,
+                "text": "            if collection_name is None:"
+              },
+              {
+                "lineNumber": 50,
+                "text": "                collection_name = f'file-{file.id}'"
+              },
+              {
+                "lineNumber": 51,
+                "text": ""
+              },
+              {
+                "lineNumber": 52,
+                "text": "# Original lines 1571-1687 load content, build metadata, and commit file updates;"
+              },
+              {
+                "lineNumber": 53,
+                "text": "# they contain no call that authorizes collection_name and are omitted from this crop."
+              },
+              {
+                "lineNumber": 54,
+                "text": ""
+              },
+              {
+                "lineNumber": 55,
+                "text": "# Original lines 1688-1706."
+              },
+              {
+                "lineNumber": 56,
+                "text": "            # External embedding API takes time (5-60s+)."
+              },
+              {
+                "lineNumber": 57,
+                "text": "            # Subsequent updates use fresh async sessions."
+              },
+              {
+                "lineNumber": 58,
+                "text": "            # NOTE: save_docs_to_vector_db is a sync function that"
+              },
+              {
+                "lineNumber": 59,
+                "text": "            # calls asyncio.run_coroutine_threadsafe(..., main_loop).result()"
+              },
+              {
+                "lineNumber": 60,
+                "text": "            # which blocks the calling thread.  We MUST run it in a"
+              },
+              {
+                "lineNumber": 61,
+                "text": "            # worker thread to avoid deadlocking the event loop."
+              },
+              {
+                "lineNumber": 62,
+                "text": "            result = await run_in_threadpool("
+              },
+              {
+                "lineNumber": 63,
+                "text": "                save_docs_to_vector_db,"
+              },
+              {
+                "lineNumber": 64,
+                "text": "                request,"
+              },
+              {
+                "lineNumber": 65,
+                "text": "                docs=docs,"
+              },
+              {
+                "lineNumber": 66,
+                "text": "                collection_name=collection_name,"
+              },
+              {
+                "lineNumber": 67,
+                "text": "                metadata={"
+              },
+              {
+                "lineNumber": 68,
+                "text": "                    'file_id': file.id,"
+              },
+              {
+                "lineNumber": 69,
+                "text": "                    'name': file.filename,"
+              },
+              {
+                "lineNumber": 70,
+                "text": "                    'hash': hash,"
+              },
+              {
+                "lineNumber": 71,
+                "text": "                },"
+              },
+              {
+                "lineNumber": 72,
+                "text": "                add=(True if form_data.collection_name else False),"
+              },
+              {
+                "lineNumber": 73,
+                "text": "                user=user,"
+              },
+              {
+                "lineNumber": 74,
+                "text": "            )"
+              }
+            ]
+          }
+        ]
+      },
+      "result": {
+        "schemaVersion": "source-authorization-assessment-result/v0",
+        "taskId": "owui-process-file-write",
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "results": [
+          {
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "conclusion": "source_supported_failure",
+            "explanation": "The verified-user dependency gates entry, and a non-admin caller is restricted to retrieving a file by both file ID and user ID, which binds the caller to a file the caller owns. The caller-controlled collection_name is then assigned directly, with a file-derived fallback only when it is absent. The supplied source explicitly states that the intervening load/commit portion contains no call authorizing collection_name, and the resulting collection_name is passed to save_docs_to_vector_db, whose visible sink inserts items into that collection. Thus file ownership is checked, but no destination knowledge-base ownership or explicit write grant is checked before the protected write effect. Under the accepted policy expectation, the described non-admin/no-destination-grant case should be denied; the source-visible chain instead reaches the write sink.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "The assessed entry is POST /process/file, implemented by process_file, and it receives the submitted form and verified user.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 21,
+                      "endLine": 32,
+                      "quote": "class ProcessFileForm(BaseModel):\n    file_id: str\n    content: Optional[str] = None\n    collection_name: Optional[str] = None\n\n\n@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "For a non-admin user, the source file is retrieved by file ID together with user.id, binding the entry to a file owned by that caller.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 40,
+                      "endLine": 45,
+                      "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The selected destination is bound to the caller-supplied form_data.collection_name; if absent, the code instead derives a file-specific collection name.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 45,
+                      "endLine": 50,
+                      "quote": "    if file:\n        try:\n            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "The strongest visible authorization control is verified-user entry gating plus the non-admin file ownership check; the source states that the intervening processing and commit portion contains no call authorizing collection_name.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 27,
+                      "endLine": 32,
+                      "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                    },
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 40,
+                      "endLine": 43,
+                      "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                    },
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 52,
+                      "endLine": 53,
+                      "quote": "# Original lines 1571-1687 load content, build metadata, and commit file updates;\n# they contain no call that authorizes collection_name and are omitted from this crop."
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "The processed documents are passed with collection_name to save_docs_to_vector_db, and that function inserts the items into the named collection.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 14,
+                      "endLine": 18,
+                      "quote": "log.info(f'adding to collection {collection_name}')\nVECTOR_DB_CLIENT.insert(\n    collection_name=collection_name,\n    items=items,\n)"
+                    },
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 62,
+                      "endLine": 67,
+                      "quote": "            result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={"
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The assessed conditions are a verified non-admin caller and a caller-supplied collection name identifying the existing destination collection.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 27,
+                      "endLine": 32,
+                      "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The source has a distinct admin branch, while the non-admin branch uses the user-bound file lookup.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 40,
+                      "endLine": 43,
+                      "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [],
+            "suggestedObservations": [
+              "To independently validate the bounded conclusion outside this supplied source crop, observe a non-admin request with a caller-selected existing collection for which the caller lacks ownership or an explicit write grant, and verify whether the collection insertion occurs; such runtime validation is outside this source-only assessment."
+            ]
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "Assessment is limited to the single declared expanded obligation and the supplied fixed source crop for POST /process/file; it makes no repository-wide or all-entry discovery claim."
+        }
+      },
+      "coverage": [
+        {
+          "requirementId": "authorization-core-v1.authorization-decision",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "After binding the non-admin caller to the owned source file and the destination to the submitted collection_name, the strongest visible control is file ownership plus verified-user entry gating. The source exposes no destination-specific ownership or write-grant decision before the write path.",
+          "factPointers": [
+            "/results/0/facts/binding/0",
+            "/results/0/facts/binding/1",
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.effect-reachability",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The selected collection_name reaches save_docs_to_vector_db and the visible sink inserts the generated items into that collection, so the protected write effect is reachable under the non-admin file-owner branch.",
+          "factPointers": [
+            "/results/0/facts/effect/0",
+            "/results/0/facts/entry/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.entry-control",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "Entry is gated by get_verified_user, and the non-admin branch requires the file lookup to match both the submitted file ID and the authenticated user's ID.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.external-assumption",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "No decisive source-external fact is needed for this bounded assessment: the supplied crop identifies the complete authorization-relevant path for the request and expressly records that the omitted processing/commit section contains no collection_name authorization call. This does not assert repository-wide completeness.",
+          "factPointers": [
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.identity-binding",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The runtime caller is supplied by get_verified_user, and the non-admin file lookup uses user.id, binding the declared verified principal to the ownership check used by the operation.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/binding/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.resource-binding",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The source file is bound through file_id and user.id, while the destination resource is independently selected through form_data.collection_name; the source shows no control conflating file ownership with destination write permission.",
+          "factPointers": [
+            "/results/0/facts/binding/0",
+            "/results/0/facts/binding/1",
+            "/results/0/facts/control/0"
+          ]
+        }
+      ]
+    },
+    "rawResponse": "{\"schemaVersion\":\"source-authorization-assessment-wire/v2\",\"scopeClaim\":{\"kind\":\"declared-obligations-only\",\"statement\":\"Assessment is limited to the single declared expanded obligation and the supplied fixed source crop for POST /process/file; it makes no repository-wide or all-entry discovery claim.\"},\"results\":[{\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"conclusion\":\"source_supported_failure\",\"explanation\":\"The verified-user dependency gates entry, and a non-admin caller is restricted to retrieving a file by both file ID and user ID, which binds the caller to a file the caller owns. The caller-controlled collection_name is then assigned directly, with a file-derived fallback only when it is absent. The supplied source explicitly states that the intervening load/commit portion contains no call authorizing collection_name, and the resulting collection_name is passed to save_docs_to_vector_db, whose visible sink inserts items into that collection. Thus file ownership is checked, but no destination knowledge-base ownership or explicit write grant is checked before the protected write effect. Under the accepted policy expectation, the described non-admin/no-destination-grant case should be denied; the source-visible chain instead reaches the write sink.\",\"facts\":{\"entry\":[{\"statement\":\"The assessed entry is POST /process/file, implemented by process_file, and it receives the submitted form and verified user.\",\"citations\":[{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":21,\"endLine\":32}]}],\"binding\":[{\"statement\":\"For a non-admin user, the source file is retrieved by file ID together with user.id, binding the entry to a file owned by that caller.\",\"citations\":[{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":40,\"endLine\":45}]},{\"statement\":\"The selected destination is bound to the caller-supplied form_data.collection_name; if absent, the code instead derives a file-specific collection name.\",\"citations\":[{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":45,\"endLine\":50}]}],\"condition\":[{\"statement\":\"The assessed conditions are a verified non-admin caller and a caller-supplied collection name identifying the existing destination collection.\",\"citations\":[{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":27,\"endLine\":32}]},{\"statement\":\"The source has a distinct admin branch, while the non-admin branch uses the user-bound file lookup.\",\"citations\":[{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":40,\"endLine\":43}]}],\"control\":[{\"statement\":\"The strongest visible authorization control is verified-user entry gating plus the non-admin file ownership check; the source states that the intervening processing and commit portion contains no call authorizing collection_name.\",\"citations\":[{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":27,\"endLine\":32},{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":40,\"endLine\":43},{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":52,\"endLine\":53}]}],\"effect\":[{\"statement\":\"The processed documents are passed with collection_name to save_docs_to_vector_db, and that function inserts the items into the named collection.\",\"citations\":[{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":14,\"endLine\":18},{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":62,\"endLine\":67}]}]},\"suggestedObservations\":[\"To independently validate the bounded conclusion outside this supplied source crop, observe a non-admin request with a caller-selected existing collection for which the caller lacks ownership or an explicit write grant, and verify whether the collection insertion occurs; such runtime validation is outside this source-only assessment.\"]}],\"coverage\":[{\"requirementId\":\"authorization-core-v1.authorization-decision\",\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"status\":\"addressed\",\"explanation\":\"After binding the non-admin caller to the owned source file and the destination to the submitted collection_name, the strongest visible control is file ownership plus verified-user entry gating. The source exposes no destination-specific ownership or write-grant decision before the write path.\",\"factPointers\":[\"/results/0/facts/binding/0\",\"/results/0/facts/binding/1\",\"/results/0/facts/control/0\"]},{\"requirementId\":\"authorization-core-v1.effect-reachability\",\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"status\":\"addressed\",\"explanation\":\"The selected collection_name reaches save_docs_to_vector_db and the visible sink inserts the generated items into that collection, so the protected write effect is reachable under the non-admin file-owner branch.\",\"factPointers\":[\"/results/0/facts/effect/0\",\"/results/0/facts/entry/0\"]},{\"requirementId\":\"authorization-core-v1.entry-control\",\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"status\":\"addressed\",\"explanation\":\"Entry is gated by get_verified_user, and the non-admin branch requires the file lookup to match both the submitted file ID and the authenticated user's ID.\",\"factPointers\":[\"/results/0/facts/entry/0\",\"/results/0/facts/control/0\"]},{\"requirementId\":\"authorization-core-v1.external-assumption\",\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"status\":\"addressed\",\"explanation\":\"No decisive source-external fact is needed for this bounded assessment: the supplied crop identifies the complete authorization-relevant path for the request and expressly records that the omitted processing/commit section contains no collection_name authorization call. This does not assert repository-wide completeness.\",\"factPointers\":[\"/results/0/facts/control/0\"]},{\"requirementId\":\"authorization-core-v1.identity-binding\",\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"status\":\"addressed\",\"explanation\":\"The runtime caller is supplied by get_verified_user, and the non-admin file lookup uses user.id, binding the declared verified principal to the ownership check used by the operation.\",\"factPointers\":[\"/results/0/facts/entry/0\",\"/results/0/facts/binding/0\"]},{\"requirementId\":\"authorization-core-v1.resource-binding\",\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"status\":\"addressed\",\"explanation\":\"The source file is bound through file_id and user.id, while the destination resource is independently selected through form_data.collection_name; the source shows no control conflating file ownership with destination write permission.\",\"factPointers\":[\"/results/0/facts/binding/0\",\"/results/0/facts/binding/1\",\"/results/0/facts/control/0\"]}]}",
+    "providerAttemptIds": [
+      "provider-attempt-1"
+    ],
+    "outputAttemptId": "provider-attempt-1"
+  },
+  "initial": {
+    "result": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "owui-process-file-write",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "results": [
+        {
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "conclusion": "source_supported_failure",
+          "explanation": "The verified-user dependency gates entry, and a non-admin caller is restricted to retrieving a file by both file ID and user ID, which binds the caller to a file the caller owns. The caller-controlled collection_name is then assigned directly, with a file-derived fallback only when it is absent. The supplied source explicitly states that the intervening load/commit portion contains no call authorizing collection_name, and the resulting collection_name is passed to save_docs_to_vector_db, whose visible sink inserts items into that collection. Thus file ownership is checked, but no destination knowledge-base ownership or explicit write grant is checked before the protected write effect. Under the accepted policy expectation, the described non-admin/no-destination-grant case should be denied; the source-visible chain instead reaches the write sink.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The assessed entry is POST /process/file, implemented by process_file, and it receives the submitted form and verified user.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 21,
+                    "endLine": 32,
+                    "quote": "class ProcessFileForm(BaseModel):\n    file_id: str\n    content: Optional[str] = None\n    collection_name: Optional[str] = None\n\n\n@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "For a non-admin user, the source file is retrieved by file ID together with user.id, binding the entry to a file owned by that caller.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 40,
+                    "endLine": 45,
+                    "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:"
+                  }
+                ]
+              },
+              {
+                "statement": "The selected destination is bound to the caller-supplied form_data.collection_name; if absent, the code instead derives a file-specific collection name.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 45,
+                    "endLine": 50,
+                    "quote": "    if file:\n        try:\n            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The strongest visible authorization control is verified-user entry gating plus the non-admin file ownership check; the source states that the intervening processing and commit portion contains no call authorizing collection_name.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 27,
+                    "endLine": 32,
+                    "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                  },
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 40,
+                    "endLine": 43,
+                    "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                  },
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 52,
+                    "endLine": 53,
+                    "quote": "# Original lines 1571-1687 load content, build metadata, and commit file updates;\n# they contain no call that authorizes collection_name and are omitted from this crop."
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The processed documents are passed with collection_name to save_docs_to_vector_db, and that function inserts the items into the named collection.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 14,
+                    "endLine": 18,
+                    "quote": "log.info(f'adding to collection {collection_name}')\nVECTOR_DB_CLIENT.insert(\n    collection_name=collection_name,\n    items=items,\n)"
+                  },
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 62,
+                    "endLine": 67,
+                    "quote": "            result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The assessed conditions are a verified non-admin caller and a caller-supplied collection name identifying the existing destination collection.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 27,
+                    "endLine": 32,
+                    "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                  }
+                ]
+              },
+              {
+                "statement": "The source has a distinct admin branch, while the non-admin branch uses the user-bound file lookup.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                    "startLine": 40,
+                    "endLine": 43,
+                    "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [
+            "To independently validate the bounded conclusion outside this supplied source crop, observe a non-admin request with a caller-selected existing collection for which the caller lacks ownership or an explicit write grant, and verify whether the collection insertion occurs; such runtime validation is outside this source-only assessment."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Assessment is limited to the single declared expanded obligation and the supplied fixed source crop for POST /process/file; it makes no repository-wide or all-entry discovery claim."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "conclusion": "source_supported_failure",
+          "explanation": "The verified-user dependency gates entry, and a non-admin caller is restricted to retrieving a file by both file ID and user ID, which binds the caller to a file the caller owns. The caller-controlled collection_name is then assigned directly, with a file-derived fallback only when it is absent. The supplied source explicitly states that the intervening load/commit portion contains no call authorizing collection_name, and the resulting collection_name is passed to save_docs_to_vector_db, whose visible sink inserts items into that collection. Thus file ownership is checked, but no destination knowledge-base ownership or explicit write grant is checked before the protected write effect. Under the accepted policy expectation, the described non-admin/no-destination-grant case should be denied; the source-visible chain instead reaches the write sink.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The assessed entry is POST /process/file, implemented by process_file, and it receives the submitted form and verified user.",
+                "citations": [
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 21,
+                    "endLine": 32
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "For a non-admin user, the source file is retrieved by file ID together with user.id, binding the entry to a file owned by that caller.",
+                "citations": [
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 40,
+                    "endLine": 45
+                  }
+                ]
+              },
+              {
+                "statement": "The selected destination is bound to the caller-supplied form_data.collection_name; if absent, the code instead derives a file-specific collection name.",
+                "citations": [
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 45,
+                    "endLine": 50
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The strongest visible authorization control is verified-user entry gating plus the non-admin file ownership check; the source states that the intervening processing and commit portion contains no call authorizing collection_name.",
+                "citations": [
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 27,
+                    "endLine": 32
+                  },
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 40,
+                    "endLine": 43
+                  },
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 52,
+                    "endLine": 53
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The processed documents are passed with collection_name to save_docs_to_vector_db, and that function inserts the items into the named collection.",
+                "citations": [
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 14,
+                    "endLine": 18
+                  },
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 62,
+                    "endLine": 67
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The assessed conditions are a verified non-admin caller and a caller-supplied collection name identifying the existing destination collection.",
+                "citations": [
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 27,
+                    "endLine": 32
+                  }
+                ]
+              },
+              {
+                "statement": "The source has a distinct admin branch, while the non-admin branch uses the user-bound file lookup.",
+                "citations": [
+                  {
+                    "sourceId": "src-d16d16c4ed4e3039",
+                    "startLine": 40,
+                    "endLine": 43
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [
+            "To independently validate the bounded conclusion outside this supplied source crop, observe a non-admin request with a caller-selected existing collection for which the caller lacks ownership or an explicit write grant, and verify whether the collection insertion occurs; such runtime validation is outside this source-only assessment."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Assessment is limited to the single declared expanded obligation and the supplied fixed source crop for POST /process/file; it makes no repository-wide or all-entry discovery claim."
+      },
+      "schemaVersion": "source-authorization-assessment-wire/v2",
+      "coverage": [
+        {
+          "requirementId": "authorization-core-v1.authorization-decision",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "After binding the non-admin caller to the owned source file and the destination to the submitted collection_name, the strongest visible control is file ownership plus verified-user entry gating. The source exposes no destination-specific ownership or write-grant decision before the write path.",
+          "factPointers": [
+            "/results/0/facts/binding/0",
+            "/results/0/facts/binding/1",
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.effect-reachability",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The selected collection_name reaches save_docs_to_vector_db and the visible sink inserts the generated items into that collection, so the protected write effect is reachable under the non-admin file-owner branch.",
+          "factPointers": [
+            "/results/0/facts/effect/0",
+            "/results/0/facts/entry/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.entry-control",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "Entry is gated by get_verified_user, and the non-admin branch requires the file lookup to match both the submitted file ID and the authenticated user's ID.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.external-assumption",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "No decisive source-external fact is needed for this bounded assessment: the supplied crop identifies the complete authorization-relevant path for the request and expressly records that the omitted processing/commit section contains no collection_name authorization call. This does not assert repository-wide completeness.",
+          "factPointers": [
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.identity-binding",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The runtime caller is supplied by get_verified_user, and the non-admin file lookup uses user.id, binding the declared verified principal to the ownership check used by the operation.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/binding/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.resource-binding",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The source file is bound through file_id and user.id, while the destination resource is independently selected through form_data.collection_name; the source shows no control conflating file ownership with destination write permission.",
+          "factPointers": [
+            "/results/0/facts/binding/0",
+            "/results/0/facts/binding/1",
+            "/results/0/facts/control/0"
+          ]
+        }
+      ]
+    },
+    "normalization": {
+      "normalizerVersion": "authorization-wire-normalizer/v2",
+      "canonicalResultVersion": "source-authorization-assessment-result/v0",
+      "coverageVersion": "authorization-relation-coverage/v1",
+      "status": "valid",
+      "diagnostics": [],
+      "wireResult": {
+        "results": [
+          {
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "conclusion": "source_supported_failure",
+            "explanation": "The verified-user dependency gates entry, and a non-admin caller is restricted to retrieving a file by both file ID and user ID, which binds the caller to a file the caller owns. The caller-controlled collection_name is then assigned directly, with a file-derived fallback only when it is absent. The supplied source explicitly states that the intervening load/commit portion contains no call authorizing collection_name, and the resulting collection_name is passed to save_docs_to_vector_db, whose visible sink inserts items into that collection. Thus file ownership is checked, but no destination knowledge-base ownership or explicit write grant is checked before the protected write effect. Under the accepted policy expectation, the described non-admin/no-destination-grant case should be denied; the source-visible chain instead reaches the write sink.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "The assessed entry is POST /process/file, implemented by process_file, and it receives the submitted form and verified user.",
+                  "citations": [
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 21,
+                      "endLine": 32
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "For a non-admin user, the source file is retrieved by file ID together with user.id, binding the entry to a file owned by that caller.",
+                  "citations": [
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 40,
+                      "endLine": 45
+                    }
+                  ]
+                },
+                {
+                  "statement": "The selected destination is bound to the caller-supplied form_data.collection_name; if absent, the code instead derives a file-specific collection name.",
+                  "citations": [
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 45,
+                      "endLine": 50
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "The strongest visible authorization control is verified-user entry gating plus the non-admin file ownership check; the source states that the intervening processing and commit portion contains no call authorizing collection_name.",
+                  "citations": [
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 27,
+                      "endLine": 32
+                    },
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 40,
+                      "endLine": 43
+                    },
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 52,
+                      "endLine": 53
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "The processed documents are passed with collection_name to save_docs_to_vector_db, and that function inserts the items into the named collection.",
+                  "citations": [
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 14,
+                      "endLine": 18
+                    },
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 62,
+                      "endLine": 67
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The assessed conditions are a verified non-admin caller and a caller-supplied collection name identifying the existing destination collection.",
+                  "citations": [
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 27,
+                      "endLine": 32
+                    }
+                  ]
+                },
+                {
+                  "statement": "The source has a distinct admin branch, while the non-admin branch uses the user-bound file lookup.",
+                  "citations": [
+                    {
+                      "sourceId": "src-d16d16c4ed4e3039",
+                      "startLine": 40,
+                      "endLine": 43
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [],
+            "suggestedObservations": [
+              "To independently validate the bounded conclusion outside this supplied source crop, observe a non-admin request with a caller-selected existing collection for which the caller lacks ownership or an explicit write grant, and verify whether the collection insertion occurs; such runtime validation is outside this source-only assessment."
+            ]
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "Assessment is limited to the single declared expanded obligation and the supplied fixed source crop for POST /process/file; it makes no repository-wide or all-entry discovery claim."
+        },
+        "schemaVersion": "source-authorization-assessment-wire/v2",
+        "coverage": [
+          {
+            "requirementId": "authorization-core-v1.authorization-decision",
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "status": "addressed",
+            "explanation": "After binding the non-admin caller to the owned source file and the destination to the submitted collection_name, the strongest visible control is file ownership plus verified-user entry gating. The source exposes no destination-specific ownership or write-grant decision before the write path.",
+            "factPointers": [
+              "/results/0/facts/binding/0",
+              "/results/0/facts/binding/1",
+              "/results/0/facts/control/0"
+            ]
+          },
+          {
+            "requirementId": "authorization-core-v1.effect-reachability",
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "status": "addressed",
+            "explanation": "The selected collection_name reaches save_docs_to_vector_db and the visible sink inserts the generated items into that collection, so the protected write effect is reachable under the non-admin file-owner branch.",
+            "factPointers": [
+              "/results/0/facts/effect/0",
+              "/results/0/facts/entry/0"
+            ]
+          },
+          {
+            "requirementId": "authorization-core-v1.entry-control",
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "status": "addressed",
+            "explanation": "Entry is gated by get_verified_user, and the non-admin branch requires the file lookup to match both the submitted file ID and the authenticated user's ID.",
+            "factPointers": [
+              "/results/0/facts/entry/0",
+              "/results/0/facts/control/0"
+            ]
+          },
+          {
+            "requirementId": "authorization-core-v1.external-assumption",
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "status": "addressed",
+            "explanation": "No decisive source-external fact is needed for this bounded assessment: the supplied crop identifies the complete authorization-relevant path for the request and expressly records that the omitted processing/commit section contains no collection_name authorization call. This does not assert repository-wide completeness.",
+            "factPointers": [
+              "/results/0/facts/control/0"
+            ]
+          },
+          {
+            "requirementId": "authorization-core-v1.identity-binding",
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "status": "addressed",
+            "explanation": "The runtime caller is supplied by get_verified_user, and the non-admin file lookup uses user.id, binding the declared verified principal to the ownership check used by the operation.",
+            "factPointers": [
+              "/results/0/facts/entry/0",
+              "/results/0/facts/binding/0"
+            ]
+          },
+          {
+            "requirementId": "authorization-core-v1.resource-binding",
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "status": "addressed",
+            "explanation": "The source file is bound through file_id and user.id, while the destination resource is independently selected through form_data.collection_name; the source shows no control conflating file ownership with destination write permission.",
+            "factPointers": [
+              "/results/0/facts/binding/0",
+              "/results/0/facts/binding/1",
+              "/results/0/facts/control/0"
+            ]
+          }
+        ]
+      },
+      "sourceCatalog": {
+        "schemaVersion": "authorization-source-catalog/v1",
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "sources": [
+          {
+            "sourceId": "src-d16d16c4ed4e3039",
+            "relativePath": "inputs/owui-process-file-write/retrieval_process_file.py",
+            "sha256": "2548edb22139e5eb6bc4b3df7ef4a813fc9dcaef8b1630c8fe1f485a7ba29cae",
+            "cropRange": {
+              "startLine": 1,
+              "endLine": 74
+            },
+            "originalLocations": [],
+            "lines": [
+              {
+                "lineNumber": 1,
+                "text": "# Cropped from backend/open_webui/routers/retrieval.py at"
+              },
+              {
+                "lineNumber": 2,
+                "text": "# https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9"
+              },
+              {
+                "lineNumber": 3,
+                "text": "# Original lines 1517-1531, inside save_docs_to_vector_db."
+              },
+              {
+                "lineNumber": 4,
+                "text": "items = ["
+              },
+              {
+                "lineNumber": 5,
+                "text": "    {"
+              },
+              {
+                "lineNumber": 6,
+                "text": "        'id': str(uuid.uuid4()),"
+              },
+              {
+                "lineNumber": 7,
+                "text": "        'text': text,"
+              },
+              {
+                "lineNumber": 8,
+                "text": "        'vector': embeddings[idx],"
+              },
+              {
+                "lineNumber": 9,
+                "text": "        'metadata': metadatas[idx],"
+              },
+              {
+                "lineNumber": 10,
+                "text": "    }"
+              },
+              {
+                "lineNumber": 11,
+                "text": "    for idx, text in enumerate(texts)"
+              },
+              {
+                "lineNumber": 12,
+                "text": "]"
+              },
+              {
+                "lineNumber": 13,
+                "text": ""
+              },
+              {
+                "lineNumber": 14,
+                "text": "log.info(f'adding to collection {collection_name}')"
+              },
+              {
+                "lineNumber": 15,
+                "text": "VECTOR_DB_CLIENT.insert("
+              },
+              {
+                "lineNumber": 16,
+                "text": "    collection_name=collection_name,"
+              },
+              {
+                "lineNumber": 17,
+                "text": "    items=items,"
+              },
+              {
+                "lineNumber": 18,
+                "text": ")"
+              },
+              {
+                "lineNumber": 19,
+                "text": ""
+              },
+              {
+                "lineNumber": 20,
+                "text": "# Original lines 1540-1570."
+              },
+              {
+                "lineNumber": 21,
+                "text": "class ProcessFileForm(BaseModel):"
+              },
+              {
+                "lineNumber": 22,
+                "text": "    file_id: str"
+              },
+              {
+                "lineNumber": 23,
+                "text": "    content: Optional[str] = None"
+              },
+              {
+                "lineNumber": 24,
+                "text": "    collection_name: Optional[str] = None"
+              },
+              {
+                "lineNumber": 25,
+                "text": ""
+              },
+              {
+                "lineNumber": 26,
+                "text": ""
+              },
+              {
+                "lineNumber": 27,
+                "text": "@router.post('/process/file')"
+              },
+              {
+                "lineNumber": 28,
+                "text": "async def process_file("
+              },
+              {
+                "lineNumber": 29,
+                "text": "    request: Request,"
+              },
+              {
+                "lineNumber": 30,
+                "text": "    form_data: ProcessFileForm,"
+              },
+              {
+                "lineNumber": 31,
+                "text": "    user=Depends(get_verified_user),"
+              },
+              {
+                "lineNumber": 32,
+                "text": "    db: AsyncSession = Depends(get_async_session),"
+              },
+              {
+                "lineNumber": 33,
+                "text": "):"
+              },
+              {
+                "lineNumber": 34,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 35,
+                "text": "    Process a file and save its content to the vector database."
+              },
+              {
+                "lineNumber": 36,
+                "text": "    Process a file and save its content to the vector database."
+              },
+              {
+                "lineNumber": 37,
+                "text": "    Note: granular session management is used to prevent connection pool exhaustion."
+              },
+              {
+                "lineNumber": 38,
+                "text": "    The session is committed before external API calls, and updates use a fresh session."
+              },
+              {
+                "lineNumber": 39,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 40,
+                "text": "    if user.role == 'admin':"
+              },
+              {
+                "lineNumber": 41,
+                "text": "        file = await Files.get_file_by_id(form_data.file_id, db=db)"
+              },
+              {
+                "lineNumber": 42,
+                "text": "    else:"
+              },
+              {
+                "lineNumber": 43,
+                "text": "        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+              },
+              {
+                "lineNumber": 44,
+                "text": ""
+              },
+              {
+                "lineNumber": 45,
+                "text": "    if file:"
+              },
+              {
+                "lineNumber": 46,
+                "text": "        try:"
+              },
+              {
+                "lineNumber": 47,
+                "text": "            collection_name = form_data.collection_name"
+              },
+              {
+                "lineNumber": 48,
+                "text": ""
+              },
+              {
+                "lineNumber": 49,
+                "text": "            if collection_name is None:"
+              },
+              {
+                "lineNumber": 50,
+                "text": "                collection_name = f'file-{file.id}'"
+              },
+              {
+                "lineNumber": 51,
+                "text": ""
+              },
+              {
+                "lineNumber": 52,
+                "text": "# Original lines 1571-1687 load content, build metadata, and commit file updates;"
+              },
+              {
+                "lineNumber": 53,
+                "text": "# they contain no call that authorizes collection_name and are omitted from this crop."
+              },
+              {
+                "lineNumber": 54,
+                "text": ""
+              },
+              {
+                "lineNumber": 55,
+                "text": "# Original lines 1688-1706."
+              },
+              {
+                "lineNumber": 56,
+                "text": "            # External embedding API takes time (5-60s+)."
+              },
+              {
+                "lineNumber": 57,
+                "text": "            # Subsequent updates use fresh async sessions."
+              },
+              {
+                "lineNumber": 58,
+                "text": "            # NOTE: save_docs_to_vector_db is a sync function that"
+              },
+              {
+                "lineNumber": 59,
+                "text": "            # calls asyncio.run_coroutine_threadsafe(..., main_loop).result()"
+              },
+              {
+                "lineNumber": 60,
+                "text": "            # which blocks the calling thread.  We MUST run it in a"
+              },
+              {
+                "lineNumber": 61,
+                "text": "            # worker thread to avoid deadlocking the event loop."
+              },
+              {
+                "lineNumber": 62,
+                "text": "            result = await run_in_threadpool("
+              },
+              {
+                "lineNumber": 63,
+                "text": "                save_docs_to_vector_db,"
+              },
+              {
+                "lineNumber": 64,
+                "text": "                request,"
+              },
+              {
+                "lineNumber": 65,
+                "text": "                docs=docs,"
+              },
+              {
+                "lineNumber": 66,
+                "text": "                collection_name=collection_name,"
+              },
+              {
+                "lineNumber": 67,
+                "text": "                metadata={"
+              },
+              {
+                "lineNumber": 68,
+                "text": "                    'file_id': file.id,"
+              },
+              {
+                "lineNumber": 69,
+                "text": "                    'name': file.filename,"
+              },
+              {
+                "lineNumber": 70,
+                "text": "                    'hash': hash,"
+              },
+              {
+                "lineNumber": 71,
+                "text": "                },"
+              },
+              {
+                "lineNumber": 72,
+                "text": "                add=(True if form_data.collection_name else False),"
+              },
+              {
+                "lineNumber": 73,
+                "text": "                user=user,"
+              },
+              {
+                "lineNumber": 74,
+                "text": "            )"
+              }
+            ]
+          }
+        ]
+      },
+      "result": {
+        "schemaVersion": "source-authorization-assessment-result/v0",
+        "taskId": "owui-process-file-write",
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "results": [
+          {
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "conclusion": "source_supported_failure",
+            "explanation": "The verified-user dependency gates entry, and a non-admin caller is restricted to retrieving a file by both file ID and user ID, which binds the caller to a file the caller owns. The caller-controlled collection_name is then assigned directly, with a file-derived fallback only when it is absent. The supplied source explicitly states that the intervening load/commit portion contains no call authorizing collection_name, and the resulting collection_name is passed to save_docs_to_vector_db, whose visible sink inserts items into that collection. Thus file ownership is checked, but no destination knowledge-base ownership or explicit write grant is checked before the protected write effect. Under the accepted policy expectation, the described non-admin/no-destination-grant case should be denied; the source-visible chain instead reaches the write sink.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "The assessed entry is POST /process/file, implemented by process_file, and it receives the submitted form and verified user.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 21,
+                      "endLine": 32,
+                      "quote": "class ProcessFileForm(BaseModel):\n    file_id: str\n    content: Optional[str] = None\n    collection_name: Optional[str] = None\n\n\n@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "For a non-admin user, the source file is retrieved by file ID together with user.id, binding the entry to a file owned by that caller.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 40,
+                      "endLine": 45,
+                      "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The selected destination is bound to the caller-supplied form_data.collection_name; if absent, the code instead derives a file-specific collection name.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 45,
+                      "endLine": 50,
+                      "quote": "    if file:\n        try:\n            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "The strongest visible authorization control is verified-user entry gating plus the non-admin file ownership check; the source states that the intervening processing and commit portion contains no call authorizing collection_name.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 27,
+                      "endLine": 32,
+                      "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                    },
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 40,
+                      "endLine": 43,
+                      "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                    },
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 52,
+                      "endLine": 53,
+                      "quote": "# Original lines 1571-1687 load content, build metadata, and commit file updates;\n# they contain no call that authorizes collection_name and are omitted from this crop."
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "The processed documents are passed with collection_name to save_docs_to_vector_db, and that function inserts the items into the named collection.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 14,
+                      "endLine": 18,
+                      "quote": "log.info(f'adding to collection {collection_name}')\nVECTOR_DB_CLIENT.insert(\n    collection_name=collection_name,\n    items=items,\n)"
+                    },
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 62,
+                      "endLine": 67,
+                      "quote": "            result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={"
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The assessed conditions are a verified non-admin caller and a caller-supplied collection name identifying the existing destination collection.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 27,
+                      "endLine": 32,
+                      "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The source has a distinct admin branch, while the non-admin branch uses the user-bound file lookup.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 40,
+                      "endLine": 43,
+                      "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [],
+            "suggestedObservations": [
+              "To independently validate the bounded conclusion outside this supplied source crop, observe a non-admin request with a caller-selected existing collection for which the caller lacks ownership or an explicit write grant, and verify whether the collection insertion occurs; such runtime validation is outside this source-only assessment."
+            ]
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "Assessment is limited to the single declared expanded obligation and the supplied fixed source crop for POST /process/file; it makes no repository-wide or all-entry discovery claim."
+        }
+      },
+      "coverage": [
+        {
+          "requirementId": "authorization-core-v1.authorization-decision",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "After binding the non-admin caller to the owned source file and the destination to the submitted collection_name, the strongest visible control is file ownership plus verified-user entry gating. The source exposes no destination-specific ownership or write-grant decision before the write path.",
+          "factPointers": [
+            "/results/0/facts/binding/0",
+            "/results/0/facts/binding/1",
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.effect-reachability",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The selected collection_name reaches save_docs_to_vector_db and the visible sink inserts the generated items into that collection, so the protected write effect is reachable under the non-admin file-owner branch.",
+          "factPointers": [
+            "/results/0/facts/effect/0",
+            "/results/0/facts/entry/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.entry-control",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "Entry is gated by get_verified_user, and the non-admin branch requires the file lookup to match both the submitted file ID and the authenticated user's ID.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.external-assumption",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "No decisive source-external fact is needed for this bounded assessment: the supplied crop identifies the complete authorization-relevant path for the request and expressly records that the omitted processing/commit section contains no collection_name authorization call. This does not assert repository-wide completeness.",
+          "factPointers": [
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.identity-binding",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The runtime caller is supplied by get_verified_user, and the non-admin file lookup uses user.id, binding the declared verified principal to the ownership check used by the operation.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/binding/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.resource-binding",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The source file is bound through file_id and user.id, while the destination resource is independently selected through form_data.collection_name; the source shows no control conflating file ownership with destination write permission.",
+          "factPointers": [
+            "/results/0/facts/binding/0",
+            "/results/0/facts/binding/1",
+            "/results/0/facts/control/0"
+          ]
+        }
+      ]
+    },
+    "relationCoverage": [
+      {
+        "requirementId": "authorization-core-v1.authorization-decision",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "status": "addressed",
+        "explanation": "After binding the non-admin caller to the owned source file and the destination to the submitted collection_name, the strongest visible control is file ownership plus verified-user entry gating. The source exposes no destination-specific ownership or write-grant decision before the write path.",
+        "factPointers": [
+          "/results/0/facts/binding/0",
+          "/results/0/facts/binding/1",
+          "/results/0/facts/control/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.effect-reachability",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "status": "addressed",
+        "explanation": "The selected collection_name reaches save_docs_to_vector_db and the visible sink inserts the generated items into that collection, so the protected write effect is reachable under the non-admin file-owner branch.",
+        "factPointers": [
+          "/results/0/facts/effect/0",
+          "/results/0/facts/entry/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.entry-control",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "status": "addressed",
+        "explanation": "Entry is gated by get_verified_user, and the non-admin branch requires the file lookup to match both the submitted file ID and the authenticated user's ID.",
+        "factPointers": [
+          "/results/0/facts/entry/0",
+          "/results/0/facts/control/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.external-assumption",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "status": "addressed",
+        "explanation": "No decisive source-external fact is needed for this bounded assessment: the supplied crop identifies the complete authorization-relevant path for the request and expressly records that the omitted processing/commit section contains no collection_name authorization call. This does not assert repository-wide completeness.",
+        "factPointers": [
+          "/results/0/facts/control/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.identity-binding",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "status": "addressed",
+        "explanation": "The runtime caller is supplied by get_verified_user, and the non-admin file lookup uses user.id, binding the declared verified principal to the ownership check used by the operation.",
+        "factPointers": [
+          "/results/0/facts/entry/0",
+          "/results/0/facts/binding/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.resource-binding",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "status": "addressed",
+        "explanation": "The source file is bound through file_id and user.id, while the destination resource is independently selected through form_data.collection_name; the source shows no control conflating file ownership with destination write permission.",
+        "factPointers": [
+          "/results/0/facts/binding/0",
+          "/results/0/facts/binding/1",
+          "/results/0/facts/control/0"
+        ]
+      }
+    ],
+    "coverageValidation": {
+      "status": "valid",
+      "declared": 6,
+      "addressed": 6,
+      "unknown": 0,
+      "notApplicable": 0,
+      "missing": [],
+      "semanticSupport": "unreviewed",
+      "coverage": [
+        {
+          "requirementId": "authorization-core-v1.authorization-decision",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "After binding the non-admin caller to the owned source file and the destination to the submitted collection_name, the strongest visible control is file ownership plus verified-user entry gating. The source exposes no destination-specific ownership or write-grant decision before the write path.",
+          "factPointers": [
+            "/results/0/facts/binding/0",
+            "/results/0/facts/binding/1",
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.effect-reachability",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The selected collection_name reaches save_docs_to_vector_db and the visible sink inserts the generated items into that collection, so the protected write effect is reachable under the non-admin file-owner branch.",
+          "factPointers": [
+            "/results/0/facts/effect/0",
+            "/results/0/facts/entry/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.entry-control",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "Entry is gated by get_verified_user, and the non-admin branch requires the file lookup to match both the submitted file ID and the authenticated user's ID.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.external-assumption",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "No decisive source-external fact is needed for this bounded assessment: the supplied crop identifies the complete authorization-relevant path for the request and expressly records that the omitted processing/commit section contains no collection_name authorization call. This does not assert repository-wide completeness.",
+          "factPointers": [
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.identity-binding",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The runtime caller is supplied by get_verified_user, and the non-admin file lookup uses user.id, binding the declared verified principal to the ownership check used by the operation.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/binding/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.resource-binding",
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "addressed",
+          "explanation": "The source file is bound through file_id and user.id, while the destination resource is independently selected through form_data.collection_name; the source shows no control conflating file ownership with destination write permission.",
+          "factPointers": [
+            "/results/0/facts/binding/0",
+            "/results/0/facts/binding/1",
+            "/results/0/facts/control/0"
+          ]
+        }
+      ],
+      "diagnostics": []
+    },
+    "rawResponse": "{\"schemaVersion\":\"source-authorization-assessment-wire/v2\",\"scopeClaim\":{\"kind\":\"declared-obligations-only\",\"statement\":\"Assessment is limited to the single declared expanded obligation and the supplied fixed source crop for POST /process/file; it makes no repository-wide or all-entry discovery claim.\"},\"results\":[{\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"conclusion\":\"source_supported_failure\",\"explanation\":\"The verified-user dependency gates entry, and a non-admin caller is restricted to retrieving a file by both file ID and user ID, which binds the caller to a file the caller owns. The caller-controlled collection_name is then assigned directly, with a file-derived fallback only when it is absent. The supplied source explicitly states that the intervening load/commit portion contains no call authorizing collection_name, and the resulting collection_name is passed to save_docs_to_vector_db, whose visible sink inserts items into that collection. Thus file ownership is checked, but no destination knowledge-base ownership or explicit write grant is checked before the protected write effect. Under the accepted policy expectation, the described non-admin/no-destination-grant case should be denied; the source-visible chain instead reaches the write sink.\",\"facts\":{\"entry\":[{\"statement\":\"The assessed entry is POST /process/file, implemented by process_file, and it receives the submitted form and verified user.\",\"citations\":[{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":21,\"endLine\":32}]}],\"binding\":[{\"statement\":\"For a non-admin user, the source file is retrieved by file ID together with user.id, binding the entry to a file owned by that caller.\",\"citations\":[{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":40,\"endLine\":45}]},{\"statement\":\"The selected destination is bound to the caller-supplied form_data.collection_name; if absent, the code instead derives a file-specific collection name.\",\"citations\":[{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":45,\"endLine\":50}]}],\"condition\":[{\"statement\":\"The assessed conditions are a verified non-admin caller and a caller-supplied collection name identifying the existing destination collection.\",\"citations\":[{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":27,\"endLine\":32}]},{\"statement\":\"The source has a distinct admin branch, while the non-admin branch uses the user-bound file lookup.\",\"citations\":[{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":40,\"endLine\":43}]}],\"control\":[{\"statement\":\"The strongest visible authorization control is verified-user entry gating plus the non-admin file ownership check; the source states that the intervening processing and commit portion contains no call authorizing collection_name.\",\"citations\":[{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":27,\"endLine\":32},{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":40,\"endLine\":43},{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":52,\"endLine\":53}]}],\"effect\":[{\"statement\":\"The processed documents are passed with collection_name to save_docs_to_vector_db, and that function inserts the items into the named collection.\",\"citations\":[{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":14,\"endLine\":18},{\"sourceId\":\"src-d16d16c4ed4e3039\",\"startLine\":62,\"endLine\":67}]}]},\"suggestedObservations\":[\"To independently validate the bounded conclusion outside this supplied source crop, observe a non-admin request with a caller-selected existing collection for which the caller lacks ownership or an explicit write grant, and verify whether the collection insertion occurs; such runtime validation is outside this source-only assessment.\"]}],\"coverage\":[{\"requirementId\":\"authorization-core-v1.authorization-decision\",\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"status\":\"addressed\",\"explanation\":\"After binding the non-admin caller to the owned source file and the destination to the submitted collection_name, the strongest visible control is file ownership plus verified-user entry gating. The source exposes no destination-specific ownership or write-grant decision before the write path.\",\"factPointers\":[\"/results/0/facts/binding/0\",\"/results/0/facts/binding/1\",\"/results/0/facts/control/0\"]},{\"requirementId\":\"authorization-core-v1.effect-reachability\",\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"status\":\"addressed\",\"explanation\":\"The selected collection_name reaches save_docs_to_vector_db and the visible sink inserts the generated items into that collection, so the protected write effect is reachable under the non-admin file-owner branch.\",\"factPointers\":[\"/results/0/facts/effect/0\",\"/results/0/facts/entry/0\"]},{\"requirementId\":\"authorization-core-v1.entry-control\",\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"status\":\"addressed\",\"explanation\":\"Entry is gated by get_verified_user, and the non-admin branch requires the file lookup to match both the submitted file ID and the authenticated user's ID.\",\"factPointers\":[\"/results/0/facts/entry/0\",\"/results/0/facts/control/0\"]},{\"requirementId\":\"authorization-core-v1.external-assumption\",\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"status\":\"addressed\",\"explanation\":\"No decisive source-external fact is needed for this bounded assessment: the supplied crop identifies the complete authorization-relevant path for the request and expressly records that the omitted processing/commit section contains no collection_name authorization call. This does not assert repository-wide completeness.\",\"factPointers\":[\"/results/0/facts/control/0\"]},{\"requirementId\":\"authorization-core-v1.identity-binding\",\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"status\":\"addressed\",\"explanation\":\"The runtime caller is supplied by get_verified_user, and the non-admin file lookup uses user.id, binding the declared verified principal to the ownership check used by the operation.\",\"factPointers\":[\"/results/0/facts/entry/0\",\"/results/0/facts/binding/0\"]},{\"requirementId\":\"authorization-core-v1.resource-binding\",\"obligationId\":\"file-owner-without-destination-write-grant::post-process-file\",\"status\":\"addressed\",\"explanation\":\"The source file is bound through file_id and user.id, while the destination resource is independently selected through form_data.collection_name; the source shows no control conflating file ownership with destination write permission.\",\"factPointers\":[\"/results/0/facts/binding/0\",\"/results/0/facts/binding/1\",\"/results/0/facts/control/0\"]}]}",
+    "providerAttemptIds": [
+      "provider-attempt-1"
+    ],
+    "outputAttemptId": "provider-attempt-1",
+    "validation": {
+      "parsedResult": {
+        "schemaVersion": "source-authorization-assessment-result/v0",
+        "taskId": "owui-process-file-write",
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "results": [
+          {
+            "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+            "conclusion": "source_supported_failure",
+            "explanation": "The verified-user dependency gates entry, and a non-admin caller is restricted to retrieving a file by both file ID and user ID, which binds the caller to a file the caller owns. The caller-controlled collection_name is then assigned directly, with a file-derived fallback only when it is absent. The supplied source explicitly states that the intervening load/commit portion contains no call authorizing collection_name, and the resulting collection_name is passed to save_docs_to_vector_db, whose visible sink inserts items into that collection. Thus file ownership is checked, but no destination knowledge-base ownership or explicit write grant is checked before the protected write effect. Under the accepted policy expectation, the described non-admin/no-destination-grant case should be denied; the source-visible chain instead reaches the write sink.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "The assessed entry is POST /process/file, implemented by process_file, and it receives the submitted form and verified user.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 21,
+                      "endLine": 32,
+                      "quote": "class ProcessFileForm(BaseModel):\n    file_id: str\n    content: Optional[str] = None\n    collection_name: Optional[str] = None\n\n\n@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "For a non-admin user, the source file is retrieved by file ID together with user.id, binding the entry to a file owned by that caller.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 40,
+                      "endLine": 45,
+                      "quote": "if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The selected destination is bound to the caller-supplied form_data.collection_name; if absent, the code instead derives a file-specific collection name.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 45,
+                      "endLine": 50,
+                      "quote": "if file:\n        try:\n            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "The strongest visible authorization control is verified-user entry gating plus the non-admin file ownership check; the source states that the intervening processing and commit portion contains no call authorizing collection_name.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 27,
+                      "endLine": 32,
+                      "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                    },
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 40,
+                      "endLine": 43,
+                      "quote": "if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                    },
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 52,
+                      "endLine": 53,
+                      "quote": "# Original lines 1571-1687 load content, build metadata, and commit file updates;\n# they contain no call that authorizes collection_name and are omitted from this crop."
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "The processed documents are passed with collection_name to save_docs_to_vector_db, and that function inserts the items into the named collection.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 14,
+                      "endLine": 18,
+                      "quote": "log.info(f'adding to collection {collection_name}')\nVECTOR_DB_CLIENT.insert(\n    collection_name=collection_name,\n    items=items,\n)"
+                    },
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 62,
+                      "endLine": 67,
+                      "quote": "result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={"
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The assessed conditions are a verified non-admin caller and a caller-supplied collection name identifying the existing destination collection.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 27,
+                      "endLine": 32,
+                      "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The source has a distinct admin branch, while the non-admin branch uses the user-bound file lookup.",
+                  "citations": [
+                    {
+                      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                      "startLine": 40,
+                      "endLine": 43,
+                      "quote": "if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)"
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [],
+            "suggestedObservations": [
+              "To independently validate the bounded conclusion outside this supplied source crop, observe a non-admin request with a caller-selected existing collection for which the caller lacks ownership or an explicit write grant, and verify whether the collection insertion occurs; such runtime validation is outside this source-only assessment."
+            ]
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "Assessment is limited to the single declared expanded obligation and the supplied fixed source crop for POST /process/file; it makes no repository-wide or all-entry discovery claim."
+        }
+      },
+      "structure": {
+        "status": "valid",
+        "diagnostics": []
+      },
+      "declared": {
+        "total": 1,
+        "disposed": 1,
+        "pending": 0,
+        "blocked": 0,
+        "invalid": 0,
+        "status": "all-disposed",
+        "completionPercent": 100
+      },
+      "discovery": {
+        "status": "not-tested",
+        "claimLimit": "declared-obligations-only"
+      },
+      "evidencePresence": [
+        {
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "present"
+        }
+      ],
+      "evidenceSupport": [
+        {
+          "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+          "status": "unreviewed"
+        }
+      ],
+      "completeness": {
+        "status": "accepted",
+        "kind": "declared-obligations-only"
+      },
+      "dependencySnapshot": {
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "sourceFiles": [
+          {
+            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+            "sha256": "2548edb22139e5eb6bc4b3df7ef4a813fc9dcaef8b1630c8fe1f485a7ba29cae"
+          }
+        ],
+        "policies": [
+          {
+            "id": "destination-knowledge-write-policy",
+            "revision": "authorization-case-input/v1@841c9045",
+            "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+            "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+            "acceptanceStatus": "accepted"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "file-owner-without-destination-write-grant",
+            "principalId": "verified-non-admin-file-owner",
+            "resourceId": "existing-destination-knowledge-base",
+            "relation": "owns-source-file-but-no-destination-write-grant",
+            "operation": "write-file-content-to-existing-knowledge-base",
+            "expectation": "deny",
+            "conditions": [
+              {
+                "name": "caller-supplies-existing-collection-name",
+                "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+              },
+              {
+                "name": "principal-is-not-admin",
+                "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+              }
+            ],
+            "policySourceId": "destination-knowledge-write-policy",
+            "entryIds": [
+              "post-process-file"
+            ]
+          }
+        ]
+      },
+      "diagnostics": []
+    }
+  },
+  "finalKind": "initial",
+  "analysisPlan": {
+    "status": "ready",
+    "requirements": [
+      {
+        "id": "authorization-core-v1.authorization-decision",
+        "kind": "authorization-decision",
+        "obligationIds": [
+          "file-owner-without-destination-write-grant"
+        ],
+        "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "authorization-core-v1.identity-binding",
+          "authorization-core-v1.resource-binding"
+        ]
+      },
+      {
+        "id": "authorization-core-v1.effect-reachability",
+        "kind": "effect-reachability",
+        "obligationIds": [
+          "file-owner-without-destination-write-grant"
+        ],
+        "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "authorization-core-v1.authorization-decision",
+          "authorization-core-v1.entry-control"
+        ]
+      },
+      {
+        "id": "authorization-core-v1.entry-control",
+        "kind": "entry-control",
+        "obligationIds": [
+          "file-owner-without-destination-write-grant"
+        ],
+        "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+        "applicability": "required",
+        "prerequisiteIds": []
+      },
+      {
+        "id": "authorization-core-v1.external-assumption",
+        "kind": "external-assumption",
+        "obligationIds": [
+          "file-owner-without-destination-write-grant"
+        ],
+        "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+        "applicability": "when-present",
+        "prerequisiteIds": [
+          "authorization-core-v1.effect-reachability"
+        ]
+      },
+      {
+        "id": "authorization-core-v1.identity-binding",
+        "kind": "identity-binding",
+        "obligationIds": [
+          "file-owner-without-destination-write-grant"
+        ],
+        "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+        "applicability": "required",
+        "prerequisiteIds": []
+      },
+      {
+        "id": "authorization-core-v1.resource-binding",
+        "kind": "resource-binding",
+        "obligationIds": [
+          "file-owner-without-destination-write-grant"
+        ],
+        "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+        "applicability": "required",
+        "prerequisiteIds": []
+      }
+    ],
+    "entries": [
+      {
+        "requirementId": "authorization-core-v1.authorization-decision",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "kind": "authorization-decision",
+        "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "authorization-core-v1.identity-binding",
+          "authorization-core-v1.resource-binding"
+        ],
+        "status": "pending"
+      },
+      {
+        "requirementId": "authorization-core-v1.effect-reachability",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "kind": "effect-reachability",
+        "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "authorization-core-v1.authorization-decision",
+          "authorization-core-v1.entry-control"
+        ],
+        "status": "pending"
+      },
+      {
+        "requirementId": "authorization-core-v1.entry-control",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "kind": "entry-control",
+        "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+        "applicability": "required",
+        "prerequisiteIds": [],
+        "status": "pending"
+      },
+      {
+        "requirementId": "authorization-core-v1.external-assumption",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "kind": "external-assumption",
+        "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+        "applicability": "when-present",
+        "prerequisiteIds": [
+          "authorization-core-v1.effect-reachability"
+        ],
+        "status": "pending"
+      },
+      {
+        "requirementId": "authorization-core-v1.identity-binding",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "kind": "identity-binding",
+        "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+        "applicability": "required",
+        "prerequisiteIds": [],
+        "status": "pending"
+      },
+      {
+        "requirementId": "authorization-core-v1.resource-binding",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "kind": "resource-binding",
+        "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+        "applicability": "required",
+        "prerequisiteIds": [],
+        "status": "pending"
+      }
+    ],
+    "diagnostics": []
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 753,
+      "declaration": 4175,
+      "analysisLedger": 5654,
+      "source": 3385,
+      "outputContract": 2341,
+      "total": 16415,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "status": "response",
+      "startedAt": "2026-09-21T13:55:31.316Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 16415,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 841,
+        "output": 1713,
+        "cacheRead": 3456,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "",
+        "toolCalls": [
+          {
+            "id": "call_6PghgX6ZpGxpVplgs26HTdIj",
+            "name": "submit_authorization_result",
+            "arguments": {
+              "schemaVersion": "source-authorization-assessment-wire/v2",
+              "scopeClaim": {
+                "kind": "declared-obligations-only",
+                "statement": "Assessment is limited to the single declared expanded obligation and the supplied fixed source crop for POST /process/file; it makes no repository-wide or all-entry discovery claim."
+              },
+              "results": [
+                {
+                  "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                  "conclusion": "source_supported_failure",
+                  "explanation": "The verified-user dependency gates entry, and a non-admin caller is restricted to retrieving a file by both file ID and user ID, which binds the caller to a file the caller owns. The caller-controlled collection_name is then assigned directly, with a file-derived fallback only when it is absent. The supplied source explicitly states that the intervening load/commit portion contains no call authorizing collection_name, and the resulting collection_name is passed to save_docs_to_vector_db, whose visible sink inserts items into that collection. Thus file ownership is checked, but no destination knowledge-base ownership or explicit write grant is checked before the protected write effect. Under the accepted policy expectation, the described non-admin/no-destination-grant case should be denied; the source-visible chain instead reaches the write sink.",
+                  "facts": {
+                    "entry": [
+                      {
+                        "statement": "The assessed entry is POST /process/file, implemented by process_file, and it receives the submitted form and verified user.",
+                        "citations": [
+                          {
+                            "sourceId": "src-d16d16c4ed4e3039",
+                            "startLine": 21,
+                            "endLine": 32
+                          }
+                        ]
+                      }
+                    ],
+                    "binding": [
+                      {
+                        "statement": "For a non-admin user, the source file is retrieved by file ID together with user.id, binding the entry to a file owned by that caller.",
+                        "citations": [
+                          {
+                            "sourceId": "src-d16d16c4ed4e3039",
+                            "startLine": 40,
+                            "endLine": 45
+                          }
+                        ]
+                      },
+                      {
+                        "statement": "The selected destination is bound to the caller-supplied form_data.collection_name; if absent, the code instead derives a file-specific collection name.",
+                        "citations": [
+                          {
+                            "sourceId": "src-d16d16c4ed4e3039",
+                            "startLine": 45,
+                            "endLine": 50
+                          }
+                        ]
+                      }
+                    ],
+                    "condition": [
+                      {
+                        "statement": "The assessed conditions are a verified non-admin caller and a caller-supplied collection name identifying the existing destination collection.",
+                        "citations": [
+                          {
+                            "sourceId": "src-d16d16c4ed4e3039",
+                            "startLine": 27,
+                            "endLine": 32
+                          }
+                        ]
+                      },
+                      {
+                        "statement": "The source has a distinct admin branch, while the non-admin branch uses the user-bound file lookup.",
+                        "citations": [
+                          {
+                            "sourceId": "src-d16d16c4ed4e3039",
+                            "startLine": 40,
+                            "endLine": 43
+                          }
+                        ]
+                      }
+                    ],
+                    "control": [
+                      {
+                        "statement": "The strongest visible authorization control is verified-user entry gating plus the non-admin file ownership check; the source states that the intervening processing and commit portion contains no call authorizing collection_name.",
+                        "citations": [
+                          {
+                            "sourceId": "src-d16d16c4ed4e3039",
+                            "startLine": 27,
+                            "endLine": 32
+                          },
+                          {
+                            "sourceId": "src-d16d16c4ed4e3039",
+                            "startLine": 40,
+                            "endLine": 43
+                          },
+                          {
+                            "sourceId": "src-d16d16c4ed4e3039",
+                            "startLine": 52,
+                            "endLine": 53
+                          }
+                        ]
+                      }
+                    ],
+                    "effect": [
+                      {
+                        "statement": "The processed documents are passed with collection_name to save_docs_to_vector_db, and that function inserts the items into the named collection.",
+                        "citations": [
+                          {
+                            "sourceId": "src-d16d16c4ed4e3039",
+                            "startLine": 14,
+                            "endLine": 18
+                          },
+                          {
+                            "sourceId": "src-d16d16c4ed4e3039",
+                            "startLine": 62,
+                            "endLine": 67
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "suggestedObservations": [
+                    "To independently validate the bounded conclusion outside this supplied source crop, observe a non-admin request with a caller-selected existing collection for which the caller lacks ownership or an explicit write grant, and verify whether the collection insertion occurs; such runtime validation is outside this source-only assessment."
+                  ]
+                }
+              ],
+              "coverage": [
+                {
+                  "requirementId": "authorization-core-v1.authorization-decision",
+                  "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                  "status": "addressed",
+                  "explanation": "After binding the non-admin caller to the owned source file and the destination to the submitted collection_name, the strongest visible control is file ownership plus verified-user entry gating. The source exposes no destination-specific ownership or write-grant decision before the write path.",
+                  "factPointers": [
+                    "/results/0/facts/binding/0",
+                    "/results/0/facts/binding/1",
+                    "/results/0/facts/control/0"
+                  ]
+                },
+                {
+                  "requirementId": "authorization-core-v1.effect-reachability",
+                  "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                  "status": "addressed",
+                  "explanation": "The selected collection_name reaches save_docs_to_vector_db and the visible sink inserts the generated items into that collection, so the protected write effect is reachable under the non-admin file-owner branch.",
+                  "factPointers": [
+                    "/results/0/facts/effect/0",
+                    "/results/0/facts/entry/0"
+                  ]
+                },
+                {
+                  "requirementId": "authorization-core-v1.entry-control",
+                  "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                  "status": "addressed",
+                  "explanation": "Entry is gated by get_verified_user, and the non-admin branch requires the file lookup to match both the submitted file ID and the authenticated user's ID.",
+                  "factPointers": [
+                    "/results/0/facts/entry/0",
+                    "/results/0/facts/control/0"
+                  ]
+                },
+                {
+                  "requirementId": "authorization-core-v1.external-assumption",
+                  "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                  "status": "addressed",
+                  "explanation": "No decisive source-external fact is needed for this bounded assessment: the supplied crop identifies the complete authorization-relevant path for the request and expressly records that the omitted processing/commit section contains no collection_name authorization call. This does not assert repository-wide completeness.",
+                  "factPointers": [
+                    "/results/0/facts/control/0"
+                  ]
+                },
+                {
+                  "requirementId": "authorization-core-v1.identity-binding",
+                  "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                  "status": "addressed",
+                  "explanation": "The runtime caller is supplied by get_verified_user, and the non-admin file lookup uses user.id, binding the declared verified principal to the ownership check used by the operation.",
+                  "factPointers": [
+                    "/results/0/facts/entry/0",
+                    "/results/0/facts/binding/0"
+                  ]
+                },
+                {
+                  "requirementId": "authorization-core-v1.resource-binding",
+                  "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                  "status": "addressed",
+                  "explanation": "The source file is bound through file_id and user.id, while the destination resource is independently selected through form_data.collection_name; the source shows no control conflating file ownership with destination write permission.",
+                  "factPointers": [
+                    "/results/0/facts/binding/0",
+                    "/results/0/facts/binding/1",
+                    "/results/0/facts/control/0"
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "tokens": {
+          "input": 841,
+          "output": 1713,
+          "cacheRead": 3456,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 34515.79720000003,
+        "stopReason": "tool_use"
+      },
+      "endedAt": "2026-09-21T13:56:05.833Z"
+    }
+  ],
+  "events": [
+    {
+      "sequence": 1,
+      "at": "2026-09-21T13:55:31.317Z",
+      "kind": "dispatch",
+      "attemptId": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "attempt": {
+        "id": "provider-attempt-1",
+        "phase": "initial",
+        "transport": "schema-tool",
+        "status": "pending",
+        "startedAt": "2026-09-21T13:55:31.316Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 16415,
+          "toolNames": [
+            "submit_authorization_result"
+          ],
+          "toolChoice": {
+            "name": "submit_authorization_result"
+          },
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false
+        },
+        "usage": null,
+        "costUsd": null,
+        "transportAttempts": "unknown"
+      }
+    },
+    {
+      "sequence": 2,
+      "at": "2026-09-21T13:56:05.833Z",
+      "kind": "response",
+      "attemptId": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "attempt": {
+        "id": "provider-attempt-1",
+        "phase": "initial",
+        "transport": "schema-tool",
+        "status": "response",
+        "startedAt": "2026-09-21T13:55:31.316Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 16415,
+          "toolNames": [
+            "submit_authorization_result"
+          ],
+          "toolChoice": {
+            "name": "submit_authorization_result"
+          },
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false
+        },
+        "usage": {
+          "input": 841,
+          "output": 1713,
+          "cacheRead": 3456,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "transportAttempts": "unknown",
+        "response": {
+          "text": "",
+          "toolCalls": [
+            {
+              "id": "call_6PghgX6ZpGxpVplgs26HTdIj",
+              "name": "submit_authorization_result",
+              "arguments": {
+                "schemaVersion": "source-authorization-assessment-wire/v2",
+                "scopeClaim": {
+                  "kind": "declared-obligations-only",
+                  "statement": "Assessment is limited to the single declared expanded obligation and the supplied fixed source crop for POST /process/file; it makes no repository-wide or all-entry discovery claim."
+                },
+                "results": [
+                  {
+                    "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                    "conclusion": "source_supported_failure",
+                    "explanation": "The verified-user dependency gates entry, and a non-admin caller is restricted to retrieving a file by both file ID and user ID, which binds the caller to a file the caller owns. The caller-controlled collection_name is then assigned directly, with a file-derived fallback only when it is absent. The supplied source explicitly states that the intervening load/commit portion contains no call authorizing collection_name, and the resulting collection_name is passed to save_docs_to_vector_db, whose visible sink inserts items into that collection. Thus file ownership is checked, but no destination knowledge-base ownership or explicit write grant is checked before the protected write effect. Under the accepted policy expectation, the described non-admin/no-destination-grant case should be denied; the source-visible chain instead reaches the write sink.",
+                    "facts": {
+                      "entry": [
+                        {
+                          "statement": "The assessed entry is POST /process/file, implemented by process_file, and it receives the submitted form and verified user.",
+                          "citations": [
+                            {
+                              "sourceId": "src-d16d16c4ed4e3039",
+                              "startLine": 21,
+                              "endLine": 32
+                            }
+                          ]
+                        }
+                      ],
+                      "binding": [
+                        {
+                          "statement": "For a non-admin user, the source file is retrieved by file ID together with user.id, binding the entry to a file owned by that caller.",
+                          "citations": [
+                            {
+                              "sourceId": "src-d16d16c4ed4e3039",
+                              "startLine": 40,
+                              "endLine": 45
+                            }
+                          ]
+                        },
+                        {
+                          "statement": "The selected destination is bound to the caller-supplied form_data.collection_name; if absent, the code instead derives a file-specific collection name.",
+                          "citations": [
+                            {
+                              "sourceId": "src-d16d16c4ed4e3039",
+                              "startLine": 45,
+                              "endLine": 50
+                            }
+                          ]
+                        }
+                      ],
+                      "condition": [
+                        {
+                          "statement": "The assessed conditions are a verified non-admin caller and a caller-supplied collection name identifying the existing destination collection.",
+                          "citations": [
+                            {
+                              "sourceId": "src-d16d16c4ed4e3039",
+                              "startLine": 27,
+                              "endLine": 32
+                            }
+                          ]
+                        },
+                        {
+                          "statement": "The source has a distinct admin branch, while the non-admin branch uses the user-bound file lookup.",
+                          "citations": [
+                            {
+                              "sourceId": "src-d16d16c4ed4e3039",
+                              "startLine": 40,
+                              "endLine": 43
+                            }
+                          ]
+                        }
+                      ],
+                      "control": [
+                        {
+                          "statement": "The strongest visible authorization control is verified-user entry gating plus the non-admin file ownership check; the source states that the intervening processing and commit portion contains no call authorizing collection_name.",
+                          "citations": [
+                            {
+                              "sourceId": "src-d16d16c4ed4e3039",
+                              "startLine": 27,
+                              "endLine": 32
+                            },
+                            {
+                              "sourceId": "src-d16d16c4ed4e3039",
+                              "startLine": 40,
+                              "endLine": 43
+                            },
+                            {
+                              "sourceId": "src-d16d16c4ed4e3039",
+                              "startLine": 52,
+                              "endLine": 53
+                            }
+                          ]
+                        }
+                      ],
+                      "effect": [
+                        {
+                          "statement": "The processed documents are passed with collection_name to save_docs_to_vector_db, and that function inserts the items into the named collection.",
+                          "citations": [
+                            {
+                              "sourceId": "src-d16d16c4ed4e3039",
+                              "startLine": 14,
+                              "endLine": 18
+                            },
+                            {
+                              "sourceId": "src-d16d16c4ed4e3039",
+                              "startLine": 62,
+                              "endLine": 67
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "suggestedObservations": [
+                      "To independently validate the bounded conclusion outside this supplied source crop, observe a non-admin request with a caller-selected existing collection for which the caller lacks ownership or an explicit write grant, and verify whether the collection insertion occurs; such runtime validation is outside this source-only assessment."
+                    ]
+                  }
+                ],
+                "coverage": [
+                  {
+                    "requirementId": "authorization-core-v1.authorization-decision",
+                    "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                    "status": "addressed",
+                    "explanation": "After binding the non-admin caller to the owned source file and the destination to the submitted collection_name, the strongest visible control is file ownership plus verified-user entry gating. The source exposes no destination-specific ownership or write-grant decision before the write path.",
+                    "factPointers": [
+                      "/results/0/facts/binding/0",
+                      "/results/0/facts/binding/1",
+                      "/results/0/facts/control/0"
+                    ]
+                  },
+                  {
+                    "requirementId": "authorization-core-v1.effect-reachability",
+                    "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                    "status": "addressed",
+                    "explanation": "The selected collection_name reaches save_docs_to_vector_db and the visible sink inserts the generated items into that collection, so the protected write effect is reachable under the non-admin file-owner branch.",
+                    "factPointers": [
+                      "/results/0/facts/effect/0",
+                      "/results/0/facts/entry/0"
+                    ]
+                  },
+                  {
+                    "requirementId": "authorization-core-v1.entry-control",
+                    "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                    "status": "addressed",
+                    "explanation": "Entry is gated by get_verified_user, and the non-admin branch requires the file lookup to match both the submitted file ID and the authenticated user's ID.",
+                    "factPointers": [
+                      "/results/0/facts/entry/0",
+                      "/results/0/facts/control/0"
+                    ]
+                  },
+                  {
+                    "requirementId": "authorization-core-v1.external-assumption",
+                    "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                    "status": "addressed",
+                    "explanation": "No decisive source-external fact is needed for this bounded assessment: the supplied crop identifies the complete authorization-relevant path for the request and expressly records that the omitted processing/commit section contains no collection_name authorization call. This does not assert repository-wide completeness.",
+                    "factPointers": [
+                      "/results/0/facts/control/0"
+                    ]
+                  },
+                  {
+                    "requirementId": "authorization-core-v1.identity-binding",
+                    "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                    "status": "addressed",
+                    "explanation": "The runtime caller is supplied by get_verified_user, and the non-admin file lookup uses user.id, binding the declared verified principal to the ownership check used by the operation.",
+                    "factPointers": [
+                      "/results/0/facts/entry/0",
+                      "/results/0/facts/binding/0"
+                    ]
+                  },
+                  {
+                    "requirementId": "authorization-core-v1.resource-binding",
+                    "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+                    "status": "addressed",
+                    "explanation": "The source file is bound through file_id and user.id, while the destination resource is independently selected through form_data.collection_name; the source shows no control conflating file ownership with destination write permission.",
+                    "factPointers": [
+                      "/results/0/facts/binding/0",
+                      "/results/0/facts/binding/1",
+                      "/results/0/facts/control/0"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "tokens": {
+            "input": 841,
+            "output": 1713,
+            "cacheRead": 3456,
+            "cacheWrite": 0
+          },
+          "costUsd": null,
+          "durationMs": 34515.79720000003,
+          "stopReason": "tool_use"
+        },
+        "endedAt": "2026-09-21T13:56:05.833Z"
+      }
+    },
+    {
+      "sequence": 3,
+      "at": "2026-09-21T13:56:05.837Z",
+      "kind": "closed",
+      "reason": "host-return:completed"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 841,
+      "output": 1713,
+      "cacheRead": 3456,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

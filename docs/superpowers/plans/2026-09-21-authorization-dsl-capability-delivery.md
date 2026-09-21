@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、现有 Zod、SkVM provider/telemetry；一个轻量本地脚本和公开函数，不另建 CLI 框架、Web 页面或通用工作流引擎。
 
-- 制定日期：2026-09-21；状态：`active-X8`（X0–X7 已完成；离线接线与跨项目 dry-run 推进中）。
+- 制定日期：2026-09-21；状态：`active-X10`（X0–X9 已完成；23 单元已生成，逐义务评价推进中）。
 - 基线：W 发布 `fa6b064`；工程已完成，原始三例结论 6/6 正确、关键事实支持 4/6，D 有较低调用/token 的初步观察。
 - 工作分支：`skill-ir-aot`；仅向用户 `origin` 推送。保留其他任务的源码改动与本地材料。
 - 设计正文：[研究总文档 §7.21](../../skill-ir/skill-dsl-research.md#721-x-完整能力阶段设计)；持续合同：[spec 14.34](../../skill-ir/skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。不另建一份 design 或逐阶段总结 Markdown。
@@ -215,11 +215,11 @@ check 应输出字段、输入和分析要求检查结果且零模型调用；ru
 
 ### X9：真实主面板与重复观察
 
-- [ ] 主面板为原三任务加第二项目两任务，各 B/D 两个 fresh-context 重复：正常共 20 个生成单元。第二重复反转每任务臂顺序；任务选择及顺序在调用前写配置。
-- [ ] 使用可用的 `xty/gpt-5.6-sol` 同路由、temperature 0、auto-probe off；per-call 180 秒、unit 600 秒、max output 6000、至多四次派发及一次有诊断修复。X8 若证明配置不适合新输出，须在全部真实运行前统一调整并记录，不能事后只放宽失败臂。
-- [ ] 补充 N 对照固定为原 file、原 trusted-header、第二项目首个任务，各一次，共三单元。正常总计 23 单元，最多 92 次 provider dispatch；这是实验结构上限，不是美元预算。N 只作机制观察，不与两重复臂混算稳定性。
-- [ ] 缺第二项目时仍完成原三任务 B/D 两重复和两个既定 N 单元，记录跨项目阻碍；不得另挑容易成功的任务补足数量。
-- [ ] 每次请求记录 initial/fallback/repair/timeout、usage 与实际费用。网络不稳定时完成未知请求不自动重发，继续独立单元；全部生成结束后才使用 evaluator。
+- [x] 主面板为原三任务加第二项目两任务，各 B/D 两个 fresh-context 重复：正常共 20 个生成单元。第二重复反转每任务臂顺序；任务选择及顺序在调用前写配置。
+- [x] 使用可用的 `xty/gpt-5.6-sol` 同路由、temperature 0、auto-probe off；per-call 180 秒、unit 600 秒、max output 6000、至多四次派发及一次有诊断修复。X8 若证明配置不适合新输出，须在全部真实运行前统一调整并记录，不能事后只放宽失败臂。
+- [x] 补充 N 对照固定为原 file、原 trusted-header、第二项目首个任务，各一次，共三单元。正常总计 23 单元，最多 92 次 provider dispatch；这是实验结构上限，不是美元预算。N 只作机制观察，不与两重复臂混算稳定性。
+- [x] 缺第二项目时仍完成原三任务 B/D 两重复和两个既定 N 单元，记录跨项目阻碍；不得另挑容易成功的任务补足数量。
+- [x] 每次请求记录 initial/fallback/repair/timeout、usage 与实际费用。网络不稳定时完成未知请求不自动重发，继续独立单元；全部生成结束后才使用 evaluator。
 
 ### X10：逐义务评价与收益归因
 

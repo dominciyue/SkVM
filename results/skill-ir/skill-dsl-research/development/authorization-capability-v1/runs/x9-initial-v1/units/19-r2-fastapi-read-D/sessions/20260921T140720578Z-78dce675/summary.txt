@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260921T140720578Z-78dce675
+Status: completed
+Task: fastapi-items-superuser-read
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: task-supplied (input)
+
+Conclusions
+- allow-superuser-foreign-read::get-item-by-id: source_refuted — The declared GET item entry receives the current principal and path identifier, loads the selected item, and applies the strongest visible authorization control: denial occurs only when the caller is not a superuser and does not own the item. For the declared authenticated active superuser and existing foreign item, the superuser branch bypasses the ownership denial and reaches the item-return effect. This source-visible chain satisfies the accepted policy expectation to allow the read.
+  Evidence: The declared item-read entry is the GET route for an item identifier, implemented by read_item. (items.py:48-51)
+  Evidence: The route binds the caller to current_user and the requested resource identifier to id; the task declares that caller as an authenticated active superuser whose identifier differs from the foreign item's owner. (items.py:49-49, task.json:29-35)
+  Evidence: The selected item's owner relation is exposed through item.owner_id and is compared with current_user.id. (items.py:53-57)
+  Evidence: The strongest visible authorization control denies only a caller who is both not a superuser and not the item's owner; therefore the superuser role is an override for the foreign-item case. (items.py:56-57)
+  Evidence: The accepted policy expressly permits an authenticated active superuser to read an item regardless of owner. (task.json:5-9)
+  Evidence: If the authorization denial is not taken, the route returns the selected item. (items.py:56-58)
+  Evidence: The bounded obligation fixes an existing item owned by another user, and the route checks for a missing item before applying authorization. (task.json:29-35, items.py:53-55)
+
+Coverage
+- items.entry-control × allow-superuser-foreign-read::get-item-by-id: addressed — The declared entry is the GET item-by-id route, and its function receives the session, current principal, and path identifier before entering the lookup and authorization branch.
+- items.external-assumption × allow-superuser-foreign-read::get-item-by-id: not-applicable — No decisive source-external fact remains for this bounded path: the task fixes the principal as an authenticated active superuser and the resource as an existing foreign item, while the route visibly handles the missing-item condition. Deployment behavior and unshown dependencies are therefore not needed to decide this declared obligation.
+- items.identity-binding × allow-superuser-foreign-read::get-item-by-id: addressed — The route binds the caller through current_user, and the task fixes that caller's authenticated active superuser role state.
+- items.resource-binding × allow-superuser-foreign-read::get-item-by-id: addressed — The path id is used to select the item, and the selected item's owner_id is available for comparison with the caller's id; the task fixes the selected item as foreign and existing.
+- items.superuser-read-decision × allow-superuser-foreign-read::get-item-by-id: addressed — The visible decision is a combined condition requiring both non-superuser status and owner mismatch for denial. Because the declared caller is a superuser, the foreign-owner mismatch does not produce denial, matching the accepted superuser override policy.
+- items.superuser-read-effect × allow-superuser-foreign-read::get-item-by-id: addressed — After the existing-item check and the bypassed denial condition, execution reaches the return of the selected item, so the declared superuser foreign-item read reaches the protected effect.

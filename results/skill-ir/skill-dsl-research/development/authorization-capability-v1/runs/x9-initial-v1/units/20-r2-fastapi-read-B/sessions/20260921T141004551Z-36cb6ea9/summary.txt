@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260921T141004551Z-36cb6ea9
+Status: completed
+Task: fastapi-items-superuser-read
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: task-supplied (input)
+
+Conclusions
+- allow-superuser-foreign-read::get-item-by-id: source_refuted — For the fixed principal and existing foreign item declared by the task, the source-visible route loads the item by the path id, rejects only a missing item, and applies the ownership denial only when the caller is not a superuser. Therefore the declared superuser takes the bypass branch and reaches the item return effect. This refutes a failure of the stated allow obligation. The implementation of the CurrentUser dependency and deployment behavior are not supplied; they would be needed to establish how a real request becomes authenticated, active, and superuser, but they are not decisive under the declaration's fixed-principal assumption.
+  Evidence: The declared GET item entry accepts SessionDep, CurrentUser, and a UUID path parameter, then begins item lookup with session.get(Item, id). (items.py:48-53)
+  Evidence: The task binds the principal as an authenticated active superuser whose id differs from the item's owner_id, and binds the operation as reading an item through GET /items/{id}. (task.json:29-35)
+  Evidence: The route binds the caller to current_user and checks its is_superuser role state; the requested path id is the UUID used to select the item. (items.py:48-53, items.py:56-58)
+  Evidence: After lookup, the route raises 404 only if no item was found; the 403 ownership control is conditional on not being a superuser and on an owner mismatch. (items.py:53-57)
+  Evidence: Because the declared caller is a superuser, the negated superuser condition is false, so the foreign-owner mismatch does not trigger the denial branch. (items.py:56-57)
+  Evidence: The successful branch returns the selected item from the GET route, whose response model is ItemPublic. (items.py:48-58)
+  Evidence: The bounded task fixes an existing item owned by another user, so the item-exists condition is satisfied for this assessment. (task.json:29-35)
+  Evidence: The accepted policy distinguishes ordinary owners from superusers: non-superusers are limited to owned items, while active superusers may read regardless of owner. (task.json:5-9)
+
+Coverage
+- items.entry-control × allow-superuser-foreign-read::get-item-by-id: addressed — The visible entry is the GET /{id} route, which receives current_user and id and performs the item lookup before the authorization branch.
+- items.external-assumption × allow-superuser-foreign-read::get-item-by-id: addressed — No source-external fact remains decisive for the bounded source assessment because the declaration fixes the authenticated active superuser and existing foreign item as the analysis inputs. The unsupplied CurrentUser implementation would matter only for validating a real request's construction, not for evaluating the fixed principal against the visible branch.
+- items.identity-binding × allow-superuser-foreign-read::get-item-by-id: addressed — The task fixes the principal's authentication, active state, superuser role, and non-owner relationship; the route receives that caller as current_user and tests current_user.is_superuser.
+- items.resource-binding × allow-superuser-foreign-read::get-item-by-id: addressed — The UUID path parameter id is passed to session.get(Item, id), and the selected item's owner_id is the ownership field compared with current_user.id in the authorization branch.
+- items.superuser-read-decision × allow-superuser-foreign-read::get-item-by-id: addressed — The strongest visible decision is the superuser override encoded by the condition `not current_user.is_superuser and ...`: the foreign-owner denial applies to non-superusers, not to the declared superuser.
+- items.superuser-read-effect × allow-superuser-foreign-read::get-item-by-id: addressed — With an existing item and the superuser bypass, neither the 404 nor the 403 branch is taken, and execution reaches return item from the GET route.

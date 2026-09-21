@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260921T135056142Z-8d1a03da
+Status: completed
+Task: fastapi-items-foreign-update
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: task-supplied (input)
+
+Conclusions
+- deny-non-superuser-foreign-update::put-item-by-id: source_refuted — The source-visible path refutes the possibility that the declared authenticated non-superuser can update the fixed existing foreign item through this entry. The route binds a current user and path id, loads the item, and rejects exactly the conjunction relevant here: the caller is not a superuser and the item's owner differs from the caller. That rejection occurs before field mutation, add, commit, or refresh. The ordinary-owner rule therefore permits passage only when ownership matches, while the superuser term is an explicit override. Under the bounded facts fixed by the task, no source-external deployment fact is decisive.
+  Evidence: The declared operation enters through the PUT item-by-id route, whose handler accepts a session, current user, UUID path id, and item update input. (items.py:75-82)
+  Evidence: The bounded principal is an authenticated non-superuser whose id differs from the existing item's owner_id, and the requested operation is updating item fields. (task.json:20-25)
+  Evidence: The handler binds the caller as current_user and binds the selected resource key as the UUID id argument. (items.py:78-81)
+  Evidence: The path id is used to retrieve an Item, exposing the resulting item's owner_id for comparison with current_user.id. (items.py:86-90)
+  Evidence: The strongest visible authorization control raises a forbidden response when current_user is not a superuser and item.owner_id differs from current_user.id; thus the ordinary non-superuser must be the owner, whereas a superuser bypasses the ownership mismatch term. (items.py:89-90)
+  Evidence: Item-field mutation and persistence occur only after the authorization branch, through update-data extraction, model mutation, session add, commit, and refresh. (items.py:91-95)
+  Evidence: For the declared non-superuser foreign-owner relation, the forbidden exception precedes and prevents reaching the mutation and persistence statements. (items.py:89-94)
+  Evidence: The bounded resource condition fixes an existing item owned by another user and an expected denial for the update operation. (task.json:20-26)
+  Evidence: The handler first rejects a failed item lookup with a not-found response before reaching the ownership and role decision. (items.py:86-88)
+  Evidence: The accepted policy allows a non-superuser to modify only owned items and gives a superuser an owner-independent override. (task.json:5-9)
+
+Coverage
+- items.entry-control × deny-non-superuser-foreign-update::put-item-by-id: addressed — The visible entry is the PUT /{id} handler. Its typed CurrentUser parameter supplies the caller at entry, and after lookup the handler requires item existence before evaluating authorization.
+- items.external-assumption × deny-non-superuser-foreign-update::put-item-by-id: not-applicable — No source-external fact remains decisive for this bounded obligation: the task fixes authentication, non-superuser status, foreign ownership, and item existence, while the supplied handler directly denies that conjunction before mutation. This does not assert anything about undeclared entries or deployment behavior.
+- items.identity-binding × deny-non-superuser-foreign-update::put-item-by-id: addressed — The declared principal's authenticated non-superuser and non-owner properties are fixed by the task, and the handler receives that caller as current_user; its is_superuser and id fields are the role and identity values used by the decision.
+- items.non-superuser-update-decision × deny-non-superuser-foreign-update::put-item-by-id: addressed — The strongest visible decision is the conjunction that forbids a caller who is both non-superuser and not the item's owner. It distinguishes the ordinary ownership requirement from the superuser override and denies the declared principal-resource relation.
+- items.non-superuser-update-effect × deny-non-superuser-foreign-update::put-item-by-id: addressed — The declared branch raises forbidden before all update and persistence operations, so this obligation cannot reach mutation or commit through the supplied path.
+- items.resource-binding × deny-non-superuser-foreign-update::put-item-by-id: addressed — The UUID path id is passed to session.get(Item, id); the retrieved item's owner_id is then compared directly with current_user.id, binding the selected resource to the policy's ownership relation.

@@ -1,0 +1,351 @@
+{
+  "schemaVersion": "authorization-capability-unit-result/v1",
+  "configSha256": "23e22d8e3f6f49728d1ba1eb2db8afde7b861053bace435607b6222a64b57fec",
+  "implementationRevision": "dccd83099dd4f2779604d18f9ad36e62aa8f5a31",
+  "unit": {
+    "id": "04-r1-text-D",
+    "caseId": "owui-process-text-controlled",
+    "set": "main",
+    "repeat": 1,
+    "arm": "D"
+  },
+  "report": {
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260921T134421215Z-428523ac",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-capability-v1\\runs\\x9-initial-v1\\units\\04-r1-text-D\\sessions\\20260921T134421215Z-428523ac",
+    "createdAt": "2026-09-21T13:44:21.215Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-capability-v1\\runs\\x9-initial-v1\\public-inputs\\owui-process-text-controlled\\assessment.json",
+    "taskId": "owui-process-text-controlled",
+    "repository": "https://github.com/open-webui/open-webui",
+    "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "D",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "default"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 743,
+        "declaration": 4057,
+        "analysisLedger": 5534,
+        "source": 5404,
+        "outputContract": 2271,
+        "total": 18116,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "owui-process-text-controlled",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "results": [
+        {
+          "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+          "conclusion": "source_refuted",
+          "explanation": "The alleged authorization failure is refuted in the supplied source context. POST /process/text binds the caller through the verified-user dependency. When the caller supplies a collection name, the route validates that exact name with access_type='write' before constructing and saving the caller's text. For a non-admin, the shared policy checks an ordinary collection name as a possible knowledge-base ID and adds it to the allowed set only if the user has the requested access; the fallback allowance applies only when no knowledge base with that ID exists. Thus, for the declared existing knowledge base and a caller lacking ownership or an explicit write grant, the name remains denied, the validator raises HTTP 403, and the vector-database save is not reached. This matches the accepted expectation to deny.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The declared entry is POST /process/text, whose process_text handler receives form data and binds its runtime caller through get_verified_user.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                    "startLine": 7,
+                    "endLine": 12,
+                    "quote": "@router.post('/process/text')\nasync def process_text(\n    request: Request,\n    form_data: ProcessTextForm,\n    user=Depends(get_verified_user),\n):"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The declared verified principal is bound to the handler's user value by Depends(get_verified_user), and that same user is supplied to collection-access validation.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                    "startLine": 8,
+                    "endLine": 17,
+                    "quote": "async def process_text(\n    request: Request,\n    form_data: ProcessTextForm,\n    user=Depends(get_verified_user),\n):\n    collection_name = form_data.collection_name\n    if collection_name is None:\n        collection_name = calculate_sha256_string(form_data.content)\n    else:\n        await _validate_collection_access([collection_name], user, access_type='write')"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The caller-side validator passes the requested set and write access type to the shared accessibility filter, computes denied names, and raises HTTP 403 whenever any requested name is not allowed.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                    "startLine": 31,
+                    "endLine": 44,
+                    "quote": "async def _validate_collection_access(collection_names: list[str], user, access_type: str = 'read') -> None:\n    \"\"\"\n    Raise 403 if the user lacks access to any of the requested collections.\n    Delegates to the shared filter_accessible_collections utility so the\n    access rules stay in one place.\n    \"\"\"\n    requested = set(collection_names)\n    allowed = await filter_accessible_collections(requested, user, access_type=access_type)\n    denied = requested - allowed\n    if denied:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=ERROR_MESSAGES.ACCESS_PROHIBITED,\n        )"
+                  }
+                ]
+              },
+              {
+                "statement": "For a non-admin targeting an existing knowledge-base ID, the strongest visible policy control admits the name only when Knowledges.check_access_by_user_id succeeds for the requested permission; if that check fails and the knowledge base exists, the name is not added to the allowed set.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+                    "startLine": 42,
+                    "endLine": 52,
+                    "quote": "        else:\n            # May be a knowledge-base ID or a legacy/ephemeral collection.\n            # If it IS a KB, enforce access control.  If no such KB\n            # exists, treat it as a non-sensitive collection (e.g. legacy\n            # model knowledge, process_text SHA256 collections) and allow.\n            if await Knowledges.check_access_by_user_id(name, user.id, permission=access_type):\n                validated.add(name)\n            elif not await Knowledges.get_knowledge_by_id(name):\n                # Not a KB at all — legacy/ephemeral collection, allow\n                validated.add(name)\n    return validated"
+                  }
+                ]
+              },
+              {
+                "statement": "The special system meta-collection named knowledge-bases is a distinct checked resource and is always omitted for non-admins; the declared target is instead an existing individual knowledge-base collection handled by the ordinary-name branch.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+                    "startLine": 25,
+                    "endLine": 29,
+                    "quote": "    validated = set()\n    for name in collection_names:\n        if name == 'knowledge-bases':\n            # System meta-collection — never exposed to non-admins.\n            continue"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The protected effect is saving a Document whose page content is the caller-supplied form content into the selected collection_name; this save occurs only after the supplied-name write validation completes.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                    "startLine": 13,
+                    "endLine": 28,
+                    "quote": "    collection_name = form_data.collection_name\n    if collection_name is None:\n        collection_name = calculate_sha256_string(form_data.content)\n    else:\n        await _validate_collection_access([collection_name], user, access_type='write')\n\n    docs = [\n        Document(\n            page_content=form_data.content,\n            metadata={'name': form_data.name, 'created_by': user.id},\n        )\n    ]\n    text_content = form_data.content\n    log.debug(f'text_content: {text_content}')\n\n    result = await run_in_threadpool(save_docs_to_vector_db, request, docs, collection_name, user=user)"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The relevant request branch is the branch where the caller supplies collection_name; only a missing name is replaced by a content hash, while a supplied name is validated for write access.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                    "startLine": 13,
+                    "endLine": 17,
+                    "quote": "    collection_name = form_data.collection_name\n    if collection_name is None:\n        collection_name = calculate_sha256_string(form_data.content)\n    else:\n        await _validate_collection_access([collection_name], user, access_type='write')"
+                  }
+                ]
+              },
+              {
+                "statement": "The shared policy has a separate administrator bypass, so the declared non-admin proceeds through the per-collection checks rather than receiving unconditional access.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+                    "startLine": 22,
+                    "endLine": 26,
+                    "quote": "    if user.role == 'admin':\n        return collection_names\n\n    validated = set()\n    for name in collection_names:"
+                  }
+                ]
+              },
+              {
+                "statement": "For an ordinary name, the policy distinguishes an existing knowledge-base ID from a nonexistent legacy or ephemeral collection: access is allowed upon the requested user permission, while the fallback applies only if no knowledge base exists.",
+                "citations": [
+                  {
+                    "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+                    "startLine": 42,
+                    "endLine": 51,
+                    "quote": "        else:\n            # May be a knowledge-base ID or a legacy/ephemeral collection.\n            # If it IS a KB, enforce access control.  If no such KB\n            # exists, treat it as a non-sensitive collection (e.g. legacy\n            # model knowledge, process_text SHA256 collections) and allow.\n            if await Knowledges.check_access_by_user_id(name, user.id, permission=access_type):\n                validated.add(name)\n            elif not await Knowledges.get_knowledge_by_id(name):\n                # Not a KB at all — legacy/ephemeral collection, allow\n                validated.add(name)"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "This assessment is limited to the single declared runnable obligation and the supplied fixed source context; it makes no repository-wide or all-entry discovery claim."
+      }
+    },
+    "relationCoverage": [
+      {
+        "requirementId": "authorization-core-v1.authorization-decision",
+        "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+        "status": "addressed",
+        "explanation": "The source-visible decision is denial: the non-admin does not take the admin bypass, and an existing knowledge-base ID is allowed only if the user-specific write-access check succeeds. With the declared absence of write access, validation raises HTTP 403.",
+        "factPointers": [
+          "/results/0/facts/condition/1",
+          "/results/0/facts/control/0",
+          "/results/0/facts/control/1"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.effect-reachability",
+        "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+        "status": "addressed",
+        "explanation": "The save of caller-selected text is sequenced after write validation. Under the declared existing-KB/no-write-access branch, validation denies the name and raises before the save, so the protected effect is unreachable.",
+        "factPointers": [
+          "/results/0/facts/control/0",
+          "/results/0/facts/control/1",
+          "/results/0/facts/effect/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.entry-control",
+        "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+        "status": "addressed",
+        "explanation": "The entry requires a verified user, and a caller-supplied collection name triggers explicit write-access validation before processing reaches the vector-database save.",
+        "factPointers": [
+          "/results/0/facts/entry/0",
+          "/results/0/facts/binding/0",
+          "/results/0/facts/condition/0",
+          "/results/0/facts/control/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.external-assumption",
+        "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+        "status": "not-applicable",
+        "explanation": "No source-external fact is needed to decide this declared branch. The obligation itself fixes that the target is an existing knowledge base and that the non-admin lacks write access; the source shows that the only permissive fallback in this branch is for a name that is not a knowledge base, which is excluded by those fixed conditions.",
+        "factPointers": [
+          "/results/0/facts/condition/1",
+          "/results/0/facts/condition/2",
+          "/results/0/facts/control/1"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.identity-binding",
+        "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+        "status": "addressed",
+        "explanation": "The handler obtains the runtime user through get_verified_user and passes that same user into the write-access validation, binding the declared verified non-admin principal to the identity evaluated by policy.",
+        "factPointers": [
+          "/results/0/facts/entry/0",
+          "/results/0/facts/binding/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.resource-binding",
+        "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+        "status": "addressed",
+        "explanation": "The caller-selected form_data.collection_name is the exact name submitted to write validation and later used by the save. The policy checks that ordinary name as a possible individual knowledge-base ID, distinct from the separately denied knowledge-bases system meta-collection.",
+        "factPointers": [
+          "/results/0/facts/condition/0",
+          "/results/0/facts/condition/2",
+          "/results/0/facts/control/2",
+          "/results/0/facts/effect/0"
+        ]
+      }
+    ],
+    "coverageValidation": {
+      "status": "valid",
+      "declared": 6,
+      "addressed": 5,
+      "unknown": 0,
+      "notApplicable": 1,
+      "missing": [],
+      "semanticSupport": "unreviewed",
+      "coverage": [
+        {
+          "requirementId": "authorization-core-v1.authorization-decision",
+          "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+          "status": "addressed",
+          "explanation": "The source-visible decision is denial: the non-admin does not take the admin bypass, and an existing knowledge-base ID is allowed only if the user-specific write-access check succeeds. With the declared absence of write access, validation raises HTTP 403.",
+          "factPointers": [
+            "/results/0/facts/condition/1",
+            "/results/0/facts/control/0",
+            "/results/0/facts/control/1"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.effect-reachability",
+          "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+          "status": "addressed",
+          "explanation": "The save of caller-selected text is sequenced after write validation. Under the declared existing-KB/no-write-access branch, validation denies the name and raises before the save, so the protected effect is unreachable.",
+          "factPointers": [
+            "/results/0/facts/control/0",
+            "/results/0/facts/control/1",
+            "/results/0/facts/effect/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.entry-control",
+          "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+          "status": "addressed",
+          "explanation": "The entry requires a verified user, and a caller-supplied collection name triggers explicit write-access validation before processing reaches the vector-database save.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/binding/0",
+            "/results/0/facts/condition/0",
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.external-assumption",
+          "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+          "status": "not-applicable",
+          "explanation": "No source-external fact is needed to decide this declared branch. The obligation itself fixes that the target is an existing knowledge base and that the non-admin lacks write access; the source shows that the only permissive fallback in this branch is for a name that is not a knowledge base, which is excluded by those fixed conditions.",
+          "factPointers": [
+            "/results/0/facts/condition/1",
+            "/results/0/facts/condition/2",
+            "/results/0/facts/control/1"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.identity-binding",
+          "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+          "status": "addressed",
+          "explanation": "The handler obtains the runtime user through get_verified_user and passes that same user into the write-access validation, binding the declared verified non-admin principal to the identity evaluated by policy.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/binding/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.resource-binding",
+          "obligationId": "non-admin-without-kb-write-grant::post-process-text",
+          "status": "addressed",
+          "explanation": "The caller-selected form_data.collection_name is the exact name submitted to write validation and later used by the save. The policy checks that ordinary name as a possible individual knowledge-base ID, distinct from the separately denied knowledge-bases system meta-collection.",
+          "factPointers": [
+            "/results/0/facts/condition/0",
+            "/results/0/facts/condition/2",
+            "/results/0/facts/control/2",
+            "/results/0/facts/effect/0"
+          ]
+        }
+      ],
+      "diagnostics": []
+    },
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 4757,
+        "output": 2003,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  },
+  "sessionRelativePath": "units/04-r1-text-D/sessions/20260921T134421215Z-428523ac"
+}

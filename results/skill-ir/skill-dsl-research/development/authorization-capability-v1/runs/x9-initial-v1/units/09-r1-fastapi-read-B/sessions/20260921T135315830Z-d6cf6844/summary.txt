@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260921T135315830Z-d6cf6844
+Status: completed
+Task: fastapi-items-superuser-read
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: task-supplied (input)
+
+Conclusions
+- allow-superuser-foreign-read::get-item-by-id: source_refuted — The source supports the expected allow outcome for the declared authenticated active superuser reading the existing foreign item. The GET entry accepts current_user and the path id, loads the item, rejects only a missing item or a caller who is both non-superuser and not the owner, and returns the item otherwise. Because the declared principal is a superuser and the declared resource exists and is owned by another user, the ownership denial branch is bypassed and the item-return effect is reachable. No additional source-external fact is decisive for this bounded, declaration-fixed scenario; authentication plumbing and deployment behavior were not independently discovered or inferred.
+  Evidence: The declared GET /items/{id} entry is the read_item function, with session, current_user, and id parameters, and ItemPublic as its response model. (items.py:48-53)
+  Evidence: The declared principal is an authenticated active superuser whose id differs from the foreign item's owner_id, and the route binds the caller to current_user; the authorization branch reads current_user.is_superuser and compares current_user.id with item.owner_id. (task.json:29-35, items.py:49-56)
+  Evidence: The path id is passed to session.get(Item, id), selecting the item, and the selected item's owner_id is exposed in the ownership comparison. (items.py:49-56)
+  Evidence: The strongest visible authorization control denies access only when the caller is not a superuser and the item's owner_id differs from the caller's id; a superuser therefore bypasses the ordinary-owner denial branch. (items.py:53-57)
+  Evidence: The normative policy distinguishes the ordinary-owner rule from the superuser override: non-superusers are limited to owned items, while an authenticated active superuser may read regardless of owner. (task.json:5-9)
+  Evidence: After the missing-item and ownership checks, the route returns the selected item, which is the protected read effect. (items.py:53-58)
+  Evidence: The bounded case supplies an existing item owned by another user and expects allow for the authenticated active superuser read operation. (task.json:29-35)
+
+Coverage
+- items.entry-control × allow-superuser-foreign-read::get-item-by-id: addressed — The visible entry is GET /items/{id}; it binds current_user and id, then performs the item lookup before the authorization branch.
+- items.external-assumption × allow-superuser-foreign-read::get-item-by-id: not-applicable — For this bounded obligation, the declaration fixes the item as existing and foreign and fixes the principal as an authenticated active superuser. Therefore no source-external fact remains decisive to the stated source outcome, although the underlying authentication dependency and deployment are outside the supplied crop.
+- items.identity-binding × allow-superuser-foreign-read::get-item-by-id: addressed — The route receives current_user, and the visible branch uses current_user.is_superuser and current_user.id. The task declaration supplies the asserted authenticated active superuser role state for this bounded case.
+- items.resource-binding × allow-superuser-foreign-read::get-item-by-id: addressed — The path id is used in session.get(Item, id), and the resulting item's owner_id is the resource relation used by the authorization check.
+- items.superuser-read-decision × allow-superuser-foreign-read::get-item-by-id: addressed — The visible decision is a conditional denial for non-superusers who do not own the item. Since the declared caller is a superuser, the foreign-owner mismatch does not trigger denial; this is the source-visible superuser override over the ordinary-owner rule.
+- items.superuser-read-effect × allow-superuser-foreign-read::get-item-by-id: addressed — With the item existence condition fixed and the superuser caller bypassing the ownership denial, execution reaches return item, the item-read effect.

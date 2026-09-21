@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260921T135605852Z-e8832b3d
+Status: completed
+Task: owui-process-file-write
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (default)
+
+Conclusions
+- file-owner-without-destination-write-grant::post-process-file: source_supported_failure — The entry requires a verified user and, for a non-admin, checks ownership of the supplied source file. The caller-provided collection name is then selected without a destination-specific ownership or write-grant check, passed to the vector-database save routine on the caller-supplied-name branch, and used by the visible insert sink. Thus the strongest source-visible decision permits a verified non-admin source-file owner to reach a write to the selected collection despite the declared absence of destination write permission, contrary to the supplied policy requirement.
+  Evidence: The assessed entry is the POST process-file handler, which receives the process-file form and binds its caller through the verified-user dependency. (inputs/owui-process-file-write/retrieval_process_file.py:27-33)
+  Evidence: The runtime caller is the verified user supplied to the handler; the non-admin branch uses that user's identifier when retrieving the source file. (inputs/owui-process-file-write/retrieval_process_file.py:31-43)
+  Evidence: The strongest visible object authorization control is the non-admin source-file ownership lookup; it controls access to the file, not permission on the selected destination collection. (inputs/owui-process-file-write/retrieval_process_file.py:40-46)
+  Evidence: After selecting the caller-provided collection name, the supplied context identifies no intervening authorization call for that destination name before the save operation. (inputs/owui-process-file-write/retrieval_process_file.py:47-53)
+  Evidence: The selected collection name and file-derived documents are passed to the vector-database save routine, with the authenticated user also passed but no destination authorization control visible at this call site. (inputs/owui-process-file-write/retrieval_process_file.py:62-74)
+  Evidence: The protected write effect is a vector-database insertion whose destination is the collection_name argument and whose payload is the generated items. (inputs/owui-process-file-write/retrieval_process_file.py:4-18)
+  Evidence: The source exposes separate admin and non-admin branches; under the assessed non-admin branch, processing proceeds only when the file lookup by both file identifier and caller identifier returns a file. (inputs/owui-process-file-write/retrieval_process_file.py:40-46)
+  Evidence: When the caller supplies a collection name, that value is retained rather than replaced by the per-file default, and the later call marks the supplied-name branch with add enabled. (inputs/owui-process-file-write/retrieval_process_file.py:47-50, inputs/owui-process-file-write/retrieval_process_file.py:62-73)
+
+Coverage
+- authorization-core-v1.authorization-decision × file-owner-without-destination-write-grant::post-process-file: addressed — The strongest visible decision authenticates the caller and authorizes the non-admin only against source-file ownership; no destination-collection ownership or explicit write-grant decision appears before the write path.
+- authorization-core-v1.effect-reachability × file-owner-without-destination-write-grant::post-process-file: addressed — Once the non-admin file lookup succeeds, the caller-supplied collection name reaches the save call and the visible vector insertion sink on the supplied-name branch.
+- authorization-core-v1.entry-control × file-owner-without-destination-write-grant::post-process-file: addressed — The entry is gated by verified-user authentication and then, for a non-admin, by successful retrieval of a file owned by that caller.
+- authorization-core-v1.external-assumption × file-owner-without-destination-write-grant::post-process-file: not-applicable — No source-external fact is needed to determine the bounded source-visible authorization result: the fixed context directly shows the selected name reaching the insertion sink and identifies no destination authorization call on that path. This does not assert deployment success or exclude external operational rejection.
+- authorization-core-v1.identity-binding × file-owner-without-destination-write-grant::post-process-file: addressed — The declared verified non-admin principal is bound to the handler's verified-user value, whose identifier is used for the non-admin source-file ownership lookup.
+- authorization-core-v1.resource-binding × file-owner-without-destination-write-grant::post-process-file: addressed — The destination resource is bound from the request's collection-name field and propagated to the write path. It remains distinct from the checked source file, which is the object retrieved using the caller's identifier.
