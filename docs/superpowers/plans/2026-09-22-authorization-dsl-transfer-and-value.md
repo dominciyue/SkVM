@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 SkVM provider 与 CLI。机器结果写一处，研究与问题复盘持续追加研究总文档，不新增 HTML、通用工作流引擎或整套产品 CLI。
 
-- 日期：2026-09-22；状态：`in-progress`。Y0–Y7 已完成，机器状态位于本任务书指定的新结果根；当前进入 Y8。
+- 日期：2026-09-22；状态：`in-progress`。Y0–Y8 已完成，机器状态位于本任务书指定的新结果根；当前进入 Y9。
 - 代码基线：`abe470f2a887f35ca1d6782cfbd5343965856620`；接手时读取本任务书登记提交后的最新 HEAD。
 - 分支：`skill-ir-aot`；只提交归属文件并推送用户 `origin/skill-ir-aot`。
 - 设计：[研究总文档 §7.22](../../skill-ir/skill-dsl-research.md#722-y-条件表达默认迁移与价值验证)；持续合同：spec 14.34。
@@ -178,9 +178,9 @@ init/check/inspect 不初始化 provider；run 显式使用 `--model`。没有 a
 - [x] 配置开发 15 单元、预定轮换顺序与停止/修订规则；mock dry-run一次通过后记录实现 commit 和配置，不叠加新归档链。
 
 ### Y8：真实开发面板
-- [ ] 用 `xty/gpt-5.6-sol` 同路由、temperature 0、auto-probe off，单调用180秒、单元600秒、max output6000、最多4 dispatch、1次有诊断修复。Y7若输出规模需调整，在所有调用前统一记录。
-- [ ] 五个已暴露任务 P/L/C 各一次；各臂公共任务要求不变，缺字段、错误、timeout和fallback均留在分母。
-- [ ] 已 dispatch 但完成未知不自动重发；无 dispatch 的配置错误修好后可新建session。网络问题不阻止其他独立单元及工程工作。
+- [x] 用 `xty/gpt-5.6-sol` 同路由、temperature 0、auto-probe off，单调用180秒、单元600秒、max output6000、最多4 dispatch、1次有诊断修复；调用前未调整冻结规模或预算。
+- [x] 五个已暴露任务 P/L/C 各一次；15/15 completed，全部缺字段、fallback与repair均保留在初轮分母。
+- [x] 没有completion-unknown或timeout需要重发；25次调用、8次prompt fallback和2次domain repair完整保留，目标执行为0，实际USD因provider未报告而保持unknown。
 
 ### Y9：评价、一次共享修订与候选选择
 - [ ] 全部本轮生成结束后读取 oracle，评价决策、必要事实、条件解释、unsupported claims、可复验引用；所有判断绑定实际答案位置。

@@ -1,0 +1,183 @@
+{
+  "schemaVersion": "authorization-value-study-unit-result/v1",
+  "configSha256": "b0aa6278c14526e95be138cc56c5325f911c58a85f1b6396b55601827b27140b",
+  "implementationRevision": "4524bfe25ec4c8cc66948872609f05f56c91512e",
+  "unit": {
+    "id": "10-update-P",
+    "caseId": "fastapi-items-foreign-update",
+    "studyArm": "P",
+    "renderArm": "B"
+  },
+  "report": {
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260921T194918770Z-4bff8ae9",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\study\\runs\\y8-initial-v1\\units\\10-update-P\\sessions\\20260921T194918770Z-4bff8ae9",
+    "createdAt": "2026-09-21T19:49:18.770Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\study\\runs\\y8-initial-v1\\public-inputs\\fastapi-items-foreign-update\\assessment.json",
+    "taskId": "fastapi-items-foreign-update",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "studyArm": "P",
+    "analysisProfile": {
+      "id": "task-supplied",
+      "origin": "input"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 396,
+        "declaration": 2446,
+        "publicAnalysis": 610,
+        "source": 7122,
+        "outputContract": 1699,
+        "total": 12378,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "fastapi-items-foreign-update",
+      "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+      "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+      "results": [
+        {
+          "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+          "conclusion": "source_refuted",
+          "explanation": "The declared policy expectation is deny, and the fixed source supports that expectation. The PUT entry is the declared item-update route. Its visible dependency parameters bind session and current_user before the route body executes; the supplied task context identifies the principal as authenticated, non-superuser, and having an id different from the selected item's owner_id. The path id is passed to session.get(Item, id), which selects the item, and the bounded condition fixes that item as existing and foreign-owned. The strongest visible authorization decision is the branch that raises HTTP 403 when the caller is not a superuser and the item's owner_id differs from current_user.id. Because the principal is a non-superuser foreign owner, that branch is taken. The ordinary-owner rule therefore denies access to a non-owner, while the superuser override is not applicable because the stated principal is not a superuser. The subsequent update, add, commit, refresh, and return statements are after the denial branch, so this obligation cannot reach item mutation or persistence. No source-external fact is decisive for this bounded obligation: item existence, principal role/identity, and the foreign-owner relation are fixed by the task, and the route visibly contains the required control. The source discovery status being not-tested limits this result to the declared entry and does not support a repository-wide claim. Coverage: all required analysis points and all public questions are addressed here, including the pre-branch dependency gate, current_user and role binding, path-id item selection and owner relation, strongest authorization control, mutation reachability, and source-external-fact applicability.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The declared entry is the PUT item-by-id route and its fixed source body spans the route declaration through the returned item.",
+                "citations": [
+                  {
+                    "path": "task.json",
+                    "startLine": 20,
+                    "endLine": 26,
+                    "quote": "      \"caseId\": \"fastapi-items-foreign-update\",\n      \"request\": \"Determine whether an authenticated non-superuser can update an item owned by another user through PUT /items/{id}.\",\n      \"principal\": \"authenticated non-superuser whose id differs from item.owner_id\",\n      \"resource\": \"existing item owned by another user\",\n      \"operation\": \"update item fields\",\n      \"expectation\": \"deny\",\n      \"entry\": \"items.py:75-96\""
+                  },
+                  {
+                    "path": "items.py",
+                    "startLine": 75,
+                    "endLine": 96,
+                    "quote": "@router.put(\"/{id}\", response_model=ItemPublic)\ndef update_item(\n    *,\n    session: SessionDep,\n    current_user: CurrentUser,\n    id: uuid.UUID,\n    item_in: ItemUpdate,\n) -> Any:\n    \"\"\"\n    Update an item.\n    \"\"\"\n    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    update_dict = item_in.model_dump(exclude_unset=True)\n    item.sqlmodel_update(update_dict)\n    session.add(item)\n    session.commit()\n    session.refresh(item)\n    return item"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The route receives session, current_user, the path id, and the update input as parameters; the supplied task identifies the operation as updating item fields.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 75,
+                    "endLine": 82,
+                    "quote": "@router.put(\"/{id}\", response_model=ItemPublic)\ndef update_item(\n    *,\n    session: SessionDep,\n    current_user: CurrentUser,\n    id: uuid.UUID,\n    item_in: ItemUpdate,\n) -> Any:"
+                  },
+                  {
+                    "path": "task.json",
+                    "startLine": 20,
+                    "endLine": 26,
+                    "quote": "      \"caseId\": \"fastapi-items-foreign-update\",\n      \"request\": \"Determine whether an authenticated non-superuser can update an item owned by another user through PUT /items/{id}.\",\n      \"principal\": \"authenticated non-superuser whose id differs from item.owner_id\",\n      \"resource\": \"existing item owned by another user\",\n      \"operation\": \"update item fields\",\n      \"expectation\": \"deny\",\n      \"entry\": \"items.py:75-96\""
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The item is selected using the path id, and the route denies when the caller is not a superuser and the selected item's owner_id differs from current_user.id.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 86,
+                    "endLine": 90,
+                    "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                  }
+                ]
+              },
+              {
+                "statement": "The policy distinguishes the ordinary non-superuser owner-only rule from the superuser override.",
+                "citations": [
+                  {
+                    "path": "task.json",
+                    "startLine": 5,
+                    "endLine": 9,
+                    "quote": "  \"normativePolicy\": \"An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.\",\n  \"policyAuthority\": {\n    \"kind\": \"study-task-author-policy-derived-from-public-route-contract\",\n    \"location\": \"second-project/model-input/task.json#/normativePolicy\",\n    \"acceptance\": \"accepted by the study task author for this bounded assessment\""
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "Only after the authorization branch does the route apply the submitted fields, add the item, commit persistence, refresh it, and return it; the denial branch prevents reaching these statements for the stated principal and resource.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 89,
+                    "endLine": 96,
+                    "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    update_dict = item_in.model_dump(exclude_unset=True)\n    item.sqlmodel_update(update_dict)\n    session.add(item)\n    session.commit()\n    session.refresh(item)\n    return item"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The bounded condition fixes the selected item as existing and owned by another user, and the principal as authenticated, non-superuser, with an id different from item.owner_id.",
+                "citations": [
+                  {
+                    "path": "task.json",
+                    "startLine": 20,
+                    "endLine": 25,
+                    "quote": "      \"caseId\": \"fastapi-items-foreign-update\",\n      \"request\": \"Determine whether an authenticated non-superuser can update an item owned by another user through PUT /items/{id}.\",\n      \"principal\": \"authenticated non-superuser whose id differs from item.owner_id\",\n      \"resource\": \"existing item owned by another user\",\n      \"operation\": \"update item fields\",\n      \"expectation\": \"deny\","
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Assessment is limited to the single declared expanded obligation and fixed PUT item entry; it makes no repository-wide or deployment-completeness claim."
+      }
+    },
+    "relationCoverage": [],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 3411,
+        "output": 957,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  },
+  "sessionRelativePath": "units/10-update-P/sessions/20260921T194918770Z-4bff8ae9"
+}

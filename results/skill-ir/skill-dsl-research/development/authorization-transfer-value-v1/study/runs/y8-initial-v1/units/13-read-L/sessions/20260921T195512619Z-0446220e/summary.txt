@@ -1,0 +1,28 @@
+Authorization assessment
+Session: 20260921T195512619Z-0446220e
+Status: completed
+Task: fastapi-items-superuser-read
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: task-supplied (input)
+
+Conclusions
+- allow-superuser-foreign-read::get-item-by-id: source_refuted — For the declared authenticated active superuser and existing foreign item, the route binds the request to current_user and the path id to an Item lookup. The visible authorization control denies only when the caller is not a superuser and is not the owner. Because the declared caller is a superuser, the foreign-owner condition does not trigger the 403 branch, and the function reaches and returns the item. Thus the fixed source supports enforcement of the declared allow expectation, refuting a policy failure.
+  Evidence: The declared entry is the GET item-by-id handler, which accepts session, current_user, and a UUID path id. (items.py:48-53)
+  Evidence: The handler receives the caller as current_user, and its role state is read through current_user.is_superuser. (items.py:49-49)
+  Evidence: The bounded task declares the principal to be an authenticated active superuser whose id differs from item.owner_id. (task.json:29-35)
+  Evidence: After lookup, the route raises 403 only if the caller is not a superuser and the item's owner_id differs from current_user.id. (items.py:53-57)
+  Evidence: The ordinary-owner rule is represented by the owner comparison, while the leading not-current_user.is_superuser term provides the visible superuser override. (items.py:56-57)
+  Evidence: The accepted policy states that non-superusers are limited to owned items while an authenticated active superuser may read regardless of owner. (task.json:5-9)
+  Evidence: If the 403 condition is not met, the handler returns the selected item. (items.py:53-58)
+  Evidence: The bounded task fixes the resource as an existing item owned by another user and the operation as reading that item, so item existence and foreign ownership are declared conditions rather than unresolved deployment observations. (task.json:29-35)
+
+Coverage
+- items.entry-control × allow-superuser-foreign-read::get-item-by-id: addressed — The visible entry is the GET /{id} handler, and its pre-authorization gate is the item lookup followed by the 404 check before the ownership/role branch.
+- items.external-assumption × allow-superuser-foreign-read::get-item-by-id: not-applicable — No source-external fact remains decisive for this bounded obligation: the task fixes an authenticated active superuser, an existing foreign item, and the read operation, while the supplied route contains the relevant lookup and authorization branch. This does not claim that authentication or route registration is proven repository-wide or in deployment.
+- items.identity-binding × allow-superuser-foreign-read::get-item-by-id: addressed — The handler receives current_user as the caller object and evaluates current_user.is_superuser; the declaration supplies the applicable authenticated active superuser role state for this bounded case.
+- items.resource-binding × allow-superuser-foreign-read::get-item-by-id: addressed — The UUID path id is passed to session.get(Item, id), and the resulting item exposes owner_id in the authorization comparison; the task fixes that owner as another user's owner.
+- items.superuser-read-decision × allow-superuser-foreign-read::get-item-by-id: addressed — The strongest visible decision is the compound denial condition: non-superuser plus non-owner. The declared superuser therefore takes the override branch even though the item is foreign; the ordinary owner restriction does not deny this request.
+- items.superuser-read-effect × allow-superuser-foreign-read::get-item-by-id: addressed — With the declared superuser, the compound 403 condition is false, so execution proceeds from the lookup and authorization branch to return item. The protected read effect is therefore reachable under the stated conditions.
+
+Condition analysis
+- Not requested or not delivered.

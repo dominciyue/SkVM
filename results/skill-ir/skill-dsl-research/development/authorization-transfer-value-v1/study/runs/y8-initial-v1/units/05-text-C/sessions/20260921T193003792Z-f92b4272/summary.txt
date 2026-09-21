@@ -1,0 +1,30 @@
+Authorization assessment
+Session: 20260921T193003792Z-f92b4272
+Status: completed
+Task: owui-process-text-controlled
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- non-admin-without-kb-write-grant::post-process-text: source_refuted — For the declared verified non-admin, caller-selected existing knowledge-base collection, and absent write permission, the visible path enforces the stated deny expectation. The endpoint binds the supplied collection name, invokes shared validation with access_type='write', and the shared policy retains an existing knowledge-base collection only when the permission check succeeds. If that check fails while the knowledge base exists, the collection is not allowed and the endpoint raises HTTP 403 before the vector-database write sink. The admin branch bypasses these checks, but the assessed principal is non-admin.
+  Evidence: The process-text entry obtains a verified user and reads the caller-supplied collection name. (inputs/owui-process-text-controlled/retrieval_process_text.py:7-17)
+  Evidence: The supplied collection name is the request-selected object passed to access validation and, after validation, to the document-saving operation. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-18, inputs/owui-process-text-controlled/retrieval_process_text.py:25-28)
+  Evidence: The permission check and the knowledge-base existence check are distinct checks: access is tested first, and existence is tested separately when access is absent. (inputs/owui-process-text-controlled/retrieval_access_policy.py:43-50)
+  Evidence: The endpoint validates a supplied collection using write access before constructing and saving the document. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-18)
+  Evidence: The shared policy returns all requested collections for administrators, while non-administrators are filtered and existing knowledge-base names are admitted only when the requested permission check succeeds. (inputs/owui-process-text-controlled/retrieval_access_policy.py:22-24, inputs/owui-process-text-controlled/retrieval_access_policy.py:43-50)
+  Evidence: A collection absent from the allowed set causes the validator to raise HTTP 403. (inputs/owui-process-text-controlled/retrieval_process_text.py:31-44)
+  Evidence: The protected effect is saving attacker-controlled document content to the selected vector-database collection. (inputs/owui-process-text-controlled/retrieval_process_text.py:19-28)
+  Evidence: For an existing knowledge-base name denied by the write-permission check, the validator raises before the document-saving call, so the declared write effect is not reached. (inputs/owui-process-text-controlled/retrieval_access_policy.py:47-50, inputs/owui-process-text-controlled/retrieval_process_text.py:25-28, inputs/owui-process-text-controlled/retrieval_process_text.py:37-44)
+  Evidence: The supplied-collection branch uses write validation; the omitted-collection branch instead derives a collection name from the content. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-18)
+  Evidence: The non-admin branch is the filtered-policy path, whereas the admin branch bypasses collection checks. (inputs/owui-process-text-controlled/retrieval_access_policy.py:22-26)
+
+Coverage
+- authorization-core-v1.authorization-decision × non-admin-without-kb-write-grant::post-process-text: addressed — The strongest visible authorization decision is denial for the assessed non-admin relation: the supplied collection is checked with write permission, and an existing knowledge base is admitted only when that check succeeds.
+- authorization-core-v1.effect-reachability × non-admin-without-kb-write-grant::post-process-text: addressed — The requested write sink is reachable only after validation. Under the assessed non-admin, existing-KB, no-write-access branch, validation raises 403 and the save operation is not reached.
+- authorization-core-v1.entry-control × non-admin-without-kb-write-grant::post-process-text: addressed — The entry control is the call to shared collection validation with access_type='write', followed by rejection when the requested collection is absent from the allowed set.
+- authorization-core-v1.external-assumption × non-admin-without-kb-write-grant::post-process-text: addressed — The code consults runtime permission and knowledge-base existence checks, but the fixed obligation supplies the decisive relation: the target exists and the principal lacks write access. No additional source-external fact is needed to decide this declared branch; without that supplied relation, the two delegated return values would be decisive.
+- authorization-core-v1.identity-binding × non-admin-without-kb-write-grant::post-process-text: addressed — The route obtains the runtime caller through the verified-user dependency, passes that user into validation, and the shared policy uses the user's role and identifier for authorization checks.
+- authorization-core-v1.resource-binding × non-admin-without-kb-write-grant::post-process-text: addressed — The caller-selected collection name is the object validated and later supplied to the save operation. The policy separately distinguishes permission success from the existence lookup that establishes whether the name is an existing knowledge base.
+
+Condition analysis
+- non-admin-without-kb-write-grant::post-process-text: bounded; 3 branch(es)

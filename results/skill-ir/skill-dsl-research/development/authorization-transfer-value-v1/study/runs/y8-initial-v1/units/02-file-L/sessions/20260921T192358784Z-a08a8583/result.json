@@ -1,0 +1,355 @@
+{
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260921T192358784Z-a08a8583",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\study\\runs\\y8-initial-v1\\units\\02-file-L\\sessions\\20260921T192358784Z-a08a8583",
+  "createdAt": "2026-09-21T19:23:58.784Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\study\\runs\\y8-initial-v1\\public-inputs\\owui-process-file-write\\assessment.json",
+  "taskId": "owui-process-file-write",
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "studyArm": "L",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 4175,
+      "analysisLedger": 5654,
+      "source": 3385,
+      "outputContract": 2853,
+      "total": 16570,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "owui-process-file-write",
+    "repository": "https://github.com/open-webui/open-webui",
+    "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+    "results": [
+      {
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "conclusion": "source_supported_failure",
+        "explanation": "The fixed source supports failure of the declared deny expectation. The verified caller is passed into the endpoint through the authenticated-user dependency. For a non-admin, the visible ownership control checks only that the supplied file belongs to that user. The caller-controlled collection name is accepted, propagated into the save operation, and then used by the vector-database insert. The crop contains no target-specific check for ownership or write permission on that collection; it explicitly states that the omitted load/commit region contains no authorization call for collection_name. Thus, when the stated existing collection is supplied and the file lookup succeeds, the source-visible path reaches the protected write without enforcing the required destination permission distinction.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The assessed runnable entry is the POST endpoint whose handler receives the form, authenticated user, and database session, then invokes the save operation in a worker thread.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                  "startLine": 27,
+                  "endLine": 32,
+                  "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                },
+                {
+                  "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                  "startLine": 62,
+                  "endLine": 74,
+                  "quote": "            result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={\n                    'file_id': file.id,\n                    'name': file.filename,\n                    'hash': hash,\n                },\n                add=(True if form_data.collection_name else False),\n                user=user,\n            )"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The runtime caller is the user supplied by the verified-user dependency; the non-admin branch retrieves the file using both the supplied file identifier and that user's identifier.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                  "startLine": 29,
+                  "endLine": 32,
+                  "quote": "    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                },
+                {
+                  "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                  "startLine": 40,
+                  "endLine": 45,
+                  "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:"
+                }
+              ]
+            },
+            {
+              "statement": "The selected destination is bound to the request's collection_name field, which is retained when supplied and passed as collection_name to the save operation.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                  "startLine": 21,
+                  "endLine": 25,
+                  "quote": "class ProcessFileForm(BaseModel):\n    file_id: str\n    content: Optional[str] = None\n    collection_name: Optional[str] = None\n"
+                },
+                {
+                  "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                  "startLine": 45,
+                  "endLine": 50,
+                  "quote": "    if file:\n        try:\n            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                },
+                {
+                  "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                  "startLine": 62,
+                  "endLine": 67,
+                  "quote": "            result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "The strongest visible authorization control is an admin-versus-non-admin branch for source-file retrieval: admins use a file-id lookup, while other users use a file-id-and-user-id lookup. No destination collection ownership or write-grant predicate is visible in that control.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                  "startLine": 40,
+                  "endLine": 45,
+                  "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:"
+                }
+              ]
+            },
+            {
+              "statement": "The supplied crop states that the intervening file-processing and commit region contains no call authorizing collection_name.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                  "startLine": 52,
+                  "endLine": 53,
+                  "quote": "# Original lines 1571-1687 load content, build metadata, and commit file updates;\n# they contain no call that authorizes collection_name and are omitted from this crop."
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "The requested content is assembled into items and inserted into the collection identified by collection_name.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                  "startLine": 4,
+                  "endLine": 18,
+                  "quote": "items = [\n    {\n        'id': str(uuid.uuid4()),\n        'text': text,\n        'vector': embeddings[idx],\n        'metadata': metadatas[idx],\n    }\n    for idx, text in enumerate(texts)\n]\n\nlog.info(f'adding to collection {collection_name}')\nVECTOR_DB_CLIENT.insert(\n    collection_name=collection_name,\n    items=items,\n)"
+                }
+              ]
+            },
+            {
+              "statement": "The endpoint reaches save_docs_to_vector_db with the selected collection name and file metadata after the visible file check.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                  "startLine": 45,
+                  "endLine": 50,
+                  "quote": "    if file:\n        try:\n            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                },
+                {
+                  "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                  "startLine": 62,
+                  "endLine": 74,
+                  "quote": "            result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={\n                    'file_id': file.id,\n                    'name': file.filename,\n                    'hash': hash,\n                },\n                add=(True if form_data.collection_name else False),\n                user=user,\n            )"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The relevant non-admin condition selects the user-scoped file lookup, and a supplied collection name prevents the default file-derived collection name from being used.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                  "startLine": 40,
+                  "endLine": 50,
+                  "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:\n        try:\n            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                }
+              ]
+            },
+            {
+              "statement": "The explicit collection-name path sets add to true before invoking the save operation.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+                  "startLine": 62,
+                  "endLine": 74,
+                  "quote": "            result = await run_in_threadpool(\n                save_docs_to_vector_db,\n                request,\n                docs=docs,\n                collection_name=collection_name,\n                metadata={\n                    'file_id': file.id,\n                    'name': file.filename,\n                    'hash': hash,\n                },\n                add=(True if form_data.collection_name else False),\n                user=user,\n            )"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": [
+          "If an additional source-backed authorization layer exists outside the supplied crop, its collection ownership/write-grant decision would need to be supplied to alter this bounded conclusion; repository discovery was not performed."
+        ]
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Assessment is limited to the single declared expanded obligation and the supplied fixed source crop; it makes no repository-wide or deployment claim."
+    }
+  },
+  "relationCoverage": [
+    {
+      "requirementId": "authorization-core-v1.authorization-decision",
+      "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+      "status": "addressed",
+      "explanation": "The strongest visible decision is source-file ownership enforcement for non-admin callers, with no visible destination knowledge-base write-permission check; this supports failure of the required deny policy under the stated condition.",
+      "factPointers": [
+        "/results/0/facts/control/0",
+        "/results/0/facts/control/1"
+      ]
+    },
+    {
+      "requirementId": "authorization-core-v1.effect-reachability",
+      "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+      "status": "addressed",
+      "explanation": "After the file lookup succeeds, the supplied collection name is passed to the save function and the content reaches the vector-database insert, with no visible destination authorization gate in the supplied path.",
+      "factPointers": [
+        "/results/0/facts/effect/0",
+        "/results/0/facts/effect/1"
+      ]
+    },
+    {
+      "requirementId": "authorization-core-v1.entry-control",
+      "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+      "status": "addressed",
+      "explanation": "The entry is gated by verified-user dependency and by a file lookup; non-admin callers must match the supplied file identifier with their user identifier.",
+      "factPointers": [
+        "/results/0/facts/entry/0",
+        "/results/0/facts/control/0"
+      ]
+    },
+    {
+      "requirementId": "authorization-core-v1.external-assumption",
+      "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+      "status": "addressed",
+      "explanation": "No deployment or repository-wide fact is required for the bounded source-visible finding: the supplied crop directly shows the collection-name flow to the insert and identifies the intervening region as containing no collection authorization call. The assessment remains limited to this fixed crop and does not claim that undiscovered external behavior cannot exist.",
+      "factPointers": [
+        "/results/0/facts/control/1",
+        "/results/0/facts/effect/0"
+      ]
+    },
+    {
+      "requirementId": "authorization-core-v1.identity-binding",
+      "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+      "status": "addressed",
+      "explanation": "The endpoint binds the runtime caller through the verified-user dependency and uses that user's identifier in the non-admin file lookup.",
+      "factPointers": [
+        "/results/0/facts/binding/0"
+      ]
+    },
+    {
+      "requirementId": "authorization-core-v1.resource-binding",
+      "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+      "status": "addressed",
+      "explanation": "The request-selected destination is the collection_name form field, which is propagated to save_docs_to_vector_db and used by the insert; the separately checked resource is the source file, looked up by file identifier and user identifier for non-admin callers.",
+      "factPointers": [
+        "/results/0/facts/binding/1",
+        "/results/0/facts/binding/0"
+      ]
+    }
+  ],
+  "coverageValidation": {
+    "status": "valid",
+    "declared": 6,
+    "addressed": 6,
+    "unknown": 0,
+    "notApplicable": 0,
+    "missing": [],
+    "semanticSupport": "unreviewed",
+    "coverage": [
+      {
+        "requirementId": "authorization-core-v1.authorization-decision",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "status": "addressed",
+        "explanation": "The strongest visible decision is source-file ownership enforcement for non-admin callers, with no visible destination knowledge-base write-permission check; this supports failure of the required deny policy under the stated condition.",
+        "factPointers": [
+          "/results/0/facts/control/0",
+          "/results/0/facts/control/1"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.effect-reachability",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "status": "addressed",
+        "explanation": "After the file lookup succeeds, the supplied collection name is passed to the save function and the content reaches the vector-database insert, with no visible destination authorization gate in the supplied path.",
+        "factPointers": [
+          "/results/0/facts/effect/0",
+          "/results/0/facts/effect/1"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.entry-control",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "status": "addressed",
+        "explanation": "The entry is gated by verified-user dependency and by a file lookup; non-admin callers must match the supplied file identifier with their user identifier.",
+        "factPointers": [
+          "/results/0/facts/entry/0",
+          "/results/0/facts/control/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.external-assumption",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "status": "addressed",
+        "explanation": "No deployment or repository-wide fact is required for the bounded source-visible finding: the supplied crop directly shows the collection-name flow to the insert and identifies the intervening region as containing no collection authorization call. The assessment remains limited to this fixed crop and does not claim that undiscovered external behavior cannot exist.",
+        "factPointers": [
+          "/results/0/facts/control/1",
+          "/results/0/facts/effect/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.identity-binding",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "status": "addressed",
+        "explanation": "The endpoint binds the runtime caller through the verified-user dependency and uses that user's identifier in the non-admin file lookup.",
+        "factPointers": [
+          "/results/0/facts/binding/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.resource-binding",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "status": "addressed",
+        "explanation": "The request-selected destination is the collection_name form field, which is propagated to save_docs_to_vector_db and used by the insert; the separately checked resource is the source file, looked up by file identifier and user identifier for non-admin callers.",
+        "factPointers": [
+          "/results/0/facts/binding/1",
+          "/results/0/facts/binding/0"
+        ]
+      }
+    ],
+    "diagnostics": []
+  },
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 4304,
+      "output": 2088,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

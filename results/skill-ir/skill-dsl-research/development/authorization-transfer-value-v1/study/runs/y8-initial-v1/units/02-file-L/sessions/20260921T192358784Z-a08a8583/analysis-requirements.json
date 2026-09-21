@@ -1,0 +1,216 @@
+{
+  "schemaVersion": "authorization-analysis-profile-snapshot/v1",
+  "studyArm": "L",
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "file-owner-without-destination-write-grant"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "file-owner-without-destination-write-grant"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "file-owner-without-destination-write-grant"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "file-owner-without-destination-write-grant"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "file-owner-without-destination-write-grant"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "file-owner-without-destination-write-grant"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "plan": {
+    "status": "ready",
+    "requirements": [
+      {
+        "id": "authorization-core-v1.authorization-decision",
+        "kind": "authorization-decision",
+        "obligationIds": [
+          "file-owner-without-destination-write-grant"
+        ],
+        "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "authorization-core-v1.identity-binding",
+          "authorization-core-v1.resource-binding"
+        ]
+      },
+      {
+        "id": "authorization-core-v1.effect-reachability",
+        "kind": "effect-reachability",
+        "obligationIds": [
+          "file-owner-without-destination-write-grant"
+        ],
+        "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "authorization-core-v1.authorization-decision",
+          "authorization-core-v1.entry-control"
+        ]
+      },
+      {
+        "id": "authorization-core-v1.entry-control",
+        "kind": "entry-control",
+        "obligationIds": [
+          "file-owner-without-destination-write-grant"
+        ],
+        "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+        "applicability": "required",
+        "prerequisiteIds": []
+      },
+      {
+        "id": "authorization-core-v1.external-assumption",
+        "kind": "external-assumption",
+        "obligationIds": [
+          "file-owner-without-destination-write-grant"
+        ],
+        "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+        "applicability": "when-present",
+        "prerequisiteIds": [
+          "authorization-core-v1.effect-reachability"
+        ]
+      },
+      {
+        "id": "authorization-core-v1.identity-binding",
+        "kind": "identity-binding",
+        "obligationIds": [
+          "file-owner-without-destination-write-grant"
+        ],
+        "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+        "applicability": "required",
+        "prerequisiteIds": []
+      },
+      {
+        "id": "authorization-core-v1.resource-binding",
+        "kind": "resource-binding",
+        "obligationIds": [
+          "file-owner-without-destination-write-grant"
+        ],
+        "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+        "applicability": "required",
+        "prerequisiteIds": []
+      }
+    ],
+    "entries": [
+      {
+        "requirementId": "authorization-core-v1.authorization-decision",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "kind": "authorization-decision",
+        "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "authorization-core-v1.identity-binding",
+          "authorization-core-v1.resource-binding"
+        ],
+        "status": "pending"
+      },
+      {
+        "requirementId": "authorization-core-v1.effect-reachability",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "kind": "effect-reachability",
+        "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "authorization-core-v1.authorization-decision",
+          "authorization-core-v1.entry-control"
+        ],
+        "status": "pending"
+      },
+      {
+        "requirementId": "authorization-core-v1.entry-control",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "kind": "entry-control",
+        "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+        "applicability": "required",
+        "prerequisiteIds": [],
+        "status": "pending"
+      },
+      {
+        "requirementId": "authorization-core-v1.external-assumption",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "kind": "external-assumption",
+        "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+        "applicability": "when-present",
+        "prerequisiteIds": [
+          "authorization-core-v1.effect-reachability"
+        ],
+        "status": "pending"
+      },
+      {
+        "requirementId": "authorization-core-v1.identity-binding",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "kind": "identity-binding",
+        "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+        "applicability": "required",
+        "prerequisiteIds": [],
+        "status": "pending"
+      },
+      {
+        "requirementId": "authorization-core-v1.resource-binding",
+        "obligationId": "file-owner-without-destination-write-grant::post-process-file",
+        "kind": "resource-binding",
+        "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+        "applicability": "required",
+        "prerequisiteIds": [],
+        "status": "pending"
+      }
+    ],
+    "diagnostics": []
+  }
+}

@@ -1,0 +1,22 @@
+Authorization assessment
+Session: 20260921T200017890Z-8cd642a5
+Status: completed
+Task: fastapi-items-superuser-read
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: task-supplied (input)
+
+Conclusions
+- allow-superuser-foreign-read::get-item-by-id: source_refuted — The declared entry is the item-by-ID GET handler, whose signature binds a session, current_user, and path id. Under the supplied principal context, current_user represents an authenticated active superuser, so its superuser role state is the relevant role branch. The path id is used to retrieve the selected item; the bounded condition fixes that the item exists and is foreign because its owner differs from current_user.id. The handler first rejects only a missing item. Its strongest authorization control is the compound condition that raises 403 only when the caller is not a superuser and is not the owner. Thus the ordinary-owner rule blocks a non-superuser foreign read, while the superuser clause is an explicit override: for the declared superuser, the condition is false even though ownership differs. Execution therefore proceeds to the item return effect. This enforces the declared allow expectation and refutes a policy failure. No source-external fact remains decisive for this bounded obligation: authentication, active-superuser status, foreign ownership, and item existence are fixed by the declared task context, while no deployment or repository-wide inference is needed. The public questions are covered as follows: the visible entry gate is the dependency-bearing handler signature and the missing-item check; principal binding is through current_user and its is_superuser state; resource binding is session.get(Item, id) followed by owner_id comparison; the strongest decision is the superuser override in the authorization condition; the successful branch reaches return item; and source-external facts are not applicable as decisive facts under the supplied fixed path.
+  Evidence: The declared GET item entry is the handler whose source range contains the item-by-ID route and its function signature. (items.py:48-49)
+  Evidence: The bounded policy allows an authenticated active superuser to read an item regardless of owner. (task.json:2-9)
+  Evidence: The declared principal is an authenticated active superuser whose id differs from the selected item's owner_id, and the declared operation is reading the item through the GET entry. (task.json:29-35)
+  Evidence: The handler loads the item by the path id and raises a not-found response only when no item is loaded. (items.py:53-55)
+  Evidence: The authorization branch denies only when the caller is not a superuser and is not the item owner; consequently, the superuser role overrides the ordinary owner-only restriction for this foreign item. (items.py:56-57)
+  Evidence: After the authorization branch does not raise, the handler returns the selected item, which is the protected read effect. (items.py:56-58)
+  Evidence: The declared resource is an existing item owned by another user, so the item-exists condition is fixed and the owner differs from the current principal. (task.json:29-35)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

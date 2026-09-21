@@ -1,0 +1,344 @@
+{
+  "schemaVersion": "authorization-analysis-profile-snapshot/v1",
+  "studyArm": "C",
+  "profile": {
+    "id": "task-supplied",
+    "origin": "input"
+  },
+  "requirements": [
+    {
+      "id": "header.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "external-client-trusted-header-impersonation"
+      ],
+      "question": "Which source-visible gates must be traversed before the trusted-email path can process the request?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "header.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "external-client-trusted-header-impersonation"
+      ],
+      "question": "How, if at all, does a request value become the identity used by this entry?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "header.session-resource",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "external-client-trusted-header-impersonation"
+      ],
+      "question": "How is the selected identity bound to the existing-user session resource named by the obligation?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "header.identity-binding"
+      ]
+    },
+    {
+      "id": "header.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "external-client-trusted-header-impersonation"
+      ],
+      "question": "What source-visible application and accepted-policy controls decide whether this principal may obtain the selected user's session?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "header.identity-binding",
+        "header.session-resource"
+      ]
+    },
+    {
+      "id": "header.session-effect",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "external-client-trusted-header-impersonation"
+      ],
+      "question": "Under which source-visible branch can processing reach the protected session effect?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "header.entry-control",
+        "header.authorization-decision"
+      ]
+    },
+    {
+      "id": "header.deployment-assumptions",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "external-client-trusted-header-impersonation"
+      ],
+      "question": "Which actual configuration, ingress, proxy, or authentication fact can change the deployment answer, and is it present in this fixed context?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "header.session-effect"
+      ]
+    },
+    {
+      "id": "header.optional-provisioning",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "external-client-trusted-header-impersonation"
+      ],
+      "question": "If an optional provisioning branch is present, how does it affect identity binding before authentication?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "header.identity-binding"
+      ]
+    }
+  ],
+  "plan": {
+    "status": "ready",
+    "requirements": [
+      {
+        "id": "header.authorization-decision",
+        "kind": "authorization-decision",
+        "obligationIds": [
+          "external-client-trusted-header-impersonation"
+        ],
+        "question": "What source-visible application and accepted-policy controls decide whether this principal may obtain the selected user's session?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "header.identity-binding",
+          "header.session-resource"
+        ]
+      },
+      {
+        "id": "header.deployment-assumptions",
+        "kind": "external-assumption",
+        "obligationIds": [
+          "external-client-trusted-header-impersonation"
+        ],
+        "question": "Which actual configuration, ingress, proxy, or authentication fact can change the deployment answer, and is it present in this fixed context?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "header.session-effect"
+        ]
+      },
+      {
+        "id": "header.entry-control",
+        "kind": "entry-control",
+        "obligationIds": [
+          "external-client-trusted-header-impersonation"
+        ],
+        "question": "Which source-visible gates must be traversed before the trusted-email path can process the request?",
+        "applicability": "required",
+        "prerequisiteIds": []
+      },
+      {
+        "id": "header.identity-binding",
+        "kind": "identity-binding",
+        "obligationIds": [
+          "external-client-trusted-header-impersonation"
+        ],
+        "question": "How, if at all, does a request value become the identity used by this entry?",
+        "applicability": "required",
+        "prerequisiteIds": []
+      },
+      {
+        "id": "header.optional-provisioning",
+        "kind": "identity-binding",
+        "obligationIds": [
+          "external-client-trusted-header-impersonation"
+        ],
+        "question": "If an optional provisioning branch is present, how does it affect identity binding before authentication?",
+        "applicability": "when-present",
+        "prerequisiteIds": [
+          "header.identity-binding"
+        ]
+      },
+      {
+        "id": "header.session-effect",
+        "kind": "effect-reachability",
+        "obligationIds": [
+          "external-client-trusted-header-impersonation"
+        ],
+        "question": "Under which source-visible branch can processing reach the protected session effect?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "header.authorization-decision",
+          "header.entry-control"
+        ]
+      },
+      {
+        "id": "header.session-resource",
+        "kind": "resource-binding",
+        "obligationIds": [
+          "external-client-trusted-header-impersonation"
+        ],
+        "question": "How is the selected identity bound to the existing-user session resource named by the obligation?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "header.identity-binding"
+        ]
+      }
+    ],
+    "entries": [
+      {
+        "requirementId": "header.authorization-decision",
+        "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+        "kind": "authorization-decision",
+        "question": "What source-visible application and accepted-policy controls decide whether this principal may obtain the selected user's session?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "header.identity-binding",
+          "header.session-resource"
+        ],
+        "status": "pending"
+      },
+      {
+        "requirementId": "header.deployment-assumptions",
+        "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+        "kind": "external-assumption",
+        "question": "Which actual configuration, ingress, proxy, or authentication fact can change the deployment answer, and is it present in this fixed context?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "header.session-effect"
+        ],
+        "status": "pending"
+      },
+      {
+        "requirementId": "header.entry-control",
+        "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+        "kind": "entry-control",
+        "question": "Which source-visible gates must be traversed before the trusted-email path can process the request?",
+        "applicability": "required",
+        "prerequisiteIds": [],
+        "status": "pending"
+      },
+      {
+        "requirementId": "header.identity-binding",
+        "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+        "kind": "identity-binding",
+        "question": "How, if at all, does a request value become the identity used by this entry?",
+        "applicability": "required",
+        "prerequisiteIds": [],
+        "status": "pending"
+      },
+      {
+        "requirementId": "header.optional-provisioning",
+        "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+        "kind": "identity-binding",
+        "question": "If an optional provisioning branch is present, how does it affect identity binding before authentication?",
+        "applicability": "when-present",
+        "prerequisiteIds": [
+          "header.identity-binding"
+        ],
+        "status": "pending"
+      },
+      {
+        "requirementId": "header.session-effect",
+        "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+        "kind": "effect-reachability",
+        "question": "Under which source-visible branch can processing reach the protected session effect?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "header.authorization-decision",
+          "header.entry-control"
+        ],
+        "status": "pending"
+      },
+      {
+        "requirementId": "header.session-resource",
+        "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+        "kind": "resource-binding",
+        "question": "How is the selected identity bound to the existing-user session resource named by the obligation?",
+        "applicability": "required",
+        "prerequisiteIds": [
+          "header.identity-binding"
+        ],
+        "status": "pending"
+      }
+    ],
+    "diagnostics": []
+  },
+  "conditionAnalysisRequest": {
+    "schemaVersion": "authorization-condition-analysis-request/v1",
+    "requests": [
+      {
+        "obligationId": "external-client-trusted-header-impersonation",
+        "conditionBindings": [
+          {
+            "id": "password-auth-entry-enabled",
+            "name": "password-auth-signin-entry-enabled"
+          },
+          {
+            "id": "trusted-header-configured",
+            "name": "trusted-email-header-name-configured"
+          },
+          {
+            "id": "email-auth-produces-user",
+            "name": "email-authentication-produces-user"
+          },
+          {
+            "id": "deployment-ingress-trusted",
+            "name": "deployment-ingress-enforces-header-trust"
+          }
+        ],
+        "maxBranches": 6
+      }
+    ]
+  },
+  "conditionPlan": {
+    "status": "ready",
+    "request": {
+      "schemaVersion": "authorization-condition-analysis-request/v1",
+      "requests": [
+        {
+          "obligationId": "external-client-trusted-header-impersonation",
+          "conditionBindings": [
+            {
+              "id": "password-auth-entry-enabled",
+              "name": "password-auth-signin-entry-enabled"
+            },
+            {
+              "id": "trusted-header-configured",
+              "name": "trusted-email-header-name-configured"
+            },
+            {
+              "id": "email-auth-produces-user",
+              "name": "email-authentication-produces-user"
+            },
+            {
+              "id": "deployment-ingress-trusted",
+              "name": "deployment-ingress-enforces-header-trust"
+            }
+          ],
+          "maxBranches": 6
+        }
+      ]
+    },
+    "entries": [
+      {
+        "authorObligationId": "external-client-trusted-header-impersonation",
+        "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+        "conditions": [
+          {
+            "id": "deployment-ingress-trusted",
+            "name": "deployment-ingress-enforces-header-trust",
+            "basis": "The accepted policy requires sole trusted-proxy ingress and removal/replacement of client-supplied identity headers; actual deployment facts are not supplied."
+          },
+          {
+            "id": "email-auth-produces-user",
+            "name": "email-authentication-produces-user",
+            "basis": "auths_signin.py returns a session only after authenticate_user_by_email yields a user."
+          },
+          {
+            "id": "password-auth-entry-enabled",
+            "name": "password-auth-signin-entry-enabled",
+            "basis": "auths_signin.py checks ENABLE_PASSWORD_AUTH before entering the trusted-header branch."
+          },
+          {
+            "id": "trusted-header-configured",
+            "name": "trusted-email-header-name-configured",
+            "basis": "env_trusted_headers.py makes the header name environment-controlled and auths_signin.py enters the branch only when configured."
+          }
+        ],
+        "maxBranches": 6
+      }
+    ],
+    "diagnostics": []
+  }
+}

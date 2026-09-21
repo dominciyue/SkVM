@@ -1,0 +1,182 @@
+{
+  "schemaVersion": "authorization-value-study-unit-result/v1",
+  "configSha256": "b0aa6278c14526e95be138cc56c5325f911c58a85f1b6396b55601827b27140b",
+  "implementationRevision": "4524bfe25ec4c8cc66948872609f05f56c91512e",
+  "unit": {
+    "id": "15-read-P",
+    "caseId": "fastapi-items-superuser-read",
+    "studyArm": "P",
+    "renderArm": "B"
+  },
+  "report": {
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260921T200017890Z-8cd642a5",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\study\\runs\\y8-initial-v1\\units\\15-read-P\\sessions\\20260921T200017890Z-8cd642a5",
+    "createdAt": "2026-09-21T20:00:17.890Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\study\\runs\\y8-initial-v1\\public-inputs\\fastapi-items-superuser-read\\assessment.json",
+    "taskId": "fastapi-items-superuser-read",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "studyArm": "P",
+    "analysisProfile": {
+      "id": "task-supplied",
+      "origin": "input"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 396,
+        "declaration": 2481,
+        "publicAnalysis": 597,
+        "source": 7122,
+        "outputContract": 1694,
+        "total": 12395,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "fastapi-items-superuser-read",
+      "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+      "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+      "results": [
+        {
+          "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+          "conclusion": "source_refuted",
+          "explanation": "The declared entry is the item-by-ID GET handler, whose signature binds a session, current_user, and path id. Under the supplied principal context, current_user represents an authenticated active superuser, so its superuser role state is the relevant role branch. The path id is used to retrieve the selected item; the bounded condition fixes that the item exists and is foreign because its owner differs from current_user.id. The handler first rejects only a missing item. Its strongest authorization control is the compound condition that raises 403 only when the caller is not a superuser and is not the owner. Thus the ordinary-owner rule blocks a non-superuser foreign read, while the superuser clause is an explicit override: for the declared superuser, the condition is false even though ownership differs. Execution therefore proceeds to the item return effect. This enforces the declared allow expectation and refutes a policy failure. No source-external fact remains decisive for this bounded obligation: authentication, active-superuser status, foreign ownership, and item existence are fixed by the declared task context, while no deployment or repository-wide inference is needed. The public questions are covered as follows: the visible entry gate is the dependency-bearing handler signature and the missing-item check; principal binding is through current_user and its is_superuser state; resource binding is session.get(Item, id) followed by owner_id comparison; the strongest decision is the superuser override in the authorization condition; the successful branch reaches return item; and source-external facts are not applicable as decisive facts under the supplied fixed path.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The declared GET item entry is the handler whose source range contains the item-by-ID route and its function signature.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 48,
+                    "endLine": 49,
+                    "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The bounded policy allows an authenticated active superuser to read an item regardless of owner.",
+                "citations": [
+                  {
+                    "path": "task.json",
+                    "startLine": 2,
+                    "endLine": 9,
+                    "quote": "  \"schemaVersion\": \"authorization-public-task-material/v1\",\n  \"repository\": \"https://github.com/fastapi/full-stack-fastapi-template\",\n  \"sourceRef\": \"cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7\",\n  \"normativePolicy\": \"An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.\",\n  \"policyAuthority\": {\n    \"kind\": \"study-task-author-policy-derived-from-public-route-contract\",\n    \"location\": \"second-project/model-input/task.json#/normativePolicy\",\n    \"acceptance\": \"accepted by the study task author for this bounded assessment\""
+                  }
+                ]
+              },
+              {
+                "statement": "The declared principal is an authenticated active superuser whose id differs from the selected item's owner_id, and the declared operation is reading the item through the GET entry.",
+                "citations": [
+                  {
+                    "path": "task.json",
+                    "startLine": 29,
+                    "endLine": 35,
+                    "quote": "      \"caseId\": \"fastapi-items-superuser-read\",\n      \"request\": \"Determine whether an authenticated active superuser can read an item owned by another user through GET /items/{id}.\",\n      \"principal\": \"authenticated active superuser whose id differs from item.owner_id\",\n      \"resource\": \"existing item owned by another user\",\n      \"operation\": \"read item\",\n      \"expectation\": \"allow\",\n      \"entry\": \"items.py:48-58\""
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The handler loads the item by the path id and raises a not-found response only when no item is loaded.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 53,
+                    "endLine": 55,
+                    "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")"
+                  }
+                ]
+              },
+              {
+                "statement": "The authorization branch denies only when the caller is not a superuser and is not the item owner; consequently, the superuser role overrides the ordinary owner-only restriction for this foreign item.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 56,
+                    "endLine": 57,
+                    "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "After the authorization branch does not raise, the handler returns the selected item, which is the protected read effect.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 56,
+                    "endLine": 58,
+                    "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    return item"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The declared resource is an existing item owned by another user, so the item-exists condition is fixed and the owner differs from the current principal.",
+                "citations": [
+                  {
+                    "path": "task.json",
+                    "startLine": 29,
+                    "endLine": 35,
+                    "quote": "      \"caseId\": \"fastapi-items-superuser-read\",\n      \"request\": \"Determine whether an authenticated active superuser can read an item owned by another user through GET /items/{id}.\",\n      \"principal\": \"authenticated active superuser whose id differs from item.owner_id\",\n      \"resource\": \"existing item owned by another user\",\n      \"operation\": \"read item\",\n      \"expectation\": \"allow\",\n      \"entry\": \"items.py:48-58\""
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Assessment is limited to the single declared expanded obligation and the supplied fixed task.json/items.py source context; it makes no repository-wide completeness or deployment claim."
+      }
+    },
+    "relationCoverage": [],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 3411,
+        "output": 1029,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  },
+  "sessionRelativePath": "units/15-read-P/sessions/20260921T200017890Z-8cd642a5"
+}

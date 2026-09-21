@@ -1,0 +1,440 @@
+{
+  "schemaVersion": "authorization-value-study-unit-result/v1",
+  "configSha256": "b0aa6278c14526e95be138cc56c5325f911c58a85f1b6396b55601827b27140b",
+  "implementationRevision": "4524bfe25ec4c8cc66948872609f05f56c91512e",
+  "unit": {
+    "id": "14-read-C",
+    "caseId": "fastapi-items-superuser-read",
+    "studyArm": "C",
+    "renderArm": "B"
+  },
+  "report": {
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260921T195639305Z-dc42c9ec",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\study\\runs\\y8-initial-v1\\units\\14-read-C\\sessions\\20260921T195639305Z-dc42c9ec",
+    "createdAt": "2026-09-21T19:56:39.305Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\study\\runs\\y8-initial-v1\\public-inputs\\fastapi-items-superuser-read\\assessment.json",
+    "taskId": "fastapi-items-superuser-read",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "studyArm": "C",
+    "analysisProfile": {
+      "id": "task-supplied",
+      "origin": "input"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 396,
+        "declaration": 3127,
+        "analysisLedger": 4706,
+        "conditionAnalysis": 393,
+        "source": 7122,
+        "outputContract": 3766,
+        "total": 19649,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "fastapi-items-superuser-read",
+      "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+      "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+      "results": [
+        {
+          "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+          "conclusion": "source_refuted",
+          "explanation": "The declared authenticated active superuser is bound to the route's current_user parameter, and the path id selects the item. The route first performs the item lookup, then denies only when the caller is not a superuser and is not the owner. Because the declared principal has the superuser role and the item is owned by another user, the ownership-denial branch is bypassed and execution reaches the item return. The source therefore supports enforcement of the declared allow expectation for this bounded foreign-item read.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The declared entry is the GET item-by-id handler, which accepts the session, current user, and path id and returns an item representation.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 48,
+                    "endLine": 52,
+                    "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:\n    \"\"\"\n    Get item by ID.\n    \"\"\""
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The route binds the caller through current_user, and the task declares that caller to be authenticated, active, and a superuser whose id differs from the item's owner_id.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 48,
+                    "endLine": 49,
+                    "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:"
+                  },
+                  {
+                    "path": "task.json",
+                    "startLine": 29,
+                    "endLine": 35,
+                    "quote": "      \"caseId\": \"fastapi-items-superuser-read\",\n      \"request\": \"Determine whether an authenticated active superuser can read an item owned by another user through GET /items/{id}.\",\n      \"principal\": \"authenticated active superuser whose id differs from item.owner_id\",\n      \"resource\": \"existing item owned by another user\",\n      \"operation\": \"read item\",\n      \"expectation\": \"allow\",\n      \"entry\": \"items.py:48-58\""
+                  }
+                ]
+              },
+              {
+                "statement": "The path id is passed to the item lookup, and the selected item's owner_id is compared with the current user's id.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 53,
+                    "endLine": 56,
+                    "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The strongest visible authorization control raises a forbidden response only if the caller is not a superuser and the caller does not own the item; the superuser condition therefore overrides the owner mismatch.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 56,
+                    "endLine": 57,
+                    "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                  }
+                ]
+              },
+              {
+                "statement": "The declared policy distinguishes the ordinary owner-only rule from the superuser rule that permits access regardless of owner.",
+                "citations": [
+                  {
+                    "path": "task.json",
+                    "startLine": 5,
+                    "endLine": 9,
+                    "quote": "  \"normativePolicy\": \"An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.\",\n  \"policyAuthority\": {\n    \"kind\": \"study-task-author-policy-derived-from-public-route-contract\",\n    \"location\": \"second-project/model-input/task.json#/normativePolicy\",\n    \"acceptance\": \"accepted by the study task author for this bounded assessment\""
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "When the authorization condition does not raise an exception, the handler returns the selected item.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 56,
+                    "endLine": 58,
+                    "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    return item"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The bounded obligation fixes an existing item owned by another user, so the item-exists condition is true for the assessed case.",
+                "citations": [
+                  {
+                    "path": "task.json",
+                    "startLine": 29,
+                    "endLine": 35,
+                    "quote": "      \"caseId\": \"fastapi-items-superuser-read\",\n      \"request\": \"Determine whether an authenticated active superuser can read an item owned by another user through GET /items/{id}.\",\n      \"principal\": \"authenticated active superuser whose id differs from item.owner_id\",\n      \"resource\": \"existing item owned by another user\",\n      \"operation\": \"read item\",\n      \"expectation\": \"allow\",\n      \"entry\": \"items.py:48-58\""
+                  }
+                ]
+              },
+              {
+                "statement": "For an existing item, the lookup succeeds and the handler proceeds to the authorization branch rather than the not-found response.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 53,
+                    "endLine": 57,
+                    "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "This assessment covers only the single expanded obligation for GET /items/{id} under the supplied fixed source crop and does not claim repository-wide or deployment-wide completeness."
+      }
+    },
+    "relationCoverage": [
+      {
+        "requirementId": "items.entry-control",
+        "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+        "status": "addressed",
+        "explanation": "The visible entry is the GET item-by-id handler, and its dependency parameters include current_user before the item lookup and authorization branch.",
+        "factPointers": [
+          "/results/0/facts/entry/0"
+        ]
+      },
+      {
+        "requirementId": "items.external-assumption",
+        "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+        "status": "addressed",
+        "explanation": "The bounded task supplies the principal's authenticated active superuser state and the existing foreign item as assessment facts. The source crop does not expose the implementation of the CurrentUser dependency, so that implementation is not inferred; however, no additional source-external fact is decisive for the declared bounded path once the task's principal and resource conditions are accepted.",
+        "factPointers": [
+          "/results/0/facts/binding/0",
+          "/results/0/facts/condition/0"
+        ]
+      },
+      {
+        "requirementId": "items.identity-binding",
+        "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+        "status": "addressed",
+        "explanation": "The route receives the caller as current_user, while the task binds that caller as authenticated, active, and superuser. The assessment uses that declared identity and role state without inferring the unshown dependency implementation.",
+        "factPointers": [
+          "/results/0/facts/binding/0"
+        ]
+      },
+      {
+        "requirementId": "items.resource-binding",
+        "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+        "status": "addressed",
+        "explanation": "The path id is supplied to session.get for Item, and the resulting item's owner_id is exposed to the authorization comparison against current_user.id. The task fixes the selected resource as an existing item owned by another user.",
+        "factPointers": [
+          "/results/0/facts/binding/1",
+          "/results/0/facts/condition/0"
+        ]
+      },
+      {
+        "requirementId": "items.superuser-read-decision",
+        "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+        "status": "addressed",
+        "explanation": "The visible decision is the compound denial condition requiring both non-superuser status and an ownership mismatch. The declared caller is a superuser, so the denial condition is false even though the item is foreign; this is the source-visible superuser override.",
+        "factPointers": [
+          "/results/0/facts/control/0",
+          "/results/0/facts/control/1"
+        ]
+      },
+      {
+        "requirementId": "items.superuser-read-effect",
+        "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+        "status": "addressed",
+        "explanation": "With the existing-item condition satisfied and the superuser denial branch bypassed, control reaches the protected effect that returns the selected item.",
+        "factPointers": [
+          "/results/0/facts/effect/0",
+          "/results/0/facts/condition/1"
+        ]
+      }
+    ],
+    "coverageValidation": {
+      "status": "valid",
+      "declared": 6,
+      "addressed": 6,
+      "unknown": 0,
+      "notApplicable": 0,
+      "missing": [],
+      "semanticSupport": "unreviewed",
+      "coverage": [
+        {
+          "requirementId": "items.entry-control",
+          "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+          "status": "addressed",
+          "explanation": "The visible entry is the GET item-by-id handler, and its dependency parameters include current_user before the item lookup and authorization branch.",
+          "factPointers": [
+            "/results/0/facts/entry/0"
+          ]
+        },
+        {
+          "requirementId": "items.external-assumption",
+          "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+          "status": "addressed",
+          "explanation": "The bounded task supplies the principal's authenticated active superuser state and the existing foreign item as assessment facts. The source crop does not expose the implementation of the CurrentUser dependency, so that implementation is not inferred; however, no additional source-external fact is decisive for the declared bounded path once the task's principal and resource conditions are accepted.",
+          "factPointers": [
+            "/results/0/facts/binding/0",
+            "/results/0/facts/condition/0"
+          ]
+        },
+        {
+          "requirementId": "items.identity-binding",
+          "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+          "status": "addressed",
+          "explanation": "The route receives the caller as current_user, while the task binds that caller as authenticated, active, and superuser. The assessment uses that declared identity and role state without inferring the unshown dependency implementation.",
+          "factPointers": [
+            "/results/0/facts/binding/0"
+          ]
+        },
+        {
+          "requirementId": "items.resource-binding",
+          "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+          "status": "addressed",
+          "explanation": "The path id is supplied to session.get for Item, and the resulting item's owner_id is exposed to the authorization comparison against current_user.id. The task fixes the selected resource as an existing item owned by another user.",
+          "factPointers": [
+            "/results/0/facts/binding/1",
+            "/results/0/facts/condition/0"
+          ]
+        },
+        {
+          "requirementId": "items.superuser-read-decision",
+          "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+          "status": "addressed",
+          "explanation": "The visible decision is the compound denial condition requiring both non-superuser status and an ownership mismatch. The declared caller is a superuser, so the denial condition is false even though the item is foreign; this is the source-visible superuser override.",
+          "factPointers": [
+            "/results/0/facts/control/0",
+            "/results/0/facts/control/1"
+          ]
+        },
+        {
+          "requirementId": "items.superuser-read-effect",
+          "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+          "status": "addressed",
+          "explanation": "With the existing-item condition satisfied and the superuser denial branch bypassed, control reaches the protected effect that returns the selected item.",
+          "factPointers": [
+            "/results/0/facts/effect/0",
+            "/results/0/facts/condition/1"
+          ]
+        }
+      ],
+      "diagnostics": []
+    },
+    "conditionAnalysis": {
+      "schemaVersion": "authorization-condition-analysis-result/v1",
+      "analyses": [
+        {
+          "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+          "branches": [
+            {
+              "id": "item-exists-true",
+              "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+              "assumptions": [
+                {
+                  "conditionId": "item-exists",
+                  "value": "true"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "Under the branch assumption that the item exists, the lookup does not take the not-found exception path. The declared superuser bypasses the foreign-owner denial condition, so the item-return effect is reachable.",
+              "factPointers": [
+                "/results/0/facts/condition/0",
+                "/results/0/facts/control/0",
+                "/results/0/facts/effect/0"
+              ],
+              "missingFacts": []
+            },
+            {
+              "id": "item-exists-false",
+              "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+              "assumptions": [
+                {
+                  "conditionId": "item-exists",
+                  "value": "false"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "Under the branch assumption that the item does not exist, the lookup result is empty and the handler raises the not-found response before reaching the ownership or superuser authorization branch, so the item-return effect is blocked.",
+              "factPointers": [
+                "/results/0/facts/entry/0",
+                "/results/0/facts/binding/1"
+              ],
+              "missingFacts": []
+            }
+          ],
+          "unexaminedConditionIds": [],
+          "completeness": "bounded",
+          "limitations": [
+            "The branches compare the requested item-exists condition within the authored two-branch limit; they do not claim enumeration of all repository paths or deployment behaviors.",
+            "The branch assumptions are analytical hypotheses, while the task separately fixes the assessed case as an existing foreign item."
+          ]
+        }
+      ]
+    },
+    "conditionValidation": {
+      "status": "valid",
+      "declared": 1,
+      "bounded": 1,
+      "incomplete": 0,
+      "missing": [],
+      "semanticSupport": "unreviewed",
+      "result": {
+        "schemaVersion": "authorization-condition-analysis-result/v1",
+        "analyses": [
+          {
+            "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+            "branches": [
+              {
+                "id": "item-exists-true",
+                "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+                "assumptions": [
+                  {
+                    "conditionId": "item-exists",
+                    "value": "true"
+                  }
+                ],
+                "effect": "reachable",
+                "explanation": "Under the branch assumption that the item exists, the lookup does not take the not-found exception path. The declared superuser bypasses the foreign-owner denial condition, so the item-return effect is reachable.",
+                "factPointers": [
+                  "/results/0/facts/condition/0",
+                  "/results/0/facts/control/0",
+                  "/results/0/facts/effect/0"
+                ],
+                "missingFacts": []
+              },
+              {
+                "id": "item-exists-false",
+                "obligationId": "allow-superuser-foreign-read::get-item-by-id",
+                "assumptions": [
+                  {
+                    "conditionId": "item-exists",
+                    "value": "false"
+                  }
+                ],
+                "effect": "blocked",
+                "explanation": "Under the branch assumption that the item does not exist, the lookup result is empty and the handler raises the not-found response before reaching the ownership or superuser authorization branch, so the item-return effect is blocked.",
+                "factPointers": [
+                  "/results/0/facts/entry/0",
+                  "/results/0/facts/binding/1"
+                ],
+                "missingFacts": []
+              }
+            ],
+            "unexaminedConditionIds": [],
+            "completeness": "bounded",
+            "limitations": [
+              "The branches compare the requested item-exists condition within the authored two-branch limit; they do not claim enumeration of all repository paths or deployment behaviors.",
+              "The branch assumptions are analytical hypotheses, while the task separately fixes the assessed case as an existing foreign item."
+            ]
+          }
+        ]
+      },
+      "diagnostics": []
+    },
+    "telemetry": {
+      "providerCalls": 2,
+      "respondedCalls": 2,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 2,
+      "knownTokens": {
+        "input": 12265,
+        "output": 4996,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  },
+  "sessionRelativePath": "units/14-read-C/sessions/20260921T195639305Z-dc42c9ec"
+}

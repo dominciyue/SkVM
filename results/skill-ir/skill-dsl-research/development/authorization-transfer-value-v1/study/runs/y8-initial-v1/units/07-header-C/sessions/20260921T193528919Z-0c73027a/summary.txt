@@ -1,0 +1,33 @@
+Authorization assessment
+Session: 20260921T193528919Z-0c73027a
+Status: completed
+Task: owui-trusted-header-deployment
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: task-supplied (input)
+
+Conclusions
+- external-client-trusted-header-impersonation::post-signin-trusted-email: unknown — The fixed source exposes a conditional POST /signin path that, when password authentication is enabled and a configured trusted-email header is present, takes the header value as the email identity, optionally provisions that email, authenticates it, and creates a session for the returned user. The accepted policy requires sole trusted-proxy ingress plus removal and replacement of client-supplied identity headers, but the fixed context does not provide the actual deployment ingress or proxy behavior. It also does not provide the deployment values for password authentication or the trusted-email header, or the runtime authentication result. Therefore the declared deny expectation cannot be determined from this fixed context.
+  Evidence: The declared entry is a POST /signin handler whose first gate rejects the request when password authentication is disabled. (inputs/owui-trusted-header-deployment/auths_signin.py:4-15)
+  Evidence: When the trusted-email header configuration is enabled and the required header is present, the handler lowercases the header value and uses it as the email identity. (inputs/owui-trusted-header-deployment/auths_signin.py:17-22)
+  Evidence: If no user exists for the header-selected email, the handler invokes signup_handler before authenticating that email. (inputs/owui-trusted-header-deployment/auths_signin.py:31-40)
+  Evidence: The trusted-email path requires password authentication to be enabled, requires the configured trusted-email header to be present, and reads the configured header name from environment-controlled configuration. (inputs/owui-trusted-header-deployment/auths_signin.py:11-21, inputs/owui-trusted-header-deployment/env_trusted_headers.py:10-10)
+  Evidence: The environment-controlled trusted-header names may be unset; the fixed source does not reveal their deployment values. (inputs/owui-trusted-header-deployment/env_trusted_headers.py:10-13)
+  Evidence: After email authentication returns a user, the handler returns a session response and sets the cookie; when no user is returned, it raises an invalid-credentials error. (inputs/owui-trusted-header-deployment/auths_signin.py:40-41, inputs/owui-trusted-header-deployment/auths_signin.py:59-62)
+  Evidence: The source-visible session path depends on password-authentication enablement, trusted-email header configuration and presence, and successful email authentication. (inputs/owui-trusted-header-deployment/auths_signin.py:11-21, inputs/owui-trusted-header-deployment/auths_signin.py:40-41, inputs/owui-trusted-header-deployment/env_trusted_headers.py:10-10)
+  Unknown: The deployed ENABLE_PASSWORD_AUTH value.
+  Unknown: The deployed WEBUI_AUTH_TRUSTED_EMAIL_HEADER value and effective trusted-email header name.
+  Unknown: Whether the unauthenticated external client can reach this handler and whether a trusted reverse proxy is the sole reachable ingress.
+  Unknown: Whether the ingress removes client-supplied identity headers and injects the authenticated identity itself.
+  Unknown: Whether authenticate_user_by_email returns a user for the selected existing user's email in the deployment.
+
+Coverage
+- header.authorization-decision × external-client-trusted-header-impersonation::post-signin-trusted-email: addressed — The source-visible decision controls are the password-authentication gate, configured-header and header-presence checks, email authentication result, and session creation. The accepted policy separately requires trusted-proxy-only ingress with removal and replacement of client-supplied identity headers. Those deployment-side facts are not supplied, so the overall decision is unknown.
+- header.deployment-assumptions × external-client-trusted-header-impersonation::post-signin-trusted-email: unknown — The fixed context does not provide the actual environment values, client reachability, sole-ingress status, proxy stripping or replacement behavior, or runtime authentication result. Each can change whether the external client can cause the selected user's session to be issued.
+- header.entry-control × external-client-trusted-header-impersonation::post-signin-trusted-email: addressed — The source-visible gates are password authentication being enabled, the trusted-email header name being configured, and the named header being present in the request. The configured name is environment-controlled and may be unset.
+- header.identity-binding × external-client-trusted-header-impersonation::post-signin-trusted-email: addressed — The configured request header value is lowercased and assigned as the email used for lookup and authentication, so the request value selects the identity for this path.
+- header.optional-provisioning × external-client-trusted-header-impersonation::post-signin-trusted-email: addressed — An optional provisioning branch is present: if no user exists for the header-selected email, signup_handler is called before email authentication.
+- header.session-effect × external-client-trusted-header-impersonation::post-signin-trusted-email: addressed — The source-visible protected effect is reached after the entry gates and successful email authentication; the handler then creates and returns a session response with a cookie. Whether an external client can reach that path under the accepted deployment policy remains unresolved.
+- header.session-resource × external-client-trusted-header-impersonation::post-signin-trusted-email: addressed — The user returned from authentication of the header-selected email is passed to create_session_response, binding that selected identity to the resulting session response.
+
+Condition analysis
+- external-client-trusted-header-impersonation::post-signin-trusted-email: bounded; 6 branch(es)

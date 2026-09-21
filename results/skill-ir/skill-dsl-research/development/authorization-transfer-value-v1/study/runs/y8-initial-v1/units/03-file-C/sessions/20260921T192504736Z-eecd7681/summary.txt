@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260921T192504736Z-eecd7681
+Status: completed
+Task: owui-process-file-write
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- file-owner-without-destination-write-grant::post-process-file: source_supported_failure — For the declared verified non-admin file owner, the source binds the caller through the verified-user dependency and checks the supplied file against that user's identity. The caller-controlled collection name is then assigned directly, without a visible destination ownership or write-grant check, and is passed to the routine that invokes the vector-database insertion. Thus the source-visible path reaches the protected write effect even though the principal lacks the declared destination permission. This supports failure of the deny expectation under the fixed conditions, while remaining limited to the declared entry and supplied crop.
+  Evidence: The assessed entry is the POST route whose handler processes a file. (inputs/owui-process-file-write/retrieval_process_file.py:27-32)
+  Evidence: The runtime caller is obtained through the verified-user dependency, and the non-admin branch binds the supplied file lookup to that caller's user identity. (inputs/owui-process-file-write/retrieval_process_file.py:29-43)
+  Evidence: The request-selected destination is the collection-name form field; when supplied, that value is retained as the collection name, while the separately checked resource is the source file. (inputs/owui-process-file-write/retrieval_process_file.py:21-25, inputs/owui-process-file-write/retrieval_process_file.py:45-50)
+  Evidence: The visible role control distinguishes administrators from non-administrators only for source-file lookup; the non-admin lookup checks the caller's user identity, but no destination collection ownership or write-grant check is shown. (inputs/owui-process-file-write/retrieval_process_file.py:40-45, inputs/owui-process-file-write/retrieval_process_file.py:52-53)
+  Evidence: A supplied collection name is passed onward without a visible target-specific authorization decision. (inputs/owui-process-file-write/retrieval_process_file.py:45-50, inputs/owui-process-file-write/retrieval_process_file.py:62-74)
+  Evidence: The processing path passes the selected collection name and document data to the save routine, which invokes the vector-database insertion using that collection name. (inputs/owui-process-file-write/retrieval_process_file.py:62-74, inputs/owui-process-file-write/retrieval_process_file.py:14-18)
+  Evidence: The fixed task condition supplies an existing caller-selected collection name and identifies the principal as a non-administrator; the source contains corresponding branches for a supplied collection and for a non-admin file lookup. (inputs/owui-process-file-write/retrieval_process_file.py:21-25, inputs/owui-process-file-write/retrieval_process_file.py:40-50)
+
+Coverage
+- authorization-core-v1.authorization-decision × file-owner-without-destination-write-grant::post-process-file: addressed — The strongest source-visible decision is that the non-admin branch authorizes access to the source file by user identity but shows no authorization decision for the request-selected destination collection; the selected collection therefore proceeds to the write routine.
+- authorization-core-v1.effect-reachability × file-owner-without-destination-write-grant::post-process-file: addressed — After the visible file-ownership control, the supplied collection name is passed to the save routine and reaches the vector-database insertion call.
+- authorization-core-v1.entry-control × file-owner-without-destination-write-grant::post-process-file: addressed — The entry is gated by verified-user dependency resolution and by a file lookup that, for non-administrators, requires the supplied file to match the caller's user identity.
+- authorization-core-v1.external-assumption × file-owner-without-destination-write-grant::post-process-file: unknown — The crop shows the insertion call but does not establish external vector-database behavior such as whether the existing collection accepts the insertion or whether an external layer rejects it. That fact could affect actual persistence, although it does not supply a missing source-visible destination authorization check.
+- authorization-core-v1.identity-binding × file-owner-without-destination-write-grant::post-process-file: addressed — The handler receives a verified user, and the non-admin branch uses that user's identity in the source-file lookup.
+- authorization-core-v1.resource-binding × file-owner-without-destination-write-grant::post-process-file: addressed — The request binds the source-file resource through the file identifier and the caller identity, while the destination resource is separately selected through the collection-name field and passed onward as the insertion target.
+
+Condition analysis
+- file-owner-without-destination-write-grant::post-process-file: bounded; 3 branch(es)

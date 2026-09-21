@@ -1,0 +1,180 @@
+{
+  "schemaVersion": "authorization-assessment-input/v1",
+  "sourceIdentity": {
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7"
+  },
+  "sourceRoot": "project",
+  "sources": [
+    "task.json",
+    "items.py"
+  ],
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "fastapi-items-superuser-read",
+    "request": "Determine whether an authenticated active superuser can read an item owned by another user through GET /items/{id}.",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "item-owner-or-superuser-policy",
+        "kind": "study-task-author-policy-from-public-route-contract",
+        "text": "An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.",
+        "location": "task.json#/normativePolicy",
+        "revision": "authorization-public-task-material/v1@cb740b6",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "study-task-author",
+          "reason": "The task author accepts this bounded policy for the source assessment."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "authenticated-active-superuser",
+        "role": "authenticated active superuser",
+        "description": "A current active superuser whose id differs from the selected item's owner_id.",
+        "startingCapabilities": [
+          "authenticated",
+          "active",
+          "superuser-role"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "foreign-item",
+        "type": "persisted-item",
+        "description": "An existing item whose owner_id belongs to another user."
+      }
+    ],
+    "entries": [
+      {
+        "id": "get-item-by-id",
+        "name": "GET /items/{id}",
+        "locations": [
+          {
+            "path": "items.py",
+            "startLine": 48,
+            "endLine": 58
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "allow-superuser-foreign-read",
+        "principalId": "authenticated-active-superuser",
+        "resourceId": "foreign-item",
+        "relation": "non-owner-with-superuser-role",
+        "operation": "read-item",
+        "expectation": "allow",
+        "conditions": [
+          {
+            "name": "item-exists",
+            "basis": "The bounded task fixes an existing foreign item."
+          }
+        ],
+        "policySourceId": "item-owner-or-superuser-policy",
+        "entryIds": [
+          "get-item-by-id"
+        ]
+      }
+    ],
+    "scopeAssurance": "The fixed item route exposes the caller, item lookup, ownership/role branch, and protected read effect for the declared entry.",
+    "requiredAnalysis": [
+      "bind the current principal, item owner, role branch, and requested operation",
+      "trace the entry through the strongest visible ownership or role control to the protected effect",
+      "distinguish the ordinary-owner rule from the superuser override",
+      "state any source-external fact that would be needed rather than inferring it"
+    ],
+    "constraints": [
+      "Use only task.json and items.py as model-visible inputs.",
+      "Do not execute the target project or contact a deployment."
+    ]
+  },
+  "analysisRequirements": [
+    {
+      "id": "items.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "allow-superuser-foreign-read"
+      ],
+      "question": "Which visible route or dependency condition gates the declared item entry before its authorization branch?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "items.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "allow-superuser-foreign-read"
+      ],
+      "question": "How is the declared principal bound to current_user and its role state?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "items.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "allow-superuser-foreign-read"
+      ],
+      "question": "How does the path id select the item and expose the owner relation used by the policy?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "items.superuser-read-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "allow-superuser-foreign-read"
+      ],
+      "question": "What is the strongest source-visible ownership or role decision for the superuser foreign-item read?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "items.identity-binding",
+        "items.resource-binding"
+      ]
+    },
+    {
+      "id": "items.superuser-read-effect",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "allow-superuser-foreign-read"
+      ],
+      "question": "After the relevant decision branch, can this obligation reach the item-return effect?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "items.entry-control",
+        "items.superuser-read-decision"
+      ]
+    },
+    {
+      "id": "items.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "allow-superuser-foreign-read"
+      ],
+      "question": "Does a source-external fact remain decisive for this bounded obligation, or is this requirement not applicable in the supplied path?",
+      "applicability": "when-present",
+      "prerequisiteIds": []
+    }
+  ],
+  "conditionAnalysisRequest": {
+    "schemaVersion": "authorization-condition-analysis-request/v1",
+    "requests": [
+      {
+        "obligationId": "allow-superuser-foreign-read",
+        "conditionBindings": [
+          {
+            "id": "item-exists",
+            "name": "item-exists"
+          }
+        ],
+        "maxBranches": 2
+      }
+    ]
+  }
+}

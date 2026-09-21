@@ -1,0 +1,28 @@
+Authorization assessment
+Session: 20260921T195639305Z-dc42c9ec
+Status: completed
+Task: fastapi-items-superuser-read
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: task-supplied (input)
+
+Conclusions
+- allow-superuser-foreign-read::get-item-by-id: source_refuted — The declared authenticated active superuser is bound to the route's current_user parameter, and the path id selects the item. The route first performs the item lookup, then denies only when the caller is not a superuser and is not the owner. Because the declared principal has the superuser role and the item is owned by another user, the ownership-denial branch is bypassed and execution reaches the item return. The source therefore supports enforcement of the declared allow expectation for this bounded foreign-item read.
+  Evidence: The declared entry is the GET item-by-id handler, which accepts the session, current user, and path id and returns an item representation. (items.py:48-52)
+  Evidence: The route binds the caller through current_user, and the task declares that caller to be authenticated, active, and a superuser whose id differs from the item's owner_id. (items.py:48-49, task.json:29-35)
+  Evidence: The path id is passed to the item lookup, and the selected item's owner_id is compared with the current user's id. (items.py:53-56)
+  Evidence: The strongest visible authorization control raises a forbidden response only if the caller is not a superuser and the caller does not own the item; the superuser condition therefore overrides the owner mismatch. (items.py:56-57)
+  Evidence: The declared policy distinguishes the ordinary owner-only rule from the superuser rule that permits access regardless of owner. (task.json:5-9)
+  Evidence: When the authorization condition does not raise an exception, the handler returns the selected item. (items.py:56-58)
+  Evidence: The bounded obligation fixes an existing item owned by another user, so the item-exists condition is true for the assessed case. (task.json:29-35)
+  Evidence: For an existing item, the lookup succeeds and the handler proceeds to the authorization branch rather than the not-found response. (items.py:53-57)
+
+Coverage
+- items.entry-control × allow-superuser-foreign-read::get-item-by-id: addressed — The visible entry is the GET item-by-id handler, and its dependency parameters include current_user before the item lookup and authorization branch.
+- items.external-assumption × allow-superuser-foreign-read::get-item-by-id: addressed — The bounded task supplies the principal's authenticated active superuser state and the existing foreign item as assessment facts. The source crop does not expose the implementation of the CurrentUser dependency, so that implementation is not inferred; however, no additional source-external fact is decisive for the declared bounded path once the task's principal and resource conditions are accepted.
+- items.identity-binding × allow-superuser-foreign-read::get-item-by-id: addressed — The route receives the caller as current_user, while the task binds that caller as authenticated, active, and superuser. The assessment uses that declared identity and role state without inferring the unshown dependency implementation.
+- items.resource-binding × allow-superuser-foreign-read::get-item-by-id: addressed — The path id is supplied to session.get for Item, and the resulting item's owner_id is exposed to the authorization comparison against current_user.id. The task fixes the selected resource as an existing item owned by another user.
+- items.superuser-read-decision × allow-superuser-foreign-read::get-item-by-id: addressed — The visible decision is the compound denial condition requiring both non-superuser status and an ownership mismatch. The declared caller is a superuser, so the denial condition is false even though the item is foreign; this is the source-visible superuser override.
+- items.superuser-read-effect × allow-superuser-foreign-read::get-item-by-id: addressed — With the existing-item condition satisfied and the superuser denial branch bypassed, control reaches the protected effect that returns the selected item.
+
+Condition analysis
+- allow-superuser-foreign-read::get-item-by-id: bounded; 2 branch(es)

@@ -1,0 +1,21 @@
+Authorization assessment
+Session: 20260921T194918770Z-4bff8ae9
+Status: completed
+Task: fastapi-items-foreign-update
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: task-supplied (input)
+
+Conclusions
+- deny-non-superuser-foreign-update::put-item-by-id: source_refuted — The declared policy expectation is deny, and the fixed source supports that expectation. The PUT entry is the declared item-update route. Its visible dependency parameters bind session and current_user before the route body executes; the supplied task context identifies the principal as authenticated, non-superuser, and having an id different from the selected item's owner_id. The path id is passed to session.get(Item, id), which selects the item, and the bounded condition fixes that item as existing and foreign-owned. The strongest visible authorization decision is the branch that raises HTTP 403 when the caller is not a superuser and the item's owner_id differs from current_user.id. Because the principal is a non-superuser foreign owner, that branch is taken. The ordinary-owner rule therefore denies access to a non-owner, while the superuser override is not applicable because the stated principal is not a superuser. The subsequent update, add, commit, refresh, and return statements are after the denial branch, so this obligation cannot reach item mutation or persistence. No source-external fact is decisive for this bounded obligation: item existence, principal role/identity, and the foreign-owner relation are fixed by the task, and the route visibly contains the required control. The source discovery status being not-tested limits this result to the declared entry and does not support a repository-wide claim. Coverage: all required analysis points and all public questions are addressed here, including the pre-branch dependency gate, current_user and role binding, path-id item selection and owner relation, strongest authorization control, mutation reachability, and source-external-fact applicability.
+  Evidence: The declared entry is the PUT item-by-id route and its fixed source body spans the route declaration through the returned item. (task.json:20-26, items.py:75-96)
+  Evidence: The route receives session, current_user, the path id, and the update input as parameters; the supplied task identifies the operation as updating item fields. (items.py:75-82, task.json:20-26)
+  Evidence: The item is selected using the path id, and the route denies when the caller is not a superuser and the selected item's owner_id differs from current_user.id. (items.py:86-90)
+  Evidence: The policy distinguishes the ordinary non-superuser owner-only rule from the superuser override. (task.json:5-9)
+  Evidence: Only after the authorization branch does the route apply the submitted fields, add the item, commit persistence, refresh it, and return it; the denial branch prevents reaching these statements for the stated principal and resource. (items.py:89-96)
+  Evidence: The bounded condition fixes the selected item as existing and owned by another user, and the principal as authenticated, non-superuser, with an id different from item.owner_id. (task.json:20-25)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

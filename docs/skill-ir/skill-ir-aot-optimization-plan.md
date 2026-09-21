@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-22
 - 路线：按 skill/task 范围设计领域 DSL，当前为源码可见授权与信任边界任务。
-- 状态：V/W/X 已完成；Y 正在连续执行，Y0–Y7 已完成，当前进入 Y8。
+- 状态：V/W/X 已完成；Y 正在连续执行，Y0–Y8 已完成，当前进入 Y9。
 - 唯一实时入口：[current-status.md](current-status.md)
 - 方法合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)
@@ -18,7 +18,8 @@
 | Y2–Y4（完成） | 条件合同、纯函数、运行接线 | 假设/事实分开；分支遗漏可见；旧wire兼容；一次诊断修复 |
 | Y5–Y6（完成） | 作者输入、现有CLI薄适配 | 派生重复字段；缺政策不猜测；init/check/run/inspect可用 |
 | Y7（完成） | 公平P/L/C接线与面板冻结 | P无ledger、L有ledger、C有condition；五任务15单元与轮换/停止规则已冻结，mock通过 |
-| Y8–Y9 | 真实开发面板与选择 | 五任务15单元；一次共享修订；按实际质量与成本选结构化候选 |
+| Y8（完成） | 真实开发面板 | 五任务15/15 completed；25次调用；8 fallback、2 repair；USD unknown |
+| Y9 | 离线评价与选择 | hash-bound逐事实评价；匿名只读复核；只有共享缺陷才修订；按实际质量与成本选结构化候选 |
 | Y10–Y11 | 新项目默认profile迁移 | 固定方法后获取；2–3权限任务；不靠专用问题清单；首次失败保留 |
 | Y12 | 实际价值判断 | 必要质量、条件完整性、编写负担与开销分开；无收益如实报告 |
 | Y13–Y14 | 文档、有限验证、发布 | 研究正文统一复盘；相关测试；只提交归属文件并推送用户origin |

@@ -1,0 +1,419 @@
+{
+  "schemaVersion": "authorization-value-study-unit-result/v1",
+  "configSha256": "b0aa6278c14526e95be138cc56c5325f911c58a85f1b6396b55601827b27140b",
+  "implementationRevision": "4524bfe25ec4c8cc66948872609f05f56c91512e",
+  "unit": {
+    "id": "12-update-C",
+    "caseId": "fastapi-items-foreign-update",
+    "studyArm": "C",
+    "renderArm": "B"
+  },
+  "report": {
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260921T195206349Z-d2bb2255",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\study\\runs\\y8-initial-v1\\units\\12-update-C\\sessions\\20260921T195206349Z-d2bb2255",
+    "createdAt": "2026-09-21T19:52:06.349Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-transfer-value-v1\\study\\runs\\y8-initial-v1\\public-inputs\\fastapi-items-foreign-update\\assessment.json",
+    "taskId": "fastapi-items-foreign-update",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "studyArm": "C",
+    "analysisProfile": {
+      "id": "task-supplied",
+      "origin": "input"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 396,
+        "declaration": 3072,
+        "analysisLedger": 4828,
+        "conditionAnalysis": 403,
+        "source": 7122,
+        "outputContract": 3818,
+        "total": 19778,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "fastapi-items-foreign-update",
+      "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+      "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+      "results": [
+        {
+          "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+          "conclusion": "source_refuted",
+          "explanation": "For the declared existing foreign item, the PUT route receives the authenticated current user and item identifier, loads the item, and applies a non-superuser ownership check. Because the declared principal is a non-superuser whose id differs from the item's owner_id, the check raises HTTP 403 before the mutation and persistence statements. The ordinary-owner rule therefore enforces the expected denial. The visible superuser override is also explicit: a current user with is_superuser true does not enter the ownership-denial branch, but that override does not apply to the declared principal. No deployment or repository-external fact is needed to decide this bounded path; source discovery remains not-tested and this conclusion is limited to the declared entry and obligation.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The declared entry is PUT /items/{id}; its route function accepts a session, current_user, path id, and update payload.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 75,
+                    "endLine": 82,
+                    "quote": "@router.put(\"/{id}\", response_model=ItemPublic)\ndef update_item(\n    *,\n    session: SessionDep,\n    current_user: CurrentUser,\n    id: uuid.UUID,\n    item_in: ItemUpdate,\n) -> Any:"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The task binds the principal as an authenticated non-superuser whose id differs from the selected item's owner_id, and the PUT handler receives that principal through current_user.",
+                "citations": [
+                  {
+                    "path": "task.json",
+                    "startLine": 20,
+                    "endLine": 26,
+                    "quote": "      \"caseId\": \"fastapi-items-foreign-update\",\n      \"request\": \"Determine whether an authenticated non-superuser can update an item owned by another user through PUT /items/{id}.\",\n      \"principal\": \"authenticated non-superuser whose id differs from item.owner_id\",\n      \"resource\": \"existing item owned by another user\",\n      \"operation\": \"update item fields\",\n      \"expectation\": \"deny\",\n      \"entry\": \"items.py:75-96\""
+                  },
+                  {
+                    "path": "items.py",
+                    "startLine": 75,
+                    "endLine": 81,
+                    "quote": "@router.put(\"/{id}\", response_model=ItemPublic)\ndef update_item(\n    *,\n    session: SessionDep,\n    current_user: CurrentUser,\n    id: uuid.UUID,\n    item_in: ItemUpdate,"
+                  }
+                ]
+              },
+              {
+                "statement": "The handler uses current_user.is_superuser as the role-state branch condition.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 86,
+                    "endLine": 90,
+                    "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The path id is used to load the item, and a missing item is rejected before authorization.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 86,
+                    "endLine": 88,
+                    "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")"
+                  }
+                ]
+              },
+              {
+                "statement": "The strongest visible authorization control denies a non-superuser when the loaded item's owner_id differs from current_user.id; the superuser branch bypasses that denial.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 89,
+                    "endLine": 90,
+                    "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                  }
+                ]
+              },
+              {
+                "statement": "The declared policy distinguishes the ordinary-owner restriction from the superuser override.",
+                "citations": [
+                  {
+                    "path": "task.json",
+                    "startLine": 5,
+                    "endLine": 9,
+                    "quote": "  \"normativePolicy\": \"An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.\",\n  \"policyAuthority\": {\n    \"kind\": \"study-task-author-policy-derived-from-public-route-contract\",\n    \"location\": \"second-project/model-input/task.json#/normativePolicy\",\n    \"acceptance\": \"accepted by the study task author for this bounded assessment\""
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "Item mutation and persistence occur only after the authorization check, through applying the update dictionary, adding the item, committing, and refreshing it.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 91,
+                    "endLine": 95,
+                    "quote": "    update_dict = item_in.model_dump(exclude_unset=True)\n    item.sqlmodel_update(update_dict)\n    session.add(item)\n    session.commit()\n    session.refresh(item)"
+                  }
+                ]
+              },
+              {
+                "statement": "For the declared foreign-item non-superuser branch, the preceding HTTP 403 prevents execution from reaching those mutation and persistence statements.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 89,
+                    "endLine": 94,
+                    "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    update_dict = item_in.model_dump(exclude_unset=True)\n    item.sqlmodel_update(update_dict)\n    session.add(item)\n    session.commit()"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The bounded task fixes an existing item owned by another user, so the item-exists condition is true for this assessment.",
+                "citations": [
+                  {
+                    "path": "task.json",
+                    "startLine": 20,
+                    "endLine": 25,
+                    "quote": "      \"caseId\": \"fastapi-items-foreign-update\",\n      \"request\": \"Determine whether an authenticated non-superuser can update an item owned by another user through PUT /items/{id}.\",\n      \"principal\": \"authenticated non-superuser whose id differs from item.owner_id\",\n      \"resource\": \"existing item owned by another user\",\n      \"operation\": \"update item fields\",\n      \"expectation\": \"deny\","
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "This assessment covers only deny-non-superuser-foreign-update::put-item-by-id under the supplied fixed source context. It makes no repository-wide or all-entry completeness claim; source discovery is not-tested."
+      }
+    },
+    "relationCoverage": [
+      {
+        "requirementId": "items.entry-control",
+        "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+        "status": "addressed",
+        "explanation": "The PUT route is visibly gated by its current_user, session, path id, and update-payload parameters before the item lookup and authorization branch.",
+        "factPointers": [
+          "/results/0/facts/entry/0"
+        ]
+      },
+      {
+        "requirementId": "items.external-assumption",
+        "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+        "status": "not-applicable",
+        "explanation": "No additional source-external fact remains decisive for this bounded obligation: the task fixes an existing foreign item, and the route's ownership and role decision plus protected effect are visible in the supplied items.py crop. This does not assert deployment behavior or repository-wide completeness.",
+        "factPointers": [
+          "/results/0/facts/condition/0",
+          "/results/0/facts/control/1"
+        ]
+      },
+      {
+        "requirementId": "items.identity-binding",
+        "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+        "status": "addressed",
+        "explanation": "The task defines the principal as authenticated and non-superuser with an id different from item.owner_id, while the route receives the principal as current_user and branches on current_user.is_superuser.",
+        "factPointers": [
+          "/results/0/facts/binding/0",
+          "/results/0/facts/binding/1"
+        ]
+      },
+      {
+        "requirementId": "items.non-superuser-update-decision",
+        "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+        "status": "addressed",
+        "explanation": "The strongest visible decision is the HTTP 403 branch for a non-superuser whose id differs from the loaded item's owner_id. The superuser override is the negated role condition and is not applicable to the declared principal.",
+        "factPointers": [
+          "/results/0/facts/control/1",
+          "/results/0/facts/control/2"
+        ]
+      },
+      {
+        "requirementId": "items.non-superuser-update-effect",
+        "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+        "status": "addressed",
+        "explanation": "The foreign non-superuser branch raises before the update dictionary is applied and before session add, commit, or refresh, so the declared obligation cannot reach item mutation or persistence.",
+        "factPointers": [
+          "/results/0/facts/effect/0",
+          "/results/0/facts/effect/1"
+        ]
+      },
+      {
+        "requirementId": "items.resource-binding",
+        "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+        "status": "addressed",
+        "explanation": "The path id is passed to session.get(Item, id), the existing item is checked, and its owner_id is compared with current_user.id in the authorization branch.",
+        "factPointers": [
+          "/results/0/facts/entry/0",
+          "/results/0/facts/control/0",
+          "/results/0/facts/control/1"
+        ]
+      }
+    ],
+    "coverageValidation": {
+      "status": "valid",
+      "declared": 6,
+      "addressed": 5,
+      "unknown": 0,
+      "notApplicable": 1,
+      "missing": [],
+      "semanticSupport": "unreviewed",
+      "coverage": [
+        {
+          "requirementId": "items.entry-control",
+          "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+          "status": "addressed",
+          "explanation": "The PUT route is visibly gated by its current_user, session, path id, and update-payload parameters before the item lookup and authorization branch.",
+          "factPointers": [
+            "/results/0/facts/entry/0"
+          ]
+        },
+        {
+          "requirementId": "items.external-assumption",
+          "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+          "status": "not-applicable",
+          "explanation": "No additional source-external fact remains decisive for this bounded obligation: the task fixes an existing foreign item, and the route's ownership and role decision plus protected effect are visible in the supplied items.py crop. This does not assert deployment behavior or repository-wide completeness.",
+          "factPointers": [
+            "/results/0/facts/condition/0",
+            "/results/0/facts/control/1"
+          ]
+        },
+        {
+          "requirementId": "items.identity-binding",
+          "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+          "status": "addressed",
+          "explanation": "The task defines the principal as authenticated and non-superuser with an id different from item.owner_id, while the route receives the principal as current_user and branches on current_user.is_superuser.",
+          "factPointers": [
+            "/results/0/facts/binding/0",
+            "/results/0/facts/binding/1"
+          ]
+        },
+        {
+          "requirementId": "items.non-superuser-update-decision",
+          "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+          "status": "addressed",
+          "explanation": "The strongest visible decision is the HTTP 403 branch for a non-superuser whose id differs from the loaded item's owner_id. The superuser override is the negated role condition and is not applicable to the declared principal.",
+          "factPointers": [
+            "/results/0/facts/control/1",
+            "/results/0/facts/control/2"
+          ]
+        },
+        {
+          "requirementId": "items.non-superuser-update-effect",
+          "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+          "status": "addressed",
+          "explanation": "The foreign non-superuser branch raises before the update dictionary is applied and before session add, commit, or refresh, so the declared obligation cannot reach item mutation or persistence.",
+          "factPointers": [
+            "/results/0/facts/effect/0",
+            "/results/0/facts/effect/1"
+          ]
+        },
+        {
+          "requirementId": "items.resource-binding",
+          "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+          "status": "addressed",
+          "explanation": "The path id is passed to session.get(Item, id), the existing item is checked, and its owner_id is compared with current_user.id in the authorization branch.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/control/0",
+            "/results/0/facts/control/1"
+          ]
+        }
+      ],
+      "diagnostics": []
+    },
+    "conditionAnalysis": {
+      "schemaVersion": "authorization-condition-analysis-result/v1",
+      "analyses": [
+        {
+          "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+          "branches": [
+            {
+              "id": "item-exists-true",
+              "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+              "assumptions": [
+                {
+                  "conditionId": "item-exists",
+                  "value": "true"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "Under the bounded task's existing-item condition, the route loads the item successfully, then the declared non-superuser foreign-owner relation triggers the HTTP 403 authorization branch before mutation and persistence.",
+              "factPointers": [
+                "/results/0/facts/condition/0",
+                "/results/0/facts/control/1",
+                "/results/0/facts/effect/1"
+              ],
+              "missingFacts": []
+            }
+          ],
+          "unexaminedConditionIds": [],
+          "completeness": "bounded",
+          "limitations": [
+            "The analysis considers the authored item-exists condition within the two-branch maximum and is limited to the declared PUT entry; it does not claim enumeration of all repository paths or deployment behavior."
+          ]
+        }
+      ]
+    },
+    "conditionValidation": {
+      "status": "valid",
+      "declared": 1,
+      "bounded": 1,
+      "incomplete": 0,
+      "missing": [],
+      "semanticSupport": "unreviewed",
+      "result": {
+        "schemaVersion": "authorization-condition-analysis-result/v1",
+        "analyses": [
+          {
+            "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+            "branches": [
+              {
+                "id": "item-exists-true",
+                "obligationId": "deny-non-superuser-foreign-update::put-item-by-id",
+                "assumptions": [
+                  {
+                    "conditionId": "item-exists",
+                    "value": "true"
+                  }
+                ],
+                "effect": "blocked",
+                "explanation": "Under the bounded task's existing-item condition, the route loads the item successfully, then the declared non-superuser foreign-owner relation triggers the HTTP 403 authorization branch before mutation and persistence.",
+                "factPointers": [
+                  "/results/0/facts/condition/0",
+                  "/results/0/facts/control/1",
+                  "/results/0/facts/effect/1"
+                ],
+                "missingFacts": []
+              }
+            ],
+            "unexaminedConditionIds": [],
+            "completeness": "bounded",
+            "limitations": [
+              "The analysis considers the authored item-exists condition within the two-branch maximum and is limited to the declared PUT entry; it does not claim enumeration of all repository paths or deployment behavior."
+            ]
+          }
+        ]
+      },
+      "diagnostics": []
+    },
+    "telemetry": {
+      "providerCalls": 2,
+      "respondedCalls": 2,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 2,
+      "knownTokens": {
+        "input": 12359,
+        "output": 4772,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  },
+  "sessionRelativePath": "units/12-update-C/sessions/20260921T195206349Z-d2bb2255"
+}
