@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**E/T/V 已完成，W 已把授权任务 DSL 推进到稳定的有界 development 工程闭环；方法效果仍为 `not-established`。** W 用窄 wire、宿主引用绑定、关闭/迟到事件和分层评价消除了 V 的主要交付混淆，并完成相同三个 development 案例的三组新 B/D 配对。六单元传输、交付和语义判断均成功；两臂在 trusted-header 上仍有共同事实漏项，D 没有质量优势。W9 正在验证与发布，I1 和第二项目继续暂缓。
+**W 已完成并发布，下一轮 X0–X13 为 `planned-not-started`。** W 的六单元传输、交付及结论判断成功，关键事实支持为 4/6；D 的调用与 token 较少，是值得继续验证的开销观察。用户随后确认将评价校准、关系支持、普通输入与第二项目合并为完整能力阶段，设计见 §7.21；本地化 I1 暂缓。W 原始效果判断和数据保持原记录。
 
 已经站得住的判断：
 
@@ -321,7 +321,7 @@ outputs: [coverage-ledger, audit-findings-json, optional-sarif-confirmed-results
 
 ### 7.7 E 完成后复核：进入原型前的定向补证
 
-2026-09-20 复核后，用户同意据此制定 T0–T10 任务书。以下成为当前定向研究的问题，尚未执行；E9 原件保留历史含义。现有材料足以支持候选的小型实验，尚不足以确认独立表示必要或同类 skill 效果可复用。先补以下设计缺口，再用最小实验解决运行未知。
+2026-09-20 复核后，用户同意据此制定 T0–T10 任务书。以下记录当时提出、随后由 T/V/W 推进的问题；E9 原件保留历史含义。该时点材料支持候选实验，尚需补设计与运行证据；当前进度以 §1 和 §7.21 为准。
 
 1. **配置与 DSL 不应被当作互斥概念。** [Fowler 的 DSL Guide](https://martinfowler.com/dsl.html)明确允许以 XML/YAML 数据表示承载领域语言。JSON Schema 本身不等于领域语义，但若配置能表达主体、资源、允许/拒绝关系、覆盖义务及解释规则，就可能是数据形式的领域声明。应停止没有增量的第二套表示，而不能从两种表示等价推导整个 DSL 方法无价值。
 2. **区分方案收益与表示收益。** 当前 C/P 共用 canonical helper、展开和 validator，等价输入获得等价 coverage 结果本来就是正确性要求。确定性 parity 可检验接线与语义一致性，不能单独证伪任务收益或作者体验。后续若测整个方法，应与信息相当的原始/整理 skill 比较；若单测作者表示，需从相同自然任务分别编写/修改，观察错误、修正和开销。没有可区分的表示假设时，只实现一套声明与 helper，不花数日搭建必然等价的两臂。
@@ -605,11 +605,33 @@ T3 选择同一个固定 [Open WebUI source ref](https://github.com/open-webui/o
 
 **W7 review 边界。** trusted-header 两臂都合理报告 deployment `unknown`，但都未明确陈述 closed-control、authentication-failure、trusted-proxy-safe、attacker-header-reachable 四种 outcome；D 没有陈述 optional signup。独立只读复核者同意这些核心缺口，但认为 B 的代码引文可把 password gate 和 signup 算作支持。主 review 依 rubric 的“state”要求采用更严格口径：引文内容不替代答案本身的明确陈述，分歧保留而不改答案或 rubric。
 
-**W8 归因与决定。** wire/schema、citation host-binding、生命周期和评价分栏在真实运行中按合同工作；剩余 partial 是领域条件关系表达缺口。D 在本小样本中开销更低且没有 repair/fallback，但没有质量或完整性增益，因此不能宣称 D 胜出，也不因开销观察直接迁移第二项目。下一轮选择 `study-missing-domain-relations`：只研究通用的 control state、authentication outcome、identity provisioning、deployment boundary 与 protected effect 关系如何进入声明/方法，再用相同小面板验证；不提前实现生产系统。
+**W8 当时的归因与决定。** W 将剩余 partial 初步归为领域条件关系表达缺口，选择 `study-missing-domain-relations`，暂不迁移第二项目。D 在该小面板开销更低且没有 repair/fallback，质量和完整性未提高。后续复核补充了评分粒度与声明表达的解释；用户确认的新 X 路线见 §7.21，W 原决定作为历史保留。
 
 **W9 完成前审查。** 独立只读审查指出 normalizer 虽把重复/陌生/missing obligation 和无信息 unknown 标记为 invalid，但仍可携带 canonical result，host 可能将它交付为 `completed-with-diagnostics`。新测试先在四类归一化反例及双次 invalid host 路径准确失败，随后改为“任一归一化 error 都禁止 canonical result”并回归通过。该修复不依赖案例名、oracle 或模型重跑，不改变 W7 六个有效最终结果与 W8 方法决定。
 
 **文档归属。** 状态页只维护当前工作和结果导航，plan 只维护近期顺序，spec 保留持续规则；本文件维护设计与复盘。V 的过期草案段落已合并进实际接口，原始失败和历史任务仍可追溯。复核接纳此前共享文档中与代码一致的改写，不继续以“混有修改”为由搁置整批文档；无关源码仍由原任务负责。
+
+### 7.21 X 完整能力阶段设计
+
+2026-09-21，用户在 W 复核后确认按完整能力交付制定下一轮任务书。原则是代码小步实现、阶段完整交付；第二项目提前提供反例，旧三例不必全满分后才继续。[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)是执行清单，本节维护当前设计。状态 `planned-not-started`，尚无 X 实现或新模型结果。
+
+**为什么扩大本轮范围。** W 的模型消费与计量已经可用，继续只修旧案例会降低获取新信息的速度。现有 B/D 共用 canonical declaration、输出合同和宿主，主要差异位于领域方法指令。接下来既要检验这种组织方式，也要让作者实际写任务、用自备输入运行，并检验换项目后的语义适配。
+
+**先校准任务与评价。** trusted-header 的公开 requiredAnalysis 要求识别配置/身份关系、区分源码与部署、说明缺失事实；严格 review 另外要求显式四种条件结果、signup 和 403。新评价 v2 分开必要语义、解释完整性与可选细节，接受逻辑等价表述，保留源码引用不足以替代因果解释的要求。规则在新生成前确定，旧 W review 不改；关系层缺失只是当前原因假设，须与表述要求和提示组织一起检验。
+
+**领域关系。** 不将五节点登录链变成所有授权任务的必经顺序。初始六类分析要求为 entry-control、identity-binding、resource-binding、authorization-decision、effect-reachability、external-assumption，带关联 obligation、公开 question、required/when-present 和 prerequisiteIds。编译器检查引用与分析依赖并展开 ledger；模型发现源码里的条件、分支和结果，并用本次 facts/citations 说明。源码循环不等于分析依赖循环，程序不代替模型求解源码控制流。
+
+**覆盖记录。** 每项 coverage 关联 requirementId、expanded obligationId、addressed/unknown/not-applicable、说明及当前答案 fact pointers。addressed 表示已回应，语义仍需 review；required 不允许静默跳过，when-present 的不适用须有理由。缺部署事实可成为有内容的 unknown。若第二项目显示六类边界不合理，依据反例修订这一设计，不按项目名写成功分支。
+
+**输入、接口与兼容。** 一个 `authorization-assessment-input/v1` 文件包含 task v0、sourceRoot、显式 sources 和可选 analysisRequirements。相对路径以该输入文件为基准；普通使用不需要研究 caseId、manifest、oracle 或评审资料。计划增加 `loadLocalAuthorizationInput`、`compileAnalysisRequirements`、`validateRelationCoverage`，实现文件与测试位置见任务书。新 wire 扩展显式版本化，归一化生成 canonical v0 及 coverage sidecar；W 的 wire/v1 与历史评价继续可读。普通入口暂复用 benchmark 目录中的宿主，不借本轮重构整个运行架构。
+
+**使用交付。** 薄脚本支持 check/run/inspect，输出机器 JSON、事件和简明文本结论；只有 run 调模型。一个自包含 synthetic 例子用于上手，真实两项目用于结果验证；另从现有语料选两份独立 skill，明确授权职责到 DSL 的映射及剩余职责。skill 来源与目标代码项目分开计数，人工/agent 辅助映射不称自动转换整个 skill。作者步骤、字段修改与诊断可观察；未测真人时间时不称人工节省。X 最终以实际可运行命令替换任务书中的接口设计说明。
+
+**第二项目。** 先从现有外部研究来源选取，再用官方源码/认证 GitHub 补全；最多考察三个候选，按政策和源码证据是否可定位选取首个合格者，不按模型成功筛选。选非 Open WebUI fork 的项目，准备两个有不同权限关系的任务，优先挑战只适用于登录/proxy 的结构。模型输入与评价资料分开；已暴露资料按 development 记录。来源获取受阻时继续其他独立工作，并如实标记跨项目部分未交付。
+
+**比较与因果。** 主面板为五任务 × B/D × 两次 fresh-context 重复，共 20 单元；再对原 file、原 trusted-header、第二项目首任务各跑一次 N 自然说明，共三单元。三臂事实、公共要求、源码和输出协议相同；D 的 ledger 方法组织差异明确保存。N 共享底层支持，结果只能解释模型可见结构组织的作用，不归因为整个 SkVM 相比原始 agent 的总收益。两次重复用于观察逐任务波动，不作总体可靠性估计。
+
+**连续执行与决定。** X1 评价与 X2 获取可独立推进，随后关系支持和普通输入接线在同轮完成。有证据的实现问题先加反例再修，最多一轮受影响 B/D 追加；缺少正向研究结果不阻止普通入口与独立任务。若 D 无额外帮助，采用更合适的表达并保留共同声明/helper；若第二项目未完成，整体标部分交付。原始失败、未知费用、开发成本和版本分别记录。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -915,6 +937,10 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 ### 2026-09-21 W9 独立审查与最终验证
 
 **W9-REVIEW-01。** 独立代码审查发现一项 important：invalid normalization 可能仍交付 canonical result。先增加 duplicate/foreign/missing obligation、无信息 unknown 与 host 双次 invalid 回归，确认 3 个测试按预期失败；最小修复后聚焦测试 17/17、授权两目录 77/77（449 assertions）和 typecheck 通过。公共 provider 专项 4/4（12 assertions）通过。离线 W replay 重现六单元，模型与目标执行均为 0。独立审查无 critical 或其他 important/minor；其初始“不可发布”结论已针对唯一问题完成修复和回归。
+
+### 2026-09-21 X 完整能力阶段准备
+
+**X-PREP-01。** W 二次复核新鲜通过授权/provider 81/81、461 assertions；确认 B/D 共用声明和输出底座，trusted-header 部分评分涉及显式表达粒度。用户接受扩大下一轮：评价校准、可选关系、普通输入、第二项目及对照一并交付。制定 X0–X13，同步当前状态、plan 与 spec，W 历史资料不改。本次只写任务书和设计，未启动 X 或新模型调用。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 

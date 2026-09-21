@@ -6,9 +6,9 @@
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)已完成。[W0–W9 结果传输、运行计量与评价修复](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成并发布到 `origin/skill-ir-aot`。W 已完成同条件三组 B/D 配对，不再追加 revision 或模型调用，也不自动启动第二项目。
+[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)及 [W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)已完成，W 最终发布为 `fa6b064`。下一任务书为 [X0–X13 完整能力交付](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)，状态 `planned-not-started`；本次只制定计划，没有启动新实现或模型实验。
 
-本轮已让宿主管理引用和重复元数据，补齐关闭后的调用生命周期，并把语义判断、证据支持、传输有效和完整交付分别评价。下一轮不扩项目：先为授权任务研究最小的通用条件关系表示，覆盖控制关闭、认证失败、可信代理安全、攻击者头可达和身份 provisioning，再用同一小面板判断是否改善证据完整性。研究、当前设计与问题复盘统一维护在[研究总文档](skill-dsl-research.md)。
+用户在 W 复核后确认按完整能力阶段推进：评价要求校准、可选/分支关系、普通自备输入、第二项目 development 与小型对照放入同一轮。第二项目提前检验共性，旧三例不必先全部满分；内部仍小步测试和提交。研究与开发复盘统一维护在[研究总文档 §7.21](skill-dsl-research.md#721-x-完整能力阶段设计)。
 
 ## W 阶段实际结果
 
@@ -16,7 +16,7 @@
 - 三个既有 Open WebUI development 案例共六个 fresh-context 单元全部 completed。`transportValid`、`deliveryComplete` 和 `semanticDecisionCorrect` 均为 6/6；没有 completion-unknown。
 - file 与 controlled-text 的 B/D 四单元均为 full-success。trusted-header 两臂都正确返回 `unknown`，但严格 review 均为 partial：两臂都没有明确列出四种条件结果，D 还漏掉可选 signup 路径，B 的密码认证关闭分支也没有明确写出 403。
 - B 共 5 次 provider dispatch、15,866 input、6,116 output、3,456 cache-read tokens；D 共 3 次 dispatch、7,013 input、3,302 output、3,456 cache-read tokens。总计 8 次调用，实际 USD 全部未报告，保持 unknown。
-- D 在本小样本中少两次调用、少 8,853 input 和 2,814 output tokens，但没有比 B 更高的语义或证据完整性；不据此宣称方法优势，也不启动第二项目。真实运行的剩余 partial 归因于领域关系表达；W9 独立代码审查另发现 invalid wire 仍可泄漏 canonical result 的错误路径，已以红绿回归修复，不影响六个已归一化的存档结果。
+- D 在本小样本中少两次调用、少 8,853 input 和 2,814 output tokens，没有比 B 更高的语义或证据完整性。W 当时决定先研究关系缺口；后续复核还发现评价的显式表达要求需要校准，关系层是待验证解释。X 保留这一正向开销观察并增加第二项目检查。W9 的 invalid wire 交付缺陷已以红绿回归修复，六个存档最终结果不变。
 
 证据：[W status](../../results/skill-ir/skill-dsl-research/development/authorization-transport-v1/status.json)、[W summary](../../results/skill-ir/skill-dsl-research/development/authorization-transport-v1/summary.json)、[W evaluation](../../results/skill-ir/skill-dsl-research/development/authorization-transport-v1/runs/initial-wire-v1/evaluation-summary.json)、[V replay](../../results/skill-ir/skill-dsl-research/development/authorization-transport-v1/v-replay-initial.json)。V 原始结果继续保存在 `authorization-v0`。
 
