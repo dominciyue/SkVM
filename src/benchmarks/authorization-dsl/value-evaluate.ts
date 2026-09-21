@@ -256,6 +256,7 @@ export interface AuthorizationValueStudyCandidateScore {
 export interface AuthorizationValueStudySelection {
   selectedStudyArm: "L" | "C"
   basis:
+    | "only-observed-candidate"
     | "higher-decision-or-necessary-quality"
     | "more-complete-condition-explanation"
     | "quality-tie-lower-runtime-cost"
@@ -897,6 +898,11 @@ export function selectAuthorizationValueStudyCandidate(
     L: scoreCandidate("L", byArm.L),
     C: scoreCandidate("C", byArm.C),
   }
+  const hasLedgerCandidate = byArm.L.units > 0
+  const hasConditionCandidate = byArm.C.units > 0
+  if (!hasLedgerCandidate && !hasConditionCandidate) {
+    throw new Error("Value-study candidate selection requires at least one observed L or C unit.")
+  }
   const primaryComparison = compareTuple(primaryQuality(scores.L), primaryQuality(scores.C))
   const explanationComparison = scores.L.explanationGaps - scores.C.explanationGaps
   const runtimeComparison = compareTuple(
@@ -905,7 +911,10 @@ export function selectAuthorizationValueStudyCandidate(
   )
   let selectedStudyArm: "L" | "C"
   let basis: AuthorizationValueStudySelection["basis"]
-  if (primaryComparison !== 0) {
+  if (hasLedgerCandidate !== hasConditionCandidate) {
+    selectedStudyArm = hasLedgerCandidate ? "L" : "C"
+    basis = "only-observed-candidate"
+  } else if (primaryComparison !== 0) {
     selectedStudyArm = primaryComparison < 0 ? "L" : "C"
     basis = "higher-decision-or-necessary-quality"
   } else if (explanationComparison !== 0) {

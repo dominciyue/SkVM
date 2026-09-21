@@ -360,6 +360,24 @@ describe("authorization value-study evaluation", () => {
       selectedStudyArm: "C",
       basis: "more-complete-condition-explanation",
     }))
+    const migrationSelection = selectAuthorizationValueStudyCandidate({
+      P: evaluated.byArm.P,
+      L: {
+        ...evaluated.byArm.L,
+        units: 0,
+        labelCorrect: 0,
+        necessarySupported: 0,
+        semanticDecisionCorrect: 0,
+        explanationCriterionGaps: 0,
+        providerCalls: 0,
+        knownTokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      },
+      C: evaluated.byArm.C,
+    })
+    expect(migrationSelection).toEqual(expect.objectContaining({
+      selectedStudyArm: "C",
+      basis: "only-observed-candidate",
+    }))
     expect(evaluated.units.find(unit => unit.studyArm === "P")?.coverage.status).toBe("not-applicable")
     expect(evaluated.units.find(unit => unit.studyArm === "C")?.conditionAnalysis.status).toBe("valid")
 
