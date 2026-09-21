@@ -2504,4 +2504,6 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **Y5 authoring边界。** authoring/v1接受作者task、sourceRoot、sources及可选profile/condition request；sourceIdentity只能从task repository/ref确定性派生并标为authored而非远端verified。默认requirements只来自共享`authorization-core-v1`，不得复制task.requiredAnalysis形成第二份逐任务同义清单；显式requirements保持作者来源。normalized input与原authoring分开，原对象/文件不改写；普通loader继续执行路径与源码位置封闭检查。缺政策、expectation、源码范围或引用返回带修复位置的needs-input，不从当前实现、模板或模型补规范事实；上游task不ready时不级联输出下游profile噪声。
 
+**Y6 CLI边界。** 顶层`authorization`命令动态装载现有实现，init不覆盖，check/inspect不建provider，run省略arm固定B且每次新建immutable session。`--from`只允许authoring与normalized output同目录，避免相对sourceRoot在移动后改变含义。condition request是显式opt-in并贯穿preview、wire/v3、session和inspect；无请求保持ledger/v2。source checkout shim可以解析Windows npm Bun的真实binary；这只是本地路由修复，不代表npm包已发布该命令。
+
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。

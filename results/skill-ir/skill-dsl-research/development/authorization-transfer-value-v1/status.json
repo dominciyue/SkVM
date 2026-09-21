@@ -2,13 +2,13 @@
   "schemaVersion": "authorization-dsl-transfer-value-development/v1",
   "taskbook": "docs/superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md",
   "createdAt": "2026-09-22T00:51:02+08:00",
-  "updatedAt": "2026-09-22T02:07:01+08:00",
+  "updatedAt": "2026-09-22T02:26:48+08:00",
   "branch": "skill-ir-aot",
   "startHead": "b3a1a44",
   "codeBaseline": "abe470f2a887f35ca1d6782cfbd5343965856620",
-  "stage": "Y6",
+  "stage": "Y7",
   "taskStatus": "in-progress",
-  "nextAction": "Write failing top-level authorization CLI tests for safe init, provider-free check/inspect, default B, method routing, --from normalization, exit codes, and new immutable sessions.",
+  "nextAction": "Write failing P/L/C study tests that keep public facts/source/evaluation equivalent, give P a genuinely ledger-free natural prompt, and prevent empty C structure from earning semantic credit.",
   "stages": {
     "Y0": {
       "status": "completed",
@@ -62,8 +62,17 @@
         "Focused authoring tests passed 6/6 with 62 assertions; the full authorization suite passed 154/154 with 965 assertions; typecheck passed."
       ]
     },
-    "Y6": { "status": "in-progress", "evidence": [] },
-    "Y7": { "status": "planned", "evidence": [] },
+    "Y6": {
+      "status": "completed",
+      "evidence": [
+        "The first CLI test failed because src/cli/authorization.ts did not exist; the real Node shim command later failed with bun.exe ENOENT and was fixed only after a dedicated routing test reproduced it.",
+        "Top-level init/check/run/inspect now reuse authoring and local-run functions: init refuses overwrite, --from preserves the original, check/inspect are provider-free, run defaults to B and creates a new immutable session.",
+        "An explicit condition request reaches preview, host, session, and inspect; absence keeps the prior ledger/wire-v2 path.",
+        "Source help, example check, and Node shim help all exit 0. A temporary ordinary project covered template check, unsafe path rejection, two mock runs, and provider-free inspect without oracle data.",
+        "The combined authorization, benchmark, CLI, and shim suite passed 165/165 with 1018 assertions; typecheck passed."
+      ]
+    },
+    "Y7": { "status": "in-progress", "evidence": [] },
     "Y8": { "status": "planned", "evidence": [] },
     "Y9": { "status": "planned", "evidence": [] },
     "Y10": { "status": "planned", "evidence": [] },
@@ -118,7 +127,7 @@
     "conditionLayer": "opt-in"
   },
   "unresolvedIssues": [
-    "Condition wire/v3 and authoring normalization are integrated, but the top-level CLI, P/L/C study, and third-project migration remain.",
+    "Condition wire/v3, authoring normalization, and the top-level CLI are integrated, but the P/L/C study and third-project migration remain.",
     "Actual provider USD is not reported and must remain unknown unless the provider supplies it."
   ],
   "operations": {
@@ -161,6 +170,15 @@
       "typecheck": "passed",
       "redState": "authoring.ts module missing; stale task references also produced six cascading default-profile diagnostics before the focused repair",
       "agentAssistedTrace": { "fieldEdits": 22, "checks": 3, "actionableDiagnostics": 3, "humanSavingsClaimed": false }
+    },
+    "y6Cli": {
+      "focused": { "passed": 5, "failed": 0, "assertions": 36 },
+      "combinedSuite": { "passed": 165, "failed": 0, "assertions": 1018 },
+      "typecheck": "passed",
+      "redState": "authorization CLI module missing; Windows Node shim selected missing bun.exe before npm-Bun resolution",
+      "realEntrypoints": { "sourceHelp": "passed", "exampleCheck": "passed", "nodeShimHelp": "passed" },
+      "remoteProviderCalls": 0,
+      "targetExecutions": 0
     }
   }
 }

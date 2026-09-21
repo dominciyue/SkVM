@@ -62,6 +62,7 @@ Commands:
   proposals    List, inspect, accept, or reject proposals
   clean-jit    Remove persisted JIT artifacts for a model+adapter
   logs         List recent runs across subsystems
+  authorization  Run a bounded source-visible authorization assessment
   config       Configure providers, adapters, and paths (init / show / doctor)
 
 Global Options:
@@ -121,6 +122,15 @@ Use --help with any command for details.`)
     case "logs": {
       const { LOGS_FLAGS, runLogs } = await import("./cli/logs.ts")
       await runOrExit(LOGS_FLAGS, args.slice(1), runLogs)
+      break
+    }
+    case "authorization": {
+      const { runAuthorizationCli } = await import("./cli/authorization.ts")
+      process.exitCode = await runAuthorizationCli(args.slice(1), {
+        stdout: value => console.log(value),
+        stderr: value => console.error(value),
+        env: process.env,
+      })
       break
     }
     case "config": {

@@ -40,6 +40,8 @@ export interface LocalAuthorizationCheckReport {
   analysisProfile?: LocalAnalysisProfile
   requirementCount?: number
   ledgerEntryCount?: number
+  conditionRequestCount?: number
+  conditionPlanEntryCount?: number
   preview?: string
   promptCharacters?: AuthorizationPromptCharacterBreakdown
   diagnostics: AnalysisDiagnostic[]
@@ -133,6 +135,8 @@ export interface LocalAuthorizationSessionReport {
   canonicalResult?: AuthorizationResultV0
   relationCoverage?: unknown[]
   coverageValidation?: unknown
+  conditionAnalysis?: unknown
+  conditionValidation?: unknown
   telemetry?: AuthorizationTaskRun["telemetry"]
   promptCharacters?: AuthorizationTaskRun["promptCharacters"]
   artifacts?: {
@@ -221,10 +225,10 @@ function checkReport(loaded: LocalInputResult, arm: AuthorizationRenderArm): Loc
   }
   const compiled = compileAuthorizationTask(loaded.task)
   const sourceContext = renderSourceBundle(loaded.sourceBundle)
-  const rendered = renderAuthorizationTask(compiled, arm, loaded.analysisPlan)
+  const rendered = renderAuthorizationTask(compiled, arm, loaded.analysisPlan, loaded.conditionPlan)
   const renderedPrompt = rendered.prompt.replace("<SOURCE_CONTEXT_INSERTED_BY_HOST>", sourceContext)
   const preview = [
-    `<!-- analysis-profile: ${loaded.analysisProfile.id}; origin: ${loaded.analysisProfile.origin} -->`,
+    `<!-- analysis-profile: ${loaded.analysisProfile.id}; origin: ${loaded.analysisProfile.origin}; condition-analysis: ${loaded.conditionPlan ? "enabled" : "disabled"} -->`,
     renderedPrompt,
   ].join("\n\n")
   return {
@@ -240,6 +244,12 @@ function checkReport(loaded: LocalInputResult, arm: AuthorizationRenderArm): Loc
     analysisProfile: loaded.analysisProfile,
     requirementCount: loaded.analysisRequirements.length,
     ledgerEntryCount: loaded.analysisPlan.entries.length,
+    ...(loaded.conditionAnalysisRequest
+      ? {
+          conditionRequestCount: loaded.conditionAnalysisRequest.requests.length,
+          conditionPlanEntryCount: loaded.conditionPlan?.entries.length ?? 0,
+        }
+      : {}),
     preview,
     promptCharacters: measureAuthorizationPromptCharacters(rendered, sourceContext),
     diagnostics: [],
@@ -339,6 +349,15 @@ function summaryText(input: {
       lines.push(`- ${item.requirementId} × ${item.obligationId}: ${item.status} — ${item.explanation}`)
     }
   }
+  lines.push("", "Condition analysis")
+  const conditionAnalyses = artifact?.conditionAnalysis?.analyses ?? []
+  if (conditionAnalyses.length === 0) {
+    lines.push("- Not requested or not delivered.")
+  } else {
+    for (const analysis of conditionAnalyses) {
+      lines.push(`- ${analysis.obligationId}: ${analysis.completeness}; ${analysis.branches.length} branch(es)`)
+    }
+  }
   if (input.report.error) lines.push("", `Error: ${input.report.error.name}: ${input.report.error.message}`)
   return `${lines.join("\n")}\n`
 }
@@ -416,6 +435,12 @@ export async function executeLocalAuthorizationRun(input: {
     profile: loaded.analysisProfile,
     requirements: loaded.analysisRequirements,
     plan: loaded.analysisPlan,
+    ...(loaded.conditionAnalysisRequest
+      ? {
+          conditionAnalysisRequest: loaded.conditionAnalysisRequest,
+          conditionPlan: loaded.conditionPlan,
+        }
+      : {}),
   })
   await writeExclusive(path.join(session.sessionPath, baseArtifacts.preview), `${checked.preview ?? ""}\n`)
   await writeExclusive(path.join(session.sessionPath, baseArtifacts.events!), "")
@@ -487,6 +512,9 @@ export async function executeLocalAuthorizationRun(input: {
       task: loaded.task,
       sourceBundle: loaded.sourceBundle,
       analysisRequirements: loaded.analysisRequirements,
+      ...(loaded.conditionAnalysisRequest
+        ? { conditionAnalysisRequest: loaded.conditionAnalysisRequest }
+        : {}),
       provider,
       arm,
       options: executionOptions,
@@ -506,6 +534,12 @@ export async function executeLocalAuthorizationRun(input: {
         canonicalResult: artifact.result,
         relationCoverage: artifact.relationCoverage ?? [],
         coverageValidation: artifact.coverageValidation,
+        ...(artifact.conditionAnalysis
+          ? {
+              conditionAnalysis: artifact.conditionAnalysis,
+              conditionValidation: artifact.conditionValidation,
+            }
+          : {}),
       } : {}),
       telemetry: run.telemetry,
       promptCharacters: run.promptCharacters,
@@ -634,6 +668,8 @@ async function validateTerminalSession(input: {
       || !samePersistedValue(artifact?.result, report.canonicalResult)
       || !samePersistedValue(artifact?.relationCoverage, report.relationCoverage)
       || !samePersistedValue(artifact?.coverageValidation, report.coverageValidation)
+      || !samePersistedValue(artifact?.conditionAnalysis, report.conditionAnalysis)
+      || !samePersistedValue(artifact?.conditionValidation, report.conditionValidation)
     ) {
       throw new LocalAuthorizationRunnerError(`Persisted result does not match run artifact for ${sessionId}.`)
     }

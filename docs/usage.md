@@ -30,6 +30,7 @@ Top-level commands:
 | `proposals` | List, inspect, accept, or reject JIT-optimize proposals |
 | `clean-jit` | Remove persisted JIT artifacts for a model+adapter |
 | `logs` | List recent runs across subsystems |
+| `authorization` | Opt-in bounded source-visible authorization assessment |
 
 ## Adapters & providers
 
@@ -51,23 +52,33 @@ Three LLM provider route kinds under `src/providers/`, selected per model id via
 - **`openai-compatible`** — OpenAI / Azure / vLLM / Ollama / DeepSeek and similar `/v1/chat/completions` gateways. Requires `baseUrl`; for these routes an auto-probe layer can fail over to an Anthropic-shaped endpoint on the same host when tool-call args are polluted (disable with `SKVM_AUTO_PROBE=0`).
 - **`openrouter`** — OpenRouter API. Set `OPENROUTER_API_KEY`.
 
-### Bounded local authorization assessment (development)
+### Bounded authorization assessment (opt-in development capability)
 
-The source-visible authorization capability has a standalone development entry for an ordinary task and explicit source files. It is a bounded development capability, not a top-level product CLI, repository-wide scanner, target executor, patch generator, or production security decision.
+The source-visible authorization capability is available through an opt-in top-level command for an ordinary task and explicit source files. It remains a bounded development capability, not a repository-wide scanner, target executor, patch generator, or production security decision.
 
 ```powershell
-bun ./src/benchmarks/authorization-dsl/local-run.ts check --input=./examples/authorization-assessment/assessment.json
-bun ./src/benchmarks/authorization-dsl/local-run.ts run --input=./examples/authorization-assessment/assessment.json --model=<provider/model> --out=./.skvm/authorization-demo
-bun ./src/benchmarks/authorization-dsl/local-run.ts inspect --out=./.skvm/authorization-demo
+skvm authorization init --out=./assessment.json
+skvm authorization check --input=./assessment.json
+skvm authorization run --input=./assessment.json --model=<provider/model> --out=./.skvm/authorization-demo
+skvm authorization inspect --out=./.skvm/authorization-demo
 ```
 
-Copy `examples/authorization-assessment/`, then edit its `assessment.json` and files under `project/`. The strict `authorization-assessment-input/v1` object contains:
+`init` writes a clearly synthetic, complete editable assessment and refuses to overwrite an existing path. To remove repeated identity/profile fields, start with `authorization-assessment-authoring/v1` beside its project and normalize it separately:
+
+```powershell
+skvm authorization init --from=./authoring.json --out=./assessment.json
+```
+
+The authoring and output files must stay in the same directory so a relative `sourceRoot` keeps the same bounded meaning. Normalization derives `sourceIdentity` from the task and materializes the shared six-question profile; it does not infer policy or an obligation expectation. A missing author-owned field returns `needs-input` with a field path and fix. The original authoring file is unchanged, and the recorded source ref remains `authored`, not remotely verified.
+
+You may instead copy `examples/authorization-assessment/`, then edit `assessment.json` and files under `project/`. The strict `authorization-assessment-input/v1` object contains:
 
 - `sourceIdentity.repository/sourceRef`, which must exactly match the task identity;
 - `sourceRoot`, resolved from the input file's directory and confined beneath that directory after junction/symlink resolution;
 - `sources`, an explicit list of portable files beneath `sourceRoot`, including ordinary paths such as `src/routes/items.py`;
 - `task`, including policy sources, principals, resources, entries, obligations, bounded scope and constraints; and
-- optional `analysisRequirements`; when omitted, the public six-question `authorization-core-v1` profile is used.
+- optional `analysisRequirements`; when omitted, the public six-question `authorization-core-v1` profile is used; and
+- an optional condition-analysis request, which explicitly opts into the condition sidecar and wire/v3.
 
 No research manifest, oracle, case id, evaluator, or review is required. `check` and `inspect` never initialize a provider. The optional `--arm=N|B|D` is available on `check` and `run`; it defaults to B because the frozen development panel found no additional necessary-semantics or coverage benefit from D and observed more calls and tokens. N and D remain explicit research alternatives. All arms share the task facts, questions, source and output protocol.
 

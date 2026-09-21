@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "authorization-cli-smoke/v1",
+  "stage": "Y6",
+  "implementationBase": "2c788aa",
+  "entrypoints": [
+    {
+      "command": "bun ./src/index.ts authorization --help",
+      "exitCode": 0,
+      "result": "authorization help rendered"
+    },
+    {
+      "command": "bun ./src/index.ts authorization check --input=./examples/authorization-assessment/assessment.json",
+      "exitCode": 0,
+      "result": "valid; arm B; authorization-core-v1; six ledger entries; provider-free"
+    },
+    {
+      "command": "node ./bin/skvm.js authorization --help",
+      "initialExitCode": 1,
+      "initialFailure": "Windows source shim selected bun.exe although this npm Bun installation exposed bun.cmd plus node_modules/bun/bin/bun.exe.",
+      "repair": "Resolve a real Bun executable from PATH, including the npm shim companion binary, before falling back to bun.exe.",
+      "finalExitCode": 0,
+      "result": "authorization help rendered through the Node shim"
+    }
+  ],
+  "temporaryOrdinaryProject": {
+    "coverage": [
+      "synthetic init creates a new file and refuses overwrite",
+      "initialized template becomes valid after its explicit project source is supplied",
+      "unsafe parent sourceRoot returns invalid before provider creation",
+      "authoring --from writes a separate normalized input and preserves the authoring file",
+      "condition request appears in provider-free check preview",
+      "two mock runs create two different immutable session directories with arm B",
+      "inspect reads the latest completed session without another provider"
+    ],
+    "mockProviderCalls": 2,
+    "remoteProviderCalls": 0,
+    "targetExecutions": 0,
+    "evaluatorOrOracleReads": 0
+  },
+  "copyableCommands": [
+    "skvm authorization init --out=./assessment.json",
+    "skvm authorization init --from=./authoring.json --out=./assessment.json",
+    "skvm authorization check --input=./assessment.json",
+    "skvm authorization run --input=./assessment.json --model=<provider/model> --out=./.skvm/authorization",
+    "skvm authorization inspect --out=./.skvm/authorization"
+  ],
+  "verification": {
+    "command": "bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts ./src/cli/artifact-entrypoint.test.ts",
+    "passed": 165,
+    "failed": 0,
+    "assertions": 1018,
+    "typecheck": "passed"
+  },
+  "claimBoundary": "This verifies the source-checkout opt-in CLI and mock lifecycle only. It is not an npm publication claim, a real provider result, or authorization semantic evidence."
+}

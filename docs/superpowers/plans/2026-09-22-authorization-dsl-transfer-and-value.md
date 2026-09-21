@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 SkVM provider 与 CLI。机器结果写一处，研究与问题复盘持续追加研究总文档，不新增 HTML、通用工作流引擎或整套产品 CLI。
 
-- 日期：2026-09-22；状态：`in-progress`。Y0–Y5 已完成，机器状态位于本任务书指定的新结果根；当前进入 Y6。
+- 日期：2026-09-22；状态：`in-progress`。Y0–Y6 已完成，机器状态位于本任务书指定的新结果根；当前进入 Y7。
 - 代码基线：`abe470f2a887f35ca1d6782cfbd5343965856620`；接手时读取本任务书登记提交后的最新 HEAD。
 - 分支：`skill-ir-aot`；只提交归属文件并推送用户 `origin/skill-ir-aot`。
 - 设计：[研究总文档 §7.22](../../skill-ir/skill-dsl-research.md#722-y-条件表达默认迁移与价值验证)；持续合同：spec 14.34。
@@ -166,10 +166,10 @@ init/check/inspect 不初始化 provider；run 显式使用 `--model`。没有 a
 - [x] 记录一次实际“改主体/资源关系/入口/条件”的 agent-assisted 编写流程、改字段数、check次数及诊断；未使用真人不写人工节省。
 
 ### Y6：接入现有 SkVM CLI
-- [ ] 在 `src/cli/authorization.test.ts` 先覆盖 init 不覆盖、check/inspect 不建 provider、run 默认 B、错误 exit code、未知参数提示与新 session。
-- [ ] 新增 `authorization` 动态路由，init/check/run/inspect复用公开函数；默认模式仍 B，条件层 opt-in，不建设交互网页。
-- [ ] 运行 `bun ./src/index.ts authorization --help`、`check --input=./examples/authorization-assessment/assessment.json` 与 `node ./bin/skvm.js authorization --help`，确认 source checkout 真实入口可达。若已装旧 binary遮挡，只修本地路由或说明实际构建步骤，不称 npm 已发布。
-- [ ] 用临时普通项目目录验证模板编写、mock run、inspect及路径错误；保存可复制命令，结果无需实验 oracle。
+- [x] 在 `src/cli/authorization.test.ts` 先覆盖 init 不覆盖、check/inspect 不建 provider、run 默认 B、错误 exit code、未知参数提示与新 session。
+- [x] 新增 `authorization` 动态路由，init/check/run/inspect复用公开函数；默认模式仍 B，条件层 opt-in，不建设交互网页。
+- [x] 运行 `bun ./src/index.ts authorization --help`、`check --input=./examples/authorization-assessment/assessment.json` 与 `node ./bin/skvm.js authorization --help`，确认 source checkout 真实入口可达。若已装旧 binary遮挡，只修本地路由或说明实际构建步骤，不称 npm 已发布。
+- [x] 用临时普通项目目录验证模板编写、mock run、inspect及路径错误；保存可复制命令，结果无需实验 oracle。
 
 ### Y7：实现公平的 P/L/C 研究接线
 - [ ] 新 study 配置明确 studyArm 与历史 renderArm分离；P 不借用一个仍带 ledger 的 N 冒充无 helper；保留同一 host、来源和基础计量。

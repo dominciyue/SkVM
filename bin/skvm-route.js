@@ -1,6 +1,23 @@
 import { existsSync } from "node:fs"
 import path from "node:path"
 
+function resolveBun({ platform, env, exists }) {
+  if (env.SKVM_BUN_BIN) return env.SKVM_BUN_BIN
+  if (platform !== "win32") return "bun"
+  const searchPath = env.PATH || env.Path || env.path || ""
+  for (const rawDirectory of searchPath.split(";").filter(Boolean)) {
+    const directory = rawDirectory.replace(/^"|"$/g, "")
+    const candidates = [
+      path.join(directory, "bun.exe"),
+      path.join(directory, "node_modules", "bun", "bin", "bun.exe"),
+    ]
+    for (const candidate of candidates) {
+      if (exists(candidate)) return candidate
+    }
+  }
+  return "bun.exe"
+}
+
 /**
  * Resolve the executable for the Node shim without importing the Bun runtime.
  * The artifact command is a companion binary in packaged installs and falls
@@ -24,7 +41,7 @@ export function resolveSkvmInvocation({
       return { cmd: artifactBinary, args: argv.slice(1), env: installEnv }
     }
     if (exists(artifactEntry)) {
-      const bun = env.SKVM_BUN_BIN || (platform === "win32" ? "bun.exe" : "bun")
+      const bun = resolveBun({ platform, env, exists })
       return { cmd: bun, args: ["run", artifactEntry, ...argv.slice(1)], env }
     }
     return {
@@ -40,7 +57,7 @@ export function resolveSkvmInvocation({
 
   const entry = path.join(repoRoot, "src", "index.ts")
   if (exists(entry)) {
-    const bun = env.SKVM_BUN_BIN || (platform === "win32" ? "bun.exe" : "bun")
+    const bun = resolveBun({ platform, env, exists })
     return { cmd: bun, args: ["run", entry, ...argv], env }
   }
 

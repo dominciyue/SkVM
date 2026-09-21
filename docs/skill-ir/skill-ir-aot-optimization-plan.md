@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-22
 - 路线：按 skill/task 范围设计领域 DSL，当前为源码可见授权与信任边界任务。
-- 状态：V/W/X 已完成；Y 正在连续执行，Y0–Y5 已完成，当前进入 Y6。
+- 状态：V/W/X 已完成；Y 正在连续执行，Y0–Y6 已完成，当前进入 Y7。
 - 唯一实时入口：[current-status.md](current-status.md)
 - 方法合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)
@@ -16,7 +16,7 @@
 |---|---|---|
 | Y0–Y1（完成） | 恢复、默认一致性、记述纠正 | 保留七项原有修改；公开函数与CLI默认B；fallback计量说明准确 |
 | Y2–Y4（完成） | 条件合同、纯函数、运行接线 | 假设/事实分开；分支遗漏可见；旧wire兼容；一次诊断修复 |
-| Y5（完成）/Y6 | 作者输入、现有CLI薄适配 | 派生重复字段；缺政策不猜测；init/check/run/inspect可用 |
+| Y5–Y6（完成） | 作者输入、现有CLI薄适配 | 派生重复字段；缺政策不猜测；init/check/run/inspect可用 |
 | Y7–Y9 | 公平P/L/C与开发面板 | 五任务15单元；一次共享修订；按实际质量与成本选结构化候选 |
 | Y10–Y11 | 新项目默认profile迁移 | 固定方法后获取；2–3权限任务；不靠专用问题清单；首次失败保留 |
 | Y12 | 实际价值判断 | 必要质量、条件完整性、编写负担与开销分开；无收益如实报告 |

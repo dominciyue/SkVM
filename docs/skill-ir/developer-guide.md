@@ -29,6 +29,7 @@
 - `normalizeAuthorizationAuthoringInput(input)`：strict 解析较少重复字段的 `authorization-assessment-authoring/v1`，从task唯一派生sourceIdentity并物化共享`authorization-core-v1`，或原样保留task-supplied requirements；返回字段来源和`sourceRefVerification: authored`。缺政策、expectation、源码范围或引用时一次返回带`path/fix`的`needs-input`，不猜allow/deny、不搜索源码、不修改原对象。可选condition request原样进入独立normalized input。
 - `loadLocalAuthorizationInput(inputFile)`：strict 解析 `authorization-assessment-input/v1`，校验 task 与 `sourceIdentity` 的 repository/ref、相对 sourceRoot、普通 portable source 路径、junction/symlink 边界、声明行范围及 ready analysis/condition plan；无显式 requirements 时实例化 `authorization-core-v1`。authoring规范化产物带`analysisProfile.origin=derived`和物化requirements，loader会拒绝伪称默认profile但内容漂移的输入。
 - `checkLocalAuthorizationInput(...)` / `executeLocalAuthorizationRun(...)` / `inspectLocalAuthorizationOutput(...)`：普通自备输入的 provider-free 检查、每次新 session 运行和离线读取。check/run 接受 N/B/D，默认 B；arm、字符分项和 provider-reported token 随 session 保存。session 不覆盖，dispatch 后缺终态标 `completion-unknown`，不会自动重发；inspect 交叉检查 session/result/dispatch/run 的身份与状态，不直接信任单个结果文件。
+- `runAuthorizationCli(argv, dependencies)`：顶层`skvm authorization init/check/run/inspect`的薄路由。init可写synthetic完整例子，或用同目录`--from`规范化authoring；目标存在时拒绝覆盖。check/inspect不创建provider，run默认B并创建新session；输入带condition request时preview、host、session和inspect共同保存wire/v3 sidecar，否则旧ledger/v2不变。source checkout的Node shim会在Windows PATH中解析npm Bun背后的真实`bun.exe`。
 - `validateAuthorizationResult(compiled, answer, sourceBundle)`：分别检查结构、声明义务、引用存在、范围声明和依赖快照；语义支持仍为 `unreviewed`。
 - `runAuthorizationTask(...)`：在注入 provider、精确源码束和固定预算下生成；可选 condition request 必须与 ready analysis plan 一起启用。宿主按 v1/v2/v3 保存 raw wire、canonical、coverage/condition sidecar 及各自 validation，并让关系或条件机械诊断共用至多一次 repair；每次 dispatch 固定 phase，per-call/unit deadline、四次派发上限、closed state 和 JSONL lifecycle event 防止 timeout 后新 fallback；没有可执行工具或 evaluator 输入。
 - `evaluateAuthorizationGeneration`、`summarizeAuthorizationRun` 与 `summarizeAuthorizationPair`：消费哈希绑定的 development-agent review，不能从关键词或 citation 存在性推断正确性；v1 单列 semantic decision、evidence semantics、transport 与 delivery，旧 `taskDecisionCorrect` 仍按 v0 口径保留。
@@ -46,12 +47,12 @@ coverage item 为 `requirementId/obligationId/status/explanation/factPointers`�
 自备输入入口在仓库根使用以下命令；只有 `run` 初始化 provider：
 
 ```powershell
-bun ./src/benchmarks/authorization-dsl/local-run.ts check --input=./examples/authorization-assessment/assessment.json
-bun ./src/benchmarks/authorization-dsl/local-run.ts run --input=./examples/authorization-assessment/assessment.json --model=<provider/model> --out=./.skvm/authorization-demo
-bun ./src/benchmarks/authorization-dsl/local-run.ts inspect --out=./.skvm/authorization-demo
+bun ./src/index.ts authorization check --input=./examples/authorization-assessment/assessment.json
+bun ./src/index.ts authorization run --input=./examples/authorization-assessment/assessment.json --model=<provider/model> --out=./.skvm/authorization-demo
+bun ./src/index.ts authorization inspect --out=./.skvm/authorization-demo
 ```
 
-输入顶层为 `schemaVersion/task/sourceIdentity/sourceRoot/sources` 及可选 `analysisRequirements`。`sourceIdentity` 必须与 task repository/ref 相同；sourceRoot 相对输入文件目录且解析后不得越出该目录；sources 是相对 sourceRoot 的显式普通路径，不需要 case manifest、oracle、evaluator 或 review。可复制 `examples/authorization-assessment/` 后修改 task 身份、政策/主体/资源/入口/义务、sourceIdentity、源码位置、sources 和模型配置。先运行 check；字段、路径、声明位置或依赖错误均在 provider 前给出结构诊断。省略 `--arm` 使用 B；需要研究对照时才显式加 `--arm=N` 或 `--arm=D`。run 在 `<output-root>/sessions/<id>/` 保存 input、task、source bundle、profile、preview、dispatch、events、host run、result 与文本摘要，根目录的 append-only `sessions.jsonl` 只用于定位；再次 run 总是新 session。每个结果都显式带 `decisiveMissingFacts` 与 `suggestedObservations`，unknown 不得以空泛结论代替决定性缺失事实。
+输入顶层为 `schemaVersion/task/sourceIdentity/sourceRoot/sources` 及可选 `analysisProfile/analysisRequirements/conditionAnalysisRequest`。`sourceIdentity` 必须与 task repository/ref 相同；sourceRoot 相对输入文件目录且解析后不得越出该目录；sources 是相对 sourceRoot 的显式普通路径，不需要 case manifest、oracle、evaluator 或 review。可复制 `examples/authorization-assessment/` 后修改 task 身份、政策/主体/资源/入口/义务、sourceIdentity、源码位置、sources 和模型配置；也可编辑同目录authoring.json后用`authorization init --from=... --out=...`产生独立normalized input。先运行 check；字段、路径、声明位置或依赖错误均在 provider 前给出结构诊断。省略 `--arm` 使用 B；需要历史研究对照时才显式加 `--arm=N` 或 `--arm=D`。run 在 `<output-root>/sessions/<id>/` 保存 input、task、source bundle、profile、preview、dispatch、events、host run、result 与文本摘要，根目录的 append-only `sessions.jsonl` 只用于定位；再次 run 总是新 session。每个结果都显式带 `decisiveMissingFacts` 与 `suggestedObservations`，unknown 不得以空泛结论代替决定性缺失事实。
 
 恢复按 artifact 状态处理：invalid check 与没有 `dispatch.json` 的 `provider-unavailable` 都未发模型请求，修正输入或 route 后可有意建立新 session；已有 dispatch 但无终态的 session 保持 `completion-unknown`，只 inspect 和保留，不自动重发；completed session 可在不装载 evaluator 的情况下反复 inspect。仓库自定义 route 位于本地缓存时，run 前可设置 `$env:SKVM_CACHE = "$PWD/.skvm"`。传入 exact session 目录可避免根索引最新项的歧义。
 
