@@ -6,8 +6,10 @@ import type { LLMProvider, LLMResponse } from "../../providers/types.ts"
 import type { AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
 import { createDefaultAnalysisRequirements } from "../../task-dsl/authorization/relations.ts"
 import {
+  AuthorizationValueMigrationExperimentConfigSchema,
   AuthorizationValueStudyExperimentConfigSchema,
   buildAuthorizationStudyMethods,
+  checkAuthorizationValueStudyExperiment,
   executeAuthorizationValueStudyExperiment,
   summarizeAuthorizationStudyUnit,
   validateAuthorizationValueStudyDesign,
@@ -78,6 +80,93 @@ function conditionRequest() {
       ],
       maxBranches: 3,
     }],
+  }
+}
+
+function successfulStudyProvider(counter: { calls: number }): LLMProvider {
+  const requirements = createDefaultAnalysisRequirements(task())
+  return {
+    name: "value-study-mock",
+    async complete(params) {
+      counter.calls += 1
+      const prompt = params.messages[0]?.content ?? ""
+      const sourceId = prompt.match(/Source ID: ([^\n]+)/)?.[1]
+      if (!sourceId) throw new Error("mock prompt has no source ID")
+      const cite = (statement: string, line: number) => [{
+        statement,
+        citations: [{ sourceId, startLine: line, endLine: line }],
+      }]
+      const base = {
+        results: [{
+          obligationId: "deny-non-owner-update::update-record",
+          conclusion: "source_refuted",
+          explanation: "The owner mismatch is rejected before persistence; administrator and record conditions are explained from the fixed source.",
+          facts: {
+            entry: cite("The declared update entry receives the request.", 1),
+            binding: cite("The request user is bound as principal.", 2),
+            control: cite("An owner mismatch is rejected.", 3),
+            effect: cite("Persistence follows the guard.", 4),
+            condition: cite("The fixed function closes after the protected effect.", 5),
+          },
+          decisiveMissingFacts: [],
+          suggestedObservations: [],
+        }],
+        scopeClaim: { kind: "declared-obligations-only", statement: "Only the declared update entry is assessed." },
+      }
+      const properties = params.tools?.[0]?.inputSchema as { properties?: Record<string, unknown> } | undefined
+      const hasCoverage = properties?.properties?.coverage !== undefined
+      const hasConditions = properties?.properties?.conditionAnalysis !== undefined
+      const wire = {
+        schemaVersion: hasConditions
+          ? "source-authorization-assessment-wire/v3"
+          : hasCoverage
+            ? "source-authorization-assessment-wire/v2"
+            : "source-authorization-assessment-wire/v1",
+        ...base,
+        ...(hasCoverage ? {
+          coverage: requirements.map(requirement => ({
+            requirementId: requirement.id,
+            obligationId: "deny-non-owner-update::update-record",
+            status: "addressed",
+            explanation: "The cited control and explanation answer this public question.",
+            factPointers: ["/results/0/facts/control/0"],
+          })),
+        } : {}),
+        ...(hasConditions ? {
+          conditionAnalysis: {
+            schemaVersion: "authorization-condition-analysis-result/v1",
+            analyses: [{
+              obligationId: "deny-non-owner-update::update-record",
+              branches: [{
+                id: "existing-non-admin-blocked",
+                obligationId: "deny-non-owner-update::update-record",
+                assumptions: [
+                  { conditionId: "record-exists", value: "true" },
+                  { conditionId: "principal-not-admin", value: "true" },
+                ],
+                effect: "blocked",
+                explanation: "The visible owner mismatch blocks this bounded branch.",
+                factPointers: ["/results/0/facts/control/0"],
+                missingFacts: [],
+              }],
+              unexaminedConditionIds: [],
+              completeness: "bounded",
+              limitations: ["The branch set is bounded by the authored request."],
+            }],
+          },
+        } : {}),
+      }
+      return {
+        text: "",
+        toolCalls: [{ id: `result-${counter.calls}`, name: "submit_authorization_result", arguments: wire }],
+        tokens: { input: 10, output: 5, cacheRead: 2, cacheWrite: 0 },
+        durationMs: 1,
+        stopReason: "tool_use",
+      } satisfies LLMResponse
+    },
+    async completeWithToolResults() {
+      throw new Error("output schema tools must not execute")
+    },
   }
 }
 
@@ -199,6 +288,131 @@ describe("authorization P/L/C value study", () => {
     expect(validateAuthorizationValueStudyDesign(renamed)).toEqual(expect.arrayContaining([
       expect.objectContaining({ code: "study-arm-set-mismatch" }),
       expect.objectContaining({ code: "study-rotation-mismatch" }),
+    ]))
+  })
+
+  it("accepts normalized-input P/C repetitions only in the frozen reversed second order", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "skvm-authorization-value-migration-"))
+    cleanupRoots.push(root)
+    await mkdir(path.join(root, "fixtures", "source", "src"), { recursive: true })
+    await writeFile(path.join(root, "fixtures", "source", "src", "record.ts"), [
+      "export function updateRecord(request: Request) {",
+      "  const principal = request.user",
+      "  if (request.record.ownerId !== principal.id) throw new Error('denied')",
+      "  return persistUpdate(request.record)",
+      "}",
+    ].join("\n"), "utf8")
+    await writeFile(path.join(root, "fixtures", "assessment.json"), `${JSON.stringify({
+      schemaVersion: "authorization-assessment-input/v1",
+      sourceIdentity: { repository: task().repository, sourceRef: task().sourceRef },
+      sourceRoot: "source",
+      sources: ["src/record.ts"],
+      task: task(),
+      analysisProfile: { id: "authorization-core-v1", origin: "derived" },
+      analysisRequirements: createDefaultAnalysisRequirements(task()),
+      conditionAnalysisRequest: conditionRequest(),
+    }, null, 2)}\n`, "utf8")
+    await writeFile(path.join(root, "fixtures", "evaluation-v2.json"), "{}\n", "utf8")
+
+    const config = AuthorizationValueMigrationExperimentConfigSchema.parse({
+      schemaVersion: "authorization-value-study-experiment/v2",
+      studyId: "value-migration-test",
+      createdAt: "2026-09-22T00:00:00.000Z",
+      implementationRevision: "test-revision",
+      paths: { runRoot: "runs/value-migration", evaluatorRubrics: "fixtures/evaluation-v2.json" },
+      model: {
+        modelId: "mock/value",
+        routeMatch: "mock/value",
+        cacheDir: "cache",
+        temperature: 0,
+        timeoutMs: 180000,
+        unitTimeoutMs: 600000,
+        maxTokens: 6000,
+        maxProviderDispatches: 4,
+        maxDomainRepairs: 1,
+        autoProbe: false,
+        contextLimitTokens: null,
+        contextLimitStatus: "provider-not-reported",
+      },
+      design: {
+        expectedCaseCount: 1,
+        expectedUnitCount: 4,
+        freshContextPerUnit: true,
+        evaluateAfterAllGeneration: true,
+        comparisonArms: ["P", "C"],
+        repetitionsPerArm: 2,
+        reverseSecondRepetition: true,
+        analysisProfileId: "authorization-core-v1",
+      },
+      execution: {
+        sourceMode: "fixed-context",
+        targetExecution: "forbidden",
+        modelExecutableTools: false,
+        evaluatorVisibleDuringGeneration: false,
+      },
+      cases: [{
+        caseId: "value-study-case",
+        input: "fixtures/assessment.json",
+        sourceRoot: "fixtures/source",
+        sources: ["src/record.ts"],
+        unitOrder: ["P", "C", "C", "P"],
+      }],
+      units: [
+        { id: "01-r1-P", caseId: "value-study-case", repetition: 1, studyArm: "P", renderArm: "B" },
+        { id: "02-r1-C", caseId: "value-study-case", repetition: 1, studyArm: "C", renderArm: "B" },
+        { id: "03-r2-C", caseId: "value-study-case", repetition: 2, studyArm: "C", renderArm: "B" },
+        { id: "04-r2-P", caseId: "value-study-case", repetition: 2, studyArm: "P", renderArm: "B" },
+      ],
+      stoppingRules: {
+        retainAllInitialUnitsInDenominator: true,
+        continueAfterTerminalUnitFailure: true,
+        noPostHocRequirementChanges: true,
+      },
+      revisionPolicy: {
+        sharedContractOrImplementationDefectOnly: true,
+        maxAdditionalUnits: 6,
+        preserveInitialResults: true,
+      },
+      resumePolicy: {
+        terminalUnitsAreNotResent: true,
+        dispatchedWithoutResultIsCompletionUnknown: true,
+      },
+    })
+
+    expect(validateAuthorizationValueStudyDesign(config)).toEqual([])
+    const configPath = path.join(root, "migration.json")
+    await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8")
+    const checked = await checkAuthorizationValueStudyExperiment({
+      repositoryRoot: root,
+      configPath,
+    })
+    expect(checked.status).toBe("valid")
+    expect(checked.cases[0]?.methods?.map(method => method.studyArm)).toEqual(["P", "C"])
+
+    const counter = { calls: 0 }
+    const run = await executeAuthorizationValueStudyExperiment({
+      repositoryRoot: root,
+      configPath,
+      providerFactory: async () => successfulStudyProvider(counter),
+      env: {},
+    })
+    expect(run.status).toBe("completed")
+    expect(counter.calls).toBe(4)
+    expect(run.units.map(unit => [unit.studyArm, unit.status])).toEqual([
+      ["P", "completed"],
+      ["C", "completed"],
+      ["C", "completed"],
+      ["P", "completed"],
+    ])
+    expect(new Set(run.units.map(unit => unit.sessionId)).size).toBe(4)
+    expect(await readFile(path.join(root, "runs", "value-migration", "public-inputs", "value-study-case", "project", "src", "record.ts"), "utf8"))
+      .toContain("persistUpdate")
+
+    const wrongOrder = structuredClone(config)
+    wrongOrder.units[2]!.studyArm = "P"
+    expect(validateAuthorizationValueStudyDesign(wrongOrder)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "migration-arm-count-mismatch" }),
+      expect.objectContaining({ code: "migration-unit-order-mismatch" }),
     ]))
   })
 

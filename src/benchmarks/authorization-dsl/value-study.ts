@@ -22,6 +22,7 @@ import { AuthorizationTaskV0Schema, type AuthorizationTaskV0 } from "../../task-
 import { compileAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
 import type { AuthorizationGenerationEvaluationV2 } from "./evaluate.ts"
 import type { AuthorizationTaskRun } from "./host.ts"
+import { LocalAuthorizationInputSchema, loadLocalAuthorizationInput } from "./local-input.ts"
 import {
   checkLocalAuthorizationStudyInput,
   executeLocalAuthorizationRun,
@@ -43,6 +44,7 @@ const SafePathSegment = NonEmptyString.regex(
 )
 const StudyArmSchema = z.enum(["P", "L", "C"])
 const StudyRotationSchema = z.enum(["P-L-C", "L-C-P", "C-P-L"])
+const MigrationStudyArmSchema = z.enum(["P", "C"])
 
 const AnalysisRequirementsSourceSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("default") }).strict(),
@@ -120,7 +122,93 @@ export const AuthorizationValueStudyExperimentConfigSchema = z.object({
 }).strict()
 
 export type AuthorizationValueStudyExperimentConfig = z.infer<typeof AuthorizationValueStudyExperimentConfigSchema>
-export type AuthorizationValueStudyUnit = AuthorizationValueStudyExperimentConfig["units"][number]
+
+const ValueMigrationCaseSchema = z.object({
+  caseId: SafePathSegment,
+  input: RelativeRepositoryPath,
+  sourceRoot: RelativeRepositoryPath,
+  sources: z.array(RelativeRepositoryPath).min(1),
+  unitOrder: z.tuple([
+    MigrationStudyArmSchema,
+    MigrationStudyArmSchema,
+    MigrationStudyArmSchema,
+    MigrationStudyArmSchema,
+  ]),
+}).strict()
+
+const ValueMigrationUnitSchema = z.object({
+  id: SafePathSegment,
+  caseId: SafePathSegment,
+  repetition: z.union([z.literal(1), z.literal(2)]),
+  studyArm: MigrationStudyArmSchema,
+  renderArm: z.literal("B"),
+}).strict()
+
+export const AuthorizationValueMigrationExperimentConfigSchema = z.object({
+  schemaVersion: z.literal("authorization-value-study-experiment/v2"),
+  studyId: NonEmptyString,
+  createdAt: NonEmptyString,
+  implementationRevision: NonEmptyString,
+  paths: z.object({
+    runRoot: RelativeRepositoryPath,
+    evaluatorRubrics: RelativeRepositoryPath,
+  }).strict(),
+  model: z.object({
+    modelId: NonEmptyString,
+    routeMatch: NonEmptyString,
+    cacheDir: RelativeRepositoryPath,
+    temperature: z.literal(0),
+    timeoutMs: z.number().int().positive(),
+    unitTimeoutMs: z.number().int().positive(),
+    maxTokens: z.number().int().positive(),
+    maxProviderDispatches: z.number().int().positive().max(4),
+    maxDomainRepairs: z.literal(1),
+    autoProbe: z.literal(false),
+    contextLimitTokens: z.number().int().positive().nullable(),
+    contextLimitStatus: z.enum(["provider-reported", "provider-not-reported"]),
+  }).strict(),
+  design: z.object({
+    expectedCaseCount: z.number().int().positive(),
+    expectedUnitCount: z.number().int().positive(),
+    freshContextPerUnit: z.literal(true),
+    evaluateAfterAllGeneration: z.literal(true),
+    comparisonArms: z.tuple([z.literal("P"), z.literal("C")]),
+    repetitionsPerArm: z.literal(2),
+    reverseSecondRepetition: z.literal(true),
+    analysisProfileId: z.literal(DEFAULT_AUTHORIZATION_ANALYSIS_PROFILE_ID),
+  }).strict(),
+  execution: z.object({
+    sourceMode: z.literal("fixed-context"),
+    targetExecution: z.literal("forbidden"),
+    modelExecutableTools: z.literal(false),
+    evaluatorVisibleDuringGeneration: z.literal(false),
+  }).strict(),
+  cases: z.array(ValueMigrationCaseSchema).min(1),
+  units: z.array(ValueMigrationUnitSchema).min(1),
+  stoppingRules: z.object({
+    retainAllInitialUnitsInDenominator: z.literal(true),
+    continueAfterTerminalUnitFailure: z.literal(true),
+    noPostHocRequirementChanges: z.literal(true),
+  }).strict(),
+  revisionPolicy: z.object({
+    sharedContractOrImplementationDefectOnly: z.literal(true),
+    maxAdditionalUnits: z.literal(6),
+    preserveInitialResults: z.literal(true),
+  }).strict(),
+  resumePolicy: z.object({
+    terminalUnitsAreNotResent: z.literal(true),
+    dispatchedWithoutResultIsCompletionUnknown: z.literal(true),
+  }).strict(),
+}).strict()
+
+export const AuthorizationValueExperimentConfigSchema = z.discriminatedUnion("schemaVersion", [
+  AuthorizationValueStudyExperimentConfigSchema,
+  AuthorizationValueMigrationExperimentConfigSchema,
+])
+
+export type AuthorizationValueMigrationExperimentConfig = z.infer<typeof AuthorizationValueMigrationExperimentConfigSchema>
+export type AuthorizationValueExperimentConfig = z.infer<typeof AuthorizationValueExperimentConfigSchema>
+export type AuthorizationValueStudyUnit = AuthorizationValueExperimentConfig["units"][number]
 
 export interface AuthorizationValueStudyDiagnostic {
   code: string
@@ -140,7 +228,7 @@ export interface AuthorizationStudyMethod {
 
 export interface AuthorizationValueStudyCheckReport {
   schemaVersion: "authorization-value-study-check/v1"
-  configSchemaVersion: "authorization-value-study-experiment/v1"
+  configSchemaVersion: AuthorizationValueExperimentConfig["schemaVersion"]
   status: "valid" | "invalid"
   configSha256: string
   caseCount: number
@@ -171,7 +259,7 @@ export type AuthorizationValueStudyUnitStatus =
   | "skipped-terminal"
   | "pending"
 
-export interface AuthorizationValueStudyRunUnit extends AuthorizationValueStudyUnit {
+export type AuthorizationValueStudyRunUnit = AuthorizationValueStudyUnit & {
   status: AuthorizationValueStudyUnitStatus
   reportStatus?: LocalAuthorizationSessionReport["status"]
   sessionId?: string
@@ -190,7 +278,7 @@ export interface AuthorizationValueStudyRunReport {
 export type AuthorizationValueStudyProviderFactory = (modelId: string) => Promise<LLMProvider> | LLMProvider
 
 interface LoadedStudyConfig {
-  config: AuthorizationValueStudyExperimentConfig
+  config: AuthorizationValueExperimentConfig
   configPath: string
   configSha256: string
 }
@@ -290,7 +378,7 @@ function rotationArms(rotation: AuthorizationValueStudyExperimentConfig["cases"]
 }
 
 export function validateAuthorizationValueStudyDesign(
-  config: AuthorizationValueStudyExperimentConfig,
+  config: AuthorizationValueExperimentConfig,
 ): AuthorizationValueStudyDiagnostic[] {
   const diagnostics: AuthorizationValueStudyDiagnostic[] = []
   if (config.cases.length !== config.design.expectedCaseCount) {
@@ -339,25 +427,76 @@ export function validateAuthorizationValueStudyDesign(
     }
   })
 
-  for (const candidate of config.cases) {
-    const units = config.units.filter(unit => unit.caseId === candidate.caseId)
-    const counts = new Map<AuthorizationStudyArm, number>([["P", 0], ["L", 0], ["C", 0]])
-    for (const unit of units) counts.set(unit.studyArm, (counts.get(unit.studyArm) ?? 0) + 1)
-    if (["P", "L", "C"].some(arm => counts.get(arm as AuthorizationStudyArm) !== 1)) {
-      diagnostics.push(diagnostic(
-        "study-arm-set-mismatch",
-        `Case ${candidate.caseId} requires exactly one P, L, and C unit.`,
-        "units",
-      ))
+  if (config.schemaVersion === "authorization-value-study-experiment/v1") {
+    for (const candidate of config.cases) {
+      const units = config.units.filter(unit => unit.caseId === candidate.caseId)
+      const counts = new Map<AuthorizationStudyArm, number>([["P", 0], ["L", 0], ["C", 0]])
+      for (const unit of units) counts.set(unit.studyArm, (counts.get(unit.studyArm) ?? 0) + 1)
+      if (["P", "L", "C"].some(arm => counts.get(arm as AuthorizationStudyArm) !== 1)) {
+        diagnostics.push(diagnostic(
+          "study-arm-set-mismatch",
+          `Case ${candidate.caseId} requires exactly one P, L, and C unit.`,
+          "units",
+        ))
+      }
+      const actualRotation = units.map(unit => unit.studyArm)
+      const expectedRotation = rotationArms(candidate.rotation)
+      if (JSON.stringify(actualRotation) !== JSON.stringify(expectedRotation)) {
+        diagnostics.push(diagnostic(
+          "study-rotation-mismatch",
+          `Case ${candidate.caseId} must follow frozen rotation ${candidate.rotation}; found ${actualRotation.join("-") || "none"}.`,
+          "units",
+        ))
+      }
     }
-    const actualRotation = units.map(unit => unit.studyArm)
-    const expectedRotation = rotationArms(candidate.rotation)
-    if (JSON.stringify(actualRotation) !== JSON.stringify(expectedRotation)) {
-      diagnostics.push(diagnostic(
-        "study-rotation-mismatch",
-        `Case ${candidate.caseId} must follow frozen rotation ${candidate.rotation}; found ${actualRotation.join("-") || "none"}.`,
-        "units",
-      ))
+  } else {
+    for (const candidate of config.cases) {
+      const units = config.units.filter(unit => unit.caseId === candidate.caseId)
+      const counts = new Map<"P" | "C", number>([["P", 0], ["C", 0]])
+      for (const unit of units) counts.set(unit.studyArm, (counts.get(unit.studyArm) ?? 0) + 1)
+      if (counts.get("P") !== 2 || counts.get("C") !== 2) {
+        diagnostics.push(diagnostic(
+          "migration-arm-count-mismatch",
+          `Case ${candidate.caseId} requires exactly two P and two C units.`,
+          "units",
+        ))
+      }
+      const actualOrder = units.map(unit => unit.studyArm)
+      if (JSON.stringify(actualOrder) !== JSON.stringify(candidate.unitOrder)) {
+        diagnostics.push(diagnostic(
+          "migration-unit-order-mismatch",
+          `Case ${candidate.caseId} must follow frozen order ${candidate.unitOrder.join("-")}; found ${actualOrder.join("-") || "none"}.`,
+          "units",
+        ))
+      }
+      const repetitions = units.map(unit => unit.repetition)
+      if (JSON.stringify(repetitions) !== JSON.stringify([1, 1, 2, 2])) {
+        diagnostics.push(diagnostic(
+          "migration-repetition-order-mismatch",
+          `Case ${candidate.caseId} must run repetition 1 twice before repetition 2 twice.`,
+          "units",
+        ))
+      }
+      const first = candidate.unitOrder.slice(0, 2)
+      const second = candidate.unitOrder.slice(2)
+      if (first[0] === first[1]
+        || JSON.stringify(second) !== JSON.stringify([...first].reverse())) {
+        diagnostics.push(diagnostic(
+          "migration-reverse-order-mismatch",
+          `Case ${candidate.caseId} must compare P/C once and reverse that order in repetition 2.`,
+          "cases",
+        ))
+      }
+      for (const repetition of [1, 2] as const) {
+        const arms = units.filter(unit => unit.repetition === repetition).map(unit => unit.studyArm).sort()
+        if (JSON.stringify(arms) !== JSON.stringify(["C", "P"])) {
+          diagnostics.push(diagnostic(
+            "migration-repetition-arm-mismatch",
+            `Case ${candidate.caseId} repetition ${repetition} requires one P and one C unit.`,
+            "units",
+          ))
+        }
+      }
     }
   }
   return diagnostics
@@ -403,7 +542,7 @@ export function buildAuthorizationStudyMethods(input: {
 async function loadStudyConfig(repositoryRoot: string, candidatePath: string): Promise<LoadedStudyConfig> {
   const configPath = path.isAbsolute(candidatePath) ? path.resolve(candidatePath) : path.resolve(repositoryRoot, candidatePath)
   const bytes = await readFile(configPath, "utf8")
-  const parsed = AuthorizationValueStudyExperimentConfigSchema.safeParse(JSON.parse(bytes))
+  const parsed = AuthorizationValueExperimentConfigSchema.safeParse(JSON.parse(bytes))
   if (!parsed.success) {
     const details = parsed.error.issues.map(issue => `${issue.path.join(".") || "$"}: ${issue.message}`).join("; ")
     throw new AuthorizationValueStudyError(`Invalid authorization value-study config: ${details}`)
@@ -411,11 +550,116 @@ async function loadStudyConfig(repositoryRoot: string, candidatePath: string): P
   return { config: parsed.data, configPath, configSha256: sha256(bytes) }
 }
 
+async function materializeMigrationStudyCases(input: {
+  repositoryRoot: string
+  destinationRoot: string
+  config: AuthorizationValueMigrationExperimentConfig
+}): Promise<{ cases: MaterializedStudyCase[]; diagnostics: AuthorizationValueStudyDiagnostic[] }> {
+  const cases: MaterializedStudyCase[] = []
+  const diagnostics: AuthorizationValueStudyDiagnostic[] = []
+  for (const [caseIndex, candidate] of input.config.cases.entries()) {
+    try {
+      const originalInputPath = resolveRepositoryPath(input.repositoryRoot, candidate.input)
+      const loaded = await loadLocalAuthorizationInput(originalInputPath)
+      if (loaded.status !== "valid") {
+        diagnostics.push(...loaded.diagnostics.map(item => diagnostic(
+          item.code,
+          item.message,
+          `cases.${caseIndex}.input.${item.path ?? "$"}`,
+        )))
+        continue
+      }
+      if (loaded.task.taskId !== candidate.caseId) {
+        diagnostics.push(diagnostic(
+          "case-task-mismatch",
+          `Configured case ${candidate.caseId} loads task ${loaded.task.taskId}.`,
+          `cases.${caseIndex}.input`,
+        ))
+        continue
+      }
+      if (loaded.analysisProfile.id !== input.config.design.analysisProfileId) {
+        diagnostics.push(diagnostic(
+          "migration-analysis-profile-mismatch",
+          `Case ${candidate.caseId} uses ${loaded.analysisProfile.id}; expected ${input.config.design.analysisProfileId}.`,
+          `cases.${caseIndex}.input.analysisProfile`,
+        ))
+        continue
+      }
+      if (!loaded.conditionAnalysisRequest) {
+        diagnostics.push(diagnostic(
+          "migration-condition-request-missing",
+          `Case ${candidate.caseId} requires a condition request for arm C.`,
+          `cases.${caseIndex}.input.conditionAnalysisRequest`,
+        ))
+        continue
+      }
+      const configuredSourceRoot = await realpath(resolveRepositoryPath(input.repositoryRoot, candidate.sourceRoot))
+      const loadedSourceRoot = await realpath(loaded.sourceRoot)
+      if (configuredSourceRoot !== loadedSourceRoot) {
+        diagnostics.push(diagnostic(
+          "migration-source-root-mismatch",
+          `Case ${candidate.caseId} input sourceRoot does not match the frozen config sourceRoot.`,
+          `cases.${caseIndex}.sourceRoot`,
+        ))
+        continue
+      }
+      const loadedSources = loaded.sourceBundle.files.map(file => file.relativePath)
+      if (JSON.stringify(candidate.sources) !== JSON.stringify(loadedSources)) {
+        diagnostics.push(diagnostic(
+          "migration-source-list-mismatch",
+          `Case ${candidate.caseId} input sources do not match the frozen config source list.`,
+          `cases.${caseIndex}.sources`,
+        ))
+        continue
+      }
+      const parsedInput = LocalAuthorizationInputSchema.safeParse(await readJson(originalInputPath))
+      if (!parsedInput.success) {
+        diagnostics.push(diagnostic(
+          "migration-input-schema-invalid",
+          `Case ${candidate.caseId} normalized input changed after validation.`,
+          `cases.${caseIndex}.input`,
+        ))
+        continue
+      }
+
+      const caseDestination = path.join(input.destinationRoot, candidate.caseId)
+      const projectDestination = path.join(caseDestination, "project")
+      for (const file of loaded.sourceBundle.files) {
+        await writeOrVerify(path.join(projectDestination, ...file.relativePath.split("/")), file.content)
+      }
+      const materializedInput = { ...parsedInput.data, sourceRoot: "project" }
+      const inputPath = path.join(caseDestination, "assessment.json")
+      await writeOrVerify(inputPath, `${JSON.stringify(materializedInput, null, 2)}\n`)
+      cases.push({
+        caseId: candidate.caseId,
+        inputPath,
+        task: loaded.task,
+        analysisRequirements: loaded.analysisRequirements,
+        conditionAnalysisRequest: loaded.conditionAnalysisRequest,
+      })
+    } catch (error) {
+      diagnostics.push(diagnostic(
+        "case-materialization-failed",
+        `${candidate.caseId}: ${error instanceof Error ? error.message : String(error)}`,
+        `cases.${caseIndex}`,
+      ))
+    }
+  }
+  return { cases, diagnostics }
+}
+
 async function materializeStudyCases(input: {
   repositoryRoot: string
   destinationRoot: string
-  config: AuthorizationValueStudyExperimentConfig
+  config: AuthorizationValueExperimentConfig
 }): Promise<{ cases: MaterializedStudyCase[]; diagnostics: AuthorizationValueStudyDiagnostic[] }> {
+  if (input.config.schemaVersion === "authorization-value-study-experiment/v2") {
+    return materializeMigrationStudyCases({
+      repositoryRoot: input.repositoryRoot,
+      destinationRoot: input.destinationRoot,
+      config: input.config,
+    })
+  }
   const cases: MaterializedStudyCase[] = []
   const diagnostics: AuthorizationValueStudyDiagnostic[] = []
   for (const [caseIndex, candidate] of input.config.cases.entries()) {
@@ -548,7 +792,10 @@ async function inspectStudyConfig(input: {
     }
     const methods = buildAuthorizationStudyMethods(ready)
     const methodChecks = [] as NonNullable<AuthorizationValueStudyCheckReport["cases"][number]["methods"]>
-    for (const studyArm of ["P", "L", "C"] as const) {
+    const expectedStudyArms = input.loaded.config.schemaVersion === "authorization-value-study-experiment/v1"
+      ? ["P", "L", "C"] as const
+      : ["P", "C"] as const
+    for (const studyArm of expectedStudyArms) {
       const checked = await checkLocalAuthorizationStudyInput(ready.inputPath, studyArm)
       if (checked.status !== "valid" || !checked.preview) {
         const mapped = checked.diagnostics.map(item => diagnostic(item.code, item.message, item.path))
@@ -576,7 +823,7 @@ async function inspectStudyConfig(input: {
     }
     cases.push({
       caseId: configured.caseId,
-      status: caseDiagnostics.length === 0 && methodChecks.length === 3 ? "valid" : "invalid",
+      status: caseDiagnostics.length === 0 && methodChecks.length === expectedStudyArms.length ? "valid" : "invalid",
       taskId: ready.task.taskId,
       sourceCount: configured.sources.length,
       requirementCount: ready.analysisRequirements.length,
@@ -1057,13 +1304,13 @@ function parseOptions(args: string[]): Record<string, string> {
 
 function helpText(): string {
   return [
-    "Authorization P/L/C value study (authorization-value-study-experiment/v1)",
+    "Authorization value study (authorization-value-study-experiment/v1 or v2)",
     "",
     "Commands:",
     "  check --config=<experiment.json>",
     "  run --config=<experiment.json>",
     "",
-    "P, L, and C all use historical render arm B. Only run initializes a provider.",
+    "v1 compares P/L/C once per case; v2 compares frozen P/C repetitions from normalized inputs. All units use historical render arm B. Only run initializes a provider.",
   ].join("\n")
 }
 

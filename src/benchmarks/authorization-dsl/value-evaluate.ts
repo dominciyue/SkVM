@@ -15,11 +15,11 @@ import {
 import type { AuthorizationGenerationArtifact, AuthorizationTaskRun } from "./host.ts"
 import { loadPortableSourceBundle, type SourceBundle } from "./inputs.ts"
 import {
-  AuthorizationValueStudyExperimentConfigSchema,
+  AuthorizationValueExperimentConfigSchema,
   summarizeAuthorizationStudyUnit,
   summarizeAuthorizationValueStudy,
   type AuthorizationStudyUnitSummary,
-  type AuthorizationValueStudyExperimentConfig,
+  type AuthorizationValueExperimentConfig,
   type AuthorizationValueStudyUnit,
 } from "./value-study.ts"
 
@@ -88,7 +88,7 @@ export const AuthorizationValueStudyReviewPlanSchema = z.object({
 export type AuthorizationValueStudyReviewPlan = z.infer<typeof AuthorizationValueStudyReviewPlanSchema>
 
 interface LoadedConfig {
-  config: AuthorizationValueStudyExperimentConfig
+  config: AuthorizationValueExperimentConfig
   configPath: string
   configSha256: string
 }
@@ -377,7 +377,7 @@ function resolveRepositoryPath(repositoryRoot: string, candidate: string): strin
 async function loadConfig(repositoryRoot: string, configPath: string): Promise<LoadedConfig> {
   const resolved = resolveRepositoryPath(repositoryRoot, configPath)
   const bytes = await readFile(resolved, "utf8")
-  const parsed = AuthorizationValueStudyExperimentConfigSchema.safeParse(JSON.parse(bytes))
+  const parsed = AuthorizationValueExperimentConfigSchema.safeParse(JSON.parse(bytes))
   if (!parsed.success) {
     throw new AuthorizationValueStudyEvaluationError(
       `Invalid authorization value-study config: ${parsed.error.issues.map(issue => `${issue.path.join(".")}: ${issue.message}`).join("; ")}`,
@@ -523,7 +523,7 @@ function rubricSourcePaths(rubric: AuthorizationCaseEvaluationRubricV2): string[
 
 async function loadReviewSourceBundle(input: {
   repositoryRoot: string
-  config: AuthorizationValueStudyExperimentConfig
+  config: AuthorizationValueExperimentConfig
   unit: LoadedUnit
   rubric: AuthorizationCaseEvaluationRubricV2
 }): Promise<SourceBundle | undefined> {

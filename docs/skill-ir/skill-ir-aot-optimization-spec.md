@@ -2510,4 +2510,6 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **Y8–Y9开发面板边界。** 冻结五任务15单元生成全部完成后才开始语义评价；原始answer、fallback与repair不改写。hash-bound review可把答案位置绑定到canonical result以及同次wire中的coverage/condition sidecar，但字段存在本身不产生semantic credit。候选先比较结论错误、必要语义缺口与decision correctness，再比较逐criterion解释缺口，之后才比较调用、known tokens与编写负担；不能把两个都为partial的单元视为解释质量完全相同。初轮P/L/C均5/5结论和必要语义正确，解释缺口为2/2/1，故C按冻结规则进入第三项目有限比较；这只证明一个trusted-header条件枚举增量，同时C的11次调用/101,151 known tokens高于L的8次/59,952。未发现共享生成缺陷，不追加provider单元；默认仍为B/L，condition layer保持opt-in，迁移结果出来前不升级默认或推广收益。
 
+**Y11迁移执行合同。** experiment/v1继续只表达冻结的每例P/L/C一次，不改变旧配置或结果身份；experiment/v2从普通`authorization-assessment-input/v1`接入方法固定后的P/C重复迁移。v2同时绑定input、source root/list、默认`authorization-core-v1`、P/C各两次、重复序号和第二次反序；物化后仍逐单元调用`executeLocalAuthorizationRun`，每次建立独立session并共用原host、repair、telemetry、terminal identity与resume规则。配置检查只确认evaluator路径存在，不读rubric内容；生成输入和源码复制进run root，原普通输入继续经过既有路径、source及profile检查。v1/v2 schema以显式版本区分，评价器接受两者但不改变历史汇总。
+
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。
