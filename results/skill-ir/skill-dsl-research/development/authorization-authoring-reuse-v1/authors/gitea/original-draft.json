@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "gitea-collaborator-permission",
+  "request": "May an authenticated repository-read collaborator who is neither a site administrator nor a repository administrator query another existing user's repository permission?",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceRoot": "source",
+  "sources": [
+    "collaborators.go"
+  ],
+  "policies": {
+    "collaborator-permission": {
+      "text": "A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.",
+      "location": "source/policy.json#/normativePolicy",
+      "revision": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "acceptance": "accepted",
+      "reason": "The supplied policy metadata states the accepted bounded rule for the fixed source entry."
+    }
+  },
+  "principals": {
+    "caller": {
+      "role": "authenticated repository-read collaborator",
+      "facts": [
+        "Authenticated",
+        "Has repository read access",
+        "Is a collaborator",
+        "Is not a site administrator",
+        "Is not a repository administrator",
+        "Queries another existing user's username"
+      ],
+      "capabilities": [
+        "authenticated",
+        "repository-read",
+        "collaborator"
+      ]
+    }
+  },
+  "resources": {
+    "collaborator-permission": {
+      "type": "repository collaborator permission",
+      "facts": [
+        "Existing collaborator account different from the caller",
+        "Repository permission queried through the collaborator permission endpoint"
+      ]
+    }
+  },
+  "entries": {
+    "get-repo-permissions": {
+      "name": "GetRepoPermissions",
+      "locations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 247,
+          "endLine": 301
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "different-user-query": {
+      "principal": "caller",
+      "resource": "collaborator-permission",
+      "policy": "collaborator-permission",
+      "entries": [
+        "get-repo-permissions"
+      ],
+      "relation": "caller-username-differs-from-collaborator-username",
+      "operation": "GET collaborator repository permission",
+      "expectation": "deny"
+    }
+  }
+}

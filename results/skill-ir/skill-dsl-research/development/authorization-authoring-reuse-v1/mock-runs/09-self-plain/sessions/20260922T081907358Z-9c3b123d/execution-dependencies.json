@@ -1,0 +1,313 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "gitea-collaborator-self-permission",
+    "request": "Determine whether an authenticated read collaborator who is neither a repository administrator nor a site administrator may query their own repository permission through GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission.",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "collaborator-permission-query-policy",
+        "kind": "study-task-author-policy-from-public-source",
+        "text": "A caller may query a collaborator's repository permission only when the caller is a site administrator, is a repository administrator, or is querying their own username; otherwise the endpoint rejects the request before loading the target collaborator.",
+        "location": "policy.json#/normativePolicy",
+        "revision": "gitea@fc28937:routers/api/v1/repo/collaborators.go#L247-L301",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "study-task-author",
+          "reason": "The fixed public source states this bounded endpoint policy and rejection branch explicitly."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "authenticated-self-collaborator",
+        "role": "authenticated repository read collaborator",
+        "description": "A repository collaborator with read access who queries their own username and is neither a repository administrator nor a site administrator.",
+        "startingCapabilities": [
+          "authenticated",
+          "repository-read",
+          "repository-collaborator"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "own-collaborator-permission",
+        "type": "repository collaborator permission",
+        "description": "The caller's own collaborator permission record in the same repository."
+      }
+    ],
+    "entries": [
+      {
+        "id": "get-collaborator-permission",
+        "name": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+        "locations": [
+          {
+            "path": "collaborators.go",
+            "startLine": 4,
+            "endLine": 58
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "allow-self-permission-query",
+        "principalId": "authenticated-self-collaborator",
+        "resourceId": "own-collaborator-permission",
+        "relation": "same-collaborator-self-query-without-admin-role",
+        "operation": "read-collaborator-permission",
+        "expectation": "allow",
+        "conditions": [
+          {
+            "name": "requester-authenticated",
+            "basis": "The bounded scenario fixes the requester as authenticated."
+          },
+          {
+            "name": "requester-is-target-collaborator",
+            "basis": "True in the bounded scenario: the path username is the requester's own username."
+          },
+          {
+            "name": "requester-is-repository-admin",
+            "basis": "False in the bounded scenario: the requester has read collaborator access only."
+          },
+          {
+            "name": "requester-is-site-admin",
+            "basis": "False in the bounded scenario."
+          },
+          {
+            "name": "target-collaborator-exists",
+            "basis": "The bounded scenario fixes the requester as an existing collaborator so the permission read is defined."
+          }
+        ],
+        "policySourceId": "collaborator-permission-query-policy",
+        "entryIds": [
+          "get-collaborator-permission"
+        ]
+      }
+    ],
+    "scopeAssurance": "The fixed crop contains the declared GET entry, its self/repository-admin/site-admin decision, the HTTP 403 branch, target lookup, and permission response. No other Gitea endpoint or deployment is assessed.",
+    "requiredAnalysis": [
+      "Trace the declared principal, resource relation, authorization control, and protected effect through the supplied fixed source.",
+      "State any decisive fact unavailable from the fixed source instead of inferring it, and explain how the declared conditions change reachability."
+    ],
+    "constraints": [
+      "Use only policy.json and collaborators.go from the supplied fixed source context.",
+      "Do not execute or modify Gitea and do not contact a deployment.",
+      "Distinguish repository read access from repository administrator permission."
+    ]
+  },
+  "scenarios": {
+    "allow-self-permission-query": {
+      "name": "allow-self-permission-query",
+      "obligation": {
+        "id": "allow-self-permission-query",
+        "principalId": "authenticated-self-collaborator",
+        "resourceId": "own-collaborator-permission",
+        "relation": "same-collaborator-self-query-without-admin-role",
+        "operation": "read-collaborator-permission",
+        "expectation": "allow",
+        "conditions": [
+          {
+            "name": "requester-authenticated",
+            "basis": "The bounded scenario fixes the requester as authenticated."
+          },
+          {
+            "name": "requester-is-target-collaborator",
+            "basis": "True in the bounded scenario: the path username is the requester's own username."
+          },
+          {
+            "name": "requester-is-repository-admin",
+            "basis": "False in the bounded scenario: the requester has read collaborator access only."
+          },
+          {
+            "name": "requester-is-site-admin",
+            "basis": "False in the bounded scenario."
+          },
+          {
+            "name": "target-collaborator-exists",
+            "basis": "The bounded scenario fixes the requester as an existing collaborator so the permission read is defined."
+          }
+        ],
+        "policySourceId": "collaborator-permission-query-policy",
+        "entryIds": [
+          "get-collaborator-permission"
+        ]
+      },
+      "principal": {
+        "id": "authenticated-self-collaborator",
+        "role": "authenticated repository read collaborator",
+        "description": "A repository collaborator with read access who queries their own username and is neither a repository administrator nor a site administrator.",
+        "startingCapabilities": [
+          "authenticated",
+          "repository-read",
+          "repository-collaborator"
+        ]
+      },
+      "resource": {
+        "id": "own-collaborator-permission",
+        "type": "repository collaborator permission",
+        "description": "The caller's own collaborator permission record in the same repository."
+      },
+      "policy": {
+        "id": "collaborator-permission-query-policy",
+        "kind": "study-task-author-policy-from-public-source",
+        "text": "A caller may query a collaborator's repository permission only when the caller is a site administrator, is a repository administrator, or is querying their own username; otherwise the endpoint rejects the request before loading the target collaborator.",
+        "location": "policy.json#/normativePolicy",
+        "revision": "gitea@fc28937:routers/api/v1/repo/collaborators.go#L247-L301",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "study-task-author",
+          "reason": "The fixed public source states this bounded endpoint policy and rejection branch explicitly."
+        }
+      },
+      "entries": [
+        {
+          "id": "get-collaborator-permission",
+          "name": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+          "locations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 4,
+              "endLine": 58
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "allow-self-permission-query::get-collaborator-permission"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "policy.json",
+      "sha256": "7227fb8a1b9a413f8c8a737a10d18c428fab3f5e3df11bd994ab61169ce4ec9a",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 9
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "collaborators.go",
+      "sha256": "50cef19823fd84e9e40b2d4b58c9beea52cd5ac6f9d54efcc382b09d4677b69e",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 58
+      },
+      "originalLocations": []
+    }
+  ],
+  "sourceRoot": "source",
+  "sources": [
+    "policy.json",
+    "collaborators.go"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "allow-self-permission-query"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "allow-self-permission-query"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "allow-self-permission-query"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "allow-self-permission-query"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "allow-self-permission-query"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "allow-self-permission-query"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": {
+    "schemaVersion": "authorization-condition-analysis-request/v1",
+    "requests": [
+      {
+        "obligationId": "allow-self-permission-query",
+        "conditionBindings": [
+          {
+            "id": "requester-is-target-collaborator",
+            "name": "requester-is-target-collaborator"
+          },
+          {
+            "id": "requester-is-repository-admin",
+            "name": "requester-is-repository-admin"
+          },
+          {
+            "id": "requester-is-site-admin",
+            "name": "requester-is-site-admin"
+          }
+        ],
+        "maxBranches": 6
+      }
+    ]
+  },
+  "normalizerVersion": "normalized-input/v1",
+  "method": "plain",
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "arm": "B",
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "8399669a88253811af7dce68dd0f4ca382f2f7201bd413a3b031fcbcd9d4ee82"
+}

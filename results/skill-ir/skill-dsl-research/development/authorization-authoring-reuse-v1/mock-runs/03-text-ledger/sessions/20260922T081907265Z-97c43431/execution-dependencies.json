@@ -1,0 +1,295 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "owui-process-text-controlled",
+    "request": "At this fixed source ref, determine whether a verified non-admin user can write attacker-selected text to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/text.",
+    "repository": "https://github.com/open-webui/open-webui",
+    "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "knowledge-write-policy",
+        "kind": "explicit-task-requirement",
+        "text": "A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+        "location": "inputs/owui-process-text-controlled/task.json#/normativeRequirement",
+        "revision": "authorization-case-input/v1@841c9045",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "study-task-author",
+          "reason": "The study task author supplied this bounded normative requirement for the comparison."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "verified-non-admin",
+        "role": "verified non-administrator",
+        "description": "A signed-in non-admin without ownership or an explicit write grant on the selected knowledge base.",
+        "startingCapabilities": [
+          "authenticated-as-verified-user",
+          "can-submit-process-text-form"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "existing-target-knowledge-base",
+        "type": "knowledge-base-vector-collection",
+        "description": "An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal."
+      }
+    ],
+    "entries": [
+      {
+        "id": "post-process-text",
+        "name": "POST /process/text -> process_text",
+        "locations": [
+          {
+            "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+            "startLine": 1,
+            "endLine": 44
+          },
+          {
+            "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+            "startLine": 1,
+            "endLine": 52
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "non-admin-without-kb-write-grant",
+        "principalId": "verified-non-admin",
+        "resourceId": "existing-target-knowledge-base",
+        "relation": "no-ownership-or-explicit-write-grant",
+        "operation": "write-attacker-selected-text-to-existing-knowledge-base",
+        "expectation": "deny",
+        "conditions": [
+          {
+            "name": "caller-supplies-existing-collection-name",
+            "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+          },
+          {
+            "name": "principal-is-not-admin",
+            "basis": "The task asks about a verified non-admin and the shared policy exposes a separate admin branch."
+          }
+        ],
+        "policySourceId": "knowledge-write-policy",
+        "entryIds": [
+          "post-process-text"
+        ]
+      }
+    ],
+    "scopeAssurance": "The allowed source crops contain the complete authorization-relevant caller, validator, and shared policy path for this bounded request. Trace controls outside the immediate vector-database sink before deciding that a local check is missing.",
+    "requiredAnalysis": [
+      "identify the principal, operation, target resource relation, entry, and write sink",
+      "trace the supplied collection name through caller-side and shared controls",
+      "state what happens for a non-admin targeting an existing knowledge-base ID without write access",
+      "return source_supported_failure, source_refuted, or unknown with exact input locations"
+    ],
+    "constraints": [
+      "Use only the allowed case inputs.",
+      "Do not search for advisories, fixes, later versions, or deployment behavior.",
+      "Do not execute the project or propose a patch."
+    ]
+  },
+  "scenarios": {
+    "non-admin-without-kb-write-grant": {
+      "name": "non-admin-without-kb-write-grant",
+      "obligation": {
+        "id": "non-admin-without-kb-write-grant",
+        "principalId": "verified-non-admin",
+        "resourceId": "existing-target-knowledge-base",
+        "relation": "no-ownership-or-explicit-write-grant",
+        "operation": "write-attacker-selected-text-to-existing-knowledge-base",
+        "expectation": "deny",
+        "conditions": [
+          {
+            "name": "caller-supplies-existing-collection-name",
+            "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+          },
+          {
+            "name": "principal-is-not-admin",
+            "basis": "The task asks about a verified non-admin and the shared policy exposes a separate admin branch."
+          }
+        ],
+        "policySourceId": "knowledge-write-policy",
+        "entryIds": [
+          "post-process-text"
+        ]
+      },
+      "principal": {
+        "id": "verified-non-admin",
+        "role": "verified non-administrator",
+        "description": "A signed-in non-admin without ownership or an explicit write grant on the selected knowledge base.",
+        "startingCapabilities": [
+          "authenticated-as-verified-user",
+          "can-submit-process-text-form"
+        ]
+      },
+      "resource": {
+        "id": "existing-target-knowledge-base",
+        "type": "knowledge-base-vector-collection",
+        "description": "An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal."
+      },
+      "policy": {
+        "id": "knowledge-write-policy",
+        "kind": "explicit-task-requirement",
+        "text": "A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+        "location": "inputs/owui-process-text-controlled/task.json#/normativeRequirement",
+        "revision": "authorization-case-input/v1@841c9045",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "study-task-author",
+          "reason": "The study task author supplied this bounded normative requirement for the comparison."
+        }
+      },
+      "entries": [
+        {
+          "id": "post-process-text",
+          "name": "POST /process/text -> process_text",
+          "locations": [
+            {
+              "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+              "startLine": 1,
+              "endLine": 44
+            },
+            {
+              "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+              "startLine": 1,
+              "endLine": 52
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "non-admin-without-kb-write-grant::post-process-text"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+      "sha256": "98b6bc85fc3e678fc03b1bc4e985cd7dbe3aa94db6a3485f0e76b7fe849e972a",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 44
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+      "sha256": "0e0fcb14fc0b117272460344c22b1d3db72184bb41af92172dcb1dd5e05417a4",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 52
+      },
+      "originalLocations": []
+    }
+  ],
+  "sourceRoot": "project",
+  "sources": [
+    "inputs/owui-process-text-controlled/retrieval_process_text.py",
+    "inputs/owui-process-text-controlled/retrieval_access_policy.py"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "non-admin-without-kb-write-grant"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "non-admin-without-kb-write-grant"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "non-admin-without-kb-write-grant"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "non-admin-without-kb-write-grant"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "non-admin-without-kb-write-grant"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "non-admin-without-kb-write-grant"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": {
+    "schemaVersion": "authorization-condition-analysis-request/v1",
+    "requests": [
+      {
+        "obligationId": "non-admin-without-kb-write-grant",
+        "conditionBindings": [
+          {
+            "id": "collection-name-supplied",
+            "name": "caller-supplies-existing-collection-name"
+          },
+          {
+            "id": "principal-not-admin",
+            "name": "principal-is-not-admin"
+          }
+        ],
+        "maxBranches": 3
+      }
+    ]
+  },
+  "normalizerVersion": "normalized-input/v1",
+  "method": "ledger",
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "arm": "B",
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "5700ca0b7682ef5ca7739a09254dd2bb83ed327c584d366ad8962222d36521be"
+}

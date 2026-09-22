@@ -1,0 +1,145 @@
+### Bounded authorization assessment (opt-in development capability)
+
+The source-visible authorization capability is available through an opt-in top-level command for an ordinary task and explicit source files. It remains a bounded development capability, not a repository-wide scanner, target executor, patch generator, or production security decision.
+
+```powershell
+skvm authorization init --out=./assessment.json
+skvm authorization check --input=./assessment.json
+skvm authorization run --input=./assessment.json --model=<provider/model> --out=./.skvm/authorization-demo
+skvm authorization inspect --out=./.skvm/authorization-demo
+```
+
+For new authoring, use the complete [authoring-v2.json](../examples/authorization-assessment/authoring-v2.json) example. Write `taskId`, the natural `request`, `repository`, fixed `sourceRef`, relative `sourceRoot`, explicit `sources`, and named dictionaries `policies`, `principals`, `resources`, `entries`, `scenarios`. No internal IDs are needed. Policy text/location/revision/acceptance/reason and each scenario's relation/operation/expectation belong to the author; the program never derives policy from source. Each scenario names its principal, resource, policy and entries. Optional facts and capabilities are string arrays; omit them only when not declared. `conditions` maps names to `{basis}`; optional `analyzeConditions:{names,maxBranches}` requests bounded analysis of declared names (1–12 branches, default 8). `additionalQuestions` and `additionalConstraints` append to the shared host rules. Unknown fields and ambiguous names are rejected.
+
+```powershell
+skvm authorization init --format=authoring-v2 --out=./authoring.json
+skvm authorization check --input=./authoring.json --method=plain --wire=v4
+skvm authorization run --input=./authoring.json --method=plain --wire=v4 --model=xty/gpt-5.6-sol --out=./runs
+```
+
+The template is synthetic: edit its policy, scenario and explicit source locations for your task, or copy the complete example directory to try it unchanged. `check` and `run` accept v2 directly and resolve sourceRoot relative to that original file. A session separately saves `input.json` (original bytes), `normalized-input.json`, `field-provenance.json`, and `execution-dependencies.json`. Check diagnostics group task/policy/source/scenario problems with field paths and fixes. Inspect prints the exact `sessionPath`. After editing the input, pass that returned path as `--previous` to `authorization compare --input=./authoring.json`. Compare inherits the prior method/wire unless explicitly overridden, runs no model, and never changes the old session. It reports added/removed/changed scenarios and affected obligations. Shared context changes conservatively affect all run scenarios, including uncited source. Missing old dependencies yield `needs-review`; `current` only means matching inputs, not proven semantic correctness or a reusable cached answer.
+
+`init` without format retains the original synthetic normalized template and refuses to overwrite an existing path. The older `authorization-assessment-authoring/v1` remains supported; v1/v2 can optionally be normalized separately:
+
+```powershell
+skvm authorization init --from=./authoring.json --out=./assessment.json
+```
+
+The authoring and output files must stay in the same directory so a relative `sourceRoot` keeps the same bounded meaning. Normalization derives `sourceIdentity` from the task and materializes the shared six-question profile; it does not infer policy or an obligation expectation. A missing author-owned field returns `needs-input` with a field path and fix. The original authoring file is unchanged, and the recorded source ref remains `authored`, not remotely verified.
+
+For a complete editable authoring example, use [authoring.json](../examples/authorization-assessment/authoring.json). Its outer fields are `schemaVersion`, `sourceRoot`, `sources`, and `task`. Omit `analysisProfile` for the default six questions. The following task fields are required; unknown fields are rejected:
+
+| Field | Exact shape and meaning |
+|---|---|
+| `schemaVersion`, `sourceMode` | `"source-authorization-assessment/v0"`, `"fixed-context"` |
+| `taskId`, `request`, `repository`, `sourceRef`, `scopeAssurance` | Nonempty strings: task identity, natural question, repository, fixed revision, bounded scope |
+| `policySources` | Array of `{id, kind, text, location, revision, acceptance:{status, actorRole, reason}}`; acceptance status is `accepted`, `conflicted`, or `unresolved`. A file path alone is insufficient. State the accepted normative rule, not a guessed answer. |
+| `principals` | Array of `{id, role, description, startingCapabilities: string[]}`; put role/equality scenario facts in description and obligation relation/conditions, not invented boolean fields. |
+| `resources` | Array of `{id, type, description}`; put repository/ref at task level. |
+| `entries` | Array of `{id, name, locations:[{path, startLine, endLine}]}`; paths are relative to sourceRoot and line numbers refer to the supplied files, including excerpt headers. |
+| `obligations` | Array of `{id, principalId, resourceId, relation, operation, expectation, conditions:[{name,basis}], policySourceId, entryIds:string[]}`; referenced IDs must exist; expectation is `allow`, `deny`, or `conditional`; conditions may be empty. |
+| `requiredAnalysis`, `constraints` | Nonempty arrays of strings containing the user's analysis duties and scope limits. The profile is derived, but these task requirements remain author-owned. |
+
+For a changed identity relationship, edit `request`, principal/resource descriptions, obligation `relation`, relevant condition bases and `expectation` consistently. Keep the normative policy and fixed source unchanged when they have not changed. A changed expectation is a policy scenario declaration, not the model's conclusion. Run `init --from` and `check --method=plain` before analysis; preserve the first draft if you want to track authoring diagnostics.
+
+You may instead copy `examples/authorization-assessment/`, then edit `assessment.json` and files under `project/`. The strict `authorization-assessment-input/v1` object contains:
+
+- `sourceIdentity.repository/sourceRef`, which must exactly match the task identity;
+- `sourceRoot`, resolved from the input file's directory and confined beneath that directory after junction/symlink resolution;
+- `sources`, an explicit list of portable files beneath `sourceRoot`, including ordinary paths such as `src/routes/items.py`;
+- `task`, including policy sources, principals, resources, entries, obligations, bounded scope and constraints; and
+- optional `analysisRequirements`; when omitted, the public six-question `authorization-core-v1` profile is used; and
+- an optional condition-analysis request, which explicitly opts into the condition sidecar and wire/v3.
+
+No research manifest, oracle, case id, evaluator, or review is required. `check` and `inspect` never initialize a provider. The optional `--arm=N|B|D` is available on `check` and `run`; it defaults to B because the frozen development panel found no additional necessary-semantics or coverage benefit from D and observed more calls and tokens. N and D remain explicit research alternatives. All arms share the task facts, questions, source and output protocol.
+
+Both `check` and `run` accept `--method=plain|ledger|conditions`. `plain` supplies the same public facts and questions with base citation validation, without a coverage ledger or condition sidecar. `ledger` adds traceable requirement coverage and explicitly leaves any condition request unexecuted. `conditions` requires a valid `conditionAnalysisRequest`; missing input is diagnosed before creating a provider. Explicit methods use renderer B and conflict with `--arm=N|D`. Omitting method preserves compatibility: an input condition request selects conditions (`input-request`); otherwise ledger (`default`). Preview, session, inspection and text summary record requested/effective method, selection origin, ignored request and wire version. Explicit selections record `explicit`.
+
+`--wire=legacy|v4` selects transport independently of method. `legacy` preserves wire/v1 for plain, v2 for ledger and v3 for conditions. The opt-in compact `v4` lets the host supply fixed metadata and bind fact IDs; the model still supplies every judgment, fact, citation and requested relation. All versions share the same bounded repair and provider lifecycle. Schema diagnostics, first-response delivery and provider-reported costs remain visible.
+
+The Z development comparison retains `legacy` as the default wire: v4 reduced first-response structural failures and measured calls on this panel, but its trusted-header unit timed out. Use `--wire=v4` explicitly with any of the three methods; only conditions received the real matched wire comparison. Choose `plain` for a lighter answer, `ledger` when requirement coverage is needed, and `conditions` when bounded condition outcomes are part of the task. Omitted method still follows the input-request/ledger compatibility rule; this is not a claim that the default is a quality winner.
+
+Keep the condition-analysis request opt-in. It is useful when the deliverable explicitly requires bounded outcomes for named conditions, but it is not the ordinary default: one development case gained a requested condition enumeration, while a later three-task Gitea migration showed no P-versus-condition quality gain and the condition method used 12 versus 8 calls, 109,743 versus 37,489 known tokens, and about 2.36 times the known elapsed time. The current default therefore remains B with the shared ledger/profile. A condition sidecar is a structured analysis request, not target execution, symbolic execution, or semantic proof.
+
+Each `run` creates a new non-overwriting directory under `<output-root>/sessions/`, prints its absolute path, and records JSON inputs/results, provider lifecycle JSONL, the exact preview, character sections, provider-reported token usage, and a text summary. Character counts are not token estimates. Every obligation result includes `decisiveMissingFacts` and `suggestedObservations`; an `unknown` conclusion must populate them. `<output-root>/sessions.jsonl` locates the latest session, while passing an exact session directory to `inspect` avoids ambiguity.
+
+Recovery is state-dependent. An invalid `check` or a `provider-unavailable` session without `dispatch.json` made no provider request; fix the reported field/path/dependency or provider route and deliberately start a new session. A dispatched session with no terminal result is `completion-unknown`: inspect it, preserve it, and do not automatically resend it. Invoke `run` again only when you intentionally want a separate attempt. A completed session is always reusable through `inspect`, independently of the evaluator. Custom routes stored in the repository cache may require `$env:SKVM_CACHE = "$PWD/.skvm"` before `run`.
+
+## `profile`
+
+Profiles a model+harness against the 26-primitive capability set and writes cached TCPs under `~/.skvm/profiles/`.
+
+```bash
+# Single model
+skvm profile --model=<id> --adapter=bare-agent
+
+# Multiple models in parallel
+skvm profile --model=<id1>,<id2> --concurrency=4
+
+# Multiple adapters
+skvm profile --model=<id> --adapter=bare-agent,opencode
+
+# Batch from bench config
+skvm profile --batch --concurrency=6
+
+# List cached profiles
+skvm profile --list
+```
+
+Notes:
+- Profiles are cached per `(model, adapter)`. Re-runs hit the cache by default.
+- `--force` re-runs profiling instead of using the cache.
+- `--concurrency` distributes slots hierarchically per-adapter then per-model via `distributeSlots()`.
+
+## `aot-compile`
+
+AOT-compiles one or more skills for one or more target model+harness pairs. Variants are written under `~/.skvm/proposals/aot-compile/`.
+
+```bash
+# One skill for one model
+skvm aot-compile --skill=path/to/SKILL.md --model=<id>
+
+# Multiple models
+skvm aot-compile --skill=<path> --model=<id1>,<id2> --concurrency=2
+
+# Run selected passes only
+skvm aot-compile --skill=<path> --model=<id> --pass=1,2
+
+# Preview without writing
+skvm aot-compile --skill=<path> --model=<id> --dry-run
+
+# Override the compiler backend model
+skvm aot-compile --skill=<path> --model=<id> --compiler-model=<id>
+```
+
+Three sequential compiler passes:
+
+- **Pass 1** — SCR extraction, gap analysis, and agentic skill rewriting for missing/weak primitives
+- **Pass 2** — dependency manifest extraction and idempotent `env-setup.sh` generation
+- **Pass 3** — workflow decomposition, DAG construction, and parallelism hints
+
+## `pipeline`
+
+Profiles the target (if no cached TCP exists) and then compiles.
+
+```bash
+skvm pipeline --skill=path/to/SKILL.md --model=<id>
+```
+
+## `run`
+
+Executes one task against one model+adapter, with or without a skill. **Execute-only — does not score the result.** Use `bench` for scored runs.
+
+```bash
+# Without a skill
+skvm run --task=path/to/task.json --model=<id> --adapter=bare-agent
+
+# With a skill
+skvm run --task=<path> --skill=<path> --model=<id> --adapter=bare-agent
+
+# Control how the skill is delivered to the adapter (inject|discover, default: inject)
+skvm run --task=<path> --skill=<path> --model=<id> --adapter=bare-agent --skill-mode=inject
+
+# Reuse a work directory (no cleanup between runs)
+skvm run --task=<path> --skill=<path> --model=<id> --workdir=./tmp/run-workdir
+```
