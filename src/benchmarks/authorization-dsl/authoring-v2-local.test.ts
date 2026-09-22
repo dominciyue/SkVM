@@ -22,6 +22,12 @@ test("init v2, direct check/run and inspect retain raw/normalized/provenance wit
   expect(await runAuthorizationCli(["init","--format=authoring-v2",`--out=${input}`],deps)).toBe(1)
   expect(await runAuthorizationCli(["check",`--input=${input}`,"--method=plain","--wire=v4"],deps)).toBe(0)
   expect(factories).toBe(0)
+  const badLocation=structuredClone(fixture);badLocation.entries.archive.locations[0]!.endLine=999
+  await writeFile(input,JSON.stringify(badLocation))
+  await runAuthorizationCli(["check",`--input=${input}`],deps)
+  expect(JSON.parse(output.at(-1)!).diagnostics[0].path).toBe("entries.archive.locations.0")
+  expect(JSON.parse(output.at(-1)!).diagnosticGroups.source[0].fix).toContain("supplied-file line numbers")
+  await writeFile(input,JSON.stringify(fixture))
   const loaded=await loadLocalAuthorizationInput(input)
   expect(loaded.status).toBe("valid");if(loaded.status!=="valid")return
   expect(loaded.sourceRoot).toBe(path.join(root,"project"))

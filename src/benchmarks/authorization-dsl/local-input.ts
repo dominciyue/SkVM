@@ -91,7 +91,7 @@ function isWithinRoot(root: string, candidate: string): boolean {
   return relation === "" || (!relation.startsWith(`..${path.sep}`) && relation !== ".." && !path.isAbsolute(relation))
 }
 
-function declarationLocationDiagnostics(task: AuthorizationTaskV0, bundle: SourceBundle): AnalysisDiagnostic[] {
+function declarationLocationDiagnostics(task: AuthorizationTaskV0, bundle: SourceBundle, authorV2 = false): AnalysisDiagnostic[] {
   const files = new Map(bundle.files.map(file => [file.relativePath, file]))
   const diagnostics: AnalysisDiagnostic[] = []
   task.entries.forEach((entry, entryIndex) => {
@@ -100,11 +100,11 @@ function declarationLocationDiagnostics(task: AuthorizationTaskV0, bundle: Sourc
       if (!file
         || location.startLine < file.cropRange.startLine
         || location.endLine > file.cropRange.endLine) {
-        diagnostics.push(localDiagnostic(
+        diagnostics.push({ ...localDiagnostic(
           "declaration-source-location-invalid",
           `Declaration location is outside the explicit source bundle: ${location.path}:${location.startLine}-${location.endLine}.`,
-          `task.entries.${entryIndex}.locations.${locationIndex}`,
-        ))
+          authorV2 ? `entries.${decodeURIComponent(entry.id.slice(6))}.locations.${locationIndex}` : `task.entries.${entryIndex}.locations.${locationIndex}`,
+        ), ...{fix: file ? `Use supplied-file line numbers ${file.cropRange.startLine}-${file.cropRange.endLine} for ${location.path}, including excerpt headers; do not use original upstream line numbers.` : `Add ${location.path} to sources or point this location to a listed source file.`} })
       }
     })
   })
@@ -224,7 +224,7 @@ export async function loadLocalAuthorizationInput(inputFile: string): Promise<Lo
   }
 
   if (loadedBundle.success) {
-    diagnostics.push(...declarationLocationDiagnostics(input.task, loadedBundle.bundle))
+    diagnostics.push(...declarationLocationDiagnostics(input.task, loadedBundle.bundle, version === "authorization-assessment-authoring/v2"))
   }
 
   const analysisProfile: LocalAnalysisProfile = input.analysisProfile ?? (input.analysisRequirements
