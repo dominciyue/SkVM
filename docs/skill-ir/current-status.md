@@ -6,7 +6,9 @@
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)、[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)和[Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)均已结束发布，Y最终提交`70906261`。后续复核确认Y主体工程可用，但公共`--method`选择漏项尚未兑现；历史机器summary保留，漏项转交Z。
+[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)、[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)和[Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)均已结束发布，Y最终提交`70906261`。后续复核确认Y主体工程可用，但公共`--method`选择曾有漏项，已在Z补齐；历史机器summary保留。
+
+**当前授权任务：** 用户已要求新任务使用`gpt-6-astra / medium`连续执行[AA0–AA13 作者声明、修改复用与领域价值](../superpowers/plans/2026-09-22-authorization-authoring-reuse-and-value.md)。状态`authorized-for-execution`；实现authoring/v2直接消费、完整变更依赖与只读compare，完成独立作者原/变试用及同v4方法对照。AA0创建机器状态，设计见[研究§7.24](skill-dsl-research.md#724-aa-作者声明修改复用与领域价值)。只用已暴露development材料，不新增领域或目标项目，保留七项已有源码修改。
 
 **当前结果：** [Z0–Z12 输出减负与实际使用](../superpowers/plans/2026-09-22-authorization-dsl-protocol-and-usability.md)已完成并发布到用户origin，交付提交`e48db7de`，远端已核对。公共plain/ledger/conditions、紧凑v4与响应细节分层评价已接通；首轮legacy/v4首答完整交付1/4与3/4，最终均3/4，已交付决策与必要控制全正确，full为1/4与3/4。legacy结构失败与v4 header超时均保留。一次共享strict-schema修订配对均full，旧协议仍需fallback。作者plain原/变任务实际得到deny/allow，各一次调用。全轮12单元/16调用，actualUSD未知；175测试/1229断言和typecheck通过。legacy保持默认，v4显式选择，省略method兼容；研究价值mixed，不追加调用。见[Z状态](../../results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/status.json)、[Z汇总](../../results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/summary.json)及[研究§7.23](skill-dsl-research.md#723-z-输出减负与实际使用)。
 

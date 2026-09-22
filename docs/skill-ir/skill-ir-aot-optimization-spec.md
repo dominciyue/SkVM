@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-22
 
-**当前已确认路线：** 第14.34节的“按skill/task范围设计领域表达并验证实际价值”。Y已结束发布，结果mixed；复核发现公共method漏项和C首答结构失败后重试的共享负担。用户已授权Z0–Z12补普通选择、精简wire、校准评价并完成有界匹配试验/实际使用，不新增任务类别或目标项目。研究和开发复盘见[研究总文档](skill-dsl-research.md)，执行顺序见[当前计划](skill-ir-aot-optimization-plan.md)。第14.32–14.33节及更早阶段保留为历史合同与工程基础，I1保留后备。
+**当前已确认路线：** 第14.34节的“按skill/task范围设计领域表达并验证实际价值”。Z已完成公共method和compact v4，观察到有界首答交付/开销改善，作者仍需主代理修正。用户已授权AA0–AA13简化作者语言、完整变更依赖、独立编写试用与同v4方法对照。研究和开发复盘见[研究总文档](skill-dsl-research.md)，执行顺序见[当前计划](skill-ir-aot-optimization-plan.md)。第14.32–14.33节及更早阶段保留为历史合同与工程基础，I1保留后备。
 
 本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；新工作以第 14.34 节为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
@@ -2519,5 +2519,7 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **Z当前授权合同（2026-09-22）。** [Z0–Z12](../superpowers/plans/2026-09-22-authorization-dsl-protocol-and-usability.md)补齐public method选择，保持省略参数兼容；紧凑wire由宿主补稳定身份/版本、重建已验证fact关联，模型保留语义判断与事实引用。不得放松决定性语义、补假事实或改旧wire成绩以降低失败率。先核模型schema与本地validator，再做四任务旧/new匹配及一次原/变任务使用；评价将决策/控制与响应细节分开，新旧协议用同一新口径、Y原评分不改。正常10分析单元、至多14，来源均为已暴露development。开发Astra medium与被测Sol配置分开，收益按首答/质量/运行负担/作者步骤报告，不预定positive结论。
 
 **Z实现与使用边界（2026-09-22）。** public method与wire为独立轴：plain/ledger/conditions统一映射既有P/L/C路径，显式method固定B；省略method保持input-request或ledger默认。v4在三种method均可显式选择，宿主只补常量并按同义务fact ID建立稳定绑定，重复/陌生ID及来源/范围错误拒绝，coverage与condition语义检查继续复用。strict对象的模型schema与本地校验均禁止额外字段，但不声称provider强制遵守。v3评价补充以显式criterion ID区分必要授权控制、条件解释、响应细节，HTTP状态仅在任务要求或改变所问性质时必需，旧评价不重写。首轮v4有header交付超时，故legacy保持默认，不以已交付子集的正确性替代全体可靠性。作者试用实际完成不同用户deny到self-query allow；同policy/source、两次plain普通调用，36条首稿诊断与主代理修正如实保留，不声称真人节省。
+
+**AA当前授权合同（2026-09-22）。** [AA0–AA13](../superpowers/plans/2026-09-22-authorization-authoring-reuse-and-value.md)采用薄authoring/v2经确定性lowering复用canonical v0。用户拥有政策、角色关系、操作与规范期待；程序派生ID、默认scope/profile和条件绑定，不补答案。check/run直接消费v2，compare只读地说明完整输入依赖变化与旧结果适用性，旧session缺依赖标needs-review；不以citation子集替代全部模型输入依赖。两项独立作者原/变试用及六任务同v4方法对照分列，最多16初轮分析单元、4共享修订单元，旧协议默认保持兼容。所有事实与公开要求两臂对齐，解释作者负担、变更识别和领域质量/开销各自收益。历史结果、保护输入和七项原修改保留。
 
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。
