@@ -157,6 +157,7 @@ export interface AuthorizationTaskRun {
   analysisPlan?: AnalysisPlan
   conditionPlan?: ConditionAnalysisPlan
   renderedPrompt: string
+  promptSections?: RenderedAuthorizationTask["sections"]
   promptCharacters?: AuthorizationRunPromptCharacters
   initialTransport?: AuthorizationTransportArtifact
   repairTransport?: AuthorizationTransportArtifact
@@ -237,7 +238,7 @@ function buildRepairPrompt(
     .map(diagnostic => ({ code: diagnostic.code, path: diagnostic.path ?? "result", message: diagnostic.message }))
   const sections = {
     instructions: "# Authorization wire repair\n\nThe current structured answer did not satisfy deterministic host checks. Revise only that answer from the same declaration and exact source. Do not add unavailable facts or infer a requested conclusion.",
-    declaration: `## Canonical declaration\n${rendered.sections.declaration}`,
+    declaration: `## ${rendered.sections.declarationLabel ?? "Canonical declaration"}\n${rendered.sections.declaration}`,
     methodContext: [
       rendered.sections.publicAnalysis
         ? `## Public analysis questions\n${rendered.sections.publicAnalysis}`
@@ -314,6 +315,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     await telemetry.close(`host-return:${partial.status}`)
     return {
       ...partial,
+      promptSections: rendered.sections,
       wireVersion,
       firstResponse: {
         schemaValid: telemetry.attempts[0]?.schemaValidation?.valid ?? false,

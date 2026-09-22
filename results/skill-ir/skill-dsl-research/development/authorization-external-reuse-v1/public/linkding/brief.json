@@ -1,0 +1,96 @@
+{
+  "project": "linkding",
+  "repository": "https://github.com/sissbruecker/linkding",
+  "sourceRef": "27b7303baf41bb28babc610ac8eaa486e1ddfab5",
+  "exposure": "external-development",
+  "sourceRoot": "project",
+  "sources": [
+    "bookmarks/views/access.py",
+    "bookmarks/views/bookmarks.py",
+    "bookmarks/views/assets.py",
+    "bookmarks/services/assets.py",
+    "bookmarks/urls.py"
+  ],
+  "common": {
+    "questions": [
+      "Determine whether the provided source enforces the supplied policy expectation for this state, separately state the actual allow/deny/unknown decision.",
+      "Trace route/entry, identity and resource binding, strongest visible control, and protected effect. Explain why the stated role and relation change matters.",
+      "Distinguish task assumptions from facts observed in source. Name any decisive missing external facts; do not invent deployment facts. Exact HTTP status is optional unless needed to explain the decision."
+    ],
+    "scope": "Single fixed repository/ref and explicit source files only. No target execution, dependency installation, deployment access, patching or repository-wide discovery. Standard Django decorator/ORM behavior is assumed; requests reach the supplied view with the stated identity/settings, pass CSRF and unrelated infrastructure checks. Assess authorization reachability of the protected operation, not successful storage or deployment execution.",
+    "sourceGaps": [
+      "Django framework/authentication backend and application deployment middleware are not supplied; identity, stated settings and ordinary ORM behavior are task assumptions.",
+      "Unrelated imported view/services and rendering behavior are not analyzed. All selected project-owned authorization gates and protected operation calls are supplied."
+    ],
+    "outputContract": "Both arms use the same compact plain/v4 JSON result protocol supplied by the host, with source IDs and numbered files. Do not write an answer now: author task instructions, not conclusions.",
+    "authorRequirements": "Return four standalone task files: remove/asset or task/list, each original and changed. Preserve all public facts/questions. No counterpart materials, historical assessments, evaluator, test results or internal schemas may be read. Use only assigned public directory plus the designated guide. Return content read-only; main agent will save exact drafts. No file writes or analysis model calls.",
+    "locate": "Optional common tool: bun ./src/index.ts authorization locate --root=<assigned project directory> --file=<explicit relative source> --match=<literal>. It reads only that file, and line numbers match supplied complete upstream files.",
+    "authorCost": "Record tools used, unclear inputs, fields/paragraphs changed and repeated work. Time/tokens/USD unknown unless directly measured. Authors are models, not human subjects."
+  },
+  "operations": [
+    {
+      "id": "remove",
+      "entry": "shared_action",
+      "entryPath": "bookmarks/views/bookmarks.py",
+      "entryRange": [
+        346,
+        358
+      ],
+      "operation": "delete a selected bookmark through POST bookmarks/shared/action with only remove=<existing bookmark id>",
+      "policy": "Only the bookmark owner may delete a bookmark. Sharing grants reading, not deletion.",
+      "policyAuthority": "Bounded research task requirement accepted by task author; upstream action tests independently retained for evaluation.",
+      "resource": "Existing bookmark, shared=True; owner has enable_sharing=True and enable_public_sharing=False.",
+      "original": {
+        "role": "authenticated ordinary user",
+        "facts": [
+          "Caller is not the bookmark owner",
+          "No superuser or special role",
+          "POST contains only remove=<bookmark id>"
+        ],
+        "relation": "non-owner of a shared bookmark",
+        "expectation": "deny"
+      },
+      "changed": {
+        "role": "authenticated ordinary user",
+        "facts": [
+          "Caller is the bookmark owner",
+          "No superuser or special role",
+          "POST contains only remove=<bookmark id>"
+        ],
+        "relation": "owner of the same shared bookmark",
+        "expectation": "allow"
+      }
+    },
+    {
+      "id": "asset",
+      "entry": "view",
+      "entryPath": "bookmarks/views/assets.py",
+      "entryRange": [
+        8,
+        22
+      ],
+      "operation": "read an existing bookmark asset via GET assets/<asset_id>",
+      "policy": "The owner may read an asset; authenticated readers may read it when its bookmark is shared and owner sharing is enabled; anonymous readers require public sharing enabled.",
+      "policyAuthority": "Bounded research task requirement accepted by task author; upstream asset access tests retained independently for evaluation.",
+      "resource": "Existing asset of another user's bookmark; bookmark.shared=True, owner.profile.enable_sharing=True, enable_public_sharing=False. Asset file exists and is valid.",
+      "original": {
+        "role": "authenticated ordinary reader",
+        "facts": [
+          "Caller is not the bookmark owner",
+          "GET request"
+        ],
+        "relation": "authenticated non-owner of a shared bookmark asset",
+        "expectation": "allow"
+      },
+      "changed": {
+        "role": "anonymous reader",
+        "facts": [
+          "Caller is not authenticated or the bookmark owner",
+          "GET request"
+        ],
+        "relation": "anonymous non-owner of the same shared bookmark asset",
+        "expectation": "deny"
+      }
+    }
+  ]
+}

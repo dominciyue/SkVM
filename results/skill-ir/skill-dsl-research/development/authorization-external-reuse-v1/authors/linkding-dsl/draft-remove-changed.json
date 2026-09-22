@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "ab-linkding-remove-changed",
+  "request": "Determine whether an authenticated ordinary user who is the bookmark owner may delete the same shared bookmark through POST bookmarks/shared/action with only remove=<existing bookmark id>.",
+  "repository": "https://github.com/sissbruecker/linkding",
+  "sourceRef": "27b7303baf41bb28babc610ac8eaa486e1ddfab5",
+  "sourceRoot": "project",
+  "sources": [
+    "bookmarks/views/access.py",
+    "bookmarks/views/bookmarks.py",
+    "bookmarks/views/assets.py",
+    "bookmarks/services/assets.py",
+    "bookmarks/urls.py"
+  ],
+  "policies": {
+    "remove": {
+      "text": "Only the bookmark owner may delete a bookmark. Sharing grants reading, not deletion.",
+      "location": "authoring-v2.json#/policies/remove",
+      "revision": "authorization-external-reuse-v1",
+      "acceptance": "accepted",
+      "reason": "Bounded research task requirement accepted by task author; upstream action tests independently retained for evaluation."
+    }
+  },
+  "principals": {
+    "target": {
+      "role": "authenticated ordinary user",
+      "facts": [
+        "Caller is the bookmark owner",
+        "No superuser or special role",
+        "POST contains only remove=<bookmark id>"
+      ],
+      "capabilities": [
+        "authenticated"
+      ]
+    }
+  },
+  "resources": {
+    "target": {
+      "type": "bookmark",
+      "facts": [
+        "Existing bookmark, shared=True",
+        "Owner has enable_sharing=True and enable_public_sharing=False"
+      ]
+    }
+  },
+  "entries": {
+    "target": {
+      "name": "shared_action",
+      "locations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 358
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "assessment": {
+      "principal": "target",
+      "resource": "target",
+      "policy": "remove",
+      "entries": [
+        "target"
+      ],
+      "relation": "owner of the same shared bookmark",
+      "operation": "delete a selected bookmark through POST bookmarks/shared/action with only remove=<existing bookmark id>",
+      "expectation": "allow"
+    }
+  },
+  "additionalQuestions": [
+    "Determine whether the provided source enforces the supplied policy expectation for this state, separately state the actual allow/deny/unknown decision.",
+    "Trace route/entry, identity and resource binding, strongest visible control, and protected effect. Explain why the stated role and relation change matters.",
+    "Distinguish task assumptions from facts observed in source. Name any decisive missing external facts; do not invent deployment facts. Exact HTTP status is optional unless needed to explain the decision."
+  ],
+  "constraints": [
+    "Single fixed repository/ref and explicit source files only. No target execution, dependency installation, deployment access, patching or repository-wide discovery. Standard Django decorator/ORM behavior is assumed; requests reach the supplied view with the stated identity/settings, pass CSRF and unrelated infrastructure checks. Assess authorization reachability of the protected operation, not successful storage or deployment execution.",
+    "Django framework/authentication backend and application deployment middleware are not supplied; identity, stated settings and ordinary ORM behavior are task assumptions.",
+    "Unrelated imported view/services and rendering behavior are not analyzed. All selected project-owned authorization gates and protected operation calls are supplied."
+  ]
+}

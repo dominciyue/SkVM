@@ -1,0 +1,1345 @@
+{
+  "schemaVersion": "authorization-ab-rubrics/v1",
+  "preparedBeforeAuthorsAndAnalysis": true,
+  "cases": [
+    {
+      "caseId": "ab-linkding-remove-original",
+      "taskId": "ab-linkding-remove-original",
+      "rubricVersion": "ab-rubric-v3",
+      "obligationId": "scenario%3Aassessment::entry%3Atarget",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "Policy enforced; actual deny. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared",
+        "sourceLocations": [
+          {
+            "path": "bookmarks/views/bookmarks.py",
+            "startLine": 346,
+            "endLine": 378
+          },
+          {
+            "path": "bookmarks/views/access.py",
+            "startLine": 28,
+            "endLine": 32
+          }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "Only supplied source and declared state; no deployment or repository completeness claim.",
+        "sourceLocations": [
+          {
+            "path": "bookmarks/views/bookmarks.py",
+            "startLine": 346,
+            "endLine": 378
+          },
+          {
+            "path": "bookmarks/views/access.py",
+            "startLine": 28,
+            "endLine": 32
+          }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "decision-control",
+          "layer": "necessary-semantics",
+          "requirement": "State the allow/deny decision and decisive authorization gate for the stated caller.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Actual disposition is deny. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/bookmarks.py",
+              "startLine": 346,
+              "endLine": 378
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 28,
+              "endLine": 32
+            }
+          ]
+        },
+        {
+          "id": "binding-effect",
+          "layer": "necessary-semantics",
+          "requirement": "Explain identity/resource binding and whether the protected effect is reached.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/bookmarks.py",
+              "startLine": 346,
+              "endLine": 378
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 28,
+              "endLine": 32
+            }
+          ]
+        },
+        {
+          "id": "scenario-explanation",
+          "layer": "explanation-completeness",
+          "requirement": "Explain which supplied role/relation facts settle this state; distinguish changed facts from fixed context.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Stated scenario: {'role': 'authenticated ordinary user', 'facts': ['Caller is not the bookmark owner', 'No superuser or special role', 'POST contains only remove=<bookmark id>'], 'relation': 'non-owner of a shared bookmark', 'expectation': 'deny'}. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/bookmarks.py",
+              "startLine": 346,
+              "endLine": 378
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 28,
+              "endLine": 32
+            }
+          ]
+        },
+        {
+          "id": "bounded-evidence",
+          "layer": "explanation-completeness",
+          "requirement": "Keep task assumptions distinct from source/deployment facts and do not invent decisive unknowns.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Standard Django behavior and stated identity/settings are assumptions; no deployed execution verified. Missing unrelated dependencies do not force unknown on this bounded authorization reachability question.",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/bookmarks.py",
+              "startLine": 346,
+              "endLine": 378
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 28,
+              "endLine": 32
+            }
+          ]
+        },
+        {
+          "id": "http-detail",
+          "layer": "optional-detail",
+          "requirement": "Optional precise denial/response detail.",
+          "decisionRelevance": "Optional diagnostic detail only.",
+          "oracleRule": "Exact HTTP detail is not required by the public task; do not conflate a source quote containing status text with answer explanation.",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/bookmarks.py",
+              "startLine": 346,
+              "endLine": 378
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 28,
+              "endLine": 32
+            }
+          ]
+        }
+      ],
+      "responseDetails": {
+        "criterionIds": [
+          "http-detail"
+        ],
+        "requiredCriterionIds": [],
+        "basis": "Public brief does not demand exact HTTP status."
+      }
+    },
+    {
+      "caseId": "ab-linkding-remove-changed",
+      "taskId": "ab-linkding-remove-changed",
+      "rubricVersion": "ab-rubric-v3",
+      "obligationId": "scenario%3Aassessment::entry%3Atarget",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "Policy enforced; actual allow. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared",
+        "sourceLocations": [
+          {
+            "path": "bookmarks/views/bookmarks.py",
+            "startLine": 346,
+            "endLine": 378
+          },
+          {
+            "path": "bookmarks/views/access.py",
+            "startLine": 28,
+            "endLine": 32
+          }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "Only supplied source and declared state; no deployment or repository completeness claim.",
+        "sourceLocations": [
+          {
+            "path": "bookmarks/views/bookmarks.py",
+            "startLine": 346,
+            "endLine": 378
+          },
+          {
+            "path": "bookmarks/views/access.py",
+            "startLine": 28,
+            "endLine": 32
+          }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "decision-control",
+          "layer": "necessary-semantics",
+          "requirement": "State the allow/deny decision and decisive authorization gate for the stated caller.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Actual disposition is allow. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/bookmarks.py",
+              "startLine": 346,
+              "endLine": 378
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 28,
+              "endLine": 32
+            }
+          ]
+        },
+        {
+          "id": "binding-effect",
+          "layer": "necessary-semantics",
+          "requirement": "Explain identity/resource binding and whether the protected effect is reached.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/bookmarks.py",
+              "startLine": 346,
+              "endLine": 378
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 28,
+              "endLine": 32
+            }
+          ]
+        },
+        {
+          "id": "scenario-explanation",
+          "layer": "explanation-completeness",
+          "requirement": "Explain which supplied role/relation facts settle this state; distinguish changed facts from fixed context.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Stated scenario: {'role': 'authenticated ordinary user', 'facts': ['Caller is the bookmark owner', 'No superuser or special role', 'POST contains only remove=<bookmark id>'], 'relation': 'owner of the same shared bookmark', 'expectation': 'allow'}. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/bookmarks.py",
+              "startLine": 346,
+              "endLine": 378
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 28,
+              "endLine": 32
+            }
+          ]
+        },
+        {
+          "id": "bounded-evidence",
+          "layer": "explanation-completeness",
+          "requirement": "Keep task assumptions distinct from source/deployment facts and do not invent decisive unknowns.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Standard Django behavior and stated identity/settings are assumptions; no deployed execution verified. Missing unrelated dependencies do not force unknown on this bounded authorization reachability question.",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/bookmarks.py",
+              "startLine": 346,
+              "endLine": 378
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 28,
+              "endLine": 32
+            }
+          ]
+        },
+        {
+          "id": "http-detail",
+          "layer": "optional-detail",
+          "requirement": "Optional precise denial/response detail.",
+          "decisionRelevance": "Optional diagnostic detail only.",
+          "oracleRule": "Exact HTTP detail is not required by the public task; do not conflate a source quote containing status text with answer explanation.",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/bookmarks.py",
+              "startLine": 346,
+              "endLine": 378
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 28,
+              "endLine": 32
+            }
+          ]
+        }
+      ],
+      "responseDetails": {
+        "criterionIds": [
+          "http-detail"
+        ],
+        "requiredCriterionIds": [],
+        "basis": "Public brief does not demand exact HTTP status."
+      }
+    },
+    {
+      "caseId": "ab-linkding-asset-original",
+      "taskId": "ab-linkding-asset-original",
+      "rubricVersion": "ab-rubric-v3",
+      "obligationId": "scenario%3Aassessment::entry%3Atarget",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "Policy enforced; actual allow. view calls asset_read before stream_asset_file and response; GET read permits owner, authenticated sharing or public sharing; anonymous nonowner with public sharing false is denied; asset is bound by ID then linked bookmark_id is checked",
+        "sourceLocations": [
+          {
+            "path": "bookmarks/views/assets.py",
+            "startLine": 8,
+            "endLine": 22
+          },
+          {
+            "path": "bookmarks/views/access.py",
+            "startLine": 7,
+            "endLine": 25
+          },
+          {
+            "path": "bookmarks/views/access.py",
+            "startLine": 46,
+            "endLine": 53
+          }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "Only supplied source and declared state; no deployment or repository completeness claim.",
+        "sourceLocations": [
+          {
+            "path": "bookmarks/views/assets.py",
+            "startLine": 8,
+            "endLine": 22
+          },
+          {
+            "path": "bookmarks/views/access.py",
+            "startLine": 7,
+            "endLine": 25
+          },
+          {
+            "path": "bookmarks/views/access.py",
+            "startLine": 46,
+            "endLine": 53
+          }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "decision-control",
+          "layer": "necessary-semantics",
+          "requirement": "State the allow/deny decision and decisive authorization gate for the stated caller.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Actual disposition is allow. view calls asset_read before stream_asset_file and response; GET read permits owner, authenticated sharing or public sharing; anonymous nonowner with public sharing false is denied; asset is bound by ID then linked bookmark_id is checked",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/assets.py",
+              "startLine": 8,
+              "endLine": 22
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 7,
+              "endLine": 25
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 46,
+              "endLine": 53
+            }
+          ]
+        },
+        {
+          "id": "binding-effect",
+          "layer": "necessary-semantics",
+          "requirement": "Explain identity/resource binding and whether the protected effect is reached.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "view calls asset_read before stream_asset_file and response; GET read permits owner, authenticated sharing or public sharing; anonymous nonowner with public sharing false is denied; asset is bound by ID then linked bookmark_id is checked",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/assets.py",
+              "startLine": 8,
+              "endLine": 22
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 7,
+              "endLine": 25
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 46,
+              "endLine": 53
+            }
+          ]
+        },
+        {
+          "id": "scenario-explanation",
+          "layer": "explanation-completeness",
+          "requirement": "Explain which supplied role/relation facts settle this state; distinguish changed facts from fixed context.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Stated scenario: {'role': 'authenticated ordinary reader', 'facts': ['Caller is not the bookmark owner', 'GET request'], 'relation': 'authenticated non-owner of a shared bookmark asset', 'expectation': 'allow'}. view calls asset_read before stream_asset_file and response; GET read permits owner, authenticated sharing or public sharing; anonymous nonowner with public sharing false is denied; asset is bound by ID then linked bookmark_id is checked",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/assets.py",
+              "startLine": 8,
+              "endLine": 22
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 7,
+              "endLine": 25
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 46,
+              "endLine": 53
+            }
+          ]
+        },
+        {
+          "id": "bounded-evidence",
+          "layer": "explanation-completeness",
+          "requirement": "Keep task assumptions distinct from source/deployment facts and do not invent decisive unknowns.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Standard Django behavior and stated identity/settings are assumptions; no deployed execution verified. Missing unrelated dependencies do not force unknown on this bounded authorization reachability question.",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/assets.py",
+              "startLine": 8,
+              "endLine": 22
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 7,
+              "endLine": 25
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 46,
+              "endLine": 53
+            }
+          ]
+        },
+        {
+          "id": "http-detail",
+          "layer": "optional-detail",
+          "requirement": "Optional precise denial/response detail.",
+          "decisionRelevance": "Optional diagnostic detail only.",
+          "oracleRule": "Exact HTTP detail is not required by the public task; do not conflate a source quote containing status text with answer explanation.",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/assets.py",
+              "startLine": 8,
+              "endLine": 22
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 7,
+              "endLine": 25
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 46,
+              "endLine": 53
+            }
+          ]
+        }
+      ],
+      "responseDetails": {
+        "criterionIds": [
+          "http-detail"
+        ],
+        "requiredCriterionIds": [],
+        "basis": "Public brief does not demand exact HTTP status."
+      }
+    },
+    {
+      "caseId": "ab-linkding-asset-changed",
+      "taskId": "ab-linkding-asset-changed",
+      "rubricVersion": "ab-rubric-v3",
+      "obligationId": "scenario%3Aassessment::entry%3Atarget",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "Policy enforced; actual deny. view calls asset_read before stream_asset_file and response; GET read permits owner, authenticated sharing or public sharing; anonymous nonowner with public sharing false is denied; asset is bound by ID then linked bookmark_id is checked",
+        "sourceLocations": [
+          {
+            "path": "bookmarks/views/assets.py",
+            "startLine": 8,
+            "endLine": 22
+          },
+          {
+            "path": "bookmarks/views/access.py",
+            "startLine": 7,
+            "endLine": 25
+          },
+          {
+            "path": "bookmarks/views/access.py",
+            "startLine": 46,
+            "endLine": 53
+          }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "Only supplied source and declared state; no deployment or repository completeness claim.",
+        "sourceLocations": [
+          {
+            "path": "bookmarks/views/assets.py",
+            "startLine": 8,
+            "endLine": 22
+          },
+          {
+            "path": "bookmarks/views/access.py",
+            "startLine": 7,
+            "endLine": 25
+          },
+          {
+            "path": "bookmarks/views/access.py",
+            "startLine": 46,
+            "endLine": 53
+          }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "decision-control",
+          "layer": "necessary-semantics",
+          "requirement": "State the allow/deny decision and decisive authorization gate for the stated caller.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Actual disposition is deny. view calls asset_read before stream_asset_file and response; GET read permits owner, authenticated sharing or public sharing; anonymous nonowner with public sharing false is denied; asset is bound by ID then linked bookmark_id is checked",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/assets.py",
+              "startLine": 8,
+              "endLine": 22
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 7,
+              "endLine": 25
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 46,
+              "endLine": 53
+            }
+          ]
+        },
+        {
+          "id": "binding-effect",
+          "layer": "necessary-semantics",
+          "requirement": "Explain identity/resource binding and whether the protected effect is reached.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "view calls asset_read before stream_asset_file and response; GET read permits owner, authenticated sharing or public sharing; anonymous nonowner with public sharing false is denied; asset is bound by ID then linked bookmark_id is checked",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/assets.py",
+              "startLine": 8,
+              "endLine": 22
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 7,
+              "endLine": 25
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 46,
+              "endLine": 53
+            }
+          ]
+        },
+        {
+          "id": "scenario-explanation",
+          "layer": "explanation-completeness",
+          "requirement": "Explain which supplied role/relation facts settle this state; distinguish changed facts from fixed context.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Stated scenario: {'role': 'anonymous reader', 'facts': ['Caller is not authenticated or the bookmark owner', 'GET request'], 'relation': 'anonymous non-owner of the same shared bookmark asset', 'expectation': 'deny'}. view calls asset_read before stream_asset_file and response; GET read permits owner, authenticated sharing or public sharing; anonymous nonowner with public sharing false is denied; asset is bound by ID then linked bookmark_id is checked",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/assets.py",
+              "startLine": 8,
+              "endLine": 22
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 7,
+              "endLine": 25
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 46,
+              "endLine": 53
+            }
+          ]
+        },
+        {
+          "id": "bounded-evidence",
+          "layer": "explanation-completeness",
+          "requirement": "Keep task assumptions distinct from source/deployment facts and do not invent decisive unknowns.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Standard Django behavior and stated identity/settings are assumptions; no deployed execution verified. Missing unrelated dependencies do not force unknown on this bounded authorization reachability question.",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/assets.py",
+              "startLine": 8,
+              "endLine": 22
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 7,
+              "endLine": 25
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 46,
+              "endLine": 53
+            }
+          ]
+        },
+        {
+          "id": "http-detail",
+          "layer": "optional-detail",
+          "requirement": "Optional precise denial/response detail.",
+          "decisionRelevance": "Optional diagnostic detail only.",
+          "oracleRule": "Exact HTTP detail is not required by the public task; do not conflate a source quote containing status text with answer explanation.",
+          "sourceLocations": [
+            {
+              "path": "bookmarks/views/assets.py",
+              "startLine": 8,
+              "endLine": 22
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 7,
+              "endLine": 25
+            },
+            {
+              "path": "bookmarks/views/access.py",
+              "startLine": 46,
+              "endLine": 53
+            }
+          ]
+        }
+      ],
+      "responseDetails": {
+        "criterionIds": [
+          "http-detail"
+        ],
+        "requiredCriterionIds": [],
+        "basis": "Public brief does not demand exact HTTP status."
+      }
+    },
+    {
+      "caseId": "ab-todo-task-original",
+      "taskId": "ab-todo-task-original",
+      "rubricVersion": "ab-rubric-v3",
+      "obligationId": "scenario%3Aassessment::entry%3Atarget",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "Policy enforced; actual deny. authenticated/staff_check gate followed by POST; task selected by ID and deletion permitted for creator OR superuser OR assignee OR group member; explicit TODO_STAFF_ONLY False permits authenticated nonstaff through staff_check; explicit settings override default",
+        "sourceLocations": [
+          {
+            "path": "todo/views/delete_task.py",
+            "startLine": 12,
+            "endLine": 42
+          },
+          {
+            "path": "todo/utils.py",
+            "startLine": 17,
+            "endLine": 27
+          },
+          {
+            "path": "todo/defaults.py",
+            "startLine": 20,
+            "endLine": 28
+          }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "Only supplied source and declared state; no deployment or repository completeness claim.",
+        "sourceLocations": [
+          {
+            "path": "todo/views/delete_task.py",
+            "startLine": 12,
+            "endLine": 42
+          },
+          {
+            "path": "todo/utils.py",
+            "startLine": 17,
+            "endLine": 27
+          },
+          {
+            "path": "todo/defaults.py",
+            "startLine": 20,
+            "endLine": 28
+          }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "decision-control",
+          "layer": "necessary-semantics",
+          "requirement": "State the allow/deny decision and decisive authorization gate for the stated caller.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Actual disposition is deny. authenticated/staff_check gate followed by POST; task selected by ID and deletion permitted for creator OR superuser OR assignee OR group member; explicit TODO_STAFF_ONLY False permits authenticated nonstaff through staff_check; explicit settings override default",
+          "sourceLocations": [
+            {
+              "path": "todo/views/delete_task.py",
+              "startLine": 12,
+              "endLine": 42
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "binding-effect",
+          "layer": "necessary-semantics",
+          "requirement": "Explain identity/resource binding and whether the protected effect is reached.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "authenticated/staff_check gate followed by POST; task selected by ID and deletion permitted for creator OR superuser OR assignee OR group member; explicit TODO_STAFF_ONLY False permits authenticated nonstaff through staff_check; explicit settings override default",
+          "sourceLocations": [
+            {
+              "path": "todo/views/delete_task.py",
+              "startLine": 12,
+              "endLine": 42
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "scenario-explanation",
+          "layer": "explanation-completeness",
+          "requirement": "Explain which supplied role/relation facts settle this state; distinguish changed facts from fixed context.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Stated scenario: {'role': 'authenticated non-staff ordinary user', 'facts': ['Not superuser', 'Not task creator', 'Not assigned to task', 'Not member of task list group', 'POST request'], 'relation': 'unrelated to task and group', 'expectation': 'deny'}. authenticated/staff_check gate followed by POST; task selected by ID and deletion permitted for creator OR superuser OR assignee OR group member; explicit TODO_STAFF_ONLY False permits authenticated nonstaff through staff_check; explicit settings override default",
+          "sourceLocations": [
+            {
+              "path": "todo/views/delete_task.py",
+              "startLine": 12,
+              "endLine": 42
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "bounded-evidence",
+          "layer": "explanation-completeness",
+          "requirement": "Keep task assumptions distinct from source/deployment facts and do not invent decisive unknowns.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Standard Django behavior and stated identity/settings are assumptions; no deployed execution verified. Missing unrelated dependencies do not force unknown on this bounded authorization reachability question.",
+          "sourceLocations": [
+            {
+              "path": "todo/views/delete_task.py",
+              "startLine": 12,
+              "endLine": 42
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "http-detail",
+          "layer": "optional-detail",
+          "requirement": "Optional precise denial/response detail.",
+          "decisionRelevance": "Optional diagnostic detail only.",
+          "oracleRule": "Exact HTTP detail is not required by the public task; do not conflate a source quote containing status text with answer explanation.",
+          "sourceLocations": [
+            {
+              "path": "todo/views/delete_task.py",
+              "startLine": 12,
+              "endLine": 42
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        }
+      ],
+      "responseDetails": {
+        "criterionIds": [
+          "http-detail"
+        ],
+        "requiredCriterionIds": [],
+        "basis": "Public brief does not demand exact HTTP status."
+      }
+    },
+    {
+      "caseId": "ab-todo-task-changed",
+      "taskId": "ab-todo-task-changed",
+      "rubricVersion": "ab-rubric-v3",
+      "obligationId": "scenario%3Aassessment::entry%3Atarget",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "Policy enforced; actual allow. authenticated/staff_check gate followed by POST; task selected by ID and deletion permitted for creator OR superuser OR assignee OR group member; explicit TODO_STAFF_ONLY False permits authenticated nonstaff through staff_check; explicit settings override default",
+        "sourceLocations": [
+          {
+            "path": "todo/views/delete_task.py",
+            "startLine": 12,
+            "endLine": 42
+          },
+          {
+            "path": "todo/utils.py",
+            "startLine": 17,
+            "endLine": 27
+          },
+          {
+            "path": "todo/defaults.py",
+            "startLine": 20,
+            "endLine": 28
+          }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "Only supplied source and declared state; no deployment or repository completeness claim.",
+        "sourceLocations": [
+          {
+            "path": "todo/views/delete_task.py",
+            "startLine": 12,
+            "endLine": 42
+          },
+          {
+            "path": "todo/utils.py",
+            "startLine": 17,
+            "endLine": 27
+          },
+          {
+            "path": "todo/defaults.py",
+            "startLine": 20,
+            "endLine": 28
+          }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "decision-control",
+          "layer": "necessary-semantics",
+          "requirement": "State the allow/deny decision and decisive authorization gate for the stated caller.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Actual disposition is allow. authenticated/staff_check gate followed by POST; task selected by ID and deletion permitted for creator OR superuser OR assignee OR group member; explicit TODO_STAFF_ONLY False permits authenticated nonstaff through staff_check; explicit settings override default",
+          "sourceLocations": [
+            {
+              "path": "todo/views/delete_task.py",
+              "startLine": 12,
+              "endLine": 42
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "binding-effect",
+          "layer": "necessary-semantics",
+          "requirement": "Explain identity/resource binding and whether the protected effect is reached.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "authenticated/staff_check gate followed by POST; task selected by ID and deletion permitted for creator OR superuser OR assignee OR group member; explicit TODO_STAFF_ONLY False permits authenticated nonstaff through staff_check; explicit settings override default",
+          "sourceLocations": [
+            {
+              "path": "todo/views/delete_task.py",
+              "startLine": 12,
+              "endLine": 42
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "scenario-explanation",
+          "layer": "explanation-completeness",
+          "requirement": "Explain which supplied role/relation facts settle this state; distinguish changed facts from fixed context.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Stated scenario: {'role': 'authenticated non-staff ordinary user', 'facts': ['Not superuser', 'Not task creator', 'Assigned to task', 'Not member of task list group', 'POST request'], 'relation': 'task assignee outside list group', 'expectation': 'allow'}. authenticated/staff_check gate followed by POST; task selected by ID and deletion permitted for creator OR superuser OR assignee OR group member; explicit TODO_STAFF_ONLY False permits authenticated nonstaff through staff_check; explicit settings override default",
+          "sourceLocations": [
+            {
+              "path": "todo/views/delete_task.py",
+              "startLine": 12,
+              "endLine": 42
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "bounded-evidence",
+          "layer": "explanation-completeness",
+          "requirement": "Keep task assumptions distinct from source/deployment facts and do not invent decisive unknowns.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Standard Django behavior and stated identity/settings are assumptions; no deployed execution verified. Missing unrelated dependencies do not force unknown on this bounded authorization reachability question.",
+          "sourceLocations": [
+            {
+              "path": "todo/views/delete_task.py",
+              "startLine": 12,
+              "endLine": 42
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "http-detail",
+          "layer": "optional-detail",
+          "requirement": "Optional precise denial/response detail.",
+          "decisionRelevance": "Optional diagnostic detail only.",
+          "oracleRule": "Exact HTTP detail is not required by the public task; do not conflate a source quote containing status text with answer explanation.",
+          "sourceLocations": [
+            {
+              "path": "todo/views/delete_task.py",
+              "startLine": 12,
+              "endLine": 42
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        }
+      ],
+      "responseDetails": {
+        "criterionIds": [
+          "http-detail"
+        ],
+        "requiredCriterionIds": [],
+        "basis": "Public brief does not demand exact HTTP status."
+      }
+    },
+    {
+      "caseId": "ab-todo-list-original",
+      "taskId": "ab-todo-list-original",
+      "rubricVersion": "ab-rubric-v3",
+      "obligationId": "scenario%3Aassessment::entry%3Atarget",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "Policy enforced; actual deny. authenticated/staff_check followed by group membership and staff required conjunctively before POST deletion; global staff_check can be disabled but does not remove inner staff check; explicit False overrides True default",
+        "sourceLocations": [
+          {
+            "path": "todo/views/del_list.py",
+            "startLine": 11,
+            "endLine": 41
+          },
+          {
+            "path": "todo/utils.py",
+            "startLine": 17,
+            "endLine": 27
+          },
+          {
+            "path": "todo/defaults.py",
+            "startLine": 20,
+            "endLine": 28
+          }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "Only supplied source and declared state; no deployment or repository completeness claim.",
+        "sourceLocations": [
+          {
+            "path": "todo/views/del_list.py",
+            "startLine": 11,
+            "endLine": 41
+          },
+          {
+            "path": "todo/utils.py",
+            "startLine": 17,
+            "endLine": 27
+          },
+          {
+            "path": "todo/defaults.py",
+            "startLine": 20,
+            "endLine": 28
+          }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "decision-control",
+          "layer": "necessary-semantics",
+          "requirement": "State the allow/deny decision and decisive authorization gate for the stated caller.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Actual disposition is deny. authenticated/staff_check followed by group membership and staff required conjunctively before POST deletion; global staff_check can be disabled but does not remove inner staff check; explicit False overrides True default",
+          "sourceLocations": [
+            {
+              "path": "todo/views/del_list.py",
+              "startLine": 11,
+              "endLine": 41
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "binding-effect",
+          "layer": "necessary-semantics",
+          "requirement": "Explain identity/resource binding and whether the protected effect is reached.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "authenticated/staff_check followed by group membership and staff required conjunctively before POST deletion; global staff_check can be disabled but does not remove inner staff check; explicit False overrides True default",
+          "sourceLocations": [
+            {
+              "path": "todo/views/del_list.py",
+              "startLine": 11,
+              "endLine": 41
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "scenario-explanation",
+          "layer": "explanation-completeness",
+          "requirement": "Explain which supplied role/relation facts settle this state; distinguish changed facts from fixed context.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Stated scenario: {'role': 'authenticated non-staff group member', 'facts': ['Not superuser', 'Member of the list group', 'is_staff=False', 'POST request'], 'relation': 'group member without staff role', 'expectation': 'deny'}. authenticated/staff_check followed by group membership and staff required conjunctively before POST deletion; global staff_check can be disabled but does not remove inner staff check; explicit False overrides True default",
+          "sourceLocations": [
+            {
+              "path": "todo/views/del_list.py",
+              "startLine": 11,
+              "endLine": 41
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "bounded-evidence",
+          "layer": "explanation-completeness",
+          "requirement": "Keep task assumptions distinct from source/deployment facts and do not invent decisive unknowns.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Standard Django behavior and stated identity/settings are assumptions; no deployed execution verified. Missing unrelated dependencies do not force unknown on this bounded authorization reachability question.",
+          "sourceLocations": [
+            {
+              "path": "todo/views/del_list.py",
+              "startLine": 11,
+              "endLine": 41
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "http-detail",
+          "layer": "optional-detail",
+          "requirement": "Optional precise denial/response detail.",
+          "decisionRelevance": "Optional diagnostic detail only.",
+          "oracleRule": "Exact HTTP detail is not required by the public task; do not conflate a source quote containing status text with answer explanation.",
+          "sourceLocations": [
+            {
+              "path": "todo/views/del_list.py",
+              "startLine": 11,
+              "endLine": 41
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        }
+      ],
+      "responseDetails": {
+        "criterionIds": [
+          "http-detail"
+        ],
+        "requiredCriterionIds": [],
+        "basis": "Public brief does not demand exact HTTP status."
+      }
+    },
+    {
+      "caseId": "ab-todo-list-changed",
+      "taskId": "ab-todo-list-changed",
+      "rubricVersion": "ab-rubric-v3",
+      "obligationId": "scenario%3Aassessment::entry%3Atarget",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "Policy enforced; actual allow. authenticated/staff_check followed by group membership and staff required conjunctively before POST deletion; global staff_check can be disabled but does not remove inner staff check; explicit False overrides True default",
+        "sourceLocations": [
+          {
+            "path": "todo/views/del_list.py",
+            "startLine": 11,
+            "endLine": 41
+          },
+          {
+            "path": "todo/utils.py",
+            "startLine": 17,
+            "endLine": 27
+          },
+          {
+            "path": "todo/defaults.py",
+            "startLine": 20,
+            "endLine": 28
+          }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "Only supplied source and declared state; no deployment or repository completeness claim.",
+        "sourceLocations": [
+          {
+            "path": "todo/views/del_list.py",
+            "startLine": 11,
+            "endLine": 41
+          },
+          {
+            "path": "todo/utils.py",
+            "startLine": 17,
+            "endLine": 27
+          },
+          {
+            "path": "todo/defaults.py",
+            "startLine": 20,
+            "endLine": 28
+          }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "decision-control",
+          "layer": "necessary-semantics",
+          "requirement": "State the allow/deny decision and decisive authorization gate for the stated caller.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Actual disposition is allow. authenticated/staff_check followed by group membership and staff required conjunctively before POST deletion; global staff_check can be disabled but does not remove inner staff check; explicit False overrides True default",
+          "sourceLocations": [
+            {
+              "path": "todo/views/del_list.py",
+              "startLine": 11,
+              "endLine": 41
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "binding-effect",
+          "layer": "necessary-semantics",
+          "requirement": "Explain identity/resource binding and whether the protected effect is reached.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "authenticated/staff_check followed by group membership and staff required conjunctively before POST deletion; global staff_check can be disabled but does not remove inner staff check; explicit False overrides True default",
+          "sourceLocations": [
+            {
+              "path": "todo/views/del_list.py",
+              "startLine": 11,
+              "endLine": 41
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "scenario-explanation",
+          "layer": "explanation-completeness",
+          "requirement": "Explain which supplied role/relation facts settle this state; distinguish changed facts from fixed context.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Stated scenario: {'role': 'authenticated staff group member', 'facts': ['Not superuser', 'Member of the same list group', 'is_staff=True', 'POST request'], 'relation': 'same group member with staff role', 'expectation': 'allow'}. authenticated/staff_check followed by group membership and staff required conjunctively before POST deletion; global staff_check can be disabled but does not remove inner staff check; explicit False overrides True default",
+          "sourceLocations": [
+            {
+              "path": "todo/views/del_list.py",
+              "startLine": 11,
+              "endLine": 41
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "bounded-evidence",
+          "layer": "explanation-completeness",
+          "requirement": "Keep task assumptions distinct from source/deployment facts and do not invent decisive unknowns.",
+          "decisionRelevance": "Required for the publicly requested causal authorization assessment.",
+          "oracleRule": "Standard Django behavior and stated identity/settings are assumptions; no deployed execution verified. Missing unrelated dependencies do not force unknown on this bounded authorization reachability question.",
+          "sourceLocations": [
+            {
+              "path": "todo/views/del_list.py",
+              "startLine": 11,
+              "endLine": 41
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        },
+        {
+          "id": "http-detail",
+          "layer": "optional-detail",
+          "requirement": "Optional precise denial/response detail.",
+          "decisionRelevance": "Optional diagnostic detail only.",
+          "oracleRule": "Exact HTTP detail is not required by the public task; do not conflate a source quote containing status text with answer explanation.",
+          "sourceLocations": [
+            {
+              "path": "todo/views/del_list.py",
+              "startLine": 11,
+              "endLine": 41
+            },
+            {
+              "path": "todo/utils.py",
+              "startLine": 17,
+              "endLine": 27
+            },
+            {
+              "path": "todo/defaults.py",
+              "startLine": 20,
+              "endLine": 28
+            }
+          ]
+        }
+      ],
+      "responseDetails": {
+        "criterionIds": [
+          "http-detail"
+        ],
+        "requiredCriterionIds": [],
+        "basis": "Public brief does not demand exact HTTP status."
+      }
+    }
+  ],
+  "caveat": "Development preparation includes source reading and author-defined normative requirements. No production vulnerability claim or strict unseen status."
+}

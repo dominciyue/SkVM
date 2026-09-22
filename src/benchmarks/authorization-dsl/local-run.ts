@@ -8,6 +8,8 @@ import { resolveAuthorizationMethod, methodStudyArm, type AuthorizationMethod, t
 import {
   measureAuthorizationPromptCharacters,
   renderAuthorizationTask,
+  validMarkdownStudyInput,
+  type MarkdownStudyInput,
   type AuthorizationPromptCharacterBreakdown,
   type AuthorizationRenderArm,
   type AuthorizationRenderOptions,
@@ -282,6 +284,7 @@ function checkReport(
   studyArm?: AuthorizationStudyArm,
   method?: AuthorizationMethod,
   wireVersion: "legacy" | "v4" = "legacy",
+  researchInstructions?: MarkdownStudyInput,
 ): LocalAuthorizationCheckReport {
   if (loaded.status === "invalid") {
     return {
@@ -321,6 +324,11 @@ function checkReport(
     }
   }
   const resolved = resolveAuthorizationMethod({ method, studyArm, arm, hasConditionRequest: !!loaded.conditionAnalysisRequest })
+  if (researchInstructions !== undefined && (!validMarkdownStudyInput(researchInstructions)
+      || resolved.selection.effective !== "plain" || wireVersion !== "v4" || arm !== "B")) {
+    return {schemaVersion:"authorization-local-check/v1",status:"invalid",inputPath:loaded.inputPath,
+      diagnostics:[{code:"invalid-markdown-study-input",path:"researchInstructions",message:"Research instructions require independent-author, nonempty text/path and plain/v4/B."}]}
+  }
   if (resolved.diagnostics.length) return {
     schemaVersion: "authorization-local-check/v1", status: "invalid", inputPath: loaded.inputPath,
     methodSelection: resolved.selection, diagnostics: resolved.diagnostics,
@@ -333,7 +341,7 @@ function checkReport(
     arm,
     selected.analysisPlan,
     selected.conditionPlan,
-    { ...selected.renderOptions, wireVersion },
+    { ...selected.renderOptions, wireVersion, researchInstructions },
   )
   const renderedPrompt = rendered.prompt.replace("<SOURCE_CONTEXT_INSERTED_BY_HOST>", sourceContext)
   const preview = [
@@ -526,6 +534,7 @@ async function defaultProviderFactory(modelId: string): Promise<LLMProvider> {
 }
 
 export async function executeLocalAuthorizationRun(input: {
+  researchInstructions?: MarkdownStudyInput
   inputFile: string
   model: string
   outRoot: string
@@ -539,11 +548,17 @@ export async function executeLocalAuthorizationRun(input: {
 }): Promise<LocalAuthorizationSessionReport | LocalAuthorizationCheckReport> {
   const arm = input.arm ?? "B"
   const loaded = await loadLocalAuthorizationInput(input.inputFile)
-  const checked = checkReport(loaded, arm, input.studyArm, input.method, input.wireVersion)
+  const checked = checkReport(loaded, arm, input.studyArm, input.method, input.wireVersion, input.researchInstructions)
   if (loaded.status === "invalid" || checked.status === "invalid") return checked
   const effectiveStudyArm = methodStudyArm[checked.methodSelection!.effective]
   const selected = studyExecutionInputs(loaded, effectiveStudyArm)
-  const selectionMetadata = { methodSelection: checked.methodSelection, wireVersion: checked.wireVersion }
+  const researchIdentity = input.researchInstructions ? {
+    arm: "markdown", instructionOrigin: input.researchInstructions.instructionOrigin,
+    instructionPath: input.researchInstructions.instructionPath, sha256: sha256(input.researchInstructions.instructions),
+    characters: input.researchInstructions.instructions.length,
+  } : undefined
+  const selectionMetadata = { methodSelection: checked.methodSelection, wireVersion: checked.wireVersion,
+    ...(researchIdentity ? {researchIdentity} : {}) }
 
   const session = await createSession(input.outRoot)
   const inputBytes = loaded.rawInput
@@ -577,6 +592,9 @@ export async function executeLocalAuthorizationRun(input: {
   })
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.check), checked)
   await writeExclusive(path.join(session.sessionPath, baseArtifacts.input), inputBytes)
+  if (input.researchInstructions) await writeJsonExclusive(path.join(session.sessionPath, "research-instructions.json"), {
+    ...input.researchInstructions, ...researchIdentity,
+  })
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.normalizedInput!), loaded.normalizedInput)
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.fieldProvenance!), loaded.provenance)
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.executionDependencies!), createExecutionDependencies(loaded, checked))
@@ -681,7 +699,7 @@ export async function executeLocalAuthorizationRun(input: {
       provider,
       arm,
       wireVersion: input.wireVersion,
-      ...(selected.renderOptions ? { renderOptions: selected.renderOptions } : {}),
+      renderOptions: { ...selected.renderOptions, researchInstructions: input.researchInstructions },
       options: executionOptions,
       onLifecycleEvent: event => appendFile(
         path.join(session.sessionPath, runArtifacts.events!),

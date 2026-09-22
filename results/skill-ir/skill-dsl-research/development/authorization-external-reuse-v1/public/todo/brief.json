@@ -1,0 +1,106 @@
+{
+  "project": "todo",
+  "repository": "https://github.com/shacker/django-todo",
+  "sourceRef": "95e3a022d239ebaa8771376c838a4d36590ab9b1",
+  "exposure": "external-development",
+  "sourceRoot": "project",
+  "sources": [
+    "todo/views/delete_task.py",
+    "todo/views/del_list.py",
+    "todo/views/__init__.py",
+    "todo/utils.py",
+    "todo/defaults.py",
+    "todo/models.py",
+    "todo/urls.py"
+  ],
+  "common": {
+    "questions": [
+      "Determine whether the provided source enforces the supplied policy expectation for this state, separately state the actual allow/deny/unknown decision.",
+      "Trace route/entry, identity and resource binding, strongest visible control, and protected effect. Explain why the stated role and relation change matters.",
+      "Distinguish task assumptions from facts observed in source. Name any decisive missing external facts; do not invent deployment facts. Exact HTTP status is optional unless needed to explain the decision."
+    ],
+    "scope": "Single fixed repository/ref and explicit source files only. No target execution, dependency installation, deployment access, patching or repository-wide discovery. Standard Django decorator/ORM behavior is assumed; requests reach the supplied view with the stated identity/settings, pass CSRF and unrelated infrastructure checks. Assess authorization reachability of the protected operation, not successful storage or deployment execution.",
+    "sourceGaps": [
+      "Django framework/authentication backend and application deployment middleware are not supplied; identity, stated settings and ordinary ORM behavior are task assumptions.",
+      "Unrelated imported view/services and rendering behavior are not analyzed. All selected project-owned authorization gates and protected operation calls are supplied."
+    ],
+    "outputContract": "Both arms use the same compact plain/v4 JSON result protocol supplied by the host, with source IDs and numbered files. Do not write an answer now: author task instructions, not conclusions.",
+    "authorRequirements": "Return four standalone task files: remove/asset or task/list, each original and changed. Preserve all public facts/questions. No counterpart materials, historical assessments, evaluator, test results or internal schemas may be read. Use only assigned public directory plus the designated guide. Return content read-only; main agent will save exact drafts. No file writes or analysis model calls.",
+    "locate": "Optional common tool: bun ./src/index.ts authorization locate --root=<assigned project directory> --file=<explicit relative source> --match=<literal>. It reads only that file, and line numbers match supplied complete upstream files.",
+    "authorCost": "Record tools used, unclear inputs, fields/paragraphs changed and repeated work. Time/tokens/USD unknown unless directly measured. Authors are models, not human subjects."
+  },
+  "operations": [
+    {
+      "id": "task",
+      "entry": "delete_task",
+      "entryPath": "todo/views/delete_task.py",
+      "entryRange": [
+        12,
+        42
+      ],
+      "operation": "delete an existing task via POST delete/<task_id>",
+      "policy": "With TODO_STAFF_ONLY explicitly False, authenticated creators, superusers, assignees or members of the task list group may delete the task; unrelated ordinary users may not.",
+      "policyAuthority": "Explicit bounded research requirement, not a claim that implementation establishes its own normative correctness.",
+      "resource": "Existing task in an existing task list and group. TODO_STAFF_ONLY is explicitly False in project settings.",
+      "original": {
+        "role": "authenticated non-staff ordinary user",
+        "facts": [
+          "Not superuser",
+          "Not task creator",
+          "Not assigned to task",
+          "Not member of task list group",
+          "POST request"
+        ],
+        "relation": "unrelated to task and group",
+        "expectation": "deny"
+      },
+      "changed": {
+        "role": "authenticated non-staff ordinary user",
+        "facts": [
+          "Not superuser",
+          "Not task creator",
+          "Assigned to task",
+          "Not member of task list group",
+          "POST request"
+        ],
+        "relation": "task assignee outside list group",
+        "expectation": "allow"
+      }
+    },
+    {
+      "id": "list",
+      "entry": "del_list",
+      "entryPath": "todo/views/del_list.py",
+      "entryRange": [
+        11,
+        41
+      ],
+      "operation": "delete an existing list via POST <list_id>/<list_slug>/delete/",
+      "policy": "List deletion requires both membership in the list group and staff status. TODO_STAFF_ONLY is explicitly False; this disables only the global staff-only restriction.",
+      "policyAuthority": "Task-author accepted list requirement, grounded in upstream README permission description (lines 34-40 and 137-139).",
+      "resource": "Existing list in a group the caller belongs to; valid matching list id and slug. TODO_STAFF_ONLY explicitly False.",
+      "original": {
+        "role": "authenticated non-staff group member",
+        "facts": [
+          "Not superuser",
+          "Member of the list group",
+          "is_staff=False",
+          "POST request"
+        ],
+        "relation": "group member without staff role",
+        "expectation": "deny"
+      },
+      "changed": {
+        "role": "authenticated staff group member",
+        "facts": [
+          "Not superuser",
+          "Member of the same list group",
+          "is_staff=True",
+          "POST request"
+        ],
+        "relation": "same group member with staff role",
+        "expectation": "allow"
+      }
+    }
+  ]
+}

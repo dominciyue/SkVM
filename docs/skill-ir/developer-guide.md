@@ -17,6 +17,11 @@
 
 公开边界如下：
 
+- `locateAuthorizationSource({root,file,match,limit?})`：只读一个显式文件，字面匹配返回当前文件行号、总行数、邻近上下文、zero/unique/multiple 与截断状态；默认20项，复用portable source reader阻止路径/junction逃逸。CLI为`authorization locate`，不调用模型、不推断函数边界。
+- `composeAuthorizationAuthoring(base,replacements)`：可选v2编写辅助，白名单顶层字段整项替换，拒绝重复替换、未知字段、空来源和结构错误，保留base SHA与逐字段来源。不做深merge、表达式或政策推断；返回后仍须普通check验证引用及源码行范围。本轮作者重复工作触发增加，作者原稿未用此后补工具，不声称实测节省。
+- `executeMarkdownStudyRun({...local,markdown})`：AB研究入口，独立作者原文替换声明/说明，plain/v4与普通执行共用源码、合同、provider、修复和计量，不把manifest默认分析问题暗中追加给MD。保存原文、来源、路径、SHA与prompt分节；空白或未知来源在provider前拒绝。已存在输出只inspect，同输入/模型/源码/Markdown身份才返回原结果，未知完成不重发。普通CLI无prompt override。模型生成均完成后才消费evaluator。
+- 可复用薄包见[SKILL](../../examples/authorization-assessment/reusable-skill/SKILL.md)，依赖已有SkVM/Bun；AB研究数据和脚本集中于[结果根](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1)。相关验证包含`source-location.test.ts`、`authoring-compose.test.ts`和`markdown-study.test.ts`，修改共享宿主后运行授权聚合与typecheck。
+
 - `parseAuthorizationTask(input)`：strict 解析 canonical declaration，错误带字段路径。
 - `compileAuthorizationTask(task)`：解析引用与政策状态，只把显式 obligation × entry 展开为稳定 `author::entry` ID。
 - `AnalysisRequirementSchema` / `compileAnalysisRequirements(task, requirements)`：strict 解析六类公开分析问题，并把作者显式 requirement × authored obligation 映射到 runnable expanded obligation；同义务检查 prerequisite 和 cycle，局部错误不抹掉独立有效 ledger。

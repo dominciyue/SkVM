@@ -54,6 +54,8 @@ Three LLM provider route kinds under `src/providers/`, selected per model id via
 
 ### Bounded authorization assessment (opt-in development capability)
 
+The [reusable skill package](../examples/authorization-assessment/reusable-skill/SKILL.md) supplies a complete synthetic v2 input and source, using the existing SkVM runtime. `skvm authorization locate --root=./project --file=src/access.ts --match=authorize` reads only the explicit file with literal matching. It reports current-file line count, zero/unique/multiple matches and nearby lines; the default 20-match limit reports truncation. Authors select entry ranges themselves. Absolute/escaping paths, junction escapes and NUL are rejected; no model or target code runs.
+
 The source-visible authorization capability is available through an opt-in top-level command for an ordinary task and explicit source files. It remains a bounded development capability, not a repository-wide scanner, target executor, patch generator, or production security decision.
 
 ```powershell

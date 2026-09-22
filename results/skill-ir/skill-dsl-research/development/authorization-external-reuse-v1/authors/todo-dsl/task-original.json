@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "ab-todo-task-original",
+  "request": "May an authenticated non-staff ordinary user who is not the superuser, task creator, task assignee, or member of the task list group delete an existing task via POST delete/<task_id>?",
+  "repository": "https://github.com/shacker/django-todo",
+  "sourceRef": "95e3a022d239ebaa8771376c838a4d36590ab9b1",
+  "sourceRoot": "project",
+  "sources": [
+    "todo/views/delete_task.py",
+    "todo/views/del_list.py",
+    "todo/views/__init__.py",
+    "todo/utils.py",
+    "todo/defaults.py",
+    "todo/models.py",
+    "todo/urls.py"
+  ],
+  "additionalConstraints": [
+    "Exposure is external-development.",
+    "Single fixed repository/ref and explicit source files only. No target execution, dependency installation, deployment access, patching or repository-wide discovery. Standard Django decorator/ORM behavior is assumed; requests reach the supplied view with the stated identity/settings, pass CSRF and unrelated infrastructure checks. Assess authorization reachability of the protected operation, not successful storage or deployment execution.",
+    "Django framework/authentication backend and application deployment middleware are not supplied; identity, stated settings and ordinary ORM behavior are task assumptions.",
+    "Unrelated imported view/services and rendering behavior are not analyzed. All selected project-owned authorization gates and protected operation calls are supplied."
+  ],
+  "additionalQuestions": [
+    "Determine whether the provided source enforces the supplied policy expectation for this state, separately state the actual allow/deny/unknown decision.",
+    "Trace route/entry, identity and resource binding, strongest visible control, and protected effect. Explain why the stated role and relation change matters.",
+    "Distinguish task assumptions from facts observed in source. Name any decisive missing external facts; do not invent deployment facts. Exact HTTP status is optional unless needed to explain the decision."
+  ],
+  "policies": {
+    "delete_task": {
+      "text": "With TODO_STAFF_ONLY explicitly False, authenticated creators, superusers, assignees or members of the task list group may delete the task; unrelated ordinary users may not.",
+      "location": "brief.json#/operations/0/policy",
+      "revision": "authorization-external-reuse-v1",
+      "acceptance": "accepted",
+      "reason": "Explicit bounded research requirement, not a claim that implementation establishes its own normative correctness."
+    }
+  },
+  "principals": {
+    "caller": {
+      "role": "authenticated non-staff ordinary user",
+      "facts": [
+        "Not superuser",
+        "Not task creator",
+        "Not assigned to task",
+        "Not member of task list group",
+        "POST request"
+      ],
+      "capabilities": [
+        "authenticated"
+      ]
+    }
+  },
+  "resources": {
+    "task": {
+      "type": "task",
+      "facts": [
+        "Existing task in an existing task list and group",
+        "TODO_STAFF_ONLY is explicitly False"
+      ]
+    }
+  },
+  "entries": {
+    "target": {
+      "name": "delete_task",
+      "locations": [
+        {
+          "path": "todo/views/delete_task.py",
+          "startLine": 12,
+          "endLine": 42
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "assessment": {
+      "principal": "caller",
+      "resource": "task",
+      "policy": "delete_task",
+      "entries": [
+        "target"
+      ],
+      "relation": "unrelated-to-task-and-group",
+      "operation": "delete an existing task via POST delete/<task_id>",
+      "expectation": "deny"
+    }
+  }
+}

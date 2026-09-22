@@ -41,12 +41,29 @@ export interface RenderedAuthorizationTask {
 }
 
 export interface AuthorizationRenderOptions {
+  /** Research-only independent instructions; never exposed by the ordinary CLI. */
+  researchInstructions?: MarkdownStudyInput
   wireVersion?: "legacy" | "v4"
   declarationStyle?: "arm-default" | "natural"
   publicAnalysisQuestions?: readonly string[]
 }
 
+export interface MarkdownStudyInput {
+  instructions: string
+  instructionOrigin: "independent-author"
+  instructionPath: string
+}
+
+export function validMarkdownStudyInput(value: unknown): value is MarkdownStudyInput {
+  if (!value || typeof value !== "object") return false
+  const input = value as Partial<MarkdownStudyInput>
+  return input.instructionOrigin === "independent-author"
+    && typeof input.instructions === "string" && input.instructions.trim().length > 0
+    && typeof input.instructionPath === "string" && input.instructionPath.trim().length > 0
+}
+
 export interface AuthorizationPromptSections {
+  declarationLabel?: "Independent Markdown instructions"
   instructions: string
   declaration: string
   publicAnalysis?: string
@@ -203,7 +220,7 @@ ${JSON.stringify({ status: compiled.status, runnableObligationIds: runnable, blo
 function composeAuthorizationPrompt(sections: AuthorizationPromptSections): string {
   return `${sections.instructions}
 
-## Canonical declaration
+## ${sections.declarationLabel ?? "Canonical declaration"}
 ${sections.declaration}
 
 ${sections.publicAnalysis ? `## Public analysis questions\n${sections.publicAnalysis}\n\n` : ""}${sections.analysisLedger ? `## Analysis requirement ledger\n${sections.analysisLedger}\n\n` : ""}${sections.conditionAnalysis ? `## Condition analysis request\n${sections.conditionAnalysis}\n\n` : ""}## Result contract
@@ -243,6 +260,10 @@ export function renderAuthorizationTask(
   conditionPlan?: ConditionAnalysisPlan,
   options: AuthorizationRenderOptions = {},
 ): RenderedAuthorizationTask {
+  if (options.researchInstructions !== undefined && (!validMarkdownStudyInput(options.researchInstructions)
+    || analysisPlan || conditionPlan || arm !== "B" || options.wireVersion !== "v4")) {
+    throw new Error("Independent Markdown requires a nonempty independent-author input and plain/v4 on render arm B.")
+  }
   const facts = collectFacts(compiled.task)
   const expandedObligationIds = [
     ...compiled.runnableObligations.map(obligation => obligation.id),
@@ -285,6 +306,12 @@ export function renderAuthorizationTask(
       : {}),
     outputContract: renderSharedResultRequirements(compiled, analysisPlan, conditionPlan, publicAnalysisQuestions, options.wireVersion === "v4"),
     sourceMarker: "<SOURCE_CONTEXT_INSERTED_BY_HOST>",
+  }
+  if (options.researchInstructions) {
+    sections.instructions = "# Source-visible authorization assessment\n\nAssess the authored task below using only the supplied fixed source and common result contract."
+    sections.declarationLabel = "Independent Markdown instructions"
+    sections.declaration = options.researchInstructions.instructions
+    delete sections.publicAnalysis
   }
   return {
     arm,

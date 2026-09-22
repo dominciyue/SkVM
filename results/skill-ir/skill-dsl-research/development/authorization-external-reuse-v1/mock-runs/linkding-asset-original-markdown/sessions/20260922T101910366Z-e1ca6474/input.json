@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "ab-linkding-asset-original",
+  "request": "Assess read an existing bookmark asset via GET assets/<asset_id> for the supplied original scenario.",
+  "repository": "https://github.com/sissbruecker/linkding",
+  "sourceRef": "27b7303baf41bb28babc610ac8eaa486e1ddfab5",
+  "sourceRoot": "project",
+  "sources": [
+    "bookmarks/views/access.py",
+    "bookmarks/views/bookmarks.py",
+    "bookmarks/views/assets.py",
+    "bookmarks/services/assets.py",
+    "bookmarks/urls.py"
+  ],
+  "policies": {
+    "policy": {
+      "text": "The owner may read an asset; authenticated readers may read it when its bookmark is shared and owner sharing is enabled; anonymous readers require public sharing enabled.",
+      "location": "brief.json#/operations/asset",
+      "revision": "ab-brief-v1",
+      "acceptance": "accepted",
+      "reason": "Bounded research task requirement accepted by task author; upstream asset access tests retained independently for evaluation."
+    }
+  },
+  "principals": {
+    "caller": {
+      "role": "authenticated ordinary reader",
+      "facts": [
+        "Caller is not the bookmark owner",
+        "GET request"
+      ]
+    }
+  },
+  "resources": {
+    "target": {
+      "type": "asset",
+      "facts": [
+        "Existing asset of another user's bookmark; bookmark.shared=True, owner.profile.enable_sharing=True, enable_public_sharing=False. Asset file exists and is valid."
+      ]
+    }
+  },
+  "entries": {
+    "target": {
+      "name": "view",
+      "locations": [
+        {
+          "path": "bookmarks/views/assets.py",
+          "startLine": 8,
+          "endLine": 22
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "assessment": {
+      "principal": "caller",
+      "resource": "target",
+      "policy": "policy",
+      "entries": [
+        "target"
+      ],
+      "relation": "authenticated non-owner of a shared bookmark asset",
+      "operation": "read an existing bookmark asset via GET assets/<asset_id>",
+      "expectation": "allow"
+    }
+  },
+  "additionalQuestions": [
+    "Determine whether the provided source enforces the supplied policy expectation for this state, separately state the actual allow/deny/unknown decision.",
+    "Trace route/entry, identity and resource binding, strongest visible control, and protected effect. Explain why the stated role and relation change matters.",
+    "Distinguish task assumptions from facts observed in source. Name any decisive missing external facts; do not invent deployment facts. Exact HTTP status is optional unless needed to explain the decision."
+  ],
+  "additionalConstraints": [
+    "Single fixed repository/ref and explicit source files only. No target execution, dependency installation, deployment access, patching or repository-wide discovery. Standard Django decorator/ORM behavior is assumed; requests reach the supplied view with the stated identity/settings, pass CSRF and unrelated infrastructure checks. Assess authorization reachability of the protected operation, not successful storage or deployment execution.",
+    "Django framework/authentication backend and application deployment middleware are not supplied; identity, stated settings and ordinary ORM behavior are task assumptions.",
+    "Unrelated imported view/services and rendering behavior are not analyzed. All selected project-owned authorization gates and protected operation calls are supplied."
+  ]
+}

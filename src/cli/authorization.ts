@@ -3,6 +3,7 @@ import path from "node:path"
 import syntheticAssessment from "../../examples/authorization-assessment/assessment.json" with { type: "json" }
 import syntheticAuthoringV2 from "../../examples/authorization-assessment/authoring-v2.json" with { type: "json" }
 import { normalizeAuthorizationAuthoringInput } from "../benchmarks/authorization-dsl/authoring.ts"
+import { locateAuthorizationSource } from "../benchmarks/authorization-dsl/source-location.ts"
 import {
   runLocalAuthorizationCli,
   type LocalAuthorizationCliDependencies,
@@ -110,6 +111,7 @@ export function authorizationCliHelp(): string {
     "skvm authorization — bounded source-visible authorization assessment",
     "",
     "Commands:",
+    "  locate --root=<project> --file=<relative-path> --match=<literal-text> [--limit=20]",
     "  init --out=<assessment.json> [--from=<authoring.json> | --format=authoring-v2]",
     "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--arm=N|B|D]",
     "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--arm=N|B|D]",
@@ -120,6 +122,7 @@ export function authorizationCliHelp(): string {
     "Only run initializes a provider. A condition request in the input opts into wire/v3; otherwise the existing ledger path is used.",
     "Explicit method uses B and conflicts with arm N/D. conditions needs a condition request; plain/ledger leave it unexecuted.",
     "check/run accept --wire=legacy|v4. legacy selects v1/v2/v3 by method; v4 is compact and currently opt-in.",
+    "locate reads only the explicit file; --match is literal. Lines refer to the current provided file; multiple matches require author selection.",
   ].join("\n")
 }
 
@@ -132,6 +135,15 @@ export async function runAuthorizationCli(
     return 0
   }
   try {
+    if (argv[0] === "locate") {
+      const options = parseOptions(argv.slice(1), new Set(["root", "file", "match", "limit"]))
+      for (const name of ["root", "file", "match"]) {
+        if (!options[name]) throw new AuthorizationCliError(`locate requires --${name}=<value>.`, 2)
+      }
+      const report = await locateAuthorizationSource({root: options.root!, file: options.file!, match: options.match!, ...(options.limit ? {limit: Number(options.limit)} : {})})
+      dependencies.stdout(JSON.stringify(report, null, 2))
+      return report.status === "invalid" ? 1 : 0
+    }
     if (argv[0] === "init") return await initializeAuthorizationInput(argv.slice(1), dependencies)
     return await runLocalAuthorizationCli(argv, dependencies)
   } catch (error) {
