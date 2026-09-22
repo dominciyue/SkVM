@@ -2,11 +2,11 @@
 
 - 更新日期：2026-09-22
 - 路线：按 skill/task 范围设计领域 DSL，当前为源码可见授权与信任边界任务。
-- 状态：V/W/X/Y 已完成；Y0–Y14 已验证并发布，停止自动扩展。
+- 状态：Y已结束，公共method入口遗漏转交Z；Z0–Z12已授权连续执行。
 - 唯一实时入口：[current-status.md](current-status.md)
 - 方法合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
-- 当前任务书：[Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)
-- 当前设计：[研究 §7.22](skill-dsl-research.md#722-y-条件表达默认迁移与价值验证)
+- 当前任务书：[Z0–Z12](../superpowers/plans/2026-09-22-authorization-dsl-protocol-and-usability.md)
+- 当前设计：[研究 §7.23](skill-dsl-research.md#723-z-输出减负与实际使用)
 
 用户与学长确认：分类帮助确定范围，DSL 可由 AI 起草、人工设计；改善可以体现为质量、完整性、稳定性、效率或使用便利。当前用主体、资源关系、操作、条件、政策和入口表达授权任务。JSON 是表达载体，效果比较决定是否保留额外结构。
 
@@ -14,25 +14,22 @@
 
 | 阶段 | 工作 | 验收要点 |
 |---|---|---|
-| Y0–Y1（完成） | 恢复、默认一致性、记述纠正 | 保留七项原有修改；公开函数与CLI默认B；fallback计量说明准确 |
-| Y2–Y4（完成） | 条件合同、纯函数、运行接线 | 假设/事实分开；分支遗漏可见；旧wire兼容；一次诊断修复 |
-| Y5–Y6（完成） | 作者输入、现有CLI薄适配 | 派生重复字段；缺政策不猜测；init/check/run/inspect可用 |
-| Y7（完成） | 公平P/L/C接线与面板冻结 | P无ledger、L有ledger、C有condition；五任务15单元与轮换/停止规则已冻结，mock通过 |
-| Y8（完成） | 真实开发面板 | 五任务15/15 completed；25次调用；8 fallback、2 repair；USD unknown |
-| Y9（完成） | 离线评价与选择 | hash-bound逐事实评价；匿名只读复核；只有共享缺陷才修订；按实际质量与成本选结构化候选 |
-| Y10–Y11（完成） | 新项目默认profile迁移 | 固定方法后获取；3项权限任务12单元；默认profile；首次结果保留；变化输入确定性通过 |
-| Y12（完成） | 实际价值判断 | 结论为mixed；C有窄development解释增益、无迁移质量增益且成本更高；默认保持B/L |
-| Y13–Y14（完成） | 文档、有限验证、发布 | 研究正文统一复盘；167项相关测试、typecheck、文档/JSON/敏感信息检查通过；只提交归属文件并推送用户origin |
+| Z0–Z1 | 恢复、补齐公共method | plain/ledger/conditions可选择；省略参数兼容；实际行为与预览一致 |
+| Z2–Z4 | 首答诊断、紧凑wire及归一化 | 六次历史失败可定位；模型只写判断与事实；宿主填固定元数据；语义检查保留 |
+| Z5–Z6 | 宿主接线、计量与评价校准 | 新旧协议公平；授权判断与HTTP响应细节分列；旧成绩保留 |
+| Z7–Z8 | 八单元匹配运行、一次共享修订 | 首答与最终质量、fallback和成本完整；最多四个补充单元 |
+| Z9–Z10 | 实际编写、变化任务、默认选择 | 两次普通分析；记录作者步骤；依据实际质量与开销决定适用模式 |
+| Z11–Z12 | 文档、有限验证、发布 | 统一研究复盘；归属提交并推送用户origin；完成后停止扩展 |
 
-普通说明P、默认ledger L、条件层C共享任务事实、公开要求、源码、模型和基础引用/计量。评价接受等价文字，专用字段的存在不构成质量加分。开发面板用于修方法；方法固定后第三项目用于默认profile迁移，事后修订另记development。正常27单元、最多33单元；范围用于防止重复试验，不是美元额度。
+本轮固定四个已暴露任务，比较条件模式的旧wire/v3与紧凑wire/v4，共八个单元；另做原任务和变化任务两次普通使用。正常十单元，至多十四单元；范围用于防止重复试验，不是美元额度。开发任务使用gpt-6-astra / medium，被测模型仍为xty/gpt-5.6-sol。评价口径变化与方法收益分开报告。
 
 ## 工作边界
 
 - 单repo/ref、显式源码与授权义务；不新增仓库自动发现、目标执行、部署验证或patch。
 - 直接在skill-ir-aot工作，不创建新分支/worktree；仅发布用户origin，保留无关tracked/untracked。
 - 复用provider、host、CLI、validator、telemetry，不复制一套平台。
-- 默认方法确认保持ledger/B；条件层只在明确需要有界条件分支时显式启用，不升级默认或增加额外推理/复核调用。
-- 旧Q1/held-out/prospective保护输入不读，历史结果不覆盖；第三项目独立按Y规则选取并记暴露状态。
+- 省略method保持Y行为：无condition request采用ledger/B，有明确request启用conditions；显式plain/ledger/conditions可选择，新协议默认由匹配结果决定。
+- 旧Q1/held-out/prospective保护输入不读，历史结果不覆盖；本轮不新增仓库或未见输入。
 - 网络、认证GitHub及有目的付费调用已授权；实际/估计/unknown费用与开发代理成本分列。
 - 工程缺项明确标记，研究negative不阻塞独立工程；不等待、重复审计或重复调用凑时长。
 
@@ -40,4 +37,4 @@
 
 S/D/E/T完成分类、来源、范围与语义准备；V/W建立原型、传输与计量。X在两项目五任务的23次初轮得到14 full/5 partial/4 incorrect，共同标签合同复测4/4 full；普通CLI默认B，D没有额外观察收益。Y新增条件结果、authoring与顶层CLI：开发P/L/C面板15/15决策正确，C只在一个任务少一项解释缺口；方法固定的Gitea迁移12/12决策正确、P/C质量持平，C为1.5倍调用、2.93倍known tokens和2.36倍known time。最终价值为mixed，ordinary继续B/L、C opt-in；旧成绩不重写，actual USD unknown。
 
-恢复读取状态页、本任务书、研究§7.22和Y执行代理创建的status.json；只按实际未完成项继续。原始证据由[证据索引](evidence-index.md)和[历史](history.md)承载。Y完成后停止自动扩展，由用户和复核任务决定下一步。
+恢复读取状态页、Z任务书、研究§7.23和Z执行代理创建的status.json；只按实际未完成项继续。原始证据由[证据索引](evidence-index.md)和[历史](history.md)承载。Z任务书已记录Y的method漏项、六次C首答传输失败和HTTP403评价争议，优先修共享实现并验证真实使用。

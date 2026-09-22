@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 SkVM provider 与 CLI。机器结果写一处，研究与问题复盘持续追加研究总文档，不新增 HTML、通用工作流引擎或整套产品 CLI。
 
-- 日期：2026-09-22；状态：`in-progress`。Y0–Y11 已完成，机器状态位于本任务书指定的新结果根；当前进入 Y12。
+- 日期：2026-09-22；状态：`closed-with-follow-up`。Y已结束并发布至`70906261`；2026-09-22复核确认§3.2承诺的公共`--method`未接入CLI，转交[Z0–Z12](2026-09-22-authorization-dsl-protocol-and-usability.md)。以下勾选和机器结果保留执行时记录，不把后续补齐追认为Y已实现。
 - 代码基线：`abe470f2a887f35ca1d6782cfbd5343965856620`；接手时读取本任务书登记提交后的最新 HEAD。
 - 分支：`skill-ir-aot`；只提交归属文件并推送用户 `origin/skill-ir-aot`。
 - 设计：[研究总文档 §7.22](../../skill-ir/skill-dsl-research.md#722-y-条件表达默认迁移与价值验证)；持续合同：spec 14.34。

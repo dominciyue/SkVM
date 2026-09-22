@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**V/W/X 已完成，Y0–Y14 已获用户授权、准备派发。** X在两项目五任务的23次初轮中得到14 full、5 partial、4标签错误；共同标签合同复测4/4 full。D未增加必要语义或coverage收益，调用/token更多，CLI默认改为B；公开函数默认不一致由Y修复。当前能力为单repo/ref、显式源码与授权义务的有界开发能力。Y将补条件结果、编写入口、P/L/C对照和第三项目默认profile迁移，设计见§7.22；尚无Y结果。本地化I1暂缓，W和X初轮历史数据保持原记录。
+**V/W/X/Y已结束发布，Z0–Z12获用户授权并准备派发。** Y建立authoring、条件结果和顶层命令；Gitea三任务12次运行的判断正确，P/C质量持平而C开销更高，总体mixed。复核发现公共method选择漏项、六次C首答均因wire结构失败重新生成，以及HTTP403细节的评价层级争议。Z将补入口、减轻模型wire、做匹配验证及原/变任务试用，设计见§7.23；尚无Z结果。当前继续单repo/ref、显式源码与义务的有界能力，本地化I1暂缓，历史数据保留。
 
 已经站得住的判断：
 
@@ -667,7 +667,7 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 
 ### 7.22 Y 条件表达、默认迁移与价值验证
 
-2026-09-22 用户确认沿用“分类确定范围、按类/任务设计 DSL、效果包含多维收益”的路线，并授权任务书写完后派发新线程连续开发。新任务为 [Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)，此处登记设计与逐阶段结果；Y0–Y12 已完成，当前进入统一验证与发布。开发模型 `gpt-5.6-sol / max` 与实验 provider 设置分别记录。
+2026-09-22 用户确认沿用“分类确定范围、按类/任务设计 DSL、效果包含多维收益”的路线，并授权任务书写完后派发新线程连续开发。[Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)已结束发布；以下保留设计与逐阶段结果。后续复核确认公共method漏项，转交§7.23的Z任务；历史实验及机器总结保持原版。开发模型 `gpt-5.6-sol / max` 与实验 provider 设置分别记录。
 
 **复核发现。** X 的 23 个单位来自五任务和两项目；最终标签正确19/23，完整成功14/23。143条coverage为125 addressed、5 unknown、13 not-applicable；必要分析事实supported与coverage-valid不能合写成23次正确判断。真实面板使用逐任务问题清单，默认六类profile仍缺新项目直接迁移证据。Y1 已先以两项失败测试复现 CLI 省略arm为B、公开check/run函数仍默认D的分歧，再把两个公开默认统一为B；显式D和旧session不变，示例README同步。sourceIdentity当前是作者声明互校及字节绑定，普通界面须说明来源核验状态。
 
@@ -718,6 +718,18 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 **编写与交付。** 新authoring输入复用现有task，派生重复sourceIdentity/default requirements；缺政策与expectation集中报needs-input，不猜测填充。`skvm authorization init/check/run/inspect`复用现有宿主，init示例明确synthetic，普通输入保留作者来源，只有run调用模型。method与历史N/B/D分开，默认ledger/B，条件层opt-in。新项目来源独立选择，不读取旧保护集；首次迁移后修方法时保留首次结果，后续记development。允许工程完成而效果mixed/negative，按缺项而非阶段终态数判交付。
 
 **研究问题与开发复盘。** Y期间继续在本节补充实际条件合同、默认profile失配、编写负担与比较结论，§12只写短记录；机器材料进入`development/authorization-transfer-value-v1/`。不另建每轮设计正文或重复历史审计。
+
+### 7.23 Z 输出减负与实际使用
+
+2026-09-22用户要求制定并派发下一轮，开发线程用`gpt-6-astra / medium`。当前任务书为[Z0–Z12](../superpowers/plans/2026-09-22-authorization-dsl-protocol-and-usability.md)，被测模型仍用既有Sol路线独立配置。本节登记设计和复核依据，尚无Z实验结果。
+
+**复核证据。** `authorization check --method=plain`实际返回Unknown option，Y承诺的公共method仅有研究内部P/L/C路径。六个Gitea C首答按当前wire/v3离线重放全部失败：4项缺facts.condition，2项conditionAnalysis写成数组，2项版本字段错误，其中一项还重复嵌套/缺branches。均随后重新请求原任务；失败schema-tool合计47,330 known tokens，成功fallback合计62,413，P总量37,489。这些合计含cache、不是美元权重。源码级根因须再核模型可见schema与本地Zod，不能仅据失败归咎模型。lock的正确拒绝被因HTTP403未显式书写同时扣necessary/explanation，也应与真正权限推理错误分开。
+
+**方法与工程选择。** 停止默认增加分析层，先补公共plain/ledger/conditions解析；省略参数兼容Y有request启用条件、无request走ledger的行为，显式选项及冲突均有预览和provider前诊断。wire/v4尽量只让模型输出事实/关系/判断，固定版本、任务身份、分组及重复包装由宿主生成；fact ID在义务内绑定，旧canonical和语义检查复用。不得自动猜结论或伪造事实，旧wire失败保持失败；schema层省字段只减少机械负担。
+
+**比较与试用。** 先对齐新评价：授权决策、决定性控制、条件解释、协议响应细节分别报告；旧rubric只读，重评分变化不当新方法收益。已暴露的header及三个Gitea任务旧/new条件wire各一次，共8单元，同事实/模型/预算/修复机会；一次明确共享修订最多4单元。另完成collaborator原任务与self-query变化任务各一次普通run，观察真正答案变化。作者优先真实外部使用者，无人时干净上下文代理，只给usage与任务/源码/政策；记录草稿、check、修改和参与者身份，不声称真人节省。正常10单元、至多14，不新增目标项目或保护输入。
+
+**交付与解释。** 首答schema/交付率、最终质量、fallback/repair、分字段token/cache、耗时及作者步骤共同判断。传输改善如实写为协议/运行减负；新wire没有收益就保持可选，不把工程完成写成DSL优于普通说明。Z期间把每个实际问题和解决记录在本节；机器材料统一进入`development/authorization-protocol-usability-v1/`。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-22
 
-**当前已确认路线：** 第 14.34 节的“按 skill/task 范围设计领域表达并验证实际价值”。S/D/E/T/V/W/X及Y0–Y14已完成并发布；Y结论为mixed：默认profile迁移的12/12决策正确，但C相对P无迁移质量增益且运行负担更高。ordinary继续默认B/L，条件层只在明确要求有界条件结果时opt-in；本轮停止自动扩展。研究和开发复盘见[研究总文档](skill-dsl-research.md)，执行顺序见[当前计划](skill-ir-aot-optimization-plan.md)。第14.32–14.33节及更早阶段保留为历史合同与工程基础，I1保留后备。
+**当前已确认路线：** 第14.34节的“按skill/task范围设计领域表达并验证实际价值”。Y已结束发布，结果mixed；复核发现公共method漏项和C首答结构失败后重试的共享负担。用户已授权Z0–Z12补普通选择、精简wire、校准评价并完成有界匹配试验/实际使用，不新增任务类别或目标项目。研究和开发复盘见[研究总文档](skill-dsl-research.md)，执行顺序见[当前计划](skill-ir-aot-optimization-plan.md)。第14.32–14.33节及更早阶段保留为历史合同与工程基础，I1保留后备。
 
 本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；新工作以第 14.34 节为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
@@ -2515,5 +2515,7 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **Y11–Y12 迁移结果与默认决定。** 固定Gitea三任务12单元在读取oracle前全部完成；冻结评价得到12/12正确结论与决策、8 full/4 partial。collaborator与assignee均为P/C两次full；lock四答虽正确说明admin gate、writer gate和lock effect，却都没有答案级明确写HTTP 403，故每答各有一项necessary与explanation缺口。P/C均为4 full、2 partial、2个解释缺口；C为12次调用、109,743 known tokens和919,329毫秒，P为8次、37,489和388,763，未观察到迁移质量增量。重复lock遗漏没有定位为共享生成缺陷，未作task-specific事后prompt或追加调用；离线选择器的零样本偏置用回归修复并0-call重放。different-user/deny到self-query/allow的确定性变化使声明与P/C prompt都改变而固定代码字节不变，证明输入敏感性，不是质量证据。
 
 综合Y9与迁移的实际价值为`mixed`：C在一个development deployment-unknown任务上补一项预定条件枚举，属于无决定性退化的局部正向；但新项目没有复制该增益且运行成本明显增加。共同authoring/source/session/validation/review/replay支持建立有界工程价值，无法由本设计隔离出对模型正确率的因果增益。默认profile在三种关系上可表示且决策正确，不等于whole-repository discovery或一般可靠性。sourceIdentity和六项requirements可派生，但项目/源码/政策/关系/条件/binding/evaluator仍需专业编写；human time与节省未测。ordinary保持B/L，C保持显式opt-in并停止默认扩展；actual USD因provider未报告而继续unknown。
+
+**Z当前授权合同（2026-09-22）。** [Z0–Z12](../superpowers/plans/2026-09-22-authorization-dsl-protocol-and-usability.md)补齐public method选择，保持省略参数兼容；紧凑wire由宿主补稳定身份/版本、重建已验证fact关联，模型保留语义判断与事实引用。不得放松决定性语义、补假事实或改旧wire成绩以降低失败率。先核模型schema与本地validator，再做四任务旧/new匹配及一次原/变任务使用；评价将决策/控制与响应细节分开，新旧协议用同一新口径、Y原评分不改。正常10分析单元、至多14，来源均为已暴露development。开发Astra medium与被测Sol配置分开，收益按首答/质量/运行负担/作者步骤报告，不预定positive结论。
 
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。
