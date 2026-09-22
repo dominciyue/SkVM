@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260922T082240617Z-27e46218
+Status: completed
+Task: gitea-collaborator-permission
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aself-query::entry%3Aget-repo-permissions: source_refuted — The fixed entry is the GET collaborator-permission handler. It reads the request collaborator username and applies the strongest visible authorization gate before loading that collaborator: access is rejected only when the caller is not a site administrator, the requested username is not the caller's case-insensitive username, and the caller is not a repository administrator. Under the declared self-query relation, the username comparison is true, so the rejection branch is bypassed even though the caller lacks both administrator roles. The selected collaborator is then loaded by the request username, and the repository permission is queried for the current repository and that collaborator; on the source-visible success branch, the operation reaches the JSON permission response. Thus the source enforces the declared allow expectation for the supplied self-query condition. The source crop does not establish deployment behavior or repository-wide entry completeness, but no source-external fact is decisive for this visible authorization branch under the supplied existing-collaborator premise.
+  Evidence: The declared GET collaborator repository permission operation is implemented by the supplied GetRepoPermissions entry. (collaborators.go:4-6)
+  Evidence: The request-selected collaborator username is compared case-insensitively with the authenticated caller identity's lower-name, while administrator role checks use the caller context. (collaborators.go:35-37)
+  Evidence: The request collaborator path value selects the collaborator account loaded by username, and that account is used in the repository-permission lookup for the current repository. (collaborators.go:41-52)
+  Evidence: The repository-administrator check is a separate authorization relation from the collaborator-username self-query comparison and the site-administrator check. (collaborators.go:35-38)
+  Evidence: The visible rejection control requires all three disqualifying conditions—non-site-admin, username mismatch, and non-repository-admin—to hold; a matching caller username therefore bypasses rejection despite the two absent administrator roles. (collaborators.go:35-39)
+  Evidence: After authorization, the handler queries the individual user's permission for the current repository and returns the permission in a successful JSON response on the no-error branch. (collaborators.go:51-58)
+  Evidence: The assessed condition is that the collaborator username equals the caller's username; this is the source-visible branch that permits the declared principal to proceed without either administrator role. (collaborators.go:35-39)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

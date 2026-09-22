@@ -1,0 +1,179 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260922T082410563Z-6b3bedc6",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-authoring-reuse-v1\\runs\\author-fastapi-original\\sessions\\20260922T082410563Z-6b3bedc6",
+  "createdAt": "2026-09-22T08:24:10.563Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-authoring-reuse-v1\\authors\\fastapi\\original.json",
+  "taskId": "fastapi-items-foreign-update",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 2222,
+      "publicAnalysis": 763,
+      "source": 4317,
+      "outputContract": 2261,
+      "total": 10064,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "fastapi-items-foreign-update",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "results": [
+      {
+        "obligationId": "scenario%3Aupdate-item::entry%3Aupdate-item",
+        "conclusion": "source_refuted",
+        "explanation": "The declared policy expectation is deny, and the supplied update entry visibly enforces that expectation. The PUT entry accepts the request-selected id, the supplied CurrentUser parameter is the identity used by the operation, and the item is loaded using that id. Before any update, the strongest visible authorization control rejects a caller who is not a superuser when the loaded item's owner differs from the caller id. The supplied principal is an authenticated non-superuser and the supplied resource is owned by another user, so this branch raises a 403 and does not reach the update, commit, or response effect. A superuser branch would bypass the ownership rejection, but it does not apply to the declared principal. The fixed context does not show the implementation that binds authentication to CurrentUser, nor broader routing/deployment behavior; those are source-external and discovery is not-tested. However, the declared caller facts and the visible use of CurrentUser are sufficient for this bounded scenario, so no unsupplied fact is decisive for the stated source-level result.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The declared PUT item-update entry is the update operation assessed.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 75,
+                  "endLine": 82,
+                  "quote": "@router.put(\"/{id}\", response_model=ItemPublic)\ndef update_item(\n    *,\n    session: SessionDep,\n    current_user: CurrentUser,\n    id: uuid.UUID,\n    item_in: ItemUpdate,\n) -> Any:"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The checked resource attribute is the loaded item's owner_id, which must remain distinct from current_user.id for the declared different-owner relation.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 86,
+                  "endLine": 90,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            },
+            {
+              "statement": "The operation receives CurrentUser as current_user and uses that runtime identity in its authorization decision.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 76,
+                  "endLine": 81,
+                  "quote": "def update_item(\n    *,\n    session: SessionDep,\n    current_user: CurrentUser,\n    id: uuid.UUID,\n    item_in: ItemUpdate,"
+                }
+              ]
+            },
+            {
+              "statement": "The request path id is used to load the item that is then subjected to the authorization check.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 80,
+                  "endLine": 89,
+                  "quote": "    id: uuid.UUID,\n    item_in: ItemUpdate,\n) -> Any:\n    \"\"\"\n    Update an item.\n    \"\"\"\n    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "The visible gate rejects a non-superuser when the loaded item's owner differs from the current user's id; the superuser branch bypasses that ownership rejection.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 89,
+                  "endLine": 90,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "Only after the authorization gate does the operation apply submitted fields, persist the item, refresh it, and return it.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 91,
+                  "endLine": 96,
+                  "quote": "    update_dict = item_in.model_dump(exclude_unset=True)\n    item.sqlmodel_update(update_dict)\n    session.add(item)\n    session.commit()\n    session.refresh(item)\n    return item"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "No additional authorization conditions are declared for this obligation; the visible decision depends on the superuser and owner comparison.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 86,
+                  "endLine": 90,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": []
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "relationCoverage": [],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 243,
+      "output": 957,
+      "cacheRead": 2432,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

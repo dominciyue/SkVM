@@ -1,0 +1,33 @@
+bun test v1.3.14 (0d9b296a)
+
+src\task-dsl\authorization\conditions.test.ts:
+(pass) compileConditionAnalysisRequest > maps explicit condition IDs to authored names and expanded obligations without pre-filling effects [3.14ms]
+(pass) compileConditionAnalysisRequest > diagnoses duplicate authored condition names instead of binding by array position [0.31ms]
+(pass) compileConditionAnalysisRequest > does not require a fabricated branch when condition analysis is not requested [0.11ms]
+(pass) validateConditionAnalysisResult > accepts bounded branches and a contentful external unknown [1.61ms]
+(pass) validateConditionAnalysisResult > diagnoses true and false assignments to the same condition in one branch [0.51ms]
+(pass) validateConditionAnalysisResult > diagnoses a condition ID that belongs to another obligation [0.43ms]
+(pass) validateConditionAnalysisResult > diagnoses an unknown condition ID [0.32ms]
+(pass) validateConditionAnalysisResult > rejects duplicate branches with the same normalized assumptions [0.45ms]
+303 |     const plan = compileConditionAnalysisRequest(makeTask(), makeRequest())
+304 |     const result = makeValidResult()
+305 |     result.analyses[0]!.branches[0]!.assumptions.push({ conditionId: "is-privileged", value: "unknown" })
+306 |     result.analyses[0]!.branches[0]!.explanation = "Ownership alone permits modification regardless of the unknown privileged role."
+307 |     const validation = validateConditionAnalysisResult(plan, makeCanonicalResult(), result)
+308 |     expect(validation.status).toBe("valid")
+                                    ^
+error: expect(received).toBe(expected)
+
+Expected: "valid"
+Received: "invalid"
+
+      at <anonymous> (D:\skill优化\SkVM\src\task-dsl\authorization\conditions.test.ts:308:31)
+(fail) validateConditionAnalysisResult > accepts a decisive known effect despite an irrelevant unknown assumption [0.73ms]
+(pass) validateConditionAnalysisResult > requires a decisive missing fact for an unknown effect [0.37ms]
+(pass) validateConditionAnalysisResult > enforces the authored branch bound without requiring an exponential truth table [0.31ms]
+(pass) validateConditionAnalysisResult > accepts explicit unexamined conditions as incomplete instead of inventing branches [0.30ms]
+
+ 11 pass
+ 1 fail
+ 18 expect() calls
+Ran 12 tests across 1 file. [104.00ms]

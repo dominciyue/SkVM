@@ -1,0 +1,28 @@
+{
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceMode": "fixed-context",
+  "isolation": "exact-allowlist",
+  "files": [
+    {
+      "relativePath": "policy.json",
+      "content": "{\n  \"schemaVersion\": \"authorization-migration-public-policy/v1\",\n  \"repository\": \"https://github.com/go-gitea/gitea\",\n  \"sourceRef\": \"fc28937a8d772fe9e4025c9b5f24d5db4d86610b\",\n  \"upstreamSource\": \"routers/api/v1/repo/collaborators.go#L247-L301\",\n  \"normativePolicy\": \"A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.\",\n  \"boundedScenario\": \"The caller is authenticated and has repository read access, is a collaborator, is not a site or repository administrator, and queries their own collaborator permission.\",\n  \"claimBoundary\": \"This policy is accepted for the declared fixed source entry only. It is not a claim about every Gitea version, endpoint, or deployment.\"\n}\n",
+      "sha256": "c60117f32578b284ac3b02fdd6e45423ab5ef409286f413b02111c9e328b91b6",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 9
+      },
+      "originalLocations": []
+    },
+    {
+      "relativePath": "collaborators.go",
+      "content": "// Fixed excerpt from go-gitea/gitea at fc28937a8d772fe9e4025c9b5f24d5db4d86610b.\n// Original path and range: routers/api/v1/repo/collaborators.go:247-301.\n\n// GetRepoPermissions gets repository permissions for a user\nfunc GetRepoPermissions(ctx *context.APIContext) {\n\t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions\n\t// ---\n\t// summary: Get repository permissions for a user\n\t// produces:\n\t// - application/json\n\t// parameters:\n\t// - name: owner\n\t//   in: path\n\t//   description: owner of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: repo\n\t//   in: path\n\t//   description: name of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: collaborator\n\t//   in: path\n\t//   description: username of the collaborator whose permissions are to be obtained\n\t//   type: string\n\t//   required: true\n\t// responses:\n\t//   \"200\":\n\t//     \"$ref\": \"#/responses/RepoCollaboratorPermission\"\n\t//   \"404\":\n\t//     \"$ref\": \"#/responses/notFound\"\n\t//   \"403\":\n\t//     \"$ref\": \"#/responses/forbidden\"\n\n\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}\n\n\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}\n\n\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))\n}\n",
+      "sha256": "edbacf431c736f78e6e5beef3c6329ff89210a6463438cedc0be48cdc246a012",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 58
+      },
+      "originalLocations": []
+    }
+  ]
+}

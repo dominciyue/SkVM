@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "owui-process-text-controlled",
+  "taskId": "owui-process-text-controlled",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "5b034be31568122e0ec057dfdd41ea46152ea1fba57fb850aa86f0c38d9a93e1",
+  "rubricVersion": "owui-process-text-controlled-oracle/v2",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "AA-development-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "caller-write-validator",
+      "status": "supported",
+      "reason": "Calls write validator before saving; retrieval_process_text.py:13-18,31-44.",
+      "answerLocation": "/results/0/facts/control/1",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+          "startLine": 13,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/0"
+    },
+    {
+      "criterionId": "denied-set-enforcement",
+      "status": "supported",
+      "reason": "Requested-minus-allowed denial raises HTTP403; lines 31-44.",
+      "answerLocation": "/results/0/facts/control/1",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+          "startLine": 31,
+          "endLine": 44
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/1"
+    },
+    {
+      "criterionId": "knowledge-base-write-policy",
+      "status": "supported",
+      "reason": "Existing KB requires check_access_by_user_id write permission; retrieval_access_policy.py:43-51.",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+          "startLine": 42,
+          "endLine": 52
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/2"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "Matches expected disposition and described bounded source path.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+        "startLine": 13,
+        "endLine": 44
+      },
+      {
+        "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+        "startLine": 42,
+        "endLine": 52
+      }
+    ],
+    "oracleRule": "oracles/owui-process-text-controlled.json#/disposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "Limits claim to declared obligations and fixed source; deployment/discovery untested.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-text-controlled/task.json",
+        "startLine": 6,
+        "endLine": 18
+      }
+    ],
+    "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1"
+  }
+}

@@ -1,0 +1,579 @@
+{
+  "note": "Compact transcription of three read-only independent reviewer returns; original disputed judgments retained below before adjudication.",
+  "units": {
+    "05-fastapi-plain": {
+      "rawOutputSha256": "a98aee4065b8de1c4024ba4ba0f40072227e0b2dad4ecc5580b2634a4043fe3f",
+      "criteria": {
+        "update-current-user-binding": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/binding/0",
+          "reason": "Binds current_user role/id; items.py:77-90."
+        },
+        "foreign-item-binding": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/binding/1",
+          "reason": "session.get(Item,id) selects object and owner comparison; items.py:86-90."
+        },
+        "non-superuser-foreign-update-decision": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "Non-superuser owner mismatch rejected before mutation; items.py:86-90."
+        },
+        "update-effect-after-guard": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/effect/0",
+          "reason": "Update/commit/refresh after guard; items.py:91-96."
+        },
+        "update-http-403-detail": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "Explicit HTTP403; items.py:89-90."
+        }
+      },
+      "disposition": {
+        "status": "supported",
+        "answerLocation": "/results/0/conclusion",
+        "reason": "Matches expected disposition and described bounded source path."
+      },
+      "scope": {
+        "status": "supported",
+        "answerLocation": "/scopeClaim",
+        "reason": "Limits claim to declared obligations and fixed source; deployment/discovery untested."
+      },
+      "audit": {
+        "authorizationDecision": "supported",
+        "unsupportedFacts": []
+      }
+    },
+    "06-fastapi-ledger": {
+      "rawOutputSha256": "186385a7d0da051e74b011335427dd202c232ebd68bbae1025d4c5528e04f302",
+      "criteria": {
+        "update-current-user-binding": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/binding/0",
+          "reason": "Binds current_user role/id; items.py:77-90."
+        },
+        "foreign-item-binding": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/binding/1",
+          "reason": "Path id selects item compared by owner_id; items.py:80-89."
+        },
+        "non-superuser-foreign-update-decision": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "Non-superuser mismatch causes denial; items.py:86-90."
+        },
+        "update-effect-after-guard": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/effect/0",
+          "reason": "Persistence after authorization; items.py:91-96."
+        },
+        "update-http-403-detail": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "Explicit HTTP403; items.py:89-90."
+        }
+      },
+      "disposition": {
+        "status": "supported",
+        "answerLocation": "/results/0/conclusion",
+        "reason": "Matches expected disposition and described bounded source path."
+      },
+      "scope": {
+        "status": "supported",
+        "answerLocation": "/scopeClaim",
+        "reason": "Limits claim to declared obligations and fixed source; deployment/discovery untested."
+      },
+      "audit": {
+        "authorizationDecision": "supported",
+        "unsupportedFacts": []
+      }
+    },
+    "07-collaborator-ledger": {
+      "rawOutputSha256": "5a14be07fc08b31db6ff052dba39695f60c1e349be3a9e743265e2df651b60fe",
+      "criteria": {
+        "collaborator-requester-target-binding": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/binding/0",
+          "reason": "Requester ctx.Doer compared with PathParam username; collaborators.go:35-39."
+        },
+        "collaborator-three-way-guard": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "Three negative conditions jointly reject; collaborators.go:35-39."
+        },
+        "collaborator-current-cross-user-denial": {
+          "status": "supported",
+          "answerLocation": "/results/0/explanation",
+          "reason": "Applies different-user and neither-admin facts to deny before loading; policy.json:6-8; collaborators.go:35-39."
+        },
+        "collaborator-permission-read-after-guard": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/effect/0",
+          "reason": "Target/permission lookup and JSON follow gate; collaborators.go:41-58."
+        },
+        "collaborator-http-403-detail": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "Explicit403 early return; collaborators.go:35-39."
+        },
+        "collaborator-condition-outcomes": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/condition/1",
+          "reason": "Each admin/self branch bypasses gate; all absent denies; collaborators.go:35-39."
+        }
+      },
+      "disposition": {
+        "status": "supported",
+        "answerLocation": "/results/0/conclusion",
+        "reason": "Matches expected disposition and described bounded source path."
+      },
+      "scope": {
+        "status": "supported",
+        "answerLocation": "/scopeClaim",
+        "reason": "Limits claim to declared obligations and fixed source; deployment/discovery untested."
+      },
+      "audit": {
+        "authorizationDecision": "supported",
+        "unsupportedFacts": []
+      }
+    },
+    "08-collaborator-plain": {
+      "rawOutputSha256": "1cd01b5a52e0d2765f92b4f71c9064b389d3813dfd0c08051c2942bbbcc8ab92",
+      "criteria": {
+        "collaborator-requester-target-binding": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/binding/1",
+          "reason": "Path collaborator to target lookup and requester in gate; collaborators.go:35-41."
+        },
+        "collaborator-three-way-guard": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "All three permitting branches false causes reject; collaborators.go:35-39."
+        },
+        "collaborator-current-cross-user-denial": {
+          "status": "supported",
+          "answerLocation": "/results/0/explanation",
+          "reason": "Applies different target and neither-admin facts to HTTP403."
+        },
+        "collaborator-permission-read-after-guard": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/effect/0",
+          "reason": "Permission loading and200 follow gate; collaborators.go:41-57."
+        },
+        "collaborator-http-403-detail": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "Explicit403 before loading; collaborators.go:35-39."
+        },
+        "collaborator-condition-outcomes": {
+          "status": "supported",
+          "answerLocation": "/results/0/explanation",
+          "reason": "Enumerates independent permit branches and all-false denial; collaborators.go:35-39."
+        }
+      },
+      "disposition": {
+        "status": "supported",
+        "answerLocation": "/results/0/conclusion",
+        "reason": "Matches expected disposition and described bounded source path."
+      },
+      "scope": {
+        "status": "supported",
+        "answerLocation": "/scopeClaim",
+        "reason": "Limits claim to declared obligations and fixed source; deployment/discovery untested."
+      },
+      "audit": {
+        "authorizationDecision": "supported",
+        "unsupportedFacts": []
+      }
+    },
+    "01-file-plain": {
+      "rawOutputSha256": "5242b753a5de09120e12e7702dbbeee281c0b33da85fc8668e581397cdcb5e61",
+      "criteria": {
+        "source-file-ownership-check": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/1",
+          "reason": "Non-admin file_id/user.id ownership check; retrieval_process_file.py:40-45."
+        },
+        "destination-is-distinct": {
+          "status": "supported",
+          "answerLocation": "/results/0/explanation",
+          "reason": "Distinguishes owned source file from caller-selected destination collection; lines 45-50."
+        },
+        "destination-write-control-absent": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "No destination authorization before save in supplied complete crop; lines 52-74."
+        },
+        "destination-reaches-insert": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/effect/1",
+          "reason": "Traces collection_name through save to VECTOR_DB_CLIENT.insert; lines 14-18,62-74."
+        }
+      },
+      "disposition": {
+        "status": "supported",
+        "answerLocation": "/results/0/conclusion",
+        "reason": "Matches expected disposition and described bounded source path."
+      },
+      "scope": {
+        "status": "supported",
+        "answerLocation": "/results/0/scopeClaim",
+        "reason": "Limits claim to declared obligations and fixed source; deployment/discovery untested."
+      },
+      "audit": {
+        "authorizationDecision": "supported",
+        "unsupportedFacts": []
+      }
+    },
+    "02-file-ledger": {
+      "rawOutputSha256": "e9b6ef742531e2415d3d263f77a52fccc2379f29433ecc4aec0bfc339c9edd1d",
+      "criteria": {
+        "source-file-ownership-check": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "Source-file access check is not destination permission; retrieval_process_file.py:40-45."
+        },
+        "destination-is-distinct": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/binding/1",
+          "reason": "Separates file_id/user.id and form_data.collection_name; lines 21-24,40-50."
+        },
+        "destination-write-control-absent": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "No destination grant before write; lines 52-74."
+        },
+        "destination-reaches-insert": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/effect/0",
+          "reason": "Selected collection reaches insert; lines 14-18,62-74."
+        }
+      },
+      "disposition": {
+        "status": "supported",
+        "answerLocation": "/results/0/conclusion",
+        "reason": "Matches expected disposition and described bounded source path."
+      },
+      "scope": {
+        "status": "supported",
+        "answerLocation": "/scopeClaim",
+        "reason": "Limits claim to declared obligations and fixed source; deployment/discovery untested."
+      },
+      "audit": {
+        "authorizationDecision": "supported",
+        "unsupportedFacts": []
+      }
+    },
+    "03-text-ledger": {
+      "rawOutputSha256": "5b034be31568122e0ec057dfdd41ea46152ea1fba57fb850aa86f0c38d9a93e1",
+      "criteria": {
+        "caller-write-validator": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/1",
+          "reason": "Calls write validator before saving; retrieval_process_text.py:13-18,31-44."
+        },
+        "denied-set-enforcement": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/1",
+          "reason": "Requested-minus-allowed denial raises HTTP403; lines 31-44."
+        },
+        "knowledge-base-write-policy": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "Existing KB requires check_access_by_user_id write permission; retrieval_access_policy.py:43-51."
+        }
+      },
+      "disposition": {
+        "status": "supported",
+        "answerLocation": "/results/0/conclusion",
+        "reason": "Matches expected disposition and described bounded source path."
+      },
+      "scope": {
+        "status": "supported",
+        "answerLocation": "/scopeClaim",
+        "reason": "Limits claim to declared obligations and fixed source; deployment/discovery untested."
+      },
+      "audit": {
+        "authorizationDecision": "supported",
+        "unsupportedFacts": []
+      }
+    },
+    "04-text-plain": {
+      "rawOutputSha256": "9603eb7e9f019e890d60bf4501db0995c628dfbfe3ef837d663e839a0758e155",
+      "criteria": {
+        "caller-write-validator": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/3",
+          "reason": "Validates supplied collection with write access before save; retrieval_process_text.py:13-18."
+        },
+        "denied-set-enforcement": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "Denied existing KB excluded from allowed and HTTP403; retrieval_access_policy.py:47-51; retrieval_process_text.py:31-44."
+        },
+        "knowledge-base-write-policy": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/1",
+          "reason": "Distinguishes existing KB write permission from legacy/no-KB fallback; retrieval_access_policy.py:43-51."
+        }
+      },
+      "disposition": {
+        "status": "supported",
+        "answerLocation": "/results/0/conclusion",
+        "reason": "Matches expected disposition and described bounded source path."
+      },
+      "scope": {
+        "status": "supported",
+        "answerLocation": "/scopeClaim",
+        "reason": "Limits claim to declared obligations and fixed source; deployment/discovery untested."
+      },
+      "audit": {
+        "authorizationDecision": "supported",
+        "unsupportedFacts": []
+      }
+    },
+    "09-self-plain": {
+      "rawOutputSha256": "e83acba00d54be98b54c1c77701b4bc38f14cfb12d62aeb0f91891b16dfdad87",
+      "criteria": {
+        "collaborator-requester-target-binding": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/binding/0",
+          "reason": "ctx.Doer identity bound to path username; collaborators.go:35-37."
+        },
+        "collaborator-three-way-guard": {
+          "status": "supported",
+          "answerLocation": "/results/0/explanation",
+          "reason": "Three conjunctive negative checks and403; collaborators.go:35-39."
+        },
+        "collaborator-current-self-allow": {
+          "status": "supported",
+          "answerLocation": "/results/0/explanation",
+          "reason": "Self equality disables denial despite absent admin roles; collaborators.go:35-39."
+        },
+        "collaborator-permission-read-after-guard": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/binding/1",
+          "reason": "User and permission lookups after gate; collaborators.go:36-57."
+        },
+        "collaborator-http-403-detail": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "Explicit403 before loading; collaborators.go:36-39."
+        },
+        "collaborator-condition-outcomes": {
+          "status": "supported",
+          "answerLocation": "/results/0/explanation",
+          "reason": "Self, repo-admin, site-admin and all-absent outcomes enumerated."
+        }
+      },
+      "disposition": {
+        "status": "contradicted",
+        "answerLocation": "/results/0/conclusion",
+        "reason": "Reviewer interpreted source_refuted as inconsistent with allowed self-query."
+      },
+      "scope": {
+        "status": "supported",
+        "answerLocation": "/scopeClaim",
+        "reason": "Limits claim to declared obligations and fixed source; deployment/discovery untested."
+      },
+      "audit": {
+        "authorizationDecision": "contradicted",
+        "unsupportedFacts": []
+      }
+    },
+    "10-self-ledger": {
+      "rawOutputSha256": "dd88bb62c0745342b323f8754422d195ca86225a5d7557ac12223b0aba2cdae4",
+      "criteria": {
+        "collaborator-requester-target-binding": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/binding/0",
+          "reason": "Caller lower name compared to path username; collaborators.go:35-37."
+        },
+        "collaborator-three-way-guard": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "Reject requires all negative checks; collaborators.go:35-39."
+        },
+        "collaborator-current-self-allow": {
+          "status": "supported",
+          "answerLocation": "/results/0/explanation",
+          "reason": "Self makes rejection false; collaborators.go:35-39."
+        },
+        "collaborator-permission-read-after-guard": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/binding/1",
+          "reason": "Guard precedes target and permission loading; collaborators.go:36-57."
+        },
+        "collaborator-http-403-detail": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/0",
+          "reason": "Explicit403 before loading."
+        },
+        "collaborator-condition-outcomes": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/condition/1",
+          "reason": "Each allowing relation avoids rejection and all absent blocks."
+        }
+      },
+      "disposition": {
+        "status": "contradicted",
+        "answerLocation": "/results/0/conclusion",
+        "reason": "Reviewer interpreted source_refuted as inconsistent with allowed self-query."
+      },
+      "scope": {
+        "status": "supported",
+        "answerLocation": "/scopeClaim",
+        "reason": "Limits claim to declared obligations and fixed source; deployment/discovery untested."
+      },
+      "audit": {
+        "authorizationDecision": "contradicted",
+        "unsupportedFacts": []
+      }
+    },
+    "11-header-conditions": {
+      "rawOutputSha256": "8c04f675a68444ebb2e2ed1e723021a9ec7d2884924712f4301c7ba8941c6186",
+      "criteria": {
+        "password-auth-entry-gate": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/entry/0",
+          "reason": "Password-auth gate before header; auths_signin.py:11-19."
+        },
+        "trusted-header-configuration-gate": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/2",
+          "reason": "Environment-controlled name configured and present; env_trusted_headers.py:10-13; auths_signin.py:17-21."
+        },
+        "identity-binding": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/binding/1",
+          "reason": "Lowercased header email to authentication; auths_signin.py:17-22,40."
+        },
+        "authentication-and-session-condition": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/1",
+          "reason": "Truthy authenticated user required for session; auths_signin.py:40-41,59-62."
+        },
+        "deployment-facts-absent": {
+          "status": "supported",
+          "answerLocation": "/results/0/decisiveMissingFacts",
+          "reason": "Missing deployed gates, ingress/proxy, authentication outcome."
+        },
+        "conditional-capability-boundary": {
+          "status": "supported",
+          "answerLocation": "/results/0/explanation",
+          "reason": "Conditional capability separated from deployment unknown."
+        },
+        "password-auth-403-detail": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/entry/0",
+          "reason": "Explicit403 for disabled password gate."
+        },
+        "conditional-outcome-enumeration": {
+          "status": "supported",
+          "answerLocation": "/conditionAnalysis",
+          "reason": "Bounded branches enumerate gates, authentication, trusted and attacker ingress."
+        },
+        "optional-signup-path": {
+          "status": "missing",
+          "answerLocation": null,
+          "reason": "Independent reviewer reported signup_handler omitted."
+        },
+        "optional-default-none-detail": {
+          "status": "missing",
+          "answerLocation": null,
+          "reason": "No default-None statement."
+        }
+      },
+      "disposition": {
+        "status": "supported",
+        "answerLocation": "/results/0/conclusion",
+        "reason": "Matches expected disposition and described bounded source path."
+      },
+      "scope": {
+        "status": "supported",
+        "answerLocation": "/scopeClaim",
+        "reason": "Limits claim to declared obligations and fixed source; deployment/discovery untested."
+      },
+      "audit": {
+        "authorizationDecision": "supported",
+        "unsupportedFacts": []
+      }
+    },
+    "12-header-plain": {
+      "rawOutputSha256": "5e8462bd93f60d5b7f3c213284cec7b4e70ad22469958b6875cd8256282be263",
+      "criteria": {
+        "password-auth-entry-gate": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/1",
+          "reason": "Password gate precedes header; auths_signin.py:11-15."
+        },
+        "trusted-header-configuration-gate": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/condition/1",
+          "reason": "Environment header configured and present; env_trusted_headers.py:10; auths_signin.py:17-20."
+        },
+        "identity-binding": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/binding/1",
+          "reason": "Header email to authentication/session."
+        },
+        "authentication-and-session-condition": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/condition/0",
+          "reason": "Failed authentication has no session; auths_signin.py:59-62."
+        },
+        "deployment-facts-absent": {
+          "status": "supported",
+          "answerLocation": "/results/0/decisiveMissingFacts",
+          "reason": "Missing deployed gates, ingress/proxy, authentication outcome."
+        },
+        "conditional-capability-boundary": {
+          "status": "supported",
+          "answerLocation": "/results/0/explanation",
+          "reason": "Source capability separated from actual deployment."
+        },
+        "password-auth-403-detail": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/control/1",
+          "reason": "Forbidden gate before header."
+        },
+        "conditional-outcome-enumeration": {
+          "status": "supported",
+          "answerLocation": "/results/0/explanation",
+          "reason": "Independent reviewer accepted gate/authentication/unknown-ingress enumeration."
+        },
+        "optional-signup-path": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/binding/2",
+          "reason": "Missing user signup before authentication; auths_signin.py:31-38."
+        },
+        "optional-default-none-detail": {
+          "status": "supported",
+          "answerLocation": "/results/0/facts/condition/1",
+          "reason": "Independent reviewer accepted None in environment citation."
+        }
+      },
+      "disposition": {
+        "status": "supported",
+        "answerLocation": "/results/0/conclusion",
+        "reason": "Matches expected disposition and described bounded source path."
+      },
+      "scope": {
+        "status": "supported",
+        "answerLocation": "/scopeClaim",
+        "reason": "Limits claim to declared obligations and fixed source; deployment/discovery untested."
+      },
+      "audit": {
+        "authorizationDecision": "supported",
+        "unsupportedFacts": [
+          {
+            "claim": "Optional trusted group/role headers can update selected user role.",
+            "location": "/results/0/facts/condition/5",
+            "reason": "Reviewer called this out of rubric scope while acknowledging source support at auths_signin.py:42-55."
+          }
+        ]
+      }
+    }
+  }
+}

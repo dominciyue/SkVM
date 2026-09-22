@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260922T083139591Z-89d1c9b0
+Status: completed
+Task: owui-process-text-controlled
+Method: plain (explicit); requested: plain; condition request ignored: true
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- non-admin-without-kb-write-grant::post-process-text: source_refuted — The declared entry is POST /process/text, and the supplied collection name is taken from the request form. When a name is supplied, the entry invokes _validate_collection_access with access_type='write' before constructing the document or calling save_docs_to_vector_db. The principal is bound to the verified runtime caller through user=Depends(get_verified_user); the document metadata also uses user.id. The request-selected collection name is the object checked by the validator and then passed as collection_name to the write sink. The distinct checked resource is the knowledge-base record itself: for a non-admin, the shared control calls Knowledges.check_access_by_user_id(name, user.id, permission=access_type), and only if that check fails and no knowledge base exists does it allow the name as a legacy/ephemeral collection. Under the supplied condition that the selected object is an existing knowledge-base collection and the principal lacks ownership or an explicit write grant, the access check does not add the name, the existence check prevents the fallback allow, and the validator raises HTTP 403. Admins have a separate bypass branch, but the declared principal is non-admin. Thus the fixed source supports enforcement of the expected deny disposition and refutes a policy failure; the protected vector-database write is reachable only after validation, and not for this stated non-admin existing-KB/no-write-access branch. The source-external fact that could change the result is the runtime outcome of the access and existence helpers and the actual identity/role and selected collection state; the task supplies those conditions as facts, while deployment behavior and other repository entries remain untested. Bounded branches: (1) non-admin plus existing KB plus no write access: blocked with 403; (2) non-admin plus no matching KB: fallback allows a legacy/ephemeral name, so the sink may be reachable, but that is outside the declared existing-KB condition; (3) admin: bypasses the shared checks, but is outside the declared principal condition. Unexamined conditions include other routes, helper implementations, sink internals, and deployment configuration; no whole-repository completeness claim is made.
+  Evidence: POST /process/text receives the form and invokes the assessed process_text operation. (inputs/owui-process-text-controlled/retrieval_process_text.py:4-12)
+  Evidence: The operation obtains its runtime caller through the verified-user dependency, and the created document records that caller's user.id. (inputs/owui-process-text-controlled/retrieval_process_text.py:8-12)
+  Evidence: A caller-supplied collection_name is selected from form data, checked, and later used as the collection_name for the write operation. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-17, inputs/owui-process-text-controlled/retrieval_process_text.py:25-28)
+  Evidence: When the requested name is denied and corresponds to an existing knowledge base, it is not included in the allowed set; the validator raises HTTP 403 for the denied name. (inputs/owui-process-text-controlled/retrieval_access_policy.py:47-51, inputs/owui-process-text-controlled/retrieval_process_text.py:31-44)
+  Evidence: For non-admin callers targeting an ordinary name, the shared control checks access for the caller and requested permission, then allows the name only if access succeeds or if no knowledge base exists. (inputs/owui-process-text-controlled/retrieval_access_policy.py:22-25, inputs/owui-process-text-controlled/retrieval_access_policy.py:43-51)
+  Evidence: A supplied collection name is validated with write access before document creation and persistence proceeds. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-18)
+  Evidence: The vector-database persistence call receives the selected collection name only after the access-validation call. (inputs/owui-process-text-controlled/retrieval_process_text.py:19-28)
+  Evidence: The shared policy has an admin bypass, while the assessed condition requires a non-admin principal. (inputs/owui-process-text-controlled/retrieval_access_policy.py:9-24)
+  Evidence: The assessed branch is conditioned on a caller-selected existing knowledge-base collection and no ownership or explicit write grant; the source distinguishes existing knowledge bases from names with no knowledge-base record. (inputs/owui-process-text-controlled/retrieval_access_policy.py:43-51)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**V/W/X/Y/Z已结束发布，AA0–AA13已获用户授权连续执行。** Z补齐三method与compact v4，在四任务初轮观察到首答交付1/4→3/4、调用7→4，最终均3/4；header超时保留，legacy仍默认。作者36条诊断后由主代理纠正才完成原/变任务，独立编写改善仍待验证。AA将简化作者声明、补齐变更依赖、完成独立编写/修改试用与同v4方法比较，设计见§7.24。当前继续单repo/ref、显式源码与政策的授权任务，本地化I1暂缓，历史数据保留。
+**V/W/X/Y/Z结束，AA工程与实验完成，正在发布。** AA交付薄作者v2与只读变更比较；两位独立模型作者最终均完成原/变任务，首稿1/2有效。五组同v4 plain/ledger质量持平、ledger开销更高；header条件解释改善伴随一次修复，暴露的过严规则已离线修正，初轮成本不改。结论为编写/变更helper有用、运行方法按需选择，详见§7.24。继续单repo/ref、显式源码与政策的授权任务，本地化I1暂缓，历史数据保留。
 
 已经站得住的判断：
 
@@ -751,7 +751,7 @@ The single shared strict-schema revision was frozen at `2a4ca3d3`, limited to th
 
 ### 7.24 AA 作者声明、修改复用与领域价值
 
-2026-09-22用户授权写完即派发[AA0–AA13](../superpowers/plans/2026-09-22-authorization-authoring-reuse-and-value.md)，开发使用gpt-6-astra / medium。Z交付复核已新鲜通过175测试、1229断言和typecheck；本节登记下一阶段设计，尚无AA效果结果。
+2026-09-22用户授权写完即派发[AA0–AA13](../superpowers/plans/2026-09-22-authorization-authoring-reuse-and-value.md)，开发使用gpt-6-astra / medium。AA以175测试/1229断言为基线，完成作者、变更与同底座面板；本节同时保存设计、问题及最终结果。
 
 **问题与取舍。** v1作者输入仍直接要求完整canonical task；Z独立首稿的36条诊断主要暴露内部字段/嵌套知识负担。只补说明不足以证明改善，直接建设自然语言转换平台又会引入新变量。本轮选择薄作者语言v2：用户写政策、角色、资源、入口与场景，程序派生身份、默认约束、义务及条件绑定；复用原canonical/host，不创建另一套执行器。
 
@@ -766,6 +766,14 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 **维护。** AA实质问题与解决追加在本节，及时同步当前设计；结果放统一AA目录。Z结果已从文末证据索引之后归回§7.23，原机器数据及历史评分均未修改。下一执行任务沿用当前主分支，保留七项原代码修改，不扩到主动发现、目标执行或新任务类别。
 
 **AA2–AA6工程记录。** v2确定性lowering及版本分发、直接loader、init格式、原稿/normalized/provenance分存与只读compare已通过红绿测试。完整task快照补齐角色、资源、入口与公共要求；session另外绑定profile、condition request、method/wire、normalizer、全部source及prompt摘要。compare只说明适用性；同一fixed context中的任何输入变化保守影响全部场景，不按最终citation缩小。历史快照缺字段明确needs-review，V离线replay按其旧快照形状比较，绝不回填旧文件。集成测试同时暴露plain inspect把缺coverage与报告空数组误判为不一致，已统一其既有空值约定。AA6红测复现plain丢失condition request的公共分支问题；现在三method均接收相同的自然条件问题及分支上界，sidecar仍只在conditions执行，历史结果不重跑。
+
+**AA7–AA8独立作者。** 两个干净上下文模型作者只得到usage快照、完整synthetic v2、自然任务/政策和固定源码，没有canonical答案、rubric或内部schema。FastAPI原/变首稿valid；Gitea把上游247–301行误作本地58行文件的位置，首次一项诊断。共享诊断经红绿测试改成作者字段路径与本地有效行范围后，一位新干净作者接力只修原/变入口的四个行号字段。主代理字段纠正0，最终2/2作者均valid；这只是程序流程隔离，不是文件系统权限隔离或真人实验。两组普通运行各2次均一调用交付，源码/政策保持相同，Gitea跨用户→自查、FastAPI普通用户→superuser均有源码支持的deny→allow。两次compare均needs-review；Gitea场景重命名呈删除/新增，FastAPI稳定场景呈修改。作者分别改5和6条路径（含对象级场景删除/新增），没有要求重写内部ID。humanMinutes和作者/开发代理美元成本未知；不能以Z的36诊断和本轮1诊断直接作随机化可用性因果比较。
+
+**AA9初轮同v4结果。** 配置在生成前冻结，12面板与4作者单元全部生成结束才评分。面板首答schema有效12/12、完整交付11/12，最终交付12/12；实际决策与必要控制12/12正确，无观察到的误报、漏报或无依据额外事实。首答已交付full10/12，最终full11/12；未交付不从分母删除。前五组plain/ledger均5/5 full，各5调用，已知input/output分别15,442/5,733与24,392/8,347，调用耗时约325.1/400.8秒：未观察到ledger质量收益。header plain一调用（3,207/1,325 tokens，65.5秒），必要语义正确、解释partial；它未明确对照trusted-proxy-safe与attacker-header-reachable后果，也未在回答中明确HTTP403。conditions最终解释/响应细节完整，但初答未交付、诊断修复后共2调用（15,751/5,942，287.3秒）。两者均解释了可选signup，均未用答案文字说明header默认None；宿主展开的引用内容不算模型解释。完整逐项评价、首答和修复保留在[AA汇总](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-reuse-v1/summary.json)。
+
+**AA10具体共享缺陷与修订。** header首答的三个blocked分支已由关闭入口/配置/失败认证决定效果，检查器却因其他assumption=unknown强迫填写decisive missingFacts，造成一次不必要修复。新增独立反例先失败，再把要求限于effect=unknown；reachable/blocked仍必须有同义务fact pointer，语义仍unreviewed。留存首答离线重检valid，原始失败、修复及17次实际调用不改；追加付费单元0。这证明消除了一个假拒绝，不能改报“新实测一调用”。作者键中的孤立UTF-16 surrogate也由红测定位：encodeURIComponent会抛错，现先返回可定位schema诊断；合法输入lowering未变，冻结面板不重跑。
+
+**AA11复核与结论。** 三个只读独立语义复核后，主代理按具体指针裁决：self-query的source_refuted表示政策失效被反驳，不能等同deny；header signup被复核者遗漏；引用里的None/403不能代替回答文字；有源码支持的额外role/group事实不是unsupported。原复核与9项裁决分存。窄工程审查提出的drive-relative逃逸未在定向实例复现（实际missing-root，不宣称穷尽Windows边界）；所谓规则遗漏由实际prompt/task摘要覆盖。最终183测试/1337断言、typecheck通过；mock失败恢复、普通help/init/check/inspect/compare及多场景变化演示保留。全轮16分析单元、17调用，已知input64,134/output25,289/cache-read4,864/cache-write0；usage完整，actualUSD未知。普通有界任务推荐显式plain/v4；需要可检查覆盖清单选ledger，需要有界条件后果选conditions。legacy和省略method的兼容默认不变。本轮证明编写/变更helper可用、运行层存在tradeoff；不声称更广任务、真人工时、自动答案缓存或部署安全得到验证。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

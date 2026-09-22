@@ -1,0 +1,18 @@
+{
+  "repository": "https://example.test/synthetic/records",
+  "sourceRef": "synthetic-v1",
+  "sourceMode": "fixed-context",
+  "isolation": "exact-allowlist",
+  "files": [
+    {
+      "relativePath": "src/record.ts",
+      "content": "export interface Principal {\n  id: string\n  roles: string[]\n}\n\nexport interface RecordRow {\n  ownerId: string\n  archived: boolean\n}\n\nexport async function archiveRecord(principal: Principal, record: RecordRow): Promise<RecordRow> {\n  const mayArchive = record.ownerId === principal.id || principal.roles.includes(\"supervisor\")\n  if (!mayArchive) throw new Error(\"archive denied\")\n  record.archived = true\n  return record\n}\n",
+      "sha256": "31b7d185fbef382091a535b34ded09e26211369bc244b86bc2ae3decd2ed8aeb",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 16
+      },
+      "originalLocations": []
+    }
+  ]
+}

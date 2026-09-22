@@ -1,0 +1,30 @@
+Authorization assessment
+Session: 20260922T083448497Z-b39eab54
+Status: completed
+Task: gitea-collaborator-cross-user-permission
+Method: ledger (explicit); requested: ledger; condition request ignored: true
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- deny-cross-user-permission-query::get-collaborator-permission: source_refuted — For the fixed entry and bounded conditions, the source enforces the declared deny expectation: the caller is authenticated/read-only, is neither site nor repository administrator, and requests a different collaborator. The entry's guard permits only site administrators, self-queries, or repository administrators; otherwise it returns HTTP 403 before loading the target collaborator. The permission lookup and JSON response are therefore unreachable for the assessed cross-user case.
+  Evidence: The assessed operation is the GET repository-collaborator permission handler, whose path selects a collaborator username and declares a forbidden response. (collaborators.go:4-35)
+  Evidence: The runtime caller is represented by ctx.Doer; the authorization guard evaluates ctx.Doer.IsAdmin and ctx.Doer.LowerName against the requested collaborator username. (collaborators.go:35-39)
+  Evidence: The path collaborator parameter is assigned to collaboratorUsername and is used to load the selected user, while the repository resource is independently taken from ctx.Repo.Repository for the permission query; the selected collaborator is distinct from the requesting identity in the bounded scenario. (collaborators.go:22-25, collaborators.go:35-41, collaborators.go:51-51)
+  Evidence: The guard rejects when the caller is not a site administrator, does not match the requested collaborator username, and is not a repository administrator; it returns HTTP 403 and stops before target loading. (collaborators.go:35-39)
+  Evidence: Only after the guard does the handler load the collaborator, obtain that user's repository permission, and return the permission-bearing HTTP 200 response. (collaborators.go:41-58)
+  Evidence: The fixed policy scenario specifies an authenticated repository-read collaborator who is neither site nor repository administrator and queries a different existing collaborator. (policy.json:6-8)
+  Evidence: The normative policy identifies the three permitting branches as site administrator, repository administrator, or querying the caller's own username; absent those relations, rejection occurs before target loading. (policy.json:6-6)
+  Evidence: A different deployed revision, route, or deployment could produce a different real-world result, but that is outside this fixed-source assessment; the supplied policy limits the claim to the declared fixed source entry. (policy.json:4-8)
+
+Coverage
+- authorization-core-v1.authorization-decision × deny-cross-user-permission-query::get-collaborator-permission: addressed — The identity and resource bindings feed a visible guard with three branches: site administrator, self-query, or repository administrator. All three are false in the bounded scenario, so the strongest source-visible decision is HTTP 403 denial before target loading.
+- authorization-core-v1.effect-reachability × deny-cross-user-permission-query::get-collaborator-permission: addressed — The protected collaborator lookup, repository-permission lookup, and permission response occur after the rejecting guard. They are unreachable in the cross-user non-admin branch, while they are reachable only when one of the guard's permitting branches holds.
+- authorization-core-v1.entry-control × deny-cross-user-permission-query::get-collaborator-permission: addressed — The entry is gated by the conditional at the start of the handler, which can return HTTP 403 before the target collaborator is loaded.
+- authorization-core-v1.external-assumption × deny-cross-user-permission-query::get-collaborator-permission: addressed — No external fact is needed to decide the fixed-source obligation. A live deployment differing from the supplied revision or route could change a deployment-level answer, but deployment behavior is expressly outside this fixed-source scope.
+- authorization-core-v1.identity-binding × deny-cross-user-permission-query::get-collaborator-permission: addressed — The handler binds authorization to the runtime caller through ctx.Doer.IsAdmin and ctx.Doer.LowerName, comparing the latter with the request-selected collaborator username.
+- authorization-core-v1.resource-binding × deny-cross-user-permission-query::get-collaborator-permission: addressed — The collaborator path parameter selects the target user, while ctx.Repo.Repository supplies the repository whose permission is queried. The bounded relation keeps the target collaborator different from the caller.
+
+Condition analysis
+- Not requested or not delivered.

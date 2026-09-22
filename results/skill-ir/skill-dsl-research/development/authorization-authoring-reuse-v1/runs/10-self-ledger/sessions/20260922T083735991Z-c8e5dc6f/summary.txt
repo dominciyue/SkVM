@@ -1,0 +1,29 @@
+Authorization assessment
+Session: 20260922T083735991Z-c8e5dc6f
+Status: completed
+Task: gitea-collaborator-self-permission
+Method: ledger (explicit); requested: ledger; condition request ignored: true
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- allow-self-permission-query::get-collaborator-permission: source_refuted — The fixed source supports enforcement of the declared allow expectation for the bounded self-query. The entry identifies the path collaborator as the username whose permissions are requested; the control rejects only when the caller is neither a site administrator, nor querying their own username, nor a repository administrator. Under the declared conditions, authentication and self-identity are fixed, while both administrator conditions are false, so the rejection predicate is false. The request therefore proceeds past the 403 gate, loads the path-selected collaborator, reads that user's permission for ctx.Repo.Repository, and returns the permission response. Bounded branches: (1) self query with neither admin role: reachable and allowed; (2) repository administrator: reachable through the repository-admin branch; (3) site administrator: reachable through the site-admin branch; (4) authenticated non-admin querying another username: blocked with 403 before target lookup. The source does not establish deployment-wide or repository-wide completeness, and no source-external fact is needed to decide this fixed entry and supplied condition set.
+  Evidence: The assessed operation is the GET repository-collaborator-permission entry, and its path collaborator parameter denotes the username whose permissions are obtained. (collaborators.go:4-35)
+  Evidence: The runtime caller is represented by ctx.Doer; the gate compares ctx.Doer.LowerName with the request path collaborator username and also checks ctx.Doer.IsAdmin. (collaborators.go:35-37)
+  Evidence: The request-selected collaborator is resolved from collaboratorUsername, while the permission lookup uses that collaborator together with ctx.Repo.Repository; the repository resource and target user are separate checked objects. (collaborators.go:35-52)
+  Evidence: The entry returns HTTP 403 before loading the target user only when the caller is not a site administrator, the path username is not the caller's own name, and the caller is not a repository administrator for the repository. (collaborators.go:35-39)
+  Evidence: When the gate is passed and the target user is found, the operation reads the individual user's permission for the repository and returns HTTP 200 with the collaborator and permission access mode. (collaborators.go:41-57)
+  Evidence: The fixed policy scenario supplies an authenticated collaborator with repository read access, no site-admin or repository-admin role, querying their own username; the policy permits the self-query branch and limits the claim to this fixed entry. (policy.json:6-8)
+  Evidence: The source-visible decision has three allowing relations—site administrator, repository administrator, or own username—and rejects the remaining relation before target loading. (policy.json:6-7)
+
+Coverage
+- authorization-core-v1.authorization-decision × allow-self-permission-query::get-collaborator-permission: addressed — The identity and resource bindings are visible, and the strongest control is explicit: the self-username branch independently makes the rejection predicate false even though both administrator branches are false. The declared allow expectation is therefore enforced for the bounded principal and resource relation.
+- authorization-core-v1.effect-reachability × allow-self-permission-query::get-collaborator-permission: addressed — Because the self-query branch passes the 403 gate, the source-visible path reaches target lookup, repository-specific permission retrieval, and the HTTP 200 permission response, subject to the supplied existing-collaborator condition.
+- authorization-core-v1.entry-control × allow-self-permission-query::get-collaborator-permission: addressed — The entry is gated by a conjunction of three negative checks: not site administrator, not querying the caller's own username, and not repository administrator. A true self-username relation prevents that conjunction from holding and avoids the 403 return.
+- authorization-core-v1.external-assumption × allow-self-permission-query::get-collaborator-permission: not-applicable — No source-external fact is needed for this bounded fixed-source decision: the relevant authentication, self-identity, administrator-role values, and existing-collaborator condition are supplied by the declaration, while deployment-wide claims are outside scope.
+- authorization-core-v1.identity-binding × allow-self-permission-query::get-collaborator-permission: addressed — The source binds the declared caller identity to ctx.Doer.LowerName and evaluates it against the path collaborator username, while separately checking ctx.Doer.IsAdmin; the bounded scenario supplies that the path username is the caller's own username.
+- authorization-core-v1.resource-binding × allow-self-permission-query::get-collaborator-permission: addressed — The path-selected collaborator is loaded as the target user, and the protected permission effect is computed for that user against ctx.Repo.Repository. Thus the target collaborator and repository context remain distinct resource inputs.
+
+Condition analysis
+- Not requested or not delivered.

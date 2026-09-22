@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260922T083633864Z-26ab4bd8
+Status: completed
+Task: gitea-collaborator-self-permission
+Method: plain (explicit); requested: plain; condition request ignored: true
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- allow-self-permission-query::get-collaborator-permission: source_refuted — The declared allow expectation is enforced by the fixed source for the bounded self-query. The GET entry reads the path-selected collaborator username. Before loading the target collaborator, the authorization guard permits the request if the runtime caller is a site administrator, the username matches the caller's identity case-insensitively, or the caller is a repository administrator; otherwise it returns HTTP 403. In the bounded scenario, requester-is-target-collaborator is true, while requester-is-repository-admin and requester-is-site-admin are false, so the self-identity branch is the decisive reachable branch. Repository read/collaborator access is not treated as repository-administrator permission, but it does not matter once the self branch holds. The selected username is then resolved to a user, and the permission lookup uses the repository resource together with that resolved collaborator; the repository remains a distinct checked resource from the target user. With the declared target-exists condition, the lookup can proceed and the operation reaches the protected HTTP 200 permission response, subject to the source-visible user lookup and permission-lookup error branches. No source-external fact changes this bounded source decision: deployment behavior, other endpoints, and repository-wide completeness are outside scope and remain untested rather than inferred. The bounded comparison is: self=true/admin=false/site-admin=false reaches the permission response; self=false/admin=false/site-admin=false is blocked by HTTP 403 before target loading; self=false/admin=true is allowed through the guard; self=false/admin=false/site-admin=true is allowed through the guard. These are the requested non-exhaustive branches; user existence and permission lookup success are separately required for the success effect, while the scenario supplies target existence. No decisive missing fact remains for the declared branch.
+  Evidence: The assessed source entry is the GET operation that obtains repository permissions for the path-selected collaborator username. (collaborators.go:4-35)
+  Evidence: The guard binds authorization to runtime caller attributes ctx.Doer.IsAdmin, ctx.Doer.LowerName, and ctx.IsUserRepoAdmin, while the request-selected identity is collaboratorUsername from the path. (collaborators.go:35-37)
+  Evidence: The path username is resolved to a collaborator user, and the permission operation combines that user with ctx.Repo.Repository; the selected target user and repository resource remain distinct. (collaborators.go:41-52)
+  Evidence: The request is rejected with HTTP 403 before target loading only when the caller is neither a site administrator, nor querying their own username, nor a repository administrator; otherwise execution proceeds past the guard. (collaborators.go:35-49)
+  Evidence: After successful target resolution and permission lookup, the protected effect is an HTTP 200 JSON response containing the collaborator and permission access mode. (collaborators.go:51-58)
+  Evidence: The accepted bounded policy states that self-query, site-administrator, and repository-administrator relations allow the query, while the supplied scenario fixes an authenticated read collaborator as self-querying and neither administrator role. (policy.json:6-8)
+  Evidence: The bounded scenario fixes an existing collaborator, so the target permission read is defined; source-visible user lookup and permission lookup can still produce their shown error branches if they fail. (collaborators.go:41-55)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

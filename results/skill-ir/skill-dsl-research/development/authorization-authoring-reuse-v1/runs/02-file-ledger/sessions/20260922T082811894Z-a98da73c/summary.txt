@@ -1,0 +1,32 @@
+Authorization assessment
+Session: 20260922T082811894Z-a98da73c
+Status: completed
+Task: owui-process-file-write
+Method: ledger (explicit); requested: ledger; condition request ignored: true
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- file-owner-without-destination-write-grant::post-process-file: source_supported_failure — The fixed source supports failure of the declared deny expectation. A verified user is required at entry, and a non-admin file lookup is restricted to the caller's user ID, but the supplied collection_name is accepted and passed to save_docs_to_vector_db without a target-knowledge-base ownership or write-grant check. The selected name then reaches VECTOR_DB_CLIENT.insert. The admin branch is not the assessed branch; under the supplied non-admin and caller-selected-existing-collection conditions, file ownership is the only visible resource check and it remains distinct from destination authorization.
+  Evidence: POST /process/file is entered with ProcessFileForm and a verified-user dependency. (inputs/owui-process-file-write/retrieval_process_file.py:21-33)
+  Evidence: The runtime user is the verified caller supplied by get_verified_user; for a non-admin, the file lookup binds file access to user.id. (inputs/owui-process-file-write/retrieval_process_file.py:31-45)
+  Evidence: The request-selected collection object is represented by form_data.collection_name and is copied to collection_name; the separately checked resource is the source file selected by file_id and, on the non-admin branch, user.id. (inputs/owui-process-file-write/retrieval_process_file.py:21-24, inputs/owui-process-file-write/retrieval_process_file.py:40-50)
+  Evidence: The visible non-admin control checks ownership of the supplied file, while the source explicitly states that the cropped loading and update region contains no call authorizing collection_name. (inputs/owui-process-file-write/retrieval_process_file.py:40-45, inputs/owui-process-file-write/retrieval_process_file.py:52-53)
+  Evidence: When a caller supplies collection_name, the operation sets add to true and invokes the write path; no destination ownership or explicit-write-grant branch is visible in the supplied crop. (inputs/owui-process-file-write/retrieval_process_file.py:47-50, inputs/owui-process-file-write/retrieval_process_file.py:62-73)
+  Evidence: The selected collection_name is passed into save_docs_to_vector_db, whose visible sink calls VECTOR_DB_CLIENT.insert with that collection_name and the generated items. (inputs/owui-process-file-write/retrieval_process_file.py:14-18, inputs/owui-process-file-write/retrieval_process_file.py:62-74)
+  Evidence: After the visible controls, the requested content-write effect is reachable on the non-admin file-owner branch through the call to save_docs_to_vector_db and onward to VECTOR_DB_CLIENT.insert. (inputs/owui-process-file-write/retrieval_process_file.py:62-74, inputs/owui-process-file-write/retrieval_process_file.py:14-18)
+  Evidence: The caller-selected collection condition is represented by using form_data.collection_name when present; the admin-only branch is distinct from the assessed non-admin branch. (inputs/owui-process-file-write/retrieval_process_file.py:40-50)
+  Unknown: Whether an unshown implementation behind VECTOR_DB_CLIENT.insert or external storage layer independently enforces destination collection ownership or an explicit write grant.
+  Unknown: Whether the supplied existing collection name resolves to a writable backend collection in the deployed environment; the task supplies existence but not backend enforcement behavior.
+
+Coverage
+- authorization-core-v1.authorization-decision × file-owner-without-destination-write-grant::post-process-file: addressed — The strongest visible authorization decision is file access for the non-admin caller's own file, with no visible authorization decision for the selected destination collection; therefore the declared destination-write denial is not enforced in this entry path.
+- authorization-core-v1.effect-reachability × file-owner-without-destination-write-grant::post-process-file: addressed — The selected collection name reaches save_docs_to_vector_db and the visible VECTOR_DB_CLIENT.insert sink after the file check, on the non-admin branch when the supplied file exists.
+- authorization-core-v1.entry-control × file-owner-without-destination-write-grant::post-process-file: addressed — Entry is gated by the verified-user dependency and then by a file lookup; non-admin lookup requires the file ID and the verified user's ID. No destination-specific gate is visible before the assessed write path.
+- authorization-core-v1.external-assumption × file-owner-without-destination-write-grant::post-process-file: addressed — The source-visible result is failure of the declared policy expectation, but actual acceptance could still be changed by an unshown downstream or deployment-level authorization check at the vector-store boundary. That enforcement fact is not supplied in this fixed context.
+- authorization-core-v1.identity-binding × file-owner-without-destination-write-grant::post-process-file: addressed — The operation uses the identity returned by get_verified_user; the non-admin file query explicitly binds the source-file check to user.id.
+- authorization-core-v1.resource-binding × file-owner-without-destination-write-grant::post-process-file: addressed — The request-selected destination is form_data.collection_name, while the visible checked resource is the source file identified by file_id and, for non-admins, constrained by user.id. The two authorization subjects are not conflated by a visible destination check.
+
+Condition analysis
+- Not requested or not delivered.

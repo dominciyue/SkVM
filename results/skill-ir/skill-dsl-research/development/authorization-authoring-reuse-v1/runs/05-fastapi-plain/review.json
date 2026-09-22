@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "fastapi-items-foreign-update",
+  "taskId": "fastapi-items-foreign-update",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "a98aee4065b8de1c4024ba4ba0f40072227e0b2dad4ecc5580b2634a4043fe3f",
+  "rubricVersion": "fastapi-items-foreign-update/v2",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "AA-development-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "update-current-user-binding",
+      "status": "supported",
+      "reason": "Binds current_user role/id; items.py:77-90.",
+      "answerLocation": "/results/0/facts/binding/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 75,
+          "endLine": 86
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/0"
+    },
+    {
+      "criterionId": "foreign-item-binding",
+      "status": "supported",
+      "reason": "session.get(Item,id) selects object and owner comparison; items.py:86-90.",
+      "answerLocation": "/results/0/facts/binding/1",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 80,
+          "endLine": 90
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/1"
+    },
+    {
+      "criterionId": "non-superuser-foreign-update-decision",
+      "status": "supported",
+      "reason": "Non-superuser owner mismatch rejected before mutation; items.py:86-90.",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 89,
+          "endLine": 90
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/2"
+    },
+    {
+      "criterionId": "update-effect-after-guard",
+      "status": "supported",
+      "reason": "Update/commit/refresh after guard; items.py:91-96.",
+      "answerLocation": "/results/0/facts/effect/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 89,
+          "endLine": 96
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/3"
+    },
+    {
+      "criterionId": "update-http-403-detail",
+      "status": "supported",
+      "reason": "Explicit HTTP403; items.py:89-90.",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 89,
+          "endLine": 90
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/2"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "Matches expected disposition and described bounded source path.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "items.py",
+        "startLine": 75,
+        "endLine": 96
+      }
+    ],
+    "oracleRule": "second-project/evaluator/rubric.json#/cases/0"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "Limits claim to declared obligations and fixed source; deployment/discovery untested.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "task.json",
+        "startLine": 18,
+        "endLine": 47
+      },
+      {
+        "path": "items.py",
+        "startLine": 75,
+        "endLine": 96
+      }
+    ],
+    "oracleRule": "second-project/evaluator/rubric.json#/limits"
+  }
+}

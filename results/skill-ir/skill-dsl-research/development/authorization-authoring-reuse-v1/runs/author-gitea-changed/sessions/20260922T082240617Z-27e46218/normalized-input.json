@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "authorization-assessment-input/v1",
+  "sourceIdentity": {
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b"
+  },
+  "sourceRoot": "source",
+  "sources": [
+    "collaborators.go"
+  ],
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "gitea-collaborator-permission",
+    "request": "May an authenticated repository-read collaborator who is neither a site administrator nor a repository administrator query their own repository permission?",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:collaborator-permission",
+        "kind": "explicit-task-requirement",
+        "text": "A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.",
+        "location": "source/policy.json#/normativePolicy",
+        "revision": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The supplied policy metadata states the accepted bounded rule for the fixed source entry."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:caller",
+        "role": "authenticated repository-read collaborator",
+        "description": "Author facts: [\"Authenticated\",\"Has repository read access\",\"Is a collaborator\",\"Is not a site administrator\",\"Is not a repository administrator\",\"Queries their own username\"]",
+        "startingCapabilities": [
+          "authenticated",
+          "repository-read",
+          "collaborator"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:collaborator-permission",
+        "type": "repository collaborator permission",
+        "description": "Author facts: [\"Existing collaborator account whose username equals the caller's username\",\"Repository permission queried through the collaborator permission endpoint\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:get-repo-permissions",
+        "name": "GetRepoPermissions",
+        "locations": [
+          {
+            "path": "collaborators.go",
+            "startLine": 1,
+            "endLine": 58
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:self-query",
+        "principalId": "principal:caller",
+        "resourceId": "resource:collaborator-permission",
+        "relation": "caller-username-equals-collaborator-username",
+        "operation": "GET collaborator repository permission",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:collaborator-permission",
+        "entryIds": [
+          "entry:get-repo-permissions"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+    ]
+  },
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "analysisRequirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:self-query"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:self-query"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:self-query"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:self-query"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:self-query"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:self-query"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ]
+}

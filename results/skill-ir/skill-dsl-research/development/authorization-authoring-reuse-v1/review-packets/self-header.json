@@ -1,0 +1,1512 @@
+{
+  "instructions": "All generation closed. Independently judge actual answer claims against source and frozen criteria. Field existence alone earns no credit. Report unsupported extra facts too.",
+  "cases": [
+    {
+      "caseId": "self",
+      "task": {
+        "schemaVersion": "source-authorization-assessment/v0",
+        "taskId": "gitea-collaborator-self-permission",
+        "request": "Determine whether an authenticated read collaborator who is neither a repository administrator nor a site administrator may query their own repository permission through GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission.",
+        "repository": "https://github.com/go-gitea/gitea",
+        "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+        "sourceMode": "fixed-context",
+        "policySources": [
+          {
+            "id": "collaborator-permission-query-policy",
+            "kind": "study-task-author-policy-from-public-source",
+            "text": "A caller may query a collaborator's repository permission only when the caller is a site administrator, is a repository administrator, or is querying their own username; otherwise the endpoint rejects the request before loading the target collaborator.",
+            "location": "policy.json#/normativePolicy",
+            "revision": "gitea@fc28937:routers/api/v1/repo/collaborators.go#L247-L301",
+            "acceptance": {
+              "status": "accepted",
+              "actorRole": "study-task-author",
+              "reason": "The fixed public source states this bounded endpoint policy and rejection branch explicitly."
+            }
+          }
+        ],
+        "principals": [
+          {
+            "id": "authenticated-self-collaborator",
+            "role": "authenticated repository read collaborator",
+            "description": "A repository collaborator with read access who queries their own username and is neither a repository administrator nor a site administrator.",
+            "startingCapabilities": [
+              "authenticated",
+              "repository-read",
+              "repository-collaborator"
+            ]
+          }
+        ],
+        "resources": [
+          {
+            "id": "own-collaborator-permission",
+            "type": "repository collaborator permission",
+            "description": "The caller's own collaborator permission record in the same repository."
+          }
+        ],
+        "entries": [
+          {
+            "id": "get-collaborator-permission",
+            "name": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+            "locations": [
+              {
+                "path": "collaborators.go",
+                "startLine": 4,
+                "endLine": 58
+              }
+            ]
+          }
+        ],
+        "obligations": [
+          {
+            "id": "allow-self-permission-query",
+            "principalId": "authenticated-self-collaborator",
+            "resourceId": "own-collaborator-permission",
+            "relation": "same-collaborator-self-query-without-admin-role",
+            "operation": "read-collaborator-permission",
+            "expectation": "allow",
+            "conditions": [
+              {
+                "name": "requester-authenticated",
+                "basis": "The bounded scenario fixes the requester as authenticated."
+              },
+              {
+                "name": "requester-is-target-collaborator",
+                "basis": "True in the bounded scenario: the path username is the requester's own username."
+              },
+              {
+                "name": "requester-is-repository-admin",
+                "basis": "False in the bounded scenario: the requester has read collaborator access only."
+              },
+              {
+                "name": "requester-is-site-admin",
+                "basis": "False in the bounded scenario."
+              },
+              {
+                "name": "target-collaborator-exists",
+                "basis": "The bounded scenario fixes the requester as an existing collaborator so the permission read is defined."
+              }
+            ],
+            "policySourceId": "collaborator-permission-query-policy",
+            "entryIds": [
+              "get-collaborator-permission"
+            ]
+          }
+        ],
+        "scopeAssurance": "The fixed crop contains the declared GET entry, its self/repository-admin/site-admin decision, the HTTP 403 branch, target lookup, and permission response. No other Gitea endpoint or deployment is assessed.",
+        "requiredAnalysis": [
+          "Trace the declared principal, resource relation, authorization control, and protected effect through the supplied fixed source.",
+          "State any decisive fact unavailable from the fixed source instead of inferring it, and explain how the declared conditions change reachability."
+        ],
+        "constraints": [
+          "Use only policy.json and collaborators.go from the supplied fixed source context.",
+          "Do not execute or modify Gitea and do not contact a deployment.",
+          "Distinguish repository read access from repository administrator permission."
+        ]
+      },
+      "rubric": {
+        "caseId": "gitea-collaborator-self-permission",
+        "taskId": "gitea-collaborator-self-permission",
+        "rubricVersion": "gitea-self-query-aa/v3",
+        "obligationId": "allow-self-permission-query::get-collaborator-permission",
+        "expectedDisposition": "source_refuted",
+        "dispositionRule": {
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/expectedDisposition",
+          "sourceLocations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 35,
+              "endLine": 57
+            }
+          ]
+        },
+        "scopeRule": {
+          "oracleRule": "oracle-evidence-v1.json#/limits",
+          "sourceLocations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 35,
+              "endLine": 57
+            }
+          ]
+        },
+        "criteria": [
+          {
+            "id": "collaborator-requester-target-binding",
+            "layer": "necessary-semantics",
+            "requirement": "Bind the requester to ctx.Doer and the requested collaborator to the collaborator path parameter used in the username comparison.",
+            "decisionRelevance": "The self-versus-other relation cannot be evaluated without connecting both identities to the guard.",
+            "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/0",
+            "sourceLocations": [
+              {
+                "path": "collaborators.go",
+                "startLine": 35,
+                "endLine": 36
+              }
+            ]
+          },
+          {
+            "id": "collaborator-three-way-guard",
+            "layer": "necessary-semantics",
+            "requirement": "State that rejection requires all three facts: not site admin, not the target username, and not repository admin.",
+            "decisionRelevance": "This conjunctive guard is the strongest visible authorization decision for the declared query.",
+            "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/1",
+            "sourceLocations": [
+              {
+                "path": "collaborators.go",
+                "startLine": 35,
+                "endLine": 39
+              }
+            ]
+          },
+          {
+            "id": "collaborator-current-self-allow",
+            "layer": "necessary-semantics",
+            "requirement": "Apply the self username equality to show the denial conjunction is false even for a non-site/non-repository administrator, permitting permission lookup and response subject to ordinary lookup errors.",
+            "decisionRelevance": "The declared allow expectation is enforced by the self exception.",
+            "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/2",
+            "sourceLocations": [
+              {
+                "path": "collaborators.go",
+                "startLine": 35,
+                "endLine": 39
+              }
+            ]
+          },
+          {
+            "id": "collaborator-permission-read-after-guard",
+            "layer": "necessary-semantics",
+            "requirement": "State that target lookup, permission loading, and the permission response occur only after a caller survives the authorization guard.",
+            "decisionRelevance": "This establishes that the bounded denied branch cannot reach the protected read effect.",
+            "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/3",
+            "sourceLocations": [
+              {
+                "path": "collaborators.go",
+                "startLine": 36,
+                "endLine": 57
+              }
+            ]
+          },
+          {
+            "id": "collaborator-http-403-detail",
+            "layer": "explanation-completeness",
+            "requirement": "Identify the explicit HTTP 403 response on the rejected branch before target lookup.",
+            "decisionRelevance": "The response completes the control-flow explanation but does not independently determine the policy result.",
+            "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/2",
+            "sourceLocations": [
+              {
+                "path": "collaborators.go",
+                "startLine": 36,
+                "endLine": 39
+              }
+            ]
+          },
+          {
+            "id": "collaborator-condition-outcomes",
+            "layer": "explanation-completeness",
+            "requirement": "Explain that self-query, repository-admin, or site-admin status independently avoids this guard's rejection, while all three absent blocks the read.",
+            "decisionRelevance": "This is the bounded condition-change explanation shared by P and C evaluation.",
+            "oracleRule": "oracle-evidence-v1.json#/cases/0/conditionExplanation",
+            "sourceLocations": [
+              {
+                "path": "collaborators.go",
+                "startLine": 35,
+                "endLine": 39
+              }
+            ]
+          }
+        ],
+        "responseDetails": {
+          "criterionIds": [
+            "collaborator-http-403-detail"
+          ],
+          "requiredCriterionIds": [],
+          "basis": "The unchanged public request asks authorization and effect reachability, not an exact HTTP response; response status does not change that property. Explicit status remains separately scored."
+        }
+      },
+      "sources": {
+        "repository": "https://github.com/go-gitea/gitea",
+        "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+        "sourceMode": "fixed-context",
+        "isolation": "exact-allowlist",
+        "files": [
+          {
+            "relativePath": "policy.json",
+            "content": "{\n  \"schemaVersion\": \"authorization-migration-public-policy/v1\",\n  \"repository\": \"https://github.com/go-gitea/gitea\",\n  \"sourceRef\": \"fc28937a8d772fe9e4025c9b5f24d5db4d86610b\",\n  \"upstreamSource\": \"routers/api/v1/repo/collaborators.go#L247-L301\",\n  \"normativePolicy\": \"A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.\",\n  \"boundedScenario\": \"The caller is authenticated and has repository read access, is a collaborator, is not a site or repository administrator, and queries their own collaborator permission.\",\n  \"claimBoundary\": \"This policy is accepted for the declared fixed source entry only. It is not a claim about every Gitea version, endpoint, or deployment.\"\n}\n",
+            "sha256": "c60117f32578b284ac3b02fdd6e45423ab5ef409286f413b02111c9e328b91b6",
+            "cropRange": {
+              "startLine": 1,
+              "endLine": 9
+            },
+            "originalLocations": []
+          },
+          {
+            "relativePath": "collaborators.go",
+            "content": "// Fixed excerpt from go-gitea/gitea at fc28937a8d772fe9e4025c9b5f24d5db4d86610b.\n// Original path and range: routers/api/v1/repo/collaborators.go:247-301.\n\n// GetRepoPermissions gets repository permissions for a user\nfunc GetRepoPermissions(ctx *context.APIContext) {\n\t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions\n\t// ---\n\t// summary: Get repository permissions for a user\n\t// produces:\n\t// - application/json\n\t// parameters:\n\t// - name: owner\n\t//   in: path\n\t//   description: owner of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: repo\n\t//   in: path\n\t//   description: name of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: collaborator\n\t//   in: path\n\t//   description: username of the collaborator whose permissions are to be obtained\n\t//   type: string\n\t//   required: true\n\t// responses:\n\t//   \"200\":\n\t//     \"$ref\": \"#/responses/RepoCollaboratorPermission\"\n\t//   \"404\":\n\t//     \"$ref\": \"#/responses/notFound\"\n\t//   \"403\":\n\t//     \"$ref\": \"#/responses/forbidden\"\n\n\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}\n\n\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}\n\n\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))\n}\n",
+            "sha256": "edbacf431c736f78e6e5beef3c6329ff89210a6463438cedc0be48cdc246a012",
+            "cropRange": {
+              "startLine": 1,
+              "endLine": 58
+            },
+            "originalLocations": []
+          }
+        ]
+      },
+      "answers": [
+        {
+          "unitId": "09-self-plain",
+          "status": "completed",
+          "rawOutputSha256": "e83acba00d54be98b54c1c77701b4bc38f14cfb12d62aeb0f91891b16dfdad87",
+          "canonicalResult": {
+            "schemaVersion": "source-authorization-assessment-result/v0",
+            "taskId": "gitea-collaborator-self-permission",
+            "repository": "https://github.com/go-gitea/gitea",
+            "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+            "results": [
+              {
+                "obligationId": "allow-self-permission-query::get-collaborator-permission",
+                "conclusion": "source_refuted",
+                "explanation": "The declared allow expectation is enforced by the fixed source for the bounded self-query. The GET entry reads the path-selected collaborator username. Before loading the target collaborator, the authorization guard permits the request if the runtime caller is a site administrator, the username matches the caller's identity case-insensitively, or the caller is a repository administrator; otherwise it returns HTTP 403. In the bounded scenario, requester-is-target-collaborator is true, while requester-is-repository-admin and requester-is-site-admin are false, so the self-identity branch is the decisive reachable branch. Repository read/collaborator access is not treated as repository-administrator permission, but it does not matter once the self branch holds. The selected username is then resolved to a user, and the permission lookup uses the repository resource together with that resolved collaborator; the repository remains a distinct checked resource from the target user. With the declared target-exists condition, the lookup can proceed and the operation reaches the protected HTTP 200 permission response, subject to the source-visible user lookup and permission-lookup error branches. No source-external fact changes this bounded source decision: deployment behavior, other endpoints, and repository-wide completeness are outside scope and remain untested rather than inferred. The bounded comparison is: self=true/admin=false/site-admin=false reaches the permission response; self=false/admin=false/site-admin=false is blocked by HTTP 403 before target loading; self=false/admin=true is allowed through the guard; self=false/admin=false/site-admin=true is allowed through the guard. These are the requested non-exhaustive branches; user existence and permission lookup success are separately required for the success effect, while the scenario supplies target existence. No decisive missing fact remains for the declared branch.",
+                "facts": {
+                  "entry": [
+                    {
+                      "statement": "The assessed source entry is the GET operation that obtains repository permissions for the path-selected collaborator username.",
+                      "citations": [
+                        {
+                          "path": "collaborators.go",
+                          "startLine": 4,
+                          "endLine": 35,
+                          "quote": "// GetRepoPermissions gets repository permissions for a user\nfunc GetRepoPermissions(ctx *context.APIContext) {\n\t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions\n\t// ---\n\t// summary: Get repository permissions for a user\n\t// produces:\n\t// - application/json\n\t// parameters:\n\t// - name: owner\n\t//   in: path\n\t//   description: owner of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: repo\n\t//   in: path\n\t//   description: name of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: collaborator\n\t//   in: path\n\t//   description: username of the collaborator whose permissions are to be obtained\n\t//   type: string\n\t//   required: true\n\t// responses:\n\t//   \"200\":\n\t//     \"$ref\": \"#/responses/RepoCollaboratorPermission\"\n\t//   \"404\":\n\t//     \"$ref\": \"#/responses/notFound\"\n\t//   \"403\":\n\t//     \"$ref\": \"#/responses/forbidden\"\n\n\tcollaboratorUsername := ctx.PathParam(\"collaborator\")"
+                        }
+                      ]
+                    }
+                  ],
+                  "binding": [
+                    {
+                      "statement": "The guard binds authorization to runtime caller attributes ctx.Doer.IsAdmin, ctx.Doer.LowerName, and ctx.IsUserRepoAdmin, while the request-selected identity is collaboratorUsername from the path.",
+                      "citations": [
+                        {
+                          "path": "collaborators.go",
+                          "startLine": 35,
+                          "endLine": 37,
+                          "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")"
+                        }
+                      ]
+                    },
+                    {
+                      "statement": "The path username is resolved to a collaborator user, and the permission operation combines that user with ctx.Repo.Repository; the selected target user and repository resource remain distinct.",
+                      "citations": [
+                        {
+                          "path": "collaborators.go",
+                          "startLine": 41,
+                          "endLine": 52,
+                          "quote": "\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}\n\n\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {"
+                        }
+                      ]
+                    }
+                  ],
+                  "control": [
+                    {
+                      "statement": "The request is rejected with HTTP 403 before target loading only when the caller is neither a site administrator, nor querying their own username, nor a repository administrator; otherwise execution proceeds past the guard.",
+                      "citations": [
+                        {
+                          "path": "collaborators.go",
+                          "startLine": 35,
+                          "endLine": 49,
+                          "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}\n\n\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}"
+                        }
+                      ]
+                    }
+                  ],
+                  "effect": [
+                    {
+                      "statement": "After successful target resolution and permission lookup, the protected effect is an HTTP 200 JSON response containing the collaborator and permission access mode.",
+                      "citations": [
+                        {
+                          "path": "collaborators.go",
+                          "startLine": 51,
+                          "endLine": 58,
+                          "quote": "\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))\n}"
+                        }
+                      ]
+                    }
+                  ],
+                  "condition": [
+                    {
+                      "statement": "The accepted bounded policy states that self-query, site-administrator, and repository-administrator relations allow the query, while the supplied scenario fixes an authenticated read collaborator as self-querying and neither administrator role.",
+                      "citations": [
+                        {
+                          "path": "policy.json",
+                          "startLine": 6,
+                          "endLine": 8,
+                          "quote": "  \"normativePolicy\": \"A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.\",\n  \"boundedScenario\": \"The caller is authenticated and has repository read access, is a collaborator, is not a site or repository administrator, and queries their own collaborator permission.\",\n  \"claimBoundary\": \"This policy is accepted for the declared fixed source entry only. It is not a claim about every Gitea version, endpoint, or deployment.\""
+                        }
+                      ]
+                    },
+                    {
+                      "statement": "The bounded scenario fixes an existing collaborator, so the target permission read is defined; source-visible user lookup and permission lookup can still produce their shown error branches if they fail.",
+                      "citations": [
+                        {
+                          "path": "collaborators.go",
+                          "startLine": 41,
+                          "endLine": 55,
+                          "quote": "\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}\n\n\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "decisiveMissingFacts": [],
+                "suggestedObservations": []
+              }
+            ],
+            "scopeClaim": {
+              "kind": "declared-obligations-only",
+              "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+            }
+          }
+        },
+        {
+          "unitId": "10-self-ledger",
+          "status": "completed",
+          "rawOutputSha256": "dd88bb62c0745342b323f8754422d195ca86225a5d7557ac12223b0aba2cdae4",
+          "canonicalResult": {
+            "schemaVersion": "source-authorization-assessment-result/v0",
+            "taskId": "gitea-collaborator-self-permission",
+            "repository": "https://github.com/go-gitea/gitea",
+            "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+            "results": [
+              {
+                "obligationId": "allow-self-permission-query::get-collaborator-permission",
+                "conclusion": "source_refuted",
+                "explanation": "The fixed source supports enforcement of the declared allow expectation for the bounded self-query. The entry identifies the path collaborator as the username whose permissions are requested; the control rejects only when the caller is neither a site administrator, nor querying their own username, nor a repository administrator. Under the declared conditions, authentication and self-identity are fixed, while both administrator conditions are false, so the rejection predicate is false. The request therefore proceeds past the 403 gate, loads the path-selected collaborator, reads that user's permission for ctx.Repo.Repository, and returns the permission response. Bounded branches: (1) self query with neither admin role: reachable and allowed; (2) repository administrator: reachable through the repository-admin branch; (3) site administrator: reachable through the site-admin branch; (4) authenticated non-admin querying another username: blocked with 403 before target lookup. The source does not establish deployment-wide or repository-wide completeness, and no source-external fact is needed to decide this fixed entry and supplied condition set.",
+                "facts": {
+                  "entry": [
+                    {
+                      "statement": "The assessed operation is the GET repository-collaborator-permission entry, and its path collaborator parameter denotes the username whose permissions are obtained.",
+                      "citations": [
+                        {
+                          "path": "collaborators.go",
+                          "startLine": 4,
+                          "endLine": 35,
+                          "quote": "// GetRepoPermissions gets repository permissions for a user\nfunc GetRepoPermissions(ctx *context.APIContext) {\n\t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions\n\t// ---\n\t// summary: Get repository permissions for a user\n\t// produces:\n\t// - application/json\n\t// parameters:\n\t// - name: owner\n\t//   in: path\n\t//   description: owner of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: repo\n\t//   in: path\n\t//   description: name of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: collaborator\n\t//   in: path\n\t//   description: username of the collaborator whose permissions are to be obtained\n\t//   type: string\n\t//   required: true\n\t// responses:\n\t//   \"200\":\n\t//     \"$ref\": \"#/responses/RepoCollaboratorPermission\"\n\t//   \"404\":\n\t//     \"$ref\": \"#/responses/notFound\"\n\t//   \"403\":\n\t//     \"$ref\": \"#/responses/forbidden\"\n\n\tcollaboratorUsername := ctx.PathParam(\"collaborator\")"
+                        }
+                      ]
+                    }
+                  ],
+                  "binding": [
+                    {
+                      "statement": "The runtime caller is represented by ctx.Doer; the gate compares ctx.Doer.LowerName with the request path collaborator username and also checks ctx.Doer.IsAdmin.",
+                      "citations": [
+                        {
+                          "path": "collaborators.go",
+                          "startLine": 35,
+                          "endLine": 37,
+                          "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")"
+                        }
+                      ]
+                    },
+                    {
+                      "statement": "The request-selected collaborator is resolved from collaboratorUsername, while the permission lookup uses that collaborator together with ctx.Repo.Repository; the repository resource and target user are separate checked objects.",
+                      "citations": [
+                        {
+                          "path": "collaborators.go",
+                          "startLine": 35,
+                          "endLine": 52,
+                          "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}\n\n\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}\n\n\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {"
+                        }
+                      ]
+                    }
+                  ],
+                  "control": [
+                    {
+                      "statement": "The entry returns HTTP 403 before loading the target user only when the caller is not a site administrator, the path username is not the caller's own name, and the caller is not a repository administrator for the repository.",
+                      "citations": [
+                        {
+                          "path": "collaborators.go",
+                          "startLine": 35,
+                          "endLine": 39,
+                          "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                        }
+                      ]
+                    }
+                  ],
+                  "effect": [
+                    {
+                      "statement": "When the gate is passed and the target user is found, the operation reads the individual user's permission for the repository and returns HTTP 200 with the collaborator and permission access mode.",
+                      "citations": [
+                        {
+                          "path": "collaborators.go",
+                          "startLine": 41,
+                          "endLine": 57,
+                          "quote": "\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}\n\n\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))"
+                        }
+                      ]
+                    }
+                  ],
+                  "condition": [
+                    {
+                      "statement": "The fixed policy scenario supplies an authenticated collaborator with repository read access, no site-admin or repository-admin role, querying their own username; the policy permits the self-query branch and limits the claim to this fixed entry.",
+                      "citations": [
+                        {
+                          "path": "policy.json",
+                          "startLine": 6,
+                          "endLine": 8,
+                          "quote": "  \"normativePolicy\": \"A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.\",\n  \"boundedScenario\": \"The caller is authenticated and has repository read access, is a collaborator, is not a site or repository administrator, and queries their own collaborator permission.\",\n  \"claimBoundary\": \"This policy is accepted for the declared fixed source entry only. It is not a claim about every Gitea version, endpoint, or deployment.\""
+                        }
+                      ]
+                    },
+                    {
+                      "statement": "The source-visible decision has three allowing relations—site administrator, repository administrator, or own username—and rejects the remaining relation before target loading.",
+                      "citations": [
+                        {
+                          "path": "policy.json",
+                          "startLine": 6,
+                          "endLine": 7,
+                          "quote": "  \"normativePolicy\": \"A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.\",\n  \"boundedScenario\": \"The caller is authenticated and has repository read access, is a collaborator, is not a site or repository administrator, and queries their own collaborator permission.\","
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "decisiveMissingFacts": [],
+                "suggestedObservations": []
+              }
+            ],
+            "scopeClaim": {
+              "kind": "declared-obligations-only",
+              "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+            }
+          },
+          "coverage": [
+            {
+              "requirementId": "authorization-core-v1.authorization-decision",
+              "status": "addressed",
+              "explanation": "The identity and resource bindings are visible, and the strongest control is explicit: the self-username branch independently makes the rejection predicate false even though both administrator branches are false. The declared allow expectation is therefore enforced for the bounded principal and resource relation.",
+              "obligationId": "allow-self-permission-query::get-collaborator-permission",
+              "factPointers": [
+                "/results/0/facts/binding/0",
+                "/results/0/facts/binding/1",
+                "/results/0/facts/control/0",
+                "/results/0/facts/condition/0",
+                "/results/0/facts/condition/1"
+              ]
+            },
+            {
+              "requirementId": "authorization-core-v1.effect-reachability",
+              "status": "addressed",
+              "explanation": "Because the self-query branch passes the 403 gate, the source-visible path reaches target lookup, repository-specific permission retrieval, and the HTTP 200 permission response, subject to the supplied existing-collaborator condition.",
+              "obligationId": "allow-self-permission-query::get-collaborator-permission",
+              "factPointers": [
+                "/results/0/facts/control/0",
+                "/results/0/facts/effect/0",
+                "/results/0/facts/condition/0"
+              ]
+            },
+            {
+              "requirementId": "authorization-core-v1.entry-control",
+              "status": "addressed",
+              "explanation": "The entry is gated by a conjunction of three negative checks: not site administrator, not querying the caller's own username, and not repository administrator. A true self-username relation prevents that conjunction from holding and avoids the 403 return.",
+              "obligationId": "allow-self-permission-query::get-collaborator-permission",
+              "factPointers": [
+                "/results/0/facts/entry/0",
+                "/results/0/facts/control/0"
+              ]
+            },
+            {
+              "requirementId": "authorization-core-v1.external-assumption",
+              "status": "not-applicable",
+              "explanation": "No source-external fact is needed for this bounded fixed-source decision: the relevant authentication, self-identity, administrator-role values, and existing-collaborator condition are supplied by the declaration, while deployment-wide claims are outside scope.",
+              "obligationId": "allow-self-permission-query::get-collaborator-permission",
+              "factPointers": [
+                "/results/0/facts/condition/0"
+              ]
+            },
+            {
+              "requirementId": "authorization-core-v1.identity-binding",
+              "status": "addressed",
+              "explanation": "The source binds the declared caller identity to ctx.Doer.LowerName and evaluates it against the path collaborator username, while separately checking ctx.Doer.IsAdmin; the bounded scenario supplies that the path username is the caller's own username.",
+              "obligationId": "allow-self-permission-query::get-collaborator-permission",
+              "factPointers": [
+                "/results/0/facts/binding/0",
+                "/results/0/facts/condition/0"
+              ]
+            },
+            {
+              "requirementId": "authorization-core-v1.resource-binding",
+              "status": "addressed",
+              "explanation": "The path-selected collaborator is loaded as the target user, and the protected permission effect is computed for that user against ctx.Repo.Repository. Thus the target collaborator and repository context remain distinct resource inputs.",
+              "obligationId": "allow-self-permission-query::get-collaborator-permission",
+              "factPointers": [
+                "/results/0/facts/binding/1",
+                "/results/0/facts/effect/0"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "caseId": "header",
+      "task": {
+        "schemaVersion": "source-authorization-assessment/v0",
+        "taskId": "owui-trusted-header-deployment",
+        "request": "Determine whether an unauthenticated external client can impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin.",
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "sourceMode": "fixed-context",
+        "policySources": [
+          {
+            "id": "trusted-proxy-identity-policy",
+            "kind": "study-author-policy-from-pinned-project-guidance",
+            "text": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.",
+            "location": "inputs/owui-trusted-header-deployment/task.json#/sourceOfRequirement",
+            "revision": "open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366",
+            "acceptance": {
+              "status": "accepted",
+              "actorRole": "study-task-author",
+              "reason": "The task input attributes this bounded paraphrase to pinned project hardening guidance; no source-external deployment fact is accepted."
+            }
+          }
+        ],
+        "principals": [
+          {
+            "id": "unauthenticated-external-client",
+            "role": "unauthenticated external client",
+            "description": "A client not authenticated by the trusted identity proxy that may control headers on any ingress it can actually reach.",
+            "startingCapabilities": [
+              "can-send-client-controlled-request-headers-to-a-reachable-ingress"
+            ]
+          }
+        ],
+        "resources": [
+          {
+            "id": "existing-user-session",
+            "type": "authenticated-user-identity-and-session",
+            "description": "The identity and session of an arbitrary existing user named by a trusted-email header."
+          }
+        ],
+        "entries": [
+          {
+            "id": "post-signin-trusted-email",
+            "name": "POST /signin -> trusted-email-header branch",
+            "locations": [
+              {
+                "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+                "startLine": 1,
+                "endLine": 13
+              },
+              {
+                "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                "startLine": 1,
+                "endLine": 62
+              }
+            ]
+          }
+        ],
+        "obligations": [
+          {
+            "id": "external-client-trusted-header-impersonation",
+            "principalId": "unauthenticated-external-client",
+            "resourceId": "existing-user-session",
+            "relation": "external-client-to-arbitrary-existing-user-identity",
+            "operation": "obtain-session-as-header-selected-user",
+            "expectation": "deny",
+            "conditions": [
+              {
+                "name": "password-auth-signin-entry-enabled",
+                "basis": "auths_signin.py checks ENABLE_PASSWORD_AUTH before entering the trusted-header branch."
+              },
+              {
+                "name": "trusted-email-header-name-configured",
+                "basis": "env_trusted_headers.py makes the header name environment-controlled and auths_signin.py enters the branch only when configured."
+              },
+              {
+                "name": "email-authentication-produces-user",
+                "basis": "auths_signin.py returns a session only after authenticate_user_by_email yields a user."
+              },
+              {
+                "name": "deployment-ingress-enforces-header-trust",
+                "basis": "The accepted policy requires sole trusted-proxy ingress and removal/replacement of client-supplied identity headers; actual deployment facts are not supplied."
+              }
+            ],
+            "policySourceId": "trusted-proxy-identity-policy",
+            "entryIds": [
+              "post-signin-trusted-email"
+            ]
+          }
+        ],
+        "scopeAssurance": "The allowed source crops expose the feature configuration and conditional identity-to-session path. They do not contain the actual ENABLE_PASSWORD_AUTH value, trusted-header value, ingress reachability, proxy stripping/replacement, or authentication outcome for a real deployment.",
+        "requiredAnalysis": [
+          "identify the configuration condition and how the header becomes a principal identity",
+          "separate application-source capability from actual deployment reachability and proxy behavior",
+          "name the minimum missing facts needed to decide the real deployment question",
+          "return source_supported_failure, source_refuted, or unknown with exact input locations"
+        ],
+        "constraints": [
+          "Use only the allowed case inputs.",
+          "Do not infer environment values, proxy configuration, network topology, or direct reachability.",
+          "Do not contact or execute the target deployment."
+        ]
+      },
+      "rubric": {
+        "caseId": "owui-trusted-header-deployment",
+        "taskId": "owui-trusted-header-deployment",
+        "rubricVersion": "owui-trusted-header-oracle/v2-z-v3",
+        "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+        "expectedDisposition": "unknown",
+        "dispositionRule": {
+          "oracleRule": "trusted-header-oracle-revision.json#/revisedDisposition",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/task.json",
+              "startLine": 6,
+              "endLine": 18
+            },
+            {
+              "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+              "startLine": 10,
+              "endLine": 13
+            },
+            {
+              "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+              "startLine": 11,
+              "endLine": 62
+            }
+          ]
+        },
+        "scopeRule": {
+          "oracleRule": "evaluation-protocol-revision.json#/scoringEffect",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/task.json",
+              "startLine": 6,
+              "endLine": 18
+            }
+          ]
+        },
+        "criteria": [
+          {
+            "id": "password-auth-entry-gate",
+            "layer": "necessary-semantics",
+            "requirement": "State that trusted-header processing requires the preceding ENABLE_PASSWORD_AUTH gate; an equivalent statement that the path is blocked when the gate is false is accepted.",
+            "decisionRelevance": "The application capability does not exist through this entry when the gate is closed.",
+            "oracleRule": "evaluation-protocol-v2#/trusted-header/password-auth-entry-gate",
+            "sourceLocations": [
+              {
+                "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                "startLine": 11,
+                "endLine": 15
+              }
+            ]
+          },
+          {
+            "id": "trusted-header-configuration-gate",
+            "layer": "necessary-semantics",
+            "requirement": "State that the trusted-email header name is environment-controlled and the branch requires it to be configured and present.",
+            "decisionRelevance": "Without this configuration, sending an arbitrary header cannot enter the assessed branch.",
+            "oracleRule": "evaluation-protocol-v2#/trusted-header/configuration-gate",
+            "sourceLocations": [
+              {
+                "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+                "startLine": 10,
+                "endLine": 13
+              },
+              {
+                "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                "startLine": 17,
+                "endLine": 21
+              }
+            ]
+          },
+          {
+            "id": "identity-binding",
+            "layer": "necessary-semantics",
+            "requirement": "Trace the configured request-header value into the email identity used for authentication.",
+            "decisionRelevance": "This binding connects caller-controlled input to the identity whose session is requested.",
+            "oracleRule": "evaluation-protocol-v2#/trusted-header/identity-binding",
+            "sourceLocations": [
+              {
+                "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                "startLine": 21,
+                "endLine": 40
+              }
+            ]
+          },
+          {
+            "id": "authentication-and-session-condition",
+            "layer": "necessary-semantics",
+            "requirement": "State that email authentication must yield a user before session creation; the false path does not issue a session.",
+            "decisionRelevance": "A supplied identity header alone is not sufficient for the protected effect.",
+            "oracleRule": "evaluation-protocol-v2#/trusted-header/authentication-session-condition",
+            "sourceLocations": [
+              {
+                "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                "startLine": 40,
+                "endLine": 62
+              }
+            ]
+          },
+          {
+            "id": "deployment-facts-absent",
+            "layer": "necessary-semantics",
+            "requirement": "Name the actual gate values, ingress reachability, proxy header handling, and deployed authentication outcome as unavailable when they decide the actual-deployment question.",
+            "decisionRelevance": "Those source-external facts can change the requested deployment answer and justify unknown.",
+            "oracleRule": "evaluation-protocol-v2#/trusted-header/deployment-facts-absent",
+            "sourceLocations": [
+              {
+                "path": "inputs/owui-trusted-header-deployment/task.json",
+                "startLine": 6,
+                "endLine": 18
+              }
+            ]
+          },
+          {
+            "id": "conditional-capability-boundary",
+            "layer": "necessary-semantics",
+            "requirement": "State both that the source exposes a conditional header-to-session capability and that it does not establish the actual deployment outcome.",
+            "decisionRelevance": "Bare abstention omits available source semantics, while a deployment claim overstates them.",
+            "oracleRule": "evaluation-protocol-v2#/trusted-header/conditional-capability-boundary",
+            "sourceLocations": [
+              {
+                "path": "inputs/owui-trusted-header-deployment/task.json",
+                "startLine": 6,
+                "endLine": 18
+              },
+              {
+                "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                "startLine": 17,
+                "endLine": 62
+              }
+            ]
+          },
+          {
+            "id": "password-auth-403-detail",
+            "layer": "explanation-completeness",
+            "requirement": "When spelling out the closed gate, state that this route returns HTTP 403 before trusted-header handling.",
+            "decisionRelevance": "The exact response completes the branch explanation but is not needed to establish that the path is blocked.",
+            "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/0",
+            "sourceLocations": [
+              {
+                "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                "startLine": 11,
+                "endLine": 15
+              }
+            ]
+          },
+          {
+            "id": "conditional-outcome-enumeration",
+            "layer": "explanation-completeness",
+            "requirement": "Explicitly distinguish closed-gate, failed-authentication, trusted-proxy-safe, and attacker-header-reachable outcomes without asserting which deployment branch is real.",
+            "decisionRelevance": "Enumeration makes the explanation complete; the necessary capability boundary and missing facts already determine the bounded unknown disposition.",
+            "oracleRule": "trusted-header-oracle-revision.json#/new/conditionalOutcomes",
+            "sourceLocations": [
+              {
+                "path": "inputs/owui-trusted-header-deployment/task.json",
+                "startLine": 6,
+                "endLine": 18
+              },
+              {
+                "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                "startLine": 11,
+                "endLine": 62
+              }
+            ]
+          },
+          {
+            "id": "optional-signup-path",
+            "layer": "optional-detail",
+            "requirement": "Mention that a missing user may be passed through signup_handler before email authentication.",
+            "decisionRelevance": "Provisioning is a useful path detail but does not change the required gate, binding, authentication, or deployment-uncertainty reasoning.",
+            "oracleRule": "trusted-header-oracle-revision.json#/new/sourceSupportedFacts/2",
+            "sourceLocations": [
+              {
+                "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                "startLine": 31,
+                "endLine": 38
+              }
+            ]
+          },
+          {
+            "id": "optional-default-none-detail",
+            "layer": "optional-detail",
+            "requirement": "Mention that WEBUI_AUTH_TRUSTED_EMAIL_HEADER defaults to None when the environment does not set it.",
+            "decisionRelevance": "The default is useful context, but the actual deployed value remains unknown and is the decisive fact.",
+            "oracleRule": "oracles/owui-trusted-header-deployment.json#/sourceSupportedFacts/0",
+            "sourceLocations": [
+              {
+                "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+                "startLine": 10,
+                "endLine": 10
+              }
+            ]
+          }
+        ],
+        "responseDetails": {
+          "criterionIds": [
+            "password-auth-403-detail"
+          ],
+          "requiredCriterionIds": [],
+          "basis": "The unchanged public request asks authorization and effect reachability, not an exact HTTP response; response status does not change that property. Explicit status remains separately scored."
+        }
+      },
+      "sources": {
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "sourceMode": "fixed-context",
+        "isolation": "exact-allowlist",
+        "files": [
+          {
+            "relativePath": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+            "content": "# Cropped from backend/open_webui/env.py at\n# https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9\n# Original lines 529-538.\n# Optional env vars for creating an admin account on startup\n# Useful for headless/automated deployments\nWEBUI_ADMIN_EMAIL = os.environ.get('WEBUI_ADMIN_EMAIL', '')\nWEBUI_ADMIN_PASSWORD = os.environ.get('WEBUI_ADMIN_PASSWORD', '')\nWEBUI_ADMIN_NAME = os.environ.get('WEBUI_ADMIN_NAME', 'Admin')\n\nWEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)\nWEBUI_AUTH_TRUSTED_NAME_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_NAME_HEADER', None)\nWEBUI_AUTH_TRUSTED_GROUPS_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_GROUPS_HEADER', None)\nWEBUI_AUTH_TRUSTED_ROLE_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_ROLE_HEADER', None)\n",
+            "sha256": "44ac3bb945d5d3a7ea026c8ad5503fada5f740ad0cacb6dea3fc1f3d953bf0a1",
+            "cropRange": {
+              "startLine": 1,
+              "endLine": 13
+            },
+            "originalLocations": []
+          },
+          {
+            "relativePath": "inputs/owui-trusted-header-deployment/auths_signin.py",
+            "content": "# Cropped from backend/open_webui/routers/auths.py at\n# https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9\n# Original lines 570-623 and 672-675.\n@router.post('/signin', response_model=SessionUserResponse)\nasync def signin(\n    request: Request,\n    response: Response,\n    form_data: SigninForm,\n    db: AsyncSession = Depends(get_async_session),\n):\n    if not ENABLE_PASSWORD_AUTH:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=ERROR_MESSAGES.ACTION_PROHIBITED,\n        )\n\n    if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n            raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)\n\n        email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()\n        name = email\n\n        if WEBUI_AUTH_TRUSTED_NAME_HEADER:\n            name = request.headers.get(WEBUI_AUTH_TRUSTED_NAME_HEADER, email)\n            try:\n                name = urllib.parse.unquote(name, encoding='utf-8')\n            except Exception as e:\n                pass\n\n        if not await Users.get_user_by_email(email.lower(), db=db):\n            await signup_handler(\n                request,\n                email,\n                str(uuid.uuid4()),\n                name,\n                db=db,\n            )\n\n        user = await Auths.authenticate_user_by_email(email, db=db)\n        if user:\n            if WEBUI_AUTH_TRUSTED_GROUPS_HEADER:\n                group_names = request.headers.get(WEBUI_AUTH_TRUSTED_GROUPS_HEADER, '').split(',')\n                group_names = [name.strip() for name in group_names if name.strip()]\n\n                if group_names:\n                    await Groups.sync_groups_by_group_names(user.id, group_names, db=db)\n\n            if WEBUI_AUTH_TRUSTED_ROLE_HEADER:\n                trusted_role = request.headers.get(WEBUI_AUTH_TRUSTED_ROLE_HEADER, '').lower().strip()\n                if trusted_role in {'admin', 'user', 'pending'}:\n                    if user.role != trusted_role:\n                        await Users.update_user_role_by_id(user.id, trusted_role, db=db)\n                elif trusted_role:\n                    log.warning(f'Ignoring invalid trusted role header value: {trusted_role}')\n\n# Original lines 623-671 handle other sign-in modes and are omitted.\n\n    if user:\n        return await create_session_response(request, user, db, response, set_cookie=True)\n    else:\n        raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)\n",
+            "sha256": "91194fe8ebe69bc9434f00c0d6f7e95c34360b597739408df99f1169fc70a4c6",
+            "cropRange": {
+              "startLine": 1,
+              "endLine": 62
+            },
+            "originalLocations": []
+          }
+        ]
+      },
+      "answers": [
+        {
+          "unitId": "11-header-conditions",
+          "status": "completed",
+          "rawOutputSha256": "8c04f675a68444ebb2e2ed1e723021a9ec7d2884924712f4301c7ba8941c6186",
+          "canonicalResult": {
+            "schemaVersion": "source-authorization-assessment-result/v0",
+            "taskId": "owui-trusted-header-deployment",
+            "repository": "https://github.com/open-webui/open-webui",
+            "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+            "results": [
+              {
+                "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+                "conclusion": "unknown",
+                "explanation": "The fixed source establishes a conditional application capability, not the actual deployment outcome. POST /signin is gated by ENABLE_PASSWORD_AUTH; when the trusted-email header name is configured and present, its request value becomes the email supplied to authentication, with optional provisioning before authentication. A truthy authenticated user reaches session creation. The fixed context does not provide the deployed gate values, external reachability, proxy stripping/replacement behavior, or the authentication result for the selected email. Therefore it cannot determine whether an unauthenticated external client can impersonate an arbitrary existing user in the actual deployment.",
+                "facts": {
+                  "entry": [
+                    {
+                      "statement": "The POST /signin entry rejects the request with 403 when ENABLE_PASSWORD_AUTH is false; the trusted-email processing is downstream of that gate.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 4,
+                          "endLine": 19,
+                          "quote": "@router.post('/signin', response_model=SessionUserResponse)\nasync def signin(\n    request: Request,\n    response: Response,\n    form_data: SigninForm,\n    db: AsyncSession = Depends(get_async_session),\n):\n    if not ENABLE_PASSWORD_AUTH:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=ERROR_MESSAGES.ACTION_PROHIBITED,\n        )\n\n    if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n            raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)"
+                        }
+                      ]
+                    }
+                  ],
+                  "binding": [
+                    {
+                      "statement": "If no user is found for the selected email, signup_handler is invoked with that email before authenticate_user_by_email is called; the fixed context does not show whether this branch is taken for a target email.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 31,
+                          "endLine": 40,
+                          "quote": "        if not await Users.get_user_by_email(email.lower(), db=db):\n            await signup_handler(\n                request,\n                email,\n                str(uuid.uuid4()),\n                name,\n                db=db,\n            )\n\n        user = await Auths.authenticate_user_by_email(email, db=db)"
+                        }
+                      ]
+                    },
+                    {
+                      "statement": "In the trusted-email branch, the request header value is lowercased into email and that email is passed to authenticate_user_by_email.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 17,
+                          "endLine": 22,
+                          "quote": "    if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n            raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)\n\n        email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()\n        name = email"
+                        },
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 40,
+                          "endLine": 40,
+                          "quote": "        user = await Auths.authenticate_user_by_email(email, db=db)"
+                        }
+                      ]
+                    }
+                  ],
+                  "control": [
+                    {
+                      "statement": "The application consumes the identity from request.headers, but the supplied crops contain no observed deployment fact about external reachability, sole-ingress topology, proxy stripping, or proxy replacement.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 17,
+                          "endLine": 21,
+                          "quote": "    if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n            raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)\n\n        email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()"
+                        },
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+                          "startLine": 10,
+                          "endLine": 13,
+                          "quote": "WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)\nWEBUI_AUTH_TRUSTED_NAME_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_NAME_HEADER', None)\nWEBUI_AUTH_TRUSTED_GROUPS_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_GROUPS_HEADER', None)\nWEBUI_AUTH_TRUSTED_ROLE_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_ROLE_HEADER', None)"
+                        }
+                      ]
+                    },
+                    {
+                      "statement": "After the selected-email lookup and optional signup call, the source only proceeds with the successful identity path when authenticate_user_by_email yields a user.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 31,
+                          "endLine": 41,
+                          "quote": "        if not await Users.get_user_by_email(email.lower(), db=db):\n            await signup_handler(\n                request,\n                email,\n                str(uuid.uuid4()),\n                name,\n                db=db,\n            )\n\n        user = await Auths.authenticate_user_by_email(email, db=db)\n        if user:"
+                        }
+                      ]
+                    },
+                    {
+                      "statement": "The trusted email header name is environment-controlled, and the trusted-email branch requires that configured header name to be present in the request.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+                          "startLine": 10,
+                          "endLine": 13,
+                          "quote": "WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)\nWEBUI_AUTH_TRUSTED_NAME_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_NAME_HEADER', None)\nWEBUI_AUTH_TRUSTED_GROUPS_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_GROUPS_HEADER', None)\nWEBUI_AUTH_TRUSTED_ROLE_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_ROLE_HEADER', None)"
+                        },
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 17,
+                          "endLine": 21,
+                          "quote": "    if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n            raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)\n\n        email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()"
+                        }
+                      ]
+                    }
+                  ],
+                  "effect": [
+                    {
+                      "statement": "When user is truthy, create_session_response is called with that user and set_cookie enabled; otherwise the source raises an invalid-credentials error.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 59,
+                          "endLine": 62,
+                          "quote": "    if user:\n        return await create_session_response(request, user, db, response, set_cookie=True)\n    else:\n        raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)"
+                        }
+                      ]
+                    }
+                  ],
+                  "condition": [
+                    {
+                      "statement": "The fixed source does not establish whether the accepted trusted-proxy header controls hold in the actual deployment; the application crop only shows consumption of the request header.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 17,
+                          "endLine": 21,
+                          "quote": "    if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n            raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)\n\n        email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "decisiveMissingFacts": [
+                  "The deployed value of ENABLE_PASSWORD_AUTH.",
+                  "The deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER and whether the selected header is present on the reachable request path.",
+                  "Whether the unauthenticated external client can reach the application ingress used by POST /signin.",
+                  "Whether a trusted reverse proxy is the sole reachable ingress and removes client-supplied identity headers while injecting the authenticated identity.",
+                  "Whether authenticate_user_by_email returns a user for the selected email in the target deployment.",
+                  "Whether the optional signup branch is reached and succeeds if the selected email is not already present."
+                ],
+                "suggestedObservations": [
+                  "Inspect the deployed ENABLE_PASSWORD_AUTH value.",
+                  "Inspect the deployed trusted-header configuration and the request path's header presence.",
+                  "Establish whether the external client can reach POST /signin and whether any direct application ingress exists.",
+                  "Document or observe proxy removal of client-supplied identity headers and injection of the proxy-authenticated identity.",
+                  "Determine the authentication result for the selected email and, if relevant, whether signup_handler is reached and succeeds."
+                ]
+              }
+            ],
+            "scopeClaim": {
+              "kind": "declared-obligations-only",
+              "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+            }
+          },
+          "coverage": [
+            {
+              "requirementId": "header.authorization-decision",
+              "status": "addressed",
+              "explanation": "The visible application decision is conditional: the entry and header gates must pass, the request-selected email is processed, and only a truthy authenticated user reaches session creation. The accepted deployment policy adds proxy-ingress and header-integrity requirements, but the fixed source does not observe whether they hold.",
+              "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+              "factPointers": [
+                "/results/0/facts/entry/0",
+                "/results/0/facts/control/2",
+                "/results/0/facts/binding/1",
+                "/results/0/facts/control/1",
+                "/results/0/facts/condition/0"
+              ]
+            },
+            {
+              "requirementId": "header.deployment-assumptions",
+              "status": "unknown",
+              "explanation": "The actual deployment values, external reachability, proxy behavior, and authentication outcome are absent. These facts determine whether the source-visible capability is usable by the stated external principal.",
+              "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+              "factPointers": [
+                "/results/0/facts/control/0",
+                "/results/0/facts/condition/0"
+              ]
+            },
+            {
+              "requirementId": "header.entry-control",
+              "status": "addressed",
+              "explanation": "The source-visible trusted-email entry requires POST /signin to pass ENABLE_PASSWORD_AUTH, the environment-controlled trusted-email header name to be configured, and that header to be present in the request.",
+              "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+              "factPointers": [
+                "/results/0/facts/entry/0",
+                "/results/0/facts/control/2"
+              ]
+            },
+            {
+              "requirementId": "header.identity-binding",
+              "status": "addressed",
+              "explanation": "The request's configured trusted-email header value is lowercased into email and supplied to email authentication, so the request value selects the identity used by this path.",
+              "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+              "factPointers": [
+                "/results/0/facts/binding/1"
+              ]
+            },
+            {
+              "requirementId": "header.optional-provisioning",
+              "status": "addressed",
+              "explanation": "A provisioning branch is present: when no user is found for the selected email, signup_handler is called with that email before authentication. Its occurrence and success for a real target are not established.",
+              "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+              "factPointers": [
+                "/results/0/facts/binding/0"
+              ]
+            },
+            {
+              "requirementId": "header.session-effect",
+              "status": "addressed",
+              "explanation": "The protected session effect is reached on the branch where the entry and header conditions pass and authentication yields a truthy user; that branch invokes create_session_response with the user. If no user is yielded, the source raises invalid credentials instead.",
+              "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+              "factPointers": [
+                "/results/0/facts/control/1",
+                "/results/0/facts/effect/0"
+              ]
+            },
+            {
+              "requirementId": "header.session-resource",
+              "status": "addressed",
+              "explanation": "The session response receives the user returned after authenticating the email selected from the trusted header, with optional provisioning occurring beforehand.",
+              "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+              "factPointers": [
+                "/results/0/facts/binding/1",
+                "/results/0/facts/binding/0",
+                "/results/0/facts/effect/0"
+              ]
+            }
+          ],
+          "conditionAnalysis": {
+            "schemaVersion": "authorization-condition-analysis-result/v1",
+            "analyses": [
+              {
+                "unexaminedConditionIds": [],
+                "completeness": "bounded",
+                "limitations": [
+                  "These are bounded comparison branches within the requested six-branch limit, not an exhaustive enumeration of all omitted sign-in modes, request values, proxy behaviors, provisioning outcomes, or deployment paths.",
+                  "Condition assumptions are hypotheses for comparison and are not observations of the deployment."
+                ],
+                "branches": [
+                  {
+                    "id": "b1-all-gates-and-trusted-ingress-hypothetically-pass",
+                    "assumptions": [
+                      {
+                        "conditionId": "deployment-ingress-trusted",
+                        "value": "true"
+                      },
+                      {
+                        "conditionId": "email-auth-produces-user",
+                        "value": "true"
+                      },
+                      {
+                        "conditionId": "password-auth-entry-enabled",
+                        "value": "true"
+                      },
+                      {
+                        "conditionId": "trusted-header-configured",
+                        "value": "true"
+                      }
+                    ],
+                    "effect": "reachable",
+                    "explanation": "Hypothetically assuming the trusted-ingress policy holds, the password-auth entry is enabled, the trusted-email header is configured and supplied, and authentication yields a user, the source-visible path reaches session creation for the header-selected identity.",
+                    "missingFacts": [],
+                    "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+                    "factPointers": [
+                      "/results/0/facts/entry/0",
+                      "/results/0/facts/control/2",
+                      "/results/0/facts/binding/1",
+                      "/results/0/facts/control/1",
+                      "/results/0/facts/effect/0"
+                    ]
+                  },
+                  {
+                    "id": "b2-untrusted-client-controlled-ingress-hypothetically-reaches",
+                    "assumptions": [
+                      {
+                        "conditionId": "deployment-ingress-trusted",
+                        "value": "false"
+                      },
+                      {
+                        "conditionId": "email-auth-produces-user",
+                        "value": "true"
+                      },
+                      {
+                        "conditionId": "password-auth-entry-enabled",
+                        "value": "true"
+                      },
+                      {
+                        "conditionId": "trusted-header-configured",
+                        "value": "true"
+                      }
+                    ],
+                    "effect": "reachable",
+                    "explanation": "Under the hypothesis that the trusted-ingress control is not enforced in a way that permits the external client to reach the application with a client-controlled identity header, and the application and authentication gates pass, the source-visible path reaches session creation for the header-selected user. This is not an observed deployment fact.",
+                    "missingFacts": [],
+                    "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+                    "factPointers": [
+                      "/results/0/facts/entry/0",
+                      "/results/0/facts/control/2",
+                      "/results/0/facts/binding/1",
+                      "/results/0/facts/control/1",
+                      "/results/0/facts/effect/0"
+                    ]
+                  },
+                  {
+                    "id": "b3-password-entry-disabled",
+                    "assumptions": [
+                      {
+                        "conditionId": "deployment-ingress-trusted",
+                        "value": "unknown"
+                      },
+                      {
+                        "conditionId": "email-auth-produces-user",
+                        "value": "unknown"
+                      },
+                      {
+                        "conditionId": "password-auth-entry-enabled",
+                        "value": "false"
+                      },
+                      {
+                        "conditionId": "trusted-header-configured",
+                        "value": "unknown"
+                      }
+                    ],
+                    "effect": "blocked",
+                    "explanation": "If ENABLE_PASSWORD_AUTH is false, the source raises 403 before the trusted-email branch, so this source-visible path cannot reach the session effect. The other unknown assumptions are not needed to establish this hypothetical block.",
+                    "missingFacts": [
+                      "The deployed value of ENABLE_PASSWORD_AUTH.",
+                      "The deployed trusted-email header configuration.",
+                      "Whether authentication would yield a user for the selected email."
+                    ],
+                    "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+                    "factPointers": [
+                      "/results/0/facts/entry/0"
+                    ]
+                  },
+                  {
+                    "id": "b4-trusted-header-not-configured",
+                    "assumptions": [
+                      {
+                        "conditionId": "deployment-ingress-trusted",
+                        "value": "unknown"
+                      },
+                      {
+                        "conditionId": "email-auth-produces-user",
+                        "value": "unknown"
+                      },
+                      {
+                        "conditionId": "password-auth-entry-enabled",
+                        "value": "true"
+                      },
+                      {
+                        "conditionId": "trusted-header-configured",
+                        "value": "false"
+                      }
+                    ],
+                    "effect": "blocked",
+                    "explanation": "If WEBUI_AUTH_TRUSTED_EMAIL_HEADER is not configured, the trusted-email conditional branch is not entered, so this requested trusted-email path is blocked. The omitted other sign-in code is outside this bounded branch analysis.",
+                    "missingFacts": [
+                      "The deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER.",
+                      "Whether the deployment enforces the accepted trusted-ingress policy.",
+                      "Whether authentication would yield a user for the selected email."
+                    ],
+                    "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+                    "factPointers": [
+                      "/results/0/facts/control/2"
+                    ]
+                  },
+                  {
+                    "id": "b5-authentication-does-not-yield-user",
+                    "assumptions": [
+                      {
+                        "conditionId": "deployment-ingress-trusted",
+                        "value": "unknown"
+                      },
+                      {
+                        "conditionId": "email-auth-produces-user",
+                        "value": "false"
+                      },
+                      {
+                        "conditionId": "password-auth-entry-enabled",
+                        "value": "true"
+                      },
+                      {
+                        "conditionId": "trusted-header-configured",
+                        "value": "true"
+                      }
+                    ],
+                    "effect": "blocked",
+                    "explanation": "If the entry gates pass but authenticate_user_by_email does not yield a user, the source takes the invalid-credentials branch and does not call create_session_response.",
+                    "missingFacts": [
+                      "The authentication result for the selected email in the target deployment.",
+                      "Whether the optional signup branch is reached and succeeds if no existing user is found.",
+                      "Whether the external client can reach the relevant ingress and control the identity header."
+                    ],
+                    "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+                    "factPointers": [
+                      "/results/0/facts/control/1",
+                      "/results/0/facts/effect/0"
+                    ]
+                  },
+                  {
+                    "id": "b6-fixed-context-deployment-undetermined",
+                    "assumptions": [
+                      {
+                        "conditionId": "deployment-ingress-trusted",
+                        "value": "unknown"
+                      },
+                      {
+                        "conditionId": "email-auth-produces-user",
+                        "value": "unknown"
+                      },
+                      {
+                        "conditionId": "password-auth-entry-enabled",
+                        "value": "unknown"
+                      },
+                      {
+                        "conditionId": "trusted-header-configured",
+                        "value": "unknown"
+                      }
+                    ],
+                    "effect": "unknown",
+                    "explanation": "The fixed context shows the conditional source path but supplies no deployed configuration values, ingress reachability or proxy behavior, or authentication outcome. Thus it cannot decide whether the external principal can traverse the path in the actual deployment.",
+                    "missingFacts": [
+                      "The deployed ENABLE_PASSWORD_AUTH value.",
+                      "The deployed trusted-email header configuration and request-header handling.",
+                      "Actual external-client reachability and trusted-proxy stripping/replacement behavior.",
+                      "The authentication outcome for the selected email."
+                    ],
+                    "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+                    "factPointers": []
+                  }
+                ],
+                "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email"
+              }
+            ]
+          }
+        },
+        {
+          "unitId": "12-header-plain",
+          "status": "completed",
+          "rawOutputSha256": "5e8462bd93f60d5b7f3c213284cec7b4e70ad22469958b6875cd8256282be263",
+          "canonicalResult": {
+            "schemaVersion": "source-authorization-assessment-result/v0",
+            "taskId": "owui-trusted-header-deployment",
+            "repository": "https://github.com/open-webui/open-webui",
+            "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+            "results": [
+              {
+                "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+                "conclusion": "unknown",
+                "explanation": "The fixed source exposes a POST /signin entry and a password-auth gate. When the environment-controlled trusted-email header name is configured and the request contains that header, its lowercased value becomes the email supplied to the optional provisioning step and to email authentication. If no existing user is found, the shown optional signup branch may provision an account before authentication; this affects whether the selected identity exists, but the source does not establish the resulting authentication outcome. When email authentication yields a user, the user object is passed to the session-creation effect, so the header-selected identity is bound to the resulting existing-user session. The application source therefore shows a capability path, not a deployment decision. The accepted policy allows this only where a trusted proxy is the sole reachable ingress and strips or replaces client-supplied identity headers. Those ingress and proxy controls are not present in the fixed context, so the policy expectation cannot be classified as enforced or failed for the actual deployment. Reachable/blocked effects are consequently conditional: disabled password authentication blocks entry; an unconfigured trusted-email header blocks this branch; a missing configured header returns an error; failed email authentication blocks session creation; a successful authentication reaches session creation; and ingress trust remains unknown. This addresses the requested gates, identity and resource binding, application and policy controls, protected effect, optional provisioning branch, and bounded branch comparison. Source discovery is not-tested, and no completeness claim is made.",
+                "facts": {
+                  "entry": [
+                    {
+                      "statement": "The declared entry is the POST /signin handler.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 4,
+                          "endLine": 10,
+                          "quote": "@router.post('/signin', response_model=SessionUserResponse)\nasync def signin(\n    request: Request,\n    response: Response,\n    form_data: SigninForm,\n    db: AsyncSession = Depends(get_async_session),\n):"
+                        }
+                      ]
+                    }
+                  ],
+                  "binding": [
+                    {
+                      "statement": "The selected email is passed to email authentication, whose returned user is the identity later used for session creation.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 40,
+                          "endLine": 41,
+                          "quote": "        user = await Auths.authenticate_user_by_email(email, db=db)\n        if user:"
+                        },
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 59,
+                          "endLine": 60,
+                          "quote": "    if user:\n        return await create_session_response(request, user, db, response, set_cookie=True)"
+                        }
+                      ]
+                    },
+                    {
+                      "statement": "The request header value is lowercased and assigned as the email used by the trusted-header path.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 21,
+                          "endLine": 22,
+                          "quote": "        email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()\n        name = email"
+                        }
+                      ]
+                    },
+                    {
+                      "statement": "If no user is found for the selected email, the shown signup branch is invoked before email authentication, potentially provisioning that identity.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 31,
+                          "endLine": 38,
+                          "quote": "        if not await Users.get_user_by_email(email.lower(), db=db):\n            await signup_handler(\n                request,\n                email,\n                str(uuid.uuid4()),\n                name,\n                db=db,\n            )"
+                        }
+                      ]
+                    }
+                  ],
+                  "control": [
+                    {
+                      "statement": "The accepted policy requires sole trusted-proxy ingress plus removal or replacement of client-supplied identity headers; those controls are not established by the supplied source.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 17,
+                          "endLine": 21,
+                          "quote": "    if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n            raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)\n\n        email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()"
+                        }
+                      ]
+                    },
+                    {
+                      "statement": "Password authentication must be enabled; otherwise the handler returns a forbidden error before the trusted-header branch.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 11,
+                          "endLine": 15,
+                          "quote": "    if not ENABLE_PASSWORD_AUTH:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=ERROR_MESSAGES.ACTION_PROHIBITED,\n        )"
+                        }
+                      ]
+                    }
+                  ],
+                  "effect": [
+                    {
+                      "statement": "Only a truthy authenticated user reaches create_session_response, which creates the session response and sets the cookie.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 59,
+                          "endLine": 60,
+                          "quote": "    if user:\n        return await create_session_response(request, user, db, response, set_cookie=True)"
+                        }
+                      ]
+                    }
+                  ],
+                  "condition": [
+                    {
+                      "statement": "If authentication does not produce a user, the handler raises an invalid-credentials error instead of creating a session.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 59,
+                          "endLine": 62,
+                          "quote": "    if user:\n        return await create_session_response(request, user, db, response, set_cookie=True)\n    else:\n        raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)"
+                        }
+                      ]
+                    },
+                    {
+                      "statement": "The trusted-email branch is entered only when the environment-controlled trusted-email header name is configured.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+                          "startLine": 10,
+                          "endLine": 10,
+                          "quote": "WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)"
+                        },
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 17,
+                          "endLine": 18,
+                          "quote": "    if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:"
+                        }
+                      ]
+                    },
+                    {
+                      "statement": "A configured trusted-email header must be present in the request; otherwise processing returns a client error.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 17,
+                          "endLine": 20,
+                          "quote": "    if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n            raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)\n"
+                        }
+                      ]
+                    },
+                    {
+                      "statement": "Whether an unauthenticated external client can reach this handler and whether a trusted proxy strips or replaces the identity header is not supplied.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 17,
+                          "endLine": 21,
+                          "quote": "    if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n            raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)\n\n        email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()"
+                        }
+                      ]
+                    },
+                    {
+                      "statement": "Optional trusted group and role headers can synchronize groups or update a valid selected user's role after authentication and before session creation.",
+                      "citations": [
+                        {
+                          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                          "startLine": 42,
+                          "endLine": 55,
+                          "quote": "            if WEBUI_AUTH_TRUSTED_GROUPS_HEADER:\n                group_names = request.headers.get(WEBUI_AUTH_TRUSTED_GROUPS_HEADER, '').split(',')\n                group_names = [name.strip() for name in group_names if name.strip()]\n\n                if group_names:\n                    await Groups.sync_groups_by_group_names(user.id, group_names, db=db)\n\n            if WEBUI_AUTH_TRUSTED_ROLE_HEADER:\n                trusted_role = request.headers.get(WEBUI_AUTH_TRUSTED_ROLE_HEADER, '').lower().strip()\n                if trusted_role in {'admin', 'user', 'pending'}:\n                    if user.role != trusted_role:\n                        await Users.update_user_role_by_id(user.id, trusted_role, db=db)\n                elif trusted_role:\n                    log.warning(f'Ignoring invalid trusted role header value: {trusted_role}')"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "decisiveMissingFacts": [
+                  "The deployed ENABLE_PASSWORD_AUTH value.",
+                  "The deployed WEBUI_AUTH_TRUSTED_EMAIL_HEADER value and whether the relevant header is present on the request.",
+                  "Whether the trusted proxy is the sole reachable ingress to POST /signin.",
+                  "Whether every ingress or proxy removes client-supplied trusted-email identity headers and injects the authenticated identity itself.",
+                  "Whether the selected email identifies or can provision a user and whether authenticate_user_by_email returns that user in the actual deployment."
+                ],
+                "suggestedObservations": [
+                  "Observe the deployed password-authentication setting and trusted-email header-name setting.",
+                  "Verify the actual network path to POST /signin and whether any unauthenticated ingress is reachable.",
+                  "Inspect or test, within authorized deployment controls, whether the proxy strips/replaces client-supplied identity headers and injects the authenticated identity.",
+                  "Observe the authentication result and session response for a selected existing-user identity."
+                ]
+              }
+            ],
+            "scopeClaim": {
+              "kind": "declared-obligations-only",
+              "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

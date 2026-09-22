@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260922T082410563Z-6b3bedc6
+Status: completed
+Task: fastapi-items-foreign-update
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aupdate-item::entry%3Aupdate-item: source_refuted — The declared policy expectation is deny, and the supplied update entry visibly enforces that expectation. The PUT entry accepts the request-selected id, the supplied CurrentUser parameter is the identity used by the operation, and the item is loaded using that id. Before any update, the strongest visible authorization control rejects a caller who is not a superuser when the loaded item's owner differs from the caller id. The supplied principal is an authenticated non-superuser and the supplied resource is owned by another user, so this branch raises a 403 and does not reach the update, commit, or response effect. A superuser branch would bypass the ownership rejection, but it does not apply to the declared principal. The fixed context does not show the implementation that binds authentication to CurrentUser, nor broader routing/deployment behavior; those are source-external and discovery is not-tested. However, the declared caller facts and the visible use of CurrentUser are sufficient for this bounded scenario, so no unsupplied fact is decisive for the stated source-level result.
+  Evidence: The declared PUT item-update entry is the update operation assessed. (items.py:75-82)
+  Evidence: The checked resource attribute is the loaded item's owner_id, which must remain distinct from current_user.id for the declared different-owner relation. (items.py:86-90)
+  Evidence: The operation receives CurrentUser as current_user and uses that runtime identity in its authorization decision. (items.py:76-81)
+  Evidence: The request path id is used to load the item that is then subjected to the authorization check. (items.py:80-89)
+  Evidence: The visible gate rejects a non-superuser when the loaded item's owner differs from the current user's id; the superuser branch bypasses that ownership rejection. (items.py:89-90)
+  Evidence: Only after the authorization gate does the operation apply submitted fields, persist the item, refresh it, and return it. (items.py:91-96)
+  Evidence: No additional authorization conditions are declared for this obligation; the visible decision depends on the superuser and owner comparison. (items.py:86-90)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

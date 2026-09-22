@@ -1,0 +1,30 @@
+Authorization assessment
+Session: 20260922T082953103Z-0bce7851
+Status: completed
+Task: owui-process-text-controlled
+Method: ledger (explicit); requested: ledger; condition request ignored: true
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- non-admin-without-kb-write-grant::post-process-text: source_refuted — The fixed source supports enforcement of the declared deny expectation. A verified caller supplies collection_name, and an explicitly supplied collection name is checked with access_type='write' before the vector-database save. For a non-admin, the shared policy calls the knowledge-base access check with write permission; when the selected object is an existing knowledge base and that check fails, the non-KB fallback does not apply, the collection is excluded, and the validator raises HTTP 403 before save_docs_to_vector_db. The source also shows two bounded alternatives: admins bypass the shared checks, and a name that is not an existing knowledge base can enter the legacy/ephemeral fallback; neither alternative matches the declared non-admin targeting an existing KB without write access. No repository-wide completeness or deployment fact is inferred.
+  Evidence: The assessed POST entry requires get_verified_user and receives the resulting user object before processing the form. (inputs/owui-process-text-controlled/retrieval_process_text.py:7-12)
+  Evidence: For a non-admin name that is not granted by the knowledge-base access check, the policy separately checks whether a knowledge base exists; only a name with no such KB can use the legacy/ephemeral fallback. (inputs/owui-process-text-controlled/retrieval_access_policy.py:43-51)
+  Evidence: The runtime user is used directly by the operation: its id is recorded in document metadata, and the same user is passed to the save operation. (inputs/owui-process-text-controlled/retrieval_process_text.py:19-28)
+  Evidence: The request's form_data.collection_name becomes collection_name and is the exact name placed into the one-element authorization request before the save call. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-18)
+  Evidence: For non-admins, an existing knowledge-base name is admitted only when Knowledges.check_access_by_user_id succeeds for the requested permission; if it fails and the KB exists, it is not added to the allowed set. (inputs/owui-process-text-controlled/retrieval_access_policy.py:22-24, inputs/owui-process-text-controlled/retrieval_access_policy.py:43-50)
+  Evidence: The caller-side validator invokes the shared filter with access_type='write', computes requested minus allowed, and raises HTTP 403 when any requested collection is denied. (inputs/owui-process-text-controlled/retrieval_process_text.py:31-44)
+  Evidence: The protected effect is save_docs_to_vector_db with the selected collection_name, and it appears after the collection-access validation. (inputs/owui-process-text-controlled/retrieval_process_text.py:19-28)
+  Evidence: The supplied conditions select the explicit collection-name branch and a non-admin caller; the source's admin bypass and non-KB fallback are therefore alternative branches rather than the declared path. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-18, inputs/owui-process-text-controlled/retrieval_access_policy.py:22-24, inputs/owui-process-text-controlled/retrieval_access_policy.py:43-51)
+
+Coverage
+- authorization-core-v1.authorization-decision × non-admin-without-kb-write-grant::post-process-text: addressed — The source-visible strongest decision for the declared non-admin/existing-KB/no-write relation is denial: the shared check uses write permission, and an existing KB that fails it is not admitted. The admin bypass and non-KB fallback are separately identified but do not satisfy the declared conditions.
+- authorization-core-v1.effect-reachability × non-admin-without-kb-write-grant::post-process-text: addressed — The requested save effect is not reachable on the declared branch because the validator raises 403 before save_docs_to_vector_db. The effect is source-visible as reachable only after successful validation, including an admin or permitted-user branch.
+- authorization-core-v1.entry-control × non-admin-without-kb-write-grant::post-process-text: addressed — The entry is gated by get_verified_user, and when a collection name is supplied, _validate_collection_access is invoked with write access before document construction and saving proceed.
+- authorization-core-v1.external-assumption × non-admin-without-kb-write-grant::post-process-text: addressed — No decisive source-external fact remains unresolved for this bounded assessment: the task supplies the caller as non-admin, the target as existing, and the relation as lacking ownership or an explicit write grant. Those supplied conditions select the source's denial branch. Deployment behavior and repository-wide facts are outside this fixed context and are not used.
+- authorization-core-v1.identity-binding × non-admin-without-kb-write-grant::post-process-text: addressed — The verified runtime caller is represented by the user dependency's user object; its id is used in document metadata and the user object is passed to the save operation, while the shared authorization check receives that user and its id.
+- authorization-core-v1.resource-binding × non-admin-without-kb-write-grant::post-process-text: addressed — The requested collection name is taken directly from the form and checked as the requested collection. The policy keeps an existing knowledge base distinct from a non-KB legacy/ephemeral collection by separately calling get_knowledge_by_id after an unsuccessful access check.
+
+Condition analysis
+- Not requested or not delivered.

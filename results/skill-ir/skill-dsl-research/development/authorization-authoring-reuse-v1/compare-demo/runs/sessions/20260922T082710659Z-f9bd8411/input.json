@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "synthetic-record-archive",
+  "request": "May an authenticated support agent who is not the owner or a supervisor archive this record?",
+  "repository": "https://example.test/synthetic/records",
+  "sourceRef": "synthetic-v1",
+  "sourceRoot": "project",
+  "sources": [
+    "src/record.ts"
+  ],
+  "policies": {
+    "archive": {
+      "text": "Only the record owner or a supervisor may archive a record.",
+      "location": "authoring-v2.json#/policies/archive",
+      "revision": "synthetic-policy-v1",
+      "acceptance": "accepted",
+      "reason": "The synthetic task author controls this bounded requirement."
+    }
+  },
+  "principals": {
+    "support": {
+      "role": "support agent",
+      "facts": [
+        "Not a supervisor"
+      ],
+      "capabilities": [
+        "authenticated",
+        "support-agent"
+      ]
+    }
+  },
+  "resources": {
+    "record": {
+      "type": "record",
+      "facts": [
+        "Existing customer record owned by another principal"
+      ]
+    }
+  },
+  "entries": {
+    "archive": {
+      "name": "archiveRecord",
+      "locations": [
+        {
+          "path": "src/record.ts",
+          "startLine": 11,
+          "endLine": 16
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "archive": {
+      "principal": "support",
+      "resource": "record",
+      "policy": "archive",
+      "entries": [
+        "archive"
+      ],
+      "relation": "different-owner-without-supervisor-role",
+      "operation": "archive",
+      "expectation": "deny"
+    },
+    "second": {
+      "principal": "support",
+      "resource": "record",
+      "policy": "archive",
+      "entries": [
+        "archive"
+      ],
+      "relation": "different-owner-without-supervisor-role",
+      "operation": "archive",
+      "expectation": "deny"
+    }
+  }
+}

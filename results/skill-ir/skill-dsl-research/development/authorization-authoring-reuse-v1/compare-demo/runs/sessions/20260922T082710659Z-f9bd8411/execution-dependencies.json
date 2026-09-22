@@ -1,0 +1,311 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "synthetic-record-archive",
+    "request": "May an authenticated support agent who is not the owner or a supervisor archive this record?",
+    "repository": "https://example.test/synthetic/records",
+    "sourceRef": "synthetic-v1",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:archive",
+        "kind": "explicit-task-requirement",
+        "text": "Only the record owner or a supervisor may archive a record.",
+        "location": "authoring-v2.json#/policies/archive",
+        "revision": "synthetic-policy-v1",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The synthetic task author controls this bounded requirement."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:support",
+        "role": "support agent",
+        "description": "Author facts: [\"Not a supervisor\"]",
+        "startingCapabilities": [
+          "authenticated",
+          "support-agent"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:record",
+        "type": "record",
+        "description": "Author facts: [\"Existing customer record owned by another principal\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:archive",
+        "name": "archiveRecord",
+        "locations": [
+          {
+            "path": "src/record.ts",
+            "startLine": 11,
+            "endLine": 16
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:archive",
+        "principalId": "principal:support",
+        "resourceId": "resource:record",
+        "relation": "different-owner-without-supervisor-role",
+        "operation": "archive",
+        "expectation": "deny",
+        "conditions": [],
+        "policySourceId": "policy:archive",
+        "entryIds": [
+          "entry:archive"
+        ]
+      },
+      {
+        "id": "scenario:second",
+        "principalId": "principal:support",
+        "resourceId": "resource:record",
+        "relation": "different-owner-without-supervisor-role",
+        "operation": "archive",
+        "expectation": "deny",
+        "conditions": [],
+        "policySourceId": "policy:archive",
+        "entryIds": [
+          "entry:archive"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+    ]
+  },
+  "scenarios": {
+    "scenario:archive": {
+      "name": "archive",
+      "obligation": {
+        "id": "scenario:archive",
+        "principalId": "principal:support",
+        "resourceId": "resource:record",
+        "relation": "different-owner-without-supervisor-role",
+        "operation": "archive",
+        "expectation": "deny",
+        "conditions": [],
+        "policySourceId": "policy:archive",
+        "entryIds": [
+          "entry:archive"
+        ]
+      },
+      "principal": {
+        "id": "principal:support",
+        "role": "support agent",
+        "description": "Author facts: [\"Not a supervisor\"]",
+        "startingCapabilities": [
+          "authenticated",
+          "support-agent"
+        ]
+      },
+      "resource": {
+        "id": "resource:record",
+        "type": "record",
+        "description": "Author facts: [\"Existing customer record owned by another principal\"]"
+      },
+      "policy": {
+        "id": "policy:archive",
+        "kind": "explicit-task-requirement",
+        "text": "Only the record owner or a supervisor may archive a record.",
+        "location": "authoring-v2.json#/policies/archive",
+        "revision": "synthetic-policy-v1",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The synthetic task author controls this bounded requirement."
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:archive",
+          "name": "archiveRecord",
+          "locations": [
+            {
+              "path": "src/record.ts",
+              "startLine": 11,
+              "endLine": 16
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Aarchive::entry%3Aarchive"
+      ]
+    },
+    "scenario:second": {
+      "name": "second",
+      "obligation": {
+        "id": "scenario:second",
+        "principalId": "principal:support",
+        "resourceId": "resource:record",
+        "relation": "different-owner-without-supervisor-role",
+        "operation": "archive",
+        "expectation": "deny",
+        "conditions": [],
+        "policySourceId": "policy:archive",
+        "entryIds": [
+          "entry:archive"
+        ]
+      },
+      "principal": {
+        "id": "principal:support",
+        "role": "support agent",
+        "description": "Author facts: [\"Not a supervisor\"]",
+        "startingCapabilities": [
+          "authenticated",
+          "support-agent"
+        ]
+      },
+      "resource": {
+        "id": "resource:record",
+        "type": "record",
+        "description": "Author facts: [\"Existing customer record owned by another principal\"]"
+      },
+      "policy": {
+        "id": "policy:archive",
+        "kind": "explicit-task-requirement",
+        "text": "Only the record owner or a supervisor may archive a record.",
+        "location": "authoring-v2.json#/policies/archive",
+        "revision": "synthetic-policy-v1",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The synthetic task author controls this bounded requirement."
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:archive",
+          "name": "archiveRecord",
+          "locations": [
+            {
+              "path": "src/record.ts",
+              "startLine": 11,
+              "endLine": 16
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Asecond::entry%3Aarchive"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "src/record.ts",
+      "sha256": "bb4f95b84a59adf0ec606b5091cc5ee88d011ef55a3b8a8e956b6a6d877e928a",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 16
+      },
+      "originalLocations": []
+    }
+  ],
+  "sourceRoot": "project",
+  "sources": [
+    "src/record.ts"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:archive",
+        "scenario:second"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:archive",
+        "scenario:second"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:archive",
+        "scenario:second"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:archive",
+        "scenario:second"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:archive",
+        "scenario:second"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:archive",
+        "scenario:second"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": null,
+  "normalizerVersion": "authoring-v2-lowering/1",
+  "method": "plain",
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "arm": "B",
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "91de0ea04c37dc00ff98f847a82e2b938cc62643e89afcad42136a11669edc4b"
+}

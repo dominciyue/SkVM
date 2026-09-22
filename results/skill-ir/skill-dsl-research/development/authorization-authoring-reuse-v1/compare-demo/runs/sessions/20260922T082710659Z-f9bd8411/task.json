@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "source-authorization-assessment/v0",
+  "taskId": "synthetic-record-archive",
+  "request": "May an authenticated support agent who is not the owner or a supervisor archive this record?",
+  "repository": "https://example.test/synthetic/records",
+  "sourceRef": "synthetic-v1",
+  "sourceMode": "fixed-context",
+  "policySources": [
+    {
+      "id": "policy:archive",
+      "kind": "explicit-task-requirement",
+      "text": "Only the record owner or a supervisor may archive a record.",
+      "location": "authoring-v2.json#/policies/archive",
+      "revision": "synthetic-policy-v1",
+      "acceptance": {
+        "status": "accepted",
+        "actorRole": "task-author",
+        "reason": "The synthetic task author controls this bounded requirement."
+      }
+    }
+  ],
+  "principals": [
+    {
+      "id": "principal:support",
+      "role": "support agent",
+      "description": "Author facts: [\"Not a supervisor\"]",
+      "startingCapabilities": [
+        "authenticated",
+        "support-agent"
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "resource:record",
+      "type": "record",
+      "description": "Author facts: [\"Existing customer record owned by another principal\"]"
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry:archive",
+      "name": "archiveRecord",
+      "locations": [
+        {
+          "path": "src/record.ts",
+          "startLine": 11,
+          "endLine": 16
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "id": "scenario:archive",
+      "principalId": "principal:support",
+      "resourceId": "resource:record",
+      "relation": "different-owner-without-supervisor-role",
+      "operation": "archive",
+      "expectation": "deny",
+      "conditions": [],
+      "policySourceId": "policy:archive",
+      "entryIds": [
+        "entry:archive"
+      ]
+    },
+    {
+      "id": "scenario:second",
+      "principalId": "principal:support",
+      "resourceId": "resource:record",
+      "relation": "different-owner-without-supervisor-role",
+      "operation": "archive",
+      "expectation": "deny",
+      "conditions": [],
+      "policySourceId": "policy:archive",
+      "entryIds": [
+        "entry:archive"
+      ]
+    }
+  ],
+  "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+  "requiredAnalysis": [
+    "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+  ],
+  "constraints": [
+    "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "source-authorization-assessment/v0",
+  "taskId": "fastapi-items-foreign-update",
+  "request": "Determine whether an authenticated active superuser can update an item owned by another user through PUT /items/{id}.",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "sourceMode": "fixed-context",
+  "policySources": [
+    {
+      "id": "policy:modify-item",
+      "kind": "explicit-task-requirement",
+      "text": "An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.",
+      "location": "second-project/model-input/task.json#/normativePolicy",
+      "revision": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+      "acceptance": {
+        "status": "accepted",
+        "actorRole": "task-author",
+        "reason": "accepted by the study task author for this bounded assessment"
+      }
+    }
+  ],
+  "principals": [
+    {
+      "id": "principal:caller",
+      "role": "authenticated active superuser",
+      "description": "Author facts: [\"Authenticated\",\"Active\",\"Superuser\",\"Caller id differs from item.owner_id\"]",
+      "startingCapabilities": [
+        "authenticated",
+        "active-superuser"
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "resource:item",
+      "type": "item",
+      "description": "Author facts: [\"Existing item owned by another user\"]"
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry:update-item",
+      "name": "update_item",
+      "locations": [
+        {
+          "path": "items.py",
+          "startLine": 75,
+          "endLine": 96
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "id": "scenario:update-item",
+      "principalId": "principal:caller",
+      "resourceId": "resource:item",
+      "relation": "different-owner-with-superuser-role",
+      "operation": "update item fields through PUT /items/{id}",
+      "expectation": "allow",
+      "conditions": [],
+      "policySourceId": "policy:modify-item",
+      "entryIds": [
+        "entry:update-item"
+      ]
+    }
+  ],
+  "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+  "requiredAnalysis": [
+    "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+  ],
+  "constraints": [
+    "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+  ]
+}

@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260922T082132618Z-34f58492
+Status: completed
+Task: gitea-collaborator-permission
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adifferent-user-query::entry%3Aget-repo-permissions: source_refuted — The declared entry is GetRepoPermissions. It reads the request-selected collaborator username and applies an authorization gate before loading that user: access is allowed only when the runtime doer is a site administrator, the selected username matches the doer's lower-cased name, or the doer is a repository administrator. For the supplied principal and relation, none of those allow branches applies, so the strongest source-visible decision is HTTP 403 and immediate return. The collaborator account is therefore not loaded and the permission lookup or successful JSON response cannot be reached on this branch. The selected collaborator is bound from the path parameter, while the separately checked repository object is ctx.Repo.Repository; the source does not establish any different deployment or repository-wide behavior. The decisive source-external facts that could change the result would be the runtime values of the doer's administrator flags/name and repository-admin check, or the actual path username/repository context; the fixed context supplies their assessed logical values, so no decisive fact remains unknown for this scenario.
+  Evidence: The assessed entry defines the GetRepoPermissions operation for retrieving a repository collaborator's permission. (collaborators.go:4-6)
+  Evidence: The authorization decision uses the authenticated runtime doer through ctx.Doer.IsAdmin and ctx.Doer.LowerName, and also uses the repository-admin predicate on the request context. (collaborators.go:35-37)
+  Evidence: The requested collaborator object is selected using the collaborator path parameter and then loaded by username. (collaborators.go:35-41)
+  Evidence: The permission lookup uses the repository held in ctx.Repo.Repository together with the separately loaded collaborator object; that repository remains distinct from the requested collaborator account. (collaborators.go:41-51)
+  Evidence: Before the collaborator is loaded, the source rejects when the doer is not a site administrator, the collaborator username does not equal the doer's name, and the doer is not a repository administrator. (collaborators.go:35-39)
+  Evidence: On the supplied different-user, non-administrator branch, the handler returns HTTP 403 before loading the target collaborator, preventing the requested permission operation from proceeding. (collaborators.go:35-42)
+  Evidence: The protected permission lookup and successful permission response occur only after the authorization gate and collaborator load return successfully. (collaborators.go:41-57)
+  Evidence: The gate's only visible allow branches are site-administrator status, username ownership of the queried collaborator, or repository-administrator status; the supplied principal is stated to satisfy none of them and to query another user's username. (collaborators.go:35-37)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

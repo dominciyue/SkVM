@@ -1,0 +1,36 @@
+{
+  "reviewer": "clean-context default read-only agent",
+  "scope": [
+    "v2 identities",
+    "policy authorship",
+    "dependency coverage",
+    "sourceRoot",
+    "public conditions"
+  ],
+  "findings": [
+    {
+      "claim": "drive-relative sourceRoot can escape",
+      "status": "escape-not-reproduced",
+      "evidence": "Targeted drive-relative spelling resolved to a nonexistent path and was rejected by the exact source loader (missing-root), with no provider call. Independently, local-input.ts verifies realpath(sourceRoot) is beneath realpath(input directory) when both exist; the review assertion that it validates only the unintended root is incorrect. No escape reproduced; not a comprehensive Windows-path proof.",
+      "verification": "path-confinement/check.json"
+    },
+    {
+      "claim": "unchanged normalizer version hides changes in host default questions/constraints",
+      "status": "not-reproduced-by-code",
+      "evidence": "change-report snapshot includes full task and promptSha256; comparison loops over task and promptSha256 even if normalizerVersion unchanged; requiredAnalysis regression already proves changed questions trigger needs-review"
+    }
+  ],
+  "noHistoricalOrGeneratedAnswersRead": true,
+  "mainAgentCorrections": [
+    {
+      "issue": "Lone UTF-16 surrogate dictionary key throws URIError during encodeURIComponent",
+      "verification": "authoring-v2.test.ts red then green; return needs-input rather than throw",
+      "scope": "Only malformed key rejection; valid frozen input lowering unchanged"
+    },
+    {
+      "issue": "Known blocked condition effect falsely rejected for unrelated unknown assumption",
+      "verification": "condition-red.log, condition-green.log and summary.json revision offline retained-initial recheck",
+      "scope": "Known effect still needs fact pointer; semanticSupport remains unreviewed; paid initial statistics retained"
+    }
+  ]
+}

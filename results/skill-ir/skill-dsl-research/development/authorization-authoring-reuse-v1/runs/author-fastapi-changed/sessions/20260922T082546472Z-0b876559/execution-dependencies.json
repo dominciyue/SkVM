@@ -1,0 +1,234 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "fastapi-items-foreign-update",
+    "request": "Determine whether an authenticated active superuser can update an item owned by another user through PUT /items/{id}.",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:modify-item",
+        "kind": "explicit-task-requirement",
+        "text": "An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.",
+        "location": "second-project/model-input/task.json#/normativePolicy",
+        "revision": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "accepted by the study task author for this bounded assessment"
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:caller",
+        "role": "authenticated active superuser",
+        "description": "Author facts: [\"Authenticated\",\"Active\",\"Superuser\",\"Caller id differs from item.owner_id\"]",
+        "startingCapabilities": [
+          "authenticated",
+          "active-superuser"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:item",
+        "type": "item",
+        "description": "Author facts: [\"Existing item owned by another user\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:update-item",
+        "name": "update_item",
+        "locations": [
+          {
+            "path": "items.py",
+            "startLine": 75,
+            "endLine": 96
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:update-item",
+        "principalId": "principal:caller",
+        "resourceId": "resource:item",
+        "relation": "different-owner-with-superuser-role",
+        "operation": "update item fields through PUT /items/{id}",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:modify-item",
+        "entryIds": [
+          "entry:update-item"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+    ]
+  },
+  "scenarios": {
+    "scenario:update-item": {
+      "name": "update-item",
+      "obligation": {
+        "id": "scenario:update-item",
+        "principalId": "principal:caller",
+        "resourceId": "resource:item",
+        "relation": "different-owner-with-superuser-role",
+        "operation": "update item fields through PUT /items/{id}",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:modify-item",
+        "entryIds": [
+          "entry:update-item"
+        ]
+      },
+      "principal": {
+        "id": "principal:caller",
+        "role": "authenticated active superuser",
+        "description": "Author facts: [\"Authenticated\",\"Active\",\"Superuser\",\"Caller id differs from item.owner_id\"]",
+        "startingCapabilities": [
+          "authenticated",
+          "active-superuser"
+        ]
+      },
+      "resource": {
+        "id": "resource:item",
+        "type": "item",
+        "description": "Author facts: [\"Existing item owned by another user\"]"
+      },
+      "policy": {
+        "id": "policy:modify-item",
+        "kind": "explicit-task-requirement",
+        "text": "An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.",
+        "location": "second-project/model-input/task.json#/normativePolicy",
+        "revision": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "accepted by the study task author for this bounded assessment"
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:update-item",
+          "name": "update_item",
+          "locations": [
+            {
+              "path": "items.py",
+              "startLine": 75,
+              "endLine": 96
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Aupdate-item::entry%3Aupdate-item"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "items.py",
+      "sha256": "ea06523387dfe99071cf97250c55c63aab512a9ae89c2b41a1ae14d3d9caa83b",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 113
+      },
+      "originalLocations": []
+    }
+  ],
+  "sourceRoot": "source",
+  "sources": [
+    "items.py"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:update-item"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:update-item"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:update-item"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:update-item"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:update-item"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:update-item"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": null,
+  "normalizerVersion": "authoring-v2-lowering/1",
+  "method": "plain",
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "arm": "B",
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "8c6c29e18739a89eb2f876e1db26374b24945c323f7c46d3400a1fef7f94616f"
+}

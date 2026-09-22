@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 SkVM provider/CLI 与本地 JSON；不建设 UI、通用工作流引擎、仓库扫描器或新的 agent 平台。
 
-- 日期：2026-09-22；状态：`authorized-for-execution`，AA0创建机器状态。
+- 日期：2026-09-22；状态：`in-progress`，AA0–AA11完成，AA12文档验证与AA13发布进行中；机器状态见结果根。
 - 生产基线：`1ae35ccb1ec44a1830f4ee0b189503c9a713a337`；接手以本任务书登记后的最新HEAD为准。
 - 结果根：`results/skill-ir/skill-dsl-research/development/authorization-authoring-reuse-v1/`。
 - 当前研究：[§7.24](../../skill-ir/skill-dsl-research.md#724-aa-作者声明修改复用与领域价值)。范围仍为单repo/ref、显式源码与政策的授权/信任边界任务。
@@ -170,69 +170,70 @@ expect((await compareAuthorizationInput(oldSession, changedInputPath)).affectedS
 ## 五、连续实施队列
 
 ### AA0：恢复与一次基线
-- [ ] 读取入口、任务书和设计；记录HEAD、七项原修改、拥有文件，建立单一status.json/journal。
-- [ ] 运行`bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts ./src/providers/structured.test.ts`，基线应175/175、1229断言；失败先分离环境/既有/新问题。
-- [ ] 复核Z作者36诊断和旧快照缺字段，以具体错误分类进入§7.24，不重跑Z付费面板。
+- [x] 读取入口、任务书和设计；记录HEAD、七项原修改、拥有文件，建立单一status.json/journal。
+- [x] 运行`bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts ./src/providers/structured.test.ts`，基线应175/175、1229断言；失败先分离环境/既有/新问题。
+- [x] 复核Z作者36诊断和旧快照缺字段，以具体错误分类进入§7.24，不重跑Z付费面板。
 
 ### AA1：作者合同与失败测试
-- [ ] 将§3.1字段/来源/旧兼容细化到研究正文，确定v2到v0映射表；不存在的领域信息不能由默认值冒充。
-- [ ] 新建authoring-v2测试，覆盖完整例子、无内部ID、key重排、多scenario共享、缺expectation/policy、错误引用、缺条件和未知字段；运行确认按缺实现失败。
-- [ ] 在结果根写v1/v2相同语义输入的字段责任对照，区分减少机械字段与删除任务信息。
+- [x] 将§3.1字段/来源/旧兼容细化到研究正文，确定v2到v0映射表；不存在的领域信息不能由默认值冒充。
+- [x] 新建authoring-v2测试，覆盖完整例子、无内部ID、key重排、多scenario共享、缺expectation/policy、错误引用、缺条件和未知字段；运行确认按缺实现失败。
+- [x] 在结果根写v1/v2相同语义输入的字段责任对照，区分减少机械字段与删除任务信息。
 
 ### AA2：确定性lowering与版本分发
-- [ ] 实现authoring-v2 schema及lowering；`normalizeAuthorizationAuthoringInput`按明确版本分发，v1原接口保持兼容。
-- [ ] 生成稳定ID、默认scope/profile/约束、conditionBindings和field provenance，复用v1/canonical compiler完成验证。
-- [ ] 运行`bun test ./src/benchmarks/authorization-dsl/authoring.test.ts ./src/benchmarks/authorization-dsl/authoring-v2.test.ts`；新旧合同均通过才进入入口接线。
+- [x] 实现authoring-v2 schema及lowering；`normalizeAuthorizationAuthoringInput`按明确版本分发，v1原接口保持兼容。
+- [x] 生成稳定ID、默认scope/profile/约束、conditionBindings和field provenance，复用v1/canonical compiler完成验证。
+- [x] 运行`bun test ./src/benchmarks/authorization-dsl/authoring.test.ts ./src/benchmarks/authorization-dsl/authoring-v2.test.ts`；新旧合同均通过才进入入口接线。
 
 ### AA3：普通入口与可操作诊断
-- [ ] 写CLI/loader红测：init v2模板、不覆盖；check/run直接v2；sourceRoot基准不变；错误版本与缺项零provider；inspect保留原作者输入/派生来源。
-- [ ] 实现§3.2入口与分组诊断，不创建第二host；公共与直接脚本help一致显示method/wire。
-- [ ] 更新usage及synthetic v2例子，走一次真实零provider check；只描述已经实现的选项。
+- [x] 写CLI/loader红测：init v2模板、不覆盖；check/run直接v2；sourceRoot基准不变；错误版本与缺项零provider；inspect保留原作者输入/派生来源。
+- [x] 实现§3.2入口与分组诊断，不创建第二host；公共与直接脚本help一致显示method/wire。
+- [x] 更新usage及synthetic v2例子，走一次真实零provider check；只描述已经实现的选项。
 
 ### AA4：依赖快照缺口红测与修复
-- [ ] 构造仅改变principal属性、resource属性、entry范围、request、公共要求的反例，证明旧完整性不足；保留旧历史解释。
-- [ ] 新执行快照包含实际影响输入与输出合同的全部字段；规范化对象顺序，不把有语义的数组当集合随意重排。
-- [ ] 新session持久化快照，旧session缺依赖返回needs-review；不迁移旧原件或宣称旧结果已获新验证。
+- [x] 构造仅改变principal属性、resource属性、entry范围、request、公共要求的反例，证明旧完整性不足；保留旧历史解释。
+- [x] 新执行快照包含实际影响输入与输出合同的全部字段；规范化对象顺序，不把有语义的数组当集合随意重排。
+- [x] 新session持久化快照，旧session缺依赖返回needs-review；不迁移旧原件或宣称旧结果已获新验证。
 
 ### AA5：只读compare与修改传播
-- [ ] `change-report.test.ts`先红：字段变化→受影响scenario；共享policy传播；已读source变更全体受影响；未读文件与纯排版不影响；缺历史快照解释可见。
-- [ ] 实现`authorization compare`并复用source读取/规范化路径；零provider、无旧结果覆盖、无自动答案复用。
-- [ ] 在新synthetic多scenario例子展示原任务→改主体→改政策→改源码；报告是输入适用性而非语义正确证明。
+- [x] `change-report.test.ts`先红：字段变化→受影响scenario；共享policy传播；已读source变更全体受影响；未读文件与纯排版不影响；缺历史快照解释可见。
+- [x] 实现`authorization compare`并复用source读取/规范化路径；零provider、无旧结果覆盖、无自动答案复用。
+- [x] 在新synthetic多scenario例子展示原任务→改主体→改政策→改源码；报告是输入适用性而非语义正确证明。
 
 ### AA6：公共事实与评价对齐
-- [ ] 检查plain/ledger/conditions渲染，分别测试同一用户问题保留、sidecar只改变输出/组织要求、oracle未进入prompt。
-- [ ] 为§4.3六任务准备同事实输入、公共要求和evaluator；旧真实源码原字节保留，新增表示写AA根。
-- [ ] mock走完整12单元与一次失败/恢复，验证分母、计量及不重复dispatch；配置和实现固定后才真实运行。
+- [x] 检查plain/ledger/conditions渲染，分别测试同一用户问题保留、sidecar只改变输出/组织要求、oracle未进入prompt。
+- [x] 为§4.3六任务准备同事实输入、公共要求和evaluator；旧真实源码原字节保留，新增表示写AA根。
+- [x] mock走完整12单元与一次失败/恢复，验证分母、计量及不重复dispatch；配置和实现固定后才真实运行。
 
 ### AA7：两位独立作者原/变试用
-- [ ] 按§4.2派发两项自包含只读编写任务，主线程按AGENTS等待，不并发改影响作者的接口。
-- [ ] 按真实diagnostics给作者修订机会；保存首稿、修订、往返和求助，不替作者悄悄纠正。
-- [ ] 如暴露共享缺陷，先反例再修，再做一次新上下文独立复试；失败仍如实保留。
+- [x] 按§4.2派发两项自包含只读编写任务，主线程按AGENTS等待，不并发改影响作者的接口。
+- [x] 按真实diagnostics给作者修订机会；保存首稿、修订、往返和求助，不替作者悄悄纠正。
+- [x] 如暴露共享缺陷，先反例再修，再做一次新上下文独立复试；失败仍如实保留。
 
 ### AA8：普通使用与变化行为
-- [ ] 成功作者的两组原/变输入经普通CLI运行，各2单元；同policy/source下改变关系或角色，检查deny→allow是否有证据。
-- [ ] 调用compare核对变化影响；实际答案要按源码评价，不能只看conclusion enum，因为source_refuted可能同时用于正确allow与正确deny。
-- [ ] 汇总作者步骤、字段改动、辅助介入、调用与质量；独立未完成的分支明确not-run。
+- [x] 成功作者的两组原/变输入经普通CLI运行，各2单元；同policy/source下改变关系或角色，检查deny→allow是否有证据。
+- [x] 调用compare核对变化影响；实际答案要按源码评价，不能只看conclusion enum，因为source_refuted可能同时用于正确allow与正确deny。
+- [x] 汇总作者步骤、字段改动、辅助介入、调用与质量；独立未完成的分支明确not-run。
 
 ### AA9：同底座真实面板
-- [ ] 按已固定顺序执行12单元，不现场更换失败任务；保持相同来源、公共问题、v4和provider设置。
-- [ ] 全部生成结束后按同规则逐项评审；不让coverage字段存在本身成为质量加分，接受plain中的等价事实表达。
-- [ ] 按任务/方法报告首答和最终质量、调用、token/cache、耗时/unknown，不把未交付从分母删除。
+- [x] 按已固定顺序执行12单元，不现场更换失败任务；保持相同来源、公共问题、v4和provider设置。
+- [x] 全部生成结束后按同规则逐项评审；不让coverage字段存在本身成为质量加分，接受plain中的等价事实表达。
+- [x] 按任务/方法报告首答和最终质量、调用、token/cache、耗时/unknown，不把未交付从分母删除。
 
 ### AA10：一次共享修订与结论
-- [ ] 只修AA9明确揭示的共享实现/合同缺陷，先红后绿；最多两对共4单元，不为取得正向反复调用。
-- [ ] 分开初轮与修订、作者与面板，形成authoring/change/runtime三个结论。没有领域方法收益就推荐轻模式而保留有用的编写/变更工具。
-- [ ] 按任务需求给plain/ledger/conditions具体选择依据，不使用与原结果混淆的笼统“全绿/全面优化”。
+- 2026-09-22实测修订：header条件首答的三个blocked分支因无关unknown assumptions被误要求decisive missing facts，触发一次真实repair。以红绿测试将缺事实要求限于unknown effect；已知效果仍须证据指针，语义仍unreviewed。仅离线重检留存首答，不追加付费单元，不改初轮记录与成本。
+- [x] 只修AA9明确揭示的共享实现/合同缺陷，先红后绿；最多两对共4单元，不为取得正向反复调用。
+- [x] 分开初轮与修订、作者与面板，形成authoring/change/runtime三个结论。没有领域方法收益就推荐轻模式而保留有用的编写/变更工具。
+- [x] 按任务需求给plain/ledger/conditions具体选择依据，不使用与原结果混淆的笼统“全绿/全面优化”。
 
 ### AA11：独立使用复核与有限回归
-- [ ] 窄只读审查v2身份生成、policy不猜测、快照遗漏、同信息实验及原始失败保留；修复有证据的问题，不展开历史大审计。
-- [ ] 运行授权/benchmark/CLI/provider相关测试与`bun run typecheck`，补实际修改所影响的直接测试；无代码变化不重复同一轮验证。
-- [ ] 普通help/init/check/compare/inspect离线演示可运行，run使用已归档本轮结果说明；不为演示追加付费调用。
+- [x] 窄只读审查v2身份生成、policy不猜测、快照遗漏、同信息实验及原始失败保留；修复有证据的问题，不展开历史大审计。
+- [x] 运行授权/benchmark/CLI/provider相关测试与`bun run typecheck`，补实际修改所影响的直接测试；无代码变化不重复同一轮验证。
+- [x] 普通help/init/check/compare/inspect离线演示可运行，run使用已归档本轮结果说明；不为演示追加付费调用。
 
 ### AA12：统一文档与复盘
-- [ ] 研究§7.24记录触发问题、根因、解决、验证和取舍，更新当前结论/接口；完成结果放在该节，不追加到证据索引后。
-- [ ] 同步usage、developer-guide、current-status、当前plan/spec、任务书实际项和根conversation_log；保留Z原机器成绩。
-- [ ] `python scripts/check_skill_ir_doc_links_test.py`及`python scripts/check_skill_ir_doc_links.py --root .`；解析AA JSON/JSONL、离线重算一次summary、做归属/敏感信息检查。
+- [x] 研究§7.24记录触发问题、根因、解决、验证和取舍，更新当前结论/接口；完成结果放在该节，不追加到证据索引后。
+- [x] 同步usage、developer-guide、current-status、当前plan/spec、任务书实际项和根conversation_log；保留Z原机器成绩。
+- [x] `python scripts/check_skill_ir_doc_links_test.py`及`python scripts/check_skill_ir_doc_links.py --root .`；解析AA JSON/JSONL、离线重算一次summary、做归属/敏感信息检查。
 
 ### AA13：发布与结束
 - [ ] 只提交本轮归属文件，推送`origin/skill-ir-aot`并核对远端，七项原修改及历史untracked保持。

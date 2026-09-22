@@ -1,0 +1,2369 @@
+{
+  "status": "completed",
+  "arm": "B",
+  "compiled": {
+    "task": {
+      "schemaVersion": "source-authorization-assessment/v0",
+      "taskId": "gitea-collaborator-permission",
+      "request": "May an authenticated repository-read collaborator who is neither a site administrator nor a repository administrator query their own repository permission?",
+      "repository": "https://github.com/go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "sourceMode": "fixed-context",
+      "policySources": [
+        {
+          "id": "policy:collaborator-permission",
+          "kind": "explicit-task-requirement",
+          "text": "A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.",
+          "location": "source/policy.json#/normativePolicy",
+          "revision": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+          "acceptance": {
+            "status": "accepted",
+            "actorRole": "task-author",
+            "reason": "The supplied policy metadata states the accepted bounded rule for the fixed source entry."
+          }
+        }
+      ],
+      "principals": [
+        {
+          "id": "principal:caller",
+          "role": "authenticated repository-read collaborator",
+          "description": "Author facts: [\"Authenticated\",\"Has repository read access\",\"Is a collaborator\",\"Is not a site administrator\",\"Is not a repository administrator\",\"Queries their own username\"]",
+          "startingCapabilities": [
+            "authenticated",
+            "repository-read",
+            "collaborator"
+          ]
+        }
+      ],
+      "resources": [
+        {
+          "id": "resource:collaborator-permission",
+          "type": "repository collaborator permission",
+          "description": "Author facts: [\"Existing collaborator account whose username equals the caller's username\",\"Repository permission queried through the collaborator permission endpoint\"]"
+        }
+      ],
+      "entries": [
+        {
+          "id": "entry:get-repo-permissions",
+          "name": "GetRepoPermissions",
+          "locations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 1,
+              "endLine": 58
+            }
+          ]
+        }
+      ],
+      "obligations": [
+        {
+          "id": "scenario:self-query",
+          "principalId": "principal:caller",
+          "resourceId": "resource:collaborator-permission",
+          "relation": "caller-username-equals-collaborator-username",
+          "operation": "GET collaborator repository permission",
+          "expectation": "allow",
+          "conditions": [],
+          "policySourceId": "policy:collaborator-permission",
+          "entryIds": [
+            "entry:get-repo-permissions"
+          ]
+        }
+      ],
+      "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+      "requiredAnalysis": [
+        "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+      ],
+      "constraints": [
+        "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+      ]
+    },
+    "status": "ready",
+    "runnableObligations": [
+      {
+        "id": "scenario%3Aself-query::entry%3Aget-repo-permissions",
+        "authorObligationId": "scenario:self-query",
+        "entryId": "entry:get-repo-permissions",
+        "obligation": {
+          "id": "scenario:self-query",
+          "principalId": "principal:caller",
+          "resourceId": "resource:collaborator-permission",
+          "relation": "caller-username-equals-collaborator-username",
+          "operation": "GET collaborator repository permission",
+          "expectation": "allow",
+          "conditions": [],
+          "policySourceId": "policy:collaborator-permission",
+          "entryIds": [
+            "entry:get-repo-permissions"
+          ]
+        },
+        "principal": {
+          "id": "principal:caller",
+          "role": "authenticated repository-read collaborator",
+          "description": "Author facts: [\"Authenticated\",\"Has repository read access\",\"Is a collaborator\",\"Is not a site administrator\",\"Is not a repository administrator\",\"Queries their own username\"]",
+          "startingCapabilities": [
+            "authenticated",
+            "repository-read",
+            "collaborator"
+          ]
+        },
+        "resource": {
+          "id": "resource:collaborator-permission",
+          "type": "repository collaborator permission",
+          "description": "Author facts: [\"Existing collaborator account whose username equals the caller's username\",\"Repository permission queried through the collaborator permission endpoint\"]"
+        },
+        "entry": {
+          "id": "entry:get-repo-permissions",
+          "name": "GetRepoPermissions",
+          "locations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 1,
+              "endLine": 58
+            }
+          ]
+        },
+        "policySource": {
+          "id": "policy:collaborator-permission",
+          "kind": "explicit-task-requirement",
+          "text": "A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.",
+          "location": "source/policy.json#/normativePolicy",
+          "revision": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+          "acceptance": {
+            "status": "accepted",
+            "actorRole": "task-author",
+            "reason": "The supplied policy metadata states the accepted bounded rule for the fixed source entry."
+          }
+        }
+      }
+    ],
+    "blockedObligations": [],
+    "diagnostics": [],
+    "dependencies": {
+      "repository": "https://github.com/go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "sourceMode": "fixed-context",
+      "policies": [
+        {
+          "id": "policy:collaborator-permission",
+          "revision": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+          "acceptanceStatus": "accepted"
+        }
+      ]
+    }
+  },
+  "renderedPrompt": "# Organized authorization assessment instruction (B)\n\nAnalyze each runnable obligation in the canonical declaration. Follow the declared required analysis, constraints, policy authority, and scope assurance. Explain the source-visible decision without assuming repository discovery or deployment facts. Address every supplied analysis question and report its coverage without inventing an answer.\n\n## Canonical declaration\nThis is task gitea-collaborator-permission, expressed with source-authorization-assessment/v0. May an authenticated repository-read collaborator who is neither a site administrator nor a repository administrator query their own repository permission?\nAssess repository https://github.com/go-gitea/gitea at source ref fc28937a8d772fe9e4025c9b5f24d5db4d86610b in fixed-context mode. Source discovery status is not-tested.\n\nThe accepted policy material is:\n- policy:collaborator-permission is a explicit-task-requirement at source/policy.json#/normativePolicy, revision fc28937a8d772fe9e4025c9b5f24d5db4d86610b.\n  Policy text: A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.\n  Acceptance is accepted; accepting actor role: task-author; reason: The supplied policy metadata states the accepted bounded rule for the fixed source entry.\n\nThe principals are:\n- principal:caller has role authenticated repository-read collaborator. Author facts: [\"Authenticated\",\"Has repository read access\",\"Is a collaborator\",\"Is not a site administrator\",\"Is not a repository administrator\",\"Queries their own username\"]\n  Starting capabilities: authenticated, repository-read, collaborator.\n\nThe resources are:\n- resource:collaborator-permission is a repository collaborator permission. Author facts: [\"Existing collaborator account whose username equals the caller's username\",\"Repository permission queried through the collaborator permission endpoint\"]\n\nThe declared source entries are:\n- entry:get-repo-permissions names GetRepoPermissions.\n  Source location: collaborators.go, startLine 1, endLine 58.\n\nThe authorization obligations are:\n- scenario:self-query: principal principal:caller, resource resource:collaborator-permission, relation caller-username-equals-collaborator-username, operation GET collaborator repository permission, expected policy disposition allow.\n  Policy source: policy:collaborator-permission. Declared entries: entry:get-repo-permissions.\n  Conditions: none declared.\n\nScope assurance: Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.\nRequired analysis:\n- Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.\nConstraints:\n- Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.\nAllowed conclusions: source_supported_failure, source_refuted, unknown.\n\n## Public analysis questions\n- Which source-visible condition or control gates the declared entry before the assessed path proceeds?\n- How is the declared principal bound to the runtime caller or identity used by the assessed operation?\n- How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?\n- What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?\n- After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?\n- Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?\n\n## Result contract\nUse compact wire/v4: top-level results only. Each item has obligationId, conclusion, explanation, facts as an array of {id, kind, statement, citations}, decisiveMissingFacts and suggestedObservations. Fact IDs must be unique within each obligation. kind is entry/binding/control/effect/condition. The host fills all version/identity/scope metadata and groups facts; never output those fields. Include item-local coverage only when an analysis ledger is supplied, and item-local condition only when a condition request is supplied. Branches do not repeat obligationId.\nReturn exactly one result for every runnable expanded obligation, with one of: source_supported_failure, source_refuted, unknown.\nInterpret conclusion labels relative to the declared policy expectation, not as direct synonyms for allow or deny:\n- source_supported_failure: the fixed source supports that the declared policy expectation fails under the stated conditions.\n- source_refuted: the fixed source supports that the declared policy expectation is enforced under the stated conditions, refuting a policy failure.\n- unknown: the fixed source and declared context are insufficient to decide whether the expectation fails or is enforced.\nExact runnable obligation IDs (closed list):\n- scenario%3Aself-query::entry%3Aget-repo-permissions\nUse each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.\nSupport the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.\nAddress every public analysis question in the explanation and source-backed facts. No separate coverage ledger is required for this plain-method answer.\n\n## Fixed source context\n===== BEGIN ALLOWED INPUT: collaborators.go =====\nSource ID: src-89fab2db8921e6cb\nLocation note: crop lines 1-58; original locations: not separately supplied\nCitation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.\n1 | // Fixed excerpt from go-gitea/gitea at fc28937a8d772fe9e4025c9b5f24d5db4d86610b.\n2 | // Original path and range: routers/api/v1/repo/collaborators.go:247-301.\n3 | \n4 | // GetRepoPermissions gets repository permissions for a user\n5 | func GetRepoPermissions(ctx *context.APIContext) {\n6 | \t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions\n7 | \t// ---\n8 | \t// summary: Get repository permissions for a user\n9 | \t// produces:\n10 | \t// - application/json\n11 | \t// parameters:\n12 | \t// - name: owner\n13 | \t//   in: path\n14 | \t//   description: owner of the repo\n15 | \t//   type: string\n16 | \t//   required: true\n17 | \t// - name: repo\n18 | \t//   in: path\n19 | \t//   description: name of the repo\n20 | \t//   type: string\n21 | \t//   required: true\n22 | \t// - name: collaborator\n23 | \t//   in: path\n24 | \t//   description: username of the collaborator whose permissions are to be obtained\n25 | \t//   type: string\n26 | \t//   required: true\n27 | \t// responses:\n28 | \t//   \"200\":\n29 | \t//     \"$ref\": \"#/responses/RepoCollaboratorPermission\"\n30 | \t//   \"404\":\n31 | \t//     \"$ref\": \"#/responses/notFound\"\n32 | \t//   \"403\":\n33 | \t//     \"$ref\": \"#/responses/forbidden\"\n34 | \n35 | \tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n36 | \tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n37 | \t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n38 | \t\treturn\n39 | \t}\n40 | \n41 | \tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n42 | \tif err != nil {\n43 | \t\tif user_model.IsErrUserNotExist(err) {\n44 | \t\t\tctx.APIError(http.StatusNotFound, err.Error())\n45 | \t\t} else {\n46 | \t\t\tctx.APIErrorInternal(err)\n47 | \t\t}\n48 | \t\treturn\n49 | \t}\n50 | \n51 | \tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n52 | \tif err != nil {\n53 | \t\tctx.APIErrorInternal(err)\n54 | \t\treturn\n55 | \t}\n56 | \n57 | \tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))\n58 | }\n===== END ALLOWED INPUT: collaborators.go =====",
+  "initialTransport": {
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aself-query::entry%3Aget-repo-permissions",
+          "conclusion": "source_refuted",
+          "explanation": "The fixed entry is the GET collaborator-permission handler. It reads the request collaborator username and applies the strongest visible authorization gate before loading that collaborator: access is rejected only when the caller is not a site administrator, the requested username is not the caller's case-insensitive username, and the caller is not a repository administrator. Under the declared self-query relation, the username comparison is true, so the rejection branch is bypassed even though the caller lacks both administrator roles. The selected collaborator is then loaded by the request username, and the repository permission is queried for the current repository and that collaborator; on the source-visible success branch, the operation reaches the JSON permission response. Thus the source enforces the declared allow expectation for the supplied self-query condition. The source crop does not establish deployment behavior or repository-wide entry completeness, but no source-external fact is decisive for this visible authorization branch under the supplied existing-collaborator premise.",
+          "facts": [
+            {
+              "id": "entry-handler",
+              "kind": "entry",
+              "statement": "The declared GET collaborator repository permission operation is implemented by the supplied GetRepoPermissions entry.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 4,
+                  "endLine": 6
+                }
+              ]
+            },
+            {
+              "id": "identity-binding",
+              "kind": "binding",
+              "statement": "The request-selected collaborator username is compared case-insensitively with the authenticated caller identity's lower-name, while administrator role checks use the caller context.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 35,
+                  "endLine": 37
+                }
+              ]
+            },
+            {
+              "id": "resource-binding",
+              "kind": "binding",
+              "statement": "The request collaborator path value selects the collaborator account loaded by username, and that account is used in the repository-permission lookup for the current repository.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 41,
+                  "endLine": 52
+                }
+              ]
+            },
+            {
+              "id": "distinct-repository-control",
+              "kind": "control",
+              "statement": "The repository-administrator check is a separate authorization relation from the collaborator-username self-query comparison and the site-administrator check.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 35,
+                  "endLine": 38
+                }
+              ]
+            },
+            {
+              "id": "self-query-allow-control",
+              "kind": "control",
+              "statement": "The visible rejection control requires all three disqualifying conditions—non-site-admin, username mismatch, and non-repository-admin—to hold; a matching caller username therefore bypasses rejection despite the two absent administrator roles.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 35,
+                  "endLine": 39
+                }
+              ]
+            },
+            {
+              "id": "protected-effect",
+              "kind": "effect",
+              "statement": "After authorization, the handler queries the individual user's permission for the current repository and returns the permission in a successful JSON response on the no-error branch.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 51,
+                  "endLine": 58
+                }
+              ]
+            },
+            {
+              "id": "declared-condition",
+              "kind": "condition",
+              "statement": "The assessed condition is that the collaborator username equals the caller's username; this is the source-visible branch that permits the declared principal to proceed without either administrator role.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 35,
+                  "endLine": 39
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ]
+    },
+    "normalization": {
+      "normalizerVersion": "authorization-wire-normalizer/v4",
+      "canonicalResultVersion": "source-authorization-assessment-result/v0",
+      "status": "valid",
+      "diagnostics": [],
+      "wireResult": {
+        "results": [
+          {
+            "obligationId": "scenario%3Aself-query::entry%3Aget-repo-permissions",
+            "conclusion": "source_refuted",
+            "explanation": "The fixed entry is the GET collaborator-permission handler. It reads the request collaborator username and applies the strongest visible authorization gate before loading that collaborator: access is rejected only when the caller is not a site administrator, the requested username is not the caller's case-insensitive username, and the caller is not a repository administrator. Under the declared self-query relation, the username comparison is true, so the rejection branch is bypassed even though the caller lacks both administrator roles. The selected collaborator is then loaded by the request username, and the repository permission is queried for the current repository and that collaborator; on the source-visible success branch, the operation reaches the JSON permission response. Thus the source enforces the declared allow expectation for the supplied self-query condition. The source crop does not establish deployment behavior or repository-wide entry completeness, but no source-external fact is decisive for this visible authorization branch under the supplied existing-collaborator premise.",
+            "facts": [
+              {
+                "id": "entry-handler",
+                "kind": "entry",
+                "statement": "The declared GET collaborator repository permission operation is implemented by the supplied GetRepoPermissions entry.",
+                "citations": [
+                  {
+                    "sourceId": "src-89fab2db8921e6cb",
+                    "startLine": 4,
+                    "endLine": 6
+                  }
+                ]
+              },
+              {
+                "id": "identity-binding",
+                "kind": "binding",
+                "statement": "The request-selected collaborator username is compared case-insensitively with the authenticated caller identity's lower-name, while administrator role checks use the caller context.",
+                "citations": [
+                  {
+                    "sourceId": "src-89fab2db8921e6cb",
+                    "startLine": 35,
+                    "endLine": 37
+                  }
+                ]
+              },
+              {
+                "id": "resource-binding",
+                "kind": "binding",
+                "statement": "The request collaborator path value selects the collaborator account loaded by username, and that account is used in the repository-permission lookup for the current repository.",
+                "citations": [
+                  {
+                    "sourceId": "src-89fab2db8921e6cb",
+                    "startLine": 41,
+                    "endLine": 52
+                  }
+                ]
+              },
+              {
+                "id": "distinct-repository-control",
+                "kind": "control",
+                "statement": "The repository-administrator check is a separate authorization relation from the collaborator-username self-query comparison and the site-administrator check.",
+                "citations": [
+                  {
+                    "sourceId": "src-89fab2db8921e6cb",
+                    "startLine": 35,
+                    "endLine": 38
+                  }
+                ]
+              },
+              {
+                "id": "self-query-allow-control",
+                "kind": "control",
+                "statement": "The visible rejection control requires all three disqualifying conditions—non-site-admin, username mismatch, and non-repository-admin—to hold; a matching caller username therefore bypasses rejection despite the two absent administrator roles.",
+                "citations": [
+                  {
+                    "sourceId": "src-89fab2db8921e6cb",
+                    "startLine": 35,
+                    "endLine": 39
+                  }
+                ]
+              },
+              {
+                "id": "protected-effect",
+                "kind": "effect",
+                "statement": "After authorization, the handler queries the individual user's permission for the current repository and returns the permission in a successful JSON response on the no-error branch.",
+                "citations": [
+                  {
+                    "sourceId": "src-89fab2db8921e6cb",
+                    "startLine": 51,
+                    "endLine": 58
+                  }
+                ]
+              },
+              {
+                "id": "declared-condition",
+                "kind": "condition",
+                "statement": "The assessed condition is that the collaborator username equals the caller's username; this is the source-visible branch that permits the declared principal to proceed without either administrator role.",
+                "citations": [
+                  {
+                    "sourceId": "src-89fab2db8921e6cb",
+                    "startLine": 35,
+                    "endLine": 39
+                  }
+                ]
+              }
+            ],
+            "decisiveMissingFacts": [],
+            "suggestedObservations": []
+          }
+        ]
+      },
+      "sourceCatalog": {
+        "schemaVersion": "authorization-source-catalog/v1",
+        "repository": "https://github.com/go-gitea/gitea",
+        "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+        "sources": [
+          {
+            "sourceId": "src-89fab2db8921e6cb",
+            "relativePath": "collaborators.go",
+            "sha256": "edbacf431c736f78e6e5beef3c6329ff89210a6463438cedc0be48cdc246a012",
+            "cropRange": {
+              "startLine": 1,
+              "endLine": 58
+            },
+            "originalLocations": [],
+            "lines": [
+              {
+                "lineNumber": 1,
+                "text": "// Fixed excerpt from go-gitea/gitea at fc28937a8d772fe9e4025c9b5f24d5db4d86610b."
+              },
+              {
+                "lineNumber": 2,
+                "text": "// Original path and range: routers/api/v1/repo/collaborators.go:247-301."
+              },
+              {
+                "lineNumber": 3,
+                "text": ""
+              },
+              {
+                "lineNumber": 4,
+                "text": "// GetRepoPermissions gets repository permissions for a user"
+              },
+              {
+                "lineNumber": 5,
+                "text": "func GetRepoPermissions(ctx *context.APIContext) {"
+              },
+              {
+                "lineNumber": 6,
+                "text": "\t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions"
+              },
+              {
+                "lineNumber": 7,
+                "text": "\t// ---"
+              },
+              {
+                "lineNumber": 8,
+                "text": "\t// summary: Get repository permissions for a user"
+              },
+              {
+                "lineNumber": 9,
+                "text": "\t// produces:"
+              },
+              {
+                "lineNumber": 10,
+                "text": "\t// - application/json"
+              },
+              {
+                "lineNumber": 11,
+                "text": "\t// parameters:"
+              },
+              {
+                "lineNumber": 12,
+                "text": "\t// - name: owner"
+              },
+              {
+                "lineNumber": 13,
+                "text": "\t//   in: path"
+              },
+              {
+                "lineNumber": 14,
+                "text": "\t//   description: owner of the repo"
+              },
+              {
+                "lineNumber": 15,
+                "text": "\t//   type: string"
+              },
+              {
+                "lineNumber": 16,
+                "text": "\t//   required: true"
+              },
+              {
+                "lineNumber": 17,
+                "text": "\t// - name: repo"
+              },
+              {
+                "lineNumber": 18,
+                "text": "\t//   in: path"
+              },
+              {
+                "lineNumber": 19,
+                "text": "\t//   description: name of the repo"
+              },
+              {
+                "lineNumber": 20,
+                "text": "\t//   type: string"
+              },
+              {
+                "lineNumber": 21,
+                "text": "\t//   required: true"
+              },
+              {
+                "lineNumber": 22,
+                "text": "\t// - name: collaborator"
+              },
+              {
+                "lineNumber": 23,
+                "text": "\t//   in: path"
+              },
+              {
+                "lineNumber": 24,
+                "text": "\t//   description: username of the collaborator whose permissions are to be obtained"
+              },
+              {
+                "lineNumber": 25,
+                "text": "\t//   type: string"
+              },
+              {
+                "lineNumber": 26,
+                "text": "\t//   required: true"
+              },
+              {
+                "lineNumber": 27,
+                "text": "\t// responses:"
+              },
+              {
+                "lineNumber": 28,
+                "text": "\t//   \"200\":"
+              },
+              {
+                "lineNumber": 29,
+                "text": "\t//     \"$ref\": \"#/responses/RepoCollaboratorPermission\""
+              },
+              {
+                "lineNumber": 30,
+                "text": "\t//   \"404\":"
+              },
+              {
+                "lineNumber": 31,
+                "text": "\t//     \"$ref\": \"#/responses/notFound\""
+              },
+              {
+                "lineNumber": 32,
+                "text": "\t//   \"403\":"
+              },
+              {
+                "lineNumber": 33,
+                "text": "\t//     \"$ref\": \"#/responses/forbidden\""
+              },
+              {
+                "lineNumber": 34,
+                "text": ""
+              },
+              {
+                "lineNumber": 35,
+                "text": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")"
+              },
+              {
+                "lineNumber": 36,
+                "text": "\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {"
+              },
+              {
+                "lineNumber": 37,
+                "text": "\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")"
+              },
+              {
+                "lineNumber": 38,
+                "text": "\t\treturn"
+              },
+              {
+                "lineNumber": 39,
+                "text": "\t}"
+              },
+              {
+                "lineNumber": 40,
+                "text": ""
+              },
+              {
+                "lineNumber": 41,
+                "text": "\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)"
+              },
+              {
+                "lineNumber": 42,
+                "text": "\tif err != nil {"
+              },
+              {
+                "lineNumber": 43,
+                "text": "\t\tif user_model.IsErrUserNotExist(err) {"
+              },
+              {
+                "lineNumber": 44,
+                "text": "\t\t\tctx.APIError(http.StatusNotFound, err.Error())"
+              },
+              {
+                "lineNumber": 45,
+                "text": "\t\t} else {"
+              },
+              {
+                "lineNumber": 46,
+                "text": "\t\t\tctx.APIErrorInternal(err)"
+              },
+              {
+                "lineNumber": 47,
+                "text": "\t\t}"
+              },
+              {
+                "lineNumber": 48,
+                "text": "\t\treturn"
+              },
+              {
+                "lineNumber": 49,
+                "text": "\t}"
+              },
+              {
+                "lineNumber": 50,
+                "text": ""
+              },
+              {
+                "lineNumber": 51,
+                "text": "\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)"
+              },
+              {
+                "lineNumber": 52,
+                "text": "\tif err != nil {"
+              },
+              {
+                "lineNumber": 53,
+                "text": "\t\tctx.APIErrorInternal(err)"
+              },
+              {
+                "lineNumber": 54,
+                "text": "\t\treturn"
+              },
+              {
+                "lineNumber": 55,
+                "text": "\t}"
+              },
+              {
+                "lineNumber": 56,
+                "text": ""
+              },
+              {
+                "lineNumber": 57,
+                "text": "\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))"
+              },
+              {
+                "lineNumber": 58,
+                "text": "}"
+              }
+            ]
+          }
+        ]
+      },
+      "result": {
+        "schemaVersion": "source-authorization-assessment-result/v0",
+        "taskId": "gitea-collaborator-permission",
+        "repository": "https://github.com/go-gitea/gitea",
+        "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+        "results": [
+          {
+            "obligationId": "scenario%3Aself-query::entry%3Aget-repo-permissions",
+            "conclusion": "source_refuted",
+            "explanation": "The fixed entry is the GET collaborator-permission handler. It reads the request collaborator username and applies the strongest visible authorization gate before loading that collaborator: access is rejected only when the caller is not a site administrator, the requested username is not the caller's case-insensitive username, and the caller is not a repository administrator. Under the declared self-query relation, the username comparison is true, so the rejection branch is bypassed even though the caller lacks both administrator roles. The selected collaborator is then loaded by the request username, and the repository permission is queried for the current repository and that collaborator; on the source-visible success branch, the operation reaches the JSON permission response. Thus the source enforces the declared allow expectation for the supplied self-query condition. The source crop does not establish deployment behavior or repository-wide entry completeness, but no source-external fact is decisive for this visible authorization branch under the supplied existing-collaborator premise.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "The declared GET collaborator repository permission operation is implemented by the supplied GetRepoPermissions entry.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 4,
+                      "endLine": 6,
+                      "quote": "// GetRepoPermissions gets repository permissions for a user\nfunc GetRepoPermissions(ctx *context.APIContext) {\n\t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions"
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "The request-selected collaborator username is compared case-insensitively with the authenticated caller identity's lower-name, while administrator role checks use the caller context.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 35,
+                      "endLine": 37,
+                      "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The request collaborator path value selects the collaborator account loaded by username, and that account is used in the repository-permission lookup for the current repository.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 41,
+                      "endLine": 52,
+                      "quote": "\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}\n\n\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {"
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "The repository-administrator check is a separate authorization relation from the collaborator-username self-query comparison and the site-administrator check.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 35,
+                      "endLine": 38,
+                      "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The visible rejection control requires all three disqualifying conditions—non-site-admin, username mismatch, and non-repository-admin—to hold; a matching caller username therefore bypasses rejection despite the two absent administrator roles.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 35,
+                      "endLine": 39,
+                      "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "After authorization, the handler queries the individual user's permission for the current repository and returns the permission in a successful JSON response on the no-error branch.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 51,
+                      "endLine": 58,
+                      "quote": "\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))\n}"
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The assessed condition is that the collaborator username equals the caller's username; this is the source-visible branch that permits the declared principal to proceed without either administrator role.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 35,
+                      "endLine": 39,
+                      "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [],
+            "suggestedObservations": []
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+        }
+      }
+    },
+    "rawResponse": "{\"results\":[{\"obligationId\":\"scenario%3Aself-query::entry%3Aget-repo-permissions\",\"conclusion\":\"source_refuted\",\"explanation\":\"The fixed entry is the GET collaborator-permission handler. It reads the request collaborator username and applies the strongest visible authorization gate before loading that collaborator: access is rejected only when the caller is not a site administrator, the requested username is not the caller's case-insensitive username, and the caller is not a repository administrator. Under the declared self-query relation, the username comparison is true, so the rejection branch is bypassed even though the caller lacks both administrator roles. The selected collaborator is then loaded by the request username, and the repository permission is queried for the current repository and that collaborator; on the source-visible success branch, the operation reaches the JSON permission response. Thus the source enforces the declared allow expectation for the supplied self-query condition. The source crop does not establish deployment behavior or repository-wide entry completeness, but no source-external fact is decisive for this visible authorization branch under the supplied existing-collaborator premise.\",\"facts\":[{\"id\":\"entry-handler\",\"kind\":\"entry\",\"statement\":\"The declared GET collaborator repository permission operation is implemented by the supplied GetRepoPermissions entry.\",\"citations\":[{\"sourceId\":\"src-89fab2db8921e6cb\",\"startLine\":4,\"endLine\":6}]},{\"id\":\"identity-binding\",\"kind\":\"binding\",\"statement\":\"The request-selected collaborator username is compared case-insensitively with the authenticated caller identity's lower-name, while administrator role checks use the caller context.\",\"citations\":[{\"sourceId\":\"src-89fab2db8921e6cb\",\"startLine\":35,\"endLine\":37}]},{\"id\":\"resource-binding\",\"kind\":\"binding\",\"statement\":\"The request collaborator path value selects the collaborator account loaded by username, and that account is used in the repository-permission lookup for the current repository.\",\"citations\":[{\"sourceId\":\"src-89fab2db8921e6cb\",\"startLine\":41,\"endLine\":52}]},{\"id\":\"distinct-repository-control\",\"kind\":\"control\",\"statement\":\"The repository-administrator check is a separate authorization relation from the collaborator-username self-query comparison and the site-administrator check.\",\"citations\":[{\"sourceId\":\"src-89fab2db8921e6cb\",\"startLine\":35,\"endLine\":38}]},{\"id\":\"self-query-allow-control\",\"kind\":\"control\",\"statement\":\"The visible rejection control requires all three disqualifying conditions—non-site-admin, username mismatch, and non-repository-admin—to hold; a matching caller username therefore bypasses rejection despite the two absent administrator roles.\",\"citations\":[{\"sourceId\":\"src-89fab2db8921e6cb\",\"startLine\":35,\"endLine\":39}]},{\"id\":\"protected-effect\",\"kind\":\"effect\",\"statement\":\"After authorization, the handler queries the individual user's permission for the current repository and returns the permission in a successful JSON response on the no-error branch.\",\"citations\":[{\"sourceId\":\"src-89fab2db8921e6cb\",\"startLine\":51,\"endLine\":58}]},{\"id\":\"declared-condition\",\"kind\":\"condition\",\"statement\":\"The assessed condition is that the collaborator username equals the caller's username; this is the source-visible branch that permits the declared principal to proceed without either administrator role.\",\"citations\":[{\"sourceId\":\"src-89fab2db8921e6cb\",\"startLine\":35,\"endLine\":39}]}],\"decisiveMissingFacts\":[],\"suggestedObservations\":[]}]}",
+    "providerAttemptIds": [
+      "provider-attempt-1"
+    ],
+    "outputAttemptId": "provider-attempt-1"
+  },
+  "initial": {
+    "result": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "gitea-collaborator-permission",
+      "repository": "https://github.com/go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "results": [
+        {
+          "obligationId": "scenario%3Aself-query::entry%3Aget-repo-permissions",
+          "conclusion": "source_refuted",
+          "explanation": "The fixed entry is the GET collaborator-permission handler. It reads the request collaborator username and applies the strongest visible authorization gate before loading that collaborator: access is rejected only when the caller is not a site administrator, the requested username is not the caller's case-insensitive username, and the caller is not a repository administrator. Under the declared self-query relation, the username comparison is true, so the rejection branch is bypassed even though the caller lacks both administrator roles. The selected collaborator is then loaded by the request username, and the repository permission is queried for the current repository and that collaborator; on the source-visible success branch, the operation reaches the JSON permission response. Thus the source enforces the declared allow expectation for the supplied self-query condition. The source crop does not establish deployment behavior or repository-wide entry completeness, but no source-external fact is decisive for this visible authorization branch under the supplied existing-collaborator premise.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The declared GET collaborator repository permission operation is implemented by the supplied GetRepoPermissions entry.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 4,
+                    "endLine": 6,
+                    "quote": "// GetRepoPermissions gets repository permissions for a user\nfunc GetRepoPermissions(ctx *context.APIContext) {\n\t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The request-selected collaborator username is compared case-insensitively with the authenticated caller identity's lower-name, while administrator role checks use the caller context.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 37,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")"
+                  }
+                ]
+              },
+              {
+                "statement": "The request collaborator path value selects the collaborator account loaded by username, and that account is used in the repository-permission lookup for the current repository.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 41,
+                    "endLine": 52,
+                    "quote": "\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}\n\n\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The repository-administrator check is a separate authorization relation from the collaborator-username self-query comparison and the site-administrator check.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 38,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn"
+                  }
+                ]
+              },
+              {
+                "statement": "The visible rejection control requires all three disqualifying conditions—non-site-admin, username mismatch, and non-repository-admin—to hold; a matching caller username therefore bypasses rejection despite the two absent administrator roles.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 39,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "After authorization, the handler queries the individual user's permission for the current repository and returns the permission in a successful JSON response on the no-error branch.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 51,
+                    "endLine": 58,
+                    "quote": "\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))\n}"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The assessed condition is that the collaborator username equals the caller's username; this is the source-visible branch that permits the declared principal to proceed without either administrator role.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 39,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aself-query::entry%3Aget-repo-permissions",
+          "conclusion": "source_refuted",
+          "explanation": "The fixed entry is the GET collaborator-permission handler. It reads the request collaborator username and applies the strongest visible authorization gate before loading that collaborator: access is rejected only when the caller is not a site administrator, the requested username is not the caller's case-insensitive username, and the caller is not a repository administrator. Under the declared self-query relation, the username comparison is true, so the rejection branch is bypassed even though the caller lacks both administrator roles. The selected collaborator is then loaded by the request username, and the repository permission is queried for the current repository and that collaborator; on the source-visible success branch, the operation reaches the JSON permission response. Thus the source enforces the declared allow expectation for the supplied self-query condition. The source crop does not establish deployment behavior or repository-wide entry completeness, but no source-external fact is decisive for this visible authorization branch under the supplied existing-collaborator premise.",
+          "facts": [
+            {
+              "id": "entry-handler",
+              "kind": "entry",
+              "statement": "The declared GET collaborator repository permission operation is implemented by the supplied GetRepoPermissions entry.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 4,
+                  "endLine": 6
+                }
+              ]
+            },
+            {
+              "id": "identity-binding",
+              "kind": "binding",
+              "statement": "The request-selected collaborator username is compared case-insensitively with the authenticated caller identity's lower-name, while administrator role checks use the caller context.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 35,
+                  "endLine": 37
+                }
+              ]
+            },
+            {
+              "id": "resource-binding",
+              "kind": "binding",
+              "statement": "The request collaborator path value selects the collaborator account loaded by username, and that account is used in the repository-permission lookup for the current repository.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 41,
+                  "endLine": 52
+                }
+              ]
+            },
+            {
+              "id": "distinct-repository-control",
+              "kind": "control",
+              "statement": "The repository-administrator check is a separate authorization relation from the collaborator-username self-query comparison and the site-administrator check.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 35,
+                  "endLine": 38
+                }
+              ]
+            },
+            {
+              "id": "self-query-allow-control",
+              "kind": "control",
+              "statement": "The visible rejection control requires all three disqualifying conditions—non-site-admin, username mismatch, and non-repository-admin—to hold; a matching caller username therefore bypasses rejection despite the two absent administrator roles.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 35,
+                  "endLine": 39
+                }
+              ]
+            },
+            {
+              "id": "protected-effect",
+              "kind": "effect",
+              "statement": "After authorization, the handler queries the individual user's permission for the current repository and returns the permission in a successful JSON response on the no-error branch.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 51,
+                  "endLine": 58
+                }
+              ]
+            },
+            {
+              "id": "declared-condition",
+              "kind": "condition",
+              "statement": "The assessed condition is that the collaborator username equals the caller's username; this is the source-visible branch that permits the declared principal to proceed without either administrator role.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 35,
+                  "endLine": 39
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ]
+    },
+    "normalization": {
+      "normalizerVersion": "authorization-wire-normalizer/v4",
+      "canonicalResultVersion": "source-authorization-assessment-result/v0",
+      "status": "valid",
+      "diagnostics": [],
+      "wireResult": {
+        "results": [
+          {
+            "obligationId": "scenario%3Aself-query::entry%3Aget-repo-permissions",
+            "conclusion": "source_refuted",
+            "explanation": "The fixed entry is the GET collaborator-permission handler. It reads the request collaborator username and applies the strongest visible authorization gate before loading that collaborator: access is rejected only when the caller is not a site administrator, the requested username is not the caller's case-insensitive username, and the caller is not a repository administrator. Under the declared self-query relation, the username comparison is true, so the rejection branch is bypassed even though the caller lacks both administrator roles. The selected collaborator is then loaded by the request username, and the repository permission is queried for the current repository and that collaborator; on the source-visible success branch, the operation reaches the JSON permission response. Thus the source enforces the declared allow expectation for the supplied self-query condition. The source crop does not establish deployment behavior or repository-wide entry completeness, but no source-external fact is decisive for this visible authorization branch under the supplied existing-collaborator premise.",
+            "facts": [
+              {
+                "id": "entry-handler",
+                "kind": "entry",
+                "statement": "The declared GET collaborator repository permission operation is implemented by the supplied GetRepoPermissions entry.",
+                "citations": [
+                  {
+                    "sourceId": "src-89fab2db8921e6cb",
+                    "startLine": 4,
+                    "endLine": 6
+                  }
+                ]
+              },
+              {
+                "id": "identity-binding",
+                "kind": "binding",
+                "statement": "The request-selected collaborator username is compared case-insensitively with the authenticated caller identity's lower-name, while administrator role checks use the caller context.",
+                "citations": [
+                  {
+                    "sourceId": "src-89fab2db8921e6cb",
+                    "startLine": 35,
+                    "endLine": 37
+                  }
+                ]
+              },
+              {
+                "id": "resource-binding",
+                "kind": "binding",
+                "statement": "The request collaborator path value selects the collaborator account loaded by username, and that account is used in the repository-permission lookup for the current repository.",
+                "citations": [
+                  {
+                    "sourceId": "src-89fab2db8921e6cb",
+                    "startLine": 41,
+                    "endLine": 52
+                  }
+                ]
+              },
+              {
+                "id": "distinct-repository-control",
+                "kind": "control",
+                "statement": "The repository-administrator check is a separate authorization relation from the collaborator-username self-query comparison and the site-administrator check.",
+                "citations": [
+                  {
+                    "sourceId": "src-89fab2db8921e6cb",
+                    "startLine": 35,
+                    "endLine": 38
+                  }
+                ]
+              },
+              {
+                "id": "self-query-allow-control",
+                "kind": "control",
+                "statement": "The visible rejection control requires all three disqualifying conditions—non-site-admin, username mismatch, and non-repository-admin—to hold; a matching caller username therefore bypasses rejection despite the two absent administrator roles.",
+                "citations": [
+                  {
+                    "sourceId": "src-89fab2db8921e6cb",
+                    "startLine": 35,
+                    "endLine": 39
+                  }
+                ]
+              },
+              {
+                "id": "protected-effect",
+                "kind": "effect",
+                "statement": "After authorization, the handler queries the individual user's permission for the current repository and returns the permission in a successful JSON response on the no-error branch.",
+                "citations": [
+                  {
+                    "sourceId": "src-89fab2db8921e6cb",
+                    "startLine": 51,
+                    "endLine": 58
+                  }
+                ]
+              },
+              {
+                "id": "declared-condition",
+                "kind": "condition",
+                "statement": "The assessed condition is that the collaborator username equals the caller's username; this is the source-visible branch that permits the declared principal to proceed without either administrator role.",
+                "citations": [
+                  {
+                    "sourceId": "src-89fab2db8921e6cb",
+                    "startLine": 35,
+                    "endLine": 39
+                  }
+                ]
+              }
+            ],
+            "decisiveMissingFacts": [],
+            "suggestedObservations": []
+          }
+        ]
+      },
+      "sourceCatalog": {
+        "schemaVersion": "authorization-source-catalog/v1",
+        "repository": "https://github.com/go-gitea/gitea",
+        "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+        "sources": [
+          {
+            "sourceId": "src-89fab2db8921e6cb",
+            "relativePath": "collaborators.go",
+            "sha256": "edbacf431c736f78e6e5beef3c6329ff89210a6463438cedc0be48cdc246a012",
+            "cropRange": {
+              "startLine": 1,
+              "endLine": 58
+            },
+            "originalLocations": [],
+            "lines": [
+              {
+                "lineNumber": 1,
+                "text": "// Fixed excerpt from go-gitea/gitea at fc28937a8d772fe9e4025c9b5f24d5db4d86610b."
+              },
+              {
+                "lineNumber": 2,
+                "text": "// Original path and range: routers/api/v1/repo/collaborators.go:247-301."
+              },
+              {
+                "lineNumber": 3,
+                "text": ""
+              },
+              {
+                "lineNumber": 4,
+                "text": "// GetRepoPermissions gets repository permissions for a user"
+              },
+              {
+                "lineNumber": 5,
+                "text": "func GetRepoPermissions(ctx *context.APIContext) {"
+              },
+              {
+                "lineNumber": 6,
+                "text": "\t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions"
+              },
+              {
+                "lineNumber": 7,
+                "text": "\t// ---"
+              },
+              {
+                "lineNumber": 8,
+                "text": "\t// summary: Get repository permissions for a user"
+              },
+              {
+                "lineNumber": 9,
+                "text": "\t// produces:"
+              },
+              {
+                "lineNumber": 10,
+                "text": "\t// - application/json"
+              },
+              {
+                "lineNumber": 11,
+                "text": "\t// parameters:"
+              },
+              {
+                "lineNumber": 12,
+                "text": "\t// - name: owner"
+              },
+              {
+                "lineNumber": 13,
+                "text": "\t//   in: path"
+              },
+              {
+                "lineNumber": 14,
+                "text": "\t//   description: owner of the repo"
+              },
+              {
+                "lineNumber": 15,
+                "text": "\t//   type: string"
+              },
+              {
+                "lineNumber": 16,
+                "text": "\t//   required: true"
+              },
+              {
+                "lineNumber": 17,
+                "text": "\t// - name: repo"
+              },
+              {
+                "lineNumber": 18,
+                "text": "\t//   in: path"
+              },
+              {
+                "lineNumber": 19,
+                "text": "\t//   description: name of the repo"
+              },
+              {
+                "lineNumber": 20,
+                "text": "\t//   type: string"
+              },
+              {
+                "lineNumber": 21,
+                "text": "\t//   required: true"
+              },
+              {
+                "lineNumber": 22,
+                "text": "\t// - name: collaborator"
+              },
+              {
+                "lineNumber": 23,
+                "text": "\t//   in: path"
+              },
+              {
+                "lineNumber": 24,
+                "text": "\t//   description: username of the collaborator whose permissions are to be obtained"
+              },
+              {
+                "lineNumber": 25,
+                "text": "\t//   type: string"
+              },
+              {
+                "lineNumber": 26,
+                "text": "\t//   required: true"
+              },
+              {
+                "lineNumber": 27,
+                "text": "\t// responses:"
+              },
+              {
+                "lineNumber": 28,
+                "text": "\t//   \"200\":"
+              },
+              {
+                "lineNumber": 29,
+                "text": "\t//     \"$ref\": \"#/responses/RepoCollaboratorPermission\""
+              },
+              {
+                "lineNumber": 30,
+                "text": "\t//   \"404\":"
+              },
+              {
+                "lineNumber": 31,
+                "text": "\t//     \"$ref\": \"#/responses/notFound\""
+              },
+              {
+                "lineNumber": 32,
+                "text": "\t//   \"403\":"
+              },
+              {
+                "lineNumber": 33,
+                "text": "\t//     \"$ref\": \"#/responses/forbidden\""
+              },
+              {
+                "lineNumber": 34,
+                "text": ""
+              },
+              {
+                "lineNumber": 35,
+                "text": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")"
+              },
+              {
+                "lineNumber": 36,
+                "text": "\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {"
+              },
+              {
+                "lineNumber": 37,
+                "text": "\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")"
+              },
+              {
+                "lineNumber": 38,
+                "text": "\t\treturn"
+              },
+              {
+                "lineNumber": 39,
+                "text": "\t}"
+              },
+              {
+                "lineNumber": 40,
+                "text": ""
+              },
+              {
+                "lineNumber": 41,
+                "text": "\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)"
+              },
+              {
+                "lineNumber": 42,
+                "text": "\tif err != nil {"
+              },
+              {
+                "lineNumber": 43,
+                "text": "\t\tif user_model.IsErrUserNotExist(err) {"
+              },
+              {
+                "lineNumber": 44,
+                "text": "\t\t\tctx.APIError(http.StatusNotFound, err.Error())"
+              },
+              {
+                "lineNumber": 45,
+                "text": "\t\t} else {"
+              },
+              {
+                "lineNumber": 46,
+                "text": "\t\t\tctx.APIErrorInternal(err)"
+              },
+              {
+                "lineNumber": 47,
+                "text": "\t\t}"
+              },
+              {
+                "lineNumber": 48,
+                "text": "\t\treturn"
+              },
+              {
+                "lineNumber": 49,
+                "text": "\t}"
+              },
+              {
+                "lineNumber": 50,
+                "text": ""
+              },
+              {
+                "lineNumber": 51,
+                "text": "\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)"
+              },
+              {
+                "lineNumber": 52,
+                "text": "\tif err != nil {"
+              },
+              {
+                "lineNumber": 53,
+                "text": "\t\tctx.APIErrorInternal(err)"
+              },
+              {
+                "lineNumber": 54,
+                "text": "\t\treturn"
+              },
+              {
+                "lineNumber": 55,
+                "text": "\t}"
+              },
+              {
+                "lineNumber": 56,
+                "text": ""
+              },
+              {
+                "lineNumber": 57,
+                "text": "\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))"
+              },
+              {
+                "lineNumber": 58,
+                "text": "}"
+              }
+            ]
+          }
+        ]
+      },
+      "result": {
+        "schemaVersion": "source-authorization-assessment-result/v0",
+        "taskId": "gitea-collaborator-permission",
+        "repository": "https://github.com/go-gitea/gitea",
+        "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+        "results": [
+          {
+            "obligationId": "scenario%3Aself-query::entry%3Aget-repo-permissions",
+            "conclusion": "source_refuted",
+            "explanation": "The fixed entry is the GET collaborator-permission handler. It reads the request collaborator username and applies the strongest visible authorization gate before loading that collaborator: access is rejected only when the caller is not a site administrator, the requested username is not the caller's case-insensitive username, and the caller is not a repository administrator. Under the declared self-query relation, the username comparison is true, so the rejection branch is bypassed even though the caller lacks both administrator roles. The selected collaborator is then loaded by the request username, and the repository permission is queried for the current repository and that collaborator; on the source-visible success branch, the operation reaches the JSON permission response. Thus the source enforces the declared allow expectation for the supplied self-query condition. The source crop does not establish deployment behavior or repository-wide entry completeness, but no source-external fact is decisive for this visible authorization branch under the supplied existing-collaborator premise.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "The declared GET collaborator repository permission operation is implemented by the supplied GetRepoPermissions entry.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 4,
+                      "endLine": 6,
+                      "quote": "// GetRepoPermissions gets repository permissions for a user\nfunc GetRepoPermissions(ctx *context.APIContext) {\n\t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions"
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "The request-selected collaborator username is compared case-insensitively with the authenticated caller identity's lower-name, while administrator role checks use the caller context.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 35,
+                      "endLine": 37,
+                      "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The request collaborator path value selects the collaborator account loaded by username, and that account is used in the repository-permission lookup for the current repository.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 41,
+                      "endLine": 52,
+                      "quote": "\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}\n\n\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {"
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "The repository-administrator check is a separate authorization relation from the collaborator-username self-query comparison and the site-administrator check.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 35,
+                      "endLine": 38,
+                      "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The visible rejection control requires all three disqualifying conditions—non-site-admin, username mismatch, and non-repository-admin—to hold; a matching caller username therefore bypasses rejection despite the two absent administrator roles.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 35,
+                      "endLine": 39,
+                      "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "After authorization, the handler queries the individual user's permission for the current repository and returns the permission in a successful JSON response on the no-error branch.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 51,
+                      "endLine": 58,
+                      "quote": "\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))\n}"
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The assessed condition is that the collaborator username equals the caller's username; this is the source-visible branch that permits the declared principal to proceed without either administrator role.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 35,
+                      "endLine": 39,
+                      "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [],
+            "suggestedObservations": []
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+        }
+      }
+    },
+    "rawResponse": "{\"results\":[{\"obligationId\":\"scenario%3Aself-query::entry%3Aget-repo-permissions\",\"conclusion\":\"source_refuted\",\"explanation\":\"The fixed entry is the GET collaborator-permission handler. It reads the request collaborator username and applies the strongest visible authorization gate before loading that collaborator: access is rejected only when the caller is not a site administrator, the requested username is not the caller's case-insensitive username, and the caller is not a repository administrator. Under the declared self-query relation, the username comparison is true, so the rejection branch is bypassed even though the caller lacks both administrator roles. The selected collaborator is then loaded by the request username, and the repository permission is queried for the current repository and that collaborator; on the source-visible success branch, the operation reaches the JSON permission response. Thus the source enforces the declared allow expectation for the supplied self-query condition. The source crop does not establish deployment behavior or repository-wide entry completeness, but no source-external fact is decisive for this visible authorization branch under the supplied existing-collaborator premise.\",\"facts\":[{\"id\":\"entry-handler\",\"kind\":\"entry\",\"statement\":\"The declared GET collaborator repository permission operation is implemented by the supplied GetRepoPermissions entry.\",\"citations\":[{\"sourceId\":\"src-89fab2db8921e6cb\",\"startLine\":4,\"endLine\":6}]},{\"id\":\"identity-binding\",\"kind\":\"binding\",\"statement\":\"The request-selected collaborator username is compared case-insensitively with the authenticated caller identity's lower-name, while administrator role checks use the caller context.\",\"citations\":[{\"sourceId\":\"src-89fab2db8921e6cb\",\"startLine\":35,\"endLine\":37}]},{\"id\":\"resource-binding\",\"kind\":\"binding\",\"statement\":\"The request collaborator path value selects the collaborator account loaded by username, and that account is used in the repository-permission lookup for the current repository.\",\"citations\":[{\"sourceId\":\"src-89fab2db8921e6cb\",\"startLine\":41,\"endLine\":52}]},{\"id\":\"distinct-repository-control\",\"kind\":\"control\",\"statement\":\"The repository-administrator check is a separate authorization relation from the collaborator-username self-query comparison and the site-administrator check.\",\"citations\":[{\"sourceId\":\"src-89fab2db8921e6cb\",\"startLine\":35,\"endLine\":38}]},{\"id\":\"self-query-allow-control\",\"kind\":\"control\",\"statement\":\"The visible rejection control requires all three disqualifying conditions—non-site-admin, username mismatch, and non-repository-admin—to hold; a matching caller username therefore bypasses rejection despite the two absent administrator roles.\",\"citations\":[{\"sourceId\":\"src-89fab2db8921e6cb\",\"startLine\":35,\"endLine\":39}]},{\"id\":\"protected-effect\",\"kind\":\"effect\",\"statement\":\"After authorization, the handler queries the individual user's permission for the current repository and returns the permission in a successful JSON response on the no-error branch.\",\"citations\":[{\"sourceId\":\"src-89fab2db8921e6cb\",\"startLine\":51,\"endLine\":58}]},{\"id\":\"declared-condition\",\"kind\":\"condition\",\"statement\":\"The assessed condition is that the collaborator username equals the caller's username; this is the source-visible branch that permits the declared principal to proceed without either administrator role.\",\"citations\":[{\"sourceId\":\"src-89fab2db8921e6cb\",\"startLine\":35,\"endLine\":39}]}],\"decisiveMissingFacts\":[],\"suggestedObservations\":[]}]}",
+    "providerAttemptIds": [
+      "provider-attempt-1"
+    ],
+    "outputAttemptId": "provider-attempt-1",
+    "validation": {
+      "parsedResult": {
+        "schemaVersion": "source-authorization-assessment-result/v0",
+        "taskId": "gitea-collaborator-permission",
+        "repository": "https://github.com/go-gitea/gitea",
+        "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+        "results": [
+          {
+            "obligationId": "scenario%3Aself-query::entry%3Aget-repo-permissions",
+            "conclusion": "source_refuted",
+            "explanation": "The fixed entry is the GET collaborator-permission handler. It reads the request collaborator username and applies the strongest visible authorization gate before loading that collaborator: access is rejected only when the caller is not a site administrator, the requested username is not the caller's case-insensitive username, and the caller is not a repository administrator. Under the declared self-query relation, the username comparison is true, so the rejection branch is bypassed even though the caller lacks both administrator roles. The selected collaborator is then loaded by the request username, and the repository permission is queried for the current repository and that collaborator; on the source-visible success branch, the operation reaches the JSON permission response. Thus the source enforces the declared allow expectation for the supplied self-query condition. The source crop does not establish deployment behavior or repository-wide entry completeness, but no source-external fact is decisive for this visible authorization branch under the supplied existing-collaborator premise.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "The declared GET collaborator repository permission operation is implemented by the supplied GetRepoPermissions entry.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 4,
+                      "endLine": 6,
+                      "quote": "// GetRepoPermissions gets repository permissions for a user\nfunc GetRepoPermissions(ctx *context.APIContext) {\n\t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions"
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "The request-selected collaborator username is compared case-insensitively with the authenticated caller identity's lower-name, while administrator role checks use the caller context.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 35,
+                      "endLine": 37,
+                      "quote": "collaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The request collaborator path value selects the collaborator account loaded by username, and that account is used in the repository-permission lookup for the current repository.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 41,
+                      "endLine": 52,
+                      "quote": "collaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}\n\n\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {"
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "The repository-administrator check is a separate authorization relation from the collaborator-username self-query comparison and the site-administrator check.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 35,
+                      "endLine": 38,
+                      "quote": "collaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The visible rejection control requires all three disqualifying conditions—non-site-admin, username mismatch, and non-repository-admin—to hold; a matching caller username therefore bypasses rejection despite the two absent administrator roles.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 35,
+                      "endLine": 39,
+                      "quote": "collaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "After authorization, the handler queries the individual user's permission for the current repository and returns the permission in a successful JSON response on the no-error branch.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 51,
+                      "endLine": 58,
+                      "quote": "permission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))\n}"
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The assessed condition is that the collaborator username equals the caller's username; this is the source-visible branch that permits the declared principal to proceed without either administrator role.",
+                  "citations": [
+                    {
+                      "path": "collaborators.go",
+                      "startLine": 35,
+                      "endLine": 39,
+                      "quote": "collaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [],
+            "suggestedObservations": []
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+        }
+      },
+      "structure": {
+        "status": "valid",
+        "diagnostics": []
+      },
+      "declared": {
+        "total": 1,
+        "disposed": 1,
+        "pending": 0,
+        "blocked": 0,
+        "invalid": 0,
+        "status": "all-disposed",
+        "completionPercent": 100
+      },
+      "discovery": {
+        "status": "not-tested",
+        "claimLimit": "declared-obligations-only"
+      },
+      "evidencePresence": [
+        {
+          "obligationId": "scenario%3Aself-query::entry%3Aget-repo-permissions",
+          "status": "present"
+        }
+      ],
+      "evidenceSupport": [
+        {
+          "obligationId": "scenario%3Aself-query::entry%3Aget-repo-permissions",
+          "status": "unreviewed"
+        }
+      ],
+      "completeness": {
+        "status": "accepted",
+        "kind": "declared-obligations-only"
+      },
+      "dependencySnapshot": {
+        "schemaVersion": "authorization-task-dependencies/v1",
+        "task": {
+          "schemaVersion": "source-authorization-assessment/v0",
+          "taskId": "gitea-collaborator-permission",
+          "request": "May an authenticated repository-read collaborator who is neither a site administrator nor a repository administrator query their own repository permission?",
+          "repository": "https://github.com/go-gitea/gitea",
+          "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+          "sourceMode": "fixed-context",
+          "policySources": [
+            {
+              "id": "policy:collaborator-permission",
+              "kind": "explicit-task-requirement",
+              "text": "A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.",
+              "location": "source/policy.json#/normativePolicy",
+              "revision": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+              "acceptance": {
+                "status": "accepted",
+                "actorRole": "task-author",
+                "reason": "The supplied policy metadata states the accepted bounded rule for the fixed source entry."
+              }
+            }
+          ],
+          "principals": [
+            {
+              "id": "principal:caller",
+              "role": "authenticated repository-read collaborator",
+              "description": "Author facts: [\"Authenticated\",\"Has repository read access\",\"Is a collaborator\",\"Is not a site administrator\",\"Is not a repository administrator\",\"Queries their own username\"]",
+              "startingCapabilities": [
+                "authenticated",
+                "repository-read",
+                "collaborator"
+              ]
+            }
+          ],
+          "resources": [
+            {
+              "id": "resource:collaborator-permission",
+              "type": "repository collaborator permission",
+              "description": "Author facts: [\"Existing collaborator account whose username equals the caller's username\",\"Repository permission queried through the collaborator permission endpoint\"]"
+            }
+          ],
+          "entries": [
+            {
+              "id": "entry:get-repo-permissions",
+              "name": "GetRepoPermissions",
+              "locations": [
+                {
+                  "path": "collaborators.go",
+                  "startLine": 1,
+                  "endLine": 58
+                }
+              ]
+            }
+          ],
+          "obligations": [
+            {
+              "id": "scenario:self-query",
+              "principalId": "principal:caller",
+              "resourceId": "resource:collaborator-permission",
+              "relation": "caller-username-equals-collaborator-username",
+              "operation": "GET collaborator repository permission",
+              "expectation": "allow",
+              "conditions": [],
+              "policySourceId": "policy:collaborator-permission",
+              "entryIds": [
+                "entry:get-repo-permissions"
+              ]
+            }
+          ],
+          "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+          "requiredAnalysis": [
+            "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+          ],
+          "constraints": [
+            "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+          ]
+        },
+        "repository": "https://github.com/go-gitea/gitea",
+        "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+        "sourceFiles": [
+          {
+            "path": "collaborators.go",
+            "sha256": "edbacf431c736f78e6e5beef3c6329ff89210a6463438cedc0be48cdc246a012"
+          }
+        ],
+        "policies": [
+          {
+            "id": "policy:collaborator-permission",
+            "revision": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+            "location": "source/policy.json#/normativePolicy",
+            "text": "A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.",
+            "acceptanceStatus": "accepted"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "scenario:self-query",
+            "principalId": "principal:caller",
+            "resourceId": "resource:collaborator-permission",
+            "relation": "caller-username-equals-collaborator-username",
+            "operation": "GET collaborator repository permission",
+            "expectation": "allow",
+            "conditions": [],
+            "policySourceId": "policy:collaborator-permission",
+            "entryIds": [
+              "entry:get-repo-permissions"
+            ]
+          }
+        ]
+      },
+      "diagnostics": []
+    }
+  },
+  "finalKind": "initial",
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "firstResponse": {
+    "schemaValid": true,
+    "deliveryComplete": true
+  },
+  "protocolMetrics": {
+    "fallbackCalls": 0,
+    "repairCalls": 0,
+    "modelOutputCharacters": 3617,
+    "hostMetadataFields": [
+      "schemaVersion",
+      "taskId",
+      "repository",
+      "sourceRef",
+      "scopeClaim",
+      "fact grouping",
+      "fact pointers",
+      "nested obligationId"
+    ]
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 2749,
+      "publicAnalysis": 763,
+      "source": 2535,
+      "outputContract": 2269,
+      "total": 8817,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "status": "response",
+      "startedAt": "2026-09-22T08:22:40.622Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 8817,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false,
+        "toolSchemas": [
+          {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "obligationId": {
+                      "type": "string"
+                    },
+                    "conclusion": {
+                      "type": "string",
+                      "enum": [
+                        "source_supported_failure",
+                        "source_refuted",
+                        "unknown"
+                      ]
+                    },
+                    "explanation": {
+                      "type": "string"
+                    },
+                    "facts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "entry",
+                              "binding",
+                              "control",
+                              "effect",
+                              "condition"
+                            ]
+                          },
+                          "statement": {
+                            "type": "string"
+                          },
+                          "citations": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "sourceId": {
+                                  "type": "string"
+                                },
+                                "startLine": {
+                                  "type": "number"
+                                },
+                                "endLine": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "sourceId",
+                                "startLine",
+                                "endLine"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "statement",
+                          "citations"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "decisiveMissingFacts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestedObservations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "obligationId",
+                    "conclusion",
+                    "explanation",
+                    "facts",
+                    "decisiveMissingFacts",
+                    "suggestedObservations"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "results"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "usage": {
+        "input": 2425,
+        "output": 958,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "",
+        "toolCalls": [
+          {
+            "id": "call_F9rwFQcAoMTBAy8QpQ3lJ40p",
+            "name": "submit_authorization_result",
+            "arguments": {
+              "results": [
+                {
+                  "obligationId": "scenario%3Aself-query::entry%3Aget-repo-permissions",
+                  "conclusion": "source_refuted",
+                  "explanation": "The fixed entry is the GET collaborator-permission handler. It reads the request collaborator username and applies the strongest visible authorization gate before loading that collaborator: access is rejected only when the caller is not a site administrator, the requested username is not the caller's case-insensitive username, and the caller is not a repository administrator. Under the declared self-query relation, the username comparison is true, so the rejection branch is bypassed even though the caller lacks both administrator roles. The selected collaborator is then loaded by the request username, and the repository permission is queried for the current repository and that collaborator; on the source-visible success branch, the operation reaches the JSON permission response. Thus the source enforces the declared allow expectation for the supplied self-query condition. The source crop does not establish deployment behavior or repository-wide entry completeness, but no source-external fact is decisive for this visible authorization branch under the supplied existing-collaborator premise.",
+                  "facts": [
+                    {
+                      "id": "entry-handler",
+                      "kind": "entry",
+                      "statement": "The declared GET collaborator repository permission operation is implemented by the supplied GetRepoPermissions entry.",
+                      "citations": [
+                        {
+                          "sourceId": "src-89fab2db8921e6cb",
+                          "startLine": 4,
+                          "endLine": 6
+                        }
+                      ]
+                    },
+                    {
+                      "id": "identity-binding",
+                      "kind": "binding",
+                      "statement": "The request-selected collaborator username is compared case-insensitively with the authenticated caller identity's lower-name, while administrator role checks use the caller context.",
+                      "citations": [
+                        {
+                          "sourceId": "src-89fab2db8921e6cb",
+                          "startLine": 35,
+                          "endLine": 37
+                        }
+                      ]
+                    },
+                    {
+                      "id": "resource-binding",
+                      "kind": "binding",
+                      "statement": "The request collaborator path value selects the collaborator account loaded by username, and that account is used in the repository-permission lookup for the current repository.",
+                      "citations": [
+                        {
+                          "sourceId": "src-89fab2db8921e6cb",
+                          "startLine": 41,
+                          "endLine": 52
+                        }
+                      ]
+                    },
+                    {
+                      "id": "distinct-repository-control",
+                      "kind": "control",
+                      "statement": "The repository-administrator check is a separate authorization relation from the collaborator-username self-query comparison and the site-administrator check.",
+                      "citations": [
+                        {
+                          "sourceId": "src-89fab2db8921e6cb",
+                          "startLine": 35,
+                          "endLine": 38
+                        }
+                      ]
+                    },
+                    {
+                      "id": "self-query-allow-control",
+                      "kind": "control",
+                      "statement": "The visible rejection control requires all three disqualifying conditions—non-site-admin, username mismatch, and non-repository-admin—to hold; a matching caller username therefore bypasses rejection despite the two absent administrator roles.",
+                      "citations": [
+                        {
+                          "sourceId": "src-89fab2db8921e6cb",
+                          "startLine": 35,
+                          "endLine": 39
+                        }
+                      ]
+                    },
+                    {
+                      "id": "protected-effect",
+                      "kind": "effect",
+                      "statement": "After authorization, the handler queries the individual user's permission for the current repository and returns the permission in a successful JSON response on the no-error branch.",
+                      "citations": [
+                        {
+                          "sourceId": "src-89fab2db8921e6cb",
+                          "startLine": 51,
+                          "endLine": 58
+                        }
+                      ]
+                    },
+                    {
+                      "id": "declared-condition",
+                      "kind": "condition",
+                      "statement": "The assessed condition is that the collaborator username equals the caller's username; this is the source-visible branch that permits the declared principal to proceed without either administrator role.",
+                      "citations": [
+                        {
+                          "sourceId": "src-89fab2db8921e6cb",
+                          "startLine": 35,
+                          "endLine": 39
+                        }
+                      ]
+                    }
+                  ],
+                  "decisiveMissingFacts": [],
+                  "suggestedObservations": []
+                }
+              ]
+            }
+          }
+        ],
+        "tokens": {
+          "input": 2425,
+          "output": 958,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 89921.50110000001,
+        "stopReason": "tool_use"
+      },
+      "schemaValidation": {
+        "valid": true,
+        "diagnostics": []
+      },
+      "endedAt": "2026-09-22T08:24:10.545Z"
+    }
+  ],
+  "events": [
+    {
+      "sequence": 1,
+      "at": "2026-09-22T08:22:40.623Z",
+      "kind": "dispatch",
+      "attemptId": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "attempt": {
+        "id": "provider-attempt-1",
+        "phase": "initial",
+        "transport": "schema-tool",
+        "status": "pending",
+        "startedAt": "2026-09-22T08:22:40.622Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 8817,
+          "toolNames": [
+            "submit_authorization_result"
+          ],
+          "toolChoice": {
+            "name": "submit_authorization_result"
+          },
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false,
+          "toolSchemas": [
+            {
+              "type": "object",
+              "properties": {
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "obligationId": {
+                        "type": "string"
+                      },
+                      "conclusion": {
+                        "type": "string",
+                        "enum": [
+                          "source_supported_failure",
+                          "source_refuted",
+                          "unknown"
+                        ]
+                      },
+                      "explanation": {
+                        "type": "string"
+                      },
+                      "facts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "entry",
+                                "binding",
+                                "control",
+                                "effect",
+                                "condition"
+                              ]
+                            },
+                            "statement": {
+                              "type": "string"
+                            },
+                            "citations": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "sourceId": {
+                                    "type": "string"
+                                  },
+                                  "startLine": {
+                                    "type": "number"
+                                  },
+                                  "endLine": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "sourceId",
+                                  "startLine",
+                                  "endLine"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "kind",
+                            "statement",
+                            "citations"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "decisiveMissingFacts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "suggestedObservations": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "obligationId",
+                      "conclusion",
+                      "explanation",
+                      "facts",
+                      "decisiveMissingFacts",
+                      "suggestedObservations"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "results"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "usage": null,
+        "costUsd": null,
+        "transportAttempts": "unknown"
+      }
+    },
+    {
+      "sequence": 2,
+      "at": "2026-09-22T08:24:10.546Z",
+      "kind": "response",
+      "attemptId": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "attempt": {
+        "id": "provider-attempt-1",
+        "phase": "initial",
+        "transport": "schema-tool",
+        "status": "response",
+        "startedAt": "2026-09-22T08:22:40.622Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 8817,
+          "toolNames": [
+            "submit_authorization_result"
+          ],
+          "toolChoice": {
+            "name": "submit_authorization_result"
+          },
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false,
+          "toolSchemas": [
+            {
+              "type": "object",
+              "properties": {
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "obligationId": {
+                        "type": "string"
+                      },
+                      "conclusion": {
+                        "type": "string",
+                        "enum": [
+                          "source_supported_failure",
+                          "source_refuted",
+                          "unknown"
+                        ]
+                      },
+                      "explanation": {
+                        "type": "string"
+                      },
+                      "facts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "entry",
+                                "binding",
+                                "control",
+                                "effect",
+                                "condition"
+                              ]
+                            },
+                            "statement": {
+                              "type": "string"
+                            },
+                            "citations": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "sourceId": {
+                                    "type": "string"
+                                  },
+                                  "startLine": {
+                                    "type": "number"
+                                  },
+                                  "endLine": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "sourceId",
+                                  "startLine",
+                                  "endLine"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "kind",
+                            "statement",
+                            "citations"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "decisiveMissingFacts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "suggestedObservations": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "obligationId",
+                      "conclusion",
+                      "explanation",
+                      "facts",
+                      "decisiveMissingFacts",
+                      "suggestedObservations"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "results"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "usage": {
+          "input": 2425,
+          "output": 958,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "transportAttempts": "unknown",
+        "response": {
+          "text": "",
+          "toolCalls": [
+            {
+              "id": "call_F9rwFQcAoMTBAy8QpQ3lJ40p",
+              "name": "submit_authorization_result",
+              "arguments": {
+                "results": [
+                  {
+                    "obligationId": "scenario%3Aself-query::entry%3Aget-repo-permissions",
+                    "conclusion": "source_refuted",
+                    "explanation": "The fixed entry is the GET collaborator-permission handler. It reads the request collaborator username and applies the strongest visible authorization gate before loading that collaborator: access is rejected only when the caller is not a site administrator, the requested username is not the caller's case-insensitive username, and the caller is not a repository administrator. Under the declared self-query relation, the username comparison is true, so the rejection branch is bypassed even though the caller lacks both administrator roles. The selected collaborator is then loaded by the request username, and the repository permission is queried for the current repository and that collaborator; on the source-visible success branch, the operation reaches the JSON permission response. Thus the source enforces the declared allow expectation for the supplied self-query condition. The source crop does not establish deployment behavior or repository-wide entry completeness, but no source-external fact is decisive for this visible authorization branch under the supplied existing-collaborator premise.",
+                    "facts": [
+                      {
+                        "id": "entry-handler",
+                        "kind": "entry",
+                        "statement": "The declared GET collaborator repository permission operation is implemented by the supplied GetRepoPermissions entry.",
+                        "citations": [
+                          {
+                            "sourceId": "src-89fab2db8921e6cb",
+                            "startLine": 4,
+                            "endLine": 6
+                          }
+                        ]
+                      },
+                      {
+                        "id": "identity-binding",
+                        "kind": "binding",
+                        "statement": "The request-selected collaborator username is compared case-insensitively with the authenticated caller identity's lower-name, while administrator role checks use the caller context.",
+                        "citations": [
+                          {
+                            "sourceId": "src-89fab2db8921e6cb",
+                            "startLine": 35,
+                            "endLine": 37
+                          }
+                        ]
+                      },
+                      {
+                        "id": "resource-binding",
+                        "kind": "binding",
+                        "statement": "The request collaborator path value selects the collaborator account loaded by username, and that account is used in the repository-permission lookup for the current repository.",
+                        "citations": [
+                          {
+                            "sourceId": "src-89fab2db8921e6cb",
+                            "startLine": 41,
+                            "endLine": 52
+                          }
+                        ]
+                      },
+                      {
+                        "id": "distinct-repository-control",
+                        "kind": "control",
+                        "statement": "The repository-administrator check is a separate authorization relation from the collaborator-username self-query comparison and the site-administrator check.",
+                        "citations": [
+                          {
+                            "sourceId": "src-89fab2db8921e6cb",
+                            "startLine": 35,
+                            "endLine": 38
+                          }
+                        ]
+                      },
+                      {
+                        "id": "self-query-allow-control",
+                        "kind": "control",
+                        "statement": "The visible rejection control requires all three disqualifying conditions—non-site-admin, username mismatch, and non-repository-admin—to hold; a matching caller username therefore bypasses rejection despite the two absent administrator roles.",
+                        "citations": [
+                          {
+                            "sourceId": "src-89fab2db8921e6cb",
+                            "startLine": 35,
+                            "endLine": 39
+                          }
+                        ]
+                      },
+                      {
+                        "id": "protected-effect",
+                        "kind": "effect",
+                        "statement": "After authorization, the handler queries the individual user's permission for the current repository and returns the permission in a successful JSON response on the no-error branch.",
+                        "citations": [
+                          {
+                            "sourceId": "src-89fab2db8921e6cb",
+                            "startLine": 51,
+                            "endLine": 58
+                          }
+                        ]
+                      },
+                      {
+                        "id": "declared-condition",
+                        "kind": "condition",
+                        "statement": "The assessed condition is that the collaborator username equals the caller's username; this is the source-visible branch that permits the declared principal to proceed without either administrator role.",
+                        "citations": [
+                          {
+                            "sourceId": "src-89fab2db8921e6cb",
+                            "startLine": 35,
+                            "endLine": 39
+                          }
+                        ]
+                      }
+                    ],
+                    "decisiveMissingFacts": [],
+                    "suggestedObservations": []
+                  }
+                ]
+              }
+            }
+          ],
+          "tokens": {
+            "input": 2425,
+            "output": 958,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "costUsd": null,
+          "durationMs": 89921.50110000001,
+          "stopReason": "tool_use"
+        },
+        "schemaValidation": {
+          "valid": true,
+          "diagnostics": []
+        },
+        "endedAt": "2026-09-22T08:24:10.545Z"
+      }
+    },
+    {
+      "sequence": 3,
+      "at": "2026-09-22T08:24:10.548Z",
+      "kind": "closed",
+      "reason": "host-return:completed"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 2425,
+      "output": 958,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

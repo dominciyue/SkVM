@@ -1,0 +1,37 @@
+Authorization assessment
+Session: 20260922T083900987Z-439ae7ea
+Status: completed
+Task: owui-trusted-header-deployment
+Method: conditions (explicit); requested: conditions; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: task-supplied (input)
+
+Conclusions
+- external-client-trusted-header-impersonation::post-signin-trusted-email: unknown — The fixed source establishes a conditional application capability, not the actual deployment outcome. POST /signin is gated by ENABLE_PASSWORD_AUTH; when the trusted-email header name is configured and present, its request value becomes the email supplied to authentication, with optional provisioning before authentication. A truthy authenticated user reaches session creation. The fixed context does not provide the deployed gate values, external reachability, proxy stripping/replacement behavior, or the authentication result for the selected email. Therefore it cannot determine whether an unauthenticated external client can impersonate an arbitrary existing user in the actual deployment.
+  Evidence: The POST /signin entry rejects the request with 403 when ENABLE_PASSWORD_AUTH is false; the trusted-email processing is downstream of that gate. (inputs/owui-trusted-header-deployment/auths_signin.py:4-19)
+  Evidence: If no user is found for the selected email, signup_handler is invoked with that email before authenticate_user_by_email is called; the fixed context does not show whether this branch is taken for a target email. (inputs/owui-trusted-header-deployment/auths_signin.py:31-40)
+  Evidence: In the trusted-email branch, the request header value is lowercased into email and that email is passed to authenticate_user_by_email. (inputs/owui-trusted-header-deployment/auths_signin.py:17-22, inputs/owui-trusted-header-deployment/auths_signin.py:40-40)
+  Evidence: The application consumes the identity from request.headers, but the supplied crops contain no observed deployment fact about external reachability, sole-ingress topology, proxy stripping, or proxy replacement. (inputs/owui-trusted-header-deployment/auths_signin.py:17-21, inputs/owui-trusted-header-deployment/env_trusted_headers.py:10-13)
+  Evidence: After the selected-email lookup and optional signup call, the source only proceeds with the successful identity path when authenticate_user_by_email yields a user. (inputs/owui-trusted-header-deployment/auths_signin.py:31-41)
+  Evidence: The trusted email header name is environment-controlled, and the trusted-email branch requires that configured header name to be present in the request. (inputs/owui-trusted-header-deployment/env_trusted_headers.py:10-13, inputs/owui-trusted-header-deployment/auths_signin.py:17-21)
+  Evidence: When user is truthy, create_session_response is called with that user and set_cookie enabled; otherwise the source raises an invalid-credentials error. (inputs/owui-trusted-header-deployment/auths_signin.py:59-62)
+  Evidence: The fixed source does not establish whether the accepted trusted-proxy header controls hold in the actual deployment; the application crop only shows consumption of the request header. (inputs/owui-trusted-header-deployment/auths_signin.py:17-21)
+  Unknown: The deployed value of ENABLE_PASSWORD_AUTH.
+  Unknown: The deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER and whether the selected header is present on the reachable request path.
+  Unknown: Whether the unauthenticated external client can reach the application ingress used by POST /signin.
+  Unknown: Whether a trusted reverse proxy is the sole reachable ingress and removes client-supplied identity headers while injecting the authenticated identity.
+  Unknown: Whether authenticate_user_by_email returns a user for the selected email in the target deployment.
+  Unknown: Whether the optional signup branch is reached and succeeds if the selected email is not already present.
+
+Coverage
+- header.authorization-decision × external-client-trusted-header-impersonation::post-signin-trusted-email: addressed — The visible application decision is conditional: the entry and header gates must pass, the request-selected email is processed, and only a truthy authenticated user reaches session creation. The accepted deployment policy adds proxy-ingress and header-integrity requirements, but the fixed source does not observe whether they hold.
+- header.deployment-assumptions × external-client-trusted-header-impersonation::post-signin-trusted-email: unknown — The actual deployment values, external reachability, proxy behavior, and authentication outcome are absent. These facts determine whether the source-visible capability is usable by the stated external principal.
+- header.entry-control × external-client-trusted-header-impersonation::post-signin-trusted-email: addressed — The source-visible trusted-email entry requires POST /signin to pass ENABLE_PASSWORD_AUTH, the environment-controlled trusted-email header name to be configured, and that header to be present in the request.
+- header.identity-binding × external-client-trusted-header-impersonation::post-signin-trusted-email: addressed — The request's configured trusted-email header value is lowercased into email and supplied to email authentication, so the request value selects the identity used by this path.
+- header.optional-provisioning × external-client-trusted-header-impersonation::post-signin-trusted-email: addressed — A provisioning branch is present: when no user is found for the selected email, signup_handler is called with that email before authentication. Its occurrence and success for a real target are not established.
+- header.session-effect × external-client-trusted-header-impersonation::post-signin-trusted-email: addressed — The protected session effect is reached on the branch where the entry and header conditions pass and authentication yields a truthy user; that branch invokes create_session_response with the user. If no user is yielded, the source raises invalid credentials instead.
+- header.session-resource × external-client-trusted-header-impersonation::post-signin-trusted-email: addressed — The session response receives the user returned after authenticating the email selected from the trusted header, with optional provisioning occurring beforehand.
+
+Condition analysis
+- external-client-trusted-header-impersonation::post-signin-trusted-email: bounded; 6 branch(es)

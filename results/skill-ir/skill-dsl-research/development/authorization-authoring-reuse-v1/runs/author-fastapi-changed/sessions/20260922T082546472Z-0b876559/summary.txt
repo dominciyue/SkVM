@@ -1,0 +1,23 @@
+Authorization assessment
+Session: 20260922T082546472Z-0b876559
+Status: completed
+Task: fastapi-items-foreign-update
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aupdate-item::entry%3Aupdate-item: source_refuted — The declared PUT entry is present and receives the session, current user, selected UUID, and update payload. The selected object is loaded by the request UUID; its owner is compared with the caller identity. The strongest visible authorization control denies only when the caller is not a superuser and is not the owner. Therefore, for the declared authenticated active superuser and different-owner item, the superuser branch bypasses the ownership rejection. The update fields are then applied and the item is committed and returned, so the requested protected effect can proceed on the source-visible superuser branch. No additional scenario conditions are declared. Authentication/dependency behavior, routing outside this entry, deployment behavior, and repository-wide completeness are not shown or tested; however, none is a decisive missing fact under the supplied principal and resource declarations for this bounded source assessment. The result does not claim that this is the only repository entry or establish deployment behavior.
+  Evidence: The declared PUT item-update handler accepts the route identifier, current user, session, and update input. (items.py:75-82)
+  Evidence: The assessed operation uses the injected current-user value as its caller identity input. (items.py:76-80)
+  Evidence: The request UUID is used to load the item whose ownership is assessed; the compared owner identity is the loaded item's owner. (items.py:80-90)
+  Evidence: The visible rejection applies only when the caller is not a superuser and the loaded item is owned by someone else; a superuser therefore passes this gate regardless of owner. (items.py:86-90)
+  Evidence: After the authorization gate, supplied update fields are applied to the loaded item, which is persisted, refreshed, and returned. (items.py:91-96)
+  Evidence: No additional conditions are declared for this obligation beyond the supplied superuser, active, authenticated, and different-owner facts. (items.py:75-90)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

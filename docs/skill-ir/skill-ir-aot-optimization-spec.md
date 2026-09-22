@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-22
 
-**当前已确认路线：** 第14.34节的“按skill/task范围设计领域表达并验证实际价值”。Z已完成公共method和compact v4，观察到有界首答交付/开销改善，作者仍需主代理修正。用户已授权AA0–AA13简化作者语言、完整变更依赖、独立编写试用与同v4方法对照。研究和开发复盘见[研究总文档](skill-dsl-research.md)，执行顺序见[当前计划](skill-ir-aot-optimization-plan.md)。第14.32–14.33节及更早阶段保留为历史合同与工程基础，I1保留后备。
+**当前已确认路线：** 第14.34节的“按skill/task范围设计领域表达并验证实际价值”。Z已完成公共method和compact v4，观察到有界首答交付/开销改善，作者仍需主代理修正。AA已完成作者v2、完整变更依赖、独立模型作者试用与同v4方法对照；编写/变更helper有用，运行方法收益按任务区分。研究和开发复盘见[研究总文档](skill-dsl-research.md)，执行顺序见[当前计划](skill-ir-aot-optimization-plan.md)。第14.32–14.33节及更早阶段保留为历史合同与工程基础，I1保留后备。
 
 本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；新工作以第 14.34 节为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
@@ -2523,3 +2523,5 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **AA当前授权合同（2026-09-22）。** [AA0–AA13](../superpowers/plans/2026-09-22-authorization-authoring-reuse-and-value.md)采用薄authoring/v2经确定性lowering复用canonical v0。用户拥有政策、角色关系、操作与规范期待；程序派生ID、默认scope/profile和条件绑定，不补答案。check/run直接消费v2，compare只读地说明完整输入依赖变化与旧结果适用性，旧session缺依赖标needs-review；不以citation子集替代全部模型输入依赖。两项独立作者原/变试用及六任务同v4方法对照分列，最多16初轮分析单元、4共享修订单元，旧协议默认保持兼容。所有事实与公开要求两臂对齐，解释作者负担、变更识别和领域质量/开销各自收益。历史结果、保护输入和七项原修改保留。
 
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。
+
+**AA交付核验（2026-09-22，14.34补充）。** authoring/v2直接check/run及只读compare完成；独立作者1/2首次valid、2/2最终valid，原/变两组均deny→allow。五组plain/ledger均full，ledger开销更高；header conditions解释完整、初轮一次修复。unknown effect须missingFacts，已知效果不因无关unknown assumption虚构决定性缺失事实，仍须同义务证据且semanticSupport=unreviewed。16单元/17调用、零追加付费单元，183测试/1337断言和typecheck通过。初轮与离线修订分列；legacy兼容默认保持。结果与裁决见研究§7.24及AA summary。

@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-22
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：Z已完成发布至1ae35ccb；AA0–AA13已授权连续执行。
+- 状态：AA工程、作者试用及同v4面板完成，AA13正在提交发布。
 - 唯一实时入口：[current-status.md](current-status.md)
 - 方法合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AA0–AA13](../superpowers/plans/2026-09-22-authorization-authoring-reuse-and-value.md)
@@ -37,3 +37,5 @@
 Z首轮四任务legacy/v4首答完整交付1/4与3/4，最终均3/4；调用7/4，input 43,719/21,926，output 20,017/10,705。v4 header超时及迟到usage保留，legacy仍默认；作者36条诊断后经主代理纠正完成原/变任务，独立编写改善仍待检验。175测试/1229断言和typecheck经复核通过。
 
 AA接手时读取状态页、本任务书和研究§7.24，建立唯一结果根status并按nextAction恢复。结果根为`results/skill-ir/skill-dsl-research/development/authorization-authoring-reuse-v1/`；历史证据由[索引](evidence-index.md)与[历史](history.md)承载。
+
+AA最终：独立作者1/2首稿有效、2/2经至多一次作者接力完成；两组原/变deny→allow。前五组plain/ledger质量持平、ledger成本更高；header条件解释改善但初轮有一次修复。共享unknown检查假拒绝已红绿修正并离线重检，不重报初轮成绩。16单元/17调用，183测试/1337断言、typecheck通过。剩余边界是真人工时/美元未知、development范围、无自动答案缓存；完整结论见研究§7.24。

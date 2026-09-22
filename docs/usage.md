@@ -73,6 +73,17 @@ skvm authorization run --input=./authoring.json --method=plain --wire=v4 --model
 
 The template is synthetic: edit its policy, scenario and explicit source locations for your task, or copy the complete example directory to try it unchanged. `check` and `run` accept v2 directly and resolve sourceRoot relative to that original file. A session separately saves `input.json` (original bytes), `normalized-input.json`, `field-provenance.json`, and `execution-dependencies.json`. Check diagnostics group task/policy/source/scenario problems with field paths and fixes. Inspect prints the exact `sessionPath`. After editing the input, pass that returned path as `--previous` to `authorization compare --input=./authoring.json`. Compare inherits the prior method/wire unless explicitly overridden, runs no model, and never changes the old session. It reports added/removed/changed scenarios and affected obligations. Shared context changes conservatively affect all run scenarios, including uncited source. Missing old dependencies yield `needs-review`; `current` only means matching inputs, not proven semantic correctness or a reusable cached answer.
 
+The retained AA FastAPI trial demonstrates ordinary v2 use. From the repository root, these commands inspect an actual completed session and compare its original non-superuser declaration with the independently authored superuser change, without a provider call:
+
+```powershell
+$aa = './results/skill-ir/skill-dsl-research/development/authorization-authoring-reuse-v1'
+bun ./src/index.ts authorization check --input="$aa/authors/fastapi/original.json" --method=plain --wire=v4
+bun ./src/index.ts authorization inspect --out="$aa/runs/author-fastapi-original"
+bun ./src/index.ts authorization compare --previous="$aa/runs/author-fastapi-original/sessions/20260922T082410563Z-6b3bedc6" --input="$aa/authors/fastapi/changed.json"
+```
+
+Both actual answers enforce their declarations: original deny, changed allow, each with one analysis call. `source_refuted` means the source refutes a policy failure, so it can accompany either correctly enforced outcome; read the explanation. Compare reports `needs-review` and the affected scenario, without upgrading the old answer. The six exposed AA cases support explicit `plain --wire=v4` for ordinary bounded work; use `ledger` for machine-readable coverage and `conditions` for requested bounded branch explanations. These are task-based recommendations, not a change to legacy/default compatibility or a general quality claim.
+
 `init` without format retains the original synthetic normalized template and refuses to overwrite an existing path. The older `authorization-assessment-authoring/v1` remains supported; v1/v2 can optionally be normalized separately:
 
 ```powershell
