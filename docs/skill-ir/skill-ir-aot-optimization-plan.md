@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-22
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AA工程、作者试用及同v4面板完成，AA13正在提交发布。
+- 状态：AA0–AA13完成发布；代码与证据529cf0b3已核对origin/skill-ir-aot。
 - 唯一实时入口：[current-status.md](current-status.md)
 - 方法合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AA0–AA13](../superpowers/plans/2026-09-22-authorization-authoring-reuse-and-value.md)

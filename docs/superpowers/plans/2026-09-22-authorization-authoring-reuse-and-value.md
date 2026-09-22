@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 SkVM provider/CLI 与本地 JSON；不建设 UI、通用工作流引擎、仓库扫描器或新的 agent 平台。
 
-- 日期：2026-09-22；状态：`in-progress`，AA0–AA11完成，AA12文档验证与AA13发布进行中；机器状态见结果根。
+- 日期：2026-09-22；状态：`complete`，AA0–AA13完成并发布，代码与证据529cf0b3已核对远端；机器状态见结果根。
 - 生产基线：`1ae35ccb1ec44a1830f4ee0b189503c9a713a337`；接手以本任务书登记后的最新HEAD为准。
 - 结果根：`results/skill-ir/skill-dsl-research/development/authorization-authoring-reuse-v1/`。
 - 当前研究：[§7.24](../../skill-ir/skill-dsl-research.md#724-aa-作者声明修改复用与领域价值)。范围仍为单repo/ref、显式源码与政策的授权/信任边界任务。
@@ -236,9 +236,9 @@ expect((await compareAuthorizationInput(oldSession, changedInputPath)).affectedS
 - [x] `python scripts/check_skill_ir_doc_links_test.py`及`python scripts/check_skill_ir_doc_links.py --root .`；解析AA JSON/JSONL、离线重算一次summary、做归属/敏感信息检查。
 
 ### AA13：发布与结束
-- [ ] 只提交本轮归属文件，推送`origin/skill-ir-aot`并核对远端，七项原修改及历史untracked保持。
-- [ ] 最终给出v2完整例子、可运行命令、作者独立成功/失败、修改影响、同v4方法比较、默认建议和具体未完成项。
-- [ ] 工程和研究结论分开，按真实完成判complete/partial；完成后停止扩展，不重复调用或等待凑时长。
+- [x] 只提交本轮归属文件，推送`origin/skill-ir-aot`并核对远端，七项原修改及历史untracked保持。
+- [x] 最终给出v2完整例子、可运行命令、作者独立成功/失败、修改影响、同v4方法比较、默认建议和具体未完成项。
+- [x] 工程和研究结论分开，按真实完成判complete/partial；完成后停止扩展，不重复调用或等待凑时长。
 
 ## 六、恢复和授权
 
