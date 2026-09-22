@@ -731,6 +731,10 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 
 **交付与解释。** 首答schema/交付率、最终质量、fallback/repair、分字段token/cache、耗时及作者步骤共同判断。传输改善如实写为协议/运行减负；新wire没有收益就保持可选，不把工程完成写成DSL优于普通说明。Z期间把每个实际问题和解决记录在本节；机器材料统一进入`development/authorization-protocol-usability-v1/`。
 
+**Z1–Z2 实施。** 公共method通过同一选择器映射既有P/L/C执行输入；显式method固定B，省略保持input-request/default，report/session/text保存选择。红测复现Unknown option后，20项聚焦回归及typecheck通过，三模式真实provider-free check与Node help通过。六个旧C首答仍全部被原v3拒绝，fallback全部通过，已知失败/fallback token重现47,330/62,413。离线捕获实际extractStructured产出的tool schema：facts.condition必填、conditionAnalysis对象及嵌套版本常量均正确；converter缺strict对象/数值数组边界，但不解释这些已见错误，route也没有strict:true。历史记录只有请求摘要，schema为未变转换路径重建，远端约束执行仍未知；本轮不改provider，避免混入第二个干预。
+
+**Z3 wire/v4字段责任定稿。** 顶层仅results。每项保留obligationId、conclusion、explanation、facts、decisiveMissingFacts、suggestedObservations；facts为{id,kind,statement,citations}，ID只在该义务内唯一。plain没有coverage/condition；ledger在item内加coverage（省obligationId，用factIds）；conditions再加condition（branches省obligationId、用factIds，保留assumptions/effect/explanation/missingFacts、unexaminedConditionIds/completeness/limitations）。宿主固定版本、task/repository/ref和declared-only scope，按kind分组、按ID排序后建立canonical pointer，引用仍由exact catalog解析；重复/陌生ID报原字段路径，绝不按位置猜绑定。复用v1引用归一化及既有coverage/conditions validator，空组仅表示没有事实。模型不填写任何版本常量；v1–v3解析与失败原件不改，新协议先显式opt-in。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

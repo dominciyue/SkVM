@@ -108,12 +108,13 @@ export function authorizationCliHelp(): string {
     "",
     "Commands:",
     "  init --out=<assessment.json> [--from=<authoring.json>]",
-    "  check --input=<assessment.json> [--arm=N|B|D]  (default: B)",
-    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--arm=N|B|D]  (default: B)",
+    "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--arm=N|B|D]",
+    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--arm=N|B|D]",
     "  inspect --out=<output-root-or-session>",
     "",
     "init never overwrites an existing file. With --from, keep authoring and output beside each other so sourceRoot stays bounded.",
     "Only run initializes a provider. A condition request in the input opts into wire/v3; otherwise the existing ledger path is used.",
+    "Explicit method uses B and conflicts with arm N/D. conditions needs a condition request; plain/ledger leave it unexecuted.",
   ].join("\n")
 }
 

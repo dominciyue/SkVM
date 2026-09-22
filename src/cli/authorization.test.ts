@@ -184,6 +184,48 @@ function dependencies(
 }
 
 describe("authorization CLI", () => {
+  it("selects public methods before provider creation and preserves input-request compatibility", async () => {
+    const fixture = await makeFixture({ conditionRequest: true })
+    const calls = { factory: 0, provider: 0 }
+    const stdout: string[] = []
+    const stderr: string[] = []
+    const deps = dependencies(fixture.inputPath, calls, stdout, stderr)
+    for (const method of ["plain", "ledger", "conditions"]) {
+      expect(await runAuthorizationCli(["check", `--input=${fixture.inputPath}`, `--method=${method}`], deps)).toBe(0)
+      const report = JSON.parse(stdout.at(-1)!)
+      expect(report.methodSelection).toMatchObject({ requested: method, effective: method, selectionOrigin: "explicit" })
+      expect(report.wireVersion).toBe(`source-authorization-assessment-wire/v${method === "plain" ? 1 : method === "ledger" ? 2 : 3}`)
+      expect(report.ledgerEntryCount).toBe(method === "plain" ? 0 : 1)
+      expect(report.preview.includes("Condition analysis request")).toBe(method === "conditions")
+      if (method !== "conditions") expect(report.methodSelection.conditionRequestIgnored).toBe(true)
+    }
+    expect(await runAuthorizationCli(["check", `--input=${fixture.inputPath}`], deps)).toBe(0)
+    expect(JSON.parse(stdout.at(-1)!).methodSelection).toMatchObject({ effective: "conditions", selectionOrigin: "input-request" })
+    expect(await runAuthorizationCli(["check", `--input=${fixture.inputPath}`, "--method=plain", "--arm=D"], deps)).toBe(1)
+    expect(JSON.parse(stdout.at(-1)!).diagnostics[0].code).toBe("method-arm-conflict")
+    const noConditions = await makeFixture()
+    expect(await runAuthorizationCli(["run", `--input=${noConditions.inputPath}`, "--method=conditions", "--model=mock/model", `--out=${noConditions.outRoot}`], deps)).toBe(1)
+    expect(JSON.parse(stdout.at(-1)!).diagnostics[0].path).toBe("conditionAnalysisRequest")
+    expect(calls).toEqual({ factory: 0, provider: 0 })
+  })
+
+  it("persists explicit ledger selection through run, session, text and inspect", async () => {
+    const fixture = await makeFixture({ conditionRequest: true })
+    const calls = { factory: 0, provider: 0 }
+    const stdout: string[] = []
+    const stderr: string[] = []
+    const deps = dependencies(fixture.inputPath, calls, stdout, stderr)
+    expect(await runAuthorizationCli(["run", `--input=${fixture.inputPath}`, "--method=ledger", "--model=mock/model", `--out=${fixture.outRoot}`], deps)).toBe(0)
+    const report = JSON.parse(stdout.at(-1)!)
+    expect(report.methodSelection.effective).toBe("ledger")
+    const session = JSON.parse(await readFile(path.join(report.sessionPath, "session.json"), "utf8"))
+    expect(session.methodSelection).toEqual(report.methodSelection)
+    expect(await readFile(path.join(report.sessionPath, "summary.txt"), "utf8")).toContain("Method: ledger")
+    expect(await runAuthorizationCli(["inspect", `--out=${fixture.outRoot}`], deps)).toBe(0)
+    expect(JSON.parse(stdout.at(-1)!).methodSelection).toEqual(report.methodSelection)
+    expect(calls).toEqual({ factory: 1, provider: 1 })
+  })
+
   it("resolves the real Bun binary behind a Windows npm shim for source checkout routing", () => {
     const here = "C:\\repo\\bin"
     const npmBin = "C:\\Users\\person\\AppData\\Roaming\\npm"

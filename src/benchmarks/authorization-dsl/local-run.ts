@@ -3,6 +3,7 @@ import { appendFile, mkdir, readFile, stat, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { z } from "zod"
 import type { LLMProvider } from "../../providers/types.ts"
+import { resolveAuthorizationMethod, methodStudyArm, type AuthorizationMethod, type AuthorizationMethodSelection } from "../../task-dsl/authorization/method.ts"
 import {
   measureAuthorizationPromptCharacters,
   renderAuthorizationTask,
@@ -40,6 +41,8 @@ export interface LocalAuthorizationCheckReport {
   sourceFiles?: string[]
   arm?: AuthorizationRenderArm
   studyArm?: AuthorizationStudyArm
+  methodSelection?: AuthorizationMethodSelection
+  wireVersion?: string
   analysisProfile?: LocalAnalysisProfile
   requirementCount?: number
   ledgerEntryCount?: number
@@ -138,6 +141,8 @@ export interface LocalAuthorizationSessionReport {
   model?: string
   arm?: AuthorizationRenderArm
   studyArm?: AuthorizationStudyArm
+  methodSelection?: AuthorizationMethodSelection
+  wireVersion?: string
   analysisProfile?: LocalAnalysisProfile
   finalKind?: "initial" | "repair"
   canonicalResult?: AuthorizationResultV0
@@ -264,6 +269,7 @@ function checkReport(
   loaded: LocalInputResult,
   arm: AuthorizationRenderArm,
   studyArm?: AuthorizationStudyArm,
+  method?: AuthorizationMethod,
 ): LocalAuthorizationCheckReport {
   if (loaded.status === "invalid") {
     return {
@@ -301,9 +307,14 @@ function checkReport(
       )],
     }
   }
+  const resolved = resolveAuthorizationMethod({ method, studyArm, arm, hasConditionRequest: !!loaded.conditionAnalysisRequest })
+  if (resolved.diagnostics.length) return {
+    schemaVersion: "authorization-local-check/v1", status: "invalid", inputPath: loaded.inputPath,
+    methodSelection: resolved.selection, diagnostics: resolved.diagnostics,
+  }
   const compiled = compileAuthorizationTask(loaded.task)
   const sourceContext = renderSourceBundle(loaded.sourceBundle)
-  const selected = studyExecutionInputs(loaded, studyArm)
+  const selected = studyExecutionInputs(loaded, resolved.studyArm)
   const rendered = renderAuthorizationTask(
     compiled,
     arm,
@@ -327,6 +338,8 @@ function checkReport(
     sourceFiles: loaded.sourceBundle.files.map(file => file.relativePath),
     arm,
     ...(studyArm ? { studyArm } : {}),
+    methodSelection: resolved.selection,
+    wireVersion: `source-authorization-assessment-wire/v${resolved.studyArm === "P" ? 1 : resolved.studyArm === "L" ? 2 : 3}`,
     analysisProfile: loaded.analysisProfile,
     requirementCount: loaded.analysisRequirements.length,
     ledgerEntryCount: selected.analysisPlan?.entries.length ?? 0,
@@ -349,8 +362,9 @@ function localStudyDiagnostic(code: string, message: string, diagnosticPath?: st
 export async function checkLocalAuthorizationInput(
   inputFile: string,
   arm: AuthorizationRenderArm = "B",
+  method?: AuthorizationMethod,
 ): Promise<LocalAuthorizationCheckReport> {
-  return checkReport(await loadLocalAuthorizationInput(inputFile), arm)
+  return checkReport(await loadLocalAuthorizationInput(inputFile), arm, undefined, method)
 }
 
 export async function checkLocalAuthorizationStudyInput(
@@ -417,6 +431,8 @@ function summaryText(input: {
     `Status: ${input.report.status}`,
   ]
   if (input.report.taskId) lines.push(`Task: ${input.report.taskId}`)
+  if (input.report.methodSelection) lines.push(`Method: ${input.report.methodSelection.effective} (${input.report.methodSelection.selectionOrigin}); requested: ${input.report.methodSelection.requested ?? "omitted"}; condition request ignored: ${input.report.methodSelection.conditionRequestIgnored}`)
+  if (input.report.wireVersion) lines.push(`Wire: ${input.report.wireVersion}`)
   if (input.report.repository) lines.push(`Source: ${input.report.repository}@${input.report.sourceRef ?? "unknown"}`)
   if (input.report.analysisProfile) {
     lines.push(`Analysis profile: ${input.report.analysisProfile.id} (${input.report.analysisProfile.origin})`)
@@ -490,15 +506,18 @@ export async function executeLocalAuthorizationRun(input: {
   outRoot: string
   arm?: AuthorizationRenderArm
   studyArm?: AuthorizationStudyArm
+  method?: AuthorizationMethod
   executionOptions?: RunAuthorizationTaskOptions
   providerFactory?: LocalAuthorizationProviderFactory
   env?: LocalAuthorizationRunnerEnv
 }): Promise<LocalAuthorizationSessionReport | LocalAuthorizationCheckReport> {
   const arm = input.arm ?? "B"
   const loaded = await loadLocalAuthorizationInput(input.inputFile)
-  const checked = checkReport(loaded, arm, input.studyArm)
+  const checked = checkReport(loaded, arm, input.studyArm, input.method)
   if (loaded.status === "invalid" || checked.status === "invalid") return checked
-  const selected = studyExecutionInputs(loaded, input.studyArm)
+  const effectiveStudyArm = methodStudyArm[checked.methodSelection!.effective]
+  const selected = studyExecutionInputs(loaded, effectiveStudyArm)
+  const selectionMetadata = { methodSelection: checked.methodSelection, wireVersion: checked.wireVersion }
 
   const session = await createSession(input.outRoot)
   const inputBytes = await readFile(loaded.inputPath, "utf8")
@@ -516,6 +535,7 @@ export async function executeLocalAuthorizationRun(input: {
   }
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.session), {
     schemaVersion: "authorization-local-session/v1",
+    ...selectionMetadata,
     sessionId: session.sessionId,
     createdAt: session.createdAt,
     inputPath: loaded.inputPath,
@@ -530,7 +550,7 @@ export async function executeLocalAuthorizationRun(input: {
   await writeExclusive(path.join(session.sessionPath, baseArtifacts.input), inputBytes)
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.task), loaded.task)
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.sourceBundle), loaded.sourceBundle)
-  await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.analysisRequirements), input.studyArm === "P"
+  await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.analysisRequirements), effectiveStudyArm === "P"
     ? {
         schemaVersion: "authorization-public-analysis-snapshot/v1",
         studyArm: "P",
@@ -563,6 +583,7 @@ export async function executeLocalAuthorizationRun(input: {
   })
 
   const baseReport = {
+    ...selectionMetadata,
     schemaVersion: "authorization-local-result/v1" as const,
     sessionId: session.sessionId,
     sessionPath: session.sessionPath,
@@ -609,6 +630,7 @@ export async function executeLocalAuthorizationRun(input: {
   const runBaseReport = { ...baseReport, artifacts: runArtifacts }
   await writeJsonExclusive(path.join(session.sessionPath, runArtifacts.dispatch!), {
     schemaVersion: "authorization-local-dispatch/v1",
+    ...selectionMetadata,
     sessionId: session.sessionId,
     model: input.model,
     arm,
@@ -896,6 +918,11 @@ function parseArm(value: string | undefined): AuthorizationRenderArm {
   throw new LocalAuthorizationRunnerError("arm must be one of N, B, or D.")
 }
 
+function parseMethod(value: string | undefined): AuthorizationMethod | undefined {
+  if (value === undefined || value === "plain" || value === "ledger" || value === "conditions") return value
+  throw new LocalAuthorizationRunnerError("method must be plain, ledger, or conditions.")
+}
+
 function helpText(): string {
   return [
     "Authorization local assessment",
@@ -920,21 +947,23 @@ export async function runLocalAuthorizationCli(
   const command = argv[0]!
   try {
     if (command === "check") {
-      const options = parseOptions(argv.slice(1), new Set(["input", "arm"]))
+      const options = parseOptions(argv.slice(1), new Set(["input", "arm", "method"]))
       const report = await checkLocalAuthorizationInput(
         requireOption(options, "input", "check"),
         parseArm(options.arm),
+        parseMethod(options.method),
       )
       dependencies.stdout(JSON.stringify(report, null, 2))
       return report.status === "valid" ? 0 : 1
     }
     if (command === "run") {
-      const options = parseOptions(argv.slice(1), new Set(["input", "model", "out", "arm"]))
+      const options = parseOptions(argv.slice(1), new Set(["input", "model", "out", "arm", "method"]))
       const report = await executeLocalAuthorizationRun({
         inputFile: requireOption(options, "input", "run"),
         model: requireOption(options, "model", "run"),
         outRoot: requireOption(options, "out", "run"),
         arm: parseArm(options.arm),
+        method: parseMethod(options.method),
         ...(dependencies.providerFactory ? { providerFactory: dependencies.providerFactory } : {}),
         ...(dependencies.env ? { env: dependencies.env } : {}),
       })
