@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-22
 - 路线：按 skill/task 范围设计领域 DSL，当前为源码可见授权与信任边界任务。
-- 状态：Z0–Z10完成；12分析单元/16调用结果已冻结，Z11验证与Z12归属发布收尾，不追加研究调用。
+- 状态：Z0–Z12全部完成并发布（交付e48db7de，远端已核对）；12分析单元/16调用结果冻结，本轮停止。
 - 唯一实时入口：[current-status.md](current-status.md)
 - 方法合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[Z0–Z12](../superpowers/plans/2026-09-22-authorization-dsl-protocol-and-usability.md)

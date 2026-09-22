@@ -177,9 +177,9 @@ interface CompactAssessmentItem {
 - [x] `python scripts/check_skill_ir_doc_links_test.py`及`python scripts/check_skill_ir_doc_links.py --root .`；解析本轮JSON/JSONL，一次离线重算新summary。只修复受影响检查，不重跑历史大审计。
 
 ### Z12：归属发布与交接
-- [ ] 检查暂存归属和敏感信息，保留七项原修改和历史untracked；分功能提交，推送用户origin/skill-ir-aot，核对远端。
-- [ ] 最终给出三模式实际命令、wire选择、首答与最终质量/成本、作者试用及变化结果、未完成项。
-- [ ] 按具体交付判complete/partial；研究negative不阻断诚实工程交付；全部完成后停止扩展，不等待或重复调用凑时长。
+- [x] 检查暂存归属和敏感信息，保留七项原修改和历史untracked；分功能提交，推送用户origin/skill-ir-aot，核对远端。
+- [x] 最终给出三模式实际命令、wire选择、首答与最终质量/成本、作者试用及变化结果、未完成项。
+- [x] 按具体交付判complete/partial；研究negative不阻断诚实工程交付；全部完成后停止扩展，不等待或重复调用凑时长。
 
 ## 五、连续执行与授权
 
@@ -192,3 +192,5 @@ interface CompactAssessmentItem {
 ## 六、实际执行记录（2026-09-22）
 
 Z0–Z10已完成：首轮8、共享修订2、作者原/变2，共12单元/16调用。实现提交7ee3f546、14cd4fed、2a4ca3d3；配置冻结b812a44f。旧六次首答失败复现；新严格对象反例红绿通过。修订两答full但旧协议仍需fallback；compact header timeout保留，不追加第三轮。作者36诊断后主代理修正，实际deny/allow均验证，标agent-assisted且真人时间未知。175/175测试、1229断言、typecheck已通过。最终证据见[summary](../../../results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/summary.json)，研究默认与收益边界已同步§7.23。
+
+Z11–Z12关闭：三份summary离线复算一致，文档12测试通过、10,654文件扫描无断链/治理错误，全部新证据解析与敏感信息检查通过。冻结证据使用本轮局部Git属性保留原始字节，离线session路径改为相对定位；原始输出不重写。交付`e48db7de`已推送用户origin/skill-ir-aot并核对远端，七项原有修改及历史untracked保留。本轮complete，研究mixed；无待补工程项，不追加实验。
