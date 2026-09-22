@@ -198,6 +198,8 @@ describe("authorization CLI", () => {
       expect(report.ledgerEntryCount).toBe(method === "plain" ? 0 : 1)
       expect(report.preview.includes("Condition analysis request")).toBe(method === "conditions")
       if (method !== "conditions") expect(report.methodSelection.conditionRequestIgnored).toBe(true)
+      expect(await runAuthorizationCli(["check", `--input=${fixture.inputPath}`, `--method=${method}`, "--wire=v4"], deps)).toBe(0)
+      expect(JSON.parse(stdout.at(-1)!).wireVersion).toBe("source-authorization-assessment-wire/v4")
     }
     expect(await runAuthorizationCli(["check", `--input=${fixture.inputPath}`], deps)).toBe(0)
     expect(JSON.parse(stdout.at(-1)!).methodSelection).toMatchObject({ effective: "conditions", selectionOrigin: "input-request" })

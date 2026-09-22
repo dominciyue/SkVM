@@ -697,6 +697,26 @@ describe("authorization semantic evaluation", () => {
 })
 
 describe("authorization semantic evaluation v2", () => {
+  it("v3 separates response details from authorization control without excusing causal contradictions", async () => {
+    const { evaluateAuthorizationGenerationV3 } = await import("./evaluate.ts")
+    const candidate = rubricV2()
+    candidate.criteria.push({ ...candidate.criteria[0]!, id: "http-403", requirement: "State HTTP 403.", layer: "necessary-semantics" })
+    const result = answer("unknown", "The control rejects; deployment state is unknown.")
+    result.results[0]!.decisiveMissingFacts = ["Deployment state"]
+    result.results[0]!.suggestedObservations = ["Observe deployment state"]
+    const made = artifact(result)
+    const run = (required: boolean, contradicted = false) => evaluateAuthorizationGenerationV3({
+      rubric: candidate, sourceBundle: bundle(), artifact: made.artifact, generation: "initial",
+      review: reviewForV2(candidate, made.artifact.rawResponse, { criterionStatuses: { "http-403": "missing", ...(contradicted ? { "entry-gate": "contradicted" as const } : {}) } }),
+      responseDetails: { criterionIds: ["http-403"], requiredCriterionIds: required ? ["http-403"] : [], basis: "The public task asks about reachability; explicit-response variant asks HTTP status." },
+    })
+    expect(run(false).dimensions.necessarySemantics).toBe("supported")
+    expect(run(false).dimensions.responseDetails).toBe("partial")
+    expect(run(false).qualityStatus).toBe("full-success")
+    expect(run(true).dimensions.necessarySemantics).toBe("supported")
+    expect(run(true).qualityStatus).toBe("partial")
+    expect(run(false, true).qualityStatus).toBe("incorrect")
+  })
   it("separates necessary semantics, explanation completeness, and optional detail", () => {
     const cases = [
       {

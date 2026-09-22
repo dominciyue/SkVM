@@ -1,5 +1,6 @@
 import { addTokenUsage, emptyTokenUsage, type TokenUsage } from "../../core/types.ts"
 import { ProviderError } from "../../providers/errors.ts"
+import type { ZodType } from "zod"
 import type {
   CompletionParams,
   LLMProvider,
@@ -11,6 +12,7 @@ export type AuthorizationAttemptPhase = "initial" | "domain-repair"
 export type AuthorizationAttemptTransport = "schema-tool" | "prompt-parse"
 
 export interface AuthorizationProviderAttempt {
+  schemaValidation?: { valid: boolean; diagnostics: Array<{ path: string; message: string }> }
   id: string
   phase: AuthorizationAttemptPhase
   transport: AuthorizationAttemptTransport
@@ -25,6 +27,7 @@ export interface AuthorizationProviderAttempt {
     maxTokens?: number
     temperature?: number
     executableTools: false
+    toolSchemas?: Record<string, unknown>[]
   }
   response?: {
     text: string
@@ -60,6 +63,7 @@ export interface AuthorizationLifecycleEvent {
 }
 
 export interface AuthorizationTelemetryOptions {
+  responseSchema?: ZodType<any>
   perCallTimeoutMs?: number
   unitTimeoutMs?: number
   maxDispatches?: number
@@ -297,6 +301,7 @@ export function createTelemetryProvider(
           ...(params.maxTokens === undefined ? {} : { maxTokens: params.maxTokens }),
           ...(params.temperature === undefined ? {} : { temperature: params.temperature }),
           executableTools: false,
+          ...(params.tools ? { toolSchemas: params.tools.map(tool => tool.inputSchema) } : {}),
         },
         usage: null,
         costUsd: null,
@@ -333,6 +338,15 @@ export function createTelemetryProvider(
         }
 
         attempt.status = "response"
+        if (options.responseSchema) {
+          try {
+            const value = params.tools ? response.toolCalls[0]?.arguments : JSON.parse(response.text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, ""))
+            const parsed = options.responseSchema.safeParse(value)
+            attempt.schemaValidation = { valid: parsed.success, diagnostics: parsed.success ? [] : parsed.error.issues.map(issue => ({ path: issue.path.join(".") || "$", message: issue.message })) }
+          } catch (error) {
+            attempt.schemaValidation = { valid: false, diagnostics: [{ path: "$", message: String(error) }] }
+          }
+        }
         attempt.endedAt = new Date().toISOString()
         const allowedToolNames = new Set(params.tools?.map(tool => tool.name) ?? [])
         const unexpected = response.toolCalls.find(call => !allowedToolNames.has(call.name))

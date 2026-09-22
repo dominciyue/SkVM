@@ -735,6 +735,8 @@ X2 查过现有索引后用认证 GitHub CLI 选择首个合格候选 `fastapi/f
 
 **Z3 wire/v4字段责任定稿。** 顶层仅results。每项保留obligationId、conclusion、explanation、facts、decisiveMissingFacts、suggestedObservations；facts为{id,kind,statement,citations}，ID只在该义务内唯一。plain没有coverage/condition；ledger在item内加coverage（省obligationId，用factIds）；conditions再加condition（branches省obligationId、用factIds，保留assumptions/effect/explanation/missingFacts、unexaminedConditionIds/completeness/limitations）。宿主固定版本、task/repository/ref和declared-only scope，按kind分组、按ID排序后建立canonical pointer，引用仍由exact catalog解析；重复/陌生ID报原字段路径，绝不按位置猜绑定。复用v1引用归一化及既有coverage/conditions validator，空组仅表示没有事实。模型不填写任何版本常量；v1–v3解析与失败原件不改，新协议先显式opt-in。
 
+**Z4–Z6 实施与预注册。** compact normalizer复用已有引用、coverage和condition检查，host复用该检查结果；同义务事实重排得到相同canonical结果，重复/缺失/外义务ID、非法source/range、空缺失事实unknown及条件冲突反例通过。普通入口新增独立`--wire=legacy|v4`，默认暂为legacy；新计量保存每次实际tool schema、本地schema诊断、首答schema/交付、fallback/repair与模型输出字符，token仍仅取provider报告。聚合173/173、1216 assertions及typecheck通过。评价v3补充使用显式response criterion集合，不用关键词推断任务必需性；响应细节不再混入necessary semantics，公开明确要求时仍影响完整交付。lock的必要项改为两admin均false时拒绝的控制语义，HTTP403保留独立细节项；所有旧评分不改。接下来四任务交替legacy/v4共8单元，两版使用同一v3评价；本轮没有provider转换器修改。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

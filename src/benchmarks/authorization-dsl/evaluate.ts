@@ -1016,6 +1016,32 @@ export function evaluateAuthorizationGenerationV2(input: {
   }
 }
 
+export const AuthorizationResponseDetailCalibrationSchema = z.object({
+  criterionIds: z.array(NonEmptyString),
+  requiredCriterionIds: z.array(NonEmptyString),
+  basis: NonEmptyString,
+}).strict()
+
+/** Explicit pre-generation calibration; never infers requirements from status-code keywords. */
+export function evaluateAuthorizationGenerationV3(input: Parameters<typeof evaluateAuthorizationGenerationV2>[0] & {
+  responseDetails: z.infer<typeof AuthorizationResponseDetailCalibrationSchema>
+}) {
+  const calibration = AuthorizationResponseDetailCalibrationSchema.parse(input.responseDetails)
+  const ids = new Set(calibration.criterionIds)
+  const required = new Set(calibration.requiredCriterionIds)
+  if ([...ids].some(id => !input.rubric.criteria.some(c => c.id === id)) || [...required].some(id => !ids.has(id))) {
+    throw new Error("Response detail calibration must name existing criteria; required IDs must be response details.")
+  }
+  const rubric = { ...input.rubric, criteria: input.rubric.criteria.map(c => ids.has(c.id) ? { ...c, layer: required.has(c.id) ? "explanation-completeness" as const : "optional-detail" as const } : c) }
+  const evaluated = evaluateAuthorizationGenerationV2({ ...input, rubric })
+  const responseCriteria = evaluated.criteria.filter(c => ids.has(c.id)).map(c => ({ ...c, layer: "optional-detail" as const }))
+  return {
+    ...evaluated, evaluationVersion: "authorization-evaluation/v3" as const,
+    dimensions: { ...evaluated.dimensions, responseDetails: aggregateCompletenessLayer(evaluated.reviewValidation, responseCriteria, "optional-detail") },
+    responseDetailCalibration: calibration,
+  }
+}
+
 export interface AuthorizationRunOperationSummary {
   providerAttempts: number
   schemaToolAttempts: number

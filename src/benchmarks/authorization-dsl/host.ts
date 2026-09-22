@@ -1,4 +1,5 @@
 import { extractStructured } from "../../providers/structured.ts"
+import { compactAuthorizationSchema, normalizeCompactAuthorizationResult, type CompactAuthorizationResult, type CompactAuthorizationNormalization } from "../../task-dsl/authorization/compact-transport.ts"
 import type { LLMProvider } from "../../providers/types.ts"
 import type { ZodType } from "zod"
 import {
@@ -55,6 +56,7 @@ import {
 
 const RESULT_TOOL_NAME = "submit_authorization_result"
 const ACTIONABLE_DIAGNOSTICS = new Set([
+  "duplicate-fact-id", "unknown-fact-id", "wire-schema-invalid",
   "task-id-mismatch",
   "repository-mismatch",
   "source-ref-mismatch",
@@ -102,11 +104,12 @@ const ACTIONABLE_DIAGNOSTICS = new Set([
   "incomplete-condition-analysis-missing-limitation",
 ])
 
-type AuthorizationWireResult = AuthorizationWireResultV1 | AuthorizationWireResultV2 | AuthorizationWireResultV3
+type AuthorizationWireResult = AuthorizationWireResultV1 | AuthorizationWireResultV2 | AuthorizationWireResultV3 | CompactAuthorizationResult
 type AuthorizationWireNormalizationResult =
   | AuthorizationWireNormalization
   | AuthorizationWireNormalizationV2
   | AuthorizationWireNormalizationV3
+  | CompactAuthorizationNormalization
 
 export interface RunAuthorizationTaskOptions {
   timeoutMs: number
@@ -139,6 +142,9 @@ export interface AuthorizationTransportArtifact {
 }
 
 export interface AuthorizationTaskRun {
+  wireVersion?: string
+  firstResponse?: { schemaValid: boolean; deliveryComplete: boolean }
+  protocolMetrics?: { fallbackCalls: number; repairCalls: number; modelOutputCharacters: number; hostMetadataFields: string[] }
   status:
     | "completed"
     | "completed-with-diagnostics"
@@ -181,6 +187,7 @@ export interface AuthorizationRunPromptCharacters {
 }
 
 export interface RunAuthorizationTaskInput {
+  wireVersion?: "legacy" | "v4"
   task: AuthorizationTaskV0
   sourceBundle: SourceBundle
   analysisRequirements?: AnalysisRequirement[]
@@ -283,7 +290,11 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
   const conditionPlan = input.conditionAnalysisRequest
     ? compileConditionAnalysisRequest(input.task, input.conditionAnalysisRequest)
     : undefined
-  const rendered = renderAuthorizationTask(compiled, input.arm, analysisPlan, conditionPlan, input.renderOptions)
+  const method = conditionPlan ? "conditions" : analysisPlan ? "ledger" : "plain"
+  const compact = input.wireVersion === "v4"
+  const wireVersion = `source-authorization-assessment-wire/v${compact ? 4 : conditionPlan ? 3 : analysisPlan ? 2 : 1}`
+  const wireSchema = (compact ? compactAuthorizationSchema(method) : conditionPlan ? AuthorizationWireResultV3Schema : analysisPlan ? AuthorizationWireResultV2Schema : AuthorizationWireResultV1Schema) as ZodType<AuthorizationWireResult>
+  const rendered = renderAuthorizationTask(compiled, input.arm, analysisPlan, conditionPlan, { ...input.renderOptions, wireVersion: input.wireVersion })
   const sourceContext = renderSourceBundle(input.sourceBundle)
   const renderedPrompt = rendered.prompt.replace("<SOURCE_CONTEXT_INSERTED_BY_HOST>", sourceContext)
   const promptCharacters: AuthorizationRunPromptCharacters = {
@@ -293,6 +304,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     perCallTimeoutMs: input.options.timeoutMs,
     unitTimeoutMs: input.options.unitTimeoutMs ?? 600_000,
     maxDispatches: input.options.maxProviderDispatches ?? 4,
+    responseSchema: wireSchema,
     ...(input.onLifecycleEvent ? { onEvent: input.onLifecycleEvent } : {}),
   })
 
@@ -302,6 +314,17 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     await telemetry.close(`host-return:${partial.status}`)
     return {
       ...partial,
+      wireVersion,
+      firstResponse: {
+        schemaValid: telemetry.attempts[0]?.schemaValidation?.valid ?? false,
+        deliveryComplete: !!(partial.initial && partial.initial.outputAttemptId === telemetry.attempts[0]?.id && partial.initial.normalization?.status === "valid" && partial.initial.validation.diagnostics.length === 0 && !(partial.initial.coverageValidation?.diagnostics.length) && !(partial.initial.conditionValidation?.diagnostics.length)),
+      },
+      protocolMetrics: {
+        fallbackCalls: telemetry.attempts.filter(a => a.transport === "prompt-parse").length,
+        repairCalls: telemetry.attempts.filter(a => a.phase === "domain-repair").length,
+        modelOutputCharacters: telemetry.attempts.reduce((n, a) => n + (a.response ? a.response.text.length + JSON.stringify(a.response.toolCalls).length : 0), 0),
+        hostMetadataFields: compact ? ["schemaVersion", "taskId", "repository", "sourceRef", "scopeClaim", "fact grouping", "fact pointers", "nested obligationId"] : ["taskId", "repository", "sourceRef", "citation path/quote"],
+      },
       ...(analysisPlan ? { analysisPlan } : {}),
       ...(conditionPlan ? { conditionPlan } : {}),
       promptCharacters,
@@ -357,12 +380,9 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     })
   }
 
-  const wireSchema = (conditionPlan
-    ? AuthorizationWireResultV3Schema
-    : analysisPlan
-      ? AuthorizationWireResultV2Schema
-      : AuthorizationWireResultV1Schema) as ZodType<AuthorizationWireResult>
-  const normalizeWire = (wireInput: unknown): AuthorizationWireNormalizationResult => conditionPlan
+  const normalizeWire = (wireInput: unknown): AuthorizationWireNormalizationResult => compact
+    ? normalizeCompactAuthorizationResult({ compiled, sourceBundle: input.sourceBundle, method, analysisPlan, conditionPlan, input: wireInput })
+    : conditionPlan
     ? normalizeAuthorizationWireResultV3({ compiled, sourceBundle: input.sourceBundle, input: wireInput })
     : analysisPlan
       ? normalizeAuthorizationWireResultV2({ compiled, sourceBundle: input.sourceBundle, input: wireInput })
@@ -400,7 +420,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
     if (!result) return undefined
     const validation = validateAuthorizationResult(compiled, result, input.sourceBundle)
     if (conditionPlan) {
-      if (transport.normalization.normalizerVersion !== "authorization-wire-normalizer/v3") {
+      if (transport.normalization.normalizerVersion !== "authorization-wire-normalizer/v3" && transport.normalization.normalizerVersion !== "authorization-wire-normalizer/v4") {
         throw new Error("Condition analysis plan requires wire normalizer v3.")
       }
       const relationCoverage = transport.normalization.coverage ?? []
@@ -413,9 +433,9 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
         wireResult: transport.wireResult,
         normalization: transport.normalization,
         relationCoverage,
-        coverageValidation: validateRelationCoverage(analysisPlan!, result, relationCoverage),
+        coverageValidation: transport.normalization.normalizerVersion === "authorization-wire-normalizer/v4" ? transport.normalization.coverageValidation : validateRelationCoverage(analysisPlan!, result, relationCoverage),
         conditionAnalysis,
-        conditionValidation: validateConditionAnalysisResult(conditionPlan, result, conditionAnalysis),
+        conditionValidation: transport.normalization.normalizerVersion === "authorization-wire-normalizer/v4" ? transport.normalization.conditionValidation : validateConditionAnalysisResult(conditionPlan, result, conditionAnalysis),
         rawResponse: transport.rawResponse,
         providerAttemptIds: transport.providerAttemptIds,
         outputAttemptId: transport.outputAttemptId,
@@ -423,7 +443,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
       }
     }
     if (analysisPlan) {
-      if (transport.normalization.normalizerVersion !== "authorization-wire-normalizer/v2") {
+      if (transport.normalization.normalizerVersion !== "authorization-wire-normalizer/v2" && transport.normalization.normalizerVersion !== "authorization-wire-normalizer/v4") {
         throw new Error("Analysis plan requires wire normalizer v2.")
       }
       const relationCoverage = transport.normalization.coverage ?? []
@@ -432,7 +452,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
         wireResult: transport.wireResult,
         normalization: transport.normalization,
         relationCoverage,
-        coverageValidation: validateRelationCoverage(analysisPlan, result, relationCoverage),
+        coverageValidation: transport.normalization.normalizerVersion === "authorization-wire-normalizer/v4" ? transport.normalization.coverageValidation : validateRelationCoverage(analysisPlan, result, relationCoverage),
         rawResponse: transport.rawResponse,
         providerAttemptIds: transport.providerAttemptIds,
         outputAttemptId: transport.outputAttemptId,

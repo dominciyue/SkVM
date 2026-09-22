@@ -22,7 +22,7 @@ export function resolveAuthorizationMethod(input: {
     ? ({ P: "plain", L: "ledger", C: "conditions" } as const)[input.studyArm]
     : input.hasConditionRequest ? "conditions" : "ledger")
   const diagnostics: AnalysisDiagnostic[] = []
-  if (input.method && !(input.method in methodStudyArm)) {
+  if (input.method && !["plain", "ledger", "conditions"].includes(input.method)) {
     diagnostics.push({ code: "method-invalid", path: "method", message: "method must be plain, ledger, or conditions." })
   }
   if (input.method && input.arm !== "B") {

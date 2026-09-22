@@ -270,6 +270,7 @@ function checkReport(
   arm: AuthorizationRenderArm,
   studyArm?: AuthorizationStudyArm,
   method?: AuthorizationMethod,
+  wireVersion: "legacy" | "v4" = "legacy",
 ): LocalAuthorizationCheckReport {
   if (loaded.status === "invalid") {
     return {
@@ -320,7 +321,7 @@ function checkReport(
     arm,
     selected.analysisPlan,
     selected.conditionPlan,
-    selected.renderOptions,
+    { ...selected.renderOptions, wireVersion },
   )
   const renderedPrompt = rendered.prompt.replace("<SOURCE_CONTEXT_INSERTED_BY_HOST>", sourceContext)
   const preview = [
@@ -339,7 +340,7 @@ function checkReport(
     arm,
     ...(studyArm ? { studyArm } : {}),
     methodSelection: resolved.selection,
-    wireVersion: `source-authorization-assessment-wire/v${resolved.studyArm === "P" ? 1 : resolved.studyArm === "L" ? 2 : 3}`,
+    wireVersion: `source-authorization-assessment-wire/v${wireVersion === "v4" ? 4 : resolved.studyArm === "P" ? 1 : resolved.studyArm === "L" ? 2 : 3}`,
     analysisProfile: loaded.analysisProfile,
     requirementCount: loaded.analysisRequirements.length,
     ledgerEntryCount: selected.analysisPlan?.entries.length ?? 0,
@@ -363,8 +364,9 @@ export async function checkLocalAuthorizationInput(
   inputFile: string,
   arm: AuthorizationRenderArm = "B",
   method?: AuthorizationMethod,
+  wireVersion: "legacy" | "v4" = "legacy",
 ): Promise<LocalAuthorizationCheckReport> {
-  return checkReport(await loadLocalAuthorizationInput(inputFile), arm, undefined, method)
+  return checkReport(await loadLocalAuthorizationInput(inputFile), arm, undefined, method, wireVersion)
 }
 
 export async function checkLocalAuthorizationStudyInput(
@@ -507,13 +509,14 @@ export async function executeLocalAuthorizationRun(input: {
   arm?: AuthorizationRenderArm
   studyArm?: AuthorizationStudyArm
   method?: AuthorizationMethod
+  wireVersion?: "legacy" | "v4"
   executionOptions?: RunAuthorizationTaskOptions
   providerFactory?: LocalAuthorizationProviderFactory
   env?: LocalAuthorizationRunnerEnv
 }): Promise<LocalAuthorizationSessionReport | LocalAuthorizationCheckReport> {
   const arm = input.arm ?? "B"
   const loaded = await loadLocalAuthorizationInput(input.inputFile)
-  const checked = checkReport(loaded, arm, input.studyArm, input.method)
+  const checked = checkReport(loaded, arm, input.studyArm, input.method, input.wireVersion)
   if (loaded.status === "invalid" || checked.status === "invalid") return checked
   const effectiveStudyArm = methodStudyArm[checked.methodSelection!.effective]
   const selected = studyExecutionInputs(loaded, effectiveStudyArm)
@@ -648,6 +651,7 @@ export async function executeLocalAuthorizationRun(input: {
       ...(selected.conditionAnalysisRequest ? { conditionAnalysisRequest: selected.conditionAnalysisRequest } : {}),
       provider,
       arm,
+      wireVersion: input.wireVersion,
       ...(selected.renderOptions ? { renderOptions: selected.renderOptions } : {}),
       options: executionOptions,
       onLifecycleEvent: event => appendFile(
@@ -923,6 +927,12 @@ function parseMethod(value: string | undefined): AuthorizationMethod | undefined
   throw new LocalAuthorizationRunnerError("method must be plain, ledger, or conditions.")
 }
 
+function parseWire(value: string | undefined): "legacy" | "v4" {
+  if (value === undefined || value === "legacy") return "legacy"
+  if (value === "v4") return value
+  throw new LocalAuthorizationRunnerError("wire must be legacy or v4; legacy selects v1/v2/v3 by method.")
+}
+
 function helpText(): string {
   return [
     "Authorization local assessment",
@@ -947,23 +957,25 @@ export async function runLocalAuthorizationCli(
   const command = argv[0]!
   try {
     if (command === "check") {
-      const options = parseOptions(argv.slice(1), new Set(["input", "arm", "method"]))
+      const options = parseOptions(argv.slice(1), new Set(["input", "arm", "method", "wire"]))
       const report = await checkLocalAuthorizationInput(
         requireOption(options, "input", "check"),
         parseArm(options.arm),
         parseMethod(options.method),
+        parseWire(options.wire),
       )
       dependencies.stdout(JSON.stringify(report, null, 2))
       return report.status === "valid" ? 0 : 1
     }
     if (command === "run") {
-      const options = parseOptions(argv.slice(1), new Set(["input", "model", "out", "arm", "method"]))
+      const options = parseOptions(argv.slice(1), new Set(["input", "model", "out", "arm", "method", "wire"]))
       const report = await executeLocalAuthorizationRun({
         inputFile: requireOption(options, "input", "run"),
         model: requireOption(options, "model", "run"),
         outRoot: requireOption(options, "out", "run"),
         arm: parseArm(options.arm),
         method: parseMethod(options.method),
+        wireVersion: parseWire(options.wire),
         ...(dependencies.providerFactory ? { providerFactory: dependencies.providerFactory } : {}),
         ...(dependencies.env ? { env: dependencies.env } : {}),
       })

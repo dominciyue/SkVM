@@ -41,6 +41,7 @@ export interface RenderedAuthorizationTask {
 }
 
 export interface AuthorizationRenderOptions {
+  wireVersion?: "legacy" | "v4"
   declarationStyle?: "arm-default" | "natural"
   publicAnalysisQuestions?: readonly string[]
 }
@@ -93,16 +94,17 @@ function renderSharedResultRequirements(
   analysisPlan?: AnalysisPlan,
   conditionPlan?: ConditionAnalysisPlan,
   publicAnalysisQuestions: readonly string[] = [],
+  compact = false,
 ): string {
   const runnableIds = compiled.runnableObligations.map(obligation => obligation.id)
   const renderedIds = runnableIds.length > 0 ? runnableIds.map(value => `- ${value}`).join("\n") : "- (none)"
-  const coverageContract = analysisPlan
+  let coverageContract = analysisPlan
     ? `
 Return exactly one coverage item for every analysis-ledger pair below. Use the exact requirementId and expanded obligationId. Status must be addressed, unknown, or not-applicable. Every item needs a substantive explanation. addressed and not-applicable require one or more factPointers to fact objects in this same answer, using /results/<index>/facts/<group>/<index>. unknown must explain what prevents an answer. not-applicable is allowed only for when-present questions and must explain from source-backed facts why the branch is absent.
 Exact analysis coverage pairs (closed list):
 ${analysisPlan.entries.map(entry => `- ${entry.requirementId} @ ${entry.obligationId} (${entry.applicability})`).join("\n") || "- (none)"}`
     : ""
-  const conditionContract = conditionPlan
+  let conditionContract = conditionPlan
     ? `
 Return one conditionAnalysis entry for every expanded obligation in the condition plan. Use authorization-condition-analysis-result/v1 and the exact condition IDs. Each branch needs a unique id, explicit assumptions, one reachable/blocked/unknown effect, a causal explanation, same-obligation factPointers for reachable or blocked effects, and decisive missingFacts for an unknown effect or unknown-valued assumption. Analysis assumptions are hypotheses for comparing branches; never present them as source-observed or deployment-observed facts. Every requested condition must appear in at least one branch assumption or exactly once in unexaminedConditionIds. Use completeness bounded only when none are unexamined; otherwise use incomplete and explain limitations. bounded means all requested conditions were considered within the authored branch limit, not that every truth assignment or program path was enumerated.
 Exact condition analysis obligations and bounds (closed list):
@@ -114,7 +116,11 @@ ${conditionPlan.entries.map(entry => [
   const publicQuestionContract = !analysisPlan && publicAnalysisQuestions.length > 0
     ? "\nAddress every public analysis question in the explanation and source-backed facts. No separate coverage ledger is required for this plain-method answer."
     : ""
-  return `Return exactly one result for every runnable expanded obligation, with one of: ${AUTHORIZATION_CONCLUSIONS.join(", ")}.
+  if (compact) {
+    coverageContract = coverageContract.replace("Return exactly one coverage item", "In each result item, return exactly one coverage item").replace("Use the exact requirementId and expanded obligationId.", "Use the exact requirementId; the enclosing result supplies obligationId.").replaceAll("factPointers", "factIds").replace("using /results/<index>/facts/<group>/<index>", "using IDs from this item's facts array")
+    conditionContract = conditionContract.replace("Return one conditionAnalysis entry", "Return one item-local condition object").replace("Use authorization-condition-analysis-result/v1 and the exact condition IDs.", "Do not output schemaVersion or analyses wrappers. Use the exact condition IDs.").replaceAll("factPointers", "factIds")
+  }
+  return `${compact ? "Use compact wire/v4: top-level results only. Each item has obligationId, conclusion, explanation, facts as an array of {id, kind, statement, citations}, decisiveMissingFacts and suggestedObservations. Fact IDs must be unique within each obligation. kind is entry/binding/control/effect/condition. The host fills all version/identity/scope metadata and groups facts; never output those fields. Include item-local coverage only when an analysis ledger is supplied, and item-local condition only when a condition request is supplied. Branches do not repeat obligationId.\n" : ""}Return exactly one result for every runnable expanded obligation, with one of: ${AUTHORIZATION_CONCLUSIONS.join(", ")}.
 Interpret conclusion labels relative to the declared policy expectation, not as direct synonyms for allow or deny:
 - source_supported_failure: the fixed source supports that the declared policy expectation fails under the stated conditions.
 - source_refuted: the fixed source supports that the declared policy expectation is enforced under the stated conditions, refuting a policy failure.
@@ -277,7 +283,7 @@ export function renderAuthorizationTask(
           }, null, 2),
         }
       : {}),
-    outputContract: renderSharedResultRequirements(compiled, analysisPlan, conditionPlan, publicAnalysisQuestions),
+    outputContract: renderSharedResultRequirements(compiled, analysisPlan, conditionPlan, publicAnalysisQuestions, options.wireVersion === "v4"),
     sourceMarker: "<SOURCE_CONTEXT_INSERTED_BY_HOST>",
   }
   return {
