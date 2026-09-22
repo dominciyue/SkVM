@@ -71,6 +71,21 @@ skvm authorization init --from=./authoring.json --out=./assessment.json
 
 The authoring and output files must stay in the same directory so a relative `sourceRoot` keeps the same bounded meaning. Normalization derives `sourceIdentity` from the task and materializes the shared six-question profile; it does not infer policy or an obligation expectation. A missing author-owned field returns `needs-input` with a field path and fix. The original authoring file is unchanged, and the recorded source ref remains `authored`, not remotely verified.
 
+For a complete editable authoring example, use [authoring.json](../examples/authorization-assessment/authoring.json). Its outer fields are `schemaVersion`, `sourceRoot`, `sources`, and `task`. Omit `analysisProfile` for the default six questions. The following task fields are required; unknown fields are rejected:
+
+| Field | Exact shape and meaning |
+|---|---|
+| `schemaVersion`, `sourceMode` | `"source-authorization-assessment/v0"`, `"fixed-context"` |
+| `taskId`, `request`, `repository`, `sourceRef`, `scopeAssurance` | Nonempty strings: task identity, natural question, repository, fixed revision, bounded scope |
+| `policySources` | Array of `{id, kind, text, location, revision, acceptance:{status, actorRole, reason}}`; acceptance status is `accepted`, `conflicted`, or `unresolved`. A file path alone is insufficient. State the accepted normative rule, not a guessed answer. |
+| `principals` | Array of `{id, role, description, startingCapabilities: string[]}`; put role/equality scenario facts in description and obligation relation/conditions, not invented boolean fields. |
+| `resources` | Array of `{id, type, description}`; put repository/ref at task level. |
+| `entries` | Array of `{id, name, locations:[{path, startLine, endLine}]}`; paths are relative to sourceRoot and line numbers refer to the supplied files, including excerpt headers. |
+| `obligations` | Array of `{id, principalId, resourceId, relation, operation, expectation, conditions:[{name,basis}], policySourceId, entryIds:string[]}`; referenced IDs must exist; expectation is `allow`, `deny`, or `conditional`; conditions may be empty. |
+| `requiredAnalysis`, `constraints` | Nonempty arrays of strings containing the user's analysis duties and scope limits. The profile is derived, but these task requirements remain author-owned. |
+
+For a changed identity relationship, edit `request`, principal/resource descriptions, obligation `relation`, relevant condition bases and `expectation` consistently. Keep the normative policy and fixed source unchanged when they have not changed. A changed expectation is a policy scenario declaration, not the model's conclusion. Run `init --from` and `check --method=plain` before analysis; preserve the first draft if you want to track authoring diagnostics.
+
 You may instead copy `examples/authorization-assessment/`, then edit `assessment.json` and files under `project/`. The strict `authorization-assessment-input/v1` object contains:
 
 - `sourceIdentity.repository/sourceRef`, which must exactly match the task identity;

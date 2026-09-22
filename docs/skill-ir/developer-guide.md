@@ -48,6 +48,12 @@ coverage item 为 `requirementId/obligationId/status/explanation/factPointers`�
 
 自备输入入口在仓库根使用以下命令；只有 `run` 初始化 provider：
 
+Z公共选择由`resolveAuthorizationMethod`统一解析：`plain|ledger|conditions`映射既有执行输入，显式选择固定B；省略按condition request/default保留兼容。`checkLocalAuthorizationInput(input, arm, method, wireVersion)`与`executeLocalAuthorizationRun({method, wireVersion, ...})`共享选择；CLI为`--method=... --wire=legacy|v4`。session/check/dispatch/report保存并交叉核对methodSelection与wireVersion，旧缺省字段仍可inspect。
+
+`compactAuthorizationSchema(method)`是wire/v4唯一模型schema：顶层results，fact为`id/kind/statement/citations`，item-local coverage/condition以factIds引用同义务事实。`normalizeCompactAuthorizationResult`排序分组并构造canonical pointer，复用v1 citation绑定、relation/condition validator；宿主补固定身份、版本和declared-only scope，不补语义答案。未知ID、重复ID、非法source/range和条件遗漏均保留定位诊断。host对复用的validation不重复检查；schema/fallback使用相同schema和同一生命周期，schema错误记录在attempt.schemaValidation，首答指标与protocolMetrics保存在run。compact只在显式选择时启用，旧wire不重解释。
+
+`evaluateAuthorizationGenerationV3`在原hash-bound v2语义review上接受显式responseDetails校准，单列响应细节，不从关键词推断任务义务；公开明确要求的响应项仍影响完整性。Z冻结配置、原始运行、评价、重放和作者步骤位于`results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/`。先用`run-panel.ts --check`零provider检查；已有冻结run不得为复查重发，`evaluate-panel.ts --replay`从保留答案与review离线重算。修改组件先运行compact-transport/CLI/evaluate聚焦测试，再运行授权聚合和typecheck。
+
 ```powershell
 bun ./src/index.ts authorization check --input=./examples/authorization-assessment/assessment.json
 bun ./src/index.ts authorization run --input=./examples/authorization-assessment/assessment.json --model=<provider/model> --out=./.skvm/authorization-demo

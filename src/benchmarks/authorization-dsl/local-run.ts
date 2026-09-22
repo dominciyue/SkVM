@@ -749,6 +749,8 @@ async function validateDispatchIdentity(
     || (session.model !== undefined && dispatch.model !== session.model)
     || (session.arm !== undefined && dispatch.arm !== session.arm)
     || (session.studyArm !== undefined && dispatch.studyArm !== session.studyArm)
+    || !samePersistedValue(session.methodSelection, dispatch.methodSelection)
+    || !samePersistedValue(session.wireVersion, dispatch.wireVersion)
   ) {
     throw new LocalAuthorizationRunnerError(`Dispatch artifact identity does not match session ${sessionId}.`)
   }
@@ -770,16 +772,20 @@ async function validateTerminalSession(input: {
     || (session.model !== undefined && report.model !== session.model)
     || (session.arm !== undefined && report.arm !== session.arm)
     || (session.studyArm !== undefined && report.studyArm !== session.studyArm)
+    || !samePersistedValue(session.methodSelection, report.methodSelection)
+    || !samePersistedValue(session.wireVersion, report.wireVersion)
   ) {
     throw new LocalAuthorizationRunnerError(`Persisted session identity does not match directory ${sessionId}.`)
   }
 
   const checkPath = path.join(sessionPath, "check.json")
   if (await pathKind(checkPath) === "file") {
-    const check = JSON.parse(await readFile(checkPath, "utf8")) as { inputPath?: string; taskId?: string }
+    const check = JSON.parse(await readFile(checkPath, "utf8")) as { inputPath?: string; taskId?: string; methodSelection?: unknown; wireVersion?: unknown }
     if (
       (check.inputPath !== undefined && path.resolve(report.inputPath ?? "") !== path.resolve(check.inputPath))
       || (check.taskId !== undefined && report.taskId !== check.taskId)
+      || !samePersistedValue(check.methodSelection, report.methodSelection)
+      || !samePersistedValue(check.wireVersion, report.wireVersion)
     ) {
       throw new LocalAuthorizationRunnerError(`Persisted session identity does not match check artifact for ${sessionId}.`)
     }
@@ -803,6 +809,7 @@ async function validateTerminalSession(input: {
       run.status !== report.status
       || run.arm !== report.arm
       || run.finalKind !== report.finalKind
+      || (report.wireVersion !== undefined && run.wireVersion !== report.wireVersion)
       || !samePersistedValue(artifact?.result, report.canonicalResult)
       || !samePersistedValue(artifact?.relationCoverage, report.relationCoverage)
       || !samePersistedValue(artifact?.coverageValidation, report.coverageValidation)
@@ -849,6 +856,8 @@ async function inspectSession(sessionPath: string, sessionId: string): Promise<L
     ...(session.model ? { model: session.model } : {}),
     ...(session.arm ? { arm: session.arm } : {}),
     ...(session.studyArm ? { studyArm: session.studyArm } : {}),
+    ...(session.methodSelection ? { methodSelection: session.methodSelection as AuthorizationMethodSelection } : {}),
+    ...(typeof session.wireVersion === "string" ? { wireVersion: session.wireVersion } : {}),
     ...(session.analysisProfile ? { analysisProfile: session.analysisProfile as LocalAnalysisProfile } : {}),
   }
 }

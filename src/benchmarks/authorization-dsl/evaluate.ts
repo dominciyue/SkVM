@@ -1037,7 +1037,10 @@ export function evaluateAuthorizationGenerationV3(input: Parameters<typeof evalu
   const responseCriteria = evaluated.criteria.filter(c => ids.has(c.id)).map(c => ({ ...c, layer: "optional-detail" as const }))
   return {
     ...evaluated, evaluationVersion: "authorization-evaluation/v3" as const,
-    dimensions: { ...evaluated.dimensions, responseDetails: aggregateCompletenessLayer(evaluated.reviewValidation, responseCriteria, "optional-detail") },
+    dimensions: { ...evaluated.dimensions,
+      optionalDetails: aggregateCompletenessLayer(evaluated.reviewValidation, evaluated.criteria.filter(c => !ids.has(c.id)), "optional-detail"),
+      responseDetails: aggregateCompletenessLayer(evaluated.reviewValidation, responseCriteria, "optional-detail"),
+    },
     responseDetailCalibration: calibration,
   }
 }

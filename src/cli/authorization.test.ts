@@ -226,6 +226,13 @@ describe("authorization CLI", () => {
     expect(await runAuthorizationCli(["inspect", `--out=${fixture.outRoot}`], deps)).toBe(0)
     expect(JSON.parse(stdout.at(-1)!).methodSelection).toEqual(report.methodSelection)
     expect(calls).toEqual({ factory: 1, provider: 1 })
+    const resultPath = path.join(report.sessionPath, "result.json")
+    const original = await readFile(resultPath, "utf8")
+    await writeFile(resultPath, JSON.stringify({ ...report, wireVersion: "source-authorization-assessment-wire/v1", methodSelection: { ...report.methodSelection, effective: "plain" } }), "utf8")
+    expect(await runAuthorizationCli(["inspect", `--out=${fixture.outRoot}`], deps)).toBe(2)
+    await writeFile(resultPath, original, "utf8")
+    await writeFile(path.join(report.sessionPath, "session.json"), JSON.stringify({ ...session, methodSelection: { ...session.methodSelection, effective: "plain" } }), "utf8")
+    expect(await runAuthorizationCli(["inspect", `--out=${fixture.outRoot}`], deps)).toBe(2)
   })
 
   it("resolves the real Bun binary behind a Windows npm shim for source checkout routing", () => {

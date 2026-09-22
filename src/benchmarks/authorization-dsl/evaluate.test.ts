@@ -712,6 +712,7 @@ describe("authorization semantic evaluation v2", () => {
     })
     expect(run(false).dimensions.necessarySemantics).toBe("supported")
     expect(run(false).dimensions.responseDetails).toBe("partial")
+    expect(run(false).dimensions.optionalDetails).toBe("complete")
     expect(run(false).qualityStatus).toBe("full-success")
     expect(run(true).dimensions.necessarySemantics).toBe("supported")
     expect(run(true).qualityStatus).toBe("partial")

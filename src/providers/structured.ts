@@ -206,7 +206,10 @@ function zodDefToJsonSchema(def: any): Record<string, unknown> {
         }
       }
 
-      return { type: "object", properties, required: required.length ? required : undefined }
+      return {
+        type: "object", properties, required: required.length ? required : undefined,
+        ...(def.unknownKeys === "strict" ? { additionalProperties: false } : {}),
+      }
     }
 
     case "ZodString":
