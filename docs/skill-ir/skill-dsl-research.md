@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**V/W/X/Y/Z结束，AA已完成发布，代码与证据提交529cf0b3经远端核对。** AA交付薄作者v2与只读变更比较；两位独立模型作者最终均完成原/变任务，首稿1/2有效。五组同v4 plain/ledger质量持平、ledger开销更高；header条件解释改善伴随一次修复，暴露的过严规则已离线修正，初轮成本不改。结论为编写/变更helper有用、运行方法按需选择，详见§7.24。继续单repo/ref、显式源码与政策的授权任务，本地化I1暂缓，历史数据保留。
+**AA已完成发布至858e4778，AB0–AB13已获用户授权连续执行。** AA交付作者v2与完整变更比较；独立模型作者首稿1/2有效、修订后2/2完成原/变任务。五组plain/ledger质量持平、ledger更贵，header条件解释有局部增益。AB将稳定v2/plain-v4，在新外部项目验证同方法复用，并与独立编写的Markdown在共同执行底座比较准备、修改与运行效果。研究设计见§7.25，尚无AB结果。当前仍为单repo/ref、显式源码与政策的有界授权任务，历史数据及保护集保持。
 
 已经站得住的判断：
 
@@ -774,6 +774,20 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 **AA10具体共享缺陷与修订。** header首答的三个blocked分支已由关闭入口/配置/失败认证决定效果，检查器却因其他assumption=unknown强迫填写decisive missingFacts，造成一次不必要修复。新增独立反例先失败，再把要求限于effect=unknown；reachable/blocked仍必须有同义务fact pointer，语义仍unreviewed。留存首答离线重检valid，原始失败、修复及17次实际调用不改；追加付费单元0。这证明消除了一个假拒绝，不能改报“新实测一调用”。作者键中的孤立UTF-16 surrogate也由红测定位：encodeURIComponent会抛错，现先返回可定位schema诊断；合法输入lowering未变，冻结面板不重跑。
 
 **AA11复核与结论。** 三个只读独立语义复核后，主代理按具体指针裁决：self-query的source_refuted表示政策失效被反驳，不能等同deny；header signup被复核者遗漏；引用里的None/403不能代替回答文字；有源码支持的额外role/group事实不是unsupported。原复核与9项裁决分存。窄工程审查提出的drive-relative逃逸未在定向实例复现（实际missing-root，不宣称穷尽Windows边界）；所谓规则遗漏由实际prompt/task摘要覆盖。最终183测试/1337断言、typecheck通过；mock失败恢复、普通help/init/check/inspect/compare及多场景变化演示保留。全轮16分析单元、17调用，已知input64,134/output25,289/cache-read4,864/cache-write0；usage完整，actualUSD未知。普通有界任务推荐显式plain/v4；需要可检查覆盖清单选ledger，需要有界条件后果选conditions。legacy和省略method的兼容默认不变。本轮证明编写/变更helper可用、运行层存在tradeoff；不声称更广任务、真人工时、自动答案缓存或部署安全得到验证。
+
+### 7.25 AB 外部复用与普通说明对照
+
+2026-09-22用户授权写完即派发[AB0–AB13](../superpowers/plans/2026-09-22-authorization-external-reuse-and-baseline.md)，开发gpt-6-astra / medium。AA复核新鲜通过183测试/1337断言和typecheck，本节登记下一轮设计，不提前宣称新项目效果。
+
+**研究问题。** plain仍使用DSL编译、引用绑定与输出检查，AA只比较了领域系统内部的轻重模式。下一轮回答两个问题：同一方法和使用包能否在新项目被独立编写并修改；相较信息完整的独立Markdown说明，DSL流程在哪些准备、同步修改或交付环节有帮助。保持authoring/v2，不以不断增加模式或语言版本推动开发。
+
+**外部来源。** 在读取新正文前登记资格、候选顺序和输入上限，认证GitHub获取最多6个候选，选择首两个独立合格项目。每项目两操作及原/变条件，共至多8任务状态；不按模型成功选样，不拿旧例填新迁移分母。源码、政策/用户规范、实际实现和oracle分开，材料不足保留原因。新材料进入external development，不改旧held-out/Q1/prospective身份。
+
+**工程。** 薄skill使用包调用现有check/run/compare，模型分析与程序验证真实接通；不复制runtime。增加只读locate供两臂定位用户指定文件的实际行号，返回多个匹配而不猜入口；解决作者混淆上游和裁剪行号的问题。先记录方法/项目/单次场景字段复用，只有独立作者暴露同类机械重复才抽取小型确定性组合helper，无依据不建模板引擎。
+
+**公平比较。** MD作者直接写说明，DSL作者写v2，两边拿同一中立brief、源码、政策与问题，使用同样locate与两轮诊断机会。MD不能来自DSL自动渲染。研究manifest仅支持共同身份、源码、引用和评价；不经隐蔽声明给MD注入答案或DSL方法。共享v4 plain、provider、deadline、输出合同和修复机会，比较属于同helper下的编写/执行流程，非完整原生安全skill或纯语法因果。
+
+**执行与结论。** 满额16原/变配对分析单元，一次共享修订最多4追加；四项模型作者工作另计成本，真人时间未知。分别评价作者负担、修改识别、任务质量与调用/token/time，失败及unknown保留。MD若同样好且更便宜即推荐轻路径，DSL若减少遗漏或同步改动就指出确切机制。兼容默认不变，不预设positive；实际问题和解决归本节，机器记录进入统一AB结果根。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

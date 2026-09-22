@@ -2,40 +2,36 @@
 
 - 更新日期：2026-09-22
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AA0–AA13完成发布；代码与证据529cf0b3已核对origin/skill-ir-aot。
-- 唯一实时入口：[current-status.md](current-status.md)
-- 方法合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
-- 当前任务书：[AA0–AA13](../superpowers/plans/2026-09-22-authorization-authoring-reuse-and-value.md)
-- 当前设计：[研究§7.24](skill-dsl-research.md#724-aa-作者声明修改复用与领域价值)
+- 状态：AA已完成发布至858e4778；AB0–AB13已授权连续执行。
+- 唯一入口：[current-status.md](current-status.md)
+- 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
+- 当前任务书：[AB0–AB13](../superpowers/plans/2026-09-22-authorization-external-reuse-and-baseline.md)
+- 当前设计：[研究§7.25](skill-dsl-research.md#725-ab-外部复用与普通说明对照)
 
-用户与学长确认：分类帮助确定范围，DSL可由AI起草、人工设计；改善可体现为质量、完整性、稳定性、效率或使用便利。本轮让用户可编写、修改一类授权任务，程序接管机械字段和变更检查，用同底座实验辨认领域表达的价值。
+分类继续服务于范围，DSL价值包含编写、修改、质量与效率。AA证明作者v2/compare可用，普通plain与ledger在五组任务质量持平，ledger负担更大。AB稳定当前实现，转向新项目和真正独立的普通说明对照。
 
-## 当前交付队列
+## 完整交付队列
 
 | 阶段 | 工作 | 验收要点 |
 |---|---|---|
-| AA0–AA2 | 恢复、作者v2与lowering | 政策/期待归作者，内部身份归程序；稳定ID、共享对象、v1兼容 |
-| AA3 | 普通入口与诊断 | init/check/run直接v2，原目录基准不变；诊断指向作者字段 |
-| AA4–AA5 | 依赖快照与只读compare | 属性/要求/源码变化可见；旧session不足明确；不自动复用答案 |
-| AA6 | 公共信息及评价对齐 | plain/ledger/conditions同事实、公共问题、v4、模型与评价 |
-| AA7–AA8 | 两项独立作者原/变使用 | 保留原稿和自行修订；实际deny/allow变化；辅助介入透明 |
-| AA9–AA10 | 六任务面板、一次共享修订 | 同底座12单元，最多4补充；初轮/修订/作者单列 |
-| AA11–AA13 | 复核、统一文档、发布 | 有限相关验证，归属提交并推送用户origin，完成后停止 |
+| AB0–AB2 | 基线、来源规则、新任务与oracle | 首合格来源；policy与实现分开；最多两项目八状态，失败不换样 |
+| AB3–AB4 | locate与薄skill使用包 | 显式文件只读定位；复用现有runtime/v2，无repo专用分支 |
+| AB5 | Markdown共同host研究入口 | 真实作者Markdown，源码/v4/计量共同，repair不换臂 |
+| AB6–AB7 | 四作者原/变编写、输入准备修复 | 两臂同资料/工具/机会；主代理不代填；记录机械与语义负担 |
+| AB8–AB10 | 真实对照、一次修订、价值判断 | 至多16初轮+4追加；准备/修改/运行分列；不预设正向 |
+| AB11–AB13 | 普通使用、有限验证、发布 | 包能按实际路径使用；统一复盘；归属提交并推送用户origin |
 
-## 范围与执行
+## 工作边界
 
-- 直接在skill-ir-aot，不新建分支/worktree；只推用户origin。
-- 保留七项既有代码修改及历史untracked；旧结果和保护Q1/held-out/prospective不动。
-- 不新增目标仓库，不做主动发现、目标执行、部署判断或patch。
-- 开发gpt-6-astra / medium，被测xty/gpt-5.6-sol独立计量；真实成本unknown如实报告。
-- 正常12面板单元及至多4作者分析单元，最多另加4个共享修订单元；不以运行时长/次数为目标，付费无美元上限。
-- v4用于显式实验，legacy默认保持兼容；作者/修改改善与运行方法改善分开，不预设正向结果。
-- 当前任务书与status维护执行，研究总文档按主题归入设计及结果，不在索引之后堆叠摘要。
+- 直接在skill-ir-aot，不建新分支/worktree，保留七项原修改与历史untracked，只推用户origin。
+- 新项目按任务书登记external development；旧Q1/held-out/prospective/readiness和历史结果不动。
+- 不做仓库主动发现、目标执行、部署验证或patch，不建设UI或通用模板引擎。
+- 开发gpt-6-astra / medium，被测xty/gpt-5.6-sol；认证网络和有目的付费已授权，美元unknown如实报告。
+- 基线普通说明与DSL共享执行工具、公开事实和修复机会，作者材料真正独立；结论限同helper流程比较。
+- 任务完成后停止，不等待或重复调用凑时长；受阻研究分支与独立工程分开推进。
 
-## 复核依据与恢复
+## 已有结果与恢复
 
-Z首轮四任务legacy/v4首答完整交付1/4与3/4，最终均3/4；调用7/4，input 43,719/21,926，output 20,017/10,705。v4 header超时及迟到usage保留，legacy仍默认；作者36条诊断后经主代理纠正完成原/变任务，独立编写改善仍待检验。175测试/1229断言和typecheck经复核通过。
+AA复核183/183测试、1337断言及typecheck通过；独立模型作者1/2首稿有效，行号修订后2/2完成，四次普通运行均正确deny→allow。五组plain/ledger都full，ledger input+output多54.6%、累计调用耗时多23.3%；header conditions解释更全但有一次修复。初轮与离线规则修订、作者与分析成本分别保留。
 
-AA接手时读取状态页、本任务书和研究§7.24，建立唯一结果根status并按nextAction恢复。结果根为`results/skill-ir/skill-dsl-research/development/authorization-authoring-reuse-v1/`；历史证据由[索引](evidence-index.md)与[历史](history.md)承载。
-
-AA最终：独立作者1/2首稿有效、2/2经至多一次作者接力完成；两组原/变deny→allow。前五组plain/ledger质量持平、ledger成本更高；header条件解释改善但初轮有一次修复。共享unknown检查假拒绝已红绿修正并离线重检，不重报初轮成绩。16单元/17调用，183测试/1337断言、typecheck通过。剩余边界是真人工时/美元未知、development范围、无自动答案缓存；完整结论见研究§7.24。
+AB恢复读状态页、本任务书、研究§7.25及执行代理建立的`results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/status.json`。统一研究正文及时更新主题，原始证据由[索引](evidence-index.md)与[历史](history.md)承载。
