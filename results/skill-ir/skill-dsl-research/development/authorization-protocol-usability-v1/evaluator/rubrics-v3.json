@@ -1,0 +1,608 @@
+{
+  "schemaVersion": "authorization-protocol-evaluation-supplement/v3",
+  "historicalArtifactsModified": false,
+  "cases": [
+    {
+      "caseId": "owui-trusted-header-deployment",
+      "taskId": "owui-trusted-header-deployment",
+      "rubricVersion": "owui-trusted-header-oracle/v2-z-v3",
+      "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+      "expectedDisposition": "unknown",
+      "dispositionRule": {
+        "oracleRule": "trusted-header-oracle-revision.json#/revisedDisposition",
+        "sourceLocations": [
+          {
+            "path": "inputs/owui-trusted-header-deployment/task.json",
+            "startLine": 6,
+            "endLine": 18
+          },
+          {
+            "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+            "startLine": 10,
+            "endLine": 13
+          },
+          {
+            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+            "startLine": 11,
+            "endLine": 62
+          }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "evaluation-protocol-revision.json#/scoringEffect",
+        "sourceLocations": [
+          {
+            "path": "inputs/owui-trusted-header-deployment/task.json",
+            "startLine": 6,
+            "endLine": 18
+          }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "password-auth-entry-gate",
+          "layer": "necessary-semantics",
+          "requirement": "State that trusted-header processing requires the preceding ENABLE_PASSWORD_AUTH gate; an equivalent statement that the path is blocked when the gate is false is accepted.",
+          "decisionRelevance": "The application capability does not exist through this entry when the gate is closed.",
+          "oracleRule": "evaluation-protocol-v2#/trusted-header/password-auth-entry-gate",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+              "startLine": 11,
+              "endLine": 15
+            }
+          ]
+        },
+        {
+          "id": "trusted-header-configuration-gate",
+          "layer": "necessary-semantics",
+          "requirement": "State that the trusted-email header name is environment-controlled and the branch requires it to be configured and present.",
+          "decisionRelevance": "Without this configuration, sending an arbitrary header cannot enter the assessed branch.",
+          "oracleRule": "evaluation-protocol-v2#/trusted-header/configuration-gate",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+              "startLine": 10,
+              "endLine": 13
+            },
+            {
+              "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+              "startLine": 17,
+              "endLine": 21
+            }
+          ]
+        },
+        {
+          "id": "identity-binding",
+          "layer": "necessary-semantics",
+          "requirement": "Trace the configured request-header value into the email identity used for authentication.",
+          "decisionRelevance": "This binding connects caller-controlled input to the identity whose session is requested.",
+          "oracleRule": "evaluation-protocol-v2#/trusted-header/identity-binding",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+              "startLine": 21,
+              "endLine": 40
+            }
+          ]
+        },
+        {
+          "id": "authentication-and-session-condition",
+          "layer": "necessary-semantics",
+          "requirement": "State that email authentication must yield a user before session creation; the false path does not issue a session.",
+          "decisionRelevance": "A supplied identity header alone is not sufficient for the protected effect.",
+          "oracleRule": "evaluation-protocol-v2#/trusted-header/authentication-session-condition",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+              "startLine": 40,
+              "endLine": 62
+            }
+          ]
+        },
+        {
+          "id": "deployment-facts-absent",
+          "layer": "necessary-semantics",
+          "requirement": "Name the actual gate values, ingress reachability, proxy header handling, and deployed authentication outcome as unavailable when they decide the actual-deployment question.",
+          "decisionRelevance": "Those source-external facts can change the requested deployment answer and justify unknown.",
+          "oracleRule": "evaluation-protocol-v2#/trusted-header/deployment-facts-absent",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/task.json",
+              "startLine": 6,
+              "endLine": 18
+            }
+          ]
+        },
+        {
+          "id": "conditional-capability-boundary",
+          "layer": "necessary-semantics",
+          "requirement": "State both that the source exposes a conditional header-to-session capability and that it does not establish the actual deployment outcome.",
+          "decisionRelevance": "Bare abstention omits available source semantics, while a deployment claim overstates them.",
+          "oracleRule": "evaluation-protocol-v2#/trusted-header/conditional-capability-boundary",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/task.json",
+              "startLine": 6,
+              "endLine": 18
+            },
+            {
+              "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+              "startLine": 17,
+              "endLine": 62
+            }
+          ]
+        },
+        {
+          "id": "password-auth-403-detail",
+          "layer": "explanation-completeness",
+          "requirement": "When spelling out the closed gate, state that this route returns HTTP 403 before trusted-header handling.",
+          "decisionRelevance": "The exact response completes the branch explanation but is not needed to establish that the path is blocked.",
+          "oracleRule": "evaluation-protocol-revision.json#/newCriticalFacts/0",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+              "startLine": 11,
+              "endLine": 15
+            }
+          ]
+        },
+        {
+          "id": "conditional-outcome-enumeration",
+          "layer": "explanation-completeness",
+          "requirement": "Explicitly distinguish closed-gate, failed-authentication, trusted-proxy-safe, and attacker-header-reachable outcomes without asserting which deployment branch is real.",
+          "decisionRelevance": "Enumeration makes the explanation complete; the necessary capability boundary and missing facts already determine the bounded unknown disposition.",
+          "oracleRule": "trusted-header-oracle-revision.json#/new/conditionalOutcomes",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/task.json",
+              "startLine": 6,
+              "endLine": 18
+            },
+            {
+              "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+              "startLine": 11,
+              "endLine": 62
+            }
+          ]
+        },
+        {
+          "id": "optional-signup-path",
+          "layer": "optional-detail",
+          "requirement": "Mention that a missing user may be passed through signup_handler before email authentication.",
+          "decisionRelevance": "Provisioning is a useful path detail but does not change the required gate, binding, authentication, or deployment-uncertainty reasoning.",
+          "oracleRule": "trusted-header-oracle-revision.json#/new/sourceSupportedFacts/2",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+              "startLine": 31,
+              "endLine": 38
+            }
+          ]
+        },
+        {
+          "id": "optional-default-none-detail",
+          "layer": "optional-detail",
+          "requirement": "Mention that WEBUI_AUTH_TRUSTED_EMAIL_HEADER defaults to None when the environment does not set it.",
+          "decisionRelevance": "The default is useful context, but the actual deployed value remains unknown and is the decisive fact.",
+          "oracleRule": "oracles/owui-trusted-header-deployment.json#/sourceSupportedFacts/0",
+          "sourceLocations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+              "startLine": 10,
+              "endLine": 10
+            }
+          ]
+        }
+      ],
+      "responseDetails": {
+        "criterionIds": [
+          "password-auth-403-detail"
+        ],
+        "requiredCriterionIds": [],
+        "basis": "The unchanged public request asks authorization and effect reachability, not an exact HTTP response; response status does not change that property. Explicit status remains separately scored."
+      }
+    },
+    {
+      "caseId": "gitea-collaborator-cross-user-permission",
+      "taskId": "gitea-collaborator-cross-user-permission",
+      "rubricVersion": "gitea-collaborator-cross-user-permission/v1-z-v3",
+      "obligationId": "deny-cross-user-permission-query::get-collaborator-permission",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "oracle-evidence-v1.json#/cases/0/expectedDisposition",
+        "sourceLocations": [
+          {
+            "path": "policy.json",
+            "startLine": 6,
+            "endLine": 7
+          },
+          {
+            "path": "collaborators.go",
+            "startLine": 35,
+            "endLine": 39
+          }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "oracle-evidence-v1.json#/limits",
+        "sourceLocations": [
+          {
+            "path": "policy.json",
+            "startLine": 6,
+            "endLine": 8
+          }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "collaborator-requester-target-binding",
+          "layer": "necessary-semantics",
+          "requirement": "Bind the requester to ctx.Doer and the requested collaborator to the collaborator path parameter used in the username comparison.",
+          "decisionRelevance": "The self-versus-other relation cannot be evaluated without connecting both identities to the guard.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/0",
+          "sourceLocations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 35,
+              "endLine": 36
+            }
+          ]
+        },
+        {
+          "id": "collaborator-three-way-guard",
+          "layer": "necessary-semantics",
+          "requirement": "State that rejection requires all three facts: not site admin, not the target username, and not repository admin.",
+          "decisionRelevance": "This conjunctive guard is the strongest visible authorization decision for the declared query.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/1",
+          "sourceLocations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 35,
+              "endLine": 39
+            }
+          ]
+        },
+        {
+          "id": "collaborator-current-cross-user-denial",
+          "layer": "necessary-semantics",
+          "requirement": "Apply the bounded different-user, non-repository-admin, non-site-admin facts to conclude that this request is rejected.",
+          "decisionRelevance": "The declared deny expectation is enforced only if the scenario is applied to the guard rather than merely restated.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/2",
+          "sourceLocations": [
+            {
+              "path": "policy.json",
+              "startLine": 6,
+              "endLine": 7
+            },
+            {
+              "path": "collaborators.go",
+              "startLine": 35,
+              "endLine": 39
+            }
+          ]
+        },
+        {
+          "id": "collaborator-permission-read-after-guard",
+          "layer": "necessary-semantics",
+          "requirement": "State that target lookup, permission loading, and the permission response occur only after a caller survives the authorization guard.",
+          "decisionRelevance": "This establishes that the bounded denied branch cannot reach the protected read effect.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/3",
+          "sourceLocations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 36,
+              "endLine": 57
+            }
+          ]
+        },
+        {
+          "id": "collaborator-http-403-detail",
+          "layer": "explanation-completeness",
+          "requirement": "Identify the explicit HTTP 403 response on the rejected branch before target lookup.",
+          "decisionRelevance": "The response completes the control-flow explanation but does not independently determine the policy result.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/2",
+          "sourceLocations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 36,
+              "endLine": 39
+            }
+          ]
+        },
+        {
+          "id": "collaborator-condition-outcomes",
+          "layer": "explanation-completeness",
+          "requirement": "Explain that self-query, repository-admin, or site-admin status independently avoids this guard's rejection, while all three absent blocks the read.",
+          "decisionRelevance": "This is the bounded condition-change explanation shared by P and C evaluation.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/0/conditionExplanation",
+          "sourceLocations": [
+            {
+              "path": "collaborators.go",
+              "startLine": 35,
+              "endLine": 39
+            }
+          ]
+        }
+      ],
+      "responseDetails": {
+        "criterionIds": [
+          "collaborator-http-403-detail"
+        ],
+        "requiredCriterionIds": [],
+        "basis": "The unchanged public request asks authorization and effect reachability, not an exact HTTP response; response status does not change that property. Explicit status remains separately scored."
+      }
+    },
+    {
+      "caseId": "gitea-issue-assignee-nonwriter",
+      "taskId": "gitea-issue-assignee-nonwriter",
+      "rubricVersion": "gitea-issue-assignee-nonwriter/v1-z-v3",
+      "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "oracle-evidence-v1.json#/cases/1/expectedDisposition",
+        "sourceLocations": [
+          {
+            "path": "policy.json",
+            "startLine": 6,
+            "endLine": 8
+          },
+          {
+            "path": "issue_assignee.go",
+            "startLine": 54,
+            "endLine": 63
+          }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "oracle-evidence-v1.json#/limits",
+        "sourceLocations": [
+          {
+            "path": "policy.json",
+            "startLine": 6,
+            "endLine": 8
+          }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "assignee-post-add-mode",
+          "layer": "necessary-semantics",
+          "requirement": "State that the POST entry delegates to updateIssueAssignees with isAdd=true.",
+          "decisionRelevance": "This binds the declared add operation to the shared mutation helper and its authorization branch.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/0",
+          "sourceLocations": [
+            {
+              "path": "issue_assignee.go",
+              "startLine": 47,
+              "endLine": 49
+            }
+          ]
+        },
+        {
+          "id": "assignee-issue-index-binding",
+          "layer": "necessary-semantics",
+          "requirement": "State that the route index selects the issue before its repository issue-write permission is checked.",
+          "decisionRelevance": "The permission check must be tied to the declared existing issue rather than an unrelated repository action.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/1",
+          "sourceLocations": [
+            {
+              "path": "issue_assignee.go",
+              "startLine": 53,
+              "endLine": 60
+            }
+          ]
+        },
+        {
+          "id": "assignee-repository-permission-not-token-scope",
+          "layer": "necessary-semantics",
+          "requirement": "Distinguish the declared issue-write token scope from ctx.Repo.Permission.CanWriteIssuesOrPulls and state that the latter is false for this caller.",
+          "decisionRelevance": "Treating token scope as repository authorization would reverse the bounded decision.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2",
+          "sourceLocations": [
+            {
+              "path": "policy.json",
+              "startLine": 6,
+              "endLine": 8
+            },
+            {
+              "path": "issue_assignee.go",
+              "startLine": 60,
+              "endLine": 63
+            }
+          ]
+        },
+        {
+          "id": "assignee-effect-after-permission",
+          "layer": "necessary-semantics",
+          "requirement": "State that user-name resolution and AddAssignees occur after the permission guard and are unreachable for the bounded non-writer.",
+          "decisionRelevance": "This connects the rejection to the protected assignee mutation effect.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/3",
+          "sourceLocations": [
+            {
+              "path": "issue_assignee.go",
+              "startLine": 60,
+              "endLine": 84
+            }
+          ]
+        },
+        {
+          "id": "assignee-http-403-detail",
+          "layer": "explanation-completeness",
+          "requirement": "Identify the explicit HTTP 403 response before assignee-name resolution.",
+          "decisionRelevance": "The exact response completes the rejected-path explanation.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2",
+          "sourceLocations": [
+            {
+              "path": "issue_assignee.go",
+              "startLine": 60,
+              "endLine": 63
+            }
+          ]
+        },
+        {
+          "id": "assignee-condition-outcomes",
+          "layer": "explanation-completeness",
+          "requirement": "Explain that repository issue-write false blocks before user lookup; if true, an existing user reaches AddAssignees while a missing user is rejected before that call.",
+          "decisionRelevance": "This evaluates the requested bounded condition explanation without changing the current deny decision.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/1/conditionExplanation",
+          "sourceLocations": [
+            {
+              "path": "issue_assignee.go",
+              "startLine": 60,
+              "endLine": 84
+            }
+          ]
+        }
+      ],
+      "responseDetails": {
+        "criterionIds": [
+          "assignee-http-403-detail"
+        ],
+        "requiredCriterionIds": [],
+        "basis": "The unchanged public request asks authorization and effect reachability, not an exact HTTP response; response status does not change that property. Explicit status remains separately scored."
+      }
+    },
+    {
+      "caseId": "gitea-issue-lock-writer-nonadmin",
+      "taskId": "gitea-issue-lock-writer-nonadmin",
+      "rubricVersion": "gitea-issue-lock-writer-nonadmin/v1-z-v3",
+      "obligationId": "deny-nonadmin-issue-lock::put-issue-lock",
+      "expectedDisposition": "source_refuted",
+      "dispositionRule": {
+        "oracleRule": "oracle-evidence-v1.json#/cases/2/expectedDisposition",
+        "sourceLocations": [
+          {
+            "path": "policy.json",
+            "startLine": 9,
+            "endLine": 10
+          },
+          {
+            "path": "route_guard.go",
+            "startLine": 4,
+            "endLine": 20
+          }
+        ]
+      },
+      "scopeRule": {
+        "oracleRule": "oracle-evidence-v1.json#/limits",
+        "sourceLocations": [
+          {
+            "path": "policy.json",
+            "startLine": 9,
+            "endLine": 11
+          }
+        ]
+      },
+      "criteria": [
+        {
+          "id": "lock-route-admin-middleware",
+          "layer": "necessary-semantics",
+          "requirement": "State that the PUT lock route applies reqToken and reqAdmin before dispatching LockIssue.",
+          "decisionRelevance": "The route middleware is reached before the handler's issue-write control.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0",
+          "sourceLocations": [
+            {
+              "path": "route_guard.go",
+              "startLine": 16,
+              "endLine": 20
+            }
+          ]
+        },
+        {
+          "id": "lock-nonadmin-denial-control",
+          "layer": "necessary-semantics",
+          "requirement": "State that reqAdmin rejects before handler dispatch when both repository-admin and site-admin status are false.",
+          "decisionRelevance": "This is the strongest visible control for the bounded non-admin writer.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1",
+          "sourceLocations": [
+            {
+              "path": "route_guard.go",
+              "startLine": 4,
+              "endLine": 12
+            }
+          ]
+        },
+        {
+          "id": "lock-writer-does-not-bypass-admin",
+          "layer": "necessary-semantics",
+          "requirement": "Apply the bounded facts to state that full token scope and repository issue-write permission do not bypass the route-level administrator gate.",
+          "decisionRelevance": "Collapsing writer permission or token scope into admin status would reverse the task decision.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2",
+          "sourceLocations": [
+            {
+              "path": "policy.json",
+              "startLine": 9,
+              "endLine": 10
+            },
+            {
+              "path": "route_guard.go",
+              "startLine": 7,
+              "endLine": 10
+            }
+          ]
+        },
+        {
+          "id": "lock-secondary-writer-and-effect",
+          "layer": "necessary-semantics",
+          "requirement": "State that a caller surviving reqAdmin must still pass the handler's issue-write check before an unlocked issue can reach LockIssue.",
+          "decisionRelevance": "This preserves the order and distinction between the route administrator gate and protected mutation effect.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3",
+          "sourceLocations": [
+            {
+              "path": "issue_lock.go",
+              "startLine": 43,
+              "endLine": 69
+            }
+          ]
+        },
+        {
+          "id": "lock-route-http-403-detail",
+          "layer": "explanation-completeness",
+          "requirement": "Identify the route-level HTTP 403 response for the current non-admin branch before handler dispatch.",
+          "decisionRelevance": "The response and ordering complete the bounded rejection explanation.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1",
+          "sourceLocations": [
+            {
+              "path": "route_guard.go",
+              "startLine": 7,
+              "endLine": 10
+            }
+          ]
+        },
+        {
+          "id": "lock-condition-outcomes",
+          "layer": "explanation-completeness",
+          "requirement": "Explain that both admin conditions false blocks regardless of issue-write; either admin condition true passes this route gate, after which issue-write still controls reachability to the lock mutation.",
+          "decisionRelevance": "This is the requested bounded condition explanation for the layered controls.",
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation",
+          "sourceLocations": [
+            {
+              "path": "route_guard.go",
+              "startLine": 4,
+              "endLine": 20
+            },
+            {
+              "path": "issue_lock.go",
+              "startLine": 43,
+              "endLine": 62
+            }
+          ]
+        }
+      ],
+      "responseDetails": {
+        "criterionIds": [
+          "lock-route-http-403-detail"
+        ],
+        "requiredCriterionIds": [],
+        "basis": "The unchanged public request asks authorization and effect reachability, not an exact HTTP response; response status does not change that property. Explicit status remains separately scored."
+      }
+    }
+  ],
+  "rules": [
+    "Authorization decision/control, requested condition explanation, and response detail are distinct.",
+    "Unsupported deployment truth or reversed control is incorrect.",
+    "Citations do not substitute for answer-level claims.",
+    "No generation receives evaluator criteria."
+  ]
+}

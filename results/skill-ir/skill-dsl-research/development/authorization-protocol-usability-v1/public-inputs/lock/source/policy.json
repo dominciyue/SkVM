@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "authorization-migration-public-policy/v1",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "upstreamSources": [
+    "routers/api/v1/api.go#L451-L459,L1741-L1745",
+    "routers/api/v1/repo/issue_lock.go#L15-L81"
+  ],
+  "normativePolicy": "The issue-lock route requires the caller to be a repository administrator or site administrator. After that route gate, the handler also requires permission to write the issue or pull request before it may lock an unlocked issue.",
+  "boundedScenario": "The caller is authenticated, has full token scope and repository issue-write permission, but is neither a repository administrator nor a site administrator; the issue exists, is readable, and is currently unlocked.",
+  "claimBoundary": "The assessment concerns the declared API route and fixed source only. It does not infer deployment state or permissions outside the supplied scenario."
+}

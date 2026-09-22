@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "authorization-protocol-study/v1",
+  "implementationRevision": "14cd4fed79848e184d1c71693477269ed6c81dfd",
+  "model": "xty/gpt-5.6-sol",
+  "temperature": 0,
+  "autoProbe": false,
+  "executionOptions": {
+    "timeoutMs": 180000,
+    "unitTimeoutMs": 600000,
+    "maxTokens": 6000,
+    "maxProviderDispatches": 4,
+    "maxDomainRepairs": 1
+  },
+  "cases": [
+    {
+      "id": "header",
+      "taskId": "owui-trusted-header-deployment",
+      "input": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/header/assessment.json",
+      "inputSha256": "76a6938e8bda0a6c6a56139926d790351077f6e574d014f32e5709d21bb58ac1",
+      "sources": [
+        {
+          "path": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/header/project/inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+          "sha256": "44ac3bb945d5d3a7ea026c8ad5503fada5f740ad0cacb6dea3fc1f3d953bf0a1"
+        },
+        {
+          "path": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/header/project/inputs/owui-trusted-header-deployment/auths_signin.py",
+          "sha256": "91194fe8ebe69bc9434f00c0d6f7e95c34360b597739408df99f1169fc70a4c6"
+        }
+      ]
+    },
+    {
+      "id": "collaborator",
+      "taskId": "gitea-collaborator-cross-user-permission",
+      "input": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/collaborator/assessment.json",
+      "inputSha256": "9d4a034f5308895ddeba3f97b44684b64834f629956bfb9b899489afe0d64124",
+      "sources": [
+        {
+          "path": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/collaborator/source/policy.json",
+          "sha256": "b24208490332fc562670d2b533d24d3f3214cdf2ac2f770f4df8296ea53b771c"
+        },
+        {
+          "path": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/collaborator/source/collaborators.go",
+          "sha256": "edbacf431c736f78e6e5beef3c6329ff89210a6463438cedc0be48cdc246a012"
+        }
+      ]
+    },
+    {
+      "id": "assignee",
+      "taskId": "gitea-issue-assignee-nonwriter",
+      "input": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/assignee/assessment.json",
+      "inputSha256": "cffef599fb92aeb0b224f5854d2abb4119fdcc03b144ee8b87a8e25b45b5355a",
+      "sources": [
+        {
+          "path": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/assignee/source/policy.json",
+          "sha256": "cb7253c01bbabc6f8bee4c024a7fb4543c079d51005232c93372df9532e4b41b"
+        },
+        {
+          "path": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/assignee/source/issue_assignee.go",
+          "sha256": "e404ff3be258bc56363c979205d962200b5d6565271a83c6707407c65327666e"
+        }
+      ]
+    },
+    {
+      "id": "lock",
+      "taskId": "gitea-issue-lock-writer-nonadmin",
+      "input": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/lock/assessment.json",
+      "inputSha256": "46d93f03b40bd246ba75aca4b3b697d4edbcc7c7374cb8b23b7b93a218e081ef",
+      "sources": [
+        {
+          "path": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/lock/source/policy.json",
+          "sha256": "d7dbd7317a73fdcfa1ac12ea4af4e0add98afe862d6d8acfb848be9a5717b005"
+        },
+        {
+          "path": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/lock/source/route_guard.go",
+          "sha256": "8bc95a31887ad3bbaac3349e6a0f596dc1d8833f72aa8b4ccbb68df1f415a292"
+        },
+        {
+          "path": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/lock/source/issue_lock.go",
+          "sha256": "727c99966e125af80b036544e7beb091824f502f57ce741fab9a7946f44014c5"
+        }
+      ]
+    }
+  ],
+  "units": [
+    {
+      "id": "01-header-legacy",
+      "caseId": "header",
+      "method": "conditions",
+      "wire": "legacy"
+    },
+    {
+      "id": "02-header-v4",
+      "caseId": "header",
+      "method": "conditions",
+      "wire": "v4"
+    },
+    {
+      "id": "03-collaborator-v4",
+      "caseId": "collaborator",
+      "method": "conditions",
+      "wire": "v4"
+    },
+    {
+      "id": "04-collaborator-legacy",
+      "caseId": "collaborator",
+      "method": "conditions",
+      "wire": "legacy"
+    },
+    {
+      "id": "05-assignee-legacy",
+      "caseId": "assignee",
+      "method": "conditions",
+      "wire": "legacy"
+    },
+    {
+      "id": "06-assignee-v4",
+      "caseId": "assignee",
+      "method": "conditions",
+      "wire": "v4"
+    },
+    {
+      "id": "07-lock-v4",
+      "caseId": "lock",
+      "method": "conditions",
+      "wire": "v4"
+    },
+    {
+      "id": "08-lock-legacy",
+      "caseId": "lock",
+      "method": "conditions",
+      "wire": "legacy"
+    }
+  ],
+  "evaluatorSha256": "870e6ad8569155dcd1cdb0491931ebb615dea8710849f0125d61039feaeee06e",
+  "revisionLimit": 4,
+  "ordinaryUseUnits": 2,
+  "actualUSD": null
+}
