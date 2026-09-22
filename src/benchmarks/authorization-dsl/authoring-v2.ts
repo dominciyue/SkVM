@@ -2,7 +2,10 @@ import { z } from "zod"
 import type { AuthorizationAuthoringInputV1, AuthorizationAuthoringNormalization, AuthorizationAuthoringDiagnostic } from "./authoring.ts"
 
 const Text = z.string().trim().min(1)
-const Key = z.string().min(1).refine(v => v === v.trim() && !/[\u0000-\u001f\u007f]/.test(v) && !["__proto__", "prototype", "constructor"].includes(v), "Use a non-empty name without surrounding whitespace, control characters or prototype keys.")
+const Key = z.string().min(1).refine(v => {
+  try { encodeURIComponent(v) } catch { return false }
+  return v === v.trim() && !/[\u0000-\u001f\u007f]/.test(v) && !["__proto__", "prototype", "constructor"].includes(v)
+}, "Use a well-formed Unicode name without surrounding whitespace, control characters or prototype keys.")
 const dictionary = <T extends z.ZodTypeAny>(shape:T, required=true) => z.record(Key, shape).refine(v => !required || Object.keys(v).length > 0, "Provide at least one named declaration.")
 const Location = z.object({path:Text,startLine:z.number().int().positive(),endLine:z.number().int().positive()}).strict().refine(v=>v.endLine>=v.startLine,"endLine must not precede startLine")
 export const AuthorizationAuthoringInputV2Schema = z.object({

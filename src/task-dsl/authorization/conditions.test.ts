@@ -299,7 +299,17 @@ describe("validateConditionAnalysisResult", () => {
     ]))
   })
 
-  it("requires a decisive missing fact for an unknown effect or assumption", () => {
+  it("accepts a decisive known effect despite an irrelevant unknown assumption", () => {
+    const plan = compileConditionAnalysisRequest(makeTask(), makeRequest())
+    const result = makeValidResult()
+    result.analyses[0]!.branches[0]!.assumptions.push({ conditionId: "is-privileged", value: "unknown" })
+    result.analyses[0]!.branches[0]!.explanation = "Ownership alone permits modification regardless of the unknown privileged role."
+    const validation = validateConditionAnalysisResult(plan, makeCanonicalResult(), result)
+    expect(validation.status).toBe("valid")
+    expect(validation.semanticSupport).toBe("unreviewed")
+  })
+
+  it("requires a decisive missing fact for an unknown effect", () => {
     const plan = compileConditionAnalysisRequest(makeTask(), makeRequest())
     const result = makeValidResult()
     result.analyses[1]!.branches[0]!.missingFacts = []

@@ -527,8 +527,9 @@ export function validateConditionAnalysisResult(
         branchesByAssumptions.set(key, branch)
       }
 
+      // A decisive guard can settle the effect while other assumptions stay unknown.
+      // Fact pointers remain mandatory for known effects; semantic support is reviewed separately.
       const needsMissingFact = branch.effect === "unknown"
-        || branch.assumptions.some(assumption => assumption.value === "unknown")
       if (needsMissingFact && branch.missingFacts.length === 0) {
         diagnostics.push({
           code: "unknown-condition-missing-fact",

@@ -40,6 +40,10 @@ test("init v2, direct check/run and inspect retain raw/normalized/provenance wit
   expect(await runAuthorizationCli(["inspect",`--out=${report.sessionPath}`],deps)).toBe(0)
   expect(await runAuthorizationCli(["compare",`--previous=${report.sessionPath}`,`--input=${input}`],deps)).toBe(0)
   expect(JSON.parse(output.at(-1)!).status).toBe("current")
+  for (const override of ["--method=ledger", "--wire=legacy"]) {
+    expect(await runAuthorizationCli(["compare",`--previous=${report.sessionPath}`,`--input=${input}`,override],deps)).toBe(0)
+    expect(JSON.parse(output.at(-1)!).status).toBe("needs-review")
+  }
   const previousResult=await readFile(path.join(report.sessionPath,"result.json"),"utf8")
   const base=JSON.parse(await readFile(input,"utf8"))
   for(const mutate of [

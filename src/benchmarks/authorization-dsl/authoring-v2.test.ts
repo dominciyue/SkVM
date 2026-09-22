@@ -56,3 +56,9 @@ test("v2 shares entities across scenarios and derives explicit condition binding
     expect(normalizeAuthorizationAuthoringInput(bad).status).toBe("needs-input")
   }
 })
+
+test("v2 reports ill-formed Unicode names rather than throwing during ID encoding", () => {
+  const value:any=structuredClone(fixture)
+  value.scenarios["\ud800"]={...value.scenarios.archive}
+  expect(normalizeAuthorizationAuthoringInput(value).status).toBe("needs-input")
+})
