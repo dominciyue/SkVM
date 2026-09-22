@@ -1,0 +1,1748 @@
+{
+  "schemaVersion": "authorization-historical-calibration/v3",
+  "originalArtifactsModified": false,
+  "attribution": "Evaluation-version change only; no new-method benefit",
+  "remoteCalls": 0,
+  "units": [
+    {
+      "unitId": "09-lock-r1-P",
+      "historicalQuality": "partial",
+      "evaluation": {
+        "evaluationVersion": "authorization-evaluation/v3",
+        "caseId": "gitea-issue-lock-writer-nonadmin",
+        "taskId": "gitea-issue-lock-writer-nonadmin",
+        "generation": "initial",
+        "attemptId": "provider-attempt-1",
+        "rawOutputSha256": "7793c8c83508d2f2d32a314c242a0ab24e006a7cfb4e94f4999b799de2321cc6",
+        "expectedDisposition": "source_refuted",
+        "actualDisposition": "source_refuted",
+        "labelCorrect": true,
+        "reviewValidation": {
+          "status": "valid",
+          "diagnostics": [],
+          "review": {
+            "schemaVersion": "authorization-semantic-review/v1",
+            "caseId": "gitea-issue-lock-writer-nonadmin",
+            "taskId": "gitea-issue-lock-writer-nonadmin",
+            "generation": "initial",
+            "attemptId": "provider-attempt-1",
+            "rawOutputSha256": "7793c8c83508d2f2d32a314c242a0ab24e006a7cfb4e94f4999b799de2321cc6",
+            "rubricVersion": "gitea-issue-lock-writer-nonadmin/v1-z-v3",
+            "reviewer": {
+              "kind": "development-agent",
+              "identity": "Z-development-agent-historical-calibration"
+            },
+            "criterionReviews": [
+              {
+                "status": "supported",
+                "reason": "The answer states that reqToken and reqAdmin guard the PUT route before LockIssue dispatch.",
+                "answerLocation": "/results/0/explanation",
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 16,
+                    "endLine": 20
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0",
+                "criterionId": "lock-route-admin-middleware"
+              },
+              {
+                "status": "supported",
+                "reason": "Read the retained answer: both administrator predicates false cause rejection before handler; this reclassified control criterion does not demand a numeric HTTP status. The separate response detail remains missing.",
+                "answerLocation": "/results/0/facts/control/0",
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 4,
+                    "endLine": 12
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1",
+                "criterionId": "lock-nonadmin-denial-control"
+              },
+              {
+                "status": "supported",
+                "reason": "The answer applies the bounded facts and states that full token scope and repository issue-write permission do not bypass the route administrator gate.",
+                "answerLocation": "/results/0/explanation",
+                "sourceLocations": [
+                  {
+                    "path": "policy.json",
+                    "startLine": 9,
+                    "endLine": 10
+                  },
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 7,
+                    "endLine": 10
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2",
+                "criterionId": "lock-writer-does-not-bypass-admin"
+              },
+              {
+                "status": "supported",
+                "reason": "The answer preserves the later handler issue-write check and the conditional LockIssue mutation after a caller survives reqAdmin.",
+                "answerLocation": "/results/0/explanation",
+                "sourceLocations": [
+                  {
+                    "path": "issue_lock.go",
+                    "startLine": 43,
+                    "endLine": 69
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3",
+                "criterionId": "lock-secondary-writer-and-effect"
+              },
+              {
+                "status": "missing",
+                "reason": "The answer never explicitly states the route-level HTTP 403 response before handler dispatch; forbidden-style wording and citations alone do not satisfy this detail criterion.",
+                "answerLocation": null,
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 7,
+                    "endLine": 10
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1",
+                "criterionId": "lock-route-http-403-detail"
+              },
+              {
+                "status": "supported",
+                "reason": "The answer explains that the all-false admin state blocks regardless of issue-write, either admin role avoids this route rejection, and the later issue-write check still controls access to the mutation.",
+                "answerLocation": "/results/0",
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 4,
+                    "endLine": 20
+                  },
+                  {
+                    "path": "issue_lock.go",
+                    "startLine": 43,
+                    "endLine": 62
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation",
+                "criterionId": "lock-condition-outcomes"
+              }
+            ],
+            "dispositionReview": {
+              "status": "supported",
+              "reason": "source_refuted correctly reports that the fixed source enforces the declared deny expectation for the non-admin writer.",
+              "answerLocation": "/results/0/conclusion",
+              "sourceLocations": [
+                {
+                  "path": "policy.json",
+                  "startLine": 9,
+                  "endLine": 10
+                },
+                {
+                  "path": "route_guard.go",
+                  "startLine": 4,
+                  "endLine": 20
+                }
+              ],
+              "oracleRule": "oracle-evidence-v1.json#/cases/2/expectedDisposition"
+            },
+            "scopeReview": {
+              "status": "supported",
+              "reason": "The answer remains bounded to the supplied route, handler, policy, and declared operation.",
+              "answerLocation": "/scopeClaim",
+              "sourceLocations": [
+                {
+                  "path": "policy.json",
+                  "startLine": 9,
+                  "endLine": 11
+                }
+              ],
+              "oracleRule": "oracle-evidence-v1.json#/limits"
+            }
+          }
+        },
+        "criteria": [
+          {
+            "id": "lock-route-admin-middleware",
+            "layer": "necessary-semantics",
+            "requirement": "State that the PUT lock route applies reqToken and reqAdmin before dispatching LockIssue.",
+            "decisionRelevance": "The route middleware is reached before the handler's issue-write control.",
+            "status": "supported",
+            "reason": "The answer states that reqToken and reqAdmin guard the PUT route before LockIssue dispatch.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 16,
+                "endLine": 20
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0"
+          },
+          {
+            "id": "lock-nonadmin-denial-control",
+            "layer": "necessary-semantics",
+            "requirement": "State that reqAdmin rejects before handler dispatch when both repository-admin and site-admin status are false.",
+            "decisionRelevance": "This is the strongest visible control for the bounded non-admin writer.",
+            "status": "supported",
+            "reason": "Read the retained answer: both administrator predicates false cause rejection before handler; this reclassified control criterion does not demand a numeric HTTP status. The separate response detail remains missing.",
+            "answerLocation": "/results/0/facts/control/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 12
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "id": "lock-writer-does-not-bypass-admin",
+            "layer": "necessary-semantics",
+            "requirement": "Apply the bounded facts to state that full token scope and repository issue-write permission do not bypass the route-level administrator gate.",
+            "decisionRelevance": "Collapsing writer permission or token scope into admin status would reverse the task decision.",
+            "status": "supported",
+            "reason": "The answer applies the bounded facts and states that full token scope and repository issue-write permission do not bypass the route administrator gate.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "policy.json",
+                "startLine": 9,
+                "endLine": 10
+              },
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2"
+          },
+          {
+            "id": "lock-secondary-writer-and-effect",
+            "layer": "necessary-semantics",
+            "requirement": "State that a caller surviving reqAdmin must still pass the handler's issue-write check before an unlocked issue can reach LockIssue.",
+            "decisionRelevance": "This preserves the order and distinction between the route administrator gate and protected mutation effect.",
+            "status": "supported",
+            "reason": "The answer preserves the later handler issue-write check and the conditional LockIssue mutation after a caller survives reqAdmin.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 69
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3"
+          },
+          {
+            "id": "lock-route-http-403-detail",
+            "layer": "optional-detail",
+            "requirement": "Identify the route-level HTTP 403 response for the current non-admin branch before handler dispatch.",
+            "decisionRelevance": "The response and ordering complete the bounded rejection explanation.",
+            "status": "missing",
+            "reason": "The answer never explicitly states the route-level HTTP 403 response before handler dispatch; forbidden-style wording and citations alone do not satisfy this detail criterion.",
+            "answerLocation": null,
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "id": "lock-condition-outcomes",
+            "layer": "explanation-completeness",
+            "requirement": "Explain that both admin conditions false blocks regardless of issue-write; either admin condition true passes this route gate, after which issue-write still controls reachability to the lock mutation.",
+            "decisionRelevance": "This is the requested bounded condition explanation for the layered controls.",
+            "status": "supported",
+            "reason": "The answer explains that the all-false admin state blocks regardless of issue-write, either admin role avoids this route rejection, and the later issue-write check still controls access to the mutation.",
+            "answerLocation": "/results/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 20
+              },
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 62
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation"
+          }
+        ],
+        "dimensions": {
+          "necessarySemantics": "supported",
+          "explanationCompleteness": "complete",
+          "optionalDetails": "not-applicable",
+          "responseDetails": "partial"
+        },
+        "scopeHonesty": "accepted",
+        "semanticDecisionCorrect": true,
+        "evidenceSemanticSupport": "supported",
+        "transportValid": true,
+        "deliveryComplete": true,
+        "taskDecisionCorrect": true,
+        "qualityStatus": "full-success",
+        "errorClasses": [],
+        "deterministicDiagnostics": [],
+        "responseDetailCalibration": {
+          "criterionIds": [
+            "lock-route-http-403-detail"
+          ],
+          "requiredCriterionIds": [],
+          "basis": "The unchanged public request asks authorization and effect reachability, not an exact HTTP response; response status does not change that property. Explicit status remains separately scored."
+        }
+      },
+      "review": {
+        "schemaVersion": "authorization-semantic-review/v1",
+        "caseId": "gitea-issue-lock-writer-nonadmin",
+        "taskId": "gitea-issue-lock-writer-nonadmin",
+        "generation": "initial",
+        "attemptId": "provider-attempt-1",
+        "rawOutputSha256": "7793c8c83508d2f2d32a314c242a0ab24e006a7cfb4e94f4999b799de2321cc6",
+        "rubricVersion": "gitea-issue-lock-writer-nonadmin/v1-z-v3",
+        "reviewer": {
+          "kind": "development-agent",
+          "identity": "Z-development-agent-historical-calibration"
+        },
+        "criterionReviews": [
+          {
+            "criterionId": "lock-route-admin-middleware",
+            "status": "supported",
+            "reason": "The answer states that reqToken and reqAdmin guard the PUT route before LockIssue dispatch.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 16,
+                "endLine": 20
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0"
+          },
+          {
+            "criterionId": "lock-nonadmin-denial-control",
+            "status": "supported",
+            "reason": "Read the retained answer: both administrator predicates false cause rejection before handler; this reclassified control criterion does not demand a numeric HTTP status. The separate response detail remains missing.",
+            "answerLocation": "/results/0/facts/control/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 12
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "criterionId": "lock-writer-does-not-bypass-admin",
+            "status": "supported",
+            "reason": "The answer applies the bounded facts and states that full token scope and repository issue-write permission do not bypass the route administrator gate.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "policy.json",
+                "startLine": 9,
+                "endLine": 10
+              },
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2"
+          },
+          {
+            "criterionId": "lock-secondary-writer-and-effect",
+            "status": "supported",
+            "reason": "The answer preserves the later handler issue-write check and the conditional LockIssue mutation after a caller survives reqAdmin.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 69
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3"
+          },
+          {
+            "criterionId": "lock-route-http-403-detail",
+            "status": "missing",
+            "reason": "The answer never explicitly states the route-level HTTP 403 response before handler dispatch; forbidden-style wording and citations alone do not satisfy this detail criterion.",
+            "answerLocation": null,
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "criterionId": "lock-condition-outcomes",
+            "status": "supported",
+            "reason": "The answer explains that the all-false admin state blocks regardless of issue-write, either admin role avoids this route rejection, and the later issue-write check still controls access to the mutation.",
+            "answerLocation": "/results/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 20
+              },
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 62
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation"
+          }
+        ],
+        "dispositionReview": {
+          "status": "supported",
+          "reason": "source_refuted correctly reports that the fixed source enforces the declared deny expectation for the non-admin writer.",
+          "answerLocation": "/results/0/conclusion",
+          "sourceLocations": [
+            {
+              "path": "policy.json",
+              "startLine": 9,
+              "endLine": 10
+            },
+            {
+              "path": "route_guard.go",
+              "startLine": 4,
+              "endLine": 20
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/expectedDisposition"
+        },
+        "scopeReview": {
+          "status": "supported",
+          "reason": "The answer remains bounded to the supplied route, handler, policy, and declared operation.",
+          "answerLocation": "/scopeClaim",
+          "sourceLocations": [
+            {
+              "path": "policy.json",
+              "startLine": 9,
+              "endLine": 11
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/limits"
+        }
+      }
+    },
+    {
+      "unitId": "10-lock-r1-C",
+      "historicalQuality": "partial",
+      "evaluation": {
+        "evaluationVersion": "authorization-evaluation/v3",
+        "caseId": "gitea-issue-lock-writer-nonadmin",
+        "taskId": "gitea-issue-lock-writer-nonadmin",
+        "generation": "initial",
+        "attemptId": "provider-attempt-2",
+        "rawOutputSha256": "9a91dfed47aab80d651e2d98031c73eb01b1d3dbab2d1141ce35172efdab7c28",
+        "expectedDisposition": "source_refuted",
+        "actualDisposition": "source_refuted",
+        "labelCorrect": true,
+        "reviewValidation": {
+          "status": "valid",
+          "diagnostics": [],
+          "review": {
+            "schemaVersion": "authorization-semantic-review/v1",
+            "caseId": "gitea-issue-lock-writer-nonadmin",
+            "taskId": "gitea-issue-lock-writer-nonadmin",
+            "generation": "initial",
+            "attemptId": "provider-attempt-2",
+            "rawOutputSha256": "9a91dfed47aab80d651e2d98031c73eb01b1d3dbab2d1141ce35172efdab7c28",
+            "rubricVersion": "gitea-issue-lock-writer-nonadmin/v1-z-v3",
+            "reviewer": {
+              "kind": "development-agent",
+              "identity": "Z-development-agent-historical-calibration"
+            },
+            "criterionReviews": [
+              {
+                "status": "supported",
+                "reason": "The answer states that reqToken and reqAdmin guard the PUT route before LockIssue dispatch.",
+                "answerLocation": "/results/0/explanation",
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 16,
+                    "endLine": 20
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0",
+                "criterionId": "lock-route-admin-middleware"
+              },
+              {
+                "status": "supported",
+                "reason": "Read the retained answer: both administrator predicates false cause rejection before handler; this reclassified control criterion does not demand a numeric HTTP status. The separate response detail remains missing.",
+                "answerLocation": "/results/0/facts/control/0",
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 4,
+                    "endLine": 12
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1",
+                "criterionId": "lock-nonadmin-denial-control"
+              },
+              {
+                "status": "supported",
+                "reason": "The answer applies the bounded facts and states that full token scope and repository issue-write permission do not bypass the route administrator gate.",
+                "answerLocation": "/results/0/explanation",
+                "sourceLocations": [
+                  {
+                    "path": "policy.json",
+                    "startLine": 9,
+                    "endLine": 10
+                  },
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 7,
+                    "endLine": 10
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2",
+                "criterionId": "lock-writer-does-not-bypass-admin"
+              },
+              {
+                "status": "supported",
+                "reason": "The answer preserves the later handler issue-write check and the conditional LockIssue mutation after a caller survives reqAdmin.",
+                "answerLocation": "/results/0/explanation",
+                "sourceLocations": [
+                  {
+                    "path": "issue_lock.go",
+                    "startLine": 43,
+                    "endLine": 69
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3",
+                "criterionId": "lock-secondary-writer-and-effect"
+              },
+              {
+                "status": "missing",
+                "reason": "The answer never explicitly states the route-level HTTP 403 response before handler dispatch; forbidden-style wording and citations alone do not satisfy this detail criterion.",
+                "answerLocation": null,
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 7,
+                    "endLine": 10
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1",
+                "criterionId": "lock-route-http-403-detail"
+              },
+              {
+                "status": "supported",
+                "reason": "The answer explains that the all-false admin state blocks regardless of issue-write, either admin role avoids this route rejection, and the later issue-write check still controls access to the mutation.",
+                "answerLocation": "/results/0",
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 4,
+                    "endLine": 20
+                  },
+                  {
+                    "path": "issue_lock.go",
+                    "startLine": 43,
+                    "endLine": 62
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation",
+                "criterionId": "lock-condition-outcomes"
+              }
+            ],
+            "dispositionReview": {
+              "status": "supported",
+              "reason": "source_refuted correctly reports that the fixed source enforces the declared deny expectation for the non-admin writer.",
+              "answerLocation": "/results/0/conclusion",
+              "sourceLocations": [
+                {
+                  "path": "policy.json",
+                  "startLine": 9,
+                  "endLine": 10
+                },
+                {
+                  "path": "route_guard.go",
+                  "startLine": 4,
+                  "endLine": 20
+                }
+              ],
+              "oracleRule": "oracle-evidence-v1.json#/cases/2/expectedDisposition"
+            },
+            "scopeReview": {
+              "status": "supported",
+              "reason": "The answer remains bounded to the supplied route, handler, policy, and declared operation.",
+              "answerLocation": "/scopeClaim",
+              "sourceLocations": [
+                {
+                  "path": "policy.json",
+                  "startLine": 9,
+                  "endLine": 11
+                }
+              ],
+              "oracleRule": "oracle-evidence-v1.json#/limits"
+            }
+          }
+        },
+        "criteria": [
+          {
+            "id": "lock-route-admin-middleware",
+            "layer": "necessary-semantics",
+            "requirement": "State that the PUT lock route applies reqToken and reqAdmin before dispatching LockIssue.",
+            "decisionRelevance": "The route middleware is reached before the handler's issue-write control.",
+            "status": "supported",
+            "reason": "The answer states that reqToken and reqAdmin guard the PUT route before LockIssue dispatch.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 16,
+                "endLine": 20
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0"
+          },
+          {
+            "id": "lock-nonadmin-denial-control",
+            "layer": "necessary-semantics",
+            "requirement": "State that reqAdmin rejects before handler dispatch when both repository-admin and site-admin status are false.",
+            "decisionRelevance": "This is the strongest visible control for the bounded non-admin writer.",
+            "status": "supported",
+            "reason": "Read the retained answer: both administrator predicates false cause rejection before handler; this reclassified control criterion does not demand a numeric HTTP status. The separate response detail remains missing.",
+            "answerLocation": "/results/0/facts/control/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 12
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "id": "lock-writer-does-not-bypass-admin",
+            "layer": "necessary-semantics",
+            "requirement": "Apply the bounded facts to state that full token scope and repository issue-write permission do not bypass the route-level administrator gate.",
+            "decisionRelevance": "Collapsing writer permission or token scope into admin status would reverse the task decision.",
+            "status": "supported",
+            "reason": "The answer applies the bounded facts and states that full token scope and repository issue-write permission do not bypass the route administrator gate.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "policy.json",
+                "startLine": 9,
+                "endLine": 10
+              },
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2"
+          },
+          {
+            "id": "lock-secondary-writer-and-effect",
+            "layer": "necessary-semantics",
+            "requirement": "State that a caller surviving reqAdmin must still pass the handler's issue-write check before an unlocked issue can reach LockIssue.",
+            "decisionRelevance": "This preserves the order and distinction between the route administrator gate and protected mutation effect.",
+            "status": "supported",
+            "reason": "The answer preserves the later handler issue-write check and the conditional LockIssue mutation after a caller survives reqAdmin.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 69
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3"
+          },
+          {
+            "id": "lock-route-http-403-detail",
+            "layer": "optional-detail",
+            "requirement": "Identify the route-level HTTP 403 response for the current non-admin branch before handler dispatch.",
+            "decisionRelevance": "The response and ordering complete the bounded rejection explanation.",
+            "status": "missing",
+            "reason": "The answer never explicitly states the route-level HTTP 403 response before handler dispatch; forbidden-style wording and citations alone do not satisfy this detail criterion.",
+            "answerLocation": null,
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "id": "lock-condition-outcomes",
+            "layer": "explanation-completeness",
+            "requirement": "Explain that both admin conditions false blocks regardless of issue-write; either admin condition true passes this route gate, after which issue-write still controls reachability to the lock mutation.",
+            "decisionRelevance": "This is the requested bounded condition explanation for the layered controls.",
+            "status": "supported",
+            "reason": "The answer explains that the all-false admin state blocks regardless of issue-write, either admin role avoids this route rejection, and the later issue-write check still controls access to the mutation.",
+            "answerLocation": "/results/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 20
+              },
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 62
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation"
+          }
+        ],
+        "dimensions": {
+          "necessarySemantics": "supported",
+          "explanationCompleteness": "complete",
+          "optionalDetails": "not-applicable",
+          "responseDetails": "partial"
+        },
+        "scopeHonesty": "accepted",
+        "semanticDecisionCorrect": true,
+        "evidenceSemanticSupport": "supported",
+        "transportValid": true,
+        "deliveryComplete": true,
+        "taskDecisionCorrect": true,
+        "qualityStatus": "full-success",
+        "errorClasses": [],
+        "deterministicDiagnostics": [],
+        "responseDetailCalibration": {
+          "criterionIds": [
+            "lock-route-http-403-detail"
+          ],
+          "requiredCriterionIds": [],
+          "basis": "The unchanged public request asks authorization and effect reachability, not an exact HTTP response; response status does not change that property. Explicit status remains separately scored."
+        }
+      },
+      "review": {
+        "schemaVersion": "authorization-semantic-review/v1",
+        "caseId": "gitea-issue-lock-writer-nonadmin",
+        "taskId": "gitea-issue-lock-writer-nonadmin",
+        "generation": "initial",
+        "attemptId": "provider-attempt-2",
+        "rawOutputSha256": "9a91dfed47aab80d651e2d98031c73eb01b1d3dbab2d1141ce35172efdab7c28",
+        "rubricVersion": "gitea-issue-lock-writer-nonadmin/v1-z-v3",
+        "reviewer": {
+          "kind": "development-agent",
+          "identity": "Z-development-agent-historical-calibration"
+        },
+        "criterionReviews": [
+          {
+            "criterionId": "lock-route-admin-middleware",
+            "status": "supported",
+            "reason": "The answer states that reqToken and reqAdmin guard the PUT route before LockIssue dispatch.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 16,
+                "endLine": 20
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0"
+          },
+          {
+            "criterionId": "lock-nonadmin-denial-control",
+            "status": "supported",
+            "reason": "Read the retained answer: both administrator predicates false cause rejection before handler; this reclassified control criterion does not demand a numeric HTTP status. The separate response detail remains missing.",
+            "answerLocation": "/results/0/facts/control/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 12
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "criterionId": "lock-writer-does-not-bypass-admin",
+            "status": "supported",
+            "reason": "The answer applies the bounded facts and states that full token scope and repository issue-write permission do not bypass the route administrator gate.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "policy.json",
+                "startLine": 9,
+                "endLine": 10
+              },
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2"
+          },
+          {
+            "criterionId": "lock-secondary-writer-and-effect",
+            "status": "supported",
+            "reason": "The answer preserves the later handler issue-write check and the conditional LockIssue mutation after a caller survives reqAdmin.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 69
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3"
+          },
+          {
+            "criterionId": "lock-route-http-403-detail",
+            "status": "missing",
+            "reason": "The answer never explicitly states the route-level HTTP 403 response before handler dispatch; forbidden-style wording and citations alone do not satisfy this detail criterion.",
+            "answerLocation": null,
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "criterionId": "lock-condition-outcomes",
+            "status": "supported",
+            "reason": "The answer explains that the all-false admin state blocks regardless of issue-write, either admin role avoids this route rejection, and the later issue-write check still controls access to the mutation.",
+            "answerLocation": "/results/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 20
+              },
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 62
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation"
+          }
+        ],
+        "dispositionReview": {
+          "status": "supported",
+          "reason": "source_refuted correctly reports that the fixed source enforces the declared deny expectation for the non-admin writer.",
+          "answerLocation": "/results/0/conclusion",
+          "sourceLocations": [
+            {
+              "path": "policy.json",
+              "startLine": 9,
+              "endLine": 10
+            },
+            {
+              "path": "route_guard.go",
+              "startLine": 4,
+              "endLine": 20
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/expectedDisposition"
+        },
+        "scopeReview": {
+          "status": "supported",
+          "reason": "The answer remains bounded to the supplied route, handler, policy, and declared operation.",
+          "answerLocation": "/scopeClaim",
+          "sourceLocations": [
+            {
+              "path": "policy.json",
+              "startLine": 9,
+              "endLine": 11
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/limits"
+        }
+      }
+    },
+    {
+      "unitId": "11-lock-r2-C",
+      "historicalQuality": "partial",
+      "evaluation": {
+        "evaluationVersion": "authorization-evaluation/v3",
+        "caseId": "gitea-issue-lock-writer-nonadmin",
+        "taskId": "gitea-issue-lock-writer-nonadmin",
+        "generation": "initial",
+        "attemptId": "provider-attempt-2",
+        "rawOutputSha256": "13bbaded622da15ef1bd2069355e35b8b53fb4d64e8b40e0c0bcb7712c1e1b75",
+        "expectedDisposition": "source_refuted",
+        "actualDisposition": "source_refuted",
+        "labelCorrect": true,
+        "reviewValidation": {
+          "status": "valid",
+          "diagnostics": [],
+          "review": {
+            "schemaVersion": "authorization-semantic-review/v1",
+            "caseId": "gitea-issue-lock-writer-nonadmin",
+            "taskId": "gitea-issue-lock-writer-nonadmin",
+            "generation": "initial",
+            "attemptId": "provider-attempt-2",
+            "rawOutputSha256": "13bbaded622da15ef1bd2069355e35b8b53fb4d64e8b40e0c0bcb7712c1e1b75",
+            "rubricVersion": "gitea-issue-lock-writer-nonadmin/v1-z-v3",
+            "reviewer": {
+              "kind": "development-agent",
+              "identity": "Z-development-agent-historical-calibration"
+            },
+            "criterionReviews": [
+              {
+                "status": "supported",
+                "reason": "The answer states that reqToken and reqAdmin guard the PUT route before LockIssue dispatch.",
+                "answerLocation": "/results/0/explanation",
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 16,
+                    "endLine": 20
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0",
+                "criterionId": "lock-route-admin-middleware"
+              },
+              {
+                "status": "supported",
+                "reason": "Read the retained answer: both administrator predicates false cause rejection before handler; this reclassified control criterion does not demand a numeric HTTP status. The separate response detail remains missing.",
+                "answerLocation": "/results/0/facts/control/0",
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 4,
+                    "endLine": 12
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1",
+                "criterionId": "lock-nonadmin-denial-control"
+              },
+              {
+                "status": "supported",
+                "reason": "The answer applies the bounded facts and states that full token scope and repository issue-write permission do not bypass the route administrator gate.",
+                "answerLocation": "/results/0/explanation",
+                "sourceLocations": [
+                  {
+                    "path": "policy.json",
+                    "startLine": 9,
+                    "endLine": 10
+                  },
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 7,
+                    "endLine": 10
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2",
+                "criterionId": "lock-writer-does-not-bypass-admin"
+              },
+              {
+                "status": "supported",
+                "reason": "The answer preserves the later handler issue-write check and the conditional LockIssue mutation after a caller survives reqAdmin.",
+                "answerLocation": "/results/0/explanation",
+                "sourceLocations": [
+                  {
+                    "path": "issue_lock.go",
+                    "startLine": 43,
+                    "endLine": 69
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3",
+                "criterionId": "lock-secondary-writer-and-effect"
+              },
+              {
+                "status": "missing",
+                "reason": "The answer never explicitly states the route-level HTTP 403 response before handler dispatch; forbidden-style wording and citations alone do not satisfy this detail criterion.",
+                "answerLocation": null,
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 7,
+                    "endLine": 10
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1",
+                "criterionId": "lock-route-http-403-detail"
+              },
+              {
+                "status": "supported",
+                "reason": "The answer explains that the all-false admin state blocks regardless of issue-write, either admin role avoids this route rejection, and the later issue-write check still controls access to the mutation.",
+                "answerLocation": "/results/0",
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 4,
+                    "endLine": 20
+                  },
+                  {
+                    "path": "issue_lock.go",
+                    "startLine": 43,
+                    "endLine": 62
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation",
+                "criterionId": "lock-condition-outcomes"
+              }
+            ],
+            "dispositionReview": {
+              "status": "supported",
+              "reason": "source_refuted correctly reports that the fixed source enforces the declared deny expectation for the non-admin writer.",
+              "answerLocation": "/results/0/conclusion",
+              "sourceLocations": [
+                {
+                  "path": "policy.json",
+                  "startLine": 9,
+                  "endLine": 10
+                },
+                {
+                  "path": "route_guard.go",
+                  "startLine": 4,
+                  "endLine": 20
+                }
+              ],
+              "oracleRule": "oracle-evidence-v1.json#/cases/2/expectedDisposition"
+            },
+            "scopeReview": {
+              "status": "supported",
+              "reason": "The answer remains bounded to the supplied route, handler, policy, and declared operation.",
+              "answerLocation": "/scopeClaim",
+              "sourceLocations": [
+                {
+                  "path": "policy.json",
+                  "startLine": 9,
+                  "endLine": 11
+                }
+              ],
+              "oracleRule": "oracle-evidence-v1.json#/limits"
+            }
+          }
+        },
+        "criteria": [
+          {
+            "id": "lock-route-admin-middleware",
+            "layer": "necessary-semantics",
+            "requirement": "State that the PUT lock route applies reqToken and reqAdmin before dispatching LockIssue.",
+            "decisionRelevance": "The route middleware is reached before the handler's issue-write control.",
+            "status": "supported",
+            "reason": "The answer states that reqToken and reqAdmin guard the PUT route before LockIssue dispatch.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 16,
+                "endLine": 20
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0"
+          },
+          {
+            "id": "lock-nonadmin-denial-control",
+            "layer": "necessary-semantics",
+            "requirement": "State that reqAdmin rejects before handler dispatch when both repository-admin and site-admin status are false.",
+            "decisionRelevance": "This is the strongest visible control for the bounded non-admin writer.",
+            "status": "supported",
+            "reason": "Read the retained answer: both administrator predicates false cause rejection before handler; this reclassified control criterion does not demand a numeric HTTP status. The separate response detail remains missing.",
+            "answerLocation": "/results/0/facts/control/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 12
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "id": "lock-writer-does-not-bypass-admin",
+            "layer": "necessary-semantics",
+            "requirement": "Apply the bounded facts to state that full token scope and repository issue-write permission do not bypass the route-level administrator gate.",
+            "decisionRelevance": "Collapsing writer permission or token scope into admin status would reverse the task decision.",
+            "status": "supported",
+            "reason": "The answer applies the bounded facts and states that full token scope and repository issue-write permission do not bypass the route administrator gate.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "policy.json",
+                "startLine": 9,
+                "endLine": 10
+              },
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2"
+          },
+          {
+            "id": "lock-secondary-writer-and-effect",
+            "layer": "necessary-semantics",
+            "requirement": "State that a caller surviving reqAdmin must still pass the handler's issue-write check before an unlocked issue can reach LockIssue.",
+            "decisionRelevance": "This preserves the order and distinction between the route administrator gate and protected mutation effect.",
+            "status": "supported",
+            "reason": "The answer preserves the later handler issue-write check and the conditional LockIssue mutation after a caller survives reqAdmin.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 69
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3"
+          },
+          {
+            "id": "lock-route-http-403-detail",
+            "layer": "optional-detail",
+            "requirement": "Identify the route-level HTTP 403 response for the current non-admin branch before handler dispatch.",
+            "decisionRelevance": "The response and ordering complete the bounded rejection explanation.",
+            "status": "missing",
+            "reason": "The answer never explicitly states the route-level HTTP 403 response before handler dispatch; forbidden-style wording and citations alone do not satisfy this detail criterion.",
+            "answerLocation": null,
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "id": "lock-condition-outcomes",
+            "layer": "explanation-completeness",
+            "requirement": "Explain that both admin conditions false blocks regardless of issue-write; either admin condition true passes this route gate, after which issue-write still controls reachability to the lock mutation.",
+            "decisionRelevance": "This is the requested bounded condition explanation for the layered controls.",
+            "status": "supported",
+            "reason": "The answer explains that the all-false admin state blocks regardless of issue-write, either admin role avoids this route rejection, and the later issue-write check still controls access to the mutation.",
+            "answerLocation": "/results/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 20
+              },
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 62
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation"
+          }
+        ],
+        "dimensions": {
+          "necessarySemantics": "supported",
+          "explanationCompleteness": "complete",
+          "optionalDetails": "not-applicable",
+          "responseDetails": "partial"
+        },
+        "scopeHonesty": "accepted",
+        "semanticDecisionCorrect": true,
+        "evidenceSemanticSupport": "supported",
+        "transportValid": true,
+        "deliveryComplete": true,
+        "taskDecisionCorrect": true,
+        "qualityStatus": "full-success",
+        "errorClasses": [],
+        "deterministicDiagnostics": [],
+        "responseDetailCalibration": {
+          "criterionIds": [
+            "lock-route-http-403-detail"
+          ],
+          "requiredCriterionIds": [],
+          "basis": "The unchanged public request asks authorization and effect reachability, not an exact HTTP response; response status does not change that property. Explicit status remains separately scored."
+        }
+      },
+      "review": {
+        "schemaVersion": "authorization-semantic-review/v1",
+        "caseId": "gitea-issue-lock-writer-nonadmin",
+        "taskId": "gitea-issue-lock-writer-nonadmin",
+        "generation": "initial",
+        "attemptId": "provider-attempt-2",
+        "rawOutputSha256": "13bbaded622da15ef1bd2069355e35b8b53fb4d64e8b40e0c0bcb7712c1e1b75",
+        "rubricVersion": "gitea-issue-lock-writer-nonadmin/v1-z-v3",
+        "reviewer": {
+          "kind": "development-agent",
+          "identity": "Z-development-agent-historical-calibration"
+        },
+        "criterionReviews": [
+          {
+            "criterionId": "lock-route-admin-middleware",
+            "status": "supported",
+            "reason": "The answer states that reqToken and reqAdmin guard the PUT route before LockIssue dispatch.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 16,
+                "endLine": 20
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0"
+          },
+          {
+            "criterionId": "lock-nonadmin-denial-control",
+            "status": "supported",
+            "reason": "Read the retained answer: both administrator predicates false cause rejection before handler; this reclassified control criterion does not demand a numeric HTTP status. The separate response detail remains missing.",
+            "answerLocation": "/results/0/facts/control/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 12
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "criterionId": "lock-writer-does-not-bypass-admin",
+            "status": "supported",
+            "reason": "The answer applies the bounded facts and states that full token scope and repository issue-write permission do not bypass the route administrator gate.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "policy.json",
+                "startLine": 9,
+                "endLine": 10
+              },
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2"
+          },
+          {
+            "criterionId": "lock-secondary-writer-and-effect",
+            "status": "supported",
+            "reason": "The answer preserves the later handler issue-write check and the conditional LockIssue mutation after a caller survives reqAdmin.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 69
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3"
+          },
+          {
+            "criterionId": "lock-route-http-403-detail",
+            "status": "missing",
+            "reason": "The answer never explicitly states the route-level HTTP 403 response before handler dispatch; forbidden-style wording and citations alone do not satisfy this detail criterion.",
+            "answerLocation": null,
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "criterionId": "lock-condition-outcomes",
+            "status": "supported",
+            "reason": "The answer explains that the all-false admin state blocks regardless of issue-write, either admin role avoids this route rejection, and the later issue-write check still controls access to the mutation.",
+            "answerLocation": "/results/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 20
+              },
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 62
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation"
+          }
+        ],
+        "dispositionReview": {
+          "status": "supported",
+          "reason": "source_refuted correctly reports that the fixed source enforces the declared deny expectation for the non-admin writer.",
+          "answerLocation": "/results/0/conclusion",
+          "sourceLocations": [
+            {
+              "path": "policy.json",
+              "startLine": 9,
+              "endLine": 10
+            },
+            {
+              "path": "route_guard.go",
+              "startLine": 4,
+              "endLine": 20
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/expectedDisposition"
+        },
+        "scopeReview": {
+          "status": "supported",
+          "reason": "The answer remains bounded to the supplied route, handler, policy, and declared operation.",
+          "answerLocation": "/scopeClaim",
+          "sourceLocations": [
+            {
+              "path": "policy.json",
+              "startLine": 9,
+              "endLine": 11
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/limits"
+        }
+      }
+    },
+    {
+      "unitId": "12-lock-r2-P",
+      "historicalQuality": "partial",
+      "evaluation": {
+        "evaluationVersion": "authorization-evaluation/v3",
+        "caseId": "gitea-issue-lock-writer-nonadmin",
+        "taskId": "gitea-issue-lock-writer-nonadmin",
+        "generation": "initial",
+        "attemptId": "provider-attempt-1",
+        "rawOutputSha256": "4fbebbf372174d4a39604dec9a10e1a802a9e11c0aa12d7f47d8c9a74c556cf0",
+        "expectedDisposition": "source_refuted",
+        "actualDisposition": "source_refuted",
+        "labelCorrect": true,
+        "reviewValidation": {
+          "status": "valid",
+          "diagnostics": [],
+          "review": {
+            "schemaVersion": "authorization-semantic-review/v1",
+            "caseId": "gitea-issue-lock-writer-nonadmin",
+            "taskId": "gitea-issue-lock-writer-nonadmin",
+            "generation": "initial",
+            "attemptId": "provider-attempt-1",
+            "rawOutputSha256": "4fbebbf372174d4a39604dec9a10e1a802a9e11c0aa12d7f47d8c9a74c556cf0",
+            "rubricVersion": "gitea-issue-lock-writer-nonadmin/v1-z-v3",
+            "reviewer": {
+              "kind": "development-agent",
+              "identity": "Z-development-agent-historical-calibration"
+            },
+            "criterionReviews": [
+              {
+                "status": "supported",
+                "reason": "The answer states that reqToken and reqAdmin guard the PUT route before LockIssue dispatch.",
+                "answerLocation": "/results/0/explanation",
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 16,
+                    "endLine": 20
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0",
+                "criterionId": "lock-route-admin-middleware"
+              },
+              {
+                "status": "supported",
+                "reason": "Read the retained answer: both administrator predicates false cause rejection before handler; this reclassified control criterion does not demand a numeric HTTP status. The separate response detail remains missing.",
+                "answerLocation": "/results/0/facts/control/0",
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 4,
+                    "endLine": 12
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1",
+                "criterionId": "lock-nonadmin-denial-control"
+              },
+              {
+                "status": "supported",
+                "reason": "The answer applies the bounded facts and states that full token scope and repository issue-write permission do not bypass the route administrator gate.",
+                "answerLocation": "/results/0/explanation",
+                "sourceLocations": [
+                  {
+                    "path": "policy.json",
+                    "startLine": 9,
+                    "endLine": 10
+                  },
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 7,
+                    "endLine": 10
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2",
+                "criterionId": "lock-writer-does-not-bypass-admin"
+              },
+              {
+                "status": "supported",
+                "reason": "The answer preserves the later handler issue-write check and the conditional LockIssue mutation after a caller survives reqAdmin.",
+                "answerLocation": "/results/0/explanation",
+                "sourceLocations": [
+                  {
+                    "path": "issue_lock.go",
+                    "startLine": 43,
+                    "endLine": 69
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3",
+                "criterionId": "lock-secondary-writer-and-effect"
+              },
+              {
+                "status": "missing",
+                "reason": "The answer never explicitly states the route-level HTTP 403 response before handler dispatch; forbidden-style wording and citations alone do not satisfy this detail criterion.",
+                "answerLocation": null,
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 7,
+                    "endLine": 10
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1",
+                "criterionId": "lock-route-http-403-detail"
+              },
+              {
+                "status": "supported",
+                "reason": "The answer explains that the all-false admin state blocks regardless of issue-write, either admin role avoids this route rejection, and the later issue-write check still controls access to the mutation.",
+                "answerLocation": "/results/0",
+                "sourceLocations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 4,
+                    "endLine": 20
+                  },
+                  {
+                    "path": "issue_lock.go",
+                    "startLine": 43,
+                    "endLine": 62
+                  }
+                ],
+                "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation",
+                "criterionId": "lock-condition-outcomes"
+              }
+            ],
+            "dispositionReview": {
+              "status": "supported",
+              "reason": "source_refuted correctly reports that the fixed source enforces the declared deny expectation for the non-admin writer.",
+              "answerLocation": "/results/0/conclusion",
+              "sourceLocations": [
+                {
+                  "path": "policy.json",
+                  "startLine": 9,
+                  "endLine": 10
+                },
+                {
+                  "path": "route_guard.go",
+                  "startLine": 4,
+                  "endLine": 20
+                }
+              ],
+              "oracleRule": "oracle-evidence-v1.json#/cases/2/expectedDisposition"
+            },
+            "scopeReview": {
+              "status": "supported",
+              "reason": "The answer remains bounded to the supplied route, handler, policy, and declared operation.",
+              "answerLocation": "/scopeClaim",
+              "sourceLocations": [
+                {
+                  "path": "policy.json",
+                  "startLine": 9,
+                  "endLine": 11
+                }
+              ],
+              "oracleRule": "oracle-evidence-v1.json#/limits"
+            }
+          }
+        },
+        "criteria": [
+          {
+            "id": "lock-route-admin-middleware",
+            "layer": "necessary-semantics",
+            "requirement": "State that the PUT lock route applies reqToken and reqAdmin before dispatching LockIssue.",
+            "decisionRelevance": "The route middleware is reached before the handler's issue-write control.",
+            "status": "supported",
+            "reason": "The answer states that reqToken and reqAdmin guard the PUT route before LockIssue dispatch.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 16,
+                "endLine": 20
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0"
+          },
+          {
+            "id": "lock-nonadmin-denial-control",
+            "layer": "necessary-semantics",
+            "requirement": "State that reqAdmin rejects before handler dispatch when both repository-admin and site-admin status are false.",
+            "decisionRelevance": "This is the strongest visible control for the bounded non-admin writer.",
+            "status": "supported",
+            "reason": "Read the retained answer: both administrator predicates false cause rejection before handler; this reclassified control criterion does not demand a numeric HTTP status. The separate response detail remains missing.",
+            "answerLocation": "/results/0/facts/control/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 12
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "id": "lock-writer-does-not-bypass-admin",
+            "layer": "necessary-semantics",
+            "requirement": "Apply the bounded facts to state that full token scope and repository issue-write permission do not bypass the route-level administrator gate.",
+            "decisionRelevance": "Collapsing writer permission or token scope into admin status would reverse the task decision.",
+            "status": "supported",
+            "reason": "The answer applies the bounded facts and states that full token scope and repository issue-write permission do not bypass the route administrator gate.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "policy.json",
+                "startLine": 9,
+                "endLine": 10
+              },
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2"
+          },
+          {
+            "id": "lock-secondary-writer-and-effect",
+            "layer": "necessary-semantics",
+            "requirement": "State that a caller surviving reqAdmin must still pass the handler's issue-write check before an unlocked issue can reach LockIssue.",
+            "decisionRelevance": "This preserves the order and distinction between the route administrator gate and protected mutation effect.",
+            "status": "supported",
+            "reason": "The answer preserves the later handler issue-write check and the conditional LockIssue mutation after a caller survives reqAdmin.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 69
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3"
+          },
+          {
+            "id": "lock-route-http-403-detail",
+            "layer": "optional-detail",
+            "requirement": "Identify the route-level HTTP 403 response for the current non-admin branch before handler dispatch.",
+            "decisionRelevance": "The response and ordering complete the bounded rejection explanation.",
+            "status": "missing",
+            "reason": "The answer never explicitly states the route-level HTTP 403 response before handler dispatch; forbidden-style wording and citations alone do not satisfy this detail criterion.",
+            "answerLocation": null,
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "id": "lock-condition-outcomes",
+            "layer": "explanation-completeness",
+            "requirement": "Explain that both admin conditions false blocks regardless of issue-write; either admin condition true passes this route gate, after which issue-write still controls reachability to the lock mutation.",
+            "decisionRelevance": "This is the requested bounded condition explanation for the layered controls.",
+            "status": "supported",
+            "reason": "The answer explains that the all-false admin state blocks regardless of issue-write, either admin role avoids this route rejection, and the later issue-write check still controls access to the mutation.",
+            "answerLocation": "/results/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 20
+              },
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 62
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation"
+          }
+        ],
+        "dimensions": {
+          "necessarySemantics": "supported",
+          "explanationCompleteness": "complete",
+          "optionalDetails": "not-applicable",
+          "responseDetails": "partial"
+        },
+        "scopeHonesty": "accepted",
+        "semanticDecisionCorrect": true,
+        "evidenceSemanticSupport": "supported",
+        "transportValid": true,
+        "deliveryComplete": true,
+        "taskDecisionCorrect": true,
+        "qualityStatus": "full-success",
+        "errorClasses": [],
+        "deterministicDiagnostics": [],
+        "responseDetailCalibration": {
+          "criterionIds": [
+            "lock-route-http-403-detail"
+          ],
+          "requiredCriterionIds": [],
+          "basis": "The unchanged public request asks authorization and effect reachability, not an exact HTTP response; response status does not change that property. Explicit status remains separately scored."
+        }
+      },
+      "review": {
+        "schemaVersion": "authorization-semantic-review/v1",
+        "caseId": "gitea-issue-lock-writer-nonadmin",
+        "taskId": "gitea-issue-lock-writer-nonadmin",
+        "generation": "initial",
+        "attemptId": "provider-attempt-1",
+        "rawOutputSha256": "4fbebbf372174d4a39604dec9a10e1a802a9e11c0aa12d7f47d8c9a74c556cf0",
+        "rubricVersion": "gitea-issue-lock-writer-nonadmin/v1-z-v3",
+        "reviewer": {
+          "kind": "development-agent",
+          "identity": "Z-development-agent-historical-calibration"
+        },
+        "criterionReviews": [
+          {
+            "criterionId": "lock-route-admin-middleware",
+            "status": "supported",
+            "reason": "The answer states that reqToken and reqAdmin guard the PUT route before LockIssue dispatch.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 16,
+                "endLine": 20
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0"
+          },
+          {
+            "criterionId": "lock-nonadmin-denial-control",
+            "status": "supported",
+            "reason": "Read the retained answer: both administrator predicates false cause rejection before handler; this reclassified control criterion does not demand a numeric HTTP status. The separate response detail remains missing.",
+            "answerLocation": "/results/0/facts/control/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 12
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "criterionId": "lock-writer-does-not-bypass-admin",
+            "status": "supported",
+            "reason": "The answer applies the bounded facts and states that full token scope and repository issue-write permission do not bypass the route administrator gate.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "policy.json",
+                "startLine": 9,
+                "endLine": 10
+              },
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2"
+          },
+          {
+            "criterionId": "lock-secondary-writer-and-effect",
+            "status": "supported",
+            "reason": "The answer preserves the later handler issue-write check and the conditional LockIssue mutation after a caller survives reqAdmin.",
+            "answerLocation": "/results/0/explanation",
+            "sourceLocations": [
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 69
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3"
+          },
+          {
+            "criterionId": "lock-route-http-403-detail",
+            "status": "missing",
+            "reason": "The answer never explicitly states the route-level HTTP 403 response before handler dispatch; forbidden-style wording and citations alone do not satisfy this detail criterion.",
+            "answerLocation": null,
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 7,
+                "endLine": 10
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+          },
+          {
+            "criterionId": "lock-condition-outcomes",
+            "status": "supported",
+            "reason": "The answer explains that the all-false admin state blocks regardless of issue-write, either admin role avoids this route rejection, and the later issue-write check still controls access to the mutation.",
+            "answerLocation": "/results/0",
+            "sourceLocations": [
+              {
+                "path": "route_guard.go",
+                "startLine": 4,
+                "endLine": 20
+              },
+              {
+                "path": "issue_lock.go",
+                "startLine": 43,
+                "endLine": 62
+              }
+            ],
+            "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation"
+          }
+        ],
+        "dispositionReview": {
+          "status": "supported",
+          "reason": "source_refuted correctly reports that the fixed source enforces the declared deny expectation for the non-admin writer.",
+          "answerLocation": "/results/0/conclusion",
+          "sourceLocations": [
+            {
+              "path": "policy.json",
+              "startLine": 9,
+              "endLine": 10
+            },
+            {
+              "path": "route_guard.go",
+              "startLine": 4,
+              "endLine": 20
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/cases/2/expectedDisposition"
+        },
+        "scopeReview": {
+          "status": "supported",
+          "reason": "The answer remains bounded to the supplied route, handler, policy, and declared operation.",
+          "answerLocation": "/scopeClaim",
+          "sourceLocations": [
+            {
+              "path": "policy.json",
+              "startLine": 9,
+              "endLine": 11
+            }
+          ],
+          "oracleRule": "oracle-evidence-v1.json#/limits"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,536 @@
+{
+  "unit": {
+    "id": "06-assignee-v4",
+    "caseId": "assignee",
+    "method": "conditions",
+    "wire": "v4"
+  },
+  "configSha256": "46d20d52167c081c60ed753d77dd21a926ec29dd60ec7b48e4b5b3430c941bc5",
+  "report": {
+    "methodSelection": {
+      "requested": "conditions",
+      "effective": "conditions",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v4",
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260922T063818718Z-f27bbf9f",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-protocol-usability-v1\\runs\\06-assignee-v4\\sessions\\20260922T063818718Z-f27bbf9f",
+    "createdAt": "2026-09-22T06:38:18.718Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-protocol-usability-v1\\public-inputs\\assignee\\assessment.json",
+    "taskId": "gitea-issue-assignee-nonwriter",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 396,
+        "declaration": 4494,
+        "analysisLedger": 5492,
+        "conditionAnalysis": 598,
+        "source": 4578,
+        "outputContract": 4623,
+        "total": 20320,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "gitea-issue-assignee-nonwriter",
+      "repository": "https://github.com/go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "results": [
+        {
+          "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+          "conclusion": "source_refuted",
+          "explanation": "For the bounded authenticated caller with issue-write token scope but without repository issue-write permission, the fixed source enforces the declared deny expectation. The POST wrapper dispatches to the assignee update path; that path looks up the repository issue and then checks repository issue/pull-request write permission. When the check is false, it returns HTTP 403 before assignee resolution and before the add-assignees mutation. Thus the source supports enforcement of the expected denial, not a policy failure. This is a fixed-entry conclusion only; authentication middleware, route registration, and deployment behavior are outside the supplied crop.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The declared POST assignees handler obtains the request options and invokes the update path with addition enabled.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 4,
+                    "endLine": 49,
+                    "quote": "// AddIssueAssignees add assignees to an issue\nfunc AddIssueAssignees(ctx *context.APIContext) {\n\t// swagger:operation POST /repos/{owner}/{repo}/issues/{index}/assignees issue issueAddAssignees\n\t// ---\n\t// summary: Add assignees to an issue\n\t// consumes:\n\t// - application/json\n\t// produces:\n\t// - application/json\n\t// parameters:\n\t// - name: owner\n\t//   in: path\n\t//   description: owner of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: repo\n\t//   in: path\n\t//   description: name of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: index\n\t//   in: path\n\t//   description: index of the issue\n\t//   type: integer\n\t//   format: int64\n\t//   required: true\n\t// - name: body\n\t//   in: body\n\t//   required: true\n\t//   schema:\n\t//     \"$ref\": \"#/definitions/IssueAssigneesOption\"\n\t// responses:\n\t//   \"201\":\n\t//     \"$ref\": \"#/responses/Issue\"\n\t//   \"400\":\n\t//     \"$ref\": \"#/responses/error\"\n\t//   \"403\":\n\t//     \"$ref\": \"#/responses/forbidden\"\n\t//   \"404\":\n\t//     \"$ref\": \"#/responses/notFound\"\n\t//   \"422\":\n\t//     \"$ref\": \"#/responses/validationError\"\n\n\topts := web.GetForm[*api.IssueAssigneesOption](ctx)\n\tupdateIssueAssignees(ctx, *opts, true)\n}"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The requested assignee names are resolved separately after the repository issue permission check, so the assignee user object is distinct from the issue resource checked for write permission.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 60,
+                    "endLine": 74,
+                    "quote": "\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.Status(http.StatusForbidden)\n\t\treturn\n\t}\n\n\tif err := issue.LoadAttributes(ctx); err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tassigneeIDs, err := user_model.GetUserIDsByNames(ctx, opts.Assignees, false)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusUnprocessableEntity, err.Error())\n\t\t\treturn"
+                  }
+                ]
+              },
+              {
+                "statement": "The assessed operation uses the request context's Doer as the acting identity for the assignee mutation and returned issue representation; the supplied crop does not show how authentication middleware populates that identity.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 80,
+                    "endLine": 101,
+                    "quote": "\tif isAdd {\n\t\terr = issue_service.AddAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t} else {\n\t\terr = issue_service.RemoveAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t}\n\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tissue, err = issues_model.GetIssueByID(ctx, issue.ID)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tstatus := http.StatusOK\n\tif isAdd {\n\t\tstatus = http.StatusCreated\n\t}\n\tctx.JSON(status, convert.ToAPIIssue(ctx, ctx.Doer, issue))"
+                  }
+                ]
+              },
+              {
+                "statement": "The request-selected issue is bound by the repository ID in context and the path index; the assignee set is the issue object later passed to the assignee service.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 53,
+                    "endLine": 58,
+                    "quote": "func updateIssueAssignees(ctx *context.APIContext, opts api.IssueAssigneesOption, isAdd bool) {\n\tissue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.PathParamInt64(\"index\"))\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}"
+                  },
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 80,
+                    "endLine": 83,
+                    "quote": "\tif isAdd {\n\t\terr = issue_service.AddAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t} else {\n\t\terr = issue_service.RemoveAssignees(ctx, issue, ctx.Doer, assigneeIDs)"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The source checks repository permission to write issues or pull requests and returns HTTP 403 immediately when the check is false.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 60,
+                    "endLine": 63,
+                    "quote": "\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.Status(http.StatusForbidden)\n\t\treturn\n\t}"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "Only after the permission check and assignee-name resolution does the addition branch call AddAssignees; successful completion then produces the created response.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 70,
+                    "endLine": 101,
+                    "quote": "\tassigneeIDs, err := user_model.GetUserIDsByNames(ctx, opts.Assignees, false)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusUnprocessableEntity, err.Error())\n\t\t\treturn\n\t\t}\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tif isAdd {\n\t\terr = issue_service.AddAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t} else {\n\t\terr = issue_service.RemoveAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t}\n\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tissue, err = issues_model.GetIssueByID(ctx, issue.ID)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tstatus := http.StatusOK\n\tif isAdd {\n\t\tstatus = http.StatusCreated\n\t}\n\tctx.JSON(status, convert.ToAPIIssue(ctx, ctx.Doer, issue))"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The supplied policy declares that repository issue/pull-request write permission is required and that a caller without it receives HTTP 403 before assignee resolution or mutation; it also distinguishes token scope from repository permission.",
+                "citations": [
+                  {
+                    "path": "policy.json",
+                    "startLine": 6,
+                    "endLine": 8,
+                    "quote": "  \"normativePolicy\": \"Adding issue assignees requires repository permission to write the issue or pull request. A caller without that repository permission receives HTTP 403 before assignee names are resolved or the issue's assignees are mutated.\",\n  \"boundedScenario\": \"The caller is authenticated and has an issue-write token scope but lacks repository issue-write permission; the issue and requested user both exist.\",\n  \"claimBoundary\": \"Token scope and repository permission are distinct in this bounded task. The policy is accepted only for the declared fixed source entry.\""
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [
+            "If deployment-level confirmation were required beyond this fixed-source assessment, observe route registration and authentication middleware binding for this endpoint; those are outside the supplied crop."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "relationCoverage": [
+      {
+        "requirementId": "authorization-core-v1.authorization-decision",
+        "status": "addressed",
+        "explanation": "The issue write/pull-request permission check is the strongest visible authorization control. Under the declared false permission condition it returns HTTP 403, regardless of the separately declared issue-write token scope; no role or ownership exception is visible in the supplied path.",
+        "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+        "factPointers": [
+          "/results/0/facts/binding/1",
+          "/results/0/facts/control/0",
+          "/results/0/facts/condition/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.effect-reachability",
+        "status": "addressed",
+        "explanation": "The requested add operation cannot reach AddAssignees on the nonwriter branch because the HTTP 403 return precedes assignee resolution and the mutation call. The mutation is source-reachable only on a branch that passes the visible permission check and then resolves assignees successfully.",
+        "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+        "factPointers": [
+          "/results/0/facts/control/0",
+          "/results/0/facts/effect/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.entry-control",
+        "status": "addressed",
+        "explanation": "The declared POST handler is the visible entry and immediately delegates to updateIssueAssignees with isAdd=true; the update path first performs issue lookup and then the repository write check.",
+        "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+        "factPointers": [
+          "/results/0/facts/entry/0",
+          "/results/0/facts/binding/2",
+          "/results/0/facts/control/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.external-assumption",
+        "status": "addressed",
+        "explanation": "Authentication middleware and route/deployment facts are outside the crop, so they are not source-established. They could affect a real deployment-level assessment, but the bounded task fixes the authenticated principal, the selected fixed entry, and the absent repository permission; the source-visible decision for that bounded entry is therefore decidable without inferring those external facts.",
+        "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+        "factPointers": [
+          "/results/0/facts/binding/1",
+          "/results/0/facts/condition/0"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.identity-binding",
+        "status": "addressed",
+        "explanation": "Within the assessed operation, ctx.Doer is the acting identity supplied to AddAssignees and used in the response conversion. The crop does not establish the upstream authentication binding, which is expressly outside scope, so the binding is only source-visible at the operation boundary.",
+        "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+        "factPointers": [
+          "/results/0/facts/binding/1"
+        ]
+      },
+      {
+        "requirementId": "authorization-core-v1.resource-binding",
+        "status": "addressed",
+        "explanation": "The issue is selected using the repository context ID and path index. Assignee names are resolved as a separate later input, and the resulting IDs are applied to that issue, preserving the distinction between the checked issue resource and the requested assignee user.",
+        "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+        "factPointers": [
+          "/results/0/facts/binding/2",
+          "/results/0/facts/binding/0"
+        ]
+      }
+    ],
+    "coverageValidation": {
+      "status": "valid",
+      "declared": 6,
+      "addressed": 6,
+      "unknown": 0,
+      "notApplicable": 0,
+      "missing": [],
+      "semanticSupport": "unreviewed",
+      "coverage": [
+        {
+          "requirementId": "authorization-core-v1.authorization-decision",
+          "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+          "status": "addressed",
+          "explanation": "The issue write/pull-request permission check is the strongest visible authorization control. Under the declared false permission condition it returns HTTP 403, regardless of the separately declared issue-write token scope; no role or ownership exception is visible in the supplied path.",
+          "factPointers": [
+            "/results/0/facts/binding/1",
+            "/results/0/facts/control/0",
+            "/results/0/facts/condition/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.effect-reachability",
+          "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+          "status": "addressed",
+          "explanation": "The requested add operation cannot reach AddAssignees on the nonwriter branch because the HTTP 403 return precedes assignee resolution and the mutation call. The mutation is source-reachable only on a branch that passes the visible permission check and then resolves assignees successfully.",
+          "factPointers": [
+            "/results/0/facts/control/0",
+            "/results/0/facts/effect/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.entry-control",
+          "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+          "status": "addressed",
+          "explanation": "The declared POST handler is the visible entry and immediately delegates to updateIssueAssignees with isAdd=true; the update path first performs issue lookup and then the repository write check.",
+          "factPointers": [
+            "/results/0/facts/entry/0",
+            "/results/0/facts/binding/2",
+            "/results/0/facts/control/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.external-assumption",
+          "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+          "status": "addressed",
+          "explanation": "Authentication middleware and route/deployment facts are outside the crop, so they are not source-established. They could affect a real deployment-level assessment, but the bounded task fixes the authenticated principal, the selected fixed entry, and the absent repository permission; the source-visible decision for that bounded entry is therefore decidable without inferring those external facts.",
+          "factPointers": [
+            "/results/0/facts/binding/1",
+            "/results/0/facts/condition/0"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.identity-binding",
+          "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+          "status": "addressed",
+          "explanation": "Within the assessed operation, ctx.Doer is the acting identity supplied to AddAssignees and used in the response conversion. The crop does not establish the upstream authentication binding, which is expressly outside scope, so the binding is only source-visible at the operation boundary.",
+          "factPointers": [
+            "/results/0/facts/binding/1"
+          ]
+        },
+        {
+          "requirementId": "authorization-core-v1.resource-binding",
+          "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+          "status": "addressed",
+          "explanation": "The issue is selected using the repository context ID and path index. Assignee names are resolved as a separate later input, and the resulting IDs are applied to that issue, preserving the distinction between the checked issue resource and the requested assignee user.",
+          "factPointers": [
+            "/results/0/facts/binding/2",
+            "/results/0/facts/binding/0"
+          ]
+        }
+      ],
+      "diagnostics": []
+    },
+    "conditionAnalysis": {
+      "schemaVersion": "authorization-condition-analysis-result/v1",
+      "analyses": [
+        {
+          "unexaminedConditionIds": [],
+          "completeness": "bounded",
+          "limitations": [
+            "Branches compare the two requested conditions within the four-branch limit; they do not enumerate un supplied middleware, routing, service-internal, or deployment paths."
+          ],
+          "branches": [
+            {
+              "id": "assignee-present-nonwriter",
+              "assumptions": [
+                {
+                  "conditionId": "assignee-exists",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "requester-has-repository-issue-write",
+                  "value": "false"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "With an existing assignee and no repository issue-write permission, the permission check returns HTTP 403 before assignee resolution or mutation. The requested add effect is therefore blocked.",
+              "missingFacts": [],
+              "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+              "factPointers": [
+                "/results/0/facts/control/0",
+                "/results/0/facts/effect/0"
+              ]
+            },
+            {
+              "id": "assignee-absent-nonwriter",
+              "assumptions": [
+                {
+                  "conditionId": "assignee-exists",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "requester-has-repository-issue-write",
+                  "value": "false"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "The nonwriter branch is blocked by the earlier HTTP 403 permission check, so assignee nonexistence is not reached in the source-visible order. If the permission check were passed instead, the later resolver would reject a missing user before mutation.",
+              "missingFacts": [],
+              "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+              "factPointers": [
+                "/results/0/facts/control/0",
+                "/results/0/facts/binding/0"
+              ]
+            },
+            {
+              "id": "assignee-present-writer",
+              "assumptions": [
+                {
+                  "conditionId": "assignee-exists",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "requester-has-repository-issue-write",
+                  "value": "true"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "On the source-visible comparison branch that passes the repository write check and resolves an existing assignee, the add branch calls AddAssignees and can proceed toward the success response, subject to the shown error returns and outside service behavior.",
+              "missingFacts": [],
+              "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+              "factPointers": [
+                "/results/0/facts/binding/0",
+                "/results/0/facts/effect/0"
+              ]
+            },
+            {
+              "id": "assignee-absent-writer",
+              "assumptions": [
+                {
+                  "conditionId": "assignee-exists",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "requester-has-repository-issue-write",
+                  "value": "true"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "If the permission check passes but the requested assignee does not exist, the resolver returns an unprocessable-entity error and returns before AddAssignees. The protected mutation effect is therefore blocked on this branch.",
+              "missingFacts": [],
+              "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+              "factPointers": [
+                "/results/0/facts/binding/0",
+                "/results/0/facts/effect/0"
+              ]
+            }
+          ],
+          "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees"
+        }
+      ]
+    },
+    "conditionValidation": {
+      "status": "valid",
+      "declared": 1,
+      "bounded": 1,
+      "incomplete": 0,
+      "missing": [],
+      "semanticSupport": "unreviewed",
+      "result": {
+        "schemaVersion": "authorization-condition-analysis-result/v1",
+        "analyses": [
+          {
+            "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+            "branches": [
+              {
+                "id": "assignee-present-nonwriter",
+                "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+                "assumptions": [
+                  {
+                    "conditionId": "assignee-exists",
+                    "value": "true"
+                  },
+                  {
+                    "conditionId": "requester-has-repository-issue-write",
+                    "value": "false"
+                  }
+                ],
+                "effect": "blocked",
+                "explanation": "With an existing assignee and no repository issue-write permission, the permission check returns HTTP 403 before assignee resolution or mutation. The requested add effect is therefore blocked.",
+                "factPointers": [
+                  "/results/0/facts/control/0",
+                  "/results/0/facts/effect/0"
+                ],
+                "missingFacts": []
+              },
+              {
+                "id": "assignee-absent-nonwriter",
+                "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+                "assumptions": [
+                  {
+                    "conditionId": "assignee-exists",
+                    "value": "false"
+                  },
+                  {
+                    "conditionId": "requester-has-repository-issue-write",
+                    "value": "false"
+                  }
+                ],
+                "effect": "blocked",
+                "explanation": "The nonwriter branch is blocked by the earlier HTTP 403 permission check, so assignee nonexistence is not reached in the source-visible order. If the permission check were passed instead, the later resolver would reject a missing user before mutation.",
+                "factPointers": [
+                  "/results/0/facts/control/0",
+                  "/results/0/facts/binding/0"
+                ],
+                "missingFacts": []
+              },
+              {
+                "id": "assignee-present-writer",
+                "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+                "assumptions": [
+                  {
+                    "conditionId": "assignee-exists",
+                    "value": "true"
+                  },
+                  {
+                    "conditionId": "requester-has-repository-issue-write",
+                    "value": "true"
+                  }
+                ],
+                "effect": "reachable",
+                "explanation": "On the source-visible comparison branch that passes the repository write check and resolves an existing assignee, the add branch calls AddAssignees and can proceed toward the success response, subject to the shown error returns and outside service behavior.",
+                "factPointers": [
+                  "/results/0/facts/binding/0",
+                  "/results/0/facts/effect/0"
+                ],
+                "missingFacts": []
+              },
+              {
+                "id": "assignee-absent-writer",
+                "obligationId": "deny-nonwriter-assignee-add::post-issue-assignees",
+                "assumptions": [
+                  {
+                    "conditionId": "assignee-exists",
+                    "value": "false"
+                  },
+                  {
+                    "conditionId": "requester-has-repository-issue-write",
+                    "value": "true"
+                  }
+                ],
+                "effect": "blocked",
+                "explanation": "If the permission check passes but the requested assignee does not exist, the resolver returns an unprocessable-entity error and returns before AddAssignees. The protected mutation effect is therefore blocked on this branch.",
+                "factPointers": [
+                  "/results/0/facts/binding/0",
+                  "/results/0/facts/effect/0"
+                ],
+                "missingFacts": []
+              }
+            ],
+            "unexaminedConditionIds": [],
+            "completeness": "bounded",
+            "limitations": [
+              "Branches compare the two requested conditions within the four-branch limit; they do not enumerate un supplied middleware, routing, service-internal, or deployment paths."
+            ]
+          }
+        ]
+      },
+      "diagnostics": []
+    },
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 5513,
+        "output": 2325,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

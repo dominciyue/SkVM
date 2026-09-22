@@ -5,7 +5,8 @@ import path from "node:path"
 import { checkLocalAuthorizationInput, executeLocalAuthorizationRun, inspectLocalAuthorizationOutput } from "../../../../../src/benchmarks/authorization-dsl/local-run.ts"
 const root = import.meta.dir
 const repo = path.resolve(root, "../../../../..")
-const bytes = await readFile(path.join(root, "panel-config.json"), "utf8")
+const configFile = process.argv.find(a => a.startsWith("--config="))?.slice(9) ?? "panel-config.json"
+const bytes = await readFile(path.join(root, configFile), "utf8")
 const config = JSON.parse(bytes)
 const hash = (value: string | Buffer) => createHash("sha256").update(value).digest("hex")
 const exists = async (file: string) => { try { await access(file); return true } catch { return false } }
@@ -17,7 +18,7 @@ for (const c of config.cases) {
     if (check.status !== "valid") throw new Error(JSON.stringify(check.diagnostics))
   }
 }
-if (process.argv.includes("--check")) { console.log(JSON.stringify({ status: "valid", cases: 4, units: 8, configSha256: hash(bytes), providerCalls: 0 })); process.exit(0) }
+if (process.argv.includes("--check")) { console.log(JSON.stringify({ status: "valid", cases: config.cases.length, units: config.units.length, configSha256: hash(bytes), providerCalls: 0 })); process.exit(0) }
 process.env.SKVM_AUTO_PROBE = "0"
 process.env.SKVM_CACHE = path.join(repo, ".skvm")
 for (const unit of config.units) {

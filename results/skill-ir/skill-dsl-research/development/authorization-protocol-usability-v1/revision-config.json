@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "authorization-protocol-study/v1",
+  "implementationRevision": "2a4ca3d39418908e3ccea692db0f9155d6c8d05b",
+  "model": "xty/gpt-5.6-sol",
+  "temperature": 0,
+  "autoProbe": false,
+  "executionOptions": {
+    "timeoutMs": 180000,
+    "unitTimeoutMs": 600000,
+    "maxTokens": 6000,
+    "maxProviderDispatches": 4,
+    "maxDomainRepairs": 1
+  },
+  "cases": [
+    {
+      "id": "assignee",
+      "taskId": "gitea-issue-assignee-nonwriter",
+      "input": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/assignee/assessment.json",
+      "inputSha256": "cffef599fb92aeb0b224f5854d2abb4119fdcc03b144ee8b87a8e25b45b5355a",
+      "sources": [
+        {
+          "path": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/assignee/source/policy.json",
+          "sha256": "cb7253c01bbabc6f8bee4c024a7fb4543c079d51005232c93372df9532e4b41b"
+        },
+        {
+          "path": "results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/public-inputs/assignee/source/issue_assignee.go",
+          "sha256": "e404ff3be258bc56363c979205d962200b5d6565271a83c6707407c65327666e"
+        }
+      ]
+    }
+  ],
+  "units": [
+    {
+      "id": "09-assignee-legacy-revision",
+      "caseId": "assignee",
+      "method": "conditions",
+      "wire": "legacy"
+    },
+    {
+      "id": "10-assignee-v4-revision",
+      "caseId": "assignee",
+      "method": "conditions",
+      "wire": "v4"
+    }
+  ],
+  "evaluatorSha256": "870e6ad8569155dcd1cdb0491931ebb615dea8710849f0125d61039feaeee06e",
+  "revisionLimit": 4,
+  "ordinaryUseUnits": 2,
+  "actualUSD": null,
+  "revisionReason": "Initial 05-assignee-legacy fallback extra coverage missingFacts was permitted by advertised JSON schema but rejected by strict local schema. Shared converter now forbids extra keys for strict objects in both arms. One affected pair only; header timeout not resent.",
+  "parentConfig": "panel-config.json",
+  "summaryFile": "revision-summary.json",
+  "reviewDecisions": "evaluator/revision-review-decisions.json"
+}

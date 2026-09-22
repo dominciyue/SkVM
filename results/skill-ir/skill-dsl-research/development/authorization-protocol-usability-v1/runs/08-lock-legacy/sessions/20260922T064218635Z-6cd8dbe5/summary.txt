@@ -1,0 +1,30 @@
+Authorization assessment
+Session: 20260922T064218635Z-6cd8dbe5
+Status: completed
+Task: gitea-issue-lock-writer-nonadmin
+Method: conditions (explicit); requested: conditions; condition request ignored: false
+Wire: source-authorization-assessment-wire/v3
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- deny-nonadmin-issue-lock::put-issue-lock: source_refuted — The declared policy expectation is deny, and the fixed source supports enforcement of that expectation for the bounded principal and issue. The PUT lock entry is registered under token and repository-or-site-administrator middleware. Because the caller is neither a repository administrator nor a site administrator, the repository/site-admin gate blocks the request before the handler can perform the issue-write check or lock mutation. Full token scope and issue-write permission do not satisfy the separate administrator gate. Therefore the source-visible authorization decision is deny, the protected lock effect is unreachable for the declared condition set, and the declared policy failure is refuted.
+  Evidence: The lock group registers PUT for the issue-lock handler and applies token and repository/site-administrator middleware. (route_guard.go:16-20)
+  Evidence: The bounded scenario identifies the caller as authenticated with issue-write permission but without repository-administrator or site-administrator status; the route uses the request context and the handler supplies that context user as the mutation doer. (policy.json:9-11, issue_lock.go:54-58)
+  Evidence: The request-selected repository and issue are bound through the repository context and the integer issue index used by the handler's issue lookup. (issue_lock.go:42-44)
+  Evidence: The entry middleware denies when neither repository-admin nor site-admin status is present. (route_guard.go:4-10)
+  Evidence: If the route-level administrator gate were passed, the handler separately requires permission to write issues or pull requests. (issue_lock.go:49-52)
+  Evidence: For an unlocked issue after the handler checks, the protected effect is the issue lock operation, followed by a no-content response. (issue_lock.go:54-69)
+  Evidence: The bounded conditions make issue-write permission true, repository-admin status false, site-admin status false, and the issue existing, readable, and unlocked. (policy.json:9-11)
+  Evidence: Issue-write permission is insufficient to bypass the separate repository/site-administrator route gate. (route_guard.go:4-10, issue_lock.go:49-52)
+
+Coverage
+- authorization-core-v1.authorization-decision × deny-nonadmin-issue-lock::put-issue-lock: addressed — The source-visible authorization decision is deny because the route requires repository-admin or site-admin status, while the bounded caller has neither. The caller's issue-write permission is a later, separate handler control.
+- authorization-core-v1.effect-reachability × deny-nonadmin-issue-lock::put-issue-lock: addressed — Under the declared non-admin conditions, the route-level gate blocks entry, so the unlocked-issue lock mutation cannot be reached. The mutation is source-visible only after the handler's subsequent checks.
+- authorization-core-v1.entry-control × deny-nonadmin-issue-lock::put-issue-lock: addressed — The declared entry is gated by reqToken and reqAdmin; reqAdmin returns a forbidden error when both repository-admin and site-admin checks are false.
+- authorization-core-v1.external-assumption × deny-nonadmin-issue-lock::put-issue-lock: addressed — No deployment-specific fact is needed for the source-visible decision within the declared fixed route and scenario. Deployment state, unshown middleware implementation, or other entries remain outside the supplied context and could affect an actual deployment, but the assessment does not infer those facts.
+- authorization-core-v1.identity-binding × deny-nonadmin-issue-lock::put-issue-lock: addressed — The bounded scenario supplies the authenticated caller's role and permissions, the route applies token and administrator middleware to the request context, and the handler uses the context user as the doer of a possible lock operation.
+- authorization-core-v1.resource-binding × deny-nonadmin-issue-lock::put-issue-lock: addressed — The requested issue is selected by the route's issue index and looked up within the repository from the request context. The repository/site-admin gate is a distinct repository-level control, while the handler's issue-write check concerns the selected issue or pull request.
+
+Condition analysis
+- deny-nonadmin-issue-lock::put-issue-lock: bounded; 4 branch(es)

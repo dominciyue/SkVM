@@ -225,3 +225,5 @@ bun test ./src/benchmarks/skill-ir/task-automation-annotation-package.test.ts
 - [history.md](history.md)：历史主题与退出路径恢复。
 - Git：精确正文与演进过程。
 - `results/skill-ir/`：机器证据与失败原件。
+
+The Z development result root is `results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1`. Reproduce its retained evaluations without provider access using `bun <root>/evaluate-panel.ts --replay`, `bun <root>/evaluate-panel.ts --config=revision-config.json --replay`, then `python <root>/summarize.py --replay`. Review decisions bind raw output hashes and fixed rubric source locations. The original eight units and the one assignee revision pair have separate frozen configs/summaries; do not regenerate into those directories. `run-panel.ts --check` verifies declared inputs and sources without reading evaluator criteria; existing claim files prevent automatic resend. Strict Zod objects now advertise `additionalProperties: false` in both tool and fallback schema; passthrough schemas stay open. This converter correction is not a promise of provider enforcement. Late usage reconciliation is accounting only and never changes a terminal timeout into a delivered result.

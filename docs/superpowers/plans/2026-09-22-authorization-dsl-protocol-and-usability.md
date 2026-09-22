@@ -109,72 +109,72 @@ interface CompactAssessmentItem {
 ## 四、文件责任与任务清单
 
 ### Z0：恢复并登记复核遗漏
-- [ ] 读取本任务书与上下文，记录HEAD、基线修改、归属文件；建立唯一status.json和后续summary，不叠加归档链。
-- [ ] 一次运行`bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts`，预期当前167/167、1137 assertions。
-- [ ] 在Y任务书增加有日期的复核补记：阶段已结束但method漏项转交Z；纠正仍停Y12的当前状态，不把漏项追认为Y已实现。
+- [x] 读取本任务书与上下文，记录HEAD、基线修改、归属文件；建立唯一status.json和后续summary，不叠加归档链。
+- [x] 一次运行`bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts`，预期当前167/167、1137 assertions。
+- [x] 在Y任务书增加有日期的复核补记：阶段已结束但method漏项转交Z；纠正仍停Y12的当前状态，不把漏项追认为Y已实现。
 
 ### Z1：补齐公共method入口
 **修改：**`src/cli/authorization.ts`、`src/benchmarks/authorization-dsl/local-run.ts`及测试；公共method解析可放`src/task-dsl/authorization/method.ts`（新）。
-- [ ] 红测覆盖`check --method=plain`当前Unknown option，及run/report/inspect一致性、显式ledger禁用request、conditions缺request零调用、旧省略参数行为和arm冲突。
-- [ ] 实现单一method解析/映射，研究API复用而不是另造普通路径。
-- [ ] 聚焦测试通过，运行源码/Node shim help与三模式provider-free check；文档明确效果及选择来源。
+- [x] 红测覆盖`check --method=plain`当前Unknown option，及run/report/inspect一致性、显式ledger禁用request、conditions缺request零调用、旧省略参数行为和arm冲突。
+- [x] 实现单一method解析/映射，研究API复用而不是另造普通路径。
+- [x] 聚焦测试通过，运行源码/Node shim help与三模式provider-free check；文档明确效果及选择来源。
 
 ### Z2：重放六个首答，定位协议问题
 **读取：**Y migration六个C的run/attempt/request；`src/providers/structured.ts`、provider schema转换及transport。
-- [ ] 建一个只读离线审计函数/测试，输出每个旧首答的schema诊断、实际tool schema字段与fallback代价，结果写本轮根。
-- [ ] 验证模型可见schema与本地Zod的required/constant/shape一致，输出已证实原因与待验证假设，不虚构provider严格约束支持。
-- [ ] 最小合成反例覆盖六类实际失败形状，不复制大量原始答案进源码测试；原始绑定定位留结果JSON。
+- [x] 建一个只读离线审计函数/测试，输出每个旧首答的schema诊断、实际tool schema字段与fallback代价，结果写本轮根。
+- [x] 验证模型可见schema与本地Zod的required/constant/shape一致，输出已证实原因与待验证假设，不虚构provider严格约束支持。
+- [x] 最小合成反例覆盖六类实际失败形状，不复制大量原始答案进源码测试；原始绑定定位留结果JSON。
 
 ### Z3：定稿紧凑协议与一致性测试
 **新建：**`src/task-dsl/authorization/compact-transport.ts`、`compact-transport.test.ts`。
-- [ ] 研究§7.23记录field ownership、按method的shape、host常量补入、fact ID分组规则和旧协议兼容，形成唯一新schema。
-- [ ] 红测覆盖合法紧凑结果归一化等价、重复/缺失/外义务fact ID、unknown无缺失事实、条件分支遗漏、source/range无效；空数组只表无事实，不表通过语义。
-- [ ] 写一个捕获provider请求的mock测试，核对实际tool JSON schema，而非只测试内部Zod。
+- [x] 研究§7.23记录field ownership、按method的shape、host常量补入、fact ID分组规则和旧协议兼容，形成唯一新schema。
+- [x] 红测覆盖合法紧凑结果归一化等价、重复/缺失/外义务fact ID、unknown无缺失事实、条件分支遗漏、source/range无效；空数组只表无事实，不表通过语义。
+- [x] 写一个捕获provider请求的mock测试，核对实际tool JSON schema，而非只测试内部Zod。
 
 ### Z4：实现紧凑normalizer
-- [ ] 实现Z3新模块，复用现有canonical/coverage/conditions检查，不复制第二套语义规则。
-- [ ] 保留所有语义字段、未知项、限制、事实及来源；不把省字段转为伪造事实，不猜标签。
-- [ ] 验证同义务fact重排绑定稳定；旧v1–v3测试继续通过；生成normalization诊断可追到模型原字段。
+- [x] 实现Z3新模块，复用现有canonical/coverage/conditions检查，不复制第二套语义规则。
+- [x] 保留所有语义字段、未知项、限制、事实及来源；不把省字段转为伪造事实，不猜标签。
+- [x] 验证同义务fact重排绑定稳定；旧v1–v3测试继续通过；生成normalization诊断可追到模型原字段。
 
 ### Z5：接通宿主、渲染与计量
 **修改：**`src/task-dsl/authorization/{render,index}.ts`；`src/benchmarks/authorization-dsl/{host,local-run,telemetry}.ts`及测试，provider只按Z2证据改动。
-- [ ] 新wire选择显式记录；主模型提示、tool schema与fallback schema由同一来源生成，避免重复矛盾的嵌套示例。
-- [ ] 旧wire和新wire走同一provider/生命周期/修复路径；每次schema失败保存可定位原因，不再只有“response后fallback”的隐含推断。
-- [ ] 增加首答valid、fallback/repair、固定/模型字段与分节字符计量；保持provider实测token为成本依据。
-- [ ] 聚焦测试及类型检查；暂不进行全量历史重放。
+- [x] 新wire选择显式记录；主模型提示、tool schema与fallback schema由同一来源生成，避免重复矛盾的嵌套示例。
+- [x] 旧wire和新wire走同一provider/生命周期/修复路径；每次schema失败保存可定位原因，不再只有“response后fallback”的隐含推断。
+- [x] 增加首答valid、fallback/repair、固定/模型字段与分节字符计量；保持provider实测token为成本依据。
+- [x] 聚焦测试及类型检查；暂不进行全量历史重放。
 
 ### Z6：校准评价并准备匹配配置
 **修改：**`src/benchmarks/authorization-dsl/evaluate.ts`及测试；本轮evaluator/配置写结果根。
-- [ ] 红测：正确拒绝但未写HTTP403的语义与协议维度分开；任务明确要求HTTP403时仍记响应细节缺失；因果反转、错权限、伪造部署事实仍错误。
-- [ ] 旧评分只读附表，新旧wire共用新规则；记录受影响统计与理由。
-- [ ] 在实际生成前固定四任务八单元顺序、模型、实现commit、公共输入与评价。可扩既有value-study做transport比较，使用独立新config版本，不用P/C标签冒充old/new。
+- [x] 红测：正确拒绝但未写HTTP403的语义与协议维度分开；任务明确要求HTTP403时仍记响应细节缺失；因果反转、错权限、伪造部署事实仍错误。
+- [x] 旧评分只读附表，新旧wire共用新规则；记录受影响统计与理由。
+- [x] 在实际生成前固定四任务八单元顺序、模型、实现commit、公共输入与评价。可扩既有value-study做transport比较，使用独立新config版本，不用P/C标签冒充old/new。
 
 ### Z7：真实匹配运行与成本判断
-- [ ] 沿用`xty/gpt-5.6-sol`，temperature0、auto-probe off、单调用180秒/单元600秒、maxOutput6000、最多4dispatch/1次有诊断修复。配置如需调整须在所有调用前统一登记。
-- [ ] 运行八单元，保存首答、fallback和修复；已dispatch而完成未知不自动重发，继续独立单元。
-- [ ] 全部生成结束后评价，按task报告首答/最终质量和成本；新协议若更差如实保留，不通过只报最终成功掩盖重试。
+- [x] 沿用`xty/gpt-5.6-sol`，temperature0、auto-probe off、单调用180秒/单元600秒、maxOutput6000、最多4dispatch/1次有诊断修复。配置如需调整须在所有调用前统一登记。
+- [x] 运行八单元，保存首答、fallback和修复；已dispatch而完成未知不自动重发，继续独立单元。
+- [x] 全部生成结束后评价，按task报告首答/最终质量和成本；新协议若更差如实保留，不通过只报最终成功掩盖重试。
 
 ### Z8：一次共享修订与结果选择
-- [ ] 针对Z7可定位共享缺陷先补反例再修，同一轮最多两个受影响任务old/new各一次；无诊断不加跑。
-- [ ] 原始和revision分开；正常语义缺失不得用自动填答案修好。
-- [ ] 明确compact适用于哪些method，是否已有足够本轮证据用于普通默认；C本身仍只在需要条件结果时启用。
+- [x] 针对Z7可定位共享缺陷先补反例再修，同一轮最多两个受影响任务old/new各一次；无诊断不加跑。
+- [x] 原始和revision分开；正常语义缺失不得用自动填答案修好。
+- [x] 明确compact适用于哪些method，是否已有足够本轮证据用于普通默认；C本身仍只在需要条件结果时启用。
 
 ### Z9：实际编写与变化任务试用
 **修改：**`src/benchmarks/authorization-dsl/authoring.ts`、`src/cli/authorization.ts`及测试、`examples/authorization-assessment/`、usage，限实际发现问题。
-- [ ] 按§3.4由干净上下文参与者准备任务，记录真实草稿/check错误；现成assessment仅用于运行后核验，不能提前给作者抄。
-- [ ] 完成普通CLI的原任务和self-query变化任务各一次分析；同一policy/source、不同主体关系/expectation，评价结果是否响应真实变化。
-- [ ] 缺项诊断解释用户需要什么，减少派生字段手改；根据失败修共享模板/说明，不另建新生成平台。
-- [ ] 报告参与者类别、步骤和未测项；没有真人分钟就不声称节省人工。
+- [x] 按§3.4由干净上下文参与者准备任务，记录真实草稿/check错误；现成assessment仅用于运行后核验，不能提前给作者抄。
+- [x] 完成普通CLI的原任务和self-query变化任务各一次分析；同一policy/source、不同主体关系/expectation，评价结果是否响应真实变化。
+- [x] 缺项诊断解释用户需要什么，减少派生字段手改；根据失败修共享模板/说明，不另建新生成平台。
+- [x] 报告参与者类别、步骤和未测项；没有真人分钟就不声称节省人工。
 
 ### Z10：确定轻重模式与收益边界
-- [ ] plain可供普通用户选择；ledger用于要求可追踪义务覆盖的任务；conditions用于明确条件结果交付。默认采用哪种要说明兼容与本轮证据，不能把未比较的默认称质量赢家。
-- [ ] 分开判断协议成本改善、领域语义收益、编写便利和变化输入行为。若仅传输改善，应准确写成可靠交付/运行减负，不称发现新授权能力。
-- [ ] 新协议观察到更低重试/开销且所测质量无退化时按适用范围采用；有退化保留显式选择并列问题，不强求positive收口。
+- [x] plain可供普通用户选择；ledger用于要求可追踪义务覆盖的任务；conditions用于明确条件结果交付。默认采用哪种要说明兼容与本轮证据，不能把未比较的默认称质量赢家。
+- [x] 分开判断协议成本改善、领域语义收益、编写便利和变化输入行为。若仅传输改善，应准确写成可靠交付/运行减负，不称发现新授权能力。
+- [x] 新协议观察到更低重试/开销且所测质量无退化时按适用范围采用；有退化保留显式选择并列问题，不强求positive收口。
 
 ### Z11：文档与一次有限验证
-- [ ] 研究§7.23记录问题→证据→修改→验证→影响；同步usage、developer-guide、current-status、plan/spec和本任务书实际执行项。
-- [ ] 运行授权/benchmark/CLI聚合回归、`bun run typecheck`；修改provider或shim才补相应直接回归。
-- [ ] `python scripts/check_skill_ir_doc_links_test.py`及`python scripts/check_skill_ir_doc_links.py --root .`；解析本轮JSON/JSONL，一次离线重算新summary。只修复受影响检查，不重跑历史大审计。
+- [x] 研究§7.23记录问题→证据→修改→验证→影响；同步usage、developer-guide、current-status、plan/spec和本任务书实际执行项。
+- [x] 运行授权/benchmark/CLI聚合回归、`bun run typecheck`；修改provider或shim才补相应直接回归。
+- [x] `python scripts/check_skill_ir_doc_links_test.py`及`python scripts/check_skill_ir_doc_links.py --root .`；解析本轮JSON/JSONL，一次离线重算新summary。只修复受影响检查，不重跑历史大审计。
 
 ### Z12：归属发布与交接
 - [ ] 检查暂存归属和敏感信息，保留七项原修改和历史untracked；分功能提交，推送用户origin/skill-ir-aot，核对远端。
@@ -188,3 +188,7 @@ interface CompactAssessmentItem {
 遇缺库、参数、路径或schema问题，按证据修共享实现继续；无provider dispatch的失败可修好后新session恢复。暂停某个受阻研究单元时继续独立工程，不要求每例满分才能前进。方向仍为授权任务DSL，若要换领域或新增主动执行先说明变化。
 
 新线程必须从Z0立即开始，不只返回“计划已读”。每阶段更新同一status.json的nextAction与归属提交；上下文压缩后恢复未完项，不重做已完成任务。主讨论线程交接后不并发改代码。本轮是连续执行任务；未明确要求创建持续目标时，不额外调用goal工具。
+
+## 六、实际执行记录（2026-09-22）
+
+Z0–Z10已完成：首轮8、共享修订2、作者原/变2，共12单元/16调用。实现提交7ee3f546、14cd4fed、2a4ca3d3；配置冻结b812a44f。旧六次首答失败复现；新严格对象反例红绿通过。修订两答full但旧协议仍需fallback；compact header timeout保留，不追加第三轮。作者36诊断后主代理修正，实际deny/allow均验证，标agent-assisted且真人时间未知。175/175测试、1229断言、typecheck已通过。最终证据见[summary](../../../results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/summary.json)，研究默认与收益边界已同步§7.23。

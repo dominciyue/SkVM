@@ -2518,4 +2518,6 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **Z当前授权合同（2026-09-22）。** [Z0–Z12](../superpowers/plans/2026-09-22-authorization-dsl-protocol-and-usability.md)补齐public method选择，保持省略参数兼容；紧凑wire由宿主补稳定身份/版本、重建已验证fact关联，模型保留语义判断与事实引用。不得放松决定性语义、补假事实或改旧wire成绩以降低失败率。先核模型schema与本地validator，再做四任务旧/new匹配及一次原/变任务使用；评价将决策/控制与响应细节分开，新旧协议用同一新口径、Y原评分不改。正常10分析单元、至多14，来源均为已暴露development。开发Astra medium与被测Sol配置分开，收益按首答/质量/运行负担/作者步骤报告，不预定positive结论。
 
+**Z实现与使用边界（2026-09-22）。** public method与wire为独立轴：plain/ledger/conditions统一映射既有P/L/C路径，显式method固定B；省略method保持input-request或ledger默认。v4在三种method均可显式选择，宿主只补常量并按同义务fact ID建立稳定绑定，重复/陌生ID及来源/范围错误拒绝，coverage与condition语义检查继续复用。strict对象的模型schema与本地校验均禁止额外字段，但不声称provider强制遵守。v3评价补充以显式criterion ID区分必要授权控制、条件解释、响应细节，HTTP状态仅在任务要求或改变所问性质时必需，旧评价不重写。首轮v4有header交付超时，故legacy保持默认，不以已交付子集的正确性替代全体可靠性。作者试用实际完成不同用户deny到self-query allow；同policy/source、两次plain普通调用，36条首稿诊断与主代理修正如实保留，不声称真人节省。
+
 **研究文档维护。** 后续研究及开发复盘均更新同一研究总文档：问题触发、根因、解决、验证、方法变化与剩余项形成短记录，当前设计及时更新对应主题。原始来源与机器数据保存在同一研究目录的 development 子目录；状态与任务书维护执行进度，不另建一轮一份的设计、总结或交接正文。

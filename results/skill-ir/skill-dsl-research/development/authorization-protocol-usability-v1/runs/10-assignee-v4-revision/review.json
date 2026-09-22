@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "gitea-issue-assignee-nonwriter",
+  "taskId": "gitea-issue-assignee-nonwriter",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "180dcd6866bfe8917150b87a8bb484ffd0dc2d27c389d4b0289c698316bdb44c",
+  "rubricVersion": "gitea-issue-assignee-nonwriter/v1-z-v3",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "Z-development-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "assignee-post-add-mode",
+      "status": "supported",
+      "reason": "Answer explicitly states the required source-visible relationship/control/outcome at this location, consistent with the frozen source locations.",
+      "answerLocation": "/results/0/facts/entry/0",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 47,
+          "endLine": 49
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/0"
+    },
+    {
+      "criterionId": "assignee-issue-index-binding",
+      "status": "supported",
+      "reason": "Answer explicitly states the required source-visible relationship/control/outcome at this location, consistent with the frozen source locations.",
+      "answerLocation": "/results/0/facts/binding/2",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 53,
+          "endLine": 60
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/1"
+    },
+    {
+      "criterionId": "assignee-repository-permission-not-token-scope",
+      "status": "supported",
+      "reason": "Answer explicitly states the required source-visible relationship/control/outcome at this location, consistent with the frozen source locations.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "policy.json",
+          "startLine": 6,
+          "endLine": 8
+        },
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 63
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "criterionId": "assignee-effect-after-permission",
+      "status": "supported",
+      "reason": "Answer explicitly states the required source-visible relationship/control/outcome at this location, consistent with the frozen source locations.",
+      "answerLocation": "/results/0/facts/effect/0",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 84
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/3"
+    },
+    {
+      "criterionId": "assignee-http-403-detail",
+      "status": "supported",
+      "reason": "Answer explicitly states the required source-visible relationship/control/outcome at this location, consistent with the frozen source locations.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 63
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "criterionId": "assignee-condition-outcomes",
+      "status": "supported",
+      "reason": "Answer explicitly states the required source-visible relationship/control/outcome at this location, consistent with the frozen source locations.",
+      "answerLocation": "/conditionAnalysis/analyses/0/branches",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 84
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/conditionExplanation"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "Nonwriter is rejected after issue binding but before assignee resolution/mutation; token scope is distinct from repo permission.",
+    "answerLocation": "/results/0/explanation",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 6,
+        "endLine": 8
+      },
+      {
+        "path": "issue_assignee.go",
+        "startLine": 54,
+        "endLine": 63
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/cases/1/expectedDisposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "Explicitly bounded caller and fixed source entry. No inference of authentication middleware or whole-repository/deployment behavior.",
+    "answerLocation": "/results/0/explanation",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 6,
+        "endLine": 8
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/limits"
+  }
+}

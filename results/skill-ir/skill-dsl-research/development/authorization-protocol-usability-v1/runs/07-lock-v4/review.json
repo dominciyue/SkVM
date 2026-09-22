@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "gitea-issue-lock-writer-nonadmin",
+  "taskId": "gitea-issue-lock-writer-nonadmin",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "022acf260df419154fda4867eaa9e72633dabeb5df3ee19e813d4c32e74818b4",
+  "rubricVersion": "gitea-issue-lock-writer-nonadmin/v1-z-v3",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "Z-development-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "lock-route-admin-middleware",
+      "status": "supported",
+      "reason": "Answer explicitly states the required source-visible relationship/control/outcome at this location, consistent with the frozen source locations.",
+      "answerLocation": "/results/0/facts/entry/0",
+      "sourceLocations": [
+        {
+          "path": "route_guard.go",
+          "startLine": 16,
+          "endLine": 20
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0"
+    },
+    {
+      "criterionId": "lock-nonadmin-denial-control",
+      "status": "supported",
+      "reason": "Answer explicitly states the required source-visible relationship/control/outcome at this location, consistent with the frozen source locations.",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        {
+          "path": "route_guard.go",
+          "startLine": 4,
+          "endLine": 12
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+    },
+    {
+      "criterionId": "lock-writer-does-not-bypass-admin",
+      "status": "supported",
+      "reason": "Answer explicitly states the required source-visible relationship/control/outcome at this location, consistent with the frozen source locations.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "policy.json",
+          "startLine": 9,
+          "endLine": 10
+        },
+        {
+          "path": "route_guard.go",
+          "startLine": 7,
+          "endLine": 10
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2"
+    },
+    {
+      "criterionId": "lock-secondary-writer-and-effect",
+      "status": "supported",
+      "reason": "Answer explicitly states the required source-visible relationship/control/outcome at this location, consistent with the frozen source locations.",
+      "answerLocation": "/results/0/facts",
+      "sourceLocations": [
+        {
+          "path": "issue_lock.go",
+          "startLine": 43,
+          "endLine": 69
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3"
+    },
+    {
+      "criterionId": "lock-route-http-403-detail",
+      "status": "missing",
+      "reason": "Answer says forbidden/denied but never explicitly HTTP 403; citation is not an answer-level response claim.",
+      "answerLocation": null,
+      "sourceLocations": [
+        {
+          "path": "route_guard.go",
+          "startLine": 7,
+          "endLine": 10
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+    },
+    {
+      "criterionId": "lock-condition-outcomes",
+      "status": "supported",
+      "reason": "Answer explicitly states the required source-visible relationship/control/outcome at this location, consistent with the frozen source locations.",
+      "answerLocation": "/conditionAnalysis/analyses/0/branches",
+      "sourceLocations": [
+        {
+          "path": "route_guard.go",
+          "startLine": 4,
+          "endLine": 20
+        },
+        {
+          "path": "issue_lock.go",
+          "startLine": 43,
+          "endLine": 62
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "Correct bounded disposition with causal control and effect reasoning; header preserves deployment unknown.",
+    "answerLocation": "/results/0/explanation",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 9,
+        "endLine": 10
+      },
+      {
+        "path": "route_guard.go",
+        "startLine": 4,
+        "endLine": 20
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/cases/2/expectedDisposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "Answer confines the conclusion to the supplied entry and scenario; no repository-wide or deployment inference. Compact host scope text alone was not used.",
+    "answerLocation": "/results/0/explanation",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 9,
+        "endLine": 11
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/limits"
+  }
+}

@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260922T064439351Z-a08efcb1
+Status: completed
+Task: author-trial-collaborator
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v1
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- permission-query::permission-entry: source_refuted — The declared policy expectation is deny, and the fixed source enforces that expectation for the stated conditions. The entry reads the request-selected collaborator username, then applies a pre-load authorization guard: access proceeds only if the caller is a site administrator, the requested username matches the caller's identity, or the caller is a repository administrator. The declared caller is neither kind of administrator and is querying a different collaborator, so the guard returns HTTP 403 and stops before the target user is loaded. Consequently, the protected permission lookup and successful JSON effect are unreachable on the assessed branch. The source-visible facts answer the public questions as follows: the gating control is the compound guard; the runtime caller identity is represented by the request context's Doer fields, including Doer.IsAdmin and Doer.LowerName, with repository-admin status from IsUserRepoAdmin; the request-selected object is the collaborator path parameter, which is used to load the named user and then to query that user's permission in the selected repository, while the caller and target must remain distinct for this scenario; the strongest authorization decision is the immediate forbidden return for a non-admin requesting another user's permission, with site-admin, self-query, and repository-admin branches as the visible alternatives; the protected operation can reach its permission lookup and success response only through one of those allowed branches, not through the declared branch; and no source-external fact is needed to decide this fixed-source result. Deployment behavior and repository-wide entry completeness remain unknown and are outside scope, as source discovery is not-tested.
+  Evidence: The operation's declared endpoint and response contract identify the collaborator permission query, including the collaborator path input and forbidden response. (collaborators.go:6-6, collaborators.go:22-33)
+  Evidence: The request-selected collaborator username is read from the collaborator path parameter, and the source identifies that parameter as the username whose permissions are to be obtained. (collaborators.go:22-25)
+  Evidence: The handler compares the requested collaborator username with the authenticated context actor's LowerName, while also checking the actor's site-admin flag and repository-admin status. (collaborators.go:35-37)
+  Evidence: The strongest source-visible authorization control is the early compound guard allowing only a site administrator, a self-query, or a repository administrator; otherwise it emits a forbidden response and returns. (collaborators.go:35-39)
+  Evidence: The accepted normative rule independently specifies rejection with HTTP 403 before the target collaborator is loaded when none of the three allowed relations holds. (policy.json:6-7)
+  Evidence: Only after the guard does the handler load the username-selected collaborator, obtain that user's repository permission for the selected repository, and return the permission in a successful JSON response. (collaborators.go:41-57)
+  Evidence: On the declared branch, the early forbidden return prevents the protected permission read and successful response from being reached. (collaborators.go:35-39)
+  Evidence: The declared scenario is authenticated, repository-read, non-site-admin, non-repository-admin, and directed at a different existing collaborator; the accepted policy states that none of the site-admin, repository-admin, or self-query relations permits this case. (policy.json:6-8)
+  Evidence: For the different-collaborator, non-administrator branch, the guard condition is true and the handler returns HTTP 403 before proceeding. (collaborators.go:35-39)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

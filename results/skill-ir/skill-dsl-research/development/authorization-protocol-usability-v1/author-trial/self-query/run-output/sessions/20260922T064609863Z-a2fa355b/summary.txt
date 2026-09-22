@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260922T064609863Z-a2fa355b
+Status: completed
+Task: author-trial-collaborator-self
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v1
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- permission-query::permission-entry: source_refuted — The fixed source refutes a policy failure: the declared self-query is permitted by the entry's visible authorization gate. Entry: GetRepoPermissions reads the collaborator path parameter, applies an authorization condition, then loads that collaborator, retrieves the individual repository permission, and returns the permission-bearing JSON response. Principal/identity binding: the runtime caller is represented by ctx.Doer; the self branch compares ctx.Doer.LowerName with the request's collaborator username using case-insensitive equality. Resource binding: collaboratorUsername comes from the request path, while the repository resource is ctx.Repo.Repository; the separately checked resource is the repository-admin relation evaluated by ctx.IsUserRepoAdmin(), which is distinct from the requested collaborator identity. Strongest visible authorization control: the request is rejected only when the caller is not a site admin, the requested username is not their own, and the caller is not a repository admin. Under the declared conditions, the caller is not an administrator but is querying their own username, so the self branch makes the rejection condition false. After that gate, the operation can reach the protected effect through the ordinary branch: the selected collaborator is loaded, their individual repository permission is retrieved for the selected repository, and the result is returned with HTTP 200. This matches the accepted policy's allow relation for querying one's own username. The only potentially answer-changing facts outside this fixed source would be actual runtime identity/path values, repository context, or deployment/routing behavior, but the declared scenario supplies the relevant identity relation and the scope expressly does not assess deployment or repository-wide discovery; no additional decisive fact is needed for this source-visible conclusion.
+  Evidence: The source documents this operation as getting repository permissions for a user and declares the collaborator username as the target whose permissions are obtained. (collaborators.go:4-5, collaborators.go:22-25)
+  Evidence: The request-selected collaborator username is taken from the collaborator path parameter, and the runtime caller identity is represented by ctx.Doer.LowerName. (collaborators.go:35-36)
+  Evidence: The self relation is bound by case-insensitive equality between ctx.Doer.LowerName and collaboratorUsername. (collaborators.go:36-36)
+  Evidence: The declared scenario states that the requested username equals the caller username, while the caller is neither a repository administrator nor a site administrator. (policy.json:6-8)
+  Evidence: The strongest source-visible authorization control is the compound pre-load check before the target collaborator is loaded; the self-username branch is sufficient to bypass rejection even though the caller is not an administrator. (collaborators.go:35-41)
+  Evidence: The source-visible policy describes the nonmatching case as rejected with HTTP 403 before the target collaborator is loaded, but the declared self relation is a matching allowed case. (policy.json:6-8)
+  Evidence: After the authorization gate, the selected collaborator is loaded; the operation then retrieves that user's individual permission for ctx.Repo.Repository and returns it in an HTTP 200 JSON response. (collaborators.go:41-57)
+  Evidence: The protected permission read is therefore reachable through the self-query branch, subject to ordinary error returns if collaborator loading or permission retrieval fails. (collaborators.go:41-57)
+  Evidence: The visible rejection gate rejects only when the caller is not a site administrator, the requested collaborator is not the caller, and the caller is not a repository administrator. (collaborators.go:36-39)
+  Evidence: The accepted policy allows a caller to query repository permission when querying their own username, as well as when holding either administrator role. (policy.json:6-6)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

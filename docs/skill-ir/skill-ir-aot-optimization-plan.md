@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-22
 - 路线：按 skill/task 范围设计领域 DSL，当前为源码可见授权与信任边界任务。
-- 状态：Y已结束，公共method入口遗漏转交Z；Z0–Z12已授权连续执行。
+- 状态：Z0–Z10完成；12分析单元/16调用结果已冻结，Z11验证与Z12归属发布收尾，不追加研究调用。
 - 唯一实时入口：[current-status.md](current-status.md)
 - 方法合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[Z0–Z12](../superpowers/plans/2026-09-22-authorization-dsl-protocol-and-usability.md)
@@ -38,3 +38,5 @@
 S/D/E/T完成分类、来源、范围与语义准备；V/W建立原型、传输与计量。X在两项目五任务的23次初轮得到14 full/5 partial/4 incorrect，共同标签合同复测4/4 full；普通CLI默认B，D没有额外观察收益。Y新增条件结果、authoring与顶层CLI：开发P/L/C面板15/15决策正确，C只在一个任务少一项解释缺口；方法固定的Gitea迁移12/12决策正确、P/C质量持平，C为1.5倍调用、2.93倍known tokens和2.36倍known time。最终价值为mixed，ordinary继续B/L、C opt-in；旧成绩不重写，actual USD unknown。
 
 恢复读取状态页、Z任务书、研究§7.23和Z执行代理创建的status.json；只按实际未完成项继续。原始证据由[证据索引](evidence-index.md)和[历史](history.md)承载。Z任务书已记录Y的method漏项、六次C首答传输失败和HTTP403评价争议，优先修共享实现并验证真实使用。
+
+实际执行：初轮8单元、一次共享strict-schema修订2单元、作者plain原/变任务2单元。legacy默认与省略method兼容不变；v4保持显式选择。结果为mixed，具体首答/最终质量、分字段成本和作者步骤见[本轮汇总](../../results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/summary.json)。

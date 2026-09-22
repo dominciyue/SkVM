@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v1",
+  "sourceRoot": "./source",
+  "sources": ["collaborators.go", "policy.json"],
+  "task": {
+    "naturalTask": "Determine whether an authenticated repository-read collaborator, who is neither a repository administrator nor a site administrator, may query a different existing collaborator's repository permission using GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission.",
+    "policySources": ["policy.json", "collaborators.go"],
+    "principals": [
+      {"id": "caller", "kind": "authenticated-user", "relations": ["repository-read-collaborator"], "isSiteAdmin": false, "isRepositoryAdmin": false},
+      {"id": "target-collaborator", "kind": "existing-collaborator", "sameAsCaller": false}
+    ],
+    "resources": [
+      {"id": "gitea-repository", "repository": "https://github.com/go-gitea/gitea", "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b"},
+      {"id": "repository-permission", "kind": "collaborator-repository-permission"}
+    ],
+    "entries": [{"id": "get-collaborator-permission", "method": "GET", "path": "/repos/{owner}/{repo}/collaborators/{collaborator}/permission", "caller": "caller", "target": "target-collaborator", "resource": "repository-permission"}],
+    "obligations": [{"id": "authorization-decision", "entry": "get-collaborator-permission", "expectation": "deny", "statusCode": 403, "reason": "Caller is neither a site administrator nor a repository administrator and is querying a different collaborator."}],
+    "boundedScope": {"repository": "https://github.com/go-gitea/gitea", "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b", "endpoint": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission", "target": "different existing collaborator", "claimBoundary": "Declared fixed source entry only."},
+    "constraints": ["Use only the declared source files.", "Do not generalize beyond the fixed repository, source ref, and endpoint.", "The denial must be assessed before loading the target collaborator.", "No condition-analysis request."]
+  }
+}

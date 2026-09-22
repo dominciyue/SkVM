@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v1",
+  "sourceRoot": "source",
+  "sources": [
+    "collaborators.go",
+    "policy.json"
+  ],
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "author-trial-collaborator",
+    "request": "Determine whether an authenticated repository-read collaborator, who is neither a repository administrator nor a site administrator, may query a different existing collaborator's repository permission using GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission.",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "collaborator-policy",
+        "kind": "task-requirement",
+        "text": "A caller may query collaborator permission when querying self, as a repository administrator, or as a site administrator; otherwise deny.",
+        "location": "source/policy.json:6",
+        "revision": "task-policy-v1",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The user supplied this bounded normative policy."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "caller",
+        "role": "authenticated repository read collaborator",
+        "description": "Neither a repository administrator nor a site administrator; querying a different existing collaborator.",
+        "startingCapabilities": [
+          "authenticated",
+          "repository-read"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "permission",
+        "type": "collaborator repository permission",
+        "description": "Permission of a different existing collaborator in the selected repository."
+      }
+    ],
+    "entries": [
+      {
+        "id": "permission-entry",
+        "name": "GetRepoPermissions",
+        "locations": [
+          {
+            "path": "collaborators.go",
+            "startLine": 5,
+            "endLine": 58
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "permission-query",
+        "principalId": "caller",
+        "resourceId": "permission",
+        "relation": "different-collaborator",
+        "operation": "read collaborator permission",
+        "expectation": "deny",
+        "conditions": [
+          {
+            "name": "authenticated repository reader",
+            "basis": "Fixed by the natural task."
+          },
+          {
+            "name": "not administrator",
+            "basis": "The caller is neither repository admin nor site admin."
+          },
+          {
+            "name": "different existing collaborator",
+            "basis": "The requested username belongs to a different existing collaborator."
+          }
+        ],
+        "policySourceId": "collaborator-policy",
+        "entryIds": [
+          "permission-entry"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only the supplied fixed GetRepoPermissions entry; source discovery and deployment are not assessed.",
+    "requiredAnalysis": [
+      "Explain caller and target binding, the strongest authorization control, and whether the protected permission read is reachable.",
+      "State any decisive unavailable fact without inventing deployment behavior."
+    ],
+    "constraints": [
+      "Use only the supplied fixed source and the declared scenario.",
+      "Do not execute or modify the target.",
+      "The policy source normative rule is shared; its boundedScenario describes the original example, while this task declares the scenario being assessed."
+    ]
+  }
+}

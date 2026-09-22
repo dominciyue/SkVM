@@ -1,0 +1,29 @@
+Authorization assessment
+Session: 20260922T062948842Z-14e1d20f
+Status: completed
+Task: gitea-collaborator-cross-user-permission
+Method: conditions (explicit); requested: conditions; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- deny-cross-user-permission-query::get-collaborator-permission: source_refuted — For the declared authenticated read collaborator querying a different existing collaborator, the fixed source enforces the declared deny expectation. The handler checks whether the caller is a site administrator, is querying their own username, or is a repository administrator; when all three exception conditions are false, it returns HTTP 403 and returns before loading the target collaborator or computing/returning the permission record. Repository read-collaborator access is distinct from repository-administrator status. This is bounded to the supplied entry and fixed source context, not a repository-wide or deployment-wide claim.
+  Evidence: The assessed entry is the GET operation for obtaining repository permissions for the username supplied as the collaborator path parameter. (collaborators.go:4-25)
+  Evidence: The operation uses the authenticated request's Doer identity for the administrator and self-username checks; the bounded scenario supplies an authenticated caller who is not a site administrator and is not the requested collaborator. (collaborators.go:35-37, policy.json:6-7)
+  Evidence: The requested collaborator resource is selected from the collaborator path parameter and is then used as the target user for the permission lookup against the repository in the request context; the bounded scenario makes that target a different existing collaborator. (collaborators.go:22-25, collaborators.go:35-41, collaborators.go:51-51, policy.json:7-7)
+  Evidence: Before target lookup, the handler permits the request only if the caller is a site administrator, the collaborator username equals the caller username case-insensitively, or the caller is a repository administrator; if none holds, it returns HTTP 403. (collaborators.go:35-39, policy.json:6-6)
+  Evidence: The protected effect is loading the target collaborator, obtaining that user's repository permission, and returning the permission-bearing JSON response; the false-condition branch exits before all of those steps. (collaborators.go:39-57)
+  Evidence: The bounded scenario fixes the caller as non-site-admin, non-repository-admin, and different from the requested collaborator, so the authorization predicate is false and the denial branch is selected. (policy.json:6-7)
+  Evidence: The accepted policy and conclusion are expressly limited to this fixed source entry and do not assert behavior for every endpoint, version, or deployment. (policy.json:8-8)
+
+Coverage
+- authorization-core-v1.authorization-decision × deny-cross-user-permission-query::get-collaborator-permission: addressed — The identity and resource bindings are supplied, and the source-visible authorization control has three granting branches: site administrator, self-query, and repository administrator. All are false in the bounded scenario, so the strongest source-visible decision is rejection with HTTP 403.
+- authorization-core-v1.effect-reachability × deny-cross-user-permission-query::get-collaborator-permission: addressed — The denial return occurs before target-user loading, repository-permission lookup, and the permission response. Therefore the declared protected effect is blocked on the bounded false-condition branch; it is reachable only through a source-visible granting branch.
+- authorization-core-v1.entry-control × deny-cross-user-permission-query::get-collaborator-permission: addressed — The pre-lookup conditional on site-admin status, case-insensitive self-identity, and repository-admin status gates the entry and directly returns HTTP 403 when none is true.
+- authorization-core-v1.external-assumption × deny-cross-user-permission-query::get-collaborator-permission: addressed — No external deployment fact is needed to decide the bounded source-visible branch because the policy supplies the caller, relationship, and target conditions and the source supplies the control and effect ordering. The source nevertheless limits the claim to this fixed entry, so behavior outside that boundary remains unassessed rather than inferred.
+- authorization-core-v1.identity-binding × deny-cross-user-permission-query::get-collaborator-permission: addressed — The handler binds authorization to ctx.Doer, using its administrator flag and lower-cased name, while the bounded scenario supplies the caller's authenticated non-admin, non-target identity relation.
+- authorization-core-v1.resource-binding × deny-cross-user-permission-query::get-collaborator-permission: addressed — The collaborator path parameter identifies the target username, which is loaded and paired with the repository from the request context for the individual permission lookup; the target is distinct from the caller under the bounded scenario.
+
+Condition analysis
+- deny-cross-user-permission-query::get-collaborator-permission: bounded; 4 branch(es)
