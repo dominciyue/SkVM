@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import syntheticAssessment from "../../examples/authorization-assessment/assessment.json" with { type: "json" }
+import syntheticAuthoringV2 from "../../examples/authorization-assessment/authoring-v2.json" with { type: "json" }
 import { normalizeAuthorizationAuthoringInput } from "../benchmarks/authorization-dsl/authoring.ts"
 import {
   runLocalAuthorizationCli,
@@ -59,9 +60,11 @@ async function initializeAuthorizationInput(
   args: string[],
   dependencies: AuthorizationCliDependencies,
 ): Promise<number> {
-  const options = parseOptions(args, new Set(["out", "from"]))
+  const options = parseOptions(args, new Set(["out", "from", "format"]))
+  if (options.format && options.format !== "authoring-v2") throw new AuthorizationCliError("format must be authoring-v2 or omitted.", 2)
+  if (options.format && options.from) throw new AuthorizationCliError("Use --format for a template or --from for normalization, not both.", 2)
   const outputPath = path.resolve(requireOption(options, "out"))
-  let value: unknown = structuredClone(syntheticAssessment)
+  let value: unknown = structuredClone(options.format ? syntheticAuthoringV2 : syntheticAssessment)
   let mode: "synthetic-template" | "normalized-authoring" = "synthetic-template"
   let provenance: unknown
 
@@ -107,10 +110,11 @@ export function authorizationCliHelp(): string {
     "skvm authorization — bounded source-visible authorization assessment",
     "",
     "Commands:",
-    "  init --out=<assessment.json> [--from=<authoring.json>]",
+    "  init --out=<assessment.json> [--from=<authoring.json> | --format=authoring-v2]",
     "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--arm=N|B|D]",
     "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--arm=N|B|D]",
     "  inspect --out=<output-root-or-session>",
+    "  compare --previous=<session> --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4]",
     "",
     "init never overwrites an existing file. With --from, keep authoring and output beside each other so sourceRoot stays bounded.",
     "Only run initializes a provider. A condition request in the input opts into wire/v3; otherwise the existing ledger path is used.",

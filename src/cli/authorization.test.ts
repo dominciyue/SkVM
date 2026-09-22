@@ -184,6 +184,16 @@ function dependencies(
 }
 
 describe("authorization CLI", () => {
+  it("keeps requested condition questions public in plain, ledger and conditions on the same v4 base", async () => {
+    const fixture=await makeFixture({conditionRequest:true})
+    const calls={factory:0,provider:0},stdout:string[]=[],stderr:string[]=[]
+    for(const method of ["plain","ledger","conditions"]) {
+      expect(await runAuthorizationCli(["check",`--input=${fixture.inputPath}`,`--method=${method}`,"--wire=v4"],dependencies(fixture.inputPath,calls,stdout,stderr))).toBe(0)
+      expect(JSON.parse(stdout.at(-1)!).preview).toContain("Compare bounded outcomes for deny-foreign-update::update-record")
+      expect(JSON.parse(stdout.at(-1)!).preview).toContain("at most 2 branches")
+    }
+    expect(calls.factory).toBe(0)
+  })
   it("selects public methods before provider creation and preserves input-request compatibility", async () => {
     const fixture = await makeFixture({ conditionRequest: true })
     const calls = { factory: 0, provider: 0 }

@@ -19,6 +19,7 @@ import {
 import { AuthorizationTaskV0Schema, type AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
 import { compileAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
 import { loadPortableSourceBundle, type SourceBundle } from "./inputs.ts"
+import type { AuthorizationAuthoringProvenance } from "./authoring.ts"
 
 const NonEmptyString = z.string().trim().min(1)
 
@@ -54,6 +55,9 @@ export type LocalInputResult =
   | {
     status: "valid"
     inputPath: string
+    rawInput: string
+    normalizedInput: LocalAuthorizationInput
+    provenance: AuthorizationAuthoringProvenance | { normalizerVersion: string }
     sourceRoot: string
     task: AuthorizationTaskV0
     sourceBundle: SourceBundle
@@ -131,6 +135,17 @@ export async function loadLocalAuthorizationInput(inputFile: string): Promise<Lo
     }
   }
 
+  let provenance: AuthorizationAuthoringProvenance | { normalizerVersion: string } = { normalizerVersion: "normalized-input/v1" }
+  const version = typeof inputValue === "object" && inputValue !== null && "schemaVersion" in inputValue ? inputValue.schemaVersion : undefined
+  if (version === "authorization-assessment-authoring/v1" || version === "authorization-assessment-authoring/v2") {
+    const { normalizeAuthorizationAuthoringInput } = await import("./authoring.ts")
+    const normalized = normalizeAuthorizationAuthoringInput(inputValue)
+    if (normalized.status !== "ready") return { status: "invalid", inputPath, diagnostics: normalized.diagnostics }
+    inputValue = normalized.normalizedInput
+    provenance = normalized.provenance
+  } else if (version !== "authorization-assessment-input/v1") {
+    return { status: "invalid", inputPath, diagnostics: [{code:"input-version-invalid",path:"schemaVersion",message:"Use authorization-assessment-authoring/v1, authoring/v2, or authorization-assessment-input/v1."}] }
+  }
   const parsed = LocalAuthorizationInputSchema.safeParse(inputValue)
   if (!parsed.success) {
     return {
@@ -274,6 +289,9 @@ export async function loadLocalAuthorizationInput(inputFile: string): Promise<Lo
   return {
     status: "valid",
     inputPath,
+    rawInput: raw,
+    normalizedInput: input,
+    provenance,
     sourceRoot,
     task: input.task,
     sourceBundle: loadedBundle.bundle,

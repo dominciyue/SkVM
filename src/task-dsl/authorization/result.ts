@@ -3,6 +3,7 @@ import {
   parseAuthorizationResult,
   type AuthorizationObligationResult,
   type AuthorizationResultV0,
+  type AuthorizationTaskV0,
   type Diagnostic,
 } from "./schema.ts"
 import type { CompiledAuthorizationTask } from "./semantics.ts"
@@ -10,6 +11,8 @@ import type { CompiledAuthorizationTask } from "./semantics.ts"
 type EvidencePresenceStatus = "present" | "missing" | "invalid"
 
 export interface AuthorizationDependencySnapshot {
+  schemaVersion?: "authorization-task-dependencies/v1"
+  task?: AuthorizationTaskV0
   repository: string
   sourceRef: string
   sourceFiles: Array<{ path: string; sha256: string }>
@@ -77,6 +80,8 @@ function createDependencySnapshot(
   sourceBundle: SourceBundle,
 ): AuthorizationDependencySnapshot {
   return {
+    schemaVersion: "authorization-task-dependencies/v1",
+    task: structuredClone(compiled.task),
     repository: compiled.task.repository,
     sourceRef: compiled.task.sourceRef,
     sourceFiles: sourceBundle.files
@@ -391,7 +396,12 @@ export interface AuthorizationChangeAssessment {
 }
 
 function sameJson(left: unknown, right: unknown): boolean {
-  return JSON.stringify(left) === JSON.stringify(right)
+  return stableAuthorizationJson(left) === stableAuthorizationJson(right)
+}
+
+export function stableAuthorizationJson(value: unknown): string {
+  const canonical = (v: any): any => Array.isArray(v) ? v.map(canonical) : v && typeof v === "object" ? Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonical(v[k])])) : v
+  return JSON.stringify(canonical(value))
 }
 
 export function assessAuthorizationResultChange(
@@ -402,6 +412,8 @@ export function assessAuthorizationResultChange(
 ): AuthorizationChangeAssessment {
   const next = createDependencySnapshot(nextCompiled, nextSourceBundle)
   const reasons: string[] = []
+  if (previous.schemaVersion !== "authorization-task-dependencies/v1" || !previous.task) reasons.push("missing-task-dependencies")
+  else if (!sameJson({ ...previous.task, sourceRef: next.sourceRef }, next.task)) reasons.push("task-input-changed")
   if (previous.repository !== next.repository) reasons.push("repository-changed")
   if (!sameJson(previous.sourceFiles, next.sourceFiles)) reasons.push("relevant-source-changed")
   if (!sameJson(previous.policies, next.policies)) reasons.push("policy-changed")

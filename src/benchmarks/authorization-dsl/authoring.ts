@@ -1,4 +1,5 @@
 import { z, type ZodIssue } from "zod"
+import { lowerAuthorizationAuthoringV2, type AuthorizationAuthoringInputV2 } from "./authoring-v2.ts"
 import {
   AnalysisRequirementsSchema,
   compileAnalysisRequirements,
@@ -53,6 +54,8 @@ export interface AuthorizationAuthoringDiagnostic {
 }
 
 export interface AuthorizationAuthoringProvenance {
+  normalizerVersion?: string
+  fieldSources?: { author: string[]; derived: string[]; omitted: string }
   task: "author"
   sourceRoot: "author"
   sources: "author"
@@ -65,7 +68,7 @@ export interface AuthorizationAuthoringProvenance {
 export type AuthorizationAuthoringNormalization =
   | {
     status: "ready"
-    authoringInput: AuthorizationAuthoringInputV1
+    authoringInput: AuthorizationAuthoringInputV1 | AuthorizationAuthoringInputV2
     normalizedInput: LocalAuthorizationInput
     analysisProfile: LocalAnalysisProfile
     analysisRequirements: AnalysisRequirement[]
@@ -190,6 +193,9 @@ function sortedDiagnostics(
 export function normalizeAuthorizationAuthoringInput(
   input: unknown,
 ): AuthorizationAuthoringNormalization {
+  const version = typeof input === "object" && input !== null && "schemaVersion" in input ? input.schemaVersion : undefined
+  if (version === "authorization-assessment-authoring/v2") return lowerAuthorizationAuthoringV2(input, normalizeAuthorizationAuthoringInput)
+  if (version !== "authorization-assessment-authoring/v1") return { status: "needs-input", diagnostics: [diagnostic("author-version-invalid", "Missing or unsupported authoring schemaVersion.", "schemaVersion", "Use authorization-assessment-authoring/v1 or authorization-assessment-authoring/v2.")] }
   const diagnostics: AuthorizationAuthoringDiagnostic[] = []
   const envelope = AuthorizationAuthoringEnvelopeV1Schema.safeParse(input)
   if (!envelope.success) {

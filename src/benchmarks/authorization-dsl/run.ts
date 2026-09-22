@@ -787,6 +787,11 @@ export async function replayAuthorizationRunDirectory(input: {
       const artifact = run[generation]
       if (!artifact) continue
       const replayedValidation = validateAuthorizationResult(compiled, artifact.result, sourceBundle)
+      // Replay the historical validation shape, without upgrading its dependency evidence.
+      if (!artifact.validation.dependencySnapshot.schemaVersion) {
+        delete replayedValidation.dependencySnapshot.schemaVersion
+        delete replayedValidation.dependencySnapshot.task
+      }
       const replayedValidationSha256 = sha256(JSON.stringify(replayedValidation))
       const archivedValidationSha256 = sha256(JSON.stringify(artifact.validation))
       let legacyDecisionMatchesArchived: boolean | null = null

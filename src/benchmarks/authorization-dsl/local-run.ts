@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto"
 import { appendFile, mkdir, readFile, stat, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { z } from "zod"
+import { createExecutionDependencies, compareAuthorizationInput } from "./change-report.ts"
 import type { LLMProvider } from "../../providers/types.ts"
 import { resolveAuthorizationMethod, methodStudyArm, type AuthorizationMethod, type AuthorizationMethodSelection } from "../../task-dsl/authorization/method.ts"
 import {
@@ -51,6 +52,7 @@ export interface LocalAuthorizationCheckReport {
   preview?: string
   promptCharacters?: AuthorizationPromptCharacterBreakdown
   diagnostics: AnalysisDiagnostic[]
+  diagnosticGroups?: Record<string, Array<AnalysisDiagnostic & { fix: string }>>
 }
 
 export type LocalAuthorizationSessionStatus =
@@ -160,6 +162,9 @@ export interface LocalAuthorizationSessionReport {
     sourceBundle: string
     analysisRequirements: string
     preview: string
+    normalizedInput?: string
+    fieldProvenance?: string
+    executionDependencies?: string
     dispatch?: string
     events?: string
     run?: string
@@ -239,21 +244,27 @@ function studyExecutionInputs(
   conditionPlan?: NonNullable<ValidLocalAuthorizationInput["conditionPlan"]>
   renderOptions?: AuthorizationRenderOptions
 } {
+  const publicAnalysisQuestions = [
+    ...loaded.analysisRequirements.map(requirement => requirement.question),
+    ...(loaded.conditionPlan?.entries ?? []).map(entry => `Compare bounded outcomes for ${entry.obligationId} using at most ${entry.maxBranches} branches. Consider ${entry.conditions.map(c => `${c.name} (${c.basis})`).join("; ")}. Explain reachable, blocked or unknown effects and decisive missing facts; assumptions are hypotheses, not observed deployment facts. State any unexamined conditions; this is not exhaustive path enumeration.`),
+  ]
   if (studyArm === "P") {
     return {
       renderOptions: {
         declarationStyle: "natural",
-        publicAnalysisQuestions: loaded.analysisRequirements.map(requirement => requirement.question),
+        publicAnalysisQuestions,
       },
     }
   }
   if (studyArm === "L") {
     return {
+      renderOptions: { publicAnalysisQuestions },
       analysisRequirements: loaded.analysisRequirements,
       analysisPlan: loaded.analysisPlan,
     }
   }
   return {
+    renderOptions: { publicAnalysisQuestions },
     analysisRequirements: loaded.analysisRequirements,
     analysisPlan: loaded.analysisPlan,
     ...(loaded.conditionAnalysisRequest && loaded.conditionPlan
@@ -278,6 +289,7 @@ function checkReport(
       status: "invalid",
       inputPath: loaded.inputPath,
       diagnostics: loaded.diagnostics,
+      diagnosticGroups: groupInputDiagnostics(loaded.diagnostics),
     }
   }
   if (studyArm && arm !== "B") {
@@ -358,6 +370,17 @@ function checkReport(
 
 function localStudyDiagnostic(code: string, message: string, diagnosticPath?: string): AnalysisDiagnostic {
   return { code, message, ...(diagnosticPath ? { path: diagnosticPath } : {}) }
+}
+
+function groupInputDiagnostics(diagnostics: AnalysisDiagnostic[]) {
+  const groups: Record<string, Array<AnalysisDiagnostic & { fix: string }>> = {}
+  for (const d of diagnostics) {
+    const field = d.path ?? "$"
+    const group = /policy|policies/.test(field) ? "policy" : /source|entries|locations/.test(field) ? "source" : /scenario|obligation|principal|resource/.test(field) ? "scenario" : "task"
+    const fix = "fix" in d && typeof d.fix === "string" ? d.fix : `Correct ${field}: ${d.message}`
+    ;(groups[group] ??= []).push({ ...d, fix })
+  }
+  return groups
 }
 
 export async function checkLocalAuthorizationInput(
@@ -523,11 +546,14 @@ export async function executeLocalAuthorizationRun(input: {
   const selectionMetadata = { methodSelection: checked.methodSelection, wireVersion: checked.wireVersion }
 
   const session = await createSession(input.outRoot)
-  const inputBytes = await readFile(loaded.inputPath, "utf8")
+  const inputBytes = loaded.rawInput
   const baseArtifacts: NonNullable<LocalAuthorizationSessionReport["artifacts"]> = {
     session: "session.json",
     check: "check.json",
     input: "input.json",
+    normalizedInput: "normalized-input.json",
+    fieldProvenance: "field-provenance.json",
+    executionDependencies: "execution-dependencies.json",
     task: "task.json",
     sourceBundle: "source-bundle.json",
     analysisRequirements: "analysis-requirements.json",
@@ -551,6 +577,9 @@ export async function executeLocalAuthorizationRun(input: {
   })
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.check), checked)
   await writeExclusive(path.join(session.sessionPath, baseArtifacts.input), inputBytes)
+  await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.normalizedInput!), loaded.normalizedInput)
+  await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.fieldProvenance!), loaded.provenance)
+  await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.executionDependencies!), createExecutionDependencies(loaded, checked))
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.task), loaded.task)
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.sourceBundle), loaded.sourceBundle)
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.analysisRequirements), effectiveStudyArm === "P"
@@ -811,7 +840,7 @@ async function validateTerminalSession(input: {
       || run.finalKind !== report.finalKind
       || (report.wireVersion !== undefined && run.wireVersion !== report.wireVersion)
       || !samePersistedValue(artifact?.result, report.canonicalResult)
-      || !samePersistedValue(artifact?.relationCoverage, report.relationCoverage)
+      || !samePersistedValue(artifact ? artifact.relationCoverage ?? [] : undefined, report.relationCoverage)
       || !samePersistedValue(artifact?.coverageValidation, report.coverageValidation)
       || !samePersistedValue(artifact?.conditionAnalysis, report.conditionAnalysis)
       || !samePersistedValue(artifact?.conditionValidation, report.conditionValidation)
@@ -947,8 +976,9 @@ function helpText(): string {
     "Authorization local assessment",
     "",
     "Commands:",
-    "  check --input=<assessment.json> [--arm=N|B|D]  (default: B)",
-    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--arm=N|B|D]  (default: B)",
+    "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4] [--arm=N|B|D]",
+    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--wire=legacy|v4] [--arm=N|B|D]",
+    "  compare --previous=<session> --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4]",
     "  inspect --out=<output-root-or-session>",
     "",
     "Only run initializes a provider. Every run creates a new immutable session; inspect never resends it.",
@@ -965,6 +995,14 @@ export async function runLocalAuthorizationCli(
   }
   const command = argv[0]!
   try {
+    if (command === "compare") {
+      const options = parseOptions(argv.slice(1), new Set(["previous", "input", "method", "wire"]))
+      const report = await compareAuthorizationInput(requireOption(options,"previous","compare"), requireOption(options,"input","compare"), {
+        ...(options.method ? {method:parseMethod(options.method)} : {}), ...(options.wire ? {wireVersion:parseWire(options.wire)} : {}),
+      })
+      dependencies.stdout(JSON.stringify(report,null,2))
+      return report.status === "input-invalid" ? 1 : 0
+    }
     if (command === "check") {
       const options = parseOptions(argv.slice(1), new Set(["input", "arm", "method", "wire"]))
       const report = await checkLocalAuthorizationInput(

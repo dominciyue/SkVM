@@ -2,6 +2,8 @@
 
 This is a synthetic, self-contained source example for the ordinary authorization assessment entry. It is not a real vulnerability report and is not an evaluator fixture.
 
+Start new declarations with `authoring-v2.json`: named policies/principals/resources/entries/scenarios replace internal IDs. Run `bun ./src/index.ts authorization check --input=./examples/authorization-assessment/authoring-v2.json --method=plain --wire=v4` directly. See [usage](../../docs/usage.md#bounded-authorization-assessment-opt-in-development-capability) for fields, condition requests and read-only compare. The original v1 files remain compatible.
+
 From the repository root, validate the input through the opt-in top-level command without creating a model provider:
 
 ```powershell

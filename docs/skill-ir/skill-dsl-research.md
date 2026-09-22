@@ -757,11 +757,15 @@ The single shared strict-schema revision was frozen at `2a4ca3d3`, limited to th
 
 **声明合同。** v2以命名字典表达policies/principals/resources/entries/scenarios，场景显式引用对象并保留relation、operation、expectation与可选条件分析。程序只拼接作者原文和机械字段，不从源码猜规范答案。actorRole/sourceRefVerification仍标作者声明。旧v1和normalized input继续兼容；check/run直接读v2，原输入与normalized快照分存。主请求、政策与角色关系依然需要作者表达清楚，确定性检查不承诺识别所有自由文本矛盾。
 
+AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canonical数组；ID为类型命名空间加UTF-8百分号转义键，条件ID包含场景和条件两个分隔编码段。数组顺序保留；禁止原型键、控制字符和首尾空白键。policy→policySources（kind=explicit-task-requirement、actorRole=task-author）；principal role原样，facts用中性标签拼成description，capabilities→startingCapabilities；resource type原样、facts→description；entries位置原样；scenario→obligation，引用按字典名称解析。缺facts/capabilities/conditions只表示未声明。共同requiredAnalysis、固定scope和只读constraints由版本规则提供，additionalQuestions/Constraints追加。condition request仅从显式analyzeConditions派生，不从源码决定期待或分支真值。provenance分别列明作者路径与派生字段。AA0新鲜基线175/1229；AA1三项测试按未支持v2预期失败。Z的36条诊断分为错误嵌套/字段名、缺canonical机械字段、缺作者语义字段三类，不能把所有错误都计成可自动消除的负担。
+
 **修改与复用。** 现有result.ts快照保存主体/资源ID而缺属性，也未完整覆盖request、入口位置、公共要求等。新执行依赖需涵盖实际模型输入与结果合同，compare按变化解释受影响场景，旧session缺依赖保持needs-review。模型读过的全局source变化不能仅凭最终citation缩小影响。先交付只读适用性判断和修改传播，不自动复用旧答案或重标语义正确。
 
 **评价与试用。** 两项独立作者试用覆盖Gitea different-user→self-query及FastAPI普通用户→superuser，记录草稿、诊断、自行修订、辅助介入及普通运行。六个已有任务的plain/ledger或plain/conditions在同v4、同源码/公共问题/模型/评价下配对，包含positive/refutation/allow/deny/unknown；正常12面板+至多4作者单元，一次明确共享修订最多4追加。作者负担、过期结果识别和运行质量/成本分别解释，不用格式字段存在充当领域收益。
 
 **维护。** AA实质问题与解决追加在本节，及时同步当前设计；结果放统一AA目录。Z结果已从文末证据索引之后归回§7.23，原机器数据及历史评分均未修改。下一执行任务沿用当前主分支，保留七项原代码修改，不扩到主动发现、目标执行或新任务类别。
+
+**AA2–AA6工程记录。** v2确定性lowering及版本分发、直接loader、init格式、原稿/normalized/provenance分存与只读compare已通过红绿测试。完整task快照补齐角色、资源、入口与公共要求；session另外绑定profile、condition request、method/wire、normalizer、全部source及prompt摘要。compare只说明适用性；同一fixed context中的任何输入变化保守影响全部场景，不按最终citation缩小。历史快照缺字段明确needs-review，V离线replay按其旧快照形状比较，绝不回填旧文件。集成测试同时暴露plain inspect把缺coverage与报告空数组误判为不一致，已统一其既有空值约定。AA6红测复现plain丢失condition request的公共分支问题；现在三method均接收相同的自然条件问题及分支上界，sidecar仍只在conditions执行，历史结果不重跑。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

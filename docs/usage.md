@@ -63,7 +63,17 @@ skvm authorization run --input=./assessment.json --model=<provider/model> --out=
 skvm authorization inspect --out=./.skvm/authorization-demo
 ```
 
-`init` writes a clearly synthetic, complete editable assessment and refuses to overwrite an existing path. To remove repeated identity/profile fields, start with `authorization-assessment-authoring/v1` beside its project and normalize it separately:
+For new authoring, use the complete [authoring-v2.json](../examples/authorization-assessment/authoring-v2.json) example. Write `taskId`, the natural `request`, `repository`, fixed `sourceRef`, relative `sourceRoot`, explicit `sources`, and named dictionaries `policies`, `principals`, `resources`, `entries`, `scenarios`. No internal IDs are needed. Policy text/location/revision/acceptance/reason and each scenario's relation/operation/expectation belong to the author; the program never derives policy from source. Each scenario names its principal, resource, policy and entries. Optional facts and capabilities are string arrays; omit them only when not declared. `conditions` maps names to `{basis}`; optional `analyzeConditions:{names,maxBranches}` requests bounded analysis of declared names (1–12 branches, default 8). `additionalQuestions` and `additionalConstraints` append to the shared host rules. Unknown fields and ambiguous names are rejected.
+
+```powershell
+skvm authorization init --format=authoring-v2 --out=./authoring.json
+skvm authorization check --input=./authoring.json --method=plain --wire=v4
+skvm authorization run --input=./authoring.json --method=plain --wire=v4 --model=xty/gpt-5.6-sol --out=./runs
+```
+
+The template is synthetic: edit its policy, scenario and explicit source locations for your task, or copy the complete example directory to try it unchanged. `check` and `run` accept v2 directly and resolve sourceRoot relative to that original file. A session separately saves `input.json` (original bytes), `normalized-input.json`, `field-provenance.json`, and `execution-dependencies.json`. Check diagnostics group task/policy/source/scenario problems with field paths and fixes. Inspect prints the exact `sessionPath`. After editing the input, pass that returned path as `--previous` to `authorization compare --input=./authoring.json`. Compare inherits the prior method/wire unless explicitly overridden, runs no model, and never changes the old session. It reports added/removed/changed scenarios and affected obligations. Shared context changes conservatively affect all run scenarios, including uncited source. Missing old dependencies yield `needs-review`; `current` only means matching inputs, not proven semantic correctness or a reusable cached answer.
+
+`init` without format retains the original synthetic normalized template and refuses to overwrite an existing path. The older `authorization-assessment-authoring/v1` remains supported; v1/v2 can optionally be normalized separately:
 
 ```powershell
 skvm authorization init --from=./authoring.json --out=./assessment.json

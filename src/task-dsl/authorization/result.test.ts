@@ -273,6 +273,21 @@ describe("validateAuthorizationResult", () => {
 })
 
 describe("assessAuthorizationResultChange", () => {
+  it("detects attributes, locations and public task requirements missing from the old snapshot", () => {
+    const previous = validateAuthorizationResult(compileAuthorizationTask(makeTask()), makeAnswer(), makeBundle()).dependencySnapshot
+    for (const mutate of [
+      (t:AuthorizationTaskV0)=>{t.principals[0]!.role="supervisor"},
+      (t:AuthorizationTaskV0)=>{t.resources[0]!.description="A shared record"},
+      (t:AuthorizationTaskV0)=>{t.entries[0]!.locations[0]!.startLine=2},
+      (t:AuthorizationTaskV0)=>{t.request="A changed question"},
+      (t:AuthorizationTaskV0)=>{t.requiredAnalysis.push("Explain all branches")},
+    ]) {
+      const task=makeTask(); mutate(task)
+      expect(assessAuthorizationResultChange(previous,compileAuthorizationTask(task),makeBundle()).status).toBe("needs-review")
+    }
+    const legacy={...previous} as any; delete legacy.task; delete legacy.schemaVersion
+    expect(assessAuthorizationResultChange(legacy,compileAuthorizationTask(makeTask()),makeBundle()).reasons).toContain("missing-task-dependencies")
+  })
   it("marks relevant source and policy changes for review", () => {
     const compiled = compileAuthorizationTask(makeTask())
     const checked = validateAuthorizationResult(compiled, makeAnswer(), makeBundle())
