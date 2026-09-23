@@ -2,6 +2,17 @@
 
 这里说明 Skill IR 的优化、验证和产物交付。初次使用 SkVM 可先读使用说明；修改这个子系统时，从当前状态和对应组件入手。
 
+## 三分钟入口
+
+| 你要回答的问题 | 先看 | 结果边界 |
+|---|---|---|
+| 现在进行到哪一步？ | [当前状态](current-status.md) | 唯一实时状态；AB当前为16/16生成完成，评价待执行 |
+| 这次实验拿到了什么？ | [实验目录](../../results/skill-ir/experiment-catalog.json) | 机器可读摘要；原始运行仍以results为准 |
+| 某个主张能否对外说？ | [证据索引](evidence-index.md) | 主张、最窄分母、禁止外推 |
+| 如何复现实验或改代码？ | [当前计划](skill-ir-aot-optimization-plan.md) → [开发指南](developer-guide.md) | 计划和组件职责，不复制运行流水 |
+
+当前项目的结果以 development 证据为主。`actualUSD`、真人耗时和跨任务泛化没有记录时保持 `unknown`；实验原始输入、响应、引用和差异报告集中在 `results/skill-ir/`，不在正文中重复。
+
 ## 从这里开始
 
 1. [当前状态](current-status.md)：唯一的实时状态入口，回答现在能做什么、当前路线和直接运行命令。

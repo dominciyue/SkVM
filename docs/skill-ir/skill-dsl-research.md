@@ -789,7 +789,9 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 **执行与结论。** 满额16原/变配对分析单元，一次共享修订最多4追加；四项模型作者工作另计成本，真人时间未知。分别评价作者负担、修改识别、任务质量与调用/token/time，失败及unknown保留。MD若同样好且更便宜即推荐轻路径，DSL若减少遗漏或同步改动就指出确切机制。兼容默认不变，不预设positive；实际问题和解决归本节，机器记录进入统一AB结果根。
 
-**AB0–AB7 实际准备。** 已按预先登记顺序选取linkding与django-todo的固定commit，分别提供5文件35,292字符及7文件18,549字符，均保留完整文件及许可证。两项目×两操作×原/变共8状态，固定16分析单元；只覆盖owner、认证读者、assignee、group/staff关系下的授权可达性，不执行目标。作者为四个独立Luna上下文，另四个干净接力完成一轮修订。DSL首稿8/8因未知字段不通过；MD首稿虽非空但8/8混入作者阶段不回答指令，不算语义就绪。共享阶段说明与v2字段说明修订后，由作者自行重写，主代理仅原文转存。两DSL作者均报告重复复制公共字段，增加可选白名单整项替换composer，测试先红后绿；不重写本轮作者输入、不虚构节省。最终8份DSL与8份中立manifest检查通过，16单元mock全部完成；193测试/1402断言通过。真实生成与评价尚未开始，初轮配置和输入将在生成前提交。结果、首稿、修订原文与作者token分别保留于AB根。
+**AB0–AB7 实际准备。** 已按预先登记顺序选取linkding与django-todo的固定commit，分别提供5文件35,292字符及7文件18,549字符，均保留完整文件及许可证。两项目×两操作×原/变共8状态，固定16分析单元；只覆盖owner、认证读者、assignee、group/staff关系下的授权可达性，不执行目标。作者为四个独立Luna上下文，另四个干净接力完成一轮修订。DSL首稿8/8因未知字段不通过；MD首稿虽非空但8/8混入作者阶段不回答指令，不算语义就绪。共享阶段说明与v2字段说明修订后，由作者自行重写，主代理仅原文转存。两DSL作者均报告重复复制公共字段，增加可选白名单整项替换composer，测试先红后绿；不重写本轮作者输入、不虚构节省。最终8份DSL与8份中立manifest检查通过，16单元mock全部完成；193测试/1402断言通过。结果、首稿、修订原文与作者token分别保留于AB根。
+
+**AB8 真实生成结果（2026-09-22）。** 固定顺序的16个 fresh-context 单元全部 `completed`，16/16 provider calls 响应，0 completion-unknown，0目标执行；被测为`xty/gpt-5.6-sol`、temperature0、auto-probe off。已知 input/output/cache-read 为146,886/17,566/6,528 tokens，actualUSD unknown。原始canonical label为14个`source_refuted`与2个`source_supported_failure`；后一项的回答正文自述正确方向但标签相反，保留原始字节，等待AB9冻结评价。四组compare均标记变化任务 `needs-review`，未宣称语义复用或节省调用。机器摘要见[`experiment-catalog.json`](../../results/skill-ir/experiment-catalog.json)，逐单元回答见`authorization-external-reuse-v1/answer-reading.txt`；本轮仍属于development evidence，不证明生产安全、目标执行或跨项目泛化。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

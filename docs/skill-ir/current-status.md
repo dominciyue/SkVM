@@ -1,6 +1,6 @@
 # Skill IR 当前状态
 
-更新于 2026-09-22。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；历史任务书保存当时的执行记录。
+更新于 2026-09-23。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；历史任务书保存当时的执行记录。
 
 ## 当前方向与任务
 
@@ -8,7 +8,9 @@
 
 [V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)、[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)和[Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)均已结束发布，Y最终提交`70906261`。后续复核确认Y主体工程可用，但公共`--method`选择曾有漏项，已在Z补齐；历史机器summary保留。
 
-**当前授权任务：** 用户已要求使用`gpt-6-astra / medium`连续执行[AB0–AB13 外部复用与普通说明对照](../superpowers/plans/2026-09-22-authorization-external-reuse-and-baseline.md)。状态`authorized-for-execution`，AB0建立机器状态。保持v2/plain-v4，交付薄skill使用包与只读locate，在至多两个新外部项目完成独立作者原/变任务，并与同helper的Markdown说明比较。设计见[研究§7.25](skill-dsl-research.md#725-ab-外部复用与普通说明对照)。网络与有目的付费授权继续，旧保护集、历史成绩和七项原代码修改保留。
+**当前授权任务：** [AB0–AB13 外部复用与普通说明对照](../superpowers/plans/2026-09-22-authorization-external-reuse-and-baseline.md)已完成16/16个真实生成单元，状态为`generation-complete`，AB9评价待执行。被测模型为`xty/gpt-5.6-sol`，16次调用全部响应、0个completion-unknown、0个目标执行；原始canonical label为14个`source_refuted`与2个`source_supported_failure`，保留原文等待冻结评价。结果入口为[实验目录](../../results/skill-ir/experiment-catalog.json)、[AB状态](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/status.json)和[原始阅读稿](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/answer-reading.txt)。研究设计见[研究§7.25](skill-dsl-research.md#725-ab-外部复用与普通说明对照)。
+
+**文档治理：** 日常阅读集中到本页、[文档入口](README.md)、[证据索引](evidence-index.md)和[实验目录](../../results/skill-ir/experiment-catalog.json)；版本化验证材料继续按治理清单保留原路径和原字节。历史长文档不再复制实验流水，结果只在最窄证据位置链接。
 
 **前轮结果：** [AA0–AA13 作者声明、修改复用与领域价值](../superpowers/plans/2026-09-22-authorization-authoring-reuse-and-value.md)已完成并发布到origin/skill-ir-aot，代码与证据提交`529cf0b3`已核对远端。authoring/v2、完整执行依赖、只读compare与作者定位诊断已交付；183测试/1337断言及typecheck通过。独立模型作者首稿1/2 valid，一次行号修订后2/2完成，原/变4次运行均源码支持deny→allow。五组plain/ledger均5/5 full，ledger开销更高；header conditions解释更完整但初轮需一次修复，过严unknown检查已离线修正，历史成本保留。16分析单元/17调用，actualUSD未知，追加单元0。普通任务建议显式plain/v4，ledger/conditions按覆盖或分支需求选择，兼容默认不改。见[AA状态](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-reuse-v1/status.json)、[AA汇总](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-reuse-v1/summary.json)与[研究§7.24](skill-dsl-research.md#724-aa-作者声明修改复用与领域价值)。只用已暴露development材料，保留七项已有源码修改。
 

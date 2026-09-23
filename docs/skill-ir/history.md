@@ -71,6 +71,7 @@ git log -- <old-path>
 | `docs/skill-ir/skill-family-source-relatedness.md` | `be89a50` | source relatedness；并入分类 | — |
 | `docs/skill-ir/skill-family-supplement-resources.md` | `77c97b7` | supplement resources；并入分类 | — |
 | `docs/skill-ir/stage-n-cross-model-aot-stability-panel.md` | `920a87e` | Stage N stability panel；并入证据索引 | — |
+| `docs/skill-ir/trace-guided-skill-optimization.md` | `d432df16` | trace-guided runtime 设计；并入 optimization-and-artifacts 与 evidence-index | `results/skill-ir/trace-guided-skill-optimization-20260913/` |
 | `docs/skill-ir/work-stop-summary-2026-09-11.md` | `e6fa621` | 9 月 11 日停止点快照 | — |
 
 ## 仍保留但不是当前入口

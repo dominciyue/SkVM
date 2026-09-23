@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、SkVM CLI/provider、认证 GitHub CLI。不上新平台、UI、通用模板解释器或仓库自动漏洞发现系统。
 
-- 日期：2026-09-22；状态：`authorized-for-execution`，AB0创建机器状态。
+- 日期：2026-09-23；状态：`generation-complete`，AB0–AB8已完成，AB9评价待执行；机器状态见结果根`status.json`。
 - 基线：`858e4778e3c84b19ee866d7cbd2d3556a1d6c334`；接手以任务书登记后的最新HEAD为准。
 - 结果根：`results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/`。
 - 研究正文：[§7.25](../../skill-ir/skill-dsl-research.md#725-ab-外部复用与普通说明对照)。所有本轮问题、设计修订和结论归回该节。
@@ -136,49 +136,50 @@ compare在DSL变化任务中真实运行；给MD组同一原始文件diff能力�
 ## 六、执行队列
 
 ### AB0：恢复与稳定接口
-- [ ] 读上下文并记录基线、保护文件、归属模块，建立单一status/journal。
-- [ ] 一次运行`bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts ./src/providers/structured.test.ts`，基线183/1337。
-- [ ] 将v2、plain/v4与MD对照规则登记§7.25；本轮不主动加DSL版本、方法模式或更换模型。
+- [x] 读上下文并记录基线、保护文件、归属模块，建立单一status/journal。
+- [x] 一次运行`bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts ./src/providers/structured.test.ts`，基线183/1337。
+- [x] 将v2、plain/v4与MD对照规则登记§7.25；本轮不主动加DSL版本、方法模式或更换模型。
 
 ### AB1：获取规则与可恢复来源
-- [ ] 先记录候选资格/排序/文件预算，再按§3获取最多6个候选，保留成功缓存和失败原因。
-- [ ] 选首两个独立合格项目，记录commit/license/source暴露；仅下载所需材料，不执行目标或接入部署。
-- [ ] 来源不足时终结该获取分支，继续locate、使用包和mock工程，不用旧例冒充新项目。
+- [x] 先记录候选资格/排序/文件预算，再按§3获取最多6个候选，保留成功缓存和失败原因。
+- [x] 选首两个独立合格项目，记录commit/license/source暴露；仅下载所需材料，不执行目标或接入部署。
+- [x] 来源不足时终结该获取分支，继续locate、使用包和mock工程，不用旧例冒充新项目。
 
 ### AB2：任务、公共brief与独立oracle
-- [ ] 每项目选两操作与原/变条件，登记8状态分母或真实较小分母；不得依模型结果选样。
-- [ ] 建public与evaluator分目录，保留源码依赖/原始行位置及缺口；期望规范与实际源码事实分开。
-- [ ] 逐任务检查共同领域词汇能否表达，有新概念先写研究分析；局部细节可调整，超出授权任务类别则路由并保留失败原因。
+- [x] 每项目选两操作与原/变条件，登记8状态分母或真实较小分母；不得依模型结果选样。
+- [x] 建public与evaluator分目录，保留源码依赖/原始行位置及缺口；期望规范与实际源码事实分开。
+- [x] 逐任务检查共同领域词汇能否表达，有新概念先写研究分析；局部细节可调整，超出授权任务类别则路由并保留失败原因。
 
 ### AB3：locate红绿实现
-- [ ] 新测试先红：唯一/多处/零匹配、CRLF、本地行数、truncation、escape/缺文件以及零provider。
-- [ ] 实现`locateAuthorizationSource({root,file,match,limit:20})`返回matches、lineCount、truncated与诊断，再接CLI；不执行match字符串。
-- [ ] 更新公共help与usage，两臂作者都可调用；运行`bun test ./src/benchmarks/authorization-dsl/source-location.test.ts ./src/cli/authorization.test.ts`。
+- [x] 新测试先红：唯一/多处/零匹配、CRLF、本地行数、truncation、escape/缺文件以及零provider。
+- [x] 实现`locateAuthorizationSource({root,file,match,limit:20})`返回matches、lineCount、truncated与诊断，再接CLI；不执行match字符串。
+- [x] 更新公共help与usage，两臂作者都可调用；运行`bun test ./src/benchmarks/authorization-dsl/source-location.test.ts ./src/cli/authorization.test.ts`。
 
 ### AB4：可复用skill包与重复分析
-- [ ] 用现有v2准备完整synthetic模板及薄SKILL说明，入口均指向现有SkVM，不绑定本轮答案。
-- [ ] 记录方法/项目/单次场景字段复用表，分别给两项目实例；核心实现中无仓库专名成功分支。
-- [ ] 此处只登记组合helper的触发条件；待AB6作者结果返回，在AB7判断是否有两作者共同机械重复。有则先写确定性替换/冲突/来源测试再实现，否则保持原v2且如实说复用层次。
+- [x] 用现有v2准备完整synthetic模板及薄SKILL说明，入口均指向现有SkVM，不绑定本轮答案。
+- [x] 记录方法/项目/单次场景字段复用表，分别给两项目实例；核心实现中无仓库专名成功分支。
+- [x] 此处只登记组合helper的触发条件；待AB6作者结果返回，在AB7判断是否有两作者共同机械重复。有则先写确定性替换/冲突/来源测试再实现，否则保持原v2且如实说复用层次。
 
 ### AB5：Markdown研究入口红绿实现
-- [ ] `markdown-study.test.ts`红测：MD原文进入说明段一次、无DSL声明暗中拼入、源码与v4合同一致、oracle不入prompt、repair不换臂。
-- [ ] 实现typed research override与runner；普通CLI无任意override选项，共用host/telemetry/引用检查。
-- [ ] mock验证正常、缺项、格式修复、超时关闭、恢复不重复dispatch，记录两臂prompt事实对照；不拿原P natural renderer冒充独立Markdown。
+- [x] `markdown-study.test.ts`红测：MD原文进入说明段一次、无DSL声明暗中拼入、源码与v4合同一致、oracle不入prompt、repair不换臂。
+- [x] 实现typed research override与runner；普通CLI无任意override选项，共用host/telemetry/引用检查。
+- [x] mock验证正常、缺项、格式修复、超时关闭、恢复不重复dispatch，记录两臂prompt事实对照；不拿原P natural renderer冒充独立Markdown。
 
 ### AB6：四项独立作者工作
-- [ ] 材料固定后按项目×臂派发干净只读作者，主线程按AGENTS等待完成；作者不改src文件。
-- [ ] 保存首稿后运行两臂相同基础检查；最多两轮诊断由作者自行修订，主代理不改语义字段。
-- [ ] 记录原/变改动与介入、缺项和首次成功；独立失败保留，不补成虚假作者成功。
+- [x] 材料固定后按项目×臂派发干净只读作者，主线程按AGENTS等待完成；作者不改src文件。
+- [x] 保存首稿后运行两臂相同基础检查；最多两轮诊断由作者自行修订，主代理不改语义字段。
+- [x] 记录原/变改动与介入、缺项和首次成功；独立失败保留，不补成虚假作者成功。
 
 ### AB7：共享输入准备问题修复
-- [ ] 作者暴露问题若属于共享实现，按明确反例修locate/diagnostic/loader/使用包；任务信息缺失则共同补brief并计入准备。
-- [ ] 可读性整理只触及本轮必要模块，纯重排与行为修复分提交，不跑全仓格式化。
-- [ ] 方法/公共问题/预算和最终初轮config在真实分析前确定；只提交实现、manifest和必要输入，不建多层冻结链。
+- [x] 作者暴露问题若属于共享实现，按明确反例修locate/diagnostic/loader/使用包；任务信息缺失则共同补brief并计入准备。
+- [x] 可读性整理只触及本轮必要模块，纯重排与行为修复分提交，不跑全仓格式化。
+- [x] 方法/公共问题/预算和最终初轮config在真实分析前确定；只提交实现、manifest和必要输入，不建多层冻结链。
 
 ### AB8：真实原/变对照
-- [ ] 按固定顺序执行至多16单元；通过普通入口运行DSL实例，MD走共同host的研究入口。
-- [ ] 逐次保存实际调用/响应/超时与usage，不替换失败、不自动重发未知完成。
-- [ ] 每组变化后真实compare，保存MD原始diff与DSL影响报告；不额外生成演示答案。
+- [x] 按固定顺序执行16单元；通过普通入口运行DSL实例，MD走共同host的研究入口。
+- [x] 逐次保存实际调用/响应/超时与usage；16/16 completed、0 completion-unknown、0 target execution，未替换或自动重发。
+- [x] 每组变化后真实compare，保存MD原始diff与DSL影响报告；未额外生成演示答案。
+- 结果：16 provider calls，known input/output/cache-read 为146,886/17,566/6,528，actualUSD unknown；原始canonical labels为14 `source_refuted`、2 `source_supported_failure`，后一项保留到AB9语义评价，不提前改写。
 
 ### AB9：评价与一次共享修订
 - [ ] 所有生成结束后按同一rubric评价，独立点验收益决定项、错误和unknown；保留初评与裁决理由。
