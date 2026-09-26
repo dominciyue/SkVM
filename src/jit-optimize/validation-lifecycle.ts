@@ -1373,9 +1373,9 @@ export async function runOptimizationValidationLifecycle(
       sourceSkillDir: options.sourceSkillDir,
     })
     const effectiveAction = completion.action
-    // F5 variations are derived from an optimizer-declared executable case.
-    // A F3 auto-wired baseline remains a single conservative check; callers
-    // can submit the case explicitly when they want relocation coverage.
+    // Relocation needs an explicitly declared executable case. An automatically
+    // completed baseline supplies only one check; it does not establish that
+    // the interface supports moving its inputs or changing cwd.
     const variationAction = action.validation?.cases.length && effectiveAction.validation?.cases.length
       ? effectiveAction
       : { ...effectiveAction, validation: undefined }

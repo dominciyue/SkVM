@@ -1,7 +1,12 @@
 import type { EvalResult } from "../core/types.ts"
 import type { EvidenceCriterion } from "./types.ts"
 
-/** Flatten framework evaluation results into stable optimizer evidence leaves. */
+/**
+ * Emit one evidence leaf per checkpoint, or one for a result without checkpoints.
+ * Multiply outer and inner weights, then normalize across all leaves. Missing
+ * inner weights share equally when none are specified; otherwise they count as
+ * zero. IDs use the parent criterion and checkpoint name so rounds can be compared.
+ */
 export function buildEvidenceCriteria(evalResults: EvalResult[]): EvidenceCriterion[] {
   interface RawLeaf {
     outerWeight: number

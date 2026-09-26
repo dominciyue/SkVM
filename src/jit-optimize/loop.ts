@@ -82,10 +82,6 @@ import { Pool } from "../core/concurrency.ts"
 
 const log = createLogger("jit-optimize-loop")
 
-// ---------------------------------------------------------------------------
-// Infra-blocked termination signal
-// ---------------------------------------------------------------------------
-
 /**
  * Internal control-flow exception. Thrown by `assertRoundNotAllInfraTainted`
  * when every evidence in a round comes back tainted (adapter timeout / crash
@@ -121,9 +117,7 @@ export class InfraBlockedRoundError extends Error {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Selection tuning constants
-// ---------------------------------------------------------------------------
+// Round-selection thresholds. Keep the tie band below the improvement floor.
 
 /**
  * Default minimum primary-score improvement a non-baseline round must clear
@@ -162,18 +156,10 @@ export const DEFAULT_PER_TASK_REGRESSION_TOLERANCE = 0.2
  */
 export const DEFAULT_MIN_COST_REDUCTION_RATIO = 0.15
 
-// ---------------------------------------------------------------------------
-// Per-round evidence pair (train + test)
-// ---------------------------------------------------------------------------
-
 interface RoundEvidences {
   train: Evidence[]
   test: Evidence[]
 }
-
-// ---------------------------------------------------------------------------
-// Main entry
-// ---------------------------------------------------------------------------
 
 /**
  * Options accepted by `runLoop` callers that bypass parts of its setup.

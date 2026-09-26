@@ -61,10 +61,6 @@ function safeTaskSlug(taskId: string): string {
   return trimmed
 }
 
-// ---------------------------------------------------------------------------
-// Walk helper (for diffing)
-// ---------------------------------------------------------------------------
-
 const BUNDLE_EXCLUDED = new Set(["LICENSE.txt", "_meta.json"])
 const DIFF_TRANSIENT_DIRECTORIES = new Set([
   "__pycache__",
@@ -76,7 +72,8 @@ const DIFF_TRANSIENT_DIRECTORIES = new Set([
 
 /**
  * Walk a directory recursively and yield (relativePath, absolutePath) for every
- * file. Skips hidden files and the .optimize/ scratch directory.
+ * skill file. Excludes hidden paths (including .optimize), bundle metadata and
+ * runtime caches so validation side effects do not become proposed skill edits.
  */
 async function* walkFiles(root: string, base: string = root): AsyncGenerator<{ rel: string; abs: string }> {
   let entries: import("node:fs").Dirent[]
@@ -99,10 +96,6 @@ async function* walkFiles(root: string, base: string = root): AsyncGenerator<{ r
   }
 }
 
-// ---------------------------------------------------------------------------
-// Workspace creation
-// ---------------------------------------------------------------------------
-
 export interface Workspace {
   dir: string
   optimizeDir: string
@@ -121,9 +114,7 @@ export async function createWorkspace(skillDir: string): Promise<Workspace> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Evidence / history serialization
-// ---------------------------------------------------------------------------
+// Bound the model-facing view separately from the durable evidence record.
 
 export interface SerializeOptions {
   maxConvLogEntries?: number

@@ -412,9 +412,9 @@ function parameterDifference(
 
 /**
  * Derive conservative path/cwd checks from existing validation cases and the
- * F2 operation index.  Parameter values are never guessed: an existing pair
+ * observed operation index. Parameter values are never guessed: an existing pair
  * of cases is reported as covered, otherwise the audit records why it was
- * skipped.  The returned cases are ordinary suggestions plus engine-only
+ * skipped. The returned cases are ordinary suggestions plus engine-only
  * source/target bindings used during materialization.
  */
 export async function deriveValidationVariations(

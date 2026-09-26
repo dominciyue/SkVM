@@ -23,16 +23,10 @@ export { buildEvidenceCriteria } from "./evidence-criteria.ts"
 
 const log = createLogger("jit-optimize-evidence")
 
-// ---------------------------------------------------------------------------
-// Work directory snapshot
-// ---------------------------------------------------------------------------
-
 /**
- * Defaults for `snapshotWorkDir`'s capture caps. Historically these matched the
- * optimizer view's render cap exactly — one constant served both jobs. The
- * durable record now separates them: capture controls what the persistent
- * Evidence holds; the optimizer projection applies its own cap when rendering
- * `.optimize/tasks/*\/run-*-workdir/` (see workspace.ts).
+ * Capture limits control what persistent Evidence retains. The optimizer view
+ * has separate rendering limits in workspace.ts; changing that view must not
+ * silently discard captured evidence.
  */
 export const SNAPSHOT_CAPTURE_DEFAULTS = {
   maxTotalBytes: 512 * 1024,
@@ -85,26 +79,7 @@ export async function snapshotWorkDir(
   return { files }
 }
 
-// ---------------------------------------------------------------------------
-// EvalResult → flattened EvidenceCriterion[]
-// ---------------------------------------------------------------------------
-
-/**
- * Flatten EvalResult[] into a per-leaf EvidenceCriterion[]. Rules:
- *
- * - custom/python-grade with N checkpoints → N entries (one per grade record)
- * - llm-judge / script / file-check → one entry (using the top-level result)
- *
- * Weights are computed as (outer_weight × inner_weight) and then normalized so
- * the resulting list sums to 1.0. Outer weights default to 1.0; inner weights
- * come from EvalCheckpoint.weight (enforced by the bridge to sum to 1.0 within
- * one parent). IDs are kept stable across rounds: `${parentId}/${leafId}` when
- * there's a parent id, else `${method}/${leafId}`.
- */
-// ---------------------------------------------------------------------------
-// Conversation log reading
-// ---------------------------------------------------------------------------
-
+/** Read native conversation JSONL; return null for an unreadable or malformed file. */
 export async function readConversationLog(
   filePath: string,
 ): Promise<ConversationLogEntry[] | null> {
@@ -143,10 +118,6 @@ export function buildConversationLogFromSteps(
   return entries
 }
 
-// ---------------------------------------------------------------------------
-// Conversation log file parsing (used by execution-log source)
-// ---------------------------------------------------------------------------
-
 export interface ParsedConvLogFile {
   conversationLog: ConversationLogEntry[]
   taskPrompt?: string
@@ -155,9 +126,9 @@ export interface ParsedConvLogFile {
 }
 
 /**
- * Parse a conversation log file for use as evidence. Accepts:
- *  - JSONL conversation log (ConversationLog output: one object per line with `type`)
- *  - Simple JSON report: { task, outcome, issues, skill_feedback }
+ * Adapt any supported trace format for legacy single-record callers.
+ * Diagnostics are logged; if the file contains multiple records, only the
+ * first is returned. Use the trace adapter directly to retain all records.
  */
 export async function parseConvLogFile(filePath: string): Promise<ParsedConvLogFile> {
   const adapted = await adaptTraceFile(filePath)
@@ -173,10 +144,6 @@ export async function parseConvLogFile(filePath: string): Promise<ParsedConvLogF
     : { conversationLog: [] }
 }
 
-// ---------------------------------------------------------------------------
-// Run metadata from RunResult
-// ---------------------------------------------------------------------------
-
 export function buildRunMeta(result: RunResult): RunMeta {
   return {
     tokens: result.tokens,
@@ -189,9 +156,7 @@ export function buildRunMeta(result: RunResult): RunMeta {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Score helpers (engine-internal, not exposed to optimizer)
-// ---------------------------------------------------------------------------
+// Scores stay internal to the engine; the optimizer receives the criteria.
 
 /**
  * Compute a weighted score from an Evidence's flattened criteria list.
@@ -213,10 +178,6 @@ export function countCriteria(criteria: EvidenceCriterion[] | undefined): { pass
     total: criteria.length,
   }
 }
-
-// ---------------------------------------------------------------------------
-// Convenience: build a full Evidence from a single task execution
-// ---------------------------------------------------------------------------
 
 export function buildEvidenceFromRun(opts: {
   taskId: string
