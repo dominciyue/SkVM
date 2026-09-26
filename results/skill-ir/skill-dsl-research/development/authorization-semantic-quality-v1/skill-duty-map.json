@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "authorization-ah-skill-duty-map/v1",
+  "scope": "Single repository/ref, explicit source-visible authorization operation; source skills are members, target repositories are inputs, and repeated task states are neither new skills nor new families.",
+  "families": [
+    {
+      "id": "cloudflare-security-audit",
+      "family": "cloudflare/security-audit-skill",
+      "ref": "c1c8a8c1471069fb0e188eeaff69b8e8db6564a8",
+      "primary": "https://github.com/cloudflare/security-audit-skill/blob/c1c8a8c1471069fb0e188eeaff69b8e8db6564a8/skills/security-audit/SKILL.md",
+      "readDepth": "SKILL.md plus RECONNAISSANCE.md, HUNTING.md, VALIDATION-AND-REPORTING.md, ATTACK-CLASSES.md and WEB-PROTOCOL-AND-AUTH.md at the same fixed ref; critical source passages independently checked against the original GitHub file",
+      "authorizationDuty": "Trace a lower-trust principal and selected resource through the strongest visible validation or authorization control to a concrete effect; check that permission protects the correct target and alternate/bulk paths; distinguish source evidence from deployment facts.",
+      "anchors": [
+        "SKILL.md:4-6,107-117",
+        "references/ATTACK-CLASSES.md:31-38",
+        "references/VALIDATION-AND-REPORTING.md:78-93"
+      ],
+      "remainingDuties": ["full audit orchestration", "coverage ledger and prior-run revalidation", "isolated local reproduction", "independent verifier", "severity and report artifacts", "smallest effective fix"],
+      "actualInputForThisSlice": "repo/ref, named operation, principal/resource relation, accepted policy and bounded source files; no target execution or deployment probe",
+      "methodImpact": "Ask which object is checked versus changed, whether the strongest upstream control applies on the queried path, and which external facts are decisive."
+    },
+    {
+      "id": "github-security-review",
+      "family": "github/awesome-copilot",
+      "ref": "7e375eac04fa04f291859ca962a4d8a3bb8b7564",
+      "primary": "https://github.com/github/awesome-copilot/blob/7e375eac04fa04f291859ca962a4d8a3bb8b7564/skills/security-review/SKILL.md",
+      "readDepth": "SKILL.md plus references/vuln-categories.md, language-patterns.md and report-format.md at fixed ref; primary authorization and self-check passages independently checked against the original GitHub file",
+      "authorizationDuty": "Inspect missing authentication, BOLA/IDOR and privilege escalation, trace cross-file user input to effect, and self-check framework or middleware protections before retaining a finding.",
+      "anchors": ["SKILL.md:64-75", "SKILL.md:94-106"],
+      "remainingDuties": ["dependency CVE audit", "secret scan", "injection and other broad categories", "severity/confidence reporting", "patch proposal"],
+      "actualInputForThisSlice": "repo/ref, explicit authorization-sensitive path and accepted policy, with fixed source closure",
+      "methodImpact": "Verify the path-specific upstream gate and applicable role or ownership exception before treating a local missing check as a failure."
+    }
+  ],
+  "nearCounterexamples": [
+    {
+      "id": "trailofbits-differential-review",
+      "family": "trailofbits/skills",
+      "ref": "123037ec8aed26f0d86327cc39137ee5043e5deb",
+      "primary": "https://github.com/trailofbits/skills/blob/123037ec8aed26f0d86327cc39137ee5043e5deb/plugins/differential-review/skills/differential-review/SKILL.md",
+      "readDepth": "SKILL.md and existing indexed task card; not a mapped AH member",
+      "reasonExcluded": "Base/head, changed invariant, blame/history, caller/tests and blast radius are required relations that a single-ref authorization obligation cannot preserve."
+    },
+    {
+      "id": "sentry-skill-scanner",
+      "family": "Sentry skill-scanner",
+      "readDepth": "existing research classification only; original ref not reverified in AH",
+      "reasonExcluded": "Agent-skill supply-chain provenance and prompt/tool exfiltration are different objects from application principal/resource authorization."
+    }
+  ],
+  "counts": { "skillMembersMapped": 2, "independentPositiveFamilies": 2, "nearCounterexampleFamilies": 2, "targetCodeProjects": 3, "targetTaskStates": 8, "modelRepeatsPlanned": 12 },
+  "limits": "No claim that either complete skill has been translated or that two families establish ecosystem coverage; remaining duties stay with their source skill."
+}

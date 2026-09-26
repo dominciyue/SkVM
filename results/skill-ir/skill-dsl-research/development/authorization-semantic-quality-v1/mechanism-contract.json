@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "authorization-ah-mechanism-contract/v1",
+  "baseline": {
+    "sixExistingKinds": ["entry-control", "identity-binding", "resource-binding", "authorization-decision", "effect-reachability", "external-assumption"],
+    "existingCompiler": "relations.ts expands explicit requirement-obligation pairs; prerequisiteIds are analysis dependencies, not source control flow.",
+    "existingValidator": "relation-result.ts checks same-obligation coverage and fact pointers; it does not establish semantic applicability.",
+    "existingRender": "render.ts D already requests an entry-to-effect causal chain; B and plain/v4 remain standard."
+  },
+  "observedQuestionGaps": [
+    {
+      "mechanism": "checked-object-versus-effect-target",
+      "case": "Open WebUI process_file at 841c9045",
+      "source": "cases/authorization/inputs/owui-process-file-write/retrieval_process_file.py:27-74",
+      "distinction": "Source file ownership checks a file, while caller-selected collection receives the write; identifying a control alone does not bind it to the effect target.",
+      "existingSupport": "resource-binding already asks to keep a checked other resource distinct; focused paired question makes the two objects and operation explicit."
+    },
+    {
+      "mechanism": "control-applicability-and-bypass",
+      "case": "Open WebUI process_text at 841c9045",
+      "source": "cases/authorization/inputs/owui-process-text-controlled/retrieval_process_text.py:7-45 and retrieval_access_policy.py:22-51",
+      "distinction": "A caller/helper write gate protects the destination before the sink; a sink-local missing check is insufficient to conclude bypass.",
+      "existingSupport": "entry-control, authorization-decision and effect-reachability cover the pieces, but their question order does not force an explicit path-applicability comparison."
+    }
+  ],
+  "decision": "Add an optional pure, obligation-local reasoning plan with questions only. Reuse existing facts and citations; no new task schema, relation graph, wire version, host semantic truth or source-derived answer fields.",
+  "strategy": "control-binding-v1",
+  "standard": "No additional questions, prompt section, or changed default behavior.",
+  "sharedMarkdownAndDslIntervention": "The identical rendered questions are available to both independent Markdown and authoring/v2 arms; the MD manifest remains identity-only and supplies no hidden answer."
+}

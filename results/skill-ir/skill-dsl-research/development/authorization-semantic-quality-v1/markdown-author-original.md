@@ -1,0 +1,33 @@
+# Independent Markdown author original
+
+## owui-file
+
+At `https://github.com/open-webui/open-webui` ref `841c9045d789005145274955e7ef60b1b11a9be9`, assess whether a verified non-admin principal who owns the supplied source file can cause its contents to be written to an existing knowledge-base collection named in `POST /process/file` when the principal lacks permission to write that collection. Apply the policy that file ownership does not authorize writing to an unrelated collection; collection writes require ownership or an explicit write grant. Trace the declared entry and complete authorization-relevant path through the user-controlled collection name to the write sink, identifying principal, operation, target relation, entry, and sink. Use only the allowed case inputs, cite exact input locations, and perform source-only analysis without executing, deploying, searching beyond the supplied sources, or proposing a patch.
+
+## owui-text
+
+At `https://github.com/open-webui/open-webui` ref `841c9045d789005145274955e7ef60b1b11a9be9`, assess whether a verified non-admin principal can write attacker-selected text to an existing knowledge-base collection named in `POST /process/text` when the principal lacks permission to write that collection. Apply the policy that an existing collection may be written only by its owner or a principal with an explicit write grant. Trace the declared caller, validator, shared policy path, supplied collection name, and vector-database write sink; identify principal, operation, target relation, entry, and sink. Use only the allowed case inputs, cite exact input locations, and perform source-only analysis without executing, deploying, searching beyond the supplied sources, or proposing a patch.
+
+## owui-header
+
+At `https://github.com/open-webui/open-webui` ref `841c9045d789005145274955e7ef60b1b11a9be9`, assess whether an unauthenticated external client can impersonate an arbitrary existing user by sending a trusted-email header to `POST /signin`. Apply the policy that trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes client-supplied identity headers, and injects the authenticated identity. Identify the configuration condition, how the header becomes the principal identity, and the boundary between application-source capability and deployment reachability; state the minimum deployment facts required for assessment. Use only the allowed case inputs, cite exact input locations, do not infer environment, proxy, topology, or reachability facts, and do not contact, execute, or deploy against the target.
+
+## fastapi-foreign-update
+
+At `https://github.com/fastapi/full-stack-fastapi-template` ref `cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7`, assess `PUT /items/{id}` for an authenticated non-superuser whose ID differs from the owner of an existing item. Apply the policy that an authenticated non-superuser may read or modify only items they own, while an active superuser may read or modify any item. Analyze the declared entry `items.py:75-96`, bind principal, owner, role, operation, and resource, and trace the strongest visible ownership or role control to the protected update effect. State any source-external fact required without inferring it. Use only `task.json` and `items.py`, cite exact locations, and do not execute or contact the project or deployment.
+
+## gitea-collaborator
+
+At `https://github.com/go-gitea/gitea` ref `fc28937a8d772fe9e4025c9b5f24d5db4d86610b`, assess the declared collaborator-permission query at `routers/api/v1/repo/collaborators.go#L247-L301`. The principal is authenticated, has repository read access, is a collaborator, is neither a site nor repository administrator, and queries a different existing collaborator. Apply the policy that querying is permitted for a site administrator, repository administrator, or a caller querying their own username; otherwise rejection must occur before the target collaborator is loaded. Identify principal, operation, target relation, entry, and protected effect, and trace the source-only authorization path. Cite exact supplied-source locations, stay within the fixed route and scenario, and do not execute, deploy, or generalize beyond this source.
+
+## gitea-assignee
+
+At `https://github.com/go-gitea/gitea` ref `fc28937a8d772fe9e4025c9b5f24d5db4d86610b`, assess adding issue assignees using `routers/api/v1/repo/issue_assignee.go#L20-L65,L189-L238`. The principal is authenticated with issue-write token scope but lacks repository issue-write permission; the issue and requested user both exist. Apply the policy that adding assignees requires repository permission to write the issue or pull request, with rejection before assignee resolution or mutation when that permission is absent. Bind principal, token scope, repository permission, operation, resource, entry, and mutation path. Cite exact supplied-source locations, distinguish token scope from repository permission, and perform only fixed-source analysis without execution, deployment, or broader-version claims.
+
+## gitea-lock
+
+At `https://github.com/go-gitea/gitea` ref `fc28937a8d772fe9e4025c9b5f24d5db4d86610b`, assess the issue-lock API route using `routers/api/v1/api.go#L451-L459,L1741-L1745` and `routers/api/v1/repo/issue_lock.go#L15-L81`. The principal is authenticated with full token scope and repository issue-write permission, is neither a repository administrator nor site administrator, and targets an existing readable unlocked issue. Apply the policy that the route first requires repository- or site-administrator status, then requires issue or pull-request write permission before locking. Trace both authorization gates to the lock effect, identifying principal, operation, resource, route entries, and permissions. Cite exact supplied-source locations, remain within the fixed scenario, and do not infer deployment state or execute or deploy the project.
+
+## fastapi-superuser-read
+
+At `https://github.com/fastapi/full-stack-fastapi-template` ref `cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7`, assess `GET /items/{id}` for an authenticated active superuser whose ID differs from the owner of an existing item. Apply the policy that ordinary authenticated users may read or modify only owned items, while an active superuser may read or modify an item regardless of owner. Analyze the declared entry `items.py:48-58`, bind principal, owner, active-superuser role, operation, and resource, and trace the role override to the read effect. State any source-external fact required without inferring it. Use only `task.json` and `items.py`, cite exact locations, and do not execute or contact the project or deployment.
