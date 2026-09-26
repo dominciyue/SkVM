@@ -122,6 +122,8 @@ AE0–AE3于2026-09-27已执行：基线803dc754，独占文件及原脏状态�
 
 **2026-09-27执行记录（AE5–AE9）：** 冻结首轮24/24 completed、26次真实provider dispatch（DSL-v4一次prompt fallback、DSL-v5一次domain repair）、0追加；生成全部结束后才读rubric，24份原始回答SHA绑定review，四组各6/6 full，24/24实际决策与必要语义正确。v5在本轮没有降低错误数，也未引入新的语义错误；旧默认不变。`evaluate-panel.ts --replay`重现摘要SHA `1f9b670db4ddcf5f790a15ae9b1f812423bc107f332af1a4d9c4e76fb387155a`，零provider；仓外6例×v4/v5共12次普通check、保留wire离线回放/inspect/compare一致。AF/AG ready中23+23个非自引用文件hash全匹配，主CLI compose路由红绿测试通过；合并后focused测试125 pass/1 skip/384断言。AE10共享文档和最终全仓验证、AE11归属提交与origin发布仍待完成。
 
+**AE10–AE11收口：** 授权回归266 pass/1 skip、2132断言，全仓及AG/AD脚本typecheck通过；文档单测12/12，catalog检查6条/0诊断。链接扫描只有旧AB扫描原件中的4条既有退役路径，当前文档无新增断链、治理错误0。三个新结果根840个JSON/JSONL文件、1037条记录全部解析，定向凭据模式0命中。AF `e1ac9893`、AG `6f3df889`、AE证据 `c4e17838` 已只推用户origin/skill-ir-aot并核对远端；七项原脏源码未入提交。任务结束，后续仅保留一般可靠性、真人时间及actualUSD未测的研究边界。
+
 ## 6. 不挤卡的并行合同
 
 AF/AG与AE同时开发，独占路径如下。只有AE改共享docs、CLI主文件、根conversation_log和Git索引；侧任务不装依赖、不改package/lock、不全仓格式化，不修改彼此文件。所有人都应保留其他开发者改动。
