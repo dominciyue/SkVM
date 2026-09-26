@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "source-authorization-assessment/v0",
+  "taskId": "owui-process-file-write",
+  "request": "At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.",
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "sourceMode": "fixed-context",
+  "policySources": [
+    {
+      "id": "destination-knowledge-write-policy",
+      "kind": "explicit-task-requirement",
+      "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+      "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+      "revision": "authorization-case-input/v1@841c9045",
+      "acceptance": {
+        "status": "accepted",
+        "actorRole": "study-task-author",
+        "reason": "The study task author supplied this bounded normative requirement for the comparison."
+      }
+    }
+  ],
+  "principals": [
+    {
+      "id": "verified-non-admin-file-owner",
+      "role": "verified non-administrator who owns the supplied source file",
+      "description": "A signed-in non-admin whose file ownership is distinct from authorization on the destination knowledge base.",
+      "startingCapabilities": [
+        "authenticated-as-verified-user",
+        "owns-supplied-source-file",
+        "can-submit-process-file-form"
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "existing-destination-knowledge-base",
+      "type": "knowledge-base-vector-collection",
+      "description": "An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal."
+    }
+  ],
+  "entries": [
+    {
+      "id": "post-process-file",
+      "name": "POST /process/file -> process_file",
+      "locations": [
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 1,
+          "endLine": 74
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "id": "file-owner-without-destination-write-grant",
+      "principalId": "verified-non-admin-file-owner",
+      "resourceId": "existing-destination-knowledge-base",
+      "relation": "owns-source-file-but-no-destination-write-grant",
+      "operation": "write-file-content-to-existing-knowledge-base",
+      "expectation": "deny",
+      "conditions": [
+        {
+          "name": "caller-supplies-existing-collection-name",
+          "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+        },
+        {
+          "name": "principal-is-not-admin",
+          "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+        }
+      ],
+      "policySourceId": "destination-knowledge-write-policy",
+      "entryIds": [
+        "post-process-file"
+      ]
+    }
+  ],
+  "scopeAssurance": "The allowed source crops contain the complete authorization-relevant entry-to-write path for this bounded request. General authentication is visible, but a target-specific knowledge-base write check must be traced in these inputs rather than presumed from authentication.",
+  "requiredAnalysis": [
+    "identify the principal, operation, target resource relation, entry, and write sink",
+    "trace the user-controlled collection name through any target-specific authorization control",
+    "distinguish file ownership from destination knowledge-base write permission",
+    "return source_supported_failure, source_refuted, or unknown with exact input locations"
+  ],
+  "constraints": [
+    "Use only the allowed case inputs.",
+    "Do not search for advisories, fixes, later versions, or deployment behavior.",
+    "Do not execute the project or propose a patch."
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "source-authorization-assessment/v0",
+  "taskId": "ab-linkding-remove-changed",
+  "request": "Assess delete a selected bookmark through POST bookmarks/shared/action with only remove=<existing bookmark id> for the supplied changed scenario.",
+  "repository": "https://github.com/sissbruecker/linkding",
+  "sourceRef": "27b7303baf41bb28babc610ac8eaa486e1ddfab5",
+  "sourceMode": "fixed-context",
+  "policySources": [
+    {
+      "id": "policy:policy",
+      "kind": "explicit-task-requirement",
+      "text": "Only the bookmark owner may delete a bookmark. Sharing grants reading, not deletion.",
+      "location": "brief.json#/operations/remove",
+      "revision": "ab-brief-v1",
+      "acceptance": {
+        "status": "accepted",
+        "actorRole": "task-author",
+        "reason": "Bounded research task requirement accepted by task author; upstream action tests independently retained for evaluation."
+      }
+    }
+  ],
+  "principals": [
+    {
+      "id": "principal:caller",
+      "role": "authenticated ordinary user",
+      "description": "Author facts: [\"Caller is the bookmark owner\",\"No superuser or special role\",\"POST contains only remove=<bookmark id>\"]",
+      "startingCapabilities": []
+    }
+  ],
+  "resources": [
+    {
+      "id": "resource:target",
+      "type": "remove",
+      "description": "Author facts: [\"Existing bookmark, shared=True; owner has enable_sharing=True and enable_public_sharing=False.\"]"
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry:target",
+      "name": "shared_action",
+      "locations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 358
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "id": "scenario:assessment",
+      "principalId": "principal:caller",
+      "resourceId": "resource:target",
+      "relation": "owner of the same shared bookmark",
+      "operation": "delete a selected bookmark through POST bookmarks/shared/action with only remove=<existing bookmark id>",
+      "expectation": "allow",
+      "conditions": [],
+      "policySourceId": "policy:policy",
+      "entryIds": [
+        "entry:target"
+      ]
+    }
+  ],
+  "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+  "requiredAnalysis": [
+    "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+    "Determine whether the provided source enforces the supplied policy expectation for this state, separately state the actual allow/deny/unknown decision.",
+    "Trace route/entry, identity and resource binding, strongest visible control, and protected effect. Explain why the stated role and relation change matters.",
+    "Distinguish task assumptions from facts observed in source. Name any decisive missing external facts; do not invent deployment facts. Exact HTTP status is optional unless needed to explain the decision."
+  ],
+  "constraints": [
+    "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+    "Single fixed repository/ref and explicit source files only. No target execution, dependency installation, deployment access, patching or repository-wide discovery. Standard Django decorator/ORM behavior is assumed; requests reach the supplied view with the stated identity/settings, pass CSRF and unrelated infrastructure checks. Assess authorization reachability of the protected operation, not successful storage or deployment execution.",
+    "Django framework/authentication backend and application deployment middleware are not supplied; identity, stated settings and ordinary ORM behavior are task assumptions.",
+    "Unrelated imported view/services and rendering behavior are not analyzed. All selected project-owned authorization gates and protected operation calls are supplied."
+  ]
+}
