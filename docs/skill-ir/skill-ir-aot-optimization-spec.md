@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-22
 
-**当前已确认路线：** 第14.34节“按skill/task范围设计领域表达并验证实际价值”。AA完成作者v2、修改依赖及同v4方法比较；用户已授权AB0–AB13稳定当前接口，验证新外部项目复用和独立Markdown对照。普通任务显式plain/v4，复杂覆盖/条件需求按需选择，兼容默认保持。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。14.32–14.33及更早合同保持历史，I1保留后备。
+**当前已确认路线：** 第14.34节“按skill/task范围设计领域表达并验证实际价值”。AB至AE/AF/AG已交付；用户已授权AH0–AH14深化授权语义质量与编写复用，投入优先级约60%/40%。authoring/v2、现有wire/host和普通默认继续兼容；新分析策略显式选择，配套相同支持的Markdown对照。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。14.32–14.33及更早合同保持历史，I1保留后备。
 
 本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；新工作以第 14.34 节为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
@@ -2535,3 +2535,5 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **2026-09-27当前授权合同。** AB及AC/AD已完成并发布2525d387。新队列为[AE结果协议](../superpowers/plans/2026-09-27-authorization-explicit-policy-result.md)、[AF场景复用](../superpowers/plans/2026-09-27-authorization-scenario-workspace.md)、[AG计量语义](../superpowers/plans/2026-09-27-token-accounting-semantics.md)三个独立交付。AE可选wire/v5把模型政策判断写为satisfied/violated/undetermined，再机械映射旧canonical；不从expectation或解释文本推答案，不改变旧v4/default。MD/DSL及v4/v5共享事实/源码/评价和修复机会，最多24初轮与4共享修订单元，全部取已暴露development材料。AF复用现有整字段composer生成v2输入，不创造新任务语义；AG显式区分缓存是否含于input，未知值不补零。旧报告/评分保持，当前澄清记录在研究§7.26。AF/AG独占新路径、零业务模型；AE唯一整合共享文件和Git，保留七项原修改。
 
 **2026-09-27交付观察（14.34补充）。** AE24个已暴露development单元全部终结，四组MD/DSL×v4/v5各6/6 full、实际决策和必要语义24/24正确；新v5未提供可观察质量增量，因此旧default不改，v5仅显式opt-in。26次provider dispatch含一次fallback和一次domain repair，零追加研究单元、零目标执行、实际USD未报告；分组完整prompt+output和逐项review在AE结果根保留。AF把单份common policy与显式场景整字段替换物化为三份普通v2输入，预览只读，Windows发布独占新目录；仍由作者负责政策与关系事实。AG纯模块明确不重复计入cache-read，AB旧+11.969%是fresh input+output，新完整prompt+output为+3.279%，旧原件不改。三项均不证明一般模型可靠性、真人时间节省或生产部署安全，方法取舍与复现见研究§7.26。
+
+**AH当前授权合同（2026-09-27）。** [AH0–AH14](../superpowers/plans/2026-09-27-authorization-semantic-quality-and-reuse.md)在同一授权任务类深化控制对象/效果对象、上游控制、角色例外和外部事实分析，复用现有声明及固定源码宿主。可选策略只从声明生成有范围的问题，不补源码真值或增加隐含答案；四臂MD/DSL×standard/control-binding-v1共享事实、输出、模型和预算，单独解释方法与表示作用。现有wire/默认保持，工作区只读变更说明区分共同字段继承、显式覆盖与旧结果复查，不自动复用答案。最多56计划分析单元及8共享实现修订单元，独立模型作者记录单列；质量/复用投入约60%/40%，不形成总分。首轮、失败和修订保留，旧保护输入和readiness不动。来源、方法变化和实际问题统一维护研究§7.27，由单一开发任务连续实施并发布用户origin。

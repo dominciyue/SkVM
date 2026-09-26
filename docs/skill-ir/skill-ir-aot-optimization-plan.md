@@ -2,11 +2,11 @@
 
 - 更新日期：2026-09-27
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AB及AC/AD已发布；AE/AF/AG实现、24单元评价、独立工程验收和总体验证已完成，AF `e1ac9893`、AG `6f3df889`、AE证据 `c4e17838` 已推送用户origin并核对远端。
+- 状态：AE/AF/AG已发布且交付后复核完成，维护基线`08ac8b93`。用户已授权AH0–AH14连续开发及发布，规划完成后派发单一开发任务。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
-- 当前任务书：[AE0–AE11](../superpowers/plans/2026-09-27-authorization-explicit-policy-result.md)、[AF0–AF8](../superpowers/plans/2026-09-27-authorization-scenario-workspace.md)、[AG0–AG8](../superpowers/plans/2026-09-27-token-accounting-semantics.md)
-- 当前设计：[研究§7.26](skill-dsl-research.md#726-aeafag-结果表达场景复用与计量)；前轮证据保留在§7.25。
+- 当前任务书：[AH0–AH14](../superpowers/plans/2026-09-27-authorization-semantic-quality-and-reuse.md)
+- 当前设计：[研究§7.27](skill-dsl-research.md#727-ah-语义质量与真实编写复用)；前轮证据保留在§7.25–7.26。
 
 分类继续服务于范围，DSL价值包含编写、修改、质量与效率。AB同包/schema/核心可处理两项目八状态；Markdown 8/8 full、DSL 6/8 full，后者两项标签错误，必要控制与解释均正确。DSL整体收益未建立，准备/修改/运行负担及限制见研究§7.25。
 
@@ -22,7 +22,7 @@
 
 AB token复核：旧+12.0%为非缓存input+output；完整prompt+output（含单列缓存读取）为+3.279%。本轮AG追加可复算说明，旧AB原件保留。
 
-## 下一阶段建议（尚未启动）
+## 当前 AH 执行队列
 
 回答质量约60%、编写/修改/复用约40%作为投入优先级；不加权成单一“成功分数”。AE四组质量持平且DSL完整token高约27%，下一阶段应从真实授权语义问题入手，而非再改协议名字。保持authoring/v2和现有wire，复用已交付工具。
 
@@ -31,7 +31,17 @@ AB token复核：旧+12.0%为非缓存input+output；完整prompt+output（含�
 3. **配对效果验证。** 新旧方法和合理Markdown基线使用同源码、政策、模型、预算及评价。优先看决定性错误、漏掉的控制/例外、证据支持与合理unknown，再看首答/修复及完整token。若新增模型复核轮次，提供同等调用预算的普通说明对照；新增判断机制和表达形式的贡献分开解释。
 4. **作者与复用。** 使用AF工作区承载公共政策和显式场景变化，验证任务事实保持、政策变更同步和普通check/run。记录实际准备/修正动作和运行负担；没有真人记录时不推人工分钟收益。由未参与方法实现的作者使用提供更有信息量的反馈。
 
-先完成材料/错误机制诊断，再确定有限面板与实施任务书。此处是下一步建议，本轮未创建、派发或执行新任务；现有AE结果与历史AB失败保持各自身份。
+用户已确认上述方向并要求创建开发任务。AH0–AH14将来源/机制诊断、纯领域计划、普通run接线、工作区变更说明、真实四臂比较和独立作者使用放在同一轮完成。一个`gpt-6-sol / max`任务为唯一代码/共享文档/Git写者，不拆为争抢相同文件的并行开发任务。
+
+| 阶段 | 工作 | 直接产物 |
+|---|---|---|
+| AH0–AH3 | 基线、skill职责、困难材料、机制合同 | 有出处的类内机制及同事实比较材料 |
+| AH4–AH6 | 可选control-binding策略、实际run、场景变更反馈 | 兼容默认的程序与focused测试 |
+| AH7–AH9 | Markdown/DSL×standard/新策略四臂及评价 | 首答、必要质量、修复和完整开销 |
+| AH10–AH12 | 独立作者原/变任务、普通使用、方法取舍 | 编写复用证据与唯一研究正文更新 |
+| AH13–AH14 | 有限回归、离线复验、归属提交和origin发布 | 可用示例、证据和同步工作区 |
+
+最多10状态×4臂及预选4状态的第二次重复，共56计划单元；共享实现bug修订最多8单元，作者账户单列。继续当前单ref授权任务类，保留全部失败和旧AB/AE原件，不预定正向结论、不以扩样追分。AH0开始前不创建虚构完成状态。
 
 ## 已完成AB交付队列
 
@@ -50,7 +60,7 @@ AB token复核：旧+12.0%为非缓存input+output；完整prompt+output（含�
 - 直接在skill-ir-aot，不建新分支/worktree，只推用户origin。9月27日维护已提交六项原注释整理并归一第七项EOL状态；历史本地材料原位保留、逐项本地排除，新改动继续按实际归属处理。
 - 新项目按任务书登记external development；旧Q1/held-out/prospective/readiness和历史结果不动。
 - 不做仓库主动发现、目标执行、部署验证或patch，不建设UI或通用模板引擎。
-- 恢复及并行开发gpt-6-astra / ultra，被测xty/gpt-5.6-sol；认证网络和有目的付费已授权，美元unknown如实报告。
+- 本轮开发gpt-6-sol / max，主面板继续既有xty/gpt-5.6-sol并记录实际路由；认证网络和有目的付费已授权，美元unknown如实报告。新任务直接使用本地项目和主开发分支，不另建worktree。
 - 基线普通说明与DSL共享执行工具、公开事实和修复机会，作者材料真正独立；结论限同helper流程比较。
 - 任务完成后停止，不等待或重复调用凑时长；受阻研究分支与独立工程分开推进。
 
