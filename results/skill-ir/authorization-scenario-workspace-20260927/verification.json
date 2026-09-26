@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "authorization-workspace-verification/v1",
+  "date": "2026-09-27",
+  "runtime": "Bun 1.3.14",
+  "platform": "win32",
+  "focused": {
+    "command": "bun test ./src/benchmarks/authorization-dsl/authoring-workspace ./src/cli/authorization-compose.test.ts",
+    "exitCode": 0,
+    "passed": 65,
+    "skipped": 1,
+    "failed": 0,
+    "assertions": 149,
+    "skipReason": "Non-Windows fail-closed publication test is conditional on a different host platform.",
+    "output": "bun test v1.3.14 (0d9b296a)\n\nsrc\\benchmarks\\authorization-dsl\\authoring-workspace\\example.test.ts:\n(pass) three explicit example variants lower identically to independent expected v2 inputs [25.94ms]\n(pass) ordinary external copy generates/checks all three and a shared policy edit leaves old outputs intact [66.76ms]\n\nsrc\\benchmarks\\authorization-dsl\\authoring-workspace\\materialize.test.ts:\n(pass) bad second variant leaves no output or staging directory [13.22ms]\n(pass) existing empty output directory is never replaced or removed [13.64ms]\n(pass) successful publication contains complete ordinary inputs and provenance [28.53ms]\n(pass) concurrent creation publishes exactly one complete directory [26.54ms]\n(pass) a competing empty directory created after planning is preserved [28.14ms]\n(skip) unsupported platforms fail closed without writes\n\nsrc\\benchmarks\\authorization-dsl\\authoring-workspace\\plan.test.ts:\n(pass) plan relocates the base coordinate, retains policy text and omissions, and writes nothing [9.07ms]\n(pass) replacement sourceRoot is workspace-relative, independent of invocation cwd [39.98ms]\n(pass) plan diagnoses variant and exact field for {\"field\":\"unknown\",\"value\":1,\"origin\":\"author\"} [4.48ms]\n(pass) plan diagnoses variant and exact field for [{\"field\":\"taskId\",\"value\":\"a\",\"origin\":\"a\"},{\"field\":\"taskId\",\"value\":\"b\",\"origin\":\"b\"}] [3.27ms]\n(pass) plan diagnoses variant and exact field for {\"field\":\"sources\",\"value\":\"wrong\",\"origin\":\"author\"} [3.83ms]\n(pass) plan diagnoses variant and exact field for {\"field\":\"scenarios\",\"value\":{\"archive\":{\"principal\":\"missing\",\"resource\":\"record\",\"policy\":\"archive\",\"entries\":[\"archive\"],\"relation\":\"owner\",\"operation\":\"archive\",\"expectation\":\"allow\"}},\"origin\":\"author\"} [4.18ms]\n(pass) plan diagnoses variant and exact field for {\"field\":\"entries\",\"value\":{\"archive\":{\"name\":\"archiveRecord\",\"locations\":[{\"path\":\"src/records.ts\",\"startLine\":1,\"endLine\":999}]}},\"origin\":\"author\"} [4.38ms]\n(pass) missing base and missing source have actionable file/variant diagnostics [4.70ms]\n(pass) relocation cannot legitimize a sourceRoot junction outside the authored boundary [6.82ms]\n\nsrc\\benchmarks\\authorization-dsl\\authoring-workspace\\schema.test.ts:\n(pass) workspace accepts explicit portable ids and rejects extra semantics [0.26ms]\n(pass) workspace requires exact version: v2 [0.10ms]\n(pass) workspace requires exact version:  [0.02ms]\n(pass) workspace requires exact version: %s [0.02ms]\n(pass) workspace requires base:  [0.11ms]\n(pass) workspace requires base: %s [0.02ms]\n(pass) workspace requires base: %s [0.02ms]\n(pass) workspace rejects unsafe filename id ../out [0.05ms]\n(pass) workspace rejects unsafe filename id a/b [0.02ms]\n(pass) workspace rejects unsafe filename id a\\b\n(pass) workspace rejects unsafe filename id .\n(pass) workspace rejects unsafe filename id .. [0.01ms]\n(pass) workspace rejects unsafe filename id a.\n(pass) workspace rejects unsafe filename id a \n(pass) workspace rejects unsafe filename id CON [0.02ms]\n(pass) workspace rejects unsafe filename id con.txt\n(pass) workspace rejects unsafe filename id PRN [0.02ms]\n(pass) workspace rejects unsafe filename id aux\n(pass) workspace rejects unsafe filename id NUL\n(pass) workspace rejects unsafe filename id COM1\n(pass) workspace rejects unsafe filename id LPT9\n(pass) workspace rejects unsafe filename id A:B\n(pass) workspace rejects unsafe filename id a*\n(pass) workspace rejects unsafe filename id a?\n(pass) workspace rejects unsafe filename id a\u0000 [0.01ms]\n(pass) workspace rejects unsafe filename id a|\n(pass) workspace rejects unsafe filename id a<\n(pass) workspace rejects unsafe filename id a>\n(pass) workspace rejects unsafe filename id a\"\n(pass) workspace prevents case-insensitive filename collisions and caps explicit variants [0.56ms]\n(pass) replacement files require exact records with nonempty origin: {\"value\":{}} [0.05ms]\n(pass) replacement files require exact records with nonempty origin: {\"value\":null} [0.02ms]\n(pass) replacement files require exact records with nonempty origin: {\"value\":\"oops\"}\n(pass) replacement files require exact records with nonempty origin: {\"value\":[{\"field\":\"taskId\",\"value\":\"x\"}]} [0.04ms]\n(pass) replacement files require exact records with nonempty origin: {\"value\":[{\"field\":\"taskId\",\"origin\":\"author\"}]} [0.02ms]\n(pass) replacement files require exact records with nonempty origin: {\"value\":[{\"field\":\"taskId\",\"value\":\"x\",\"origin\":\" \"}]}\n(pass) replacement files require exact records with nonempty origin: {\"value\":[{\"field\":\"taskId\",\"value\":\"x\",\"origin\":\"author\",\"guessed\":true}]} [0.02ms]\n(pass) empty replacement list is explicit identity composition [0.02ms]\n\nsrc\\cli\\authorization-compose.test.ts:\n(pass) invalid arguments return 2: {\"args\":[]} [0.52ms]\n(pass) invalid arguments return 2: {\"args\":[\"--workspace=x\"]} [0.06ms]\n(pass) invalid arguments return 2: {\"args\":[\"--out=x\"]} [0.01ms]\n(pass) invalid arguments return 2: {\"args\":[\"--workspace=x\",\"--out=y\",\"--provider=x\"]} [0.01ms]\n(pass) invalid arguments return 2: {\"args\":[\"--workspace=x\",\"--out=y\",\"--check-only=true\"]}\n(pass) invalid arguments return 2: {\"args\":[\"--workspace=x\",\"--workspace=y\",\"--out=z\"]}\n(pass) invalid arguments return 2: {\"args\":[\"--workspace=x\",\"--out=y\",\"--check-only\",\"--check-only\"]}\n(pass) check-only returns the complete plan without writes or provider setup [6.91ms]\n(pass) CLI prints exact variant/field semantic diagnostics and returns 1 [5.83ms]\n(pass) CLI publishes ordinary v2 and refuses a second publication [17.89ms]\n(pass) standalone runtime import graph has no provider or execution host [4.08ms]\n\n1 tests skipped:\n(skip) unsupported platforms fail closed without writes\n\n 65 pass\n 1 skip\n 0 fail\n 149 expect() calls\nRan 66 tests across 5 files. [393.00ms]\n"
+  },
+  "scopedTypecheck": {
+    "exitCode": 0,
+    "command": "bun ./node_modules/typescript/bin/tsc --noEmit --target ESNext --module Preserve --moduleResolution bundler --allowImportingTsExtensions --resolveJsonModule --verbatimModuleSyntax --strict --skipLibCheck --noFallthroughCasesInSwitch --noUncheckedIndexedAccess --noImplicitOverride src/benchmarks/authorization-dsl/authoring-workspace/schema.ts src/benchmarks/authorization-dsl/authoring-workspace/schema.test.ts src/benchmarks/authorization-dsl/authoring-workspace/plan.ts src/benchmarks/authorization-dsl/authoring-workspace/plan.test.ts src/benchmarks/authorization-dsl/authoring-workspace/materialize.ts src/benchmarks/authorization-dsl/authoring-workspace/materialize.test.ts src/benchmarks/authorization-dsl/authoring-workspace/example.test.ts src/cli/authorization-compose.ts src/cli/authorization-compose.test.ts"
+  },
+  "wholeRepositoryTypecheck": {
+    "command": "bun run typecheck",
+    "exitCode": 1,
+    "remainingDiagnostic": "src/task-dsl/authorization/policy-result.test.ts(9,31): Cannot find module './policy-result.ts' or its corresponding type declarations.",
+    "owner": "AE concurrent TDD stage; notified, no AF error remains; not claimed passed"
+  },
+  "ordinary": {
+    "command": "bun run ./results/skill-ir/authorization-scenario-workspace-20260927/verify-ordinary.ts",
+    "exitCode": 0,
+    "evidence": "ordinary-verification.json",
+    "originalVariants": 3,
+    "revisedPolicyVariants": 3
+  },
+  "tdd": [
+    {
+      "stage": "schema",
+      "red": "36 assertion failures with permissive stub; initial missing-module setup error preceded stub",
+      "green": "37 initial cases pass"
+    },
+    {
+      "stage": "plan",
+      "red": "8 failures with placeholder plan",
+      "green": "8 initial cases pass"
+    },
+    {
+      "stage": "materialize",
+      "red": "2 success/race assertion failures with plan-only stub",
+      "green": "all Windows cases pass"
+    },
+    {
+      "stage": "CLI",
+      "red": "10 initial failures with placeholder handler",
+      "green": "10 initial cases pass; later import-graph test added"
+    },
+    {
+      "stage": "original-coordinate-junction",
+      "red": "invalid authored junction incorrectly planned valid",
+      "green": "same case invalid after original-coordinate validation"
+    }
+  ],
+  "independentReview": {
+    "readOnly": true,
+    "edits": 0,
+    "initialFinding": "No actionable bug found; main task subsequently added and fixed the original-coordinate junction regression."
+  },
+  "ownership": {
+    "gitWrites": 0,
+    "dependencyInstalls": 0,
+    "sharedFilesWrittenByAF": 0,
+    "businessModelCalls": 0,
+    "targetExecutions": 0,
+    "protectedSamplesRead": 0
+  },
+  "whitespace": {
+    "command": "git diff --check -- docs/superpowers/plans/2026-09-27-authorization-scenario-workspace.md",
+    "exitCode": 0,
+    "note": "Git emitted normal autocrlf warning; no whitespace diagnostic."
+  }
+}

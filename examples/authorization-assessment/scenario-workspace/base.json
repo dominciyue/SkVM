@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "synthetic-workspace-base",
+  "request": "Assess the explicitly declared archive scenario against the supplied policy.",
+  "repository": "https://example.test/scenario-workspace/records",
+  "sourceRef": "synthetic-workspace-v1",
+  "sourceRoot": "project",
+  "sources": ["src/records.ts"],
+  "policies": {
+    "archive": {
+      "text": "Only an authenticated record owner or an authenticated supervisor may archive a record.",
+      "location": "base.json#/policies/archive",
+      "revision": "synthetic-policy-v1",
+      "acceptance": "accepted",
+      "reason": "The task author explicitly supplies this synthetic policy independently of the implementation."
+    }
+  },
+  "principals": { "actor": { "role": "member", "facts": ["The principal id is alice.", "The principal is authenticated.", "The principal is not a supervisor."], "capabilities": ["authenticated"] } },
+  "resources": { "record": { "type": "record", "facts": ["Record r-1 exists and is owned by alice.", "The record has not been archived."] } },
+  "entries": { "archive": { "name": "archiveRecord", "locations": [{ "path": "src/records.ts", "startLine": 6, "endLine": 12 }] } },
+  "scenarios": { "archive": { "principal": "actor", "resource": "record", "policy": "archive", "entries": ["archive"], "relation": "same-owner-without-supervisor-role", "operation": "archive", "expectation": "allow" } }
+}

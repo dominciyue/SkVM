@@ -9,6 +9,7 @@
 **Tech Stack:** TypeScript/Bun/Zod，已有composer与check；不增加依赖或改v2 schema。
 
 - 基线2525d387及本规划提交，状态authorized-for-execution。
+- 执行细节（2026-09-27）：AE提供只读值接口`loadLocalAuthorizationInputValue(value,inputFile)`及显式父级相对sourceRoot支持；AF先在作者坐标check，再在发布前用最终坐标check，避免重定位扩大原junction边界。发布使用Windows目录rename的不覆盖语义；其他平台明确返回unsupported，不能回退到可能覆盖空目录的POSIX rename。输出父目录须已存在；输入/source需与out同卷。上述限制进入README与ready。
 - 工作区`D:/skill优化/SkVM`、skill-ir-aot；结果根`results/skill-ir/authorization-scenario-workspace-20260927/`。
 - 先读AGENTS/current-status、本书、研究§7.25作者重复部分、`authoring-compose.ts`/测试、`authoring-v2.ts`、现有check和AC编辑示例。
 
@@ -53,40 +54,42 @@ check-only只返回规划、变化字段、来源及诊断，零写入/零provid
 ## 3. 队列
 
 ### AF0 基线
-- [ ] 记录已有composer语义和外部文件坐标，建立status与ownedFiles；不重复开发已有替换算法。
+- [x] 记录已有composer语义和外部文件坐标，建立status与ownedFiles；不重复开发已有替换算法。
 
 ### AF1 红测工作区合同
-- [ ] config版本、base缺失、重复id/非法名、替换文件类型/未知field/重复field/空origin全部有明确反例。
-- [ ] 原base/替换不变，scenarios中错误引用在语义check检出。
+- [x] config版本、base缺失、重复id/非法名、替换文件类型/未知field/重复field/空origin全部有明确反例。
+- [x] 原base/替换不变，scenarios中错误引用在语义check检出。
 
 ### AF2 装配规划
-- [ ] 实现`planAuthorizationWorkspace(workspaceFile,outDir)`返回input/provenance/diagnostics。逐variant复用composer，不伪造ID或规范。
-- [ ] 验证从不同cwd运行输出计划相同，sourceRoot坐标正确；optional缺省不被补成虚假事实。
+- [x] 实现`planAuthorizationWorkspace(workspaceFile,outDir)`返回input/provenance/diagnostics。逐variant复用composer，不伪造ID或规范。
+- [x] 验证从不同cwd运行输出计划相同，sourceRoot坐标正确；optional缺省不被补成虚假事实。
 
 ### AF3 原子新目录发布
-- [ ] 写测试：第二variant坏时out不存在、已存在目录不覆盖、创建竞争拒绝、正确sourceRoot、原文件未变。
-- [ ] 实现同父目录临时写→全部check→非覆盖发布，保留真正的错误原因。Windows路径和CRLF fixtures都运行。
+- [x] 写测试：第二variant坏时out不存在、已存在目录不覆盖、创建竞争拒绝、正确sourceRoot、原文件未变。
+- [x] 实现同父目录临时写→全部check→非覆盖发布，保留真正的错误原因。Windows路径和CRLF fixtures都运行。
 
 ### AF4 CLI与预览
-- [ ] 独立handler支持上述两个命令，check-only不建provider；具体`variant/field`诊断直接给作者。
-- [ ] tests调用handler，run之外不导入provider初始化。给AE主CLI两三行接线建议及测试用例，不能自己改主CLI。
+- [x] 独立handler支持上述两个命令，check-only不建provider；具体`variant/field`诊断直接给作者。
+- [x] tests调用handler，run之外不导入provider初始化。给AE主CLI两三行接线建议及测试用例，不能自己改主CLI。
 
 ### AF5 完整复用示例
-- [ ] 一个synthetic源码项目，owner/outsider/role-override三个变体；共同base一次维护，变化文件明确填写所有相关事实，不自动从名称推allow/deny。
-- [ ] 生成三份输入普通check全部通过；逐份lowering与人工准备的独立期望v2语义相等，证明文件装配没有改变任务。
-- [ ] 展示修改一处共同政策如何出现在所有新变体，旧生成目录保留，输出需换新目录；不宣称自动复用旧答案。
+- [x] 一个synthetic源码项目，owner/outsider/role-override三个变体；共同base一次维护，变化文件明确填写所有相关事实，不自动从名称推allow/deny。
+- [x] 生成三份输入普通check全部通过；逐份lowering与人工准备的独立期望v2语义相等，证明文件装配没有改变任务。
+- [x] 展示修改一处共同政策如何出现在所有新变体，旧生成目录保留，输出需换新目录；不宣称自动复用旧答案。
 
 ### AF6 ordinary目录验收
-- [ ] 复制整个workspace到仓外普通目录，再generate/check；不依赖D盘固定路径、AB结果或oracle。
-- [ ] 记录维护文件/公共字段复用、生成输入语义，不以文件更少推断真人分钟或运行token收益。
+- [x] 复制整个workspace到仓外普通目录，再generate/check；不依赖D盘固定路径、AB结果或oracle。
+- [x] 记录维护文件/公共字段复用、生成输入语义，不以文件更少推断真人分钟或运行token收益。
 
 ### AF7 测试与交接
-- [ ] `bun test ./src/benchmarks/authorization-dsl/authoring-workspace ./src/cli/authorization-compose.test.ts`通过。
-- [ ] README写真实命令、坐标规则、失败场景、剩余作者责任；共享docs稿放integration-notes。
-- [ ] 最后原子ready.json，包含ownedFiles、接口、focused测试和局限，通知AE后停止写。无需等待AE面板结束才交付。
+- [x] `bun test ./src/benchmarks/authorization-dsl/authoring-workspace ./src/cli/authorization-compose.test.ts`通过。
+- [x] README写真实命令、坐标规则、失败场景、剩余作者责任；共享docs稿放integration-notes。
+- [x] 最后原子ready.json，包含ownedFiles、接口、focused测试和局限，通知AE后停止写。无需等待AE面板结束才交付。
 
 ### AF8 集成修订
-- [ ] AE给具体本范围问题时修复并更新ready；不越界修改他的运行/协议代码。无返工则完成。
+- [x] AE给具体本范围问题时修复并更新ready；不越界修改他的运行/协议代码。无返工则完成。
+
+执行交付：AF focused 65 pass、1个非Windows平台条件skip、149断言；独占范围严格typecheck通过。真实独立handler与普通主CLI在仓外目录完成3原输入及3共同政策更新输入检查，旧生成字节不变。全仓typecheck当时仅受AE尚未落地的`policy-result.ts`影响，交AE最终整合验证；不将其记为全仓通过。暂无AE提出的AF范围返工，ready后停止写入；若具体返工到达则按AF8重开。详细清单、命令、来源/局限与共享文档增补稿位于本任务结果根。
 
 ## 4. 边界
 
