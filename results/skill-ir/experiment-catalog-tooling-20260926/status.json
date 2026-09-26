@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "experiment-catalog-tooling-status/v1",
+  "status": "ready-for-integration",
+  "stage": "AD7",
+  "date": "2026-09-26",
+  "baseline": "69118798",
+  "branch": "skill-ir-aot",
+  "plan": "docs/superpowers/plans/2026-09-26-experiment-catalog-maintenance.md",
+  "design": {
+    "parser": "Validate v1 core and known numeric telemetry without reshaping entries.",
+    "io": "Bounded catalog read, one retry on change, repo-contained explicit artifact checks only.",
+    "render": "Stable selection, raw JSON, text facts with separate provider/authoring and explicit review status.",
+    "export": "Caller-selected new file, validated first, exclusive create, no overwrite or catalog/artifact alias.",
+    "catalogShapes": [
+      "AB: provider + rawOutcome + authoring, pending review",
+      "U: scope + mixed effect + top-level unknown USD",
+      "F: scope with unknown USD + negative effect"
+    ],
+    "navigationContract": "Catalog is navigation; original evidence remains authoritative; missing/unknown is never zero or a quality score."
+  },
+  "execution": {
+    "requestedModel": "gpt-6-astra",
+    "requestedReasoningEffort": "ultra",
+    "requestedSpeed": "1.5x / Fast",
+    "hostConfiguredServiceTier": "priority",
+    "actualTaskServiceTier": "unobserved",
+    "note": "Host configured priority; actual dispatched service tier and 1.5x latency multiplier unobserved. No global configuration changes.",
+    "observedModel": "gpt-6-astra",
+    "observedReasoningEffort": "ultra",
+    "observationSource": "Current task turn_context at 2026-09-26T15:42:19.615Z; service_tier field absent."
+  },
+  "writeAllowlist": [
+    "scripts/experiment-catalog/",
+    "results/skill-ir/experiment-catalog-tooling-20260926/",
+    "docs/superpowers/plans/2026-09-26-experiment-catalog-maintenance.md"
+  ],
+  "providerCalls": 0,
+  "paidCalls": 0,
+  "newResearchSamples": 0,
+  "publisherThreadId": "01a0de62-39d6-7883-89da-4123cb8327f0",
+  "completedStages": [
+    "AD0",
+    "AD1",
+    "AD2",
+    "AD3",
+    "AD4",
+    "AD5",
+    "AD6",
+    "AD7"
+  ],
+  "completedAt": "2026-09-26T15:59:05.829Z",
+  "verification": {
+    "testsPassed": 24,
+    "assertions": 147,
+    "testsFailed": 0,
+    "scriptTypecheck": "passed",
+    "realCatalogCheck": "3 entries / 0 diagnostics",
+    "catalogBytesUnchangedDuringTrial": true,
+    "record": "verification.json"
+  },
+  "ownedFiles": [
+    "scripts/experiment-catalog/model.ts",
+    "scripts/experiment-catalog/io.ts",
+    "scripts/experiment-catalog/render.ts",
+    "scripts/experiment-catalog/cli.ts",
+    "scripts/experiment-catalog/catalog.test.ts",
+    "scripts/experiment-catalog/README.md",
+    "docs/superpowers/plans/2026-09-26-experiment-catalog-maintenance.md",
+    "results/skill-ir/experiment-catalog-tooling-20260926/status.json",
+    "results/skill-ir/experiment-catalog-tooling-20260926/verification.json",
+    "results/skill-ir/experiment-catalog-tooling-20260926/catalog-summary.json",
+    "results/skill-ir/experiment-catalog-tooling-20260926/integration-notes.md",
+    "results/skill-ir/experiment-catalog-tooling-20260926/ready.json"
+  ]
+}

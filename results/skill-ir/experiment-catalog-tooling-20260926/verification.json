@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "experiment-catalog-tooling-verification/v1",
+  "observedAt": "2026-09-26T15:56:46.539Z",
+  "deterministicTests": {
+    "command": "bun test ./scripts/experiment-catalog/catalog.test.ts",
+    "exitCode": 0,
+    "passed": 24,
+    "failed": 0,
+    "assertions": 147,
+    "runtime": "Bun 1.3.14 (0d9b296a)",
+    "redGreenStages": [
+      {
+        "stage": "AD1",
+        "redFail": 5,
+        "greenPass": 6
+      },
+      {
+        "stage": "AD2",
+        "redFail": 7,
+        "greenPass": 13
+      },
+      {
+        "stage": "AD3",
+        "redFail": 5,
+        "greenPass": 18
+      },
+      {
+        "stage": "AD4",
+        "redFail": 5,
+        "greenPass": 23
+      }
+    ],
+    "finalPublicCliBoundaryTest": true
+  },
+  "localTypecheck": {
+    "command": "bun ./node_modules/typescript/bin/tsc --noEmit --strict --noUncheckedIndexedAccess --skipLibCheck --module Preserve --moduleResolution bundler --target ESNext --types bun scripts/experiment-catalog/model.ts scripts/experiment-catalog/io.ts scripts/experiment-catalog/render.ts scripts/experiment-catalog/cli.ts scripts/experiment-catalog/catalog.test.ts",
+    "exitCode": 0,
+    "priorIssue": "One test expected-value type was unknown[]; narrowed the known-valid fixture assertion, then reran successfully."
+  },
+  "realCatalog": {
+    "path": "results/skill-ir/experiment-catalog.json",
+    "beforeSha256": "ce6c7313679b58f0466bc418984643682cd835718ff2090dacb13d679890831a",
+    "afterSha256": "ce6c7313679b58f0466bc418984643682cd835718ff2090dacb13d679890831a",
+    "sameBytes": true,
+    "bytes": 4346,
+    "runs": [
+      {
+        "command": "bun ./scripts/experiment-catalog/cli.ts check --root=. --catalog=results/skill-ir/experiment-catalog.json",
+        "startedAt": "2026-09-26T15:56:46.282Z",
+        "exitCode": 0,
+        "stdout": "Catalog: D:\\skill优化\\SkVM\\results\\skill-ir\\experiment-catalog.json\nRead: 2026-09-26T15:56:46.327Z; SHA-256: ce6c7313679b58f0466bc418984643682cd835718ff2090dacb13d679890831a\nCheck: valid; 3 entries; 0 diagnostics.\n",
+        "stderr": ""
+      },
+      {
+        "command": "bun ./scripts/experiment-catalog/cli.ts show --root=. --catalog=results/skill-ir/experiment-catalog.json --id=authorization-external-reuse-v1",
+        "startedAt": "2026-09-26T15:56:46.345Z",
+        "exitCode": 0,
+        "stdout": "Catalog: D:\\skill优化\\SkVM\\results\\skill-ir\\experiment-catalog.json\nRead: 2026-09-26T15:56:46.395Z; SHA-256: ce6c7313679b58f0466bc418984643682cd835718ff2090dacb13d679890831a\n\"authorization-external-reuse-v1\" [\"AB\"] status: \"generation-complete-evaluation-pending\"\nReview: pending means not evaluated; absent schema/transport/semantic review fields mean not recorded. Raw outcomes do not imply quality.\nscope.projects: [\"linkding\",\"django-todo\"]\nscope.operations: [\"remove\",\"asset\",\"task\",\"list\"]\nscope.states: [\"original\",\"changed\"]\nscope.arms: [\"dsl\",\"markdown\"]\nscope.tasks: 8\nscope.units: 16\nscope.targetExecutions: 0\nprovider.model: \"xty/gpt-5.6-sol\"\nprovider.temperature: 0\nprovider.autoProbe: false\nprovider.providerCalls: 16\nprovider.respondedCalls: 16\nprovider.completionUnknown: 0\nprovider.knownTokens.input: 146886\nprovider.knownTokens.output: 17566\nprovider.knownTokens.cacheRead: 6528\nprovider.knownTokens.cacheWrite: 0\nprovider.actualUsd: \"unknown\"\nrawOutcome.completed: 16\nrawOutcome.sourceRefuted: 14\nrawOutcome.sourceSupportedFailure: 2\nrawOutcome.semanticReview: \"pending\"\nrawOutcome.note: \"The two source_supported_failure labels are retained raw outputs; their explanations state the expected source_refuted direction and require evaluator review.\"\nauthoring.authorGroups: 4\nauthoring.authors: 8\nauthoring.knownTokens: 1460779\nauthoring.actualUsd: \"unknown\"\nauthoring.humanTime: \"unknown\"\nartifacts.root: \"results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/\"\nartifacts.status: \"results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/status.json\"\nartifacts.config: \"results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/panel-config.json\"\nartifacts.rawReading: \"results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/answer-reading.txt\"\nartifacts.authorSummary: \"results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/author-summary.json\"\nartifacts.reviewAdjudication: \"results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/review-adjudication.json\"\nartifacts.changeReports: \"results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/changes/\"\nlimits: [\"Development-only, fixed source snapshots; no repository discovery, deployment or target execution.\",\"Raw output counts are not semantic quality scores until the frozen evaluator review is completed.\",\"Author token telemetry includes system and tool context; it is not a human-savings measure.\"]\nnextAction: \"AB9 evaluator review, then AB10–AB13 documentation and release closure.\"\nComplex values above are literal JSON; --format=json preserves the full entry structure. No totals or quality scores are inferred.\n",
+        "stderr": ""
+      },
+      {
+        "command": "bun ./scripts/experiment-catalog/cli.ts show --root=. --catalog=results/skill-ir/experiment-catalog.json --stage=U --format=json",
+        "startedAt": "2026-09-26T15:56:46.405Z",
+        "exitCode": 0,
+        "stdout": "{\n  \"schemaVersion\": \"skill-ir-experiment-catalog-query/v1\",\n  \"command\": \"show\",\n  \"valid\": true,\n  \"source\": {\n    \"requestedRoot\": \"D:\\\\skill优化\\\\SkVM\",\n    \"root\": \"D:\\\\skill优化\\\\SkVM\",\n    \"requestedCatalog\": \"results/skill-ir/experiment-catalog.json\",\n    \"catalog\": \"D:\\\\skill优化\\\\SkVM\\\\results\\\\skill-ir\\\\experiment-catalog.json\",\n    \"readAt\": \"2026-09-26T15:56:46.455Z\",\n    \"sha256\": \"ce6c7313679b58f0466bc418984643682cd835718ff2090dacb13d679890831a\",\n    \"bytes\": 4346,\n    \"attempts\": 1,\n    \"modifiedAt\": \"2026-09-23T15:09:27.971Z\"\n  },\n  \"catalogMetadata\": {\n    \"schemaVersion\": \"skill-ir-experiment-catalog/v1\",\n    \"generatedAt\": \"2026-09-23\",\n    \"purpose\": \"Compact navigation for current development evidence; raw runs remain authoritative.\"\n  },\n  \"entries\": [\n    {\n      \"id\": \"trace-guided-skill-optimization-20260913\",\n      \"stage\": \"U\",\n      \"status\": \"completed-development\",\n      \"scope\": {\n        \"selectedSkills\": 3,\n        \"repositories\": 3,\n        \"matchedPairs\": 4,\n        \"targetAgentCalls\": 10,\n        \"targetExecutions\": 10\n      },\n      \"effect\": \"mixed\",\n      \"actualUsd\": \"unknown\",\n      \"artifacts\": {\n        \"status\": \"results/skill-ir/trace-guided-skill-optimization-20260913/status.json\",\n        \"finalReport\": \"results/skill-ir/trace-guided-skill-optimization-20260913/final-report.json\"\n      },\n      \"limits\": [\n        \"Elapsed time and output tokens fell in the selected pairs; input, cache-read and total observed tokens rose.\",\n        \"Development evidence only; no prospective, held-out or arbitrary-skill claim.\"\n      ]\n    }\n  ],\n  \"diagnostics\": []\n}\n",
+        "stderr": ""
+      },
+      {
+        "command": "bun ./scripts/experiment-catalog/cli.ts export --root=. --catalog=results/skill-ir/experiment-catalog.json --out=results/skill-ir/experiment-catalog-tooling-20260926/catalog-summary.json",
+        "startedAt": "2026-09-26T15:56:46.463Z",
+        "exitCode": 0,
+        "stdout": "Exported navigation summary: D:\\skill优化\\SkVM\\results\\skill-ir\\experiment-catalog-tooling-20260926\\catalog-summary.json\nOriginal artifacts remain authoritative.\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "scope": {
+    "providerCalls": 0,
+    "paidCalls": 0,
+    "newResearchSamples": 0,
+    "artifactContentsRead": 0,
+    "networkCallsByTool": 0,
+    "catalogWrites": 0,
+    "gitWrites": 0,
+    "sharedDocumentsEdited": 0
+  },
+  "review": {
+    "independentReadOnlyReviews": 2,
+    "disposition": [
+      "No concrete contract defect found by model/render/CLI review; added subprocess invalid-data exit-code coverage. Whole-entry deep equality already covers artifact and nested-field preservation.",
+      "IO review proposed synchronizing export to later catalog changes. Not adopted: AD5 explicitly requires an identified read-version snapshot and no long lock. source.readAt/modifiedAt/sha256/bytes identify that version; later source changes do not invalidate the snapshot. README documents separate path observations and no atomic tree snapshot."
+    ]
+  },
+  "limits": [
+    "Real catalog observation is a point-in-time navigation snapshot, not final AB evaluation.",
+    "No artifact content or answer/oracle was read; existence checks alone do not validate evidence semantics.",
+    "Full-repository typecheck and documentation scan remain with AB publisher.",
+    "Windows junction/hardlink tests ran on this host; no cross-platform reliability claim.",
+    "A write I/O failure after exclusive create can leave a new partial output, which is reported and never overwritten."
+  ],
+  "executionObservation": {
+    "requestedModel": "gpt-6-astra",
+    "requestedReasoningEffort": "ultra",
+    "requestedSpeed": "1.5x / Fast",
+    "hostConfiguredServiceTier": "priority",
+    "actualTaskServiceTier": "unobserved",
+    "note": "Host configured priority; actual dispatched service tier and 1.5x latency multiplier unobserved. No global configuration changes.",
+    "observedModel": "gpt-6-astra",
+    "observedReasoningEffort": "ultra",
+    "observationSource": "Current task turn_context at 2026-09-26T15:42:19.615Z; service_tier field absent."
+  },
+  "staticModuleBoundary": {
+    "checked": true,
+    "productionImports": [
+      "node:fs",
+      "node:crypto",
+      "node:path",
+      "./model",
+      "./render",
+      "./io"
+    ],
+    "providerOrNetworkImports": 0
+  },
+  "taskbookDiffWhitespaceCheck": {
+    "command": "git diff --check -- docs/superpowers/plans/2026-09-26-experiment-catalog-maintenance.md",
+    "exitCode": 0,
+    "note": "Only the repository LF-to-CRLF advisory was emitted."
+  },
+  "ownedFiles": [
+    "scripts/experiment-catalog/model.ts",
+    "scripts/experiment-catalog/io.ts",
+    "scripts/experiment-catalog/render.ts",
+    "scripts/experiment-catalog/cli.ts",
+    "scripts/experiment-catalog/catalog.test.ts",
+    "scripts/experiment-catalog/README.md",
+    "docs/superpowers/plans/2026-09-26-experiment-catalog-maintenance.md",
+    "results/skill-ir/experiment-catalog-tooling-20260926/status.json",
+    "results/skill-ir/experiment-catalog-tooling-20260926/verification.json",
+    "results/skill-ir/experiment-catalog-tooling-20260926/catalog-summary.json",
+    "results/skill-ir/experiment-catalog-tooling-20260926/integration-notes.md",
+    "results/skill-ir/experiment-catalog-tooling-20260926/ready.json"
+  ],
+  "snapshotVerified": {
+    "entries": 3,
+    "sourceHashMatchesTrial": true,
+    "summaryOnly": true,
+    "artifactEntrancesPreserved": true
+  }
+}
