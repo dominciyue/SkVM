@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "gitea-assignee",
+  "taskId": "gitea-issue-assignee-nonwriter",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "fd825128c85021d09c912041cf1f5a5bd38d089291a5f87bb3f1a68a6fc92ae3",
+  "rubricVersion": "gitea-issue-assignee-nonwriter/v1-z-v3+AH",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "assignee-post-add-mode",
+      "status": "supported",
+      "reason": "It states the POST handler invokes the updater in add mode.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 47,
+          "endLine": 49
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/0"
+    },
+    {
+      "criterionId": "assignee-issue-index-binding",
+      "status": "supported",
+      "reason": "It states the path index is looked up within ctx.Repo.Repository.ID.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 53,
+          "endLine": 60
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/1"
+    },
+    {
+      "criterionId": "assignee-repository-permission-not-token-scope",
+      "status": "supported",
+      "reason": "It identifies ctx.Repo.Permission as decisive and says token scope is not repository permission.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "policy.json",
+          "startLine": 6,
+          "endLine": 8
+        },
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 63
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "criterionId": "assignee-effect-after-permission",
+      "status": "supported",
+      "reason": "It states AddAssignees is reachable only after the permission check succeeds and isAdd is true.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 84
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/3"
+    },
+    {
+      "criterionId": "assignee-http-403-detail",
+      "status": "supported",
+      "reason": "It explicitly reports a 403 return before resolution and AddAssignees.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 63
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "criterionId": "assignee-condition-outcomes",
+      "status": "missing",
+      "reason": "It states resolution is unreachable on denial and lists successful add prerequisites, but omits that a missing user is rejected before AddAssignees.",
+      "answerLocation": null,
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 84
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/conditionExplanation"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The source_refuted conclusion matches the bounded false-permission case.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 6,
+        "endLine": 8
+      },
+      {
+        "path": "issue_assignee.go",
+        "startLine": 54,
+        "endLine": 63
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/cases/1/expectedDisposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "It limits the claim to the declared entry and supplied crop and makes no repository-wide claim.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 6,
+        "endLine": 8
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/limits"
+  }
+}

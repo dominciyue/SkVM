@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "owui-file",
+  "taskId": "owui-process-file-write",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "6a327a9bc790711732b70e605d98d0da9ed84e1cbf164f13225846d3dc7875cf",
+  "rubricVersion": "owui-process-file-write-oracle/v2+AH",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "source-file-ownership-check",
+      "status": "supported",
+      "reason": "It states the non-admin file lookup uses file ID plus user ID, matching source lines 40-45.",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 40,
+          "endLine": 44
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/0"
+    },
+    {
+      "criterionId": "destination-is-distinct",
+      "status": "supported",
+      "reason": "It separates file ownership from the submitted collection_name destination, consistent with source lines 40-50.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/task.json",
+          "startLine": 6,
+          "endLine": 8
+        },
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 45,
+          "endLine": 50
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/1"
+    },
+    {
+      "criterionId": "destination-write-control-absent",
+      "status": "supported",
+      "reason": "It states the omitted load-and-commit section contains no collection_name authorization, matching source lines 52-53.",
+      "answerLocation": "/results/0/facts/condition/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 45,
+          "endLine": 53
+        },
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 55,
+          "endLine": 74
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/2"
+    },
+    {
+      "criterionId": "destination-reaches-insert",
+      "status": "supported",
+      "reason": "It identifies VECTOR_DB_CLIENT.insert under collection_name as the sink, matching source lines 14-18.",
+      "answerLocation": "/results/0/facts/effect/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 14,
+          "endLine": 18
+        },
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 62,
+          "endLine": 74
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/3"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "source_supported_failure matches the source-visible authorization gap and reached collection write.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+        "startLine": 14,
+        "endLine": 18
+      },
+      {
+        "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+        "startLine": 40,
+        "endLine": 50
+      },
+      {
+        "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+        "startLine": 62,
+        "endLine": 74
+      }
+    ],
+    "oracleRule": "oracles/owui-process-file-write.json#/disposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer states the declared-obligations-only fixed-source scope.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-file-write/task.json",
+        "startLine": 6,
+        "endLine": 18
+      }
+    ],
+    "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0"
+  }
+}

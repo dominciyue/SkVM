@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-27
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AE/AF/AG已发布；AH0–AH6工程与公开材料准备已在`skill-ir-aot`推进，真实四臂面板尚未dispatch。机器进度见AH结果根status.json。
+- 状态：AE/AF/AG已发布；AH0–AH14工程、44条真实四臂评价、独立作者原/变任务与离线复验已完成，当前归属提交与发布见AH结果根status.json。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AH0–AH14](../superpowers/plans/2026-09-27-authorization-semantic-quality-and-reuse.md)
@@ -22,7 +22,7 @@
 
 AB token复核：旧+12.0%为非缓存input+output；完整prompt+output（含单列缓存读取）为+3.279%。本轮AG追加可复算说明，旧AB原件保留。
 
-## 当前 AH 执行队列
+## AH 执行结果
 
 回答质量约60%、编写/修改/复用约40%作为投入优先级；不加权成单一“成功分数”。AE四组质量持平且DSL完整token高约27%，下一阶段应从真实授权语义问题入手，而非再改协议名字。保持authoring/v2和现有wire，复用已交付工具。
 
@@ -41,7 +41,7 @@ AB token复核：旧+12.0%为非缓存input+output；完整prompt+output（含�
 | AH10–AH12 | 独立作者原/变任务、普通使用、方法取舍 | 编写复用证据与唯一研究正文更新 |
 | AH13–AH14 | 有限回归、离线复验、归属提交和origin发布 | 可用示例、证据和同步工作区 |
 
-最多10状态×4臂及预选4状态的第二次重复，共56计划单元；共享实现bug修订最多8单元，作者账户单列。继续当前单ref授权任务类，保留全部失败和旧AB/AE原件，不预定正向结论、不以扩样追分。AH0开始前不创建虚构完成状态。
+预案上限为10状态×4臂及预选4状态重复，共56单元；资格冻结后实际为8状态×4臂、3状态重复×4臂，共44单元。44/44完成、44次provider调用、0 fallback/repair/目标执行、0修订。独立盲审及9条二审后，Markdown标准/新支架各8/11 full，DSL标准5/11、新支架7/11；同支架DSL仍低于Markdown，新增token，普通默认不改。模型辅助作者四原稿与四变化交付分账，真人时间未知；Gitea变化稿有一处未被结构检查发现的旧taskId说明。详细分层、成本与方法取舍见[研究§7.27](skill-dsl-research.md#727-ah-语义质量与真实编写复用)，原始分母与逐条结果见[AH汇总](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/panel-summary.json)。旧AB/AE原件与本地历史材料保持原样。
 
 ## 已完成AB交付队列
 

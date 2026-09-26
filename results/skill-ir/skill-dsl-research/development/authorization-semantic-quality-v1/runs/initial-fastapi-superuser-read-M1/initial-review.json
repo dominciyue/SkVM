@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "fastapi-superuser-read",
+  "taskId": "fastapi-items-superuser-read",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "a1b7f572fabe5085e8736e565b9b168345a7f4e335ac7b9ec266fc2fa61083d4",
+  "rubricVersion": "fastapi-superuser-read+AH/v1",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "caller-binding",
+      "status": "supported",
+      "reason": "It identifies current_user as the principal representation and uses its id and is_superuser attributes for the assessed caller.",
+      "answerLocation": "/results/0/facts/binding/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 48,
+          "endLine": 49
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/0"
+    },
+    {
+      "criterionId": "foreign-item",
+      "status": "supported",
+      "reason": "It identifies the Item loaded by session.get(Item, id) and applies the declared different-owner relation to that resource.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 53,
+          "endLine": 56
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/1"
+    },
+    {
+      "criterionId": "superuser-exception",
+      "status": "supported",
+      "reason": "It accurately describes denial only for non-superusers with an owner mismatch, so the superuser bypasses it.",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 56,
+          "endLine": 57
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "criterionId": "read-effect",
+      "status": "supported",
+      "reason": "It traces the post-check path to returning the loaded item.",
+      "answerLocation": "/results/0/facts/effect/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 56,
+          "endLine": 58
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/3"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The `source_refuted` conclusion matches the fixed source behavior for the stipulated active superuser and foreign existing item.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "items.py",
+        "startLine": 48,
+        "endLine": 58
+      }
+    ],
+    "oracleRule": "second-project/evaluator/rubric.json#/cases/1"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "It declares the assessment limited to the supplied entry and fixed source, with discovery untested.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "items.py",
+        "startLine": 48,
+        "endLine": 58
+      }
+    ],
+    "oracleRule": "second-project/model-input/task.json#/tasks/1"
+  }
+}

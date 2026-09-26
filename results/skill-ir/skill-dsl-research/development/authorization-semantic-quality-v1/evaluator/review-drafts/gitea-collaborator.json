@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "authorization-ah-blind-decisions/v1",
+  "caseId": "gitea-collaborator",
+  "reviewer": "independent-read-only-agent",
+  "rows": {
+    "R93415007d0b4": {
+      "criteria": {
+        "collaborator-requester-target-binding": {"status": "supported", "answerLocation": "results[0].facts.binding", "reason": "The answer binds the caller to ctx.Doer and the requested collaborator to ctx.PathParam(\"collaborator\"), matching the guard and later lookup."},
+        "collaborator-three-way-guard": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "It states rejection when site-admin, self-username equality, and repository-admin are all absent, matching the conjunctive guard."},
+        "collaborator-current-cross-user-denial": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It applies the different-user, non-site-admin, non-repository-admin facts and concludes the rejection condition is satisfied."},
+        "collaborator-permission-read-after-guard": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It says the handler returns before GetUserByName, with permission lookup and success response later and therefore protected."},
+        "collaborator-http-403-detail": {"status": "supported", "answerLocation": "results[0].facts.effect", "reason": "It explicitly identifies HTTP 403 on the rejection branch before loading the collaborator."},
+        "collaborator-condition-outcomes": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "The stated three-way negated control and its cited guard establish that any one of site-admin, self-match, or repository-admin avoids rejection, while all absent rejects."}
+      },
+      "disposition": {"status": "supported", "answerLocation": "results[0].conclusion", "reason": "The answer reports source_refuted, consistent with the fixed policy and visible 403 guard."},
+      "scope": {"status": "supported", "answerLocation": "scopeClaim", "reason": "It limits the assessment to the supplied fixed entry and route crop and disclaims discovery and repository-wide completeness."}
+    },
+    "Ra75f188175e4": {
+      "criteria": {
+        "collaborator-requester-target-binding": {"status": "supported", "answerLocation": "results[0].facts.binding", "reason": "It binds runtime caller identity to ctx.Doer and the target to the collaborator path username used by lookup."},
+        "collaborator-three-way-guard": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "It enumerates site-admin, self-query, and repository-admin as the only allowing branches and describes denial otherwise."},
+        "collaborator-current-cross-user-denial": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It applies all supplied non-admin and different-user facts and concludes HTTP 403 before target loading."},
+        "collaborator-permission-read-after-guard": {"status": "supported", "answerLocation": "results[0].facts.effect", "reason": "It states target loading, permission retrieval, and the success response occur only after the guard."},
+        "collaborator-http-403-detail": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "The control statement explicitly says the handler sends HTTP 403 and returns before loading the selected collaborator."},
+        "collaborator-condition-outcomes": {"status": "supported", "answerLocation": "results[0].facts.condition", "reason": "It identifies self-query as inapplicable and names site-admin and repository-admin as the remaining visible exceptions, with all absent yielding rejection."}
+      },
+      "disposition": {"status": "supported", "answerLocation": "results[0].conclusion", "reason": "The source_refuted conclusion matches the fixed expected denial."},
+      "scope": {"status": "supported", "answerLocation": "scopeClaim", "reason": "The scope is explicitly limited to declared obligations and supplied fixed source, with discovery not tested."}
+    },
+    "Rb9588bb64d04": {
+      "criteria": {
+        "collaborator-requester-target-binding": {"status": "supported", "answerLocation": "results[0].facts.binding", "reason": "It identifies ctx.Doer as caller and the path-selected collaborator as target, including the later user lookup."},
+        "collaborator-three-way-guard": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "It states passage requires administrator, self username, or repository administrator and otherwise returns 403."},
+        "collaborator-current-cross-user-denial": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It applies the non-admin different-user scenario and concludes the pre-load gate returns HTTP 403."},
+        "collaborator-permission-read-after-guard": {"status": "supported", "answerLocation": "results[0].facts.effect", "reason": "It places permission lookup and successful response after both authorization and collaborator lookup."},
+        "collaborator-http-403-detail": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "The answer explicitly describes the gate returning HTTP 403 before target loading."},
+        "collaborator-condition-outcomes": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It states access proceeds for site-admin, username equality, or repository-admin and denial applies when the three alternatives are false."}
+      },
+      "disposition": {"status": "supported", "answerLocation": "results[0].conclusion", "reason": "The source_refuted disposition agrees with the fixed source behavior and expected denial."},
+      "scope": {"status": "supported", "answerLocation": "scopeClaim", "reason": "It expressly limits the claim to the fixed source and declared obligation and excludes deployment/discovery claims."}
+    },
+    "Rc7555437945c": {
+      "criteria": {
+        "collaborator-requester-target-binding": {"status": "supported", "answerLocation": "results[0].facts.binding", "reason": "It binds requested collaborator to the path and caller to authenticated ctx.Doer fields used in the guard."},
+        "collaborator-three-way-guard": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "It gives the three required allowing alternatives and the conjunctive rejection branch."},
+        "collaborator-current-cross-user-denial": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It applies all three bounded facts as false and concludes Forbidden before loading or reading permission."},
+        "collaborator-permission-read-after-guard": {"status": "supported", "answerLocation": "results[0].facts.effect", "reason": "It places target loading after the guard and permission computation after target loading."},
+        "collaborator-http-403-detail": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "It explicitly identifies the rejection as an HTTP 403 return before target lookup."},
+        "collaborator-condition-outcomes": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It names site-admin, same username, and repository-admin as the visible bypass branches and says none applies here."}
+      },
+      "disposition": {"status": "supported", "answerLocation": "results[0].conclusion", "reason": "The source_refuted label matches the policy expectation and visible enforcement."},
+      "scope": {"status": "supported", "answerLocation": "scopeClaim", "reason": "It declares only the supplied entry and source are assessed and discovery is not tested."}
+    },
+    "Rd409f4a770f8": {
+      "criteria": {
+        "collaborator-requester-target-binding": {"status": "supported", "answerLocation": "results[0].facts.binding", "reason": "It identifies ctx.Doer as requester and collaborator path parameter as target username."},
+        "collaborator-three-way-guard": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "It states the guard permits site-admin, self username, or repository-admin and rejects when all are absent."},
+        "collaborator-current-cross-user-denial": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It applies non-admin and different-username facts and concludes Forbidden before target loading."},
+        "collaborator-permission-read-after-guard": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It says the handler returns before GetUserByName, permission lookup, and success response."},
+        "collaborator-http-403-detail": {"status": "supported", "answerLocation": "results[0].facts.effect", "reason": "It explicitly states the failed branch returns HTTP 403 before collaborator lookup."},
+        "collaborator-condition-outcomes": {"status": "supported", "answerLocation": "results[0].facts.condition", "reason": "It states all three visible exceptions are false under the scenario and identifies collaborator/read status as no extra exception."}
+      },
+      "disposition": {"status": "supported", "answerLocation": "results[0].conclusion", "reason": "The reported source_refuted disposition matches the fixed source and expected deny behavior."},
+      "scope": {"status": "supported", "answerLocation": "scopeClaim", "reason": "It limits the review to declared obligations and supplied fixed source and disclaims discovery."}
+    },
+    "Reeb9f226d7c4": {
+      "criteria": {
+        "collaborator-requester-target-binding": {"status": "supported", "answerLocation": "results[0].facts.binding", "reason": "It binds the caller to ctx.Doer and the permission query to the repository context and resolved collaborator."},
+        "collaborator-three-way-guard": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "It correctly describes rejection when site-admin, case-insensitive self-match, and repository-admin are all absent."},
+        "collaborator-current-cross-user-denial": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It applies the non-admin different-user scenario and concludes HTTP 403 before target loading."},
+        "collaborator-permission-read-after-guard": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It states later permission lookup and JSON response are unreachable on the rejected branch."},
+        "collaborator-http-403-detail": {"status": "supported", "answerLocation": "results[0].facts.effect", "reason": "It explicitly identifies HTTP 403 and immediate return before GetUserByName."},
+        "collaborator-condition-outcomes": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It states only site-admin, repository-admin, or self-query may proceed, which covers independent bypasses and all-absent rejection."}
+      },
+      "disposition": {"status": "supported", "answerLocation": "results[0].conclusion", "reason": "The source_refuted conclusion matches the fixed expected disposition."},
+      "scope": {"status": "supported", "answerLocation": "scopeClaim", "reason": "It limits the claim to the declared fixed route and scenario and disclaims repository-wide discovery."}
+    },
+    "Rf1dcc09c068b": {
+      "criteria": {
+        "collaborator-requester-target-binding": {"status": "supported", "answerLocation": "results[0].facts.binding", "reason": "It binds the caller to runtime Doer and target collaborator to the path parameter, with repository context separately identified."},
+        "collaborator-three-way-guard": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "It enumerates site-admin, repository-admin, and username equality as the visible continuation branches and their negated guard."},
+        "collaborator-current-cross-user-denial": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It applies different username plus absent administrator roles and concludes 403 before collaborator lookup."},
+        "collaborator-permission-read-after-guard": {"status": "supported", "answerLocation": "results[0].facts.effect", "reason": "It states permission query follows collaborator loading and the denied branch returns before both query and success response."},
+        "collaborator-http-403-detail": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "It explicitly says the gate rejects with HTTP 403 and returns before target loading."},
+        "collaborator-condition-outcomes": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "It identifies the three source-visible bypass branches and states the fixed scenario has none, so all absent blocks the read."}
+      },
+      "disposition": {"status": "supported", "answerLocation": "results[0].conclusion", "reason": "The source_refuted disposition is consistent with the fixed policy and guard."},
+      "scope": {"status": "supported", "answerLocation": "scopeClaim", "reason": "It limits assessment to fixed source obligations and explicitly excludes route/deployment and repository-wide claims."}
+    },
+    "Rfad2dd19bfca": {
+      "criteria": {
+        "collaborator-requester-target-binding": {"status": "supported", "answerLocation": "results[0].facts.binding", "reason": "It distinguishes request doer properties from the selected collaborator and binds the latter from the path for lookup."},
+        "collaborator-three-way-guard": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "It names site-admin, case-insensitive self equality, and repository-admin as the only source-visible bypasses and gives the negated rejection predicate."},
+        "collaborator-current-cross-user-denial": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It applies authenticated non-admin different-user facts and concludes HTTP 403 before target load."},
+        "collaborator-permission-read-after-guard": {"status": "supported", "answerLocation": "results[0].facts.effect", "reason": "It states repository permission query follows collaborator loading and that the denied branch cannot reach query or success serialization."},
+        "collaborator-http-403-detail": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "It explicitly describes HTTP 403 and immediate return before collaborator lookup."},
+        "collaborator-condition-outcomes": {"status": "supported", "answerLocation": "results[0].facts.control", "reason": "It identifies each independent exception and states none applies under different username and absent admin roles."}
+      },
+      "disposition": {"status": "supported", "answerLocation": "results[0].conclusion", "reason": "The source_refuted disposition matches the expected denial under the fixed source."},
+      "scope": {"status": "supported", "answerLocation": "scopeClaim", "reason": "It explicitly limits the conclusion to the declared entry and fixed source and excludes deployment and repository-wide completeness."}
+    }
+  }
+}

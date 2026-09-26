@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "owui-text",
+  "taskId": "owui-process-text-controlled",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "5ac53e8e8881419f0d0c8dc00c5190e84c041900f239b9ba9a674e07bfdf6f78",
+  "rubricVersion": "owui-process-text-controlled-oracle/v2+AH",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "caller-write-validator",
+      "status": "supported",
+      "reason": "It directly states process_text invokes validation with access_type='write' before save, matching source lines 16-18 and 31-39.",
+      "answerLocation": "/results/0/facts/control/1",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+          "startLine": 13,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/0"
+    },
+    {
+      "criterionId": "denied-set-enforcement",
+      "status": "supported",
+      "reason": "It states a denied requested collection raises HTTP 403 before the vector write, matching source lines 37-44.",
+      "answerLocation": "/results/0/facts/effect/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+          "startLine": 31,
+          "endLine": 44
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/1"
+    },
+    {
+      "criterionId": "knowledge-base-write-policy",
+      "status": "supported",
+      "reason": "It describes the existing-KB check via check_access_by_user_id and unavailable fallback, matching policy lines 43-51.",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+          "startLine": 42,
+          "endLine": 52
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/2"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "source_refuted is the accepted disposition for enforced denial of an ungranted existing KB.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+        "startLine": 13,
+        "endLine": 44
+      },
+      {
+        "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+        "startLine": 42,
+        "endLine": 52
+      }
+    ],
+    "oracleRule": "oracles/owui-process-text-controlled.json#/disposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer states declared-obligations-only fixed-source scope.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-text-controlled/task.json",
+        "startLine": 6,
+        "endLine": 18
+      }
+    ],
+    "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1"
+  }
+}

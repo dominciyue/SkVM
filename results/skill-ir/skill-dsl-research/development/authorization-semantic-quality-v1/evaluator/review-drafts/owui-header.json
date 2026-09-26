@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "authorization-ah-blind-decisions/v1",
+  "caseId": "owui-header",
+  "reviewer": "independent-read-only-agent",
+  "rows": {
+    "R23c9e1f45407": {"criteria": {
+      "password-auth-entry-gate": {"status":"supported","answerLocation":"results[0].explanation","reason":"The explanation says the path requires ENABLE_PASSWORD_AUTH and is blocked when that gate is not enabled."},
+      "trusted-header-configuration-gate": {"status":"supported","answerLocation":"results[0].explanation","reason":"It states the header setting must be configured and the configured header must be present."},
+      "identity-binding": {"status":"supported","answerLocation":"results[0].explanation","reason":"It traces the lowercased header value to account lookup/creation and session identity."},
+      "authentication-and-session-condition": {"status":"supported","answerLocation":"results[0].explanation","reason":"It states the resulting user is required before session creation."},
+      "deployment-facts-absent": {"status":"supported","answerLocation":"results[0].explanation","reason":"It explicitly leaves ingress reachability, proxy exclusivity, stripping, injection, and effective configuration undecided."},
+      "conditional-capability-boundary": {"status":"supported","answerLocation":"results[0].explanation","reason":"It separates the source capability from undecided deployment reachability and header provenance."},
+      "password-auth-403-detail": {"status":"missing","answerLocation":null,"reason":"The answer describes the gate but does not state that the closed gate returns HTTP 403."},
+      "conditional-outcome-enumeration": {"status":"missing","answerLocation":"results[0].explanation","reason":"It does not explicitly enumerate the closed-gate and failed-authentication outcomes alongside safe-proxy and attacker-reachable outcomes."},
+      "optional-signup-path": {"status":"supported","answerLocation":"results[0].explanation","reason":"It states that the header-derived value is used to look up or create the account before session creation."},
+      "optional-default-none-detail": {"status":"supported","answerLocation":"results[0].facts.condition[1]","reason":"It says the environment setting may be unset, matching the source default of None."}
+    },"disposition":{"status":"supported","answerLocation":"results[0].conclusion","reason":"The answer reports unknown, matching the rubric because source capability is known but deployment facts are absent."},"scope":{"status":"supported","answerLocation":"scopeClaim","reason":"The scope claim limits review to the declared obligation and supplied fixed source."}},
+    "R7a5d174124d8": {"criteria": {
+      "password-auth-entry-gate":{"status":"supported","answerLocation":"results[0].explanation","reason":"It identifies ENABLE_PASSWORD_AUTH as a visible prerequisite for the trusted-header path."},
+      "trusted-header-configuration-gate":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the variable must be configured and the request must contain the configured header."},
+      "identity-binding":{"status":"supported","answerLocation":"results[0].explanation","reason":"It traces the supplied header through lowercasing to email identity and account selection."},
+      "authentication-and-session-condition":{"status":"supported","answerLocation":"results[0].facts.condition[1]","reason":"It states session creation occurs only when email authentication yields a user and otherwise returns invalid credentials."},
+      "deployment-facts-absent":{"status":"supported","answerLocation":"results[0].explanation","reason":"It identifies missing ingress topology, proxy stripping/replacement, and effective configuration."},
+      "conditional-capability-boundary":{"status":"supported","answerLocation":"results[0].explanation","reason":"It describes the conditional source capability while withholding the actual deployment conclusion."},
+      "password-auth-403-detail":{"status":"missing","answerLocation":null,"reason":"It does not identify the closed password-auth gate's HTTP 403 response."},
+      "conditional-outcome-enumeration":{"status":"missing","answerLocation":"results[0].explanation","reason":"It covers failed authentication, safe proxy, and attacker-reachable alternatives but does not explicitly state the closed-gate outcome."},
+      "optional-signup-path":{"status":"supported","answerLocation":"results[0].explanation","reason":"It explicitly says the user is created if absent before email authentication."},
+      "optional-default-none-detail":{"status":"supported","answerLocation":"results[0].facts.condition[2]","reason":"It states the environment-controlled variable defaults to unset."}
+    },"disposition":{"status":"supported","answerLocation":"results[0].conclusion","reason":"The reported unknown disposition matches the missing deployment evidence rule."},"scope":{"status":"supported","answerLocation":"scopeClaim","reason":"It claims only declared obligations and supplied source, with discovery untested."}},
+    "R7c7f4699ff2e": {"criteria": {
+      "password-auth-entry-gate":{"status":"supported","answerLocation":"results[0].explanation","reason":"It identifies the initial ENABLE_PASSWORD_AUTH gate and its disabled rejection path."},
+      "trusted-header-configuration-gate":{"status":"supported","answerLocation":"results[0].facts.condition[0]","reason":"It states the configured name must be truthy and the header present."},
+      "identity-binding":{"status":"supported","answerLocation":"results[0].explanation","reason":"It traces the caller-controlled header through email selection, user lookup, and authentication."},
+      "authentication-and-session-condition":{"status":"supported","answerLocation":"results[0].explanation","reason":"It says session creation follows only when authentication yields a user."},
+      "deployment-facts-absent":{"status":"supported","answerLocation":"results[0].explanation","reason":"It names absent effective configuration, ingress, and proxy strip/replace facts."},
+      "conditional-capability-boundary":{"status":"supported","answerLocation":"results[0].explanation","reason":"It distinguishes source capability from the unknown real deployment result."},
+      "password-auth-403-detail":{"status":"missing","answerLocation":"results[0].facts.condition[1]","reason":"The answer says disabled authentication rejects the request but does not identify the HTTP 403 status."},
+      "conditional-outcome-enumeration":{"status":"supported","answerLocation":"results[0].explanation","reason":"It distinguishes disabled gate, authentication-dependent session, safe proxy, and attacker-reachable branches without selecting a deployment branch."},
+      "optional-signup-path":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states a missing user is created before authentication."},
+      "optional-default-none-detail":{"status":"supported","answerLocation":"results[0].facts.condition[0]","reason":"It identifies the environment-controlled header setting; the packet source defines its unset default."}
+    },"disposition":{"status":"supported","answerLocation":"results[0].conclusion","reason":"It reports unknown because deployment configuration and ingress facts are unavailable."},"scope":{"status":"supported","answerLocation":"scopeClaim","reason":"It limits the assessment to declared obligations and fixed source without discovery."}},
+    "Rad2a34156f2c": {"criteria": {
+      "password-auth-entry-gate":{"status":"supported","answerLocation":"results[0].explanation","reason":"It conditions the branch on password authentication being enabled."},
+      "trusted-header-configuration-gate":{"status":"supported","answerLocation":"results[0].explanation","reason":"It conditions the path on a configured and present trusted-email header."},
+      "identity-binding":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the header selects the email identity that is authenticated and passed to session creation."},
+      "authentication-and-session-condition":{"status":"supported","answerLocation":"results[0].explanation","reason":"It links successful email authentication to the session effect."},
+      "deployment-facts-absent":{"status":"supported","answerLocation":"results[0].explanation","reason":"It expressly says deployment ingress behavior and reachability are missing."},
+      "conditional-capability-boundary":{"status":"supported","answerLocation":"results[0].explanation","reason":"It describes both the conditional source capability and the two possible deployment outcomes."},
+      "password-auth-403-detail":{"status":"missing","answerLocation":null,"reason":"It does not state the HTTP 403 response for a closed password-auth gate."},
+      "conditional-outcome-enumeration":{"status":"missing","answerLocation":"results[0].explanation","reason":"It distinguishes safe-proxy and attacker-reachable outcomes but omits explicit closed-gate and failed-authentication outcomes."},
+      "optional-signup-path":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the application creates the user if absent."},
+      "optional-default-none-detail":{"status":"supported","answerLocation":"results[0].facts.condition[1]","reason":"It identifies the header names as optional environment-configured values, consistent with the None default."}
+    },"disposition":{"status":"supported","answerLocation":"results[0].conclusion","reason":"It gives the bounded unknown disposition required when reachability and proxy behavior are absent."},"scope":{"status":"supported","answerLocation":"scopeClaim","reason":"It declares only the supplied fixed source and obligation are assessed."}}
+  }
+}

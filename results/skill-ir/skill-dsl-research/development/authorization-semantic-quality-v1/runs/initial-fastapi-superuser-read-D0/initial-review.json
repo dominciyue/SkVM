@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "fastapi-superuser-read",
+  "taskId": "fastapi-items-superuser-read",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "5094a35ca40f3b28f909bc8feb226a1c971c3610eeb1557e8c4c0bd06f387003",
+  "rubricVersion": "fastapi-superuser-read+AH/v1",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "caller-binding",
+      "status": "supported",
+      "reason": "The answer identifies current_user as the runtime identity used by the handler and explicitly relates it to the assessed caller.",
+      "answerLocation": "/results/0/facts/binding/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 48,
+          "endLine": 49
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/0"
+    },
+    {
+      "criterionId": "foreign-item",
+      "status": "supported",
+      "reason": "It traces the request id to the loaded Item and states that the scenario's item owner differs from current_user.id.",
+      "answerLocation": "/results/0/facts/binding/1",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 53,
+          "endLine": 56
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/1"
+    },
+    {
+      "criterionId": "superuser-exception",
+      "status": "supported",
+      "reason": "It correctly explains that `not current_user.is_superuser` makes the ownership rejection inapplicable to the active superuser.",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 56,
+          "endLine": 57
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "criterionId": "read-effect",
+      "status": "supported",
+      "reason": "It traces the surviving path after the not-found and authorization checks to `return item`.",
+      "answerLocation": "/results/0/facts/effect/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 56,
+          "endLine": 58
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/3"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The `source_refuted` conclusion matches the fixed branch, which permits the stated superuser cross-owner read.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "items.py",
+        "startLine": 48,
+        "endLine": 58
+      }
+    ],
+    "oracleRule": "second-project/evaluator/rubric.json#/cases/1"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer limits assessment to the declared obligation and supplied fixed source and says discovery is untested.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "items.py",
+        "startLine": 48,
+        "endLine": 58
+      }
+    ],
+    "oracleRule": "second-project/model-input/task.json#/tasks/1"
+  }
+}

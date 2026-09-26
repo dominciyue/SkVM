@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "gitea-lock",
+  "taskId": "gitea-issue-lock-writer-nonadmin",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "96c1eba35cb5bc06a682f8643a2af97dd44bd13a27c9cc5e7670bb7c2ee07432",
+  "rubricVersion": "gitea-issue-lock-writer-nonadmin/v1-z-v3+AH",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "lock-route-admin-middleware",
+      "status": "supported",
+      "reason": "The route citation shows PUT LockIssue under reqToken and reqAdmin (route_guard.go:16-20).",
+      "answerLocation": "/results/0/facts/entry/0",
+      "sourceLocations": [
+        {
+          "path": "route_guard.go",
+          "startLine": 16,
+          "endLine": 20
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0"
+    },
+    {
+      "criterionId": "lock-nonadmin-denial-control",
+      "status": "supported",
+      "reason": "It states neither admin status causes the pre-handler forbidden branch.",
+      "answerLocation": "/results/0/facts/binding/1",
+      "sourceLocations": [
+        {
+          "path": "route_guard.go",
+          "startLine": 4,
+          "endLine": 12
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+    },
+    {
+      "criterionId": "lock-writer-does-not-bypass-admin",
+      "status": "supported",
+      "reason": "It explicitly says declared writer permission does not substitute for route admin status.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "policy.json",
+          "startLine": 9,
+          "endLine": 10
+        },
+        {
+          "path": "route_guard.go",
+          "startLine": 7,
+          "endLine": 10
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2"
+    },
+    {
+      "criterionId": "lock-secondary-writer-and-effect",
+      "status": "supported",
+      "reason": "It places the issue-write check before unlocked LockIssue and notes route denial prevents reachability.",
+      "answerLocation": "/results/0/facts/effect/0",
+      "sourceLocations": [
+        {
+          "path": "issue_lock.go",
+          "startLine": 43,
+          "endLine": 69
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3"
+    },
+    {
+      "criterionId": "lock-route-http-403-detail",
+      "status": "supported",
+      "reason": "The cited reqAdmin quote includes the HTTP 403 API error.",
+      "answerLocation": "/results/0/facts/binding/1",
+      "sourceLocations": [
+        {
+          "path": "route_guard.go",
+          "startLine": 7,
+          "endLine": 10
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+    },
+    {
+      "criterionId": "lock-condition-outcomes",
+      "status": "supported",
+      "reason": "It describes both-false denial and hypothetical handler/effect reachability after admin passage.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "route_guard.go",
+          "startLine": 4,
+          "endLine": 20
+        },
+        {
+          "path": "issue_lock.go",
+          "startLine": 43,
+          "endLine": 62
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation"
+    }
+  ],
+  "dispositionReview": {
+    "status": "contradicted",
+    "reason": "The source enforces the expected deny, so expectedDisposition is source_refuted; source_supported_failure is the wrong disposition label.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 9,
+        "endLine": 10
+      },
+      {
+        "path": "route_guard.go",
+        "startLine": 4,
+        "endLine": 20
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/cases/2/expectedDisposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "It expressly limits the result to supplied source and excludes deployment/repository discovery.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 9,
+        "endLine": 11
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/limits"
+  }
+}

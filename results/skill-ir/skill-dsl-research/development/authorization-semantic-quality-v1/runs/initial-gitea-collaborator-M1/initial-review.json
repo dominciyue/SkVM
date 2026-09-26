@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "gitea-collaborator",
+  "taskId": "gitea-collaborator-permission",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "5b4d93001e88c81386eab409b63a3c93f6c3b178cbec2953bd53387dc574fd6b",
+  "rubricVersion": "gitea-collaborator-cross-user-permission/v1-z-v3+AH",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "collaborator-requester-target-binding",
+      "status": "supported",
+      "reason": "It binds requested collaborator to the path and caller to authenticated ctx.Doer fields used in the guard.",
+      "answerLocation": "/results/0/facts/binding",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 35,
+          "endLine": 36
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/0"
+    },
+    {
+      "criterionId": "collaborator-three-way-guard",
+      "status": "supported",
+      "reason": "It gives the three required allowing alternatives and the conjunctive rejection branch.",
+      "answerLocation": "/results/0/facts/control",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 35,
+          "endLine": 39
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/1"
+    },
+    {
+      "criterionId": "collaborator-current-cross-user-denial",
+      "status": "supported",
+      "reason": "It applies all three bounded facts as false and concludes Forbidden before loading or reading permission.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "policy.json",
+          "startLine": 6,
+          "endLine": 7
+        },
+        {
+          "path": "collaborators.go",
+          "startLine": 35,
+          "endLine": 39
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/2"
+    },
+    {
+      "criterionId": "collaborator-permission-read-after-guard",
+      "status": "supported",
+      "reason": "It places target loading after the guard and permission computation after target loading.",
+      "answerLocation": "/results/0/facts/effect",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 36,
+          "endLine": 57
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/3"
+    },
+    {
+      "criterionId": "collaborator-http-403-detail",
+      "status": "supported",
+      "reason": "It explicitly identifies the rejection as an HTTP 403 return before target lookup.",
+      "answerLocation": "/results/0/facts/control",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 36,
+          "endLine": 39
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/2"
+    },
+    {
+      "criterionId": "collaborator-condition-outcomes",
+      "status": "supported",
+      "reason": "It names site-admin, same username, and repository-admin as the visible bypass branches and says none applies here.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 35,
+          "endLine": 39
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/conditionExplanation"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The source_refuted label matches the policy expectation and visible enforcement.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 6,
+        "endLine": 7
+      },
+      {
+        "path": "collaborators.go",
+        "startLine": 35,
+        "endLine": 39
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/cases/0/expectedDisposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "It declares only the supplied entry and source are assessed and discovery is not tested.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 6,
+        "endLine": 8
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/limits"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "authorization-ah-second-check/v1",
+  "group": "gate-and-exception",
+  "rows": {
+    "Rc9bdb7a46037": {
+      "disposition": "supported",
+      "necessaryExplanation": "partial",
+      "evidence": "Answer correctly states POST passes isAdd=true and the helper checks ctx.Repo.Permission.CanWriteIssuesOrPulls before resolution/mutation, returning HTTP 403 (answer lines 3406, 3459-3465; source issue_assignee.go lines 47-63). It distinguishes token scope from repository permission. It does not enumerate the required success branch where an existing user reaches AddAssignees versus a missing user is rejected before that call (source issue_assignee.go lines 70-83)."
+    },
+    "R7ed8bc1e2b24": {
+      "disposition": "supported",
+      "necessaryExplanation": "partial",
+      "evidence": "Answer correctly identifies PUT route middleware reqToken(), reqAdmin(), the both-false admin denial before dispatch, HTTP 403, and later issue-write gate before LockIssue (answer lines 3565-3572, 3589-3595, 3630-3647, 3654-3660). It does not explicitly enumerate that either admin condition true passes reqAdmin while issue-write still controls reachability, as required by the condition rubric; it only says hypothetically 'if that guard were passed' (answer line 3561; source route_guard.go lines 4-20, issue_lock.go lines 49-67)."
+    },
+    "R1fe7719a73ca": {
+      "disposition": "supported",
+      "necessaryExplanation": "partial",
+      "evidence": "Answer correctly states reqAdmin is pre-handler, rejects when both repository-admin and site-admin are false with HTTP 403, and separates the later issue-write check and unlocked LockIssue effect (answer lines 1141, 1204-1221, 1228-1245). It does not state the complementary condition that either admin status true passes the route gate before issue-write is evaluated; its condition section only covers the bounded neither-admin case (answer lines 1250-1269; source route_guard.go lines 4-20)."
+    },
+    "R37d628a4136a": {
+      "disposition": "uncertain",
+      "necessaryExplanation": "complete",
+      "evidence": "Answer correctly identifies the visible handler: session.get(Item,id), 404 on absence, and denial only when not current_user.is_superuser and owner differs, followed by return item (answer lines 455-455, 472-489, 507-526; source items.py lines 48-58). It explicitly identifies the missing CurrentUser definition/wiring and therefore concludes unknown rather than inferring that the supplied active caller reaches the superuser branch (answer lines 545-550)."
+    }
+  }
+}

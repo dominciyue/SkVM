@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "owui-file",
+  "taskId": "owui-process-file-write",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "2cddc6f4312b04729b50a50cde3cb3d6a39eeca0bca0a025177e16ebd43f74ce",
+  "rubricVersion": "owui-process-file-write-oracle/v2+AH",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "source-file-ownership-check",
+      "status": "supported",
+      "reason": "It identifies Files.get_file_by_id_and_user_id as the non-admin source-file ownership gate, matching source lines 40-45.",
+      "answerLocation": "/results/0/facts/control/2",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 40,
+          "endLine": 44
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/0"
+    },
+    {
+      "criterionId": "destination-is-distinct",
+      "status": "supported",
+      "reason": "It distinguishes source-file ownership from destination collection permission and traces form_data.collection_name, consistent with source lines 40-50.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/task.json",
+          "startLine": 6,
+          "endLine": 8
+        },
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 45,
+          "endLine": 50
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/1"
+    },
+    {
+      "criterionId": "destination-write-control-absent",
+      "status": "supported",
+      "reason": "It reports no collection_name authorization in the omitted region, matching source lines 52-53.",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 45,
+          "endLine": 53
+        },
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 55,
+          "endLine": 74
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/2"
+    },
+    {
+      "criterionId": "destination-reaches-insert",
+      "status": "supported",
+      "reason": "It traces the selected name through save_docs_to_vector_db to the vector insert sink, matching source lines 14-18 and 62-74.",
+      "answerLocation": "/results/0/facts/effect/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 14,
+          "endLine": 18
+        },
+        {
+          "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+          "startLine": 62,
+          "endLine": 74
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0/criticalFacts/3"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The source_supported_failure disposition fits the missing route-level destination check and visible sink reachability.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+        "startLine": 14,
+        "endLine": 18
+      },
+      {
+        "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+        "startLine": 40,
+        "endLine": 50
+      },
+      {
+        "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+        "startLine": 62,
+        "endLine": 74
+      }
+    ],
+    "oracleRule": "oracles/owui-process-file-write.json#/disposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "It states that only declared obligations and supplied fixed source are assessed.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-file-write/task.json",
+        "startLine": 6,
+        "endLine": 18
+      }
+    ],
+    "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/0"
+  }
+}

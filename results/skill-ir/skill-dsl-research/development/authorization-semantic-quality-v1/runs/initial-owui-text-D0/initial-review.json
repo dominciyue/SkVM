@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "owui-text",
+  "taskId": "owui-process-text-controlled",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "61e23802b353d5e357f9b794ee7971453f789c39d96e7f7698dca978e06c0da4",
+  "rubricVersion": "owui-process-text-controlled-oracle/v2+AH",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "caller-write-validator",
+      "status": "supported",
+      "reason": "It states supplied names invoke collection-access validation before proceeding, matching source lines 13-17.",
+      "answerLocation": "/results/0/facts/entry/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+          "startLine": 13,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/0"
+    },
+    {
+      "criterionId": "denied-set-enforcement",
+      "status": "supported",
+      "reason": "It states a denied name causes HTTP 403 before the save path, matching source lines 31-44.",
+      "answerLocation": "/results/0/facts/control/1",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+          "startLine": 31,
+          "endLine": 44
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/1"
+    },
+    {
+      "criterionId": "knowledge-base-write-policy",
+      "status": "supported",
+      "reason": "It states existing KBs require successful write access or else are rejected; no-KB fallback is inapplicable, matching policy lines 43-50.",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+          "startLine": 42,
+          "endLine": 52
+        }
+      ],
+      "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1/criticalFacts/2"
+    }
+  ],
+  "dispositionReview": {
+    "status": "contradicted",
+    "reason": "The conclusion label source_supported_failure contradicts the answer's own explanation of HTTP 403 enforcement and the rubric's expected source_refuted disposition.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+        "startLine": 13,
+        "endLine": 44
+      },
+      {
+        "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+        "startLine": 42,
+        "endLine": 52
+      }
+    ],
+    "oracleRule": "oracles/owui-process-text-controlled.json#/disposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "It explicitly limits the assessment to declared obligations and supplied source, with discovery untested.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "inputs/owui-process-text-controlled/task.json",
+        "startLine": 6,
+        "endLine": 18
+      }
+    ],
+    "oracleRule": "oracles/evaluation-protocol.json#/caseExpectations/1"
+  }
+}

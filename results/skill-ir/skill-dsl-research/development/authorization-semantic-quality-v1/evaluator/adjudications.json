@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "authorization-ah-adjudications/v1",
+  "basis": "The nine rows were selected after generation and the first complete blind review. Two further independent reviewers saw anonymous answers, fixed source, and rubric but neither arm identities nor first decisions. The main agent resolved disagreements against the frozen rubric and bounded task facts without rerunning the answer model.",
+  "secondChecks": ["second-checks/source-and-deployment.json", "second-checks/gate-and-exception.json"],
+  "decisions": [
+    {
+      "row": "Rc13b92b779e3",
+      "resolution": "retain",
+      "reason": "Both reviews identify the explicit source_supported_failure label as contrary to the source_refuted rubric, despite a source-correct explanation."
+    },
+    {
+      "row": "Rad2a34156f2c",
+      "resolution": "correct-one-criterion",
+      "reason": "The first review already marks four-outcome enumeration and HTTP 403 detail missing. The answer describes the successful authentication-to-session path, but neither its explanation nor its effect fact says authentication must produce a user or that failed authentication issues no session. The frozen necessary criterion explicitly requires that false path.",
+      "correction": {
+        "criterion": "authentication-and-session-condition",
+        "fromStatus": "supported",
+        "toStatus": "missing",
+        "answerLocation": null,
+        "reason": "The answer gives only the successful authentication-to-session path and omits the required failed-authentication no-session behavior."
+      }
+    },
+    {
+      "row": "R7a5d174124d8",
+      "resolution": "retain",
+      "reason": "The first review already marks closed-gate enumeration and HTTP 403 detail missing. It explicitly says the session is returned only when authentication yields a user, satisfying the necessary gate."
+    },
+    {
+      "row": "R23c9e1f45407",
+      "resolution": "retain",
+      "reason": "The first review already marks four-outcome enumeration and HTTP 403 detail missing. The answer says a resulting user is required for session creation, satisfying the necessary gate."
+    },
+    {
+      "row": "R7c7f4699ff2e",
+      "resolution": "correct-one-criterion",
+      "reason": "The answer names the closed password gate and conditional session creation, but does not explicitly distinguish failed authentication as a no-session outcome. Its safe-proxy and attacker-header branches are present. The frozen explanation-completeness criterion requires all four outcomes. The absent HTTP 403 detail was already marked missing.",
+      "correction": {
+        "criterion": "conditional-outcome-enumeration",
+        "fromStatus": "supported",
+        "toStatus": "missing",
+        "answerLocation": null,
+        "reason": "The answer omits the explicit failed-authentication no-session outcome required by the frozen four-branch explanation criterion."
+      }
+    },
+    {
+      "row": "Rc9bdb7a46037",
+      "resolution": "retain",
+      "reason": "Both reviews find the source_refuted decision and decisive issue-write gate correct, while the optional condition explanation omits the existing-user versus missing-user outcomes after permission succeeds."
+    },
+    {
+      "row": "R7ed8bc1e2b24",
+      "resolution": "retain",
+      "reason": "The answer correctly explains that the declared denial is enforced, but explicitly labels that outcome source_supported_failure. The frozen rubric requires source_refuted when the claimed failure is refuted. The first review also marks the incomplete condition explanation."
+    },
+    {
+      "row": "R1fe7719a73ca",
+      "resolution": "retain",
+      "reason": "The answer correctly explains the pre-handler denial but explicitly labels it source_supported_failure instead of the frozen rubric's source_refuted. The first review also marks the incomplete condition explanation."
+    },
+    {
+      "row": "R37d628a4136a",
+      "resolution": "retain",
+      "reason": "The bounded input declares the authenticated active superuser and existing foreign item. The read_item entry receives that caller as current_user and its visible is_superuser exception permits the return. The second review asks for CurrentUser dependency wiring outside the fixed crop; the frozen rubric assesses this declared handler scenario and requires source_refuted. The answer's unknown label over-abstains."
+    }
+  ]
+}

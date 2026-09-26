@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "gitea-lock",
+  "taskId": "gitea-issue-lock-writer-nonadmin",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "8ae97e24ab3baf521ef0e109d0542066bf5b7f8f8a8630d310f01daf736af6de",
+  "rubricVersion": "gitea-issue-lock-writer-nonadmin/v1-z-v3+AH",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "lock-route-admin-middleware",
+      "status": "supported",
+      "reason": "The route citation places reqToken and reqAdmin on the PUT entry before handler dispatch (route_guard.go:16-20).",
+      "answerLocation": "/results/0/facts/entry/0",
+      "sourceLocations": [
+        {
+          "path": "route_guard.go",
+          "startLine": 16,
+          "endLine": 20
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/0"
+    },
+    {
+      "criterionId": "lock-nonadmin-denial-control",
+      "status": "supported",
+      "reason": "It states reqAdmin denies unless repository-admin or site-admin, matching route_guard.go:4-11.",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        {
+          "path": "route_guard.go",
+          "startLine": 4,
+          "endLine": 12
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+    },
+    {
+      "criterionId": "lock-writer-does-not-bypass-admin",
+      "status": "supported",
+      "reason": "It explicitly says token scope and issue-write permission do not substitute for administrator status.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "policy.json",
+          "startLine": 9,
+          "endLine": 10
+        },
+        {
+          "path": "route_guard.go",
+          "startLine": 7,
+          "endLine": 10
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/2"
+    },
+    {
+      "criterionId": "lock-secondary-writer-and-effect",
+      "status": "supported",
+      "reason": "It describes the separate issue-write check and conditional lock mutation after route admission.",
+      "answerLocation": "/results/0/facts/control/1",
+      "sourceLocations": [
+        {
+          "path": "issue_lock.go",
+          "startLine": 43,
+          "endLine": 69
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/3"
+    },
+    {
+      "criterionId": "lock-route-http-403-detail",
+      "status": "supported",
+      "reason": "The cited reqAdmin quote includes HTTP forbidden via ctx.APIError(http.StatusForbidden).",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        {
+          "path": "route_guard.go",
+          "startLine": 7,
+          "endLine": 10
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/necessaryFacts/1"
+    },
+    {
+      "criterionId": "lock-condition-outcomes",
+      "status": "supported",
+      "reason": "It states non-admin denial first and that the handler would matter only after earlier controls permit progress.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "route_guard.go",
+          "startLine": 4,
+          "endLine": 20
+        },
+        {
+          "path": "issue_lock.go",
+          "startLine": 43,
+          "endLine": 62
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/2/conditionExplanation"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "source_refuted is the rubric's expected disposition for the enforced deny policy.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 9,
+        "endLine": 10
+      },
+      {
+        "path": "route_guard.go",
+        "startLine": 4,
+        "endLine": 20
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/cases/2/expectedDisposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer declares only supplied fixed source and declared obligations are assessed.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 9,
+        "endLine": 11
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/limits"
+  }
+}

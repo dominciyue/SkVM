@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "authorization-ah-blind-decisions/v1",
+  "caseId": "gitea-assignee",
+  "reviewer": "independent-read-only-agent",
+  "rows": {
+    "R08a8fce0b080": {"criteria": {
+      "assignee-post-add-mode": {"status":"supported","answerLocation":"results[0].explanation","reason":"The explanation states that the POST entry invokes updateIssueAssignees with isAdd=true, matching issue_assignee.go:47-49."},
+      "assignee-issue-index-binding": {"status":"supported","answerLocation":"results[0].explanation","reason":"It states the helper resolves the issue within ctx.Repo.Repository before authorization, matching issue_assignee.go:53-58."},
+      "assignee-repository-permission-not-token-scope": {"status":"supported","answerLocation":"results[0].explanation","reason":"It distinguishes token issue-write scope from ctx.Repo.Permission.CanWriteIssuesOrPulls and states the bounded repository permission is absent."},
+      "assignee-effect-after-permission": {"status":"supported","answerLocation":"results[0].explanation","reason":"It states the 403 occurs before assignee-name resolution and AddAssignees, and that passing the check would allow later mutation."},
+      "assignee-http-403-detail": {"status":"supported","answerLocation":"results[0].explanation","reason":"It explicitly reports return 403 before attribute loading and assignee resolution."},
+      "assignee-condition-outcomes": {"status":"missing","answerLocation":null,"reason":"It covers the false-permission path and generic continuation if true, but does not explain that an existing user reaches AddAssignees while a missing user is rejected before that call."}
+    },"disposition":{"status":"supported","answerLocation":"results[0].conclusion","reason":"The source_refuted conclusion matches the fixed policy and false repository permission gate."},"scope":{"status":"supported","answerLocation":"scopeClaim","reason":"The scope is limited to declared obligations and supplied fixed source, with discovery expressly not tested."}},
+    "R1981af53a653": {"criteria": {
+      "assignee-post-add-mode":{"status":"supported","answerLocation":"results[0].explanation","reason":"It says the POST add-assignees handler delegates to updateIssueAssignees and identifies the add path."},
+      "assignee-issue-index-binding":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the helper fetches the repository issue before checking permission."},
+      "assignee-repository-permission-not-token-scope":{"status":"supported","answerLocation":"results[0].explanation","reason":"It expressly contrasts repository permission with issue-write token scope and says scope does not substitute."},
+      "assignee-effect-after-permission":{"status":"supported","answerLocation":"results[0].explanation","reason":"It places assignee resolution and the add mutation after the permission check."},
+      "assignee-http-403-detail":{"status":"supported","answerLocation":"results[0].explanation","reason":"It explicitly identifies HTTP 403 on absent repository permission."},
+      "assignee-condition-outcomes":{"status":"missing","answerLocation":null,"reason":"It explains only the false-permission outcome and omits the required true-permission split between existing and missing users."}
+    },"disposition":{"status":"supported","answerLocation":"results[0].conclusion","reason":"source_refuted correctly matches the fixed deny behavior."},"scope":{"status":"supported","answerLocation":"scopeClaim","reason":"The answer claims only declared obligations and supplied fixed source, excluding discovery."}},
+    "R4ad1a59e0f2b": {"criteria": {
+      "assignee-post-add-mode":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the POST entry invokes the helper with the add branch enabled."},
+      "assignee-issue-index-binding":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the issue index is bound to an issue in the repository before the permission check."},
+      "assignee-repository-permission-not-token-scope":{"status":"supported","answerLocation":"results[0].explanation","reason":"It identifies CanWriteIssuesOrPulls as the visible control and distinguishes it from token authentication scope."},
+      "assignee-effect-after-permission":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states denial occurs before loading, resolution, and AddAssignees, with the add effect downstream."},
+      "assignee-http-403-detail":{"status":"supported","answerLocation":"results[0].explanation","reason":"It says absent permission returns Forbidden before resolution."},
+      "assignee-condition-outcomes":{"status":"missing","answerLocation":null,"reason":"It discusses the true-permission counterfactual only generally and does not state the missing-user rejection branch versus existing-user AddAssignees reachability."}
+    },"disposition":{"status":"supported","answerLocation":"results[0].conclusion","reason":"The source_refuted conclusion matches the fixed source and bounded non-writer condition."},"scope":{"status":"supported","answerLocation":"scopeClaim","reason":"It limits the assessment to the supplied entry and fixed crop and excludes discovery."}},
+    "R68a3d138f7bb": {"criteria": {
+      "assignee-post-add-mode":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the POST handler delegates to the update routine in add mode."},
+      "assignee-issue-index-binding":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the repository and path index are bound to an issue before the permission check."},
+      "assignee-repository-permission-not-token-scope":{"status":"supported","answerLocation":"results[0].explanation","reason":"It distinguishes supplied token scope from the repository permission control and says the latter is false."},
+      "assignee-effect-after-permission":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the add effect uses resolved IDs and is unreachable after the failing guard."},
+      "assignee-http-403-detail":{"status":"supported","answerLocation":"results[0].explanation","reason":"It reports the handler returns Forbidden before resolution and mutation."},
+      "assignee-condition-outcomes":{"status":"missing","answerLocation":null,"reason":"It covers only the bounded false-permission branch and does not explain existing-user success versus missing-user rejection when permission is true."}
+    },"disposition":{"status":"supported","answerLocation":"results[0].conclusion","reason":"The source_refuted conclusion matches the deny expectation under absent repository permission."},"scope":{"status":"supported","answerLocation":"scopeClaim","reason":"The scope is explicitly limited to declared obligations and supplied fixed source."}},
+    "R72422cf4386d": {"criteria": {
+      "assignee-post-add-mode":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the POST handler invokes the helper with isAdd=true."},
+      "assignee-issue-index-binding":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the issue is resolved by repository ID and issue index before the check."},
+      "assignee-repository-permission-not-token-scope":{"status":"supported","answerLocation":"results[0].explanation","reason":"It identifies repository permission as the control and says token scope does not bypass it."},
+      "assignee-effect-after-permission":{"status":"supported","answerLocation":"results[0].explanation","reason":"It links the same issue to AddAssignees and places mutation after the guard."},
+      "assignee-http-403-detail":{"status":"supported","answerLocation":"results[0].explanation","reason":"It explicitly says the helper returns 403 when permission is absent."},
+      "assignee-condition-outcomes":{"status":"missing","answerLocation":null,"reason":"It describes only generic later processing for the true branch and omits the specific missing-user rejection outcome."}
+    },"disposition":{"status":"supported","answerLocation":"results[0].conclusion","reason":"The source_refuted conclusion matches the fixed non-writer denial."},"scope":{"status":"supported","answerLocation":"scopeClaim","reason":"It expressly limits analysis to declared obligations and supplied fixed source."}},
+    "R78ef1505a3d7": {"criteria": {
+      "assignee-post-add-mode":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the POST handler invokes the updater in add mode."},
+      "assignee-issue-index-binding":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the path index is looked up within ctx.Repo.Repository.ID."},
+      "assignee-repository-permission-not-token-scope":{"status":"supported","answerLocation":"results[0].explanation","reason":"It identifies ctx.Repo.Permission as decisive and says token scope is not repository permission."},
+      "assignee-effect-after-permission":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states AddAssignees is reachable only after the permission check succeeds and isAdd is true."},
+      "assignee-http-403-detail":{"status":"supported","answerLocation":"results[0].explanation","reason":"It explicitly reports a 403 return before resolution and AddAssignees."},
+      "assignee-condition-outcomes":{"status":"missing","answerLocation":null,"reason":"It states resolution is unreachable on denial and lists successful add prerequisites, but omits that a missing user is rejected before AddAssignees."}
+    },"disposition":{"status":"supported","answerLocation":"results[0].conclusion","reason":"The source_refuted conclusion matches the bounded false-permission case."},"scope":{"status":"supported","answerLocation":"scopeClaim","reason":"It limits the claim to the declared entry and supplied crop and makes no repository-wide claim."}},
+    "Ra56a9ac15408": {"criteria": {
+      "assignee-post-add-mode":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the POST entry invokes the add path."},
+      "assignee-issue-index-binding":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the issue is loaded by repository ID and path index."},
+      "assignee-repository-permission-not-token-scope":{"status":"supported","answerLocation":"results[0].explanation","reason":"It distinguishes CanWriteIssuesOrPulls from token scope and applies the false permission condition."},
+      "assignee-effect-after-permission":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states denial occurs before assignee resolution and AddAssignees, and describes the downstream mutation path."},
+      "assignee-http-403-detail":{"status":"supported","answerLocation":"results[0].explanation","reason":"It identifies the forbidden return before resolution and mutation."},
+      "assignee-condition-outcomes":{"status":"uncertain","answerLocation":"results[0].facts.condition[0]","reason":"It correctly states nonexistent users are rejected before mutation, but does not clearly state the complementary true-permission existing-user path reaches AddAssignees."}
+    },"disposition":{"status":"supported","answerLocation":"results[0].conclusion","reason":"The source_refuted conclusion matches the fixed policy denial."},"scope":{"status":"supported","answerLocation":"scopeClaim","reason":"It limits analysis to declared obligations and supplied fixed source, with discovery not tested."}},
+    "Rc9bdb7a46037": {"criteria": {
+      "assignee-post-add-mode":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states the fixed entry invokes the helper for the POST add operation."},
+      "assignee-issue-index-binding":{"status":"missing","answerLocation":null,"reason":"The answer does not state that the route index selects the issue before repository issue-write permission is checked."},
+      "assignee-repository-permission-not-token-scope":{"status":"supported","answerLocation":"results[0].explanation","reason":"It expressly distinguishes authenticated token scope from repository permission and identifies the latter as the checked control."},
+      "assignee-effect-after-permission":{"status":"supported","answerLocation":"results[0].explanation","reason":"It states permission is checked before assignee resolution and the add mutation."},
+      "assignee-http-403-detail":{"status":"supported","answerLocation":"results[0].explanation","reason":"It explicitly identifies HTTP 403 on permission failure."},
+      "assignee-condition-outcomes":{"status":"missing","answerLocation":null,"reason":"It does not explain the true-permission existing-user versus missing-user outcomes."}
+    },"disposition":{"status":"supported","answerLocation":"results[0].conclusion","reason":"The source_refuted conclusion matches the fixed rejection-before-resolution policy."},"scope":{"status":"supported","answerLocation":"scopeClaim","reason":"The answer limits itself to declared obligations and supplied fixed source."}}
+  }
+}

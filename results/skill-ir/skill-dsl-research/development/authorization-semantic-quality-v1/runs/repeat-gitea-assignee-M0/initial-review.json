@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "gitea-assignee",
+  "taskId": "gitea-issue-assignee-nonwriter",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "2893cbdcde7d9c11b670072e937565fc4c426538f6a9c3592c5827b7fe231913",
+  "rubricVersion": "gitea-issue-assignee-nonwriter/v1-z-v3+AH",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "assignee-post-add-mode",
+      "status": "supported",
+      "reason": "It says the POST add-assignees handler delegates to updateIssueAssignees and identifies the add path.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 47,
+          "endLine": 49
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/0"
+    },
+    {
+      "criterionId": "assignee-issue-index-binding",
+      "status": "supported",
+      "reason": "It states the helper fetches the repository issue before checking permission.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 53,
+          "endLine": 60
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/1"
+    },
+    {
+      "criterionId": "assignee-repository-permission-not-token-scope",
+      "status": "supported",
+      "reason": "It expressly contrasts repository permission with issue-write token scope and says scope does not substitute.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "policy.json",
+          "startLine": 6,
+          "endLine": 8
+        },
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 63
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "criterionId": "assignee-effect-after-permission",
+      "status": "supported",
+      "reason": "It places assignee resolution and the add mutation after the permission check.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 84
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/3"
+    },
+    {
+      "criterionId": "assignee-http-403-detail",
+      "status": "supported",
+      "reason": "It explicitly identifies HTTP 403 on absent repository permission.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 63
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "criterionId": "assignee-condition-outcomes",
+      "status": "missing",
+      "reason": "It explains only the false-permission outcome and omits the required true-permission split between existing and missing users.",
+      "answerLocation": null,
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 84
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/conditionExplanation"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "source_refuted correctly matches the fixed deny behavior.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 6,
+        "endLine": 8
+      },
+      {
+        "path": "issue_assignee.go",
+        "startLine": 54,
+        "endLine": 63
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/cases/1/expectedDisposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer claims only declared obligations and supplied fixed source, excluding discovery.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 6,
+        "endLine": 8
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/limits"
+  }
+}

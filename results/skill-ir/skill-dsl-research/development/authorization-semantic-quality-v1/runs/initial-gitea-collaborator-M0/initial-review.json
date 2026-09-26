@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "gitea-collaborator",
+  "taskId": "gitea-collaborator-permission",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "5354273e23a690af8a72204b7beaeaf0fc0853486ea16c2dfe41ae17c17867cf",
+  "rubricVersion": "gitea-collaborator-cross-user-permission/v1-z-v3+AH",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "collaborator-requester-target-binding",
+      "status": "supported",
+      "reason": "The answer binds the caller to ctx.Doer and the requested collaborator to ctx.PathParam(\"collaborator\"), matching the guard and later lookup.",
+      "answerLocation": "/results/0/facts/binding",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 35,
+          "endLine": 36
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/0"
+    },
+    {
+      "criterionId": "collaborator-three-way-guard",
+      "status": "supported",
+      "reason": "It states rejection when site-admin, self-username equality, and repository-admin are all absent, matching the conjunctive guard.",
+      "answerLocation": "/results/0/facts/control",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 35,
+          "endLine": 39
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/1"
+    },
+    {
+      "criterionId": "collaborator-current-cross-user-denial",
+      "status": "supported",
+      "reason": "It applies the different-user, non-site-admin, non-repository-admin facts and concludes the rejection condition is satisfied.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "policy.json",
+          "startLine": 6,
+          "endLine": 7
+        },
+        {
+          "path": "collaborators.go",
+          "startLine": 35,
+          "endLine": 39
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/2"
+    },
+    {
+      "criterionId": "collaborator-permission-read-after-guard",
+      "status": "supported",
+      "reason": "It says the handler returns before GetUserByName, with permission lookup and success response later and therefore protected.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 36,
+          "endLine": 57
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/3"
+    },
+    {
+      "criterionId": "collaborator-http-403-detail",
+      "status": "supported",
+      "reason": "It explicitly identifies HTTP 403 on the rejection branch before loading the collaborator.",
+      "answerLocation": "/results/0/facts/effect",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 36,
+          "endLine": 39
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/necessaryFacts/2"
+    },
+    {
+      "criterionId": "collaborator-condition-outcomes",
+      "status": "supported",
+      "reason": "The stated three-way negated control and its cited guard establish that any one of site-admin, self-match, or repository-admin avoids rejection, while all absent rejects.",
+      "answerLocation": "/results/0/facts/control",
+      "sourceLocations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 35,
+          "endLine": 39
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/0/conditionExplanation"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The answer reports source_refuted, consistent with the fixed policy and visible 403 guard.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 6,
+        "endLine": 7
+      },
+      {
+        "path": "collaborators.go",
+        "startLine": 35,
+        "endLine": 39
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/cases/0/expectedDisposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "It limits the assessment to the supplied fixed entry and route crop and disclaims discovery and repository-wide completeness.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 6,
+        "endLine": 8
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/limits"
+  }
+}

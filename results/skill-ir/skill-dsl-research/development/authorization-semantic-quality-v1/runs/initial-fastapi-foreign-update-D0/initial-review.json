@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "fastapi-foreign-update",
+  "taskId": "fastapi-items-foreign-update",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "fb20dd439fed135ddf8de6246365479b7a1dd8d60b342b2368d2a3b92cbd2f50",
+  "rubricVersion": "fastapi-items-foreign-update/v2+AH",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "update-current-user-binding",
+      "status": "supported",
+      "reason": "It identifies current_user as the runtime principal used by authorization.",
+      "answerLocation": "/results/0/facts/binding/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 75,
+          "endLine": 86
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/0"
+    },
+    {
+      "criterionId": "foreign-item-binding",
+      "status": "supported",
+      "reason": "It binds the target to Item loaded from the request path id and compares owner_id.",
+      "answerLocation": "/results/0/facts/binding/1",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 80,
+          "endLine": 90
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/1"
+    },
+    {
+      "criterionId": "non-superuser-foreign-update-decision",
+      "status": "supported",
+      "reason": "It states the 403 branch applies for a non-superuser different owner.",
+      "answerLocation": "/results/0/facts/control/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 89,
+          "endLine": 90
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/2"
+    },
+    {
+      "criterionId": "update-effect-after-guard",
+      "status": "supported",
+      "reason": "It states field updates, persistence, refresh, and return happen after the guard.",
+      "answerLocation": "/results/0/facts/effect/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 89,
+          "endLine": 96
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/3"
+    },
+    {
+      "criterionId": "update-http-403-detail",
+      "status": "supported",
+      "reason": "It explicitly identifies the 403 rejection.",
+      "answerLocation": "/results/0/facts/condition/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 89,
+          "endLine": 90
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/2"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "It reports source_refuted, matching the expected disposition.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "items.py",
+        "startLine": 75,
+        "endLine": 96
+      }
+    ],
+    "oracleRule": "second-project/evaluator/rubric.json#/cases/0"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "It limits the claim to the declared scenario and supplied source.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "task.json",
+        "startLine": 18,
+        "endLine": 47
+      },
+      {
+        "path": "items.py",
+        "startLine": 75,
+        "endLine": 96
+      }
+    ],
+    "oracleRule": "second-project/evaluator/rubric.json#/limits"
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "gitea-assignee",
+  "taskId": "gitea-issue-assignee-nonwriter",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "14728424cbc5177f40c0985c16b82cd100773ab31ccffccb160a26507aac0b2b",
+  "rubricVersion": "gitea-issue-assignee-nonwriter/v1-z-v3+AH",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "assignee-post-add-mode",
+      "status": "supported",
+      "reason": "It states the POST entry invokes the helper with the add branch enabled.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 47,
+          "endLine": 49
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/0"
+    },
+    {
+      "criterionId": "assignee-issue-index-binding",
+      "status": "supported",
+      "reason": "It states the issue index is bound to an issue in the repository before the permission check.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 53,
+          "endLine": 60
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/1"
+    },
+    {
+      "criterionId": "assignee-repository-permission-not-token-scope",
+      "status": "supported",
+      "reason": "It identifies CanWriteIssuesOrPulls as the visible control and distinguishes it from token authentication scope.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "policy.json",
+          "startLine": 6,
+          "endLine": 8
+        },
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 63
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "criterionId": "assignee-effect-after-permission",
+      "status": "supported",
+      "reason": "It states denial occurs before loading, resolution, and AddAssignees, with the add effect downstream.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 84
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/3"
+    },
+    {
+      "criterionId": "assignee-http-403-detail",
+      "status": "supported",
+      "reason": "It says absent permission returns Forbidden before resolution.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 63
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "criterionId": "assignee-condition-outcomes",
+      "status": "missing",
+      "reason": "It discusses the true-permission counterfactual only generally and does not state the missing-user rejection branch versus existing-user AddAssignees reachability.",
+      "answerLocation": null,
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 84
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/conditionExplanation"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The source_refuted conclusion matches the fixed source and bounded non-writer condition.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 6,
+        "endLine": 8
+      },
+      {
+        "path": "issue_assignee.go",
+        "startLine": 54,
+        "endLine": 63
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/cases/1/expectedDisposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "It limits the assessment to the supplied entry and fixed crop and excludes discovery.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 6,
+        "endLine": 8
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/limits"
+  }
+}

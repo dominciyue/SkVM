@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "fastapi-foreign-update",
+  "taskId": "fastapi-items-foreign-update",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "fcef8f78c103592d1469187e34910676fedc9374268afc61f2abef61a93621d7",
+  "rubricVersion": "fastapi-items-foreign-update/v2+AH",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "update-current-user-binding",
+      "status": "supported",
+      "reason": "It binds the caller to current_user and uses its role and id in the check.",
+      "answerLocation": "/results/0/facts/binding/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 75,
+          "endLine": 86
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/0"
+    },
+    {
+      "criterionId": "foreign-item-binding",
+      "status": "supported",
+      "reason": "It states the path id fetches the item and the declared different-owner relation is checked.",
+      "answerLocation": "/results/0/facts/binding/1",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 80,
+          "endLine": 90
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/1"
+    },
+    {
+      "criterionId": "non-superuser-foreign-update-decision",
+      "status": "supported",
+      "reason": "It states the non-superuser owner mismatch raises 403.",
+      "answerLocation": "/results/0/facts/condition/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 89,
+          "endLine": 90
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/2"
+    },
+    {
+      "criterionId": "update-effect-after-guard",
+      "status": "supported",
+      "reason": "It places mutation and persistence after the authorization guard.",
+      "answerLocation": "/results/0/facts/effect/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 89,
+          "endLine": 96
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/3"
+    },
+    {
+      "criterionId": "update-http-403-detail",
+      "status": "supported",
+      "reason": "It identifies the visible HTTP 403 forbidden response.",
+      "answerLocation": "/results/0/facts/control/1",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 89,
+          "endLine": 90
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/0/necessaryFacts/2"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The reported source_refuted disposition matches the visible denial guard.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "items.py",
+        "startLine": 75,
+        "endLine": 96
+      }
+    ],
+    "oracleRule": "second-project/evaluator/rubric.json#/cases/0"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The scope is limited to the declared obligation and supplied fixed source.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "task.json",
+        "startLine": 18,
+        "endLine": 47
+      },
+      {
+        "path": "items.py",
+        "startLine": 75,
+        "endLine": 96
+      }
+    ],
+    "oracleRule": "second-project/evaluator/rubric.json#/limits"
+  }
+}

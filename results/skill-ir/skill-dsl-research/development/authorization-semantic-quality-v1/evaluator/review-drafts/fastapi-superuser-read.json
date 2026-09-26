@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "authorization-ah-blind-decisions/v1",
+  "caseId": "fastapi-superuser-read",
+  "reviewer": "independent-read-only-agent",
+  "rows": {
+    "R0fe9e2b286a1": {
+      "criteria": {
+        "caller-binding": {"status": "supported", "answerLocation": "results[0].facts.binding[0]", "reason": "The answer identifies current_user as the runtime identity used by the handler and explicitly relates it to the assessed caller."},
+        "foreign-item": {"status": "supported", "answerLocation": "results[0].facts.binding[1]", "reason": "It traces the request id to the loaded Item and states that the scenario's item owner differs from current_user.id."},
+        "superuser-exception": {"status": "supported", "answerLocation": "results[0].facts.control[0]", "reason": "It correctly explains that `not current_user.is_superuser` makes the ownership rejection inapplicable to the active superuser."},
+        "read-effect": {"status": "supported", "answerLocation": "results[0].facts.effect[0]", "reason": "It traces the surviving path after the not-found and authorization checks to `return item`."}
+      },
+      "disposition": {"status": "supported", "answerLocation": "results[0].conclusion", "reason": "The `source_refuted` conclusion matches the fixed branch, which permits the stated superuser cross-owner read."},
+      "scope": {"status": "supported", "answerLocation": "scopeClaim", "reason": "The answer limits assessment to the declared obligation and supplied fixed source and says discovery is untested."}
+    },
+    "R37d628a4136a": {
+      "criteria": {
+        "caller-binding": {"status": "uncertain", "answerLocation": "results[0].facts.binding[0]", "reason": "It names current_user as the runtime identity but says the supplied crop cannot establish that it binds to the declared authenticated active caller."},
+        "foreign-item": {"status": "supported", "answerLocation": "results[0].facts.binding[1]", "reason": "It states that the request id loads the same Item subsequently checked and returned, under the declared existing different-owner scenario."},
+        "superuser-exception": {"status": "supported", "answerLocation": "results[0].facts.control[1]", "reason": "It correctly states that a true superuser bypasses the owner-mismatch denial, while a non-superuser would receive 403."},
+        "read-effect": {"status": "supported", "answerLocation": "results[0].facts.effect[0]", "reason": "It identifies `return item` as the protected effect when the item exists and the superuser branch applies."}
+      },
+      "disposition": {"status": "contradicted", "answerLocation": "results[0].conclusion", "reason": "The reported `unknown` label conflicts with the fixed stated scenario and visible source branch, whose active-superuser path bypasses denial and returns the item."},
+      "scope": {"status": "supported", "answerLocation": "scopeClaim", "reason": "The answer expressly confines itself to declared obligations and supplied fixed source and does not claim repository discovery."}
+    },
+    "R6a36888ed52e": {
+      "criteria": {
+        "caller-binding": {"status": "supported", "answerLocation": "results[0].facts.binding[0]", "reason": "It identifies current_user as the principal representation and uses its id and is_superuser attributes for the assessed caller."},
+        "foreign-item": {"status": "supported", "answerLocation": "results[0].explanation", "reason": "It identifies the Item loaded by session.get(Item, id) and applies the declared different-owner relation to that resource."},
+        "superuser-exception": {"status": "supported", "answerLocation": "results[0].facts.control[0]", "reason": "It accurately describes denial only for non-superusers with an owner mismatch, so the superuser bypasses it."},
+        "read-effect": {"status": "supported", "answerLocation": "results[0].facts.effect[0]", "reason": "It traces the post-check path to returning the loaded item."}
+      },
+      "disposition": {"status": "supported", "answerLocation": "results[0].conclusion", "reason": "The `source_refuted` conclusion matches the fixed source behavior for the stipulated active superuser and foreign existing item."},
+      "scope": {"status": "supported", "answerLocation": "scopeClaim", "reason": "It declares the assessment limited to the supplied entry and fixed source, with discovery untested."}
+    },
+    "R9c84a2d18345": {
+      "criteria": {
+        "caller-binding": {"status": "supported", "answerLocation": "results[0].facts.binding[0]", "reason": "It identifies current_user as the handler's current principal input for the declared caller."},
+        "foreign-item": {"status": "supported", "answerLocation": "results[0].facts.binding[1]", "reason": "It traces the requested UUID to the Item used for both authorization and return and applies the stated different-owner condition."},
+        "superuser-exception": {"status": "supported", "answerLocation": "results[0].facts.control[0]", "reason": "It correctly explains that the superuser branch bypasses the owner-mismatch rejection."},
+        "read-effect": {"status": "supported", "answerLocation": "results[0].facts.effect[0]", "reason": "It identifies the loaded item being returned after the not-found and authorization checks."}
+      },
+      "disposition": {"status": "supported", "answerLocation": "results[0].conclusion", "reason": "The `source_refuted` conclusion matches the fixed source's allowed cross-owner read for an active superuser."},
+      "scope": {"status": "supported", "answerLocation": "scopeClaim", "reason": "The answer states that only declared obligations and supplied fixed source are assessed and discovery is not tested."}
+    }
+  }
+}

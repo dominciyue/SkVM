@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "fastapi-superuser-read",
+  "taskId": "fastapi-items-superuser-read",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "e2976cdf7e15332e3d77e02d6058b37db449691cc6f84a429c5e8f4ef627e397",
+  "rubricVersion": "fastapi-superuser-read+AH/v1",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "caller-binding",
+      "status": "uncertain",
+      "reason": "It names current_user as the runtime identity but says the supplied crop cannot establish that it binds to the declared authenticated active caller.",
+      "answerLocation": "/results/0/facts/binding/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 48,
+          "endLine": 49
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/0"
+    },
+    {
+      "criterionId": "foreign-item",
+      "status": "supported",
+      "reason": "It states that the request id loads the same Item subsequently checked and returned, under the declared existing different-owner scenario.",
+      "answerLocation": "/results/0/facts/binding/1",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 53,
+          "endLine": 56
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/1"
+    },
+    {
+      "criterionId": "superuser-exception",
+      "status": "supported",
+      "reason": "It correctly states that a true superuser bypasses the owner-mismatch denial, while a non-superuser would receive 403.",
+      "answerLocation": "/results/0/facts/control/1",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 56,
+          "endLine": 57
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "criterionId": "read-effect",
+      "status": "supported",
+      "reason": "It identifies `return item` as the protected effect when the item exists and the superuser branch applies.",
+      "answerLocation": "/results/0/facts/effect/0",
+      "sourceLocations": [
+        {
+          "path": "items.py",
+          "startLine": 56,
+          "endLine": 58
+        }
+      ],
+      "oracleRule": "second-project/evaluator/rubric.json#/cases/1/necessaryFacts/3"
+    }
+  ],
+  "dispositionReview": {
+    "status": "contradicted",
+    "reason": "The reported `unknown` label conflicts with the fixed stated scenario and visible source branch, whose active-superuser path bypasses denial and returns the item.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "items.py",
+        "startLine": 48,
+        "endLine": 58
+      }
+    ],
+    "oracleRule": "second-project/evaluator/rubric.json#/cases/1"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer expressly confines itself to declared obligations and supplied fixed source and does not claim repository discovery.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "items.py",
+        "startLine": 48,
+        "endLine": 58
+      }
+    ],
+    "oracleRule": "second-project/model-input/task.json#/tasks/1"
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "gitea-assignee",
+  "taskId": "gitea-issue-assignee-nonwriter",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "f691789f65c41329119895dc6eae2bc66a3c44f2bfc57e7c14ceeffb91d4cc80",
+  "rubricVersion": "gitea-issue-assignee-nonwriter/v1-z-v3+AH",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "independent-read-only-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "assignee-post-add-mode",
+      "status": "supported",
+      "reason": "It states the POST handler delegates to the update routine in add mode.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 47,
+          "endLine": 49
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/0"
+    },
+    {
+      "criterionId": "assignee-issue-index-binding",
+      "status": "supported",
+      "reason": "It states the repository and path index are bound to an issue before the permission check.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 53,
+          "endLine": 60
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/1"
+    },
+    {
+      "criterionId": "assignee-repository-permission-not-token-scope",
+      "status": "supported",
+      "reason": "It distinguishes supplied token scope from the repository permission control and says the latter is false.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "policy.json",
+          "startLine": 6,
+          "endLine": 8
+        },
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 63
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "criterionId": "assignee-effect-after-permission",
+      "status": "supported",
+      "reason": "It states the add effect uses resolved IDs and is unreachable after the failing guard.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 84
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/3"
+    },
+    {
+      "criterionId": "assignee-http-403-detail",
+      "status": "supported",
+      "reason": "It reports the handler returns Forbidden before resolution and mutation.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 63
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/necessaryFacts/2"
+    },
+    {
+      "criterionId": "assignee-condition-outcomes",
+      "status": "missing",
+      "reason": "It covers only the bounded false-permission branch and does not explain existing-user success versus missing-user rejection when permission is true.",
+      "answerLocation": null,
+      "sourceLocations": [
+        {
+          "path": "issue_assignee.go",
+          "startLine": 60,
+          "endLine": 84
+        }
+      ],
+      "oracleRule": "oracle-evidence-v1.json#/cases/1/conditionExplanation"
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The source_refuted conclusion matches the deny expectation under absent repository permission.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 6,
+        "endLine": 8
+      },
+      {
+        "path": "issue_assignee.go",
+        "startLine": 54,
+        "endLine": 63
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/cases/1/expectedDisposition"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The scope is explicitly limited to declared obligations and supplied fixed source.",
+    "answerLocation": "/scopeClaim",
+    "sourceLocations": [
+      {
+        "path": "policy.json",
+        "startLine": 6,
+        "endLine": 8
+      }
+    ],
+    "oracleRule": "oracle-evidence-v1.json#/limits"
+  }
+}

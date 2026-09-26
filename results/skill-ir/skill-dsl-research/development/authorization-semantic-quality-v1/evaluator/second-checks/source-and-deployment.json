@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "authorization-ah-second-check/v1",
+  "group": "source-and-deployment",
+  "rows": {
+    "Rc13b92b779e3": {
+      "disposition": "contradicted",
+      "necessaryExplanation": "complete",
+      "responseDetailNotes": "The answer's reasoning supports source_refuted, but its declared conclusion is source_supported_failure. It correctly states the write validator, denied-set enforcement, existing-KB write check, pre-sink ordering, and HTTP 403.",
+      "evidence": "Answer result.conclusion is source_supported_failure, while the rubric expected source_refuted. Its explanation says the existing-KB/no-grant branch raises HTTP 403 before save_docs_to_vector_db; source cites retrieval_process_text.py lines 13-17 and 31-44 and retrieval_access_policy.py lines 43-51."
+    },
+    "Rad2a34156f2c": {
+      "disposition": "supported",
+      "necessaryExplanation": "partial",
+      "responseDetailNotes": "Correctly states the conditional capability, header-to-email/session binding, and missing deployment facts. It omits the failed-authentication no-session branch, explicit closed-gate HTTP 403 detail, and the requested four-outcome enumeration.",
+      "evidence": "Answer result.conclusion is unknown, matching the rubric. It states configured header value is used to look up/create the account and session, and that ingress/proxy stripping/injection facts are absent (auths_signin.py lines 17-22, 31-40; task policy lines 6-18), but does not state the false authentication path or enumerate closed-gate, failed-auth, trusted-safe, and attacker-reachable outcomes."
+    },
+    "R7a5d174124d8": {
+      "disposition": "supported",
+      "necessaryExplanation": "partial",
+      "responseDetailNotes": "Correctly covers gates, identity binding, conditional capability, and deployment unknown. It omits explicit failed-authentication no-session behavior, HTTP 403 detail for the closed password gate, and a complete four-branch outcome enumeration.",
+      "evidence": "Answer result.conclusion is unknown, matching expected unknown. It describes ENABLE_PASSWORD_AUTH and trusted-header configuration, header-to-email lookup/authentication/session, and proxy/ingress uncertainty (auths_signin.py lines 11-22, 31-40, 59-62; env_trusted_headers.py line 10), but only gives safe-versus-reachable-failure branches."
+    },
+    "R23c9e1f45407": {
+      "disposition": "supported",
+      "necessaryExplanation": "partial",
+      "responseDetailNotes": "Correct disposition and core capability/deployment-boundary reasoning. Missing explicit closed-gate HTTP 403, failed-authentication no-session statement, and explicit enumeration of all four conditional outcomes.",
+      "evidence": "Answer result.conclusion is unknown, matching expected unknown. It states conditional header-to-session capability and missing effective configuration, ingress, proxy exclusivity, stripping, and injection facts (auths_signin.py lines 11-22, 31-40, 59-62; env_trusted_headers.py line 10; task.json lines 6-18)."
+    },
+    "R7c7f4699ff2e": {
+      "disposition": "supported",
+      "necessaryExplanation": "partial",
+      "responseDetailNotes": "Correctly covers gates, identity binding, deployment facts, and conditional capability. It omits explicit closed-gate HTTP 403 detail, failed-authentication no-session wording, and explicit four-outcome enumeration.",
+      "evidence": "Answer result.conclusion is unknown, matching expected unknown. It states password gate, configured header presence, lowercased header-to-email binding, authentication/session condition, and unknown proxy reachability/stripping/injection (auths_signin.py lines 11-22, 40-41, 59-62; env_trusted_headers.py lines 10-13), but does not enumerate all four outcomes."
+    }
+  }
+}

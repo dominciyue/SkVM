@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 authorization/provider/measurement 模块、Python 文档检查。
 
-- 日期：2026-09-27；状态：`authorized-for-execution`，AH0 启动时建立机器状态。
+- 日期：2026-09-27；状态：AH0–AH13已完成并验证，AH14归属提交与origin发布收尾；机器状态见AH结果根。
 - 基线：`08ac8b939e849b9312a33df245b83db3a2eebdf0` 加本轮规划提交；仓库 `D:/skill优化/SkVM`，分支 `skill-ir-aot`。
 - 开发模型：`gpt-6-sol / max`；该选择用于开发任务，不自动替换实验中登记的模型。
 - 结果根：`results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/`。
@@ -175,29 +175,29 @@ export function compareAuthorizationWorkspaces(
 ## 5. 连续执行队列
 
 ### AH0 恢复、范围与实际基线
-- [ ] 按必读顺序恢复，确认当前 Git 分支、origin、无其他活跃写者；保留任何新出现的他人修改。
-- [ ] 建立 AH 单一 status/journal，记录当前基线、文件归属、研究与作者账户；现有维护归档只作恢复导航，不重审233项材料。
-- [ ] 使用上轮352 pass/1 skip作为已知基线；先只运行要改模块的 focused 测试，有新失败再调查，不复制历史全量审计。
+- [x] 按必读顺序恢复，确认当前 Git 分支、origin、无其他活跃写者；保留任何新出现的他人修改。
+- [x] 建立 AH 单一 status/journal，记录当前基线、文件归属、研究与作者账户；现有维护归档只作恢复导航，不重审233项材料。
+- [x] 使用上轮352 pass/1 skip作为已知基线；先只运行要改模块的 focused 测试，有新失败再调查，不复制历史全量审计。
 
 ### AH1 外部 skill 职责与困难机制
-- [ ] 按 §3.1 查原文及必要依赖，写 `skill-duty-map.json`；最多四个新增来源，失败和反例保留。
-- [ ] 每条机制写“来源中的实际职责→当前代码能做什么→具体缺口/已有支持→可验证差别”。若已完整支持，标 existing，不包装成新发现。
-- [ ] 主代理在研究 §4/§7.27更新类边界：新源码项目是输入，独立 skill 家族只按来源算。
+- [x] 按 §3.1 查原文及必要依赖，写 `skill-duty-map.json`；最多四个新增来源，失败和反例保留。
+- [x] 每条机制写“来源中的实际职责→当前代码能做什么→具体缺口/已有支持→可验证差别”。若已完整支持，标 existing，不包装成新发现。
+- [x] 主代理在研究 §4/§7.27更新类边界：新源码项目是输入，独立 skill 家族只按来源算。
 
 ### AH2 任务材料与评价依据
-- [ ] 按 §3.2 固定任务 brief、源码闭包、政策来源、暴露状态和来源资格；保存首合格候选及排除理由。
-- [ ] 评价标准分开实际 allow/deny/unknown、政策标签、必要对象/控制关系、必要解释、可选响应细节。决定性缺失事实必须解释如何改变答案。
-- [ ] input/evaluator 分目录；新原型生成只读允许 input。关键政策/真值有争议的项保留 `unresolved-reference`，不硬造答案或删除困难项。
+- [x] 按 §3.2 固定任务 brief、源码闭包、政策来源、暴露状态和来源资格；保存首合格候选及排除理由。
+- [x] 评价标准分开实际 allow/deny/unknown、政策标签、必要对象/控制关系、必要解释、可选响应细节。决定性缺失事实必须解释如何改变答案。
+- [x] input/evaluator 分目录；新原型生成只读允许 input。关键政策/真值有争议的项保留 `unresolved-reference`，不硬造答案或删除困难项。
 
 ### AH3 机制设计与反例定稿
-- [ ] 亲读上述核心代码；写 `mechanism-contract.json` 对照旧问题与新增组织，明确控制对象和作用路径的区别，记录哪些内容可复用。
-- [ ] 从两个不同源码情形证明支架有实际问题可问；无类型缺口时采用 §4.1 轻计划，不建新 schema/关系图。
-- [ ] 固定四臂干预与共同问题，使用一个普通通用记录任务解释设计，实例不得藏真实答案。将修改后的实际接口同步本书再实现。
+- [x] 亲读上述核心代码；写 `mechanism-contract.json` 对照旧问题与新增组织，明确控制对象和作用路径的区别，记录哪些内容可复用。
+- [x] 从两个不同源码情形证明支架有实际问题可问；无类型缺口时采用 §4.1 轻计划，不建新 schema/关系图。
+- [x] 固定四臂干预与共同问题，使用一个普通通用记录任务解释设计，实例不得藏真实答案。将修改后的实际接口同步本书再实现。
 
 ### AH4 领域计划红绿实现
-- [ ] 新增独立 synthetic fixture，先写失败测试：显式义务局部绑定、两个对象不合并、不同义务不串线、重排稳定、blocked义务不伪装runnable、无条件任务正常、standard空新增段。
-- [ ] 使用现有 `compileAuthorizationTask` 生成 fixture 的 compiled 值，实现 §4.1 纯函数；禁止源码文件名或仓库名分支。
-- [ ] 以下为应固定的断言形状，fixture 使用 `schema.test.ts`/`semantics.test.ts` 的完整合法任务复制后在本轮测试内显式修改：
+- [x] 新增独立 synthetic fixture，先写失败测试：显式义务局部绑定、两个对象不合并、不同义务不串线、重排稳定、blocked义务不伪装runnable、无条件任务正常、standard空新增段。
+- [x] 使用现有 `compileAuthorizationTask` 生成 fixture 的 compiled 值，实现 §4.1 纯函数；禁止源码文件名或仓库名分支。
+- [x] 以下为应固定的断言形状，fixture 使用 `schema.test.ts`/`semantics.test.ts` 的完整合法任务复制后在本轮测试内显式修改：
 
 ```ts
 const standard = compileAuthorizationReasoningPlan(compiled, "standard");
@@ -215,59 +215,59 @@ for (const entry of focused.entries) {
 expect(JSON.stringify(focused)).not.toContain('"observedDecision"');
 ```
 
-- [ ] 先运行 `bun test ./src/task-dsl/authorization/reasoning-plan.test.ts` 确认针对缺失行为失败；实现后跑该文件与 render/relations 测试，记录一次红绿结果。
+- [x] 先运行 `bun test ./src/task-dsl/authorization/reasoning-plan.test.ts` 确认针对缺失行为失败；实现后跑该文件与 render/relations 测试，记录一次红绿结果。
 
 ### AH5 普通运行与两种表示接通
-- [ ] 在 render/host/local-run/MD/CLI 增加可选策略，默认输出不变；采用 options 追加而不是破坏已有位置参数。
-- [ ] 先测未知策略在 provider factory 前拒绝、有效策略确实进入实际 provider prompt、源码只出现一次、MD/DSL新问题一致、domain repair保留原策略。
-- [ ] session/preview/inspect/compare 保存实际策略/计划来源；恢复身份包含策略；无新dispatch的离线replay不可称新模型成功。Mock覆盖一次正常、结构修复、超时未知和恢复不重发。
-- [ ] 命令与用法同步，执行 `bun test ./src/task-dsl/authorization/render.test.ts ./src/benchmarks/authorization-dsl/host.test.ts ./src/benchmarks/authorization-dsl/local-run.test.ts ./src/benchmarks/authorization-dsl/markdown-study.test.ts ./src/cli/authorization.test.ts`。
+- [x] 在 render/host/local-run/MD/CLI 增加可选策略，默认输出不变；采用 options 追加而不是破坏已有位置参数。
+- [x] 先测未知策略在 provider factory 前拒绝、有效策略确实进入实际 provider prompt、源码只出现一次、MD/DSL新问题一致、domain repair保留原策略。
+- [x] session/preview/inspect/compare 保存实际策略/计划来源；恢复身份包含策略；无新dispatch的离线replay不可称新模型成功。Mock覆盖一次正常、结构修复、超时未知和恢复不重发。
+- [x] 命令与用法同步，执行 `bun test ./src/task-dsl/authorization/render.test.ts ./src/benchmarks/authorization-dsl/host.test.ts ./src/benchmarks/authorization-dsl/local-run.test.ts ./src/benchmarks/authorization-dsl/markdown-study.test.ts ./src/cli/authorization.test.ts`。
 
 ### AH6 工作区变更反馈红绿实现
-- [ ] 在 `authoring-workspace/changes.test.ts` 先固定：共同政策继承两场景、第三场景override遮蔽、无效引用、variant新增/删除、相同值整字段替换、搬移路径但有效源码相同。
-- [ ] 实现 §4.2 的最小快照与只读比较，继续复用 composer和普通loader；无副作用、不创建provider、不修改旧生成目录。
-- [ ] 更新 compose `--compare-with` 并加真实 CLI 测试；保留不带参数的旧行为和 Windows 发布边界。
-- [ ] 完成 `bun test ./src/benchmarks/authorization-dsl/authoring-workspace ./src/cli/authorization-compose.test.ts`。把提示原因写清，勿把覆盖提示变成必须审核的日常 gate。
+- [x] 在 `authoring-workspace/changes.test.ts` 先固定：共同政策继承两场景、第三场景override遮蔽、无效引用、variant新增/删除、相同值整字段替换、搬移路径但有效源码相同。
+- [x] 实现 §4.2 的最小快照与只读比较，继续复用 composer和普通loader；无副作用、不创建provider、不修改旧生成目录。
+- [x] 更新 compose `--compare-with` 并加真实 CLI 测试；保留不带参数的旧行为和 Windows 发布边界。
+- [x] 完成 `bun test ./src/benchmarks/authorization-dsl/authoring-workspace ./src/cli/authorization-compose.test.ts`。把提示原因写清，勿把覆盖提示变成必须审核的日常 gate。
 
 ### AH7 公平材料、运行配置与离线检查
-- [ ] 由未参与设计的干净上下文作者从中立 brief 生成 MD；只提供公开来源/政策/要求和必要用法，不提供DSL成稿、oracle或预期结论。原稿与诊断保存，事实对齐后进入四臂。
-- [ ] 在任何真实面板调用前记录代码revision、case/state列表、四臂顺序、预定重复、模型/预算、rubric和停止规则。只用一个可复算config及现有来源绑定，不新增层层归档锁。
-- [ ] 轮换四臂顺序；重复反序；fresh context。对照同源码、同公共问题、同wire、同预算，所有新增问题及字数差异可见。
-- [ ] 薄 driver 直接调用 `executeLocalAuthorizationRun`/`executeMarkdownStudyRun`；一次离线mock验证当前config、resume不重发与oracle未进入prompt即可。driver提供 `check/run/evaluate/replay/status`，实际命令随实现回写本书。
+- [x] 由未参与设计的干净上下文作者从中立 brief 生成 MD；只提供公开来源/政策/要求和必要用法，不提供DSL成稿、oracle或预期结论。原稿与诊断保存，事实对齐后进入四臂。
+- [x] 在任何真实面板调用前记录代码revision、case/state列表、四臂顺序、预定重复、模型/预算、rubric和停止规则。只用一个可复算config及现有来源绑定，不新增层层归档锁。
+- [x] 轮换四臂顺序；重复反序；fresh context。对照同源码、同公共问题、同wire、同预算，所有新增问题及字数差异可见。
+- [x] 薄 driver 直接调用 `executeLocalAuthorizationRun`/`executeMarkdownStudyRun`；一次离线mock验证当前config、resume不重发与oracle未进入prompt即可。driver提供 `check/run/evaluate/replay/status`，实际命令随实现回写本书。
 
 ### AH8 真实质量面板
-- [ ] 执行全部已登记首轮与预定重复；每单元写dispatch/终态/原始回答及已知用量。timeout/unknown保留，不无限重发。
-- [ ] 传输失败、模型判断、局部修复和基础设施分账。dispatch前可纠正配置继续；dispatch后的未知完成不冒充未调用。
-- [ ] 可在已有runner支持时有限并发，但相同case的四臂不得因争抢资源获得不同timeout预算；不为提速改默认provider或创建新调度平台。
+- [x] 执行全部已登记首轮与预定重复；每单元写dispatch/终态/原始回答及已知用量。timeout/unknown保留，不无限重发。
+- [x] 传输失败、模型判断、局部修复和基础设施分账。dispatch前可纠正配置继续；dispatch后的未知完成不冒充未调用。
+- [x] 可在已有runner支持时有限并发，但相同case的四臂不得因争抢资源获得不同timeout预算；不为提速改默认provider或创建新调度平台。
 
 ### AH9 语义评价与有限修订
-- [ ] 全部本区块生成终结后，按既定rubric逐回答定位判断。用现有 `evaluateAuthorizationGenerationV3`，接受逻辑等价表达；不以关键词、字段存在或schema通过替代语义支持。
-- [ ] 对所有改变方法结论的胜/负项和代表性unknown作匿名只读独立核验，保留review分歧与依据。复核者可读源码/政策/oracle/答案，但不看臂名和主代理拟定结论。
-- [ ] 明确共享实现bug先加失败测试再修；付费修订仅在 §3.3 上限内且包括受影响各臂。纯离线可验证的计量/显示问题不重新跑模型。
-- [ ] 首答、初轮最终、修订分别保存；method效果可为positive/mixed/no-observed-difference/negative/inconclusive。
+- [x] 全部本区块生成终结后，按既定rubric逐回答定位判断。用现有 `evaluateAuthorizationGenerationV3`，接受逻辑等价表达；不以关键词、字段存在或schema通过替代语义支持。
+- [x] 对所有改变方法结论的胜/负项和代表性unknown作匿名只读独立核验，保留review分歧与依据。复核者可读源码/政策/oracle/答案，但不看臂名和主代理拟定结论。
+- [x] 明确共享实现bug先加失败测试再修；付费修订仅在 §3.3 上限内且包括受影响各臂。纯离线可验证的计量/显示问题不重新跑模型。
+- [x] 首答、初轮最终、修订分别保存；method效果可为positive/mixed/no-observed-difference/negative/inconclusive。
 
 ### AH10 独立作者原任务与变化任务
-- [ ] 从当前材料选择两个政策可判定的中立作者任务包，覆盖一次公共政策变化和一次主体/资源关系变化；选择规则在作者产出前记录。
-- [ ] 每包有独立MD作者和workspace作者，均只获同brief、源码、用法与相同check/locate机会；初稿后给同一变化请求。共8个原/变作者交付，每作者最多一次带具体诊断修订；身份与可测成本完整保留。
-- [ ] 作者可返回文本/JSON由主代理原样保存；主代理不得悄悄代修语义字段后算作者成功。无人参与时明确模型辅助作者，humanMinutes保持unknown。
-- [ ] 记录真实遗漏/矛盾、check诊断、改动内容、公共修改遗漏与override发现；MD行数与JSON路径数不同单位，不直接做百分比节省。
+- [x] 从当前材料选择两个政策可判定的中立作者任务包，覆盖一次公共政策变化和一次主体/资源关系变化；选择规则在作者产出前记录。
+- [x] 每包有独立MD作者和workspace作者，均只获同brief、源码、用法与相同check/locate机会；初稿后给同一变化请求。共8个原/变作者交付，每作者最多一次带具体诊断修订；身份与可测成本完整保留。
+- [x] 作者可返回文本/JSON由主代理原样保存；主代理不得悄悄代修语义字段后算作者成功。无人参与时明确模型辅助作者，humanMinutes保持unknown。
+- [x] 记录真实遗漏/矛盾、check诊断、改动内容、公共修改遗漏与override发现；MD行数与JSON路径数不同单位，不直接做百分比节省。
 
 ### AH11 复用与普通使用闭环
-- [ ] 将workspace和源码复制到普通临时目录，走compose/check；用已有面板输出或mock完成inspect/compare接线，网络重放与新语义观察分开。
-- [ ] 给出带完整synthetic输入的 `--reasoning` 和 `--compare-with` 示例；重要的政策override提示能被用户定位并处理。
-- [ ] 若作者实际输入与已运行单元事实一致，可复用其研究证据但明确不是新调用；若不一致，只作准备/离线验收，不补付费演示凑成功。
-- [ ] 质量部分完成不妨碍独立工程交付，但不得把 mock 通过写成真实模型收益。
+- [x] 将workspace和源码复制到普通临时目录，走compose/check；用已有面板输出或mock完成inspect/compare接线，网络重放与新语义观察分开。
+- [x] 给出带完整synthetic输入的 `--reasoning` 和 `--compare-with` 示例；重要的政策override提示能被用户定位并处理。
+- [x] 若作者实际输入与已运行单元事实一致，可复用其研究证据但明确不是新调用；若不一致，只作准备/离线验收，不补付费演示凑成功。
+- [x] 质量部分完成不妨碍独立工程交付，但不得把 mock 通过写成真实模型收益。
 
 ### AH12 方法取舍与研究归并
-- [ ] 分层报告机制、项目、真实/合成、旧/新输入、重复、四臂及缺失分母；使用AG完整prompt/output计量，同时保留fresh/cache/actualUSD未知。
-- [ ] 优先比较决定性错误和无依据判断，再看必要解释、首答、repair与完整开销；使用全部预定单元，不能只看成功答案。
-- [ ] 解释四臂关系：M1/D1共同改善则优先共享领域方法；D1额外改善要指出具体结构或编译机制；仅作者复用有收益也单列；平局保留简单路线。
-- [ ] 更新研究§7.27的问题→根因→解决→验证→取舍；改动确实影响当前结论的同步§1/分类/问题表，不只在末尾追加冲突结论。
+- [x] 分层报告机制、项目、真实/合成、旧/新输入、重复、四臂及缺失分母；使用AG完整prompt/output计量，同时保留fresh/cache/actualUSD未知。
+- [x] 优先比较决定性错误和无依据判断，再看必要解释、首答、repair与完整开销；使用全部预定单元，不能只看成功答案。
+- [x] 解释四臂关系：M1/D1共同改善则优先共享领域方法；D1额外改善要指出具体结构或编译机制；仅作者复用有收益也单列；平局保留简单路线。
+- [x] 更新研究§7.27的问题→根因→解决→验证→取舍；改动确实影响当前结论的同步§1/分类/问题表，不只在末尾追加冲突结论。
 
 ### AH13 有限回归与复验
-- [ ] 运行一次相关完整回归、主typecheck；新增薄driver纳入类型检查，不能只验证bundle能构建。
-- [ ] 一次本轮离线replay；旧接口选代表性确定性兼容测试，不重跑全部历史研究。
-- [ ] 文档12测试、一次链接扫描、新JSON/JSONL解析和定向凭据检查；敏感信息不进入提交，真实业务payload按既有规则处理。
+- [x] 运行一次相关完整回归、主typecheck；新增薄driver纳入类型检查，不能只验证bundle能构建。
+- [x] 一次本轮离线replay；旧接口选代表性确定性兼容测试，不重跑全部历史研究。
+- [x] 文档12测试、一次链接扫描、新JSON/JSONL解析和定向凭据检查；敏感信息不进入提交，真实业务payload按既有规则处理。
 
 ```powershell
 bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts ./src/cli/authorization-compose.test.ts ./src/providers/structured.test.ts ./src/measurement/token-accounting.test.ts ./scripts/token-accounting
@@ -281,6 +281,8 @@ git diff --check
 - [ ] 聚焦按“关系策略/使用反馈/研究证据/文档”提交，只纳入本轮清单。更新唯一current-status、当前plan/spec、usage/guide、实验目录及根conversation_log。
 - [ ] 仅推 `origin/skill-ir-aot`；核对远端HEAD与ahead/behind，保留他人改动和历史本地排除项。无第三方写者时保证本轮无遗留未提交文件。
 - [ ] 最终交付：实现了什么、可运行命令、四臂真实结果、作者变更事实、开销、未解决项和下一建议。工程完成与研究结果分列，完成后停止。
+
+**AH13验收记录（2026-09-27）。** AH4–AH6按先红后绿实现；实际冻结分母为8状态、3状态重复、四臂44单元，44/44 completed，44次provider调用，0 fallback、0 domain repair、0目标执行，未触发共享实现修订。AH9的44条匿名首评和9条独立二审保留两条criterion裁定修正；首轮full为M0/D0/M1/D1 6/4/6/5（各8），重复为2/1/2/2（各3），真实初轮与重复分账。作者两包4原稿与4变化交付，排除两次不合规/不完整尝试，Gitea旧taskId来源文字遗漏按原件记录；无人类工时或作者token实测。普通临时目录演示与synthetic示例通过，作者变化未生成新语义答案。有限并发可选项未启用；共享实现bug与付费修订条件未触发，故0修订。验证为338 pass、1平台skip、2372断言，主/AH脚本typecheck通过，文档12测试通过、14401文件扫描0 broken/legacy/governance errors，775 JSON及91 JSONL/283记录可解析，定向凭据模式0命中；零provider离线replay SHA-256 `d0d7cce1cec974a165c8dd2682005dfb21f6074b46fe0e8faab5f09408d49ee5`。结果及方法取舍见[研究§7.27](../../skill-ir/skill-dsl-research.md#727-ah-语义质量与真实编写复用)和[机器汇总](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/panel-summary.json)。
 
 ## 6. 失败、预算与持续推进
 

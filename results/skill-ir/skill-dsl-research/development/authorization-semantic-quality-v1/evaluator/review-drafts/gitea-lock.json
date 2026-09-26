@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "authorization-ah-blind-decisions/v1",
+  "caseId": "gitea-lock",
+  "reviewer": "independent-read-only-agent",
+  "rows": {
+    "R11e1ecf2d217": {
+      "criteria": {
+        "lock-route-admin-middleware": {"status":"supported","answerLocation":"results[0].facts.entry[0]","reason":"The cited route group applies reqToken() and reqAdmin() to the PUT LockIssue entry (route_guard.go:16-20)."},
+        "lock-nonadmin-denial-control": {"status":"supported","answerLocation":"results[0].facts.control[0]","reason":"The answer states both admin checks false return forbidden before LockIssue, matching reqAdmin (route_guard.go:4-11)."},
+        "lock-writer-does-not-bypass-admin": {"status":"supported","answerLocation":"results[0].explanation","reason":"It explicitly says issue-write and token scope cannot bypass the earlier administrator gate."},
+        "lock-secondary-writer-and-effect": {"status":"supported","answerLocation":"results[0].explanation","reason":"It separates the handler write check from the later unlocked LockIssue effect."},
+        "lock-route-http-403-detail": {"status":"supported","answerLocation":"results[0].facts.control[0]","reason":"The cited source quote contains ctx.APIError(http.StatusForbidden) for the non-admin branch."},
+        "lock-condition-outcomes": {"status":"supported","answerLocation":"results[0].explanation","reason":"It explains the neither-admin denial and that an admin would pass the first gate before issue-write matters."}
+      },
+      "disposition": {"status":"supported","answerLocation":"results[0].conclusion","reason":"source_refuted matches the expected source_refuted disposition: the fixed route enforces denial."},
+      "scope": {"status":"supported","answerLocation":"scopeClaim","reason":"The scope claim limits assessment to declared obligations and supplied fixed source, as required."}
+    },
+    "R1b5ea729cea5": {
+      "criteria": {
+        "lock-route-admin-middleware": {"status":"supported","answerLocation":"results[0].facts.entry[0]","reason":"The route citation places reqToken and reqAdmin on the PUT entry before handler dispatch (route_guard.go:16-20)."},
+        "lock-nonadmin-denial-control": {"status":"supported","answerLocation":"results[0].facts.control[0]","reason":"It states reqAdmin denies unless repository-admin or site-admin, matching route_guard.go:4-11."},
+        "lock-writer-does-not-bypass-admin": {"status":"supported","answerLocation":"results[0].explanation","reason":"It explicitly says token scope and issue-write permission do not substitute for administrator status."},
+        "lock-secondary-writer-and-effect": {"status":"supported","answerLocation":"results[0].facts.control[1]","reason":"It describes the separate issue-write check and conditional lock mutation after route admission."},
+        "lock-route-http-403-detail": {"status":"supported","answerLocation":"results[0].facts.control[0]","reason":"The cited reqAdmin quote includes HTTP forbidden via ctx.APIError(http.StatusForbidden)."},
+        "lock-condition-outcomes": {"status":"supported","answerLocation":"results[0].explanation","reason":"It states non-admin denial first and that the handler would matter only after earlier controls permit progress."}
+      },
+      "disposition": {"status":"supported","answerLocation":"results[0].conclusion","reason":"source_refuted is the rubric's expected disposition for the enforced deny policy."},
+      "scope": {"status":"supported","answerLocation":"scopeClaim","reason":"The answer declares only supplied fixed source and declared obligations are assessed."}
+    },
+    "R1fe7719a73ca": {
+      "criteria": {
+        "lock-route-admin-middleware": {"status":"supported","answerLocation":"results[0].facts.entry[0]","reason":"The route citation shows reqToken() and reqAdmin() on the PUT lock group (route_guard.go:16-20)."},
+        "lock-nonadmin-denial-control": {"status":"supported","answerLocation":"results[0].facts.control[1]","reason":"It states both false admin checks return forbidden before handler progress (route_guard.go:4-11)."},
+        "lock-writer-does-not-bypass-admin": {"status":"supported","answerLocation":"results[0].explanation","reason":"It explicitly distinguishes issue-write permission from the stronger route administrator gate."},
+        "lock-secondary-writer-and-effect": {"status":"supported","answerLocation":"results[0].facts.effect[0]","reason":"It traces unlocked LockIssue reachability only after the handler write check."},
+        "lock-route-http-403-detail": {"status":"supported","answerLocation":"results[0].facts.effect[1]","reason":"The cited reqAdmin branch includes ctx.APIError(http.StatusForbidden) and no dispatch."},
+        "lock-condition-outcomes": {"status":"supported","answerLocation":"results[0].explanation","reason":"It explains neither-admin denial, hypothetical passage of both gates, and the unlocked effect."}
+      },
+      "disposition": {"status":"contradicted","answerLocation":"results[0].conclusion","reason":"The fixed source enforces the expected deny, so the rubric expects source_refuted; source_supported_failure is the opposite disposition label."},
+      "scope": {"status":"supported","answerLocation":"scopeClaim","reason":"It limits claims to the fixed source and declared obligations and excludes deployment discovery."}
+    },
+    "R2b45b2c483e7": {
+      "criteria": {
+        "lock-route-admin-middleware": {"status":"supported","answerLocation":"results[0].facts.entry[0]","reason":"The cited lock group binds PUT to LockIssue and applies token/admin gates (route_guard.go:16-20)."},
+        "lock-nonadmin-denial-control": {"status":"supported","answerLocation":"results[0].facts.control[1]","reason":"It states reqAdmin returns forbidden for neither-admin, matching route_guard.go:4-11."},
+        "lock-writer-does-not-bypass-admin": {"status":"supported","answerLocation":"results[0].explanation","reason":"It says issue-writer permission satisfies only the later gate and cannot replace reqAdmin."},
+        "lock-secondary-writer-and-effect": {"status":"supported","answerLocation":"results[0].explanation","reason":"It traces handler issue-write permission before the unlocked lock-effect branch."},
+        "lock-route-http-403-detail": {"status":"supported","answerLocation":"results[0].facts.control[1]","reason":"The source quote cited for reqAdmin contains ctx.APIError(http.StatusForbidden)."},
+        "lock-condition-outcomes": {"status":"supported","answerLocation":"results[0].explanation","reason":"It covers neither-admin denial, administrator passage, later issue-write, and unlocked effect conditions."}
+      },
+      "disposition": {"status":"supported","answerLocation":"results[0].conclusion","reason":"source_refuted matches the expected disposition because the deny policy is enforced."},
+      "scope": {"status":"supported","answerLocation":"scopeClaim","reason":"The answer expressly confines review to declared obligations and supplied source."}
+    },
+    "R3a64da58eca8": {
+      "criteria": {
+        "lock-route-admin-middleware": {"status":"supported","answerLocation":"results[0].facts.binding[0]","reason":"The route citation shows reqToken and reqAdmin before dispatch (route_guard.go:16-20)."},
+        "lock-nonadmin-denial-control": {"status":"supported","answerLocation":"results[0].facts.control[0]","reason":"It states HTTP 403 when neither admin status is present, matching reqAdmin."},
+        "lock-writer-does-not-bypass-admin": {"status":"supported","answerLocation":"results[0].explanation","reason":"It says issue-write is a second gate and cannot be reached or used to bypass reqAdmin."},
+        "lock-secondary-writer-and-effect": {"status":"supported","answerLocation":"results[0].explanation","reason":"It identifies the handler write gate and unlocked LockIssue effect after that gate."},
+        "lock-route-http-403-detail": {"status":"supported","answerLocation":"results[0].facts.control[0]","reason":"The answer explicitly identifies HTTP 403 for the pre-handler admin denial."},
+        "lock-condition-outcomes": {"status":"supported","answerLocation":"results[0].explanation","reason":"It explains the neither-admin branch blocks before handler checks and effect; the later gates are described."}
+      },
+      "disposition": {"status":"supported","answerLocation":"results[0].conclusion","reason":"Although phrased as source_refuted, the conclusion matches the expected source_refuted label."},
+      "scope": {"status":"supported","answerLocation":"scopeClaim","reason":"It states no deployment or repository-wide completeness claim and keeps the fixed-source scope."}
+    },
+    "R799ed2775e0c": {
+      "criteria": {
+        "lock-route-admin-middleware": {"status":"supported","answerLocation":"results[0].facts.entry[0]","reason":"The route citation shows PUT LockIssue under reqToken and reqAdmin (route_guard.go:16-20)."},
+        "lock-nonadmin-denial-control": {"status":"supported","answerLocation":"results[0].facts.control[1]","reason":"It states lacking both admin statuses returns forbidden before handler progress."},
+        "lock-writer-does-not-bypass-admin": {"status":"supported","answerLocation":"results[0].explanation","reason":"It explicitly says issue-write permission does not substitute for upstream administrator status."},
+        "lock-secondary-writer-and-effect": {"status":"supported","answerLocation":"results[0].facts.effect[0]","reason":"It places issue-write and unlocked LockIssue after visible authorization checks."},
+        "lock-route-http-403-detail": {"status":"supported","answerLocation":"results[0].facts.control[1]","reason":"The cited reqAdmin quote contains the forbidden API response."},
+        "lock-condition-outcomes": {"status":"supported","answerLocation":"results[0].explanation","reason":"It explains both-false denial and that the effect requires admin passage, issue-write, and unlocked state."}
+      },
+      "disposition": {"status":"supported","answerLocation":"results[0].conclusion","reason":"source_refuted is the expected disposition for a route that correctly enforces denial."},
+      "scope": {"status":"supported","answerLocation":"scopeClaim","reason":"It confines the claim to the fixed source and declared obligations."}
+    },
+    "R7deeee603dd1": {
+      "criteria": {
+        "lock-route-admin-middleware": {"status":"supported","answerLocation":"results[0].facts.entry[0]","reason":"The cited route registers PUT LockIssue with token and admin middleware."},
+        "lock-nonadmin-denial-control": {"status":"supported","answerLocation":"results[0].facts.binding[0]","reason":"It states reqAdmin returns forbidden unless repository- or site-admin status holds."},
+        "lock-writer-does-not-bypass-admin": {"status":"supported","answerLocation":"results[0].explanation","reason":"It explicitly says issue/pull write permission is a separate later requirement."},
+        "lock-secondary-writer-and-effect": {"status":"supported","answerLocation":"results[0].facts.effect[0]","reason":"It traces Doer and LockIssue only for unlocked targets after authorization."},
+        "lock-route-http-403-detail": {"status":"supported","answerLocation":"results[0].facts.binding[0]","reason":"The reqAdmin source quote identifies ctx.APIError(http.StatusForbidden)."},
+        "lock-condition-outcomes": {"status":"supported","answerLocation":"results[0].explanation","reason":"It states the non-admin denial and the hypothetical later write/unlocked effect if the first gate passed."}
+      },
+      "disposition": {"status":"supported","answerLocation":"results[0].conclusion","reason":"source_refuted matches the expected fixed-source policy disposition."},
+      "scope": {"status":"supported","answerLocation":"scopeClaim","reason":"The claim is limited to declared obligations and supplied fixed source."}
+    },
+    "R7ed8bc1e2b24": {
+      "criteria": {
+        "lock-route-admin-middleware": {"status":"supported","answerLocation":"results[0].facts.entry[0]","reason":"The route citation shows PUT LockIssue under reqToken and reqAdmin (route_guard.go:16-20)."},
+        "lock-nonadmin-denial-control": {"status":"supported","answerLocation":"results[0].facts.binding[1]","reason":"It states neither admin status causes the pre-handler forbidden branch."},
+        "lock-writer-does-not-bypass-admin": {"status":"supported","answerLocation":"results[0].explanation","reason":"It explicitly says declared writer permission does not substitute for route admin status."},
+        "lock-secondary-writer-and-effect": {"status":"supported","answerLocation":"results[0].facts.effect[0]","reason":"It places the issue-write check before unlocked LockIssue and notes route denial prevents reachability."},
+        "lock-route-http-403-detail": {"status":"supported","answerLocation":"results[0].facts.binding[1]","reason":"The cited reqAdmin quote includes the HTTP 403 API error."},
+        "lock-condition-outcomes": {"status":"supported","answerLocation":"results[0].explanation","reason":"It describes both-false denial and hypothetical handler/effect reachability after admin passage."}
+      },
+      "disposition": {"status":"contradicted","answerLocation":"results[0].conclusion","reason":"The source enforces the expected deny, so expectedDisposition is source_refuted; source_supported_failure is the wrong disposition label."},
+      "scope": {"status":"supported","answerLocation":"scopeClaim","reason":"It expressly limits the result to supplied source and excludes deployment/repository discovery."}
+    }
+  }
+}

@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**AB已完成16条逐项语义评价，DSL整体收益未建立。** 两个新项目的Markdown为8/8 full，DSL为6/8 full；两条DSL标签与正确授权解释矛盾，原文和错误计分均保留。两臂必要控制与解释都为8/8，DSL分析非缓存input+output多11.969%，完整prompt+output（含cache-read）多3.279%，累计响应耗时少8.5%；作者准备与修改未显示一致节省。同v2、核心代码和薄包可复用，结构化compare提供适用性诊断；它们不证明质量优势。AE后续24单元的MD/DSL×v4/v5四组各6/6 full，没有显示v5质量增量或默认迁移依据。完整结果见§7.25–7.26；AC/AD及AF/AG工程工具独立于研究分母与效果。
+**AH已完成44条四臂公开development评价，新增局部问题支架未建立稳定质量收益。** 同一11个任务出现次数下，Markdown标准/新支架均8/11 full，DSL标准5/11、新支架7/11；新支架修正了DSL若干标签错误，也新增一条superuser过度弃答，且同支架Markdown仍8/11、高于DSL的7/11。完整prompt+output为34,264/41,402/45,237/50,905 tokens（依次为Markdown标准/新支架、DSL标准/新支架），44次业务模型调用的实际美元费用均未知。独立模型辅助作者完成两包原/变任务，工作区继承显示公共政策变更，但有一处旧taskId来源说明未同步；真人时间与作者token未知，不能推算节省。可选策略和只读变更反馈保留为工程能力，普通默认不变。详细分母、错误和取舍见§7.27；AB两项目16条评价（Markdown 8/8、DSL 6/8）及AE四组各6/6的旧结论仍见§7.25–7.26，AC/AD和AF/AG工程工具不增加AH分母。
 
 已经站得住的判断：
 
@@ -843,13 +843,13 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 ### 7.27 AH 语义质量与真实编写复用
 
-2026-09-27，用户在交付后复核基础上确认继续开发并要求新任务获得完整上下文。[AH0–AH14](../superpowers/plans/2026-09-27-authorization-semantic-quality-and-reuse.md)由一个`gpt-6-sol / max`任务负责，基线为`08ac8b93`及规划提交；此处登记设计，尚无AH真实模型结果。质量约60%、编写复用约40%是投入顺序，两个方向分别验收。
+2026-09-27，用户在交付后复核基础上确认继续开发并要求新任务获得完整上下文。[AH0–AH14](../superpowers/plans/2026-09-27-authorization-semantic-quality-and-reuse.md)由一个`gpt-6-sol / max`任务负责，基线为`08ac8b93`及规划提交。质量约60%、编写复用约40%是投入顺序，两个方向分别验收。以下保留预设方法，再记录实际执行与取舍。
 
 **代码与问题。** 现有`relations.ts`已列entry/identity/resource/decision/effect/external六类问题，`prerequisiteIds`表达分析依赖；`relation-result.ts`核对同义务coverage及事实引用，`render.ts`已有领域因果链文字。下一实现需要解释新增机制如何超过这些已有支持，不能只再添加一份通用清单。候选支架把每个显式义务中的主体、效果目标、控制对象和适用条件组织为局部对照问题；源码里的对象相等性、控制可达性、角色例外及外部事实仍由模型分析，宿主不从引用存在推断真值。
 
 **选择与实现。** 继续改结论标签的收益证据不足；直接建设控制流分析器或全仓发现会扩大干预。当前选择在现有authoring/v2及wire之上实现显式`control-binding-v1`策略，先用真实反例与旧profile对照，再确定最小pure compiler/renderer。strategy=standard保持历史prompt及默认；普通check/run/inspect/compare、MD研究入口和恢复身份贯穿实际选择。新增关系字段须有真实表示缺口，默认不增加wire版本或第二套执行器。
 
-**可区分的实验。** M0/D0分别是独立Markdown和现有DSL；M1/D1分别给两种表示相同的新支架。四臂同源码、政策、公开问题、plain/v4、模型和修复机会。若M1/D1共同改善，收益归共享领域方法；D1–M1才帮助解释相同支持下的表示/流程差异。保留4个旧锚点，并按机制与来源资格准备最多6个新增development状态；预先登记4状态重复，最多56分析单元。全部原始结果、必要语义、可选细节、首答、repair和完整token分别报告；结果出现后不换题或调低要求。
+**可区分的实验。** M0/D0分别是独立Markdown和现有DSL；M1/D1分别给两种表示相同的新支架。四臂同源码、政策、公开问题、plain/v4、模型和修复机会。若M1/D1共同改善，收益归共享领域方法；D1–M1才帮助解释相同支持下的表示/流程差异。预案上限是10状态和4重复、最多56分析单元；真正冻结时按资格选出8状态和3重复，共44单元。全部原始结果、必要语义、可选细节、首答、repair和完整token分别报告；结果出现后不换题或调低要求。
 
 **复用的实际问题。** AF的整字段替换可能遮住base政策的更新，这也是合法override。新增只读变更反馈应定位继承、覆盖、最终值变化和复查范围，提醒作者核对适用性，不能擅自覆盖其政策。两个中立任务包分别安排独立MD/workspace作者的原任务和变化任务，记录真实草稿、诊断、修正和遗漏；模型作者与真人分钟分开。完整运行依赖继续用于旧结果适用性判断，不按答案引用子集缩小。
 
@@ -859,7 +859,22 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 **工作区反馈。** 只读比较从同一次plan读取保存base字段快照，并为每个variant保存有效源码字节摘要。报告共同字段变化、继承/整字段override、有效声明变化、成员增删及复查原因；相同值override仍按显式来源解释，单纯生成目录搬移且源码字节相同不冒充有效源码变化。旧run适用性仍由完整执行依赖检查，引用过的部分文件不足以自动复用答案。AH6 synthetic测试覆盖政策继承、override遮蔽、无效引用、成员增删和坐标搬移；尚无真人节省证据。
 
-**AH2材料与分母。** [候选登记](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/candidate-selection.json)在新模型输出前固定4个旧锚点+4个Gitea/FastAPI新AH状态，三项目、零synthetic真实面板状态；Gitea曾出现在早期development面板，不能写成未暴露或新skill家族。八份普通authoring/v2均通过无provider检查；独立干净上下文Markdown作者的原稿及文件坐标修订理由单列。四臂预计8×4加3个预选新状态重复×4，共44单元；新状态缺外部部署事实型合格材料，因此没有硬凑第4个重复。rubric按实际效果allow/deny/unknown、政策标签、必要关系、解释和可选细节分层，评价材料与模型输入物理分开。此处尚无AH真实模型结果。
+**AH2材料与分母。** [候选登记](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/candidate-selection.json)在新模型输出前固定4个旧锚点+4个Gitea/FastAPI新AH状态，三目标项目、零synthetic真实面板状态；Gitea曾出现在早期development面板，不能写成未暴露或新skill家族。八份普通authoring/v2均通过无provider检查；独立干净上下文Markdown作者的原稿及文件坐标修订理由单列。四臂为8×4加3个预选新状态重复×4，共44单元；新状态缺外部部署事实型合格材料，因此没有硬凑第4个重复。rubric按实际效果allow/deny/unknown、政策标签、必要关系、解释和可选细节分层，评价材料与模型输入物理分开。
+
+**AH7–AH9运行和盲审。** [冻结配置](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/panel-config.json)记录同一`xty/gpt-5.6-sol`、plain/v4、每单元6000 token及相同修复机会；SHA-256为`b22651ddbf1722d57596d66f67bc6aa5b25ae0cb5993c2833ce7dc7d98a73284`。44/44已dispatch且completed，恰好44次provider调用、0 fallback、0 domain repair、0 completion-unknown、0目标执行；预设的共享实现修订条件未触发，修订单元0。生成关闭后，8份匿名包由独立只读评审覆盖44行；9条决定性或代表性unknown再由两位独立评审点验。评分时机械转换答案定位为JSON pointer并清空4条`missing`项的无效位置，原意见、转换及4条位置更正均保存。二审的trusted-header分歧按冻结rubric裁定两项：一条答案漏认证失败不发会话的必要分支，另一条漏明确的四结果枚举；二者从supported改为missing。其他分歧按明确结论标签和输入已声明主体保留首评，理由见[裁定](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/evaluator/adjudications.json)。[44行汇总](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/panel-summary.json)经零provider离线replay逐字复现，摘要SHA-256为`d0d7cce1cec974a165c8dd2682005dfb21f6074b46fe0e8faab5f09408d49ee5`。
+
+| 臂 | 初轮full/8 | 预定重复full/3 | 合计full/11 | 正确政策标签/11 | 必要语义supported/11 | 完整prompt+output tokens/11 |
+|---|---:|---:|---:|---:|---:|---:|
+| M0 Markdown标准 | 6 | 2 | 8 | 11 | 10 | 34,264 |
+| D0 DSL标准 | 4 | 1 | 5 | 8 | 11 | 45,237 |
+| M1 Markdown局部支架 | 6 | 2 | 8 | 11 | 10 | 41,402 |
+| D1 DSL局部支架 | 5 | 2 | 7 | 10 | 10 | 50,905 |
+
+**问题→根因→解决→验证→取舍。** 正确解释拒绝却选择相反政策标签在D0的controlled-text一次、lock两次出现；D1修正这三次，但FastAPI superuser读产生一次`unknown`过度弃答。M0/M1的政策标签均11/11正确，未观察到共同方法带来的标签增益。Open WebUI header四臂都漏协议HTTP 403及完整四结果说明，M1另漏认证失败不发会话的必要分支；Gitea assignee初轮和重复均缺至少一项条件分支，局部支架没有解决这两类解释问题。M0初轮assignee另漏一项必要路径，M1补齐，但该答仍partial。根因是模型在现有义务与源码上作局部语义判断和标签表达时不稳定；现有六类requirement已能表达目标关系，没有证据需要新机器关系字段。解决仅把义务局部的控制对象、效果对象、上游路径、例外和外部事实问题做成可选共享支架，并交由独立语义评价判断。相同问题在MD没有提升full，在DSL有2/11净提升却仍低于MD同支架，故不把单臂增益归因于DSL编译，也不改普通默认。M1比M0多7,138完整tokens，D1比D0多5,668；相同支架下D1比M1多9,503。适合单次任务时仍优先更轻的Markdown说明；`control-binding-v1`是供明确需要局部路径核对时显式试用的研究选项。
+
+**AH10–AH11作者与普通使用。** 两个中立包分别测试FastAPI公共政策变化和Gitea other-user→self关系变化，各有独立MD/workspace模型辅助作者，计4份原稿和4份变化交付；两次不合规/不完整尝试排除并保留缘由。FastAPI公共政策在工作区base改一次，foreign场景显式改、owned场景继承生效；MD两份文本均修改。Gitea仅other-user场景变化、self场景保持，工作区变更报告准确显示有效主体/资源/场景变化；但changed replacement的`taskId`来源文字仍称“查询他人”，结构检查未发现该语义矛盾，按原稿保留。[作者检查](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/author-study/changed-checks.json)及[普通临时目录演示](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/ordinary-demo.json)显示compose/check、只读比较、既有mock inspect均可用，未对变化任务重新发模型答案。文件数和JSON路径数不是同一工作量单位；真人分钟、作者模型token、生产复用质量均未测，不能声称省时或更准。
+
+**成本与边界。** 四臂合计118,328完整prompt和53,480输出，共171,808 tokens；cache-read已单列计入prompt，44条usage均有值，实际USD为44条未知。作者模型用量与真人时间另列未知，不折算费用。两个独立正例skill家族提供任务职责，三项目八状态只是公开development测试输入，不支持全skill转换、跨模型或未见项目泛化，也不证明目标部署安全。工程的只读政策继承/override提示可帮助作者定位应复查处；旧答案是否适用仍需完整运行依赖和语义复核。AH的研究结论为`mixed`：DSL臂有局部改善与回退、共享方法无稳定完整性提升、增加token；工程复用有可核验作用，但真人效率未知。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
