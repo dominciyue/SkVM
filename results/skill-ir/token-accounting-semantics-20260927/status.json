@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "token-accounting-task-status/v1",
+  "task": "AG0-AG8",
+  "status": "complete",
+  "deliveryStatus": "ready-for-AE-integration",
+  "stage": "AG8",
+  "baseline": "803dc754",
+  "branch": "skill-ir-aot",
+  "businessModelCalls": 0,
+  "actualBusinessUSD": 0,
+  "developmentAgentUSD": null,
+  "nextAction": "AE integrates ready.json inventory and shared-document/log addenda. AG stops file writes after ready publication; only concrete AE feedback may reopen a whitelist fix.",
+  "aeTaskId": "01a0de94-767c-7f71-b253-8df31bdeac84",
+  "completedStages": ["AG0", "AG1", "AG2", "AG3", "AG4", "AG5", "AG6", "AG7", "AG8-no-integration-defect-reported"],
+  "verification": "verification.json",
+  "results": {"markdownCompleteTokens":84111,"dslCompleteTokens":86869,"completeDeltaPercent":3.2790003685605917,"historicalFreshDeltaPercent":11.969116945722647,"historicalDurationDeltaPercent":-8.492489676207594,"historicalActualUSD":null,"qualityUnchanged":true},
+  "workingPlan": [
+    "AG0: map repository adapters and separately documented author telemetry; preserve source limitations",
+    "AG1-AG2: validate explicit semantics; normalize, aggregate and compare with null completeness and duplicate rejection",
+    "AG3: versioned explicit-input CLI with exclusive output creation",
+    "AG4: read the 16 AB attempts and separate author records; cross-check summaries without rewriting originals",
+    "AG5-AG7: document AE integration, focused validation and source-byte preservation; atomically publish ready",
+    "AG8: hand off to AE; only fix concrete integration feedback inside owned paths"
+  ],
+  "interfaceDecisions": [
+    "skvm-disjoint asserts all three input components are disjoint, with evidence; any missing component makes prompt/total unknown",
+    "inclusive-input asserts cache counters are subsets of input; their mutual overlap is not assumed and fresh input is not derived",
+    "invalid numeric or inconsistent subset records throw; unknown and missing valid records retain raw fields and diagnostics",
+    "groups explicitly declare account, source and semantics; comparisons require the same account, source and semantics; matching unknown semantics produce null differences and ratios with reasons",
+    "each metric has knownSubtotal, completeRecords, unknownRecords and a nullable complete total; empty groups are not complete zero totals",
+    "actualUSD remains a separately supplied measurement; token accounting never estimates prices or human work"
+  ]
+}

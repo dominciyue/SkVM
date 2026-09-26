@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "token-source-semantics/v1",
+  "reviewDate": "2026-09-27",
+  "sourceRevision": "803dc754",
+  "mappings": [
+    {
+      "source": "SkVM TokenUsage",
+      "references": ["src/core/types.ts:46-65"],
+      "semantics": "unknown",
+      "mapping": "Shape has input/output and cacheRead/cacheWrite defaulting to zero; shape alone does not establish input inclusion. addTokenUsage is fieldwise only.",
+      "limitation": "Do not normalize unknown sources through this schema: absence would be lost. New module preserves null/absent instead."
+    },
+    {
+      "source": "openai-compatible mapped usage (AB analysis route)",
+      "references": ["src/providers/openai-compatible.ts:263-277", "src/providers/registry.ts:375-387"],
+      "semantics": "skvm-disjoint",
+      "mapping": "input=max(0,prompt_tokens-cached_tokens); cacheRead=prompt_tokens_details.cached_tokens; cacheWrite=0; output=completion_tokens. Full mapped prompt=input+cacheRead; mapped cacheWrite adds zero.",
+      "limitation": "Missing upstream counters default to 0 and input subtraction is clamped. These mapped fields cannot recover upstream missingness/inconsistency. cacheWrite=0 is not proof of no upstream writes. Gateway compliance is not verified by local mapping or by these archived results."
+    },
+    {
+      "source": "openrouter mapped usage",
+      "references": ["src/providers/openrouter.ts:250-269", "src/providers/registry.ts:359-362", "https://openrouter.ai/docs/guides/best-practices/prompt-caching"],
+      "semantics": "skvm-disjoint",
+      "mapping": "input=max(0,prompt_tokens-cached_tokens); cacheRead=cached_tokens; cacheWrite=0; output=completion_tokens. usage.cost is separately reported when present.",
+      "limitation": "The adapter does not preserve a separate upstream cache_write_tokens counter. Do not append such a counter to its mapped input without re-establishing overlap semantics. Upstream absence/clamping limitations are shared with openai-compatible."
+    },
+    {
+      "source": "anthropic mapped usage",
+      "references": ["src/providers/anthropic.ts:198-203", "src/providers/registry.ts:364-372", "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"],
+      "semantics": "skvm-disjoint",
+      "mapping": "input=input_tokens; cacheRead=cache_read_input_tokens; cacheWrite=cache_creation_input_tokens; output=output_tokens. Official Claude contract defines total input as the three disjoint input counters summed.",
+      "limitation": "Cache counters default to zero in the adapter. The official Claude contract is not proof that a custom Anthropic-compatible gateway complies; use unknown without suitable source evidence. No Anthropic call was made for AG or AB clarification."
+    },
+    {
+      "source": "AB author session telemetry",
+      "references": ["results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/author-summary.json:12-20", "results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/author-summary.json:204", "results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/summary.json:435-461"],
+      "semantics": "inclusive-input",
+      "mapping": "input_tokens is full input; cached_input_tokens is a subset. output_tokens already contains reasoning_output_tokens. Stored total_tokens equals input_tokens+output_tokens for each of the four author aggregates.",
+      "limitation": "Author cacheWrite and provider-call count are unreported; author-process count is not provider-call count. Human time, preparation/modification split, actualUSD and development-agent costs remain unknown."
+    },
+    {
+      "source": "authorization telemetry and old optimization cost accounting",
+      "references": ["src/benchmarks/authorization-dsl/telemetry.ts:162-192", "src/benchmarks/skill-ir/optimization-cost-accounting.ts:14-20", "src/benchmarks/skill-ir/optimization-cost-accounting.ts:275-295"],
+      "semantics": "unknown",
+      "mapping": "Authorization telemetry stores fieldwise knownTokens and unknown-call counts; actual USD totals become null when any cost is missing. Existing AOT cost accounting preserves measured/missing fields and separately sums input/output versus caches.",
+      "limitation": "Neither aggregate shape defines input overlap on its own. The AOT production/quality/human ledger is not reused to fabricate unrelated measurements."
+    }
+  ],
+  "adapterCoverage": "The registry creates openai-compatible, openrouter and anthropic adapters. Thin transport/logging wrappers do not establish an additional token partition. Only the AB mapped route and archived author account are used for this clarification.",
+  "officialDocumentationUse": "Checked only provider-owned documentation for external field semantics. No pricing lookup, credential read or provider probe.",
+  "businessModelCalls": 0
+}

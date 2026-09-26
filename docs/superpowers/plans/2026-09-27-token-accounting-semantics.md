@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript/Bun、现有TokenUsage及已安装校验库，无新依赖、数据库或价格抓取。
 
-- 状态authorized-for-execution；基线2525d387及本规划提交。
+- 状态completed / ready-for-AE-integration；基线2525d387，实际启动规划HEAD为803dc754。
 - 结果根`results/skill-ir/token-accounting-semantics-20260927/`。
 - 新写范围：`src/measurement/token-accounting.ts`及测试、`scripts/token-accounting/`脚本/fixtures/README、本任务书及AG结果根。
 - AE/AF、既有provider/telemetry/core types、AB所有旧文件、共享docs/catalog、package/lock与七项旧脏源码只读。不做Git写入，ready交AE。
@@ -59,10 +59,10 @@ export function normalizeTokenObservation(value: UsageObservation): NormalizedTo
 ## 4. 队列
 
 ### AG0 映射表
-- [ ] 建status，整理本轮相关provider适配与作者日志两类输入口径，引用源码行号/字段；缺证据明确unknown。
+- [x] 建status，整理本轮相关provider适配与作者日志两类输入口径，引用源码行号/字段；缺证据明确unknown。
 
 ### AG1 纯函数红绿
-- [ ] disjoint/inclusive/unknown、无cache/有read/有write、缺值/0、negative/NaN/Infinity、cache大于inclusive input、duplicate id、零比较分母等反例。
+- [x] disjoint/inclusive/unknown、无cache/有read/有write、缺值/0、negative/NaN/Infinity、cache大于inclusive input、duplicate id、零比较分母等反例。
 
 ```ts
 const a = normalizeTokenObservation({id:"a",semantics:"skvm-disjoint",input:720,output:1059,cacheRead:6528,cacheWrite:0,evidence:"fixture"});
@@ -70,35 +70,45 @@ expect(a.promptTokens).toBe(7248);
 expect(a.totalTokens).toBe(8307);
 ```
 
-- [ ] 实现纯模块，错误不夹带一个可误用的“完整总量”。不能用clamp隐藏负数或不一致字段。
+- [x] 实现纯模块，错误不夹带一个可误用的“完整总量”。不能用clamp隐藏负数或不一致字段。
 
 ### AG2 聚合与比较
-- [ ] 分账聚合、unknown计数、完整vs已知小计、可复算百分比；缓存金额与token总量不混同。
-- [ ] 测试input顺序无关与分组稳定，重复记录明确拒绝。不新增复杂ledger/digest链。
+- [x] 分账聚合、unknown计数、完整vs已知小计、可复算百分比；缓存金额与token总量不混同。
+- [x] 测试input顺序无关与分组稳定，重复记录明确拒绝。不新增复杂ledger/digest链。
 
 ### AG3 显式脚本入口
-- [ ] `bun ./scripts/token-accounting/cli.ts --input=./observations.json --out=./comparison.json`，不提供out时输出stdout；输出存在拒绝覆盖。
-- [ ] 输入版本、来源/分组、语义明确；不递归扫描全仓，不自动加载run中的密钥/环境，不调用网络。
+- [x] `bun ./scripts/token-accounting/cli.ts --input=./observations.json --out=./comparison.json`，不提供out时输出stdout；输出存在拒绝覆盖。
+- [x] 输入版本、来源/分组、语义明确；不递归扫描全仓，不自动加载run中的密钥/环境，不调用网络。
 
 ### AG4 AB离线澄清
-- [ ] 只读AB summary/panel及16条必要usage，产出本结果根observations与澄清JSON，复算上述数字并保存质量结果未动。
-- [ ] 作者账与分析账分别处理，未记录provider次数或人工分钟保持未知；不以工具字符数填token。
+- [x] 只读AB summary/panel及16条必要usage，产出本结果根observations与澄清JSON，复算上述数字并保存质量结果未动。
+- [x] 作者账与分析账分别处理，未记录provider次数或人工分钟保持未知；不以工具字符数填token。
 
 ### AG5 接入建议
-- [ ] 给AE一个可直接调用纯模块的例子和应填写的semantics来源，确保新AE报告避免同类误标。
-- [ ] 给现有catalog增补建议但不改其JSON/renderer；不以修旧报告为由重跑旧实验。
+- [x] 给AE一个可直接调用纯模块的例子和应填写的semantics来源，确保新AE报告避免同类误标。
+- [x] 给现有catalog增补建议但不改其JSON/renderer；不以修旧报告为由重跑旧实验。
 
 ### AG6 验证
-- [ ] `bun test ./src/measurement/token-accounting.test.ts ./scripts/token-accounting`；脚本类型检查按仓内runtime可用工具执行。
-- [ ] 原输入前后字节一致、独立重算数值一致，输出无凭据，真实USD仍unknown。
+- [x] `bun test ./src/measurement/token-accounting.test.ts ./scripts/token-accounting`；脚本类型检查按仓内runtime可用工具执行。
+- [x] 原输入前后字节一致、独立重算数值一致，输出无凭据，真实USD仍unknown。
 
 ### AG7 文档与ready
-- [ ] README解释三种语义、字段重叠、缺值与真实命令；共享研究/usage更正文案放integration-notes。
-- [ ] 最后原子写ready.json列ownedFiles/接口/测试/限制，通知AE，停止写文件。全仓验证与Git由AE负责。
+- [x] README解释三种语义、字段重叠、缺值与真实命令；共享研究/usage更正文案放integration-notes。
+- [x] 最后原子写ready.json列ownedFiles/接口/测试/限制，通知AE，停止写文件。全仓验证与Git由AE负责。
 
 ### AG8 集成反馈
-- [ ] AE指出本模块问题时在白名单内修复；不修改其host/evaluator或AF文件。没有反馈则完成。
+- [x] AE指出本模块问题时在白名单内修复；不修改其host/evaluator或AF文件。没有反馈则完成。
 
 ## 5. 完成边界
 
 本模块证明计量/比较行为正确且AB口径可解释，不证明新模型效果、成本节省或历史所有报告都正确。与AE/AF独立并行，零业务付费调用、零保护输入读取，保留七项旧修改和所有历史材料。
+
+## 6. 执行结果（2026-09-27）
+
+AG0–AG7已完成；AG8交AE集成，截至交付没有收到需修复的接口问题。完整记录位于结果根的status、verification、source-semantics、integration-notes和ready文件。AE任务为`01a0de94-767c-7f71-b253-8df31bdeac84`；根日志增补稿为`conversation-log-addendum.md`，共享文档及Git仍由AE唯一写入。
+
+纯模块三接口为`normalizeTokenObservation`、`aggregateTokenObservations`、`compareTokenGroups`。计量以显式account/source/semantics分组；unknown同源比较保留raw数值，但差值/百分比为null并注明`unknown-semantics`。inclusive缓存子集不假定彼此互斥，所以不反推fresh input。不存在/缺值与真实零分别处理，无效值拒绝而不clamp。CLI显式输入、版本检查、stdout或独占文件写入，无provider导入或网络。旧TokenUsage的default(0)没有被用于新输入归一化。
+
+最终focused测试为50/50、131断言，脚本与模块focused typecheck通过；16条原usage独立求和确认MD84111、DSL86869，完整差3.2790003685605917%。旧fresh input+output差11.969116945722647%及响应时长差-8.492489676207594%保留。作者inclusive totals为MD789130、DSL671649；作者cacheWrite/provider次数/humanMinutes及旧actualUSD继续unknown。CLI重放comparison逐字节一致，19个必要原文件SHA-256前后相同，新增结果JSON解析和定向凭据模式检查通过。
+
+两个独立只读review均未发现阻断缺陷。固定AB extractor只接受明确列出的16个单attempt快照；三个新输出逐个独占写入，I/O中断可留部分新文件，须改用新空目录重放。旧适配器默认零与clamp之前的缺失信息不可恢复；源码映射有据不等于网关遵守规范，限制已进入新澄清。没有新业务调用、依赖安装、Git写入或旧报告/评分重写；不作额外扩样、全仓历史审计或效果主张。

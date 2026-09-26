@@ -1,0 +1,62 @@
+bun test v1.3.14 (0d9b296a)
+
+src\measurement\token-accounting.test.ts:
+(pass) normalization > restores disjoint cached prompt and preserves the raw record [1.55ms]
+(pass) normalization > counts disjoint cache writes once [0.11ms]
+(pass) normalization > inclusive author input and output already contain their subsets [0.15ms]
+(pass) normalization > does not assume two inclusive cache subsets are mutually exclusive [0.07ms]
+(pass) normalization > explicit zero is known, including all-zero usage [0.08ms]
+(pass) normalization > preserves input=null without inventing a complete total [0.12ms]
+(pass) normalization > preserves input=undefined without inventing a complete total [0.05ms]
+(pass) normalization > rejects invalid input=-1 [0.54ms]
+(pass) normalization > rejects invalid input=NaN [0.07ms]
+(pass) normalization > rejects invalid input=Infinity [0.07ms]
+(pass) normalization > rejects invalid input=1.5 [0.03ms]
+(pass) normalization > rejects invalid input=9007199254740992 [0.06ms]
+(pass) normalization > preserves output=null without inventing a complete total [0.06ms]
+(pass) normalization > preserves output=undefined without inventing a complete total [0.03ms]
+(pass) normalization > rejects invalid output=-1 [0.04ms]
+(pass) normalization > rejects invalid output=NaN [0.06ms]
+(pass) normalization > rejects invalid output=Infinity [0.05ms]
+(pass) normalization > rejects invalid output=1.5 [0.04ms]
+(pass) normalization > rejects invalid output=9007199254740992 [0.03ms]
+(pass) normalization > preserves cacheRead=null without inventing a complete total [0.03ms]
+(pass) normalization > preserves cacheRead=undefined without inventing a complete total [0.04ms]
+(pass) normalization > rejects invalid cacheRead=-1 [0.06ms]
+(pass) normalization > rejects invalid cacheRead=NaN [0.14ms]
+(pass) normalization > rejects invalid cacheRead=Infinity [0.06ms]
+(pass) normalization > rejects invalid cacheRead=1.5 [0.02ms]
+(pass) normalization > rejects invalid cacheRead=9007199254740992 [0.02ms]
+(pass) normalization > preserves cacheWrite=null without inventing a complete total [0.02ms]
+(pass) normalization > preserves cacheWrite=undefined without inventing a complete total [0.02ms]
+(pass) normalization > rejects invalid cacheWrite=-1 [0.02ms]
+(pass) normalization > rejects invalid cacheWrite=NaN [0.02ms]
+(pass) normalization > rejects invalid cacheWrite=Infinity [0.03ms]
+(pass) normalization > rejects invalid cacheWrite=1.5 [0.02ms]
+(pass) normalization > rejects invalid cacheWrite=9007199254740992 [0.01ms]
+(pass) normalization > unknown source semantics retain raw fields but no derived complete totals [0.11ms]
+(pass) normalization > rejects inclusive cache greater than input and reasoning greater than output [0.22ms]
+(pass) normalization > requires provenance and rejects derived numeric overflow [0.15ms]
+(pass) grouped aggregation and comparison > known subtotal remains distinct from an incomplete total [0.40ms]
+(pass) grouped aggregation and comparison > rejects duplicate IDs and mismatched group semantics [0.21ms]
+(pass) grouped aggregation and comparison > sorts records deterministically without mutating input [0.17ms]
+(pass) grouped aggregation and comparison > empty groups have no complete totals and measured money remains separate [0.11ms]
+(pass) grouped aggregation and comparison > rejects aggregate overflow [0.14ms]
+(pass) grouped aggregation and comparison > reproduces AB complete-token and fresh-token percent differences [0.28ms]
+(pass) grouped aggregation and comparison > zero baseline and incomplete totals carry explicit reasons [0.15ms]
+(pass) grouped aggregation and comparison > refuses cross-account/source/semantics comparisons and shared record IDs [0.40ms]
+
+scripts\token-accounting\ab.test.ts:
+(pass) AB extracts sixteen archived attempts and preserves separate inclusive author totals [49.02ms]
+(pass) AB source manifest rejects duplicate, missing and escaping input identities [3.35ms]
+
+scripts\token-accounting\cli.test.ts:
+(pass) versioned report sorts groups and refuses accidental mixed accounts or duplicate IDs [1.42ms]
+(pass) explicit CLI writes deterministic stdout and preserves input bytes [70.70ms]
+(pass) exclusive output refuses existing files including the input itself [227.66ms]
+(pass) rejects invalid arguments and malformed input before creating output [348.10ms]
+
+ 50 pass
+ 0 fail
+ 131 expect() calls
+Ran 50 tests across 3 files. [798.00ms]

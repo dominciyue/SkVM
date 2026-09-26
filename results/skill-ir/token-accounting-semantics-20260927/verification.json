@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "token-accounting-verification/v1",
+  "date": "2026-09-27",
+  "checks": [
+    {"command":"bun test ./src/measurement/token-accounting.test.ts ./scripts/token-accounting","exitCode":0,"tests":50,"assertions":131,"failed":0,"log":"focused-tests.log"},
+    {"command":"bun ./node_modules/typescript/bin/tsc --project ./scripts/token-accounting/tsconfig.json --noEmit","exitCode":0,"log":"focused-typecheck.log"},
+    {"command":"bun ./scripts/token-accounting/clarify-ab.ts --repo-root=. --input=./scripts/token-accounting/fixtures/ab-sources.json --out-dir=./results/skill-ir/token-accounting-semantics-20260927","exitCode":0,"sourceFiles":19},
+    {"command":"bun ./scripts/token-accounting/cli.ts --input=./results/skill-ir/token-accounting-semantics-20260927/observations.json","exitCode":0,"comparisonJsonByteIdentical":true},
+    {"command":"git diff --check -- src/measurement scripts/token-accounting docs/superpowers/plans/2026-09-27-token-accounting-semantics.md results/skill-ir/token-accounting-semantics-20260927","exitCode":0,"scope":"tracked owned paths; does not inspect untracked files"},
+    {"check":"Independent reduction of 16 raw attempts, separate from the new accounting functions; SHA-256 of all 19 original sources; parse new result JSON and scan for credential-like token values","exitCode":0,"sourceHashesUnchanged":19,"log":"independent-verification.json"}
+  ],
+  "tdd": [
+    "Normalization/aggregation/comparison: explicit not-implemented interfaces produced 22 failing tests before implementation; green afterward.",
+    "CLI/report: 3 behavior tests failed before implementation; green afterward.",
+    "AB extraction: archive extraction test failed before implementation; green afterward.",
+    "Unknown comparison regression: failed at requires-known-semantics rejection; changed to null delta/percent with unknown-semantics, then green."
+  ],
+  "independentReviews": {"pureModule":"no blocking findings","scriptsAndArtifacts":"no blocking findings; stale status updated before final delivery"},
+  "abHistoricalActualUSD": null,
+  "newBusinessModelCalls": 0,
+  "newBusinessModelUSD": 0,
+  "developmentAgentUSD": null,
+  "wholeRepositoryValidation": "owned by AE; not run by AG",
+  "gitWrites": 0
+}
