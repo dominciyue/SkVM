@@ -2460,7 +2460,7 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **已有基础。** 复用现有捕获、资源与参数索引、验证、局部修复、执行和包导出能力，但不强制新 DSL 先经过旧统一 IR 或既有 action 格式才能成立。保留通用基础设施与领域语义的区别；不预设新 CLI、文件扩展名、完整编译器或大规模框架迁移。旧 IR 和已发布接口继续兼容，历史研究结果不回写。
 
-**下一步。** T/V/W 已完成。用户随后确认按 [X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)推进完整能力阶段，合并评价、关系支持、普通输入、第二项目及对照；X0–X7 已完成，当前进入 X8。跨任务合同保留六类 requirement，共同 profile 前五类 required、external-assumption when-present；pure compiler 只展开显式 requirement-obligation 对，在同一 expanded obligation 内检查依赖与环并输出 pending ledger，不预填源码真值。wire/v2 以 sidecar 携带 coverage，canonical v0 不变；宿主只做同义务关联、状态和理由等机械验证，语义支持仍是 review 责任。普通输入已可在 provider 前封闭 path/ref/ledger 并产生不可覆盖 session；N/B/D 都显式走同一 host 与计量，只有可见组织按预先记录的干预变化。单任务仍为 fixed-context，历史 held-out、冻结身份和 readiness 保持各自记录。
+**X阶段合同（历史）。** T/V/W 已完成。用户随后确认按 [X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)推进完整能力阶段，合并评价、关系支持、普通输入、第二项目及对照；X0–X7 已完成，当前进入 X8。跨任务合同保留六类 requirement，共同 profile 前五类 required、external-assumption when-present；pure compiler 只展开显式 requirement-obligation 对，在同一 expanded obligation 内检查依赖与环并输出 pending ledger，不预填源码真值。wire/v2 以 sidecar 携带 coverage，canonical v0 不变；宿主只做同义务关联、状态和理由等机械验证，语义支持仍是 review 责任。普通输入已可在 provider 前封闭 path/ref/ledger 并产生不可覆盖 session；N/B/D 都显式走同一 host 与计量，只有可见组织按预先记录的干预变化。单任务仍为 fixed-context，历史 held-out、冻结身份和 readiness 保持各自记录。
 
 **已有研究。** S0–S11 方法准备、D0–D11 语义深化/探针与 E0–E10 外部类别研究已完成；分类、标准比较、候选设计、45 项旧探针边界、外部任务/反例、方法对照、消费设计、范围决定与复核发现统一维护在[研究总文档](skill-dsl-research.md)，旧来源和结果保持原件。D 阶段的 `proceed-narrow` 只表示当时对技术文档本地化候选的有界可实施性建议，未证明真实模型消费和效果。
 
@@ -2531,3 +2531,5 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **2026-09-26并行恢复合同。** AB revision 2从已有16条生成结果继续AB9–AB13；原输入/输出/模型/评分口径保持。独立[AC](../superpowers/plans/2026-09-26-authorization-authoring-editor-support.md)提供运行时语义合同之外的编辑辅助，[AD](../superpowers/plans/2026-09-26-experiment-catalog-maintenance.md)提供只读实验导航工具，均不承担或替换AB研究验收。三个任务Astra ultra，用户请求Fast；文件独占、共享文档和Git仅AB发布者写。编辑schema明确runtime-only约束，目录工具保留未知与不同指标含义；不得据此声称模型质量或真人效率提高。
 
 **AB评价与复用边界（2026-09-26）。** 两项目八状态、16初轮均按冻结v3完成评价：Markdown 8 full，DSL 6 full及2标签错误，实际授权推理与必要解释两臂均8/8。既有合同已定义标签方向，原wire与canonical同错，未定位共享缺陷，追加单元0。评价保留label正确性与实际allow/deny推理分账；离线交付重放不算新模型观察。共同schema/代码/薄包的有界复用成立，整体DSL收益未建立；完整准备/修改/运行开销和限制只在研究§7.25及AB汇总维护。普通入口兼容默认保持，显式plain/v4仍需语义检查；MD对照只代表同helper流程，不是原生完整安全skill或纯语法因果。
+
+**2026-09-27当前授权合同。** AB及AC/AD已完成并发布2525d387。新队列为[AE结果协议](../superpowers/plans/2026-09-27-authorization-explicit-policy-result.md)、[AF场景复用](../superpowers/plans/2026-09-27-authorization-scenario-workspace.md)、[AG计量语义](../superpowers/plans/2026-09-27-token-accounting-semantics.md)三个独立交付。AE可选wire/v5把模型政策判断写为satisfied/violated/undetermined，再机械映射旧canonical；不从expectation或解释文本推答案，不改变旧v4/default。MD/DSL及v4/v5共享事实/源码/评价和修复机会，最多24初轮与4共享修订单元，全部取已暴露development材料。AF复用现有整字段composer生成v2输入，不创造新任务语义；AG显式区分缓存是否含于input，未知值不补零。旧报告/评分保持，当前澄清记录在研究§7.26。AF/AG独占新路径、零业务模型；AE唯一整合共享文件和Git，保留七项原修改。

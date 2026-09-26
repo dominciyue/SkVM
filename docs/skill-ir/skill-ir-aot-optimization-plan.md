@@ -2,15 +2,27 @@
 
 - 更新日期：2026-09-27
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AB0–AB13及独立AC/AD已完成；交付提交a24ce33f已推用户origin并核对远端，无剩余授权执行项。
+- 状态：AB0–AB13及独立AC/AD已完成，最终2525d387与origin对齐；新授权AE/AF/AG准备派发。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
-- 当前任务书：[AB0–AB13](../superpowers/plans/2026-09-22-authorization-external-reuse-and-baseline.md)
-- 当前设计：[研究§7.25](skill-dsl-research.md#725-ab-外部复用与普通说明对照)
+- 当前任务书：[AE0–AE11](../superpowers/plans/2026-09-27-authorization-explicit-policy-result.md)、[AF0–AF8](../superpowers/plans/2026-09-27-authorization-scenario-workspace.md)、[AG0–AG8](../superpowers/plans/2026-09-27-token-accounting-semantics.md)
+- 当前设计：[研究§7.26](skill-dsl-research.md#726-aeafag-结果表达场景复用与计量)；前轮证据保留在§7.25。
 
 分类继续服务于范围，DSL价值包含编写、修改、质量与效率。AB同包/schema/核心可处理两项目八状态；Markdown 8/8 full、DSL 6/8 full，后者两项标签错误，必要控制与解释均正确。DSL整体收益未建立，准备/修改/运行负担及限制见研究§7.25。
 
-## 完整交付队列
+## 当前独立并行队列
+
+| 任务 | 完整目标 | 验收与所有权 |
+|---|---|---|
+| AE0–AE11 | 明确政策状态的v5协议、完整接线和MD/DSL效果对照 | 24首轮至多4共享修订；核心与共享文档/Git唯一写者 |
+| AF0–AF8 | 场景工作区、普通v2声明生成和来源预览 | 离线新模块/handler/示例，已有输入不改，ready后交AE |
+| AG0–AG8 | 计量语义纯模块、比较脚本、AB口径澄清 | 离线新路径，旧provider/报告只读，ready后交AE |
+
+三者是不同目标，AF/AG不承担AE研究任务。均Astra ultra及宿主Fast/priority；精确速度倍率未测。侧任务不写Git、不装依赖、不写共享文档。AE先完成自己的工程/面板，侧任务ready后串行整合、分别提交。聚合测试在侧任务停止写入后运行；禁止互相覆盖。未知完成和失败如实记录，完成后停止。
+
+AB token复核：旧+12.0%为非缓存input+output；完整prompt+output（含单列缓存读取）为+3.279%。本轮AG追加可复算说明，旧AB原件保留。
+
+## 已完成AB交付队列
 
 | 阶段 | 工作 | 验收要点 |
 |---|---|---|

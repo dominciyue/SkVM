@@ -797,13 +797,25 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 **AB9评价与裁决。** 所有生成终结后，按冻结v3 rubric逐criterion绑定原始回答哈希，主代理阅读16条解释与事实，并独立点验两项标签错误及todo代表项。Markdown为8 full；DSL为6 full、2 incorrect，均为linkding变化任务。remove-owner正文甚至自行写出正确标签，asset-anonymous也正确说明deny，但两者canonical仍为`source_supported_failure`。实际preview已明确`source_refuted`表示政策被执行，wire与canonical标签相同，未定位共享合同/归一化缺陷，因此追加生成0。实际allow/deny推理、必要控制、解释、scope、transport和delivery均16/16正确或通过，不能据此把两项交付错误改为成功。两条remove变化答案缺精确成功响应细节，仅记optional missing；两臂该细节均7/8，不影响full。初评、独立点验与裁决分别保存，离线重算重现summary SHA `148dc888...b917`，0 provider调用。
 
-**AB10负担与价值。** 两臂各8次调用、无fallback/repair。Markdown input/output为69,011/8,572，DSL为77,875/8,994；累计provider响应耗时497.3/455.1秒。DSL token多12.0%，耗时少8.5%，缓存读取只在MD观察到6,528，因此不推断稳定速度或经济优势。模型作者四组各一次干净修订：首稿语义就绪均0/8，最终各8/8；DSL/MD作者总token为671,649/789,130，项目间方向相反，包含系统、工具和缓存上下文，不是独立人工准备耗时。DSL四组变化涉及6/8/5/6个JSON路径，MD相应替换5/6/3/3行，单位不可互换；未证明同步改动或工时减少。分析、作者、开发/评价代理成本分账，actualUSD与真人时间未知。
+**AB10负担与价值。** 两臂各8次调用、无fallback/repair。Markdown input/output为69,011/8,572，DSL为77,875/8,994；累计provider响应耗时497.3/455.1秒。原报告input+output口径为DSL多12.0%，耗时少8.5%。2026-09-27复核发现provider适配器的input已扣除缓存：MD另有6,528 cache-read，完整prompt+output为84,111；DSL为86,869，因此这一完整口径为多3.279%。两个百分比对应不同指标，旧机器summary保持原字节，由AG追加可复算澄清。缓存与收费单价各自影响费用，actualUSD仍未知。模型作者四组各一次干净修订：首稿语义就绪均0/8，最终各8/8；DSL/MD作者总token为671,649/789,130，项目间方向相反，包含系统、工具和缓存上下文，不是独立人工准备耗时。DSL四组变化涉及6/8/5/6个JSON路径，MD相应替换5/6/3/3行，单位不可互换；未证明同步改动或工时减少。分析、作者、开发/评价代理成本分账，actualUSD与真人时间未知。
 
 同schema/核心/包复用了角色、资源、政策、入口、义务、引用和运行合同；新项目仍需准备源码闭包、规范政策、关系与场景、入口位置及研究专用manifest/rubric。四次compare均`needs-review`，有结构化影响提示但没有缓存答案或减少调用。composer回应两作者机械复制，只是可选整项替换辅助，未用它重写本轮输入或实测节省。同helper下的完整Markdown在本小面板质量更好且分析token更少；无需结构化复用时优先轻说明。MD目前仅研究入口，普通使用继续显式plain/v4，按覆盖/条件需要选择ledger/conditions，兼容默认不改。
 
 **AB11交付与边界。** [薄包](../../examples/authorization-assessment/reusable-skill/SKILL.md)保留完整synthetic输入及实际文件名，依赖已有SkVM/Bun。八份真实DSL输入及源码移到仓外临时目录，经普通CLI check、inspect、compare；执行环节离线注入原始wire建立新验证session，逐条确认语义payload未变，原始session未改，网络provider与新模型观察均0。它验证可携带使用路径，不算新增研究成功。实际prompt parity确认八状态作者MD原文、共同源码和合同一致；无项目名核心分支。两个项目均属Django，当前八状态没有自然政策失效正例或部署unknown；这些输入不是新skill家族，也不支持全仓发现、生产安全、人工节省或纯语法因果。完整分项目/状态/臂成绩与成本见[AB汇总](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/summary.json)。
 
 **独立工程后续。** AC针对作者未知字段问题补充本地draft-07编辑资产、字段反馈和有限结构差分，保持v2/runtime权威；105结构用例及12个runtime-only反例检出，未改变AB材料或增加作者试验。AD提供现有实验目录的离线查询、显式路径核验与带来源版本的摘要导出，不读取答案或重新评分。两者均为确定性工具交付，没有模型质量或真人时间收益数据，也不增加研究样本、skill家族或当前长期文档成员。
+
+### 7.26 AE/AF/AG 结果表达、场景复用与计量
+
+2026-09-27复核AB、AC、AD后，新鲜授权回归202/202、1919断言、目录工具24/24、147断言及typecheck通过；本地与origin均为2525d387。MD8/8、DSL6/8的质量结论保留。两个错误的wire和canonical同向，renderer已有枚举定义，因此下一轮检验更直接的表达能否减少模型标签选择错误，而不把它描述成已定位的归一化bug。
+
+**AE完整方法实验。** [AE任务书](../superpowers/plans/2026-09-27-authorization-explicit-policy-result.md)让可选wire/v5使用`satisfied / violated / undetermined`表达声明政策是否满足，宿主映射既有canonical；源码判断和理由仍由模型产生。普通入口及MD研究入口共用接线，旧v4/default保留。四个已暴露linkding原/变状态加Open WebUI政策失效/部署unknown两例，MD/DSL×v4/v5共24首轮。两因素分开比较，材料与评价要求一致；错误/未知完整保存，一次共享代码修订最多4追加。本轮是development机制验证，实际结果由执行任务补充，当前没有新效果结论。
+
+**AF独立使用工具。** [AF任务书](../superpowers/plans/2026-09-27-authorization-scenario-workspace.md)把已存在的整字段composer接到显式场景工作区，验证后一次生成普通authoring/v2输入及来源说明。共同政策只维护一份，变体明确填事实；不自动推政策真值、复用旧答案或引入新任务语言。它有自己的示例、测试和交付，进展不依赖AE真实面板。
+
+**AG独立计量模块。** [AG任务书](../superpowers/plans/2026-09-27-token-accounting-semantics.md)区分非缓存input、inclusive input和unknown来源，输出完整prompt/total及缺值诊断。AB分析适配器扣缓存，作者日志input已含缓存，两者不能套同一公式。AG追加AB澄清证据，旧raw/summary/评分不动；新AE报告采用明确口径，费用未报告继续unknown。
+
+三个任务直接在skill-ir-aot独占路径并行；AF/AG只写新增模块及其结果，AE是共享文档和Git唯一发布者。结果状态分别记录，不把独立工具测试计入方法样本。开发Astra ultra、宿主Fast/priority；被测Sol配置保持登记值，精确1.5倍速度未测。后续在本节追加根因、修复、验证及方法取舍。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

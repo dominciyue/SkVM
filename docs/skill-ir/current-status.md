@@ -8,9 +8,19 @@
 
 [V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)、[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)和[Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)均已结束发布，Y最终提交`70906261`。后续复核确认Y主体工程可用，但公共`--method`选择曾有漏项，已在Z补齐；历史机器summary保留。
 
-**当前授权任务已完成：** [AB0–AB13 外部复用与普通说明对照](../superpowers/plans/2026-09-22-authorization-external-reuse-and-baseline.md)及独立AC/AD已验证并发布到用户origin，交付提交`a24ce33f`已核对远端。Markdown 8/8 full，DSL 6/8 full；两条linkding变化任务标签错误，实际授权推理与必要控制/解释均正确，原始答案保留。16次调用全部响应、0 completion-unknown、0目标执行、0追加研究单元，actualUSD未知。DSL分析input+output多12.0%、累计响应耗时少8.5%，作者准备/修改未证明一致节省；同包/schema/核心的有界复用成立，整体DSL收益未建立。详见[AB汇总](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/summary.json)、[状态](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/status.json)及[研究§7.25](skill-dsl-research.md#725-ab-外部复用与普通说明对照)。本轮结束，无自动追加研究。
+**前轮已完成：** [AB0–AB13 外部复用与普通说明对照](../superpowers/plans/2026-09-22-authorization-external-reuse-and-baseline.md)及独立AC/AD已验证并发布到用户origin，最终提交`2525d387`已核对远端。Markdown 8/8 full，DSL 6/8 full；两条linkding变化任务标签错误，实际授权推理与必要控制/解释均正确，原始答案保留。16次调用全部响应、0 completion-unknown、0目标执行、0追加研究单元，actualUSD未知。DSL非缓存input+output多12.0%；加回单列cache-read后，完整prompt+output多3.279%，累计响应耗时少8.5%。这是本轮源码复核的口径澄清，旧AB机器报告保留；作者准备/修改未证明一致节省；同包/schema/核心的有界复用成立，整体DSL收益未建立。详见[AB汇总](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/summary.json)、[状态](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/status.json)及[研究§7.25](skill-dsl-research.md#725-ab-外部复用与普通说明对照)。AB已结束；新任务使用新的结果身份，见下方队列。
 
 **独立工程已集成：** [AC编辑支持](../superpowers/plans/2026-09-26-authorization-authoring-editor-support.md)交付本地draft-07 schema、结构检查与完整示例，105结构用例/12个runtime-only反例通过，提交`8f27afb3`。[AD实验目录工具](../superpowers/plans/2026-09-26-experiment-catalog-maintenance.md)交付离线check/show/export，24测试/147断言及脚本类型检查通过，提交`ffc6578e`。整合授权测试202/202、1,919断言，全仓typecheck通过；两项工程不增加AB研究分母或收益证据。三个任务实际model/effort为Astra ultra，宿主默认priority；逐请求tier未暴露，不宣称实测1.5倍。原始323项证据按原字节归档，七项原源码修改与历史untracked保留。
+
+**当前授权队列（2026-09-27）：** 三个完整独立任务准备派发，开发模型均`gpt-6-astra / ultra`，宿主Fast/priority配置。用户请求1.5倍速度，工具未暴露逐任务倍率，实际倍率未测。
+
+| 任务 | 独立目标 | 协作边界 |
+|---|---|---|
+| [AE0–AE11](../superpowers/plans/2026-09-27-authorization-explicit-policy-result.md) | 明确policyStatus的可选wire/v5及MD/DSL同材料对照 | 唯一真实模型面板、核心接线、共享文档和Git发布者 |
+| [AF0–AF8](../superpowers/plans/2026-09-27-authorization-scenario-workspace.md) | 共同声明加显式场景变化，生成普通v2输入 | 新工作区模块/独立handler/示例；离线完成后交ready |
+| [AG0–AG8](../superpowers/plans/2026-09-27-token-accounting-semantics.md) | 明确缓存口径、计量模块与AB独立澄清 | 新纯模块/脚本/结果；旧provider和报告只读 |
+
+AE固定最多24首轮单元和4个共享实现修订单元，使用已有development材料；AF/AG不调用业务模型。当前普通默认保持兼容。三份任务的文件归属、失败处理和验收分别写在各自任务书；开发设计与计量澄清统一见[研究§7.26](skill-dsl-research.md#726-aeafag-结果表达场景复用与计量)。
 
 **文档治理：** 日常阅读集中到本页、[文档入口](README.md)、[证据索引](evidence-index.md)和[实验目录](../../results/skill-ir/experiment-catalog.json)；版本化验证材料继续按治理清单保留原路径和原字节。历史长文档不再复制实验流水，结果只在最窄证据位置链接。
 
