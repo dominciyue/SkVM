@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、SkVM CLI/provider、认证 GitHub CLI。不上新平台、UI、通用模板解释器或仓库自动漏洞发现系统。
 
-- 日期：2026-09-27；revision 2；状态：`verified-awaiting-publication`。AB0–AB12完成；16条真实结果原样保留，未重跑生成。
+- 日期：2026-09-27；revision 2；状态：`completed`。AB0–AB13完成；16条真实结果原样保留，未重跑生成。
 - 基线：`858e4778e3c84b19ee866d7cbd2d3556a1d6c334`；接手以任务书登记后的最新HEAD为准。
 - 结果根：`results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/`。
 - 研究正文：[§7.25](../../skill-ir/skill-dsl-research.md#725-ab-外部复用与普通说明对照)。所有本轮问题、设计修订和结论归回该节。
@@ -202,9 +202,9 @@ compare在DSL变化任务中真实运行；给MD组同一原始文件diff能力�
 - [x] 根conversation_log只记阶段事实，机器资料集中一根；不新建一轮一份研究正文。
 
 ### AB13：发布与结束
-- [ ] 只提交本轮归属文件，推送origin/skill-ir-aot并核对远端；七项原修改和历史untracked保持。
-- [ ] 最终给出包、真实命令、新项目任务分母、原/变与两臂结果、准备/执行成本、失败及可复用结论。
-- [ ] 按实际工作标complete/partial；研究负向可完整交付，未完成工作明确列出。任务结束停止扩展，不等待或重复调用凑时长。
+- [x] 只提交本轮归属文件，推送origin/skill-ir-aot并核对远端；七项原修改和历史untracked保持。
+- [x] 最终给出包、真实命令、新项目任务分母、原/变与两臂结果、准备/执行成本、失败及可复用结论。
+- [x] 按实际工作标complete/partial；研究负向可完整交付，未完成工作明确列出。任务结束停止扩展，不等待或重复调用凑时长。
 
 ## 七、连续授权与恢复
 
@@ -239,7 +239,7 @@ bun ./results/skill-ir/skill-dsl-research/development/authorization-external-reu
 现有replay会重写派生review文件；它不修改原始run/result。若需要只读replay，先以测试说明差异再做窄修复，不能为“严格”另建一套回放平台。
 
 - [x] R3：继续AB10–AB11，判断Markdown/DSL的作者负担、复用层次、质量和开销。普通用户包验证属于AB完整责任，不分给AC/AD。Markdown是研究入口，普通CLI无需新增任意prompt override。模型标签错误若没有可定位的共享实现缺陷，照实评价并交付，不硬凑追加运行；总预算仍是16初轮+至多4修订。
-- [ ] R4：AB12–AB13照原合同完成。保留9月23日文档治理结构，避免回填历史流水。相关测试/typecheck与一次文档扫描足够，不通过长时反复核验补时长。
+- [x] R4：AB12–AB13照原合同完成。保留9月23日文档治理结构，避免回填历史流水。相关测试/typecheck与一次文档扫描足够，不通过长时反复核验补时长。
 
 ### 8.3 三个完整任务，独立目标与所有权
 
@@ -272,3 +272,4 @@ AB执行完自身研究后按已派发任务ID用`wait_threads`等完成/需关�
 - AD白名单12文件与11份digest核对通过，24测试/147断言及脚本严格类型检查通过，归属提交`ffc6578e`；AC待ready后整合。
 - AC随后ready，13项文件及12份digest匹配，归属提交`8f27afb3`；集中授权测试202/202、1,919断言，编辑有限差分105/12及全仓typecheck通过。AD在更新后的三项catalog上check为0 diagnostics。侧任务均已停止写入，无待修缺陷。
 - AB12文档测试12/12；12,377文件扫描broken/legacy/governance errors均0，107项历史引用和5项既有长度软警告保留。AB结果592 JSON、66 JSONL/190条记录均解析成功；定向凭据扫描0，七项保护哈希和323项归档原字节保持。最终核验及侧任务归属见结果根`final-verification.json`、`integration.json`。
+- AB13交付提交`a24ce33f`已推`origin/skill-ir-aot`，本地与远端一致、ahead/behind为0/0。AC/AD分别提交，原始七项源码修改及历史untracked保留；本轮完成，不再追加生成或扩展。

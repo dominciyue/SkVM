@@ -1,8 +1,8 @@
 # Skill IR AOT 当前执行计划
 
-- 更新日期：2026-09-26
+- 更新日期：2026-09-27
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AB0–AB12已完成；AC/AD已独立集成，最终检查通过，AB13等待精确提交与用户origin发布。
+- 状态：AB0–AB13及独立AC/AD已完成；交付提交a24ce33f已推用户origin并核对远端，无剩余授权执行项。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AB0–AB13](../superpowers/plans/2026-09-22-authorization-external-reuse-and-baseline.md)

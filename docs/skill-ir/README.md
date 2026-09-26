@@ -6,7 +6,7 @@
 
 | 你要回答的问题 | 先看 | 结果边界 |
 |---|---|---|
-| 现在进行到哪一步？ | [当前状态](current-status.md) | 唯一实时状态；AB评价完成，独立工程集成与发布另列 |
+| 现在进行到哪一步？ | [当前状态](current-status.md) | 唯一实时状态；AB与独立AC/AD均已完成发布 |
 | 这次实验拿到了什么？ | [实验目录](../../results/skill-ir/experiment-catalog.json) | 机器可读摘要；原始运行仍以results为准 |
 | 某个主张能否对外说？ | [证据索引](evidence-index.md) | 主张、最窄分母、禁止外推 |
 | 如何复现实验或改代码？ | [当前计划](skill-ir-aot-optimization-plan.md) → [开发指南](developer-guide.md) | 计划和组件职责，不复制运行流水 |
