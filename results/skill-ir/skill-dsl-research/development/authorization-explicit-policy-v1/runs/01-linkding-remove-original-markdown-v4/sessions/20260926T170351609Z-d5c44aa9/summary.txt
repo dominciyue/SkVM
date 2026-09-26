@@ -1,0 +1,23 @@
+Authorization assessment
+Session: 20260926T170351609Z-d5c44aa9
+Status: completed
+Task: ab-linkding-remove-original
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/sissbruecker/linkding@27b7303baf41bb28babc610ac8eaa486e1ddfab5
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The fixed source enforces the declared expectation for the stated case: the actual decision is deny. The route maps POST bookmarks/shared/action to shared_action, which invokes handle_action; with only remove present, dispatch reaches remove. remove resolves the bookmark through bookmark_write, whose query requires owner=request.user and raises Http404 when that owner binding is absent. Therefore the non-owner relation prevents the protected delete call from being reached, even though the bookmark is shared. Sharing-related read access is not a deletion grant here: the supplied shared-action path uses the owner-only write binding, and the shared view itself does not establish ownership. The caller's authentication, ordinary-user role, bookmark sharing/settings, POST contents, CSRF/infrastructure success, and framework behavior are task assumptions; the source-backed authorization facts are the route, dispatch, owner binding, and delete effect. No decisive external fact is missing for this bounded reachability assessment; repository-wide completeness, deployment behavior, and exact HTTP response details are not claimed.
+  Evidence: The shared_action view delegates to handle_action, and a remove POST field dispatches to remove with the submitted bookmark identifier. (bookmarks/views/bookmarks.py:346-358, bookmarks/views/bookmarks.py:361-368)
+  Evidence: The shared-action URL is routed to the shared_action view. (bookmarks/urls.py:35-39)
+  Evidence: The write accessor selects a bookmark only when its owner equals the authenticated request user; otherwise it raises Http404. (bookmarks/views/access.py:28-32)
+  Evidence: The decisive visible authorization control is the owner=request.user predicate in bookmark_write, rather than the bookmark's shared status. (bookmarks/views/access.py:28-32)
+  Evidence: After the write accessor succeeds, remove deletes the resolved bookmark. (bookmarks/views/bookmarks.py:255-258)
+  Evidence: For a caller who is not the bookmark owner, the owner-filtered write lookup cannot resolve that bookmark, so the delete operation is not reached. (bookmarks/views/access.py:28-32, bookmarks/views/bookmarks.py:255-258)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

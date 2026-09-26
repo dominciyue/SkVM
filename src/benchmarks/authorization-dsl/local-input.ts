@@ -82,7 +82,6 @@ function normalizeSourceRoot(value: string): string | undefined {
     return undefined
   }
   const normalized = path.posix.normalize(value)
-  if (normalized === ".." || normalized.startsWith("../")) return undefined
   return normalized
 }
 
@@ -135,6 +134,18 @@ export async function loadLocalAuthorizationInput(inputFile: string): Promise<Lo
     }
   }
 
+  return loadLocalAuthorizationInputValue(inputValue, inputPath, raw)
+}
+
+/** Validate an input at its final file coordinate, without creating that file. */
+export async function loadLocalAuthorizationInputValue(
+  inputValue: unknown,
+  inputFile: string,
+  rawInput?: string,
+): Promise<LocalInputResult> {
+  const inputPath = path.resolve(inputFile)
+  const raw = rawInput ?? `${JSON.stringify(inputValue, null, 2)}\n`
+
   let provenance: AuthorizationAuthoringProvenance | { normalizerVersion: string } = { normalizerVersion: "normalized-input/v1" }
   const version = typeof inputValue === "object" && inputValue !== null && "schemaVersion" in inputValue ? inputValue.schemaVersion : undefined
   if (version === "authorization-assessment-authoring/v1" || version === "authorization-assessment-authoring/v2") {
@@ -175,21 +186,26 @@ export async function loadLocalAuthorizationInput(inputFile: string): Promise<Lo
   if (normalizedRoot === undefined) {
     diagnostics.push(localDiagnostic(
       "unsafe-source-root",
-      `sourceRoot must stay beneath the input file directory: ${input.sourceRoot}`,
+      `sourceRoot must be an explicit portable relative path: ${input.sourceRoot}`,
       "sourceRoot",
     ))
     return { status: "invalid", inputPath, diagnostics }
   }
   const sourceRoot = path.resolve(path.dirname(inputPath), ...normalizedRoot.split("/"))
+  // Explicit parent segments relocate the source boundary; junctions may not
+  // silently widen that authored boundary. The future input directory need not exist.
+  const parentSegments = normalizedRoot.split("/").filter((part, index, parts) =>
+    part === ".." && parts.slice(0, index).every(previous => previous === ".."))
+  const boundary = path.resolve(path.dirname(inputPath), ...parentSegments)
   try {
     const [canonicalInputDirectory, canonicalSourceRoot] = await Promise.all([
-      realpath(path.dirname(inputPath)),
+      realpath(boundary),
       realpath(sourceRoot),
     ])
     if (!isWithinRoot(canonicalInputDirectory, canonicalSourceRoot)) {
       diagnostics.push(localDiagnostic(
         "unsafe-source-root",
-        `sourceRoot resolves outside the input file directory: ${input.sourceRoot}`,
+        `sourceRoot resolves outside its explicitly selected relative boundary: ${input.sourceRoot}`,
         "sourceRoot",
       ))
       return { status: "invalid", inputPath, diagnostics }

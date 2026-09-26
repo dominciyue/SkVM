@@ -89,7 +89,7 @@ for (const method of ["plain", "ledger", "conditions"] as const) it(`v5 ${method
   expect(captured.tools[0].inputSchema.properties.results.items.properties.policyStatus.enum).toEqual(["satisfied", "violated", "undetermined"])
   expect(run.initial?.normalization?.normalizerVersion).toBe("authorization-wire-normalizer/v5")
   expect(run.initial?.result.results[0]?.conclusion).toBe("source_refuted")
-  expect(run.initialTransport?.wireResult).toEqual(answer)
+  expect(run.initialTransport?.wireResult).toEqual(answer as any)
   expect(run.renderedPrompt).toContain("policyStatus")
   expect(run.renderedPrompt).not.toContain("source_supported_failure")
   expect(run.firstResponse?.deliveryComplete).toBe(true)

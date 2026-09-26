@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260926T170658783Z-dd810b76
+Status: completed
+Task: ab-linkding-remove-original
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/sissbruecker/linkding@27b7303baf41bb28babc610ac8eaa486e1ddfab5
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The declared route maps POST bookmarks/shared/action to shared_action. The entry is gated by login_required, binding the runtime caller through request.user under the task’s stated authenticated-identity assumption. With only remove=<existing bookmark id>, the bulk_execute rejection is not selected; shared_action delegates to handle_action, whose remove branch passes the request-supplied identifier to remove. The selected bookmark is then resolved by bookmark_write using both its primary key and owner=request.user. This binds the request-selected object to the declared bookmark while keeping the caller identity/required owner distinct from the actual non-owner principal: sharing state, the owner’s sharing settings, and ordinary authenticated status do not satisfy this ownership predicate. The strongest visible authorization control is therefore the owner-scoped ORM lookup, not the shared-reading rules. Because the declared principal is not the bookmark owner, ordinary ORM behavior makes that lookup fail and raise Http404 before the protected bookmark.delete() effect. The delete effect is reachable only on the source-visible branch where the selected bookmark’s owner equals request.user. Thus the actual authorization decision is deny, and the supplied policy expectation of deny is enforced, so the policy-failure proposition is refuted. The role and relation matter because no superuser or special-role bypass is visible, while non-ownership directly defeats the owner filter. No decisive source-external fact remains unknown under the fixed task assumptions: runtime identity, authentication, request contents, resource existence/ownership/sharing settings, routing reachability, CSRF passage, and ordinary Django ORM behavior are supplied or expressly assumed. Unprovided deployment middleware could affect whether the request reaches the view, but cannot change this bounded authorization result under the instruction that the request does reach it; repository-wide and deployment behavior remain not tested.
+  Evidence: The declared entry requires an authenticated caller and then delegates the request to the common action handler unless the unsupported bulk_execute parameter is present. (bookmarks/views/bookmarks.py:346-353)
+  Evidence: The bookmarks/shared/action route is bound to the shared_action view. (bookmarks/urls.py:35-40)
+  Evidence: Authorization uses request.user as the runtime caller identity in the owner-scoped bookmark lookup. (bookmarks/views/access.py:28-32)
+  Evidence: When remove is present, the request-supplied remove value is forwarded as the bookmark identifier to the remove operation. (bookmarks/views/bookmarks.py:361-368)
+  Evidence: The selected bookmark must simultaneously match the supplied identifier and have request.user as owner; absence of such an owner-matching object raises Http404. (bookmarks/views/access.py:28-32)
+  Evidence: The visible write control contains only an ownership predicate and no ordinary-user, sharing, public-sharing, or special-role bypass. (bookmarks/views/access.py:28-32)
+  Evidence: Deletion occurs only after bookmark_write returns the owner-matching bookmark. (bookmarks/views/bookmarks.py:255-257)
+  Evidence: The shared entry rejects only requests containing bulk_execute before dispatch; a request containing only remove proceeds to handle_action. (bookmarks/views/bookmarks.py:346-352)
+  Evidence: Shared-read access is distinct from write access: read logic can recognize authenticated sharing, but POST by a non-owner is rejected; the assessed delete path independently uses the owner-only write lookup. (bookmarks/views/access.py:13-23)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

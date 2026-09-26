@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "ab-linkding-remove-original",
+  "taskId": "ab-linkding-remove-original",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "3a86a0967fdf39c1d2b81c617ab7336cfcd5656fbb755247033208e9843ccee9",
+  "rubricVersion": "ab-rubric-v3",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "AE-development-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "decision-control",
+      "status": "supported",
+      "reason": "The answer identifies owner=request.user in bookmark_write as the decisive write gate and correctly says the non-owner is denied.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "Actual disposition is deny. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared"
+    },
+    {
+      "criterionId": "binding-effect",
+      "status": "supported",
+      "reason": "It follows the posted remove ID through handle_action and the owner-bound lookup, stopping before bookmark.delete for this non-owner.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared"
+    },
+    {
+      "criterionId": "scenario-explanation",
+      "status": "supported",
+      "reason": "It applies the authenticated ordinary non-owner relation, distinguishing shared reading from ownership and the absent role bypass.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "Stated scenario: {'role': 'authenticated ordinary user', 'facts': ['Caller is not the bookmark owner', 'No superuser or special role', 'POST contains only remove=<bookmark id>'], 'relation': 'non-owner of a shared bookmark', 'expectation': 'deny'}. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared"
+    },
+    {
+      "criterionId": "bounded-evidence",
+      "status": "supported",
+      "reason": "It separates stipulated request, identity, and framework behavior from source observations and confines the decision to the supplied path.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "Standard Django behavior and stated identity/settings are assumptions; no deployed execution verified. Missing unrelated dependencies do not force unknown on this bounded authorization reachability question."
+    },
+    {
+      "criterionId": "http-detail",
+      "status": "supported",
+      "reason": "The answer or its authored fact statements describe the not-found behavior of the denied owner lookup; a numeric status is optional.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "Exact HTTP detail is not required by the public task; do not conflate a source quote containing status text with answer explanation."
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The source enforces the declared deny expectation, so the policy-failure proposition is refuted.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "bookmarks/views/bookmarks.py",
+        "startLine": 346,
+        "endLine": 378
+      },
+      {
+        "path": "bookmarks/views/access.py",
+        "startLine": 28,
+        "endLine": 32
+      }
+    ],
+    "oracleRule": "Policy enforced; actual deny. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer limits its claim to supplied source and stated assumptions and does not assert an observed deployment outcome.",
+    "answerLocation": "/results/0/explanation",
+    "sourceLocations": [
+      {
+        "path": "bookmarks/views/bookmarks.py",
+        "startLine": 346,
+        "endLine": 378
+      },
+      {
+        "path": "bookmarks/views/access.py",
+        "startLine": 28,
+        "endLine": 32
+      }
+    ],
+    "oracleRule": "Only supplied source and declared state; no deployment or repository completeness claim."
+  }
+}

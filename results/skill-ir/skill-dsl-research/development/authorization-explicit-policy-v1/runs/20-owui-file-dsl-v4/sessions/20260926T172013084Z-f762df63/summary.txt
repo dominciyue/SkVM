@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260926T172013084Z-f762df63
+Status: completed
+Task: owui-process-file-write
+Method: plain (explicit); requested: plain; condition request ignored: true
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- file-owner-without-destination-write-grant::post-process-file: source_supported_failure — The declared entry is POST /process/file, and the runtime caller is bound through the verified-user dependency. For a non-admin, the visible file lookup checks the supplied file ID together with user.id, so the principal is bound to ownership of the source file; the admin branch instead permits lookup by file ID alone. That control does not bind the caller to write permission on the destination collection. The request-selected collection_name is taken from the form and, when supplied, is passed unchanged into save_docs_to_vector_db. The visible protected effect inserts items into VECTOR_DB_CLIENT using that collection_name. The fixed crop expressly states that the intervening load/commit region contains no call authorizing collection_name. Thus, under the stated caller-supplies-existing-collection-name and principal-is-not-admin conditions, the strongest source-visible decision is file-ownership authorization only, with no destination knowledge-base write check; the requested content-write effect remains reachable for the non-admin branch. This supports failure of the accepted policy expectation that ownership of the source file alone must not authorize writing to an unrelated knowledge base. The admin branch is not the declared principal branch and does not cure the non-admin path. No source-external fact is needed to decide this bounded source result, although deployment behavior and repository-wide completeness are not claimed. Bounded branch comparison: (1) supplied existing collection plus non-admin: reachable protected effect and source-supported failure; (2) no supplied collection: the source derives a file-based collection name, so this is outside the caller-selected-existing-collection condition and is not the assessed branch; (3) admin caller: a separate file-lookup branch exists, but it is outside the declared principal condition and does not establish destination authorization for the assessed non-admin. Unexamined conditions include downstream implementation details outside the allowed crop and whether the deployment actually executes this exact source, neither of which is supplied or needed for the source-visible assessment.
+  Evidence: The declared entry is the POST /process/file route implemented by process_file. (inputs/owui-process-file-write/retrieval_process_file.py:27-28)
+  Evidence: The selected collection_name is passed to save_docs_to_vector_db together with the processed documents and caller user. (inputs/owui-process-file-write/retrieval_process_file.py:62-74)
+  Evidence: The route obtains its runtime caller through the verified-user dependency. (inputs/owui-process-file-write/retrieval_process_file.py:29-32)
+  Evidence: The selected collection name comes from the request form, with a file-derived fallback only when the caller does not supply one. (inputs/owui-process-file-write/retrieval_process_file.py:21-25)
+  Evidence: The fixed source context states that the intervening processing region contains no call authorizing collection_name. (inputs/owui-process-file-write/retrieval_process_file.py:52-53)
+  Evidence: For a non-admin caller, the source file is retrieved using both the submitted file ID and the caller's user ID; an admin uses a separate file-ID-only branch. (inputs/owui-process-file-write/retrieval_process_file.py:40-45)
+  Evidence: The write sink inserts the generated items into VECTOR_DB_CLIENT under the supplied collection_name. (inputs/owui-process-file-write/retrieval_process_file.py:14-18)
+  Evidence: For the assessed supplied-name condition, the request value is retained as collection_name rather than replaced by the file-derived fallback. (inputs/owui-process-file-write/retrieval_process_file.py:47-50)
+  Evidence: The assessed principal is the non-admin branch, while the source separately exposes an admin branch. (inputs/owui-process-file-write/retrieval_process_file.py:40-43)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

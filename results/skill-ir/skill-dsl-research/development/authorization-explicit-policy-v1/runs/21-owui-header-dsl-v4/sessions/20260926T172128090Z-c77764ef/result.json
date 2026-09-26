@@ -1,0 +1,202 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": true
+  },
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260926T172128090Z-c77764ef",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-explicit-policy-v1\\runs\\21-owui-header-dsl-v4\\sessions\\20260926T172128090Z-c77764ef",
+  "createdAt": "2026-09-26T17:21:28.090Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-authoring-reuse-v1\\public-inputs\\header\\assessment.json",
+  "taskId": "owui-trusted-header-deployment",
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "task-supplied",
+    "origin": "input"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 3927,
+      "publicAnalysis": 1718,
+      "source": 4501,
+      "outputContract": 2289,
+      "total": 12936,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "owui-trusted-header-deployment",
+    "repository": "https://github.com/open-webui/open-webui",
+    "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+    "results": [
+      {
+        "obligationId": "external-client-trusted-header-impersonation::post-signin-trusted-email",
+        "conclusion": "unknown",
+        "explanation": "The declared POST /signin entry is source-visible, but the real-deployment policy outcome is not decidable from this fixed crop. The request must first pass the ENABLE_PASSWORD_AUTH gate (src-8d5759765262cf30 lines 11-15). The trusted-email branch must then be enabled by a configured environment-controlled header name (src-5f54873929978798 lines 10-13; src-8d5759765262cf30 lines 17-18), and the named header must be present or the request is rejected (src-8d5759765262cf30 lines 17-21). Its request value is lowercased and assigned to email, making that client-visible value the identity selector within this entry (src-8d5759765262cf30 lines 21-22). The code looks up that email, optionally invokes signup if it is absent, and then authenticates by the same email (src-8d5759765262cf30 lines 31-40). Thus, for the obligation's arbitrary existing-user resource, the selected email is bound to a user only if authenticate_user_by_email returns a user; that user is then passed to create_session_response with cookie setting enabled (src-8d5759765262cf30 lines 40-41 and 59-62).\n\nThe strongest source-visible controls on this path are application gates: password sign-in enabled, trusted-email header name configured, header present, and authentication producing a user. The accepted policy adds deployment controls not implemented or established by these crops: a trusted reverse proxy must be the sole reachable ingress, remove client-supplied identity headers, and inject authenticated identity itself. Because ingress reachability and proxy stripping/replacement are not supplied, source capability must be separated from exploitability: the application can consume a header-selected email and issue a session, but the fixed context does not establish that an unauthenticated external client can deliver an arbitrary value to that branch in the actual deployment.\n\nBounded branch comparison (hypotheses, not observed deployment facts): (1) ENABLE_PASSWORD_AUTH false: this entry is blocked with 403 before trusted-header processing. (2) Password auth enabled but no trusted-email header name configured: this declared trusted-email branch is not entered; behavior in omitted sign-in modes is unexamined. (3) Entry and header name enabled but the named header absent: blocked with 400. (4) Gates pass, a noncompliant/directly reachable ingress preserves the external client's chosen header, and email authentication returns the selected existing user: the session effect is reachable and the expected deny would fail. (5) Gates pass but the accepted-policy ingress control is enforced—sole trusted proxy, client header removed/replaced, authenticated identity injected—then this external principal cannot choose an arbitrary existing identity through its supplied value, so this vector is blocked. (6) Gates pass but email authentication produces no user: no session is returned. The optional provisioning branch runs only after no user is found for the selected email; it passes that same email to signup before authentication, so it may create/bind a previously absent identity but does not alter the existing-user lookup case named by this obligation. Unexamined conditions include signup-handler behavior, authenticate_user_by_email internals, create_session_response internals, omitted sign-in modes, middleware, and any other repository or deployment controls; source discovery is not-tested, so no completeness claim is made.\n\nDecisive deployment facts absent from the fixed context are the actual ENABLE_PASSWORD_AUTH value, actual trusted-email header-name value, whether any ingress reachable by the unauthenticated external client accepts the chosen header, whether a trusted proxy is the sole ingress and strips/replaces that header with authenticated identity, and whether authentication returns the selected existing user. Therefore neither source-supported policy failure nor source-refuted enforcement can be established.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The declared entry is an asynchronous POST /signin handler receiving the request and sign-in form.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                  "startLine": 4,
+                  "endLine": 10,
+                  "quote": "@router.post('/signin', response_model=SessionUserResponse)\nasync def signin(\n    request: Request,\n    response: Response,\n    form_data: SigninForm,\n    db: AsyncSession = Depends(get_async_session),\n):"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The handler calls email-based authentication with the selected email and continues on the protected branch only when it yields a user.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                  "startLine": 40,
+                  "endLine": 41,
+                  "quote": "        user = await Auths.authenticate_user_by_email(email, db=db)\n        if user:"
+                }
+              ]
+            },
+            {
+              "statement": "The value of the configured request header is lowercased and assigned as the email identity selector; the initial display name is also set from it.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                  "startLine": 21,
+                  "endLine": 22,
+                  "quote": "        email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()\n        name = email"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "The trusted-email branch is conditional on a configured trusted-email header name and rejects the request if that named header is absent.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                  "startLine": 17,
+                  "endLine": 20,
+                  "quote": "    if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n            raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)\n"
+                }
+              ]
+            },
+            {
+              "statement": "The handler rejects with 403 before trusted-header processing when password authentication is disabled.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                  "startLine": 11,
+                  "endLine": 15,
+                  "quote": "    if not ENABLE_PASSWORD_AUTH:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=ERROR_MESSAGES.ACTION_PROHIBITED,\n        )"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "When user is truthy, the handler creates and returns a session response for that user with cookie setting enabled; otherwise it rejects with invalid credentials.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                  "startLine": 59,
+                  "endLine": 62,
+                  "quote": "    if user:\n        return await create_session_response(request, user, db, response, set_cookie=True)\n    else:\n        raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The trusted email, name, groups, and role header names are environment-controlled values; the trusted email header defaults to no configured value.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+                  "startLine": 10,
+                  "endLine": 13,
+                  "quote": "WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)\nWEBUI_AUTH_TRUSTED_NAME_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_NAME_HEADER', None)\nWEBUI_AUTH_TRUSTED_GROUPS_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_GROUPS_HEADER', None)\nWEBUI_AUTH_TRUSTED_ROLE_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_ROLE_HEADER', None)"
+                }
+              ]
+            },
+            {
+              "statement": "If no user is found for the selected email, the handler invokes signup using that same email and the derived name before authentication.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                  "startLine": 31,
+                  "endLine": 38,
+                  "quote": "        if not await Users.get_user_by_email(email.lower(), db=db):\n            await signup_handler(\n                request,\n                email,\n                str(uuid.uuid4()),\n                name,\n                db=db,\n            )"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [
+          "The actual deployment value of ENABLE_PASSWORD_AUTH.",
+          "The actual deployment value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER.",
+          "Whether an ingress reachable by the unauthenticated external client can forward a client-chosen value under the configured trusted-email header name to POST /signin.",
+          "Whether a trusted reverse proxy is the sole reachable ingress and removes/replaces client-supplied identity headers with an identity it authenticated.",
+          "Whether authenticate_user_by_email yields the arbitrary existing user selected by the supplied email in the actual deployment."
+        ],
+        "suggestedObservations": [
+          "Inspect the deployed application configuration for ENABLE_PASSWORD_AUTH and WEBUI_AUTH_TRUSTED_EMAIL_HEADER without changing them.",
+          "Inspect deployment routing and exposure to determine whether the application has any ingress reachable other than the trusted identity proxy.",
+          "Inspect the active proxy configuration to verify that the configured identity header is removed from client requests and replaced only after proxy authentication.",
+          "Using authorized deployment records or a controlled non-invasive test, determine whether the configured header value reaching POST /signin is proxy-derived rather than client-controlled.",
+          "Using authorized application/database observations, confirm whether authenticate_user_by_email resolves a selected existing email to a user and whether the handler reaches session creation."
+        ]
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "relationCoverage": [],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 3207,
+      "output": 2149,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

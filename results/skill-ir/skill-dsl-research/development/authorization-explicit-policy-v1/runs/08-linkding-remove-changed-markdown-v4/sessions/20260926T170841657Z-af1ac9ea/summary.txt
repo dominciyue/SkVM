@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260926T170841657Z-af1ac9ea
+Status: completed
+Task: ab-linkding-remove-changed
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/sissbruecker/linkding@27b7303baf41bb28babc610ac8eaa486e1ddfab5
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The declared expectation is allow for this state, and the fixed source supports that expectation; therefore a policy-failure claim is refuted. Actual source decision: allow, under the task assumptions that the request reaches this view as the authenticated caller and that the submitted ID identifies a bookmark owned by that same caller. The URL maps bookmarks/shared/action to shared_action. That entry requires authentication, rejects only bulk execution in this path, and sends the single-action POST to handle_action. A POST containing remove is bound to the submitted bookmark ID and dispatched to remove. The strongest visible authorization control is not the sharing configuration or an elevated role: remove calls bookmark_write, whose ORM lookup requires both the selected primary key and owner=request.user. With the stipulated owner relation, the lookup returns the bookmark and the protected delete call is reached. If the caller were merely another authenticated user receiving shared-read access, the owner-constrained lookup would fail and raise Http404, so sharing does not grant deletion. The source's separate read helper also expressly distinguishes sharing-based readability from POST authority by rejecting POST for non-owners. Thus shared=True, enable_sharing=True, and enable_public_sharing=False do not prevent this owner's deletion and do not authorize a non-owner; the changed owner relation is decisive, while the absence of a superuser or special role is immaterial because this path does not test such a role. Task assumptions, rather than source-observed deployment facts, include the concrete authenticated identity, ownership of the selected existing bookmark, sharing/profile values, POST shape, CSRF/infrastructure passage, and ordinary Django ORM/decorator behavior. No decisive external fact remains missing for this bounded decision under those assumptions; this is not a claim about other entries or repository-wide completeness.
+  Evidence: The supplied URL configuration maps the bookmarks/shared/action path to the shared_action view. (bookmarks/urls.py:35-40)
+  Evidence: The shared action rejects bulk execution but otherwise delegates the request to the common action dispatcher. (bookmarks/views/bookmarks.py:347-353)
+  Evidence: The shared action entry is protected by login_required, binding the operation to an authenticated request user under the stated framework assumptions. (bookmarks/views/bookmarks.py:346-347)
+  Evidence: When remove is present, the dispatcher passes the POST remove value as the bookmark identifier to the remove operation. (bookmarks/views/bookmarks.py:361-368)
+  Evidence: The write-access helper resolves the selected bookmark only when its primary key matches and its owner equals request.user; otherwise it raises Http404. (bookmarks/views/access.py:28-32)
+  Evidence: The remove operation first obtains the bookmark through the owner-constrained write helper and then invokes deletion on that bookmark. (bookmarks/views/bookmarks.py:255-257)
+  Evidence: The supplied read helper treats owner access and sharing-based read access separately, and for POST rejects a caller who is not the owner even when a sharing condition could permit reading. (bookmarks/views/access.py:13-23)
+  Evidence: Because write lookup authorization is expressed solely as owner=request.user, the stated owner relation satisfies the visible deletion gate, while ordinary-user versus special-role status and sharing flags are not predicates in that gate. (bookmarks/views/access.py:28-32)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-27
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AB0–AB13及独立AC/AD已完成，最终2525d387与origin对齐；新授权AE/AF/AG准备派发。
+- 状态：AB及AC/AD已发布；AE/AF/AG实现、24单元评价和独立工程验收已完成，正在做共享文档、总体验证与origin发布。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AE0–AE11](../superpowers/plans/2026-09-27-authorization-explicit-policy-result.md)、[AF0–AF8](../superpowers/plans/2026-09-27-authorization-scenario-workspace.md)、[AG0–AG8](../superpowers/plans/2026-09-27-token-accounting-semantics.md)
@@ -18,7 +18,7 @@
 | AF0–AF8 | 场景工作区、普通v2声明生成和来源预览 | 离线新模块/handler/示例，已有输入不改，ready后交AE |
 | AG0–AG8 | 计量语义纯模块、比较脚本、AB口径澄清 | 离线新路径，旧provider/报告只读，ready后交AE |
 
-三者是不同目标，AF/AG不承担AE研究任务。均Astra ultra及宿主Fast/priority；精确速度倍率未测。侧任务不写Git、不装依赖、不写共享文档。AE先完成自己的工程/面板，侧任务ready后串行整合、分别提交。聚合测试在侧任务停止写入后运行；禁止互相覆盖。未知完成和失败如实记录，完成后停止。
+三者是不同目标，AF/AG不承担AE研究任务。均Astra ultra及宿主Fast/priority；精确速度倍率未测。侧任务不写Git、不装依赖、不写共享文档。AE面板24/24 completed，四组各6/6 full，26次provider dispatch，0追加；v5无本轮质量增量，旧默认不变。AF三场景普通输入与共享政策变更检查通过，主CLI compose路由已接；AG完成16条AB原usage澄清并为AE报告提供完整prompt/total口径。侧任务ready后已停止写入，AE核对归属文件hash并负责总体验证、分别提交与只推用户origin。实际USD未知，工程工具不增研究分母。
 
 AB token复核：旧+12.0%为非缓存input+output；完整prompt+output（含单列缓存读取）为+3.279%。本轮AG追加可复算说明，旧AB原件保留。
 

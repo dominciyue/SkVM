@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260926T170725120Z-8b4c40dd
+Status: completed
+Task: ab-linkding-remove-changed
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/sissbruecker/linkding@27b7303baf41bb28babc610ac8eaa486e1ddfab5
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The declared route maps bookmarks/shared/action to shared_action. Before the assessed path proceeds, @login_required gates the view; under the task assumption that the request reaches it as the authenticated declared principal, request.user is the runtime identity. With a POST containing only remove=<existing bookmark id>, shared_action does not take its bulk-action rejection branch and delegates to handle_action, whose remove branch passes the request-selected ID to remove. The selected object is then bound by a lookup requiring both pk=<submitted id> and owner=request.user. This is the strongest visible authorization control: ownership, not sharing, authorizes deletion. The bookmark owner's sharing settings and the bookmark's shared flag do not weaken that write check; they are relevant to shared-read logic elsewhere, which remains distinct from this delete path. Because the declared caller owns the same selected bookmark, the lookup succeeds under ordinary ORM behavior and reaches bookmark.delete(). Thus the source-visible actual decision is allow, and the supplied expectation that an owner may delete is enforced, so the alleged policy failure is refuted. The role/relation distinction is decisive: an authenticated ordinary owner passes without any superuser branch, while a merely shared non-owner would not match owner=request.user and would be rejected before deletion. Authentication behavior, request identity, settings, CSRF passage, object existence, ownership, and ordinary ORM semantics are supplied task assumptions rather than deployment observations. Under those stipulated assumptions no source-external fact remains decisive; deployment and repository-wide completeness remain untested.
+  Evidence: The declared shared-action URL is routed to shared_action. (bookmarks/urls.py:35-40)
+  Evidence: The authorization lookup uses request.user as the caller identity whose ownership must match the selected bookmark. (bookmarks/views/access.py:28-32)
+  Evidence: The remove value from POST is passed as the bookmark identifier into remove, binding the request-selected ID to the object subjected to the write lookup. (bookmarks/views/bookmarks.py:361-368)
+  Evidence: The entry is gated by login_required, rejects only requests containing bulk_execute, and otherwise delegates to handle_action. (bookmarks/views/bookmarks.py:346-353)
+  Evidence: Bookmark write access requires one object matching both the submitted primary key and owner=request.user; absence of such a match stops the operation with not-found behavior. (bookmarks/views/access.py:28-32)
+  Evidence: After the owner-scoped write lookup succeeds, remove invokes delete on that bookmark. (bookmarks/views/bookmarks.py:255-257)
+  Evidence: Shared-read access is a distinct control based on authentication, the shared flag, and the owner's sharing setting, while POST read access still requires ownership; this read logic is not the delete path's authorization predicate. (bookmarks/views/access.py:13-23)
+  Evidence: There is no special-role branch in the delete helper: authorization turns solely on whether the selected bookmark is owned by request.user, so the stated owner relation permits the effect and a shared non-owner relation would not. (bookmarks/views/access.py:28-32)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

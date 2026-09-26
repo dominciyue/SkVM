@@ -1,10 +1,10 @@
 # Skill 分类与领域 DSL 研究总文档
 
-更新于 2026-09-26。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并 S0–S11、D0–D11 及后续研究，并记录 DSL 实现中发现和解决的问题。实时执行状态仍由 [current-status](current-status.md) 维护，待办见[当前计划](skill-ir-aot-optimization-plan.md)。
+更新于 2026-09-27。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并 S0–S11、D0–D11 及后续研究，并记录 DSL 实现中发现和解决的问题。实时执行状态仍由 [current-status](current-status.md) 维护，待办见[当前计划](skill-ir-aot-optimization-plan.md)。
 
 ## 1. 当前结论
 
-**AB已完成16条逐项语义评价，DSL整体收益未建立。** 两个新项目的Markdown为8/8 full，DSL为6/8 full；两条DSL标签与正确授权解释矛盾，原文和错误计分均保留。两臂必要控制与解释都为8/8，DSL分析input+output多12.0%、累计响应耗时少8.5%，作者准备与修改未显示一致节省。同v2、核心代码和薄包可复用，结构化compare提供适用性诊断；它们不证明质量优势。完整结果见§7.25；AC编辑支持和AD实验目录工具独立于研究分母与效果。
+**AB已完成16条逐项语义评价，DSL整体收益未建立。** 两个新项目的Markdown为8/8 full，DSL为6/8 full；两条DSL标签与正确授权解释矛盾，原文和错误计分均保留。两臂必要控制与解释都为8/8，DSL分析非缓存input+output多11.969%，完整prompt+output（含cache-read）多3.279%，累计响应耗时少8.5%；作者准备与修改未显示一致节省。同v2、核心代码和薄包可复用，结构化compare提供适用性诊断；它们不证明质量优势。AE后续24单元的MD/DSL×v4/v5四组各6/6 full，没有显示v5质量增量或默认迁移依据。完整结果见§7.25–7.26；AC/AD及AF/AG工程工具独立于研究分母与效果。
 
 已经站得住的判断：
 
@@ -824,6 +824,16 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 **后续投入优先级。** 用户确认单次回答质量改善约60%、编写/修改/复用约40%；这是问题选择与投入优先级，不形成加权总分。当前AE/AF/AG范围和预算保持，尚未扩大到完整安全审查或新类别。
 
 **AE4固定材料。** 四个linkding状态的独立作者MD、DSL、neutral manifest和源文件按AB字节复用；Open WebUI file/header用AA普通输入与源码，MD由开发主代理从单独保留的公开brief一次编写，不调用DSL renderer、不读取oracle答案。两臂共享公开问题、条件范围和输出合同；既有材料中v4/旧enum的输出提示由显式v5共同合同覆盖，事实不变。`97788944`实现及实际源码哈希、六例/24单元交替顺序、既有v3 rubric哈希和原预算写入AE panel-config；一次零网络provider演练24/24 completed。下一步只按此配置执行首轮，生成终结前不读评价材料。
+
+**AE5–AE7实际机制结果。** 冻结的24单元均一次获得终态`completed`；生成全部关闭后才读取既有AB/AA rubric，按原始provider回答SHA逐criterion完成24份review。四组Markdown-v4、Markdown-v5、DSL-v4、DSL-v5各6/6 full，政策结论与实际allow/deny/unknown推理均24/24正确，必要语义均支持；四份trusted-header均合理保留部署unknown。新增v5没有减少本轮反向标签错误，因为新v4也没有此类错误；不能把AB旧DSL 2/8错误改写为本轮v5的收益。首答完整交付四组为6/6、6/6、5/6、5/6；DSL-v4有一次prompt-parse fallback，DSL-v5有一次domain repair，最终均full。没有共享实现缺陷，追加单元0。结果仅对这六个已暴露development案例和共同helper流程成立，不说明一般可靠性或单独语法因果。[冻结配置](../../results/skill-ir/skill-dsl-research/development/authorization-explicit-policy-v1/panel-config.json)、[逐项review](../../results/skill-ir/skill-dsl-research/development/authorization-explicit-policy-v1/evaluator/review-decisions.json)、[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-explicit-policy-v1/panel-summary.json)及[离线回放](../../results/skill-ir/skill-dsl-research/development/authorization-explicit-policy-v1/ordinary-verification.json)可复核。
+
+按AG明确的`skvm-disjoint`口径，四组完整prompt+output分别为59,848、59,549、75,751、75,580；同表示v5相对v4为Markdown -0.50%、DSL -0.23%，其中prompt本身分别+0.62%、+1.71%。两组DSL比同协议Markdown完整token多26.57%/26.92%，这里含各自一次额外调用。全部26次实际provider dispatch有用量记录，实际USD均未报告；已知响应时长分别约249.8、265.4、398.0、380.9秒，单样本无速度结论。模型收费与开发代理费用不可从token或字符估算。逐次计量包含fallback/repair，零缓存读取如实记录；生成后评价与离线重放均零provider。最终选择保留兼容默认，v5作为可选、语义清晰的表达，不宣称已提升质量。
+
+**AE8普通搬移验收。** 六份原DSL输入与源码复制到仓外临时位置，普通CLI对v4/v5共12次check，离线注入各原结果wire建立12个新session，并逐一inspect canonical payload与compare完整依赖；12/12一致，网络provider、目标执行和新模型观察均0。该复现验证普通使用路径与记录可携带，不扩AE生成分母。
+
+**AF场景工作区交付。** 共同base、三个明确场景replacement生成owner/outsider/role-override三份普通authoring/v2与非语义来源sidecar。只读预览报告字段来源与搬移坐标；发布仅Windows，以独占新目录避免覆盖，并在作者原坐标和最终坐标检查声明与源码边界。整份工作区复制到普通C盘临时目录后，三份原场景及共同政策文字更新后的三份输入均经主CLI检查；旧生成字节不变。65个focused测试通过、1个平台跳过、149断言；集成路由额外先红后绿。它证明有界字段装配和维护单份政策，不测真人编辑时间、模型正确率或token节省。见[AF ready](../../results/skill-ir/authorization-scenario-workspace-20260927/ready.json)和[完整示例](../../examples/authorization-assessment/scenario-workspace/README.md)。
+
+**AG计量口径交付。** 纯模块区分`skvm-disjoint`、`inclusive-input`与`unknown`，并让完整总量、已知小计、缺失记录及无法计算的百分比有不同表示；独立离线脚本复算AB16条分析usage，校验19个原始来源hash，旧报告原字节不动。AB完整prompt+output Markdown 84,111、DSL 86,869，即DSL +3.279%；旧+11.969%仅是fresh input+output。作者含缓存input的总量Markdown 789,130、DSL 671,649，账户不能混加。AG focused 50测试/131断言及脚本typecheck通过；它提供可比成本口径，不改变AB质量，也不提供实际USD、真人节省或host精确速度倍率。[AG澄清](../../results/skill-ir/token-accounting-semantics-20260927/ab-accounting-clarification.json)与[计量模块说明](../../scripts/token-accounting/README.md)保存来源和限制。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

@@ -113,12 +113,14 @@ export function authorizationCliHelp(): string {
     "Commands:",
     "  locate --root=<project> --file=<relative-path> --match=<literal-text> [--limit=20]",
     "  init --out=<assessment.json> [--from=<authoring.json> | --format=authoring-v2]",
-    "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--arm=N|B|D]",
-    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--arm=N|B|D]",
+    "  compose --workspace=<workspace.json> --out=<new-directory> [--check-only]",
+    "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--arm=N|B|D] [--wire=legacy|v4|v5]",
+    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--arm=N|B|D] [--wire=legacy|v4|v5]",
     "  inspect --out=<output-root-or-session>",
     "  compare --previous=<session> --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5]",
     "",
     "init never overwrites an existing file. With --from, keep authoring and output beside each other so sourceRoot stays bounded.",
+    "compose previews or creates a new scenario directory from one common authoring base and explicit replacements; no provider is initialized.",
     "Only run initializes a provider. A condition request in the input opts into wire/v3; otherwise the existing ledger path is used.",
     "Explicit method uses B and conflicts with arm N/D. conditions needs a condition request; plain/ledger leave it unexecuted.",
     "check/run accept --wire=legacy|v4|v5. legacy selects v1/v2/v3 by method; v4 is compact, v5 adds explicit policyStatus; both are opt-in.",
@@ -145,6 +147,10 @@ export async function runAuthorizationCli(
       return report.status === "invalid" ? 1 : 0
     }
     if (argv[0] === "init") return await initializeAuthorizationInput(argv.slice(1), dependencies)
+    if (argv[0] === "compose") {
+      const { runAuthorizationComposeCli } = await import("./authorization-compose.ts")
+      return runAuthorizationComposeCli(argv.slice(1), dependencies)
+    }
     return await runLocalAuthorizationCli(argv, dependencies)
   } catch (error) {
     dependencies.stderr(error instanceof Error ? error.message : String(error))

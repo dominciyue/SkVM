@@ -12,7 +12,7 @@
 
 **独立工程已集成：** [AC编辑支持](../superpowers/plans/2026-09-26-authorization-authoring-editor-support.md)交付本地draft-07 schema、结构检查与完整示例，105结构用例/12个runtime-only反例通过，提交`8f27afb3`。[AD实验目录工具](../superpowers/plans/2026-09-26-experiment-catalog-maintenance.md)交付离线check/show/export，24测试/147断言及脚本类型检查通过，提交`ffc6578e`。整合授权测试202/202、1,919断言，全仓typecheck通过；两项工程不增加AB研究分母或收益证据。三个任务实际model/effort为Astra ultra，宿主默认priority；逐请求tier未暴露，不宣称实测1.5倍。原始323项证据按原字节归档，七项原源码修改与历史untracked保留。
 
-**当前授权队列（2026-09-27）：** 三个完整独立任务已派发。AE任务`01a0de94-767c-7f71-b253-8df31bdeac84`执行中，已接通v5并通过211授权测试/2004断言，正在准备固定面板；AF已ready待集成，AG进行中。开发模型均`gpt-6-astra / ultra`，宿主Fast/priority配置。用户请求1.5倍速度，工具未暴露逐任务倍率，实际倍率未测。
+**当前授权队列（2026-09-27）：** AE/AF/AG的工程和评价均已完成，当前进行共享文档、总体验证与origin发布。AE显式wire/v5已接通；24个冻结development单元全部completed、26次provider dispatch，Markdown/DSL×v4/v5四组各6/6 full，实际授权推理和必要语义24/24正确。v5没有本轮质量增量，兼容默认不改；6例12份仓外普通输入/记录回放通过，零新模型调用。AF的三场景工作区与主CLI compose已接通，AG的计量模块及AB缓存口径澄清已接入AE报告；两项均无业务模型调用。开发模型为`gpt-6-astra / ultra`，宿主Fast/priority配置；用户请求1.5倍速度，工具未暴露逐任务倍率，实际倍率未测。见[AE汇总](../../results/skill-ir/skill-dsl-research/development/authorization-explicit-policy-v1/panel-summary.json)、[AF ready](../../results/skill-ir/authorization-scenario-workspace-20260927/ready.json)、[AG澄清](../../results/skill-ir/token-accounting-semantics-20260927/ab-accounting-clarification.json)。
 
 | 任务 | 独立目标 | 协作边界 |
 |---|---|---|
@@ -20,7 +20,7 @@
 | [AF0–AF8](../superpowers/plans/2026-09-27-authorization-scenario-workspace.md) | 共同声明加显式场景变化，生成普通v2输入 | 新工作区模块/独立handler/示例；离线完成后交ready |
 | [AG0–AG8](../superpowers/plans/2026-09-27-token-accounting-semantics.md) | 明确缓存口径、计量模块与AB独立澄清 | 新纯模块/脚本/结果；旧provider和报告只读 |
 
-AE固定最多24首轮单元和4个共享实现修订单元，使用已有development材料；AF/AG不调用业务模型。当前普通默认保持兼容。三份任务的文件归属、失败处理和验收分别写在各自任务书；开发设计与计量澄清统一见[研究§7.26](skill-dsl-research.md#726-aeafag-结果表达场景复用与计量)。
+AE实际执行24首轮、0追加；AF/AG不调用业务模型，也不增加AE研究分母。普通默认保持兼容，v5和场景组合均显式选择。三份任务的文件归属、失败处理和验收分别写在各自任务书；开发结果与计量澄清统一见[研究§7.26](skill-dsl-research.md#726-aeafag-结果表达场景复用与计量)。
 
 **文档治理：** 日常阅读集中到本页、[文档入口](README.md)、[证据索引](evidence-index.md)和[实验目录](../../results/skill-ir/experiment-catalog.json)；版本化验证材料继续按治理清单保留原路径和原字节。历史长文档不再复制实验流水，结果只在最窄证据位置链接。
 

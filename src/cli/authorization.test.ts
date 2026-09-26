@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "bun:test"
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises"
+import { mkdtemp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import type { LLMProvider, LLMResponse } from "../providers/types.ts"
@@ -184,6 +184,22 @@ function dependencies(
 }
 
 describe("authorization CLI", () => {
+  it("routes a read-only scenario workspace preview without creating output or a provider", async () => {
+    const workspace = path.join(repositoryRoot, "examples", "authorization-assessment", "scenario-workspace", "workspace.json")
+    const output = path.join(path.dirname(workspace), "__cli-route-check-only-output")
+    const stdout: string[] = [], stderr: string[] = []
+    const deps: AuthorizationCliDependencies = {
+      stdout: value => stdout.push(value),
+      stderr: value => stderr.push(value),
+      providerFactory: () => { throw new Error("preview must not create a provider") },
+    }
+    expect(await runAuthorizationCli(["compose", `--workspace=${workspace}`, `--out=${output}`, "--check-only"], deps)).toBe(0)
+    expect(JSON.parse(stdout.at(-1)!).status).toBe("valid")
+    expect(await stat(output).then(() => true, () => false)).toBe(false)
+    expect(await runAuthorizationCli(["compose", "--unknown=x"], deps)).toBe(2)
+    expect(stderr.at(-1)).toContain("Invalid argument")
+  })
+
   it("runs and inspects explicit v5 and compares with the same protocol by default", async () => {
     const fixture = await makeFixture({ conditionRequest: true })
     const calls = { factory: 0, provider: 0 }, stdout: string[] = [], stderr: string[] = []

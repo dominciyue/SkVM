@@ -1,0 +1,274 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "ab-linkding-asset-original",
+    "request": "Assess read an existing bookmark asset via GET assets/<asset_id> for the supplied original scenario.",
+    "repository": "https://github.com/sissbruecker/linkding",
+    "sourceRef": "27b7303baf41bb28babc610ac8eaa486e1ddfab5",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:policy",
+        "kind": "explicit-task-requirement",
+        "text": "The owner may read an asset; authenticated readers may read it when its bookmark is shared and owner sharing is enabled; anonymous readers require public sharing enabled.",
+        "location": "brief.json#/operations/asset",
+        "revision": "ab-brief-v1",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "Bounded research task requirement accepted by task author; upstream asset access tests retained independently for evaluation."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:caller",
+        "role": "authenticated ordinary reader",
+        "description": "Author facts: [\"Caller is not the bookmark owner\",\"GET request\"]",
+        "startingCapabilities": []
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:target",
+        "type": "asset",
+        "description": "Author facts: [\"Existing asset of another user's bookmark; bookmark.shared=True, owner.profile.enable_sharing=True, enable_public_sharing=False. Asset file exists and is valid.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:target",
+        "name": "view",
+        "locations": [
+          {
+            "path": "bookmarks/views/assets.py",
+            "startLine": 8,
+            "endLine": 22
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:assessment",
+        "principalId": "principal:caller",
+        "resourceId": "resource:target",
+        "relation": "authenticated non-owner of a shared bookmark asset",
+        "operation": "read an existing bookmark asset via GET assets/<asset_id>",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:policy",
+        "entryIds": [
+          "entry:target"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+      "Determine whether the provided source enforces the supplied policy expectation for this state, separately state the actual allow/deny/unknown decision.",
+      "Trace route/entry, identity and resource binding, strongest visible control, and protected effect. Explain why the stated role and relation change matters.",
+      "Distinguish task assumptions from facts observed in source. Name any decisive missing external facts; do not invent deployment facts. Exact HTTP status is optional unless needed to explain the decision."
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+      "Single fixed repository/ref and explicit source files only. No target execution, dependency installation, deployment access, patching or repository-wide discovery. Standard Django decorator/ORM behavior is assumed; requests reach the supplied view with the stated identity/settings, pass CSRF and unrelated infrastructure checks. Assess authorization reachability of the protected operation, not successful storage or deployment execution.",
+      "Django framework/authentication backend and application deployment middleware are not supplied; identity, stated settings and ordinary ORM behavior are task assumptions.",
+      "Unrelated imported view/services and rendering behavior are not analyzed. All selected project-owned authorization gates and protected operation calls are supplied."
+    ]
+  },
+  "scenarios": {
+    "scenario:assessment": {
+      "name": "assessment",
+      "obligation": {
+        "id": "scenario:assessment",
+        "principalId": "principal:caller",
+        "resourceId": "resource:target",
+        "relation": "authenticated non-owner of a shared bookmark asset",
+        "operation": "read an existing bookmark asset via GET assets/<asset_id>",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:policy",
+        "entryIds": [
+          "entry:target"
+        ]
+      },
+      "principal": {
+        "id": "principal:caller",
+        "role": "authenticated ordinary reader",
+        "description": "Author facts: [\"Caller is not the bookmark owner\",\"GET request\"]",
+        "startingCapabilities": []
+      },
+      "resource": {
+        "id": "resource:target",
+        "type": "asset",
+        "description": "Author facts: [\"Existing asset of another user's bookmark; bookmark.shared=True, owner.profile.enable_sharing=True, enable_public_sharing=False. Asset file exists and is valid.\"]"
+      },
+      "policy": {
+        "id": "policy:policy",
+        "kind": "explicit-task-requirement",
+        "text": "The owner may read an asset; authenticated readers may read it when its bookmark is shared and owner sharing is enabled; anonymous readers require public sharing enabled.",
+        "location": "brief.json#/operations/asset",
+        "revision": "ab-brief-v1",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "Bounded research task requirement accepted by task author; upstream asset access tests retained independently for evaluation."
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:target",
+          "name": "view",
+          "locations": [
+            {
+              "path": "bookmarks/views/assets.py",
+              "startLine": 8,
+              "endLine": 22
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Aassessment::entry%3Atarget"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "bookmarks/views/access.py",
+      "sha256": "55caca51e1f01d9b1469aef088def210b2a2624ed8683af061cacbc2d3f6a0f1",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 74
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "bookmarks/views/bookmarks.py",
+      "sha256": "6c54e6b75ab5a34762ed8c746dbb349c16ddd3ae6ad84ddc5bf0c989ef931af9",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 427
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "bookmarks/views/assets.py",
+      "sha256": "3aa2ce5c74dae3fc75f22a660d232f6bfff80bcb325181c45af926b769413bc7",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 41
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "bookmarks/services/assets.py",
+      "sha256": "d54ca00c80f5b5768df2d8aa37dac69cf495aafe3f8fbc6e09c1a37e5403ac8d",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 307
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "bookmarks/urls.py",
+      "sha256": "8a51206ea65277ebc4ba82abe6fcec81660f359ae2160f8d81d1c94d7132924a",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 163
+      },
+      "originalLocations": []
+    }
+  ],
+  "sourceRoot": "project",
+  "sources": [
+    "bookmarks/views/access.py",
+    "bookmarks/views/bookmarks.py",
+    "bookmarks/views/assets.py",
+    "bookmarks/services/assets.py",
+    "bookmarks/urls.py"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:assessment"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:assessment"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:assessment"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:assessment"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:assessment"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:assessment"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": null,
+  "normalizerVersion": "authoring-v2-lowering/1",
+  "method": "plain",
+  "wireVersion": "source-authorization-assessment-wire/v5",
+  "arm": "B",
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "28e4c5c0b0a928de1e9847f8366d7c2dd68fdc96459d265555090bbc85c560c3"
+}

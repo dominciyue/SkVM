@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260926T171814618Z-c8c30d23
+Status: completed
+Task: owui-process-file-write
+Method: plain (explicit); requested: plain; condition request ignored: true
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- file-owner-without-destination-write-grant::post-process-file: source_supported_failure — The declared entry is POST /process/file, gated first by the verified-user dependency and then, for the stated non-admin branch, by successful retrieval of the requested source file under both file ID and user ID. Thus the runtime principal is the dependency-provided user, whose ID is used for the source-file ownership check and whose user object is later passed to the save operation. The form independently accepts file_id and collection_name: file_id selects the checked source file, while a non-null collection_name is copied directly into the destination variable. These resources remain distinct; owning the source file is the strongest visible non-admin authorization decision, and the crop expressly identifies no authorization call for the selected collection. Under the fixed conditions—verified non-admin, owned source file, and caller-supplied existing collection name—the file check succeeds, the supplied name is retained rather than replaced by the per-file default, save_docs_to_vector_db receives that name with add=True, and its visible write path calls VECTOR_DB_CLIENT.insert for that collection. This supports failure of the normative deny expectation: the source-visible path reaches the destination write effect without an ownership or explicit-write-grant check on the knowledge-base collection. The separate admin branch changes only source-file retrieval by allowing lookup without a user-ID ownership restriction; it does not add a visible destination authorization check. The no-collection-name branch would instead choose a file-derived collection and is outside the fixed caller-selected-existing-collection condition. A source-external vector-store enforcement rule could still reject or otherwise prevent persistence, but no such backend ACL behavior is supplied; it does not alter that this fixed source exposes a reachable insert call without visible destination authorization.
+  Evidence: POST /process/file binds form data and requires the dependency-provided verified user before the handler proceeds. (inputs/owui-process-file-write/retrieval_process_file.py:27-33)
+  Evidence: A supplied collection_name is copied directly from the form; only an absent value is replaced with a file-derived collection name. (inputs/owui-process-file-write/retrieval_process_file.py:47-50)
+  Evidence: The request model exposes separate file_id and collection_name fields, so the checked source file and caller-selected destination collection are distinct request-selected objects. (inputs/owui-process-file-write/retrieval_process_file.py:21-24)
+  Evidence: For a non-admin, the dependency-provided user's ID is used with the requested file ID to retrieve the source file, binding the declared principal to the identity used by the visible ownership check. (inputs/owui-process-file-write/retrieval_process_file.py:40-44)
+  Evidence: The supplied crop identifies the intervening omitted processing as containing no call that authorizes collection_name, leaving source-file ownership distinct from destination permission. (inputs/owui-process-file-write/retrieval_process_file.py:52-53)
+  Evidence: The visible role/ownership authorization branches only on source-file access: admins retrieve by file ID, while non-admins must retrieve by both file ID and their user ID; continuation also requires that a file was found. (inputs/owui-process-file-write/retrieval_process_file.py:40-46)
+  Evidence: The visible save path performs VECTOR_DB_CLIENT.insert using collection_name and the generated content items, which is the protected destination-write effect. (inputs/owui-process-file-write/retrieval_process_file.py:4-18)
+  Evidence: The fixed source shows invocation of the vector database insert but does not supply the vector backend's runtime acceptance, ACL, or rejection behavior for the existing collection. (inputs/owui-process-file-write/retrieval_process_file.py:14-18)
+  Evidence: When collection_name is supplied, the save operation receives that selected destination and add is set to true; the same runtime user object is also passed onward. (inputs/owui-process-file-write/retrieval_process_file.py:62-74)
+  Unknown: For whether bytes are ultimately persisted rather than merely reaching the protected insert call, the fixed context does not supply whether VECTOR_DB_CLIENT or its backing vector store independently enforces destination ownership/write grants or rejects this write.
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

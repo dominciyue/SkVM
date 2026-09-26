@@ -1,0 +1,1040 @@
+{
+  "schemaVersion": "authorization-ae-review-packet/v1",
+  "configSha256": "0036d58419e9beda5af0c10497662283ef6b08c0fe517c39678e7c1e77a07895",
+  "generationClosed": true,
+  "units": [
+    {
+      "id": "01-linkding-remove-original-markdown-v4",
+      "caseId": "linkding-remove-original",
+      "taskId": "ab-linkding-remove-original",
+      "arm": "markdown",
+      "wire": "v4",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "e2e3aa2d9e589218826b0147d6156ede6cb429322c02339c761c024cd4d1a82a",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": null,
+      "explanation": "The fixed source enforces the declared expectation for the stated case: the actual decision is deny. The route maps POST bookmarks/shared/action to shared_action, which invokes handle_action; with only remove present, dispatch reaches remove. remove resolves the bookmark through bookmark_write, whose query requires owner=request.user and raises Http404 when that owner binding is absent. Therefore the non-owner relation prevents the protected delete call from being reached, even though the bookmark is shared. Sharing-related read access is not a deletion grant here: the supplied shared-action path uses the owner-only write binding, and the shared view itself does not establish ownership. The caller's authentication, ordinary-user role, bookmark sharing/settings, POST contents, CSRF/infrastructure success, and framework behavior are task assumptions; the source-backed authorization facts are the route, dispatch, owner binding, and delete effect. No decisive external fact is missing for this bounded reachability assessment; repository-wide completeness, deployment behavior, and exact HTTP response details are not claimed.",
+      "facts": {
+        "entry": [
+          "The shared_action view delegates to handle_action, and a remove POST field dispatches to remove with the submitted bookmark identifier.",
+          "The shared-action URL is routed to the shared_action view."
+        ],
+        "binding": [
+          "The write accessor selects a bookmark only when its owner equals the authenticated request user; otherwise it raises Http404."
+        ],
+        "control": [
+          "The decisive visible authorization control is the owner=request.user predicate in bookmark_write, rather than the bookmark's shared status."
+        ],
+        "effect": [
+          "After the write accessor succeeds, remove deletes the resolved bookmark."
+        ],
+        "condition": [
+          "For a caller who is not the bookmark owner, the owner-filtered write lookup cannot resolve that bookmark, so the delete operation is not reached."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "02-linkding-remove-original-dsl-v5",
+      "caseId": "linkding-remove-original",
+      "taskId": "ab-linkding-remove-original",
+      "arm": "dsl",
+      "wire": "v5",
+      "status": "completed",
+      "finalKind": "repair",
+      "rawOutputSha256": "4ff5b59fa9208f810b51ce39d1f3ba5ba0494de0d7a6a59906baa63f8be03e2a",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": "satisfied",
+      "explanation": "The supplied route maps POST bookmarks/shared/action to shared_action. The entry's login-required gate admits the stated authenticated caller, and the only remove field does not select the bulk-action rejection; handle_action dispatches the supplied bookmark ID to remove. The selected ID is bound to the bookmark by access.bookmark_write, whose owner=request.user filter is the strongest visible authorization control. In the declared non-owner state, that lookup fails and raises Http404 before bookmark.delete() can run. The shared flag and the owner's sharing settings do not create a deletion branch in this path: sharing is not used by the remove authorization check, and the distinct checked resource is the bookmark owner identity, which must equal the runtime request.user. Therefore the actual source-visible decision is deny, and the declared policy expectation to deny non-owner deletion is enforced. No decisive source-external fact is needed under the stated task assumptions; deployment, authentication-backend, and storage-execution facts are outside the supplied authorization path, and source discovery is not-tested.",
+      "facts": {
+        "entry": [
+          "The declared endpoint is routed to the shared_action view."
+        ],
+        "binding": [
+          "The authorization lookup compares the bookmark owner with the runtime request.user identity.",
+          "The POST-selected bookmark identifier is passed to remove, and the access lookup binds that identifier to a bookmark owned by request.user."
+        ],
+        "control": [
+          "The shared_action entry is protected by the login-required decorator.",
+          "The visible authorization branch is owner-only; the shared state and sharing-profile settings are not used as a deletion grant, so a sharing participant remains distinct from the required bookmark owner.",
+          "If the caller is not the bookmark owner, the owner-constrained lookup raises Http404 and the assessed path stops before deletion."
+        ],
+        "effect": [
+          "The protected effect is bookmark.delete(), reached only after the owner-constrained lookup returns a bookmark."
+        ],
+        "condition": [
+          "With only remove in the POST, the bulk-action rejection is not selected and the dispatcher selects the single-bookmark remove branch."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "03-linkding-remove-original-markdown-v5",
+      "caseId": "linkding-remove-original",
+      "taskId": "ab-linkding-remove-original",
+      "arm": "markdown",
+      "wire": "v5",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "c3ab852923b14af7e356748dd68e4f3af513b549925b56e591f094faff6f0ebe",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": "satisfied",
+      "explanation": "Actual source decision: deny. The declared expectation is that only the bookmark owner may delete and that sharing grants no deletion right; the fixed source enforces that expectation for the stated non-owner caller. The URL maps bookmarks/shared/action to shared_action. That login-protected entry rejects bulk execution but otherwise sends the request to handle_action; a POST field named remove dispatches the supplied bookmark ID to remove. remove does not delete the ID directly: it first calls bookmark_write, whose ORM lookup binds both the selected primary key and owner=request.user. For the stated authenticated caller who is not the owner, that lookup has no matching row and is converted to Http404, so control does not reach bookmark.delete(). This is therefore an authorization denial (regardless of the optional exact HTTP-status characterization), not merely a failure inferred from storage behavior. The strongest visible control is the owner-scoped lookup in bookmark_write. Sharing does not weaken it: the separate read helper recognizes authenticated sharing when the bookmark is shared and the owner enables sharing, but also rejects a non-owner on POST; the deletion path uses the stricter write helper in any event. The role/relation distinction matters because no superuser or special-role bypass is present in this bounded path, while ownership is embedded directly in the write lookup: changing the caller from non-owner to owner would allow resource binding to succeed and make the delete call reachable; changing only shared/public-sharing state would not. Task assumptions, rather than facts established by these files, are that the request is POST with only remove=<existing id>, the request identity is the specified authenticated ordinary non-owner, the bookmark and profile have the stated sharing values, CSRF and unrelated infrastructure checks pass, and standard Django decorator/ORM behavior applies. Source-observed facts are the route, login decoration, action dispatch, owner-scoped resource lookup, read-sharing rules, and guarded delete call cited below. Under those assumptions no decisive external deployment fact is missing for this bounded decision; this does not claim completeness beyond the supplied entry and fixed source crop.",
+      "facts": {
+        "entry": [
+          "The shared action entry is login-protected and passes non-bulk requests to the common action dispatcher.",
+          "The supplied URL configuration routes bookmarks/shared/action to the shared_action view."
+        ],
+        "binding": [
+          "The entry requires an authenticated request identity, and the authorization lookup later uses request.user as the ownership principal.",
+          "When remove is present, the dispatcher takes its value as the selected bookmark identifier and calls remove with the same request."
+        ],
+        "control": [
+          "The write access helper retrieves a bookmark only when both its primary key matches the selected identifier and its owner equals request.user; absence of such a row raises Http404."
+        ],
+        "effect": [
+          "The protected deletion effect is bookmark.delete(), reached only after remove successfully obtains the bookmark through bookmark_write."
+        ],
+        "condition": [
+          "The deletion path invokes the owner-scoped write helper, so ownership—not shared status—is the source-visible relation controlling whether deletion becomes reachable.",
+          "The separate read helper treats an authenticated user as having shared-read access when the bookmark is shared and the owner enables sharing, but it rejects POST by a non-owner; public sharing is a distinct read condition."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "04-linkding-remove-original-dsl-v4",
+      "caseId": "linkding-remove-original",
+      "taskId": "ab-linkding-remove-original",
+      "arm": "dsl",
+      "wire": "v4",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "3a86a0967fdf39c1d2b81c617ab7336cfcd5656fbb755247033208e9843ccee9",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": null,
+      "explanation": "The declared route maps POST bookmarks/shared/action to shared_action. The entry is gated by login_required, binding the runtime caller through request.user under the task’s stated authenticated-identity assumption. With only remove=<existing bookmark id>, the bulk_execute rejection is not selected; shared_action delegates to handle_action, whose remove branch passes the request-supplied identifier to remove. The selected bookmark is then resolved by bookmark_write using both its primary key and owner=request.user. This binds the request-selected object to the declared bookmark while keeping the caller identity/required owner distinct from the actual non-owner principal: sharing state, the owner’s sharing settings, and ordinary authenticated status do not satisfy this ownership predicate. The strongest visible authorization control is therefore the owner-scoped ORM lookup, not the shared-reading rules. Because the declared principal is not the bookmark owner, ordinary ORM behavior makes that lookup fail and raise Http404 before the protected bookmark.delete() effect. The delete effect is reachable only on the source-visible branch where the selected bookmark’s owner equals request.user. Thus the actual authorization decision is deny, and the supplied policy expectation of deny is enforced, so the policy-failure proposition is refuted. The role and relation matter because no superuser or special-role bypass is visible, while non-ownership directly defeats the owner filter. No decisive source-external fact remains unknown under the fixed task assumptions: runtime identity, authentication, request contents, resource existence/ownership/sharing settings, routing reachability, CSRF passage, and ordinary Django ORM behavior are supplied or expressly assumed. Unprovided deployment middleware could affect whether the request reaches the view, but cannot change this bounded authorization result under the instruction that the request does reach it; repository-wide and deployment behavior remain not tested.",
+      "facts": {
+        "entry": [
+          "The declared entry requires an authenticated caller and then delegates the request to the common action handler unless the unsupported bulk_execute parameter is present.",
+          "The bookmarks/shared/action route is bound to the shared_action view."
+        ],
+        "binding": [
+          "Authorization uses request.user as the runtime caller identity in the owner-scoped bookmark lookup.",
+          "When remove is present, the request-supplied remove value is forwarded as the bookmark identifier to the remove operation."
+        ],
+        "control": [
+          "The selected bookmark must simultaneously match the supplied identifier and have request.user as owner; absence of such an owner-matching object raises Http404.",
+          "The visible write control contains only an ownership predicate and no ordinary-user, sharing, public-sharing, or special-role bypass."
+        ],
+        "effect": [
+          "Deletion occurs only after bookmark_write returns the owner-matching bookmark."
+        ],
+        "condition": [
+          "The shared entry rejects only requests containing bulk_execute before dispatch; a request containing only remove proceeds to handle_action.",
+          "Shared-read access is distinct from write access: read logic can recognize authenticated sharing, but POST by a non-owner is rejected; the assessed delete path independently uses the owner-only write lookup."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "05-linkding-remove-changed-dsl-v4",
+      "caseId": "linkding-remove-changed",
+      "taskId": "ab-linkding-remove-changed",
+      "arm": "dsl",
+      "wire": "v4",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "15a3c4f5a25b638b2cc0edaaa65ddb0ec74d45399e45d5e646353b9c266bc7c5",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": null,
+      "explanation": "The declared route maps bookmarks/shared/action to shared_action. Before the assessed path proceeds, @login_required gates the view; under the task assumption that the request reaches it as the authenticated declared principal, request.user is the runtime identity. With a POST containing only remove=<existing bookmark id>, shared_action does not take its bulk-action rejection branch and delegates to handle_action, whose remove branch passes the request-selected ID to remove. The selected object is then bound by a lookup requiring both pk=<submitted id> and owner=request.user. This is the strongest visible authorization control: ownership, not sharing, authorizes deletion. The bookmark owner's sharing settings and the bookmark's shared flag do not weaken that write check; they are relevant to shared-read logic elsewhere, which remains distinct from this delete path. Because the declared caller owns the same selected bookmark, the lookup succeeds under ordinary ORM behavior and reaches bookmark.delete(). Thus the source-visible actual decision is allow, and the supplied expectation that an owner may delete is enforced, so the alleged policy failure is refuted. The role/relation distinction is decisive: an authenticated ordinary owner passes without any superuser branch, while a merely shared non-owner would not match owner=request.user and would be rejected before deletion. Authentication behavior, request identity, settings, CSRF passage, object existence, ownership, and ordinary ORM semantics are supplied task assumptions rather than deployment observations. Under those stipulated assumptions no source-external fact remains decisive; deployment and repository-wide completeness remain untested.",
+      "facts": {
+        "entry": [
+          "The declared shared-action URL is routed to shared_action."
+        ],
+        "binding": [
+          "The authorization lookup uses request.user as the caller identity whose ownership must match the selected bookmark.",
+          "The remove value from POST is passed as the bookmark identifier into remove, binding the request-selected ID to the object subjected to the write lookup."
+        ],
+        "control": [
+          "The entry is gated by login_required, rejects only requests containing bulk_execute, and otherwise delegates to handle_action.",
+          "Bookmark write access requires one object matching both the submitted primary key and owner=request.user; absence of such a match stops the operation with not-found behavior."
+        ],
+        "effect": [
+          "After the owner-scoped write lookup succeeds, remove invokes delete on that bookmark."
+        ],
+        "condition": [
+          "Shared-read access is a distinct control based on authentication, the shared flag, and the owner's sharing setting, while POST read access still requires ownership; this read logic is not the delete path's authorization predicate.",
+          "There is no special-role branch in the delete helper: authorization turns solely on whether the selected bookmark is owned by request.user, so the stated owner relation permits the effect and a shared non-owner relation would not."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "06-linkding-remove-changed-markdown-v5",
+      "caseId": "linkding-remove-changed",
+      "taskId": "ab-linkding-remove-changed",
+      "arm": "markdown",
+      "wire": "v5",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "90bf28cca4c185a432ee2a68d2c027a2e5b740289883399a2a9913b9a496000b",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": "satisfied",
+      "explanation": "Actual source decision: allow. The URL maps POST bookmarks/shared/action to shared_action. That entry requires authentication, rejects only bulk execution, and delegates the supplied single remove field to handle_action. The remove branch passes the posted bookmark ID to remove. The strongest visible authorization control is access.bookmark_write, whose ORM lookup binds both the selected bookmark primary key and owner=request.user; failure is hidden as not found. Under the task assumptions that the authenticated caller owns the existing bookmark and the request contains only that remove ID, this lookup succeeds and remove invokes deletion. Thus the fixed source enforces the declared expectation for this state: the owner may delete. Sharing does not broaden deletion authority: bookmark_read permits qualifying authenticated sharing for reads but expressly rejects a non-owner POST, while bookmark_write independently requires ownership. Consequently shared=True and the owner's enable_sharing=True make the item readable to qualifying users but do not grant them removal; enable_public_sharing=False is immaterial to this owner-write path. The ordinary-user/no-special-role fact also does not block the operation because the selected write control tests ownership rather than superuser or role status. Caller authentication, caller/resource ownership, sharing settings, request contents, CSRF/infrastructure passage, and ordinary Django ORM/decorator behavior are task assumptions rather than deployment facts established by these files. Given those declared assumptions, no decisive external fact is missing for the bounded authorization-reachability decision; storage-level deletion success and exact HTTP status are outside the requested decision.",
+      "facts": {
+        "entry": [
+          "When the POST contains remove, the dispatcher calls remove with the posted bookmark identifier.",
+          "The supplied shared action URL is routed to the shared_action view."
+        ],
+        "binding": [
+          "The write lookup jointly binds the requested bookmark primary key to owner=request.user, returning only a bookmark owned by the authenticated principal and otherwise raising not found."
+        ],
+        "control": [
+          "The shared action entry requires login, rejects bulk actions, and otherwise delegates the request to the common action dispatcher.",
+          "The removal helper applies the owner-only bookmark_write control before performing deletion."
+        ],
+        "effect": [
+          "After the owner-bound lookup succeeds, the protected effect is invocation of delete on that bookmark."
+        ],
+        "condition": [
+          "The selected write control contains an ownership predicate and no superuser or special-role alternative, so ownership—not elevated role or shared visibility—is decisive.",
+          "Read access can arise from ownership, authenticated sharing when the owner enables sharing, or public sharing, but a POST by a non-owner is rejected."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "07-linkding-remove-changed-dsl-v5",
+      "caseId": "linkding-remove-changed",
+      "taskId": "ab-linkding-remove-changed",
+      "arm": "dsl",
+      "wire": "v5",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "50db5539d2114f5a32ce73d96189d2722766b0f861cbd62a1e230336fb203e0a",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": "satisfied",
+      "explanation": "The declared URL is routed to shared_action. Before the assessed path proceeds, the strongest entry-level gate is login_required, so the runtime caller is request.user and must be authenticated under the task's assumed standard Django behavior. With a POST containing only remove=<existing bookmark id>, the bulk-action rejection is not selected; shared_action delegates to handle_action, whose remove branch passes the posted identifier to remove. The selected object is then bound in one ORM lookup by both primary key and owner=request.user. This simultaneously binds the request-selected bookmark to the declared resource and enforces the owner relation; a different user's shared bookmark remains a distinct resource because it cannot satisfy that owner-constrained lookup. The strongest visible authorization control is therefore bookmark_write's conjunctive id-and-owner filter, not the bookmark's sharing flags or a read-sharing branch. If the lookup succeeds for the stated owner, remove reaches bookmark.delete(). Thus the source-visible actual decision is allow for the authenticated owner and deny/not-found for a non-owner, including an ordinary user who merely has shared-read access. That role/relation distinction matters because sharing does not participate in the write lookup, while ownership does. This satisfies the supplied expectation that the owner may delete the same shared bookmark and that sharing alone grants no deletion authority. Task assumptions, rather than source observations, include that the caller is authenticated, request.user is the owner, the bookmark exists with the stated sharing settings, the request passes CSRF and unrelated infrastructure checks, and standard Django decorator/ORM behavior applies. No decisive source-external fact remains unknown within those supplied assumptions. Actual deployment middleware/backend behavior or actual database identity/ownership could change runtime behavior, but those facts are explicitly outside the fixed context and are stipulated for this assessment rather than missing. Repository-wide or alternate-entry completeness is not claimed.",
+      "facts": {
+        "entry": [
+          "The declared view is guarded by login_required and delegates non-bulk requests to the common action handler.",
+          "The declared shared action URL maps to the shared_action view."
+        ],
+        "binding": [
+          "The write-access lookup uses request.user as the owner value, binding authorization to the authenticated runtime caller.",
+          "The request-selected identifier and caller ownership are checked together in the bookmark primary-key lookup, so another user's shared bookmark does not satisfy the lookup."
+        ],
+        "control": [
+          "Bookmark write authorization requires the selected bookmark to be owned by request.user; failure is converted to not-found, with no sharing-based write branch."
+        ],
+        "effect": [
+          "After the owner-constrained write lookup succeeds, the remove operation invokes deletion on that bookmark."
+        ],
+        "condition": [
+          "The shared entry rejects only requests selecting bulk execution before delegating; the stated remove-only POST does not select that rejection branch.",
+          "When remove is present, the action handler selects the remove branch and forwards exactly that posted bookmark identifier."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "08-linkding-remove-changed-markdown-v4",
+      "caseId": "linkding-remove-changed",
+      "taskId": "ab-linkding-remove-changed",
+      "arm": "markdown",
+      "wire": "v4",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "bba09e0f0cff090ed70cc5c86b9abe05eddfcf1d0d27a3fedf309dfa39450d07",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": null,
+      "explanation": "The declared expectation is allow for this state, and the fixed source supports that expectation; therefore a policy-failure claim is refuted. Actual source decision: allow, under the task assumptions that the request reaches this view as the authenticated caller and that the submitted ID identifies a bookmark owned by that same caller. The URL maps bookmarks/shared/action to shared_action. That entry requires authentication, rejects only bulk execution in this path, and sends the single-action POST to handle_action. A POST containing remove is bound to the submitted bookmark ID and dispatched to remove. The strongest visible authorization control is not the sharing configuration or an elevated role: remove calls bookmark_write, whose ORM lookup requires both the selected primary key and owner=request.user. With the stipulated owner relation, the lookup returns the bookmark and the protected delete call is reached. If the caller were merely another authenticated user receiving shared-read access, the owner-constrained lookup would fail and raise Http404, so sharing does not grant deletion. The source's separate read helper also expressly distinguishes sharing-based readability from POST authority by rejecting POST for non-owners. Thus shared=True, enable_sharing=True, and enable_public_sharing=False do not prevent this owner's deletion and do not authorize a non-owner; the changed owner relation is decisive, while the absence of a superuser or special role is immaterial because this path does not test such a role. Task assumptions, rather than source-observed deployment facts, include the concrete authenticated identity, ownership of the selected existing bookmark, sharing/profile values, POST shape, CSRF/infrastructure passage, and ordinary Django ORM/decorator behavior. No decisive external fact remains missing for this bounded decision under those assumptions; this is not a claim about other entries or repository-wide completeness.",
+      "facts": {
+        "entry": [
+          "The supplied URL configuration maps the bookmarks/shared/action path to the shared_action view.",
+          "The shared action rejects bulk execution but otherwise delegates the request to the common action dispatcher."
+        ],
+        "binding": [
+          "The shared action entry is protected by login_required, binding the operation to an authenticated request user under the stated framework assumptions.",
+          "When remove is present, the dispatcher passes the POST remove value as the bookmark identifier to the remove operation."
+        ],
+        "control": [
+          "The write-access helper resolves the selected bookmark only when its primary key matches and its owner equals request.user; otherwise it raises Http404."
+        ],
+        "effect": [
+          "The remove operation first obtains the bookmark through the owner-constrained write helper and then invokes deletion on that bookmark."
+        ],
+        "condition": [
+          "The supplied read helper treats owner access and sharing-based read access separately, and for POST rejects a caller who is not the owner even when a sharing condition could permit reading.",
+          "Because write lookup authorization is expressed solely as owner=request.user, the stated owner relation satisfies the visible deletion gate, while ordinary-user versus special-role status and sharing flags are not predicates in that gate."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "09-linkding-asset-original-markdown-v4",
+      "caseId": "linkding-asset-original",
+      "taskId": "ab-linkding-asset-original",
+      "arm": "markdown",
+      "wire": "v4",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "3071ded08a9741574c4c5ade2bf5448d42d6a6db7e83bfb6b62576121a192918",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": null,
+      "explanation": "The declared expectation is that an authenticated non-owner may read an asset when the bookmark is shared and the owner has sharing enabled. The supplied source enforces that expectation for the stated state, and the actual source decision is allow. The URL table binds GET assets/<asset_id> to the asset view; that view calls asset_read before streaming the file. asset_read resolves the asset, then delegates authorization to bookmark_read using the asset's bookmark. bookmark_read permits the owner, an authenticated reader of a shared bookmark whose owner has enable_sharing, or a publicly shared bookmark, and rejects all other cases. The stated caller satisfies the authenticated shared-reader branch, so the protected file-streaming operation is reachable. The caller's non-owner relation matters because it prevents the owner branch from being used; authorization instead depends on authenticated status, bookmark.shared, and the owner's enable_sharing. Public sharing is not needed for this authenticated branch, so enable_public_sharing=False does not change the result. The supplied file-exists assumption allows the effect to complete rather than produce the view's missing-file 404. These are source-backed authorization findings under the task's stated identity, settings, request method, and asset-validity assumptions; framework, deployment, and unrelated middleware facts are not independently established and are not decisive here.",
+      "facts": {
+        "entry": [
+          "The asset URL pattern maps assets/<asset_id> to the asset view, and the view invokes asset_read before attempting to stream the asset."
+        ],
+        "binding": [
+          "The authorization logic identifies ownership by comparing the bookmark owner with request.user and identifies the authenticated shared-reader path using request.user.is_authenticated together with the bookmark and owner sharing settings.",
+          "The asset is looked up by asset ID and its related bookmark ID is passed to bookmark_read; the returned asset is then used by the view."
+        ],
+        "control": [
+          "bookmark_read rejects a reader only when the reader is neither the owner, nor an authenticated reader of a shared bookmark with owner sharing enabled, nor a publicly shared reader; otherwise it returns the bookmark, with POST additionally restricted to the owner."
+        ],
+        "effect": [
+          "After authorization, the asset view streams the asset file; the service opens the configured asset path, transparently decompresses when marked gzip, and constructs a streaming HTTP response."
+        ],
+        "condition": [
+          "The view converts a missing asset file into an HTTP 404, while the task supplies that the asset file exists and is valid; therefore the file-existence assumption does not block the authorized streaming effect.",
+          "For the stated GET request, authenticated non-owner caller, shared bookmark, owner enable_sharing=True, and enable_public_sharing=False, the authenticated shared-reader condition is satisfied while the owner and public-sharing conditions are not required."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "10-linkding-asset-original-dsl-v5",
+      "caseId": "linkding-asset-original",
+      "taskId": "ab-linkding-asset-original",
+      "arm": "dsl",
+      "wire": "v5",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "7f7ab7a9892a2acbc367a3f78091136106845e4c6976710b399bc99768cd16d9",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": "satisfied",
+      "explanation": "The declared URL selects the asset view with an integer asset_id. That view first calls the asset-read access helper, so the request cannot reach file streaming before authorization. The helper binds asset_id to a BookmarkAsset, then checks the separate associated bookmark through its bookmark_id; the asset and bookmark must therefore remain distinct objects, with the selected asset belonging to the checked bookmark. Runtime identity is request.user. The strongest visible control allows bookmark access if the caller owns it, or if the caller is authenticated and the bookmark is shared and the owner's sharing setting is enabled, or if public sharing is enabled. It denies only when none of those branches applies, and additionally denies non-owner POST requests. For the declared authenticated non-owner making GET, with shared=True and owner sharing enabled, the authenticated-sharing branch is true; non-ownership does not require denial, and the POST-only owner restriction does not apply. After that control returns the asset, the view reaches the protected read effect by passing that same asset to the streaming service, which opens its file and constructs a streaming response. Thus the source-visible actual decision is allow, matching the supplied policy expectation. Authentication state, request.user binding, request method, sharing values, ORM behavior, and file validity are task assumptions rather than independently established deployment facts, but they are expressly supplied or assumed by the fixed-context instructions. No still-unknown source-external fact is decisive under those constraints; deployment middleware or backend behavior could alter real deployment reachability, but it is outside scope and is not needed to decide this bounded source result.",
+      "facts": {
+        "entry": [
+          "The view invokes asset_read with the request and route-selected asset_id before attempting to stream the asset.",
+          "The assets/<integer asset_id> route dispatches to the declared asset view."
+        ],
+        "binding": [
+          "Authorization evaluates the runtime caller through request.user, including equality with the bookmark owner and request.user.is_authenticated.",
+          "asset_read resolves the request-selected asset_id to a BookmarkAsset and then authorizes the distinct associated bookmark identified by asset.bookmark_id before returning that same asset."
+        ],
+        "control": [
+          "Bookmark read access is permitted through owner, authenticated-sharing, or public-sharing branches and is rejected only if all three are false."
+        ],
+        "effect": [
+          "After asset_read succeeds, the view passes the authorized asset to stream_asset_file and returns the resulting response.",
+          "The streaming service opens the selected asset's file for reading and constructs a StreamingHttpResponse from its contents."
+        ],
+        "condition": [
+          "The authenticated-sharing branch requires an authenticated caller, a shared bookmark, and the bookmark owner's enable_sharing setting.",
+          "A separate restriction rejects POST by a non-owner; it does not apply to the declared GET, which is why the caller's non-owner role does not defeat the satisfied authenticated-sharing branch."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "11-linkding-asset-original-markdown-v5",
+      "caseId": "linkding-asset-original",
+      "taskId": "ab-linkding-asset-original",
+      "arm": "markdown",
+      "wire": "v5",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "93acea89d04d447b623fc138a1f38a13fa1af50f6eca6732da72d2d69424b2d7",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": "satisfied",
+      "explanation": "The fixed source enforces the stated allow expectation for this case, and the actual source decision is allow. The route binds GET assets/<asset_id> to the asset view, which calls asset_read before streaming the file. asset_read binds the requested asset by ID, then checks its bookmark through bookmark_read. For a non-owner authenticated caller, bookmark_read permits access when the bookmark is shared and the owner has enabled sharing; public sharing is not required for this authenticated path. The strongest visible authorization control is the combined asset_read/bookmark_read check, which raises Http404 before the file operation when the relation and sharing conditions fail. After that gate, the view calls the asset service to open and stream the existing file, so the protected effect is disclosure of the asset contents. The caller's authenticated non-owner role matters because it selects the is_shared branch rather than owner access; the shared bookmark and owner enable_sharing facts make that branch true, while enable_public_sharing is unnecessary. The supplied file-exists fact avoids the separate missing-file failure. Task assumptions include caller identity, ownership relation, sharing/settings values, GET method, valid existing file, and ordinary framework/ORM behavior; source-observed facts are the route, access checks, asset lookup, and file-streaming calls. No decisive external fact is missing under those stated assumptions; deployment and middleware behavior are outside the requested source assessment and are expressly assumed or excluded.",
+      "facts": {
+        "entry": [
+          "The assets/<asset_id> URL is routed to the asset view, and that view invokes the read path for the asset."
+        ],
+        "binding": [
+          "The bookmark read check compares the bookmark owner with request.user and recognizes an authenticated caller in the shared-bookmark branch.",
+          "The requested asset is looked up by asset ID, and the authorization check is applied to the bookmark referenced by that asset."
+        ],
+        "control": [
+          "A non-owner is allowed when the caller is authenticated, the bookmark is shared, and the bookmark owner's sharing setting is enabled; otherwise the source raises Http404 before returning the asset."
+        ],
+        "effect": [
+          "After authorization, the view streams the asset file; the service opens the stored file and returns its content as a streaming response."
+        ],
+        "condition": [
+          "The source handles a missing asset file by raising Http404, while the task supplies that the asset file exists and is valid.",
+          "The public-sharing condition is a separate alternative for unauthenticated or other callers; it is not needed when the authenticated shared-bookmark condition succeeds."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "12-linkding-asset-original-dsl-v4",
+      "caseId": "linkding-asset-original",
+      "taskId": "ab-linkding-asset-original",
+      "arm": "dsl",
+      "wire": "v4",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "19316b8acfa3b1f99a8e8a4955c9e9a839a2ae1c6ce5846126ddf5742672fe2b",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": null,
+      "explanation": "The supplied source enforces the declared allow expectation for the stated case. The route binds GET assets/<asset_id> to the declared view, which resolves the request-selected asset through asset_read. That helper loads the asset by the supplied asset identifier and then authorizes the distinct related bookmark through bookmark_read. For this non-owner authenticated reader, bookmark_read computes ownership from bookmark.owner versus request.user, and computes the authenticated shared-reader branch from request.user.is_authenticated, bookmark.shared, and bookmark.owner.profile.enable_sharing. The supplied state makes that branch true, while public sharing is not needed. The strongest visible authorization control therefore permits the request rather than requiring ownership. The view then reaches stream_asset_file, the protected read effect, and adds response headers. The stated role and relation matter because the caller is not the owner, so the owner branch is false, but the shared authenticated-reader branch independently authorizes access. The fixed context supplies the relevant identity and settings as task assumptions and assumes requests reach the view; no additional source-external fact is decisive for this bounded assessment. Deployment behavior, middleware, authentication implementation, exact response status, and other entries are not tested, so this is not a repository-wide completeness claim.",
+      "facts": {
+        "entry": [
+          "The declared view resolves the request-selected asset before attempting to stream it.",
+          "The assets/<asset_id> URL is routed to the asset view, and the view receives the asset identifier."
+        ],
+        "binding": [
+          "The authorization logic binds the caller to request.user and uses that identity for ownership and authentication checks.",
+          "The supplied asset identifier selects a BookmarkAsset, and the selected asset is then tied to its bookmark through asset.bookmark_id.",
+          "The related bookmark is the distinct resource checked by bookmark_read; it is loaded by bookmark identifier and evaluated against the caller and sharing settings."
+        ],
+        "control": [
+          "For a non-owner, the owner branch is false, but authenticated status together with bookmark sharing and owner sharing enables the separate reader branch; public sharing is a separate alternative branch.",
+          "The strongest visible gate denies only when the caller is neither the owner nor an authenticated reader of a shared bookmark with owner sharing enabled, nor a public reader; the authenticated shared-reader branch is sufficient here."
+        ],
+        "effect": [
+          "The streaming helper opens the selected asset file, transparently decompressing it when configured, and constructs the response content.",
+          "After authorization, the view invokes asset streaming, catches a missing file, and returns the streaming response with content-related headers."
+        ],
+        "condition": [
+          "Under the fixed-context assumptions, the caller identity, sharing state, owner setting, existing asset, valid file, request method, and reachability assumptions are supplied by the task; no additional decisive external observation is required to decide this source-visible authorization path.",
+          "The relevant source-visible condition is the sharing gate: authenticated status, bookmark shared state, and owner enable_sharing control the non-owner reader branch; public sharing is independently checked."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "13-linkding-asset-changed-dsl-v4",
+      "caseId": "linkding-asset-changed",
+      "taskId": "ab-linkding-asset-changed",
+      "arm": "dsl",
+      "wire": "v4",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "2b789ff9764156ce7e7f894040aa11d5c1e30e4750a7fa07bf2a8dbab2273230",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": null,
+      "explanation": "The declared GET route binds assets/<asset_id> to assets_views.view, which first calls access.asset_read. That helper retrieves the requested asset by its identifier and then authorizes access through the asset's associated bookmark. The bookmark authorization distinguishes the owner branch, authenticated shared-reader branch, and public-sharing branch. For the supplied anonymous non-owner, bookmark.shared is true and owner.enable_sharing is true, but the authenticated-reader branch is false because the caller is anonymous, and the public-sharing branch is false because owner.enable_public_sharing is false. The visible gate therefore raises Http404 before streaming or reading the asset. The request-selected asset is bound by asset_id, while the separately checked resource is the asset's bookmark; the bookmark relation is used for authorization rather than treating asset existence alone as sufficient. The protected effect is reached only after this gate and consists of opening and streaming the existing asset file. Thus the actual source-visible decision is deny, and the supplied policy expectation of deny is enforced for the stated state, so the policy-failure expectation is refuted. This assessment relies on the declared assumptions that the request reaches the supplied view with the stated identity and settings and passes unrelated infrastructure checks; it makes no repository-wide or deployment-completeness claim.",
+      "facts": {
+        "entry": [
+          "The view calls access.asset_read before attempting the asset operation.",
+          "The assets/<asset_id> route dispatches to assets_views.view."
+        ],
+        "binding": [
+          "The authorization logic binds the caller to request.user and checks both bookmark ownership and request.user.is_authenticated.",
+          "The requested asset is retrieved by asset_id, and its associated bookmark is the separately checked authorization resource."
+        ],
+        "control": [
+          "Access is denied when the caller is neither the owner, nor an authenticated reader of a shared bookmark whose owner enables sharing, nor a reader of a publicly shared bookmark."
+        ],
+        "effect": [
+          "Only after asset_read succeeds does the view call stream_asset_file, which opens the asset file and returns a streaming response."
+        ],
+        "condition": [
+          "The authenticated shared-reader branch requires request.user.is_authenticated together with bookmark.shared and bookmark.owner.profile.enable_sharing; the public branch requires bookmark.shared and bookmark.owner.profile.enable_public_sharing."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "14-linkding-asset-changed-markdown-v5",
+      "caseId": "linkding-asset-changed",
+      "taskId": "ab-linkding-asset-changed",
+      "arm": "markdown",
+      "wire": "v5",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "5102a6b3f6d01f900fbf67922307a82ef3079f66e073618d066b3ab61a83f0cd",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": "satisfied",
+      "explanation": "The fixed source enforces the declared deny expectation for this state. The URL maps GET assets/<asset_id> to the asset view, which first resolves the asset and its related bookmark through asset_read and bookmark_read. For the supplied anonymous, non-owner caller, the owner branch is false; the authenticated-reader branch is false because it requires authentication in addition to shared=True and owner sharing enabled; and the public-reader branch is false because public sharing is supplied as disabled. The access helper therefore raises Http404 before the asset service is called. The actual source decision is deny, not unknown: the protected file read/stream is unreachable under the supplied identity and settings. The caller's role and relation are decisive because authenticated status gates the non-public shared-reader branch, while non-ownership prevents the owner branch; shared=True and owner enable_sharing=True do not by themselves authorize an anonymous reader. The supplied asset existence/validity, GET method, identity, ownership, sharing, and settings are task assumptions; the cited source establishes the route, bindings, control, and effect. No decisive external fact is missing within the bounded source assessment. This is not a repository-wide completeness claim.",
+      "facts": {
+        "entry": [
+          "The asset URL with an integer asset identifier routes to the asset view, and that view invokes asset_read before attempting the operation."
+        ],
+        "binding": [
+          "The source loads the asset by primary key, then authorizes against the bookmark identified by the asset's bookmark relation; the owner comparison uses the request user."
+        ],
+        "control": [
+          "Bookmark read access requires ownership, or an authenticated request with a shared bookmark and owner sharing enabled, or a shared bookmark with owner public sharing enabled; otherwise the helper raises Http404."
+        ],
+        "effect": [
+          "If access succeeds, the view calls the asset service to stream the file, while the supplied asset service opens the configured asset path and returns its content; that protected operation is after the access check."
+        ],
+        "condition": [
+          "The authenticated-reader condition explicitly requires request.user.is_authenticated, so the non-public shared-reader path cannot authorize an anonymous caller; the public path is the separate condition that would apply to an anonymous reader when enabled."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [
+        "For a runtime confirmation outside this source-only assessment, observe that an anonymous GET with the supplied bookmark and owner-sharing settings is rejected before open_asset_file or stream_asset_file is invoked."
+      ],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "15-linkding-asset-changed-dsl-v5",
+      "caseId": "linkding-asset-changed",
+      "taskId": "ab-linkding-asset-changed",
+      "arm": "dsl",
+      "wire": "v5",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "b95e7f33cf2ef15081a20fff69007a192303c4846675b653fda7ab8b528f9b39",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": "satisfied",
+      "explanation": "The declared expectation is deny, and the supplied source enforces that expectation for the stated anonymous, non-owner state. The route maps GET assets/<asset_id> to the declared view, which calls asset_read before streaming the file. asset_read binds the URL asset_id to a BookmarkAsset and then checks the asset's associated bookmark through bookmark_read. That check compares bookmark ownership with request.user, permits the authenticated shared-reader branch only when request.user.is_authenticated is true, and permits the public branch only when the bookmark is shared and the owner's enable_public_sharing is true. For this principal, the owner branch is false, the authenticated shared-reader branch is false because the caller is anonymous, and the public branch is false because public sharing is disabled. The strongest visible decision is therefore rejection via Http404 before the protected stream operation. The actual source-visible decision is deny, not unknown: the requested file-stream effect is reachable only after asset_read returns, and it does not return for this state. The request-selected object is the BookmarkAsset selected by asset_id; the separately checked associated resource is its Bookmark, including the bookmark owner and owner profile sharing settings. The role and relation matter because this caller is neither the owner nor an authenticated reader, so ordinary bookmark sharing does not authorize access; only public sharing could have changed the result. No decisive source-external fact remains under the supplied assumptions. This assessment is limited to the supplied entry and source crop; source discovery is not-tested, so it makes no repository-wide completeness claim.",
+      "facts": {
+        "entry": [
+          "The assets/<asset_id> route selects the view entry, and the view invokes asset_read before attempting the response operation."
+        ],
+        "binding": [
+          "The request asset_id is bound to a BookmarkAsset, and that asset's bookmark_id is passed to the bookmark authorization check; the associated Bookmark is the separately checked resource.",
+          "The authorization check compares the bookmark owner with request.user and uses request.user.is_authenticated to determine whether the caller can use the authenticated shared-reader branch."
+        ],
+        "control": [
+          "The strongest visible gate rejects when the caller is not the owner, is not an authenticated reader of a shared bookmark with owner sharing enabled, and is not an allowed public reader of a shared bookmark with public sharing enabled.",
+          "Under the supplied state, owner access is false, authenticated shared-reader access is false because the caller is anonymous, and public access is false because public sharing is disabled; bookmark_read therefore raises Http404 before the asset can be streamed."
+        ],
+        "effect": [
+          "Only after asset_read succeeds does the view call the asset streaming operation; a missing asset file is handled afterward, so the protected read effect is downstream of authorization."
+        ],
+        "condition": [
+          "For the supplied state, the caller is anonymous and not the bookmark owner, the bookmark is shared, owner sharing is enabled, public sharing is disabled, and the asset file exists and is valid."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [
+        "No additional observation is required to decide this fixed-context obligation; if independently validating runtime behavior, observe that the request reaches the supplied view with the stated anonymous identity and owner profile settings."
+      ],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "16-linkding-asset-changed-markdown-v4",
+      "caseId": "linkding-asset-changed",
+      "taskId": "ab-linkding-asset-changed",
+      "arm": "markdown",
+      "wire": "v4",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "b38496ca43fc2887c3e371ff2a920bd7120052c84a516e9bb6edd5365a9454be",
+      "canonicalConclusion": "source_refuted",
+      "modelPolicyStatus": null,
+      "explanation": "The source enforces the expected denial for this state, and the actual decision is deny. The URL binds GET assets/<asset_id> to the asset view. That view resolves the asset through asset_read, which then applies bookmark_read to the asset's bookmark before invoking the file-reading service. For an anonymous non-owner, is_owner is false, is_shared is false because authenticated status is required, and is_public_shared is false because public sharing is disabled. The combined access condition therefore raises Http404 before the protected streaming read is reached. The shared flag and owner sharing setting would authorize an authenticated reader, but they do not authorize this anonymous caller; the caller's role and non-owner relation are decisive because ownership does not match and the authenticated-reader branch is unavailable. The supplied file-existence and validity assumptions concern the later effect and do not bypass the authorization gate. Source-observed facts are limited to these supplied files; caller identity, bookmark settings, request method, asset ownership, and file validity are task assumptions. No decisive external fact is missing under the stated assumptions.",
+      "facts": {
+        "entry": [
+          "The asset URL routes assets/<asset_id> to the asset view, and the view calls the asset-read access helper."
+        ],
+        "binding": [
+          "The authorization decision compares the bookmark owner with request.user and checks request.user.is_authenticated when evaluating shared access.",
+          "The asset is looked up by asset ID, and authorization is applied to the bookmark referenced by that asset."
+        ],
+        "control": [
+          "Access is denied when the requester is neither the owner nor an authenticated shared reader nor a publicly shared reader; denial raises Http404 before returning the bookmark."
+        ],
+        "effect": [
+          "If authorization succeeds, the asset view streams the asset file and sets response headers; the streaming service opens and reads the stored asset file."
+        ],
+        "condition": [
+          "The asset view performs the access check before attempting to stream the file, so a valid existing file does not make the unauthorized path reachable.",
+          "Under the supplied state, the caller is anonymous and not the owner, the bookmark is shared, owner sharing is enabled, public sharing is disabled, and the request is GET; consequently the owner and authenticated-shared branches do not apply and the public branch is false."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "17-owui-file-markdown-v4",
+      "caseId": "owui-file",
+      "taskId": "owui-process-file-write",
+      "arm": "markdown",
+      "wire": "v4",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "f74cd5f1630dd1e00269e48e786f31dacc8bc4b3b017eb719f1129ecdd38a8aa",
+      "canonicalConclusion": "source_supported_failure",
+      "modelPolicyStatus": null,
+      "explanation": "The declared entry is POST /process/file, gated first by the verified-user dependency and then, for the stated non-admin branch, by successful retrieval of the requested source file under both file ID and user ID. Thus the runtime principal is the dependency-provided user, whose ID is used for the source-file ownership check and whose user object is later passed to the save operation. The form independently accepts file_id and collection_name: file_id selects the checked source file, while a non-null collection_name is copied directly into the destination variable. These resources remain distinct; owning the source file is the strongest visible non-admin authorization decision, and the crop expressly identifies no authorization call for the selected collection. Under the fixed conditions—verified non-admin, owned source file, and caller-supplied existing collection name—the file check succeeds, the supplied name is retained rather than replaced by the per-file default, save_docs_to_vector_db receives that name with add=True, and its visible write path calls VECTOR_DB_CLIENT.insert for that collection. This supports failure of the normative deny expectation: the source-visible path reaches the destination write effect without an ownership or explicit-write-grant check on the knowledge-base collection. The separate admin branch changes only source-file retrieval by allowing lookup without a user-ID ownership restriction; it does not add a visible destination authorization check. The no-collection-name branch would instead choose a file-derived collection and is outside the fixed caller-selected-existing-collection condition. A source-external vector-store enforcement rule could still reject or otherwise prevent persistence, but no such backend ACL behavior is supplied; it does not alter that this fixed source exposes a reachable insert call without visible destination authorization.",
+      "facts": {
+        "entry": [
+          "POST /process/file binds form data and requires the dependency-provided verified user before the handler proceeds."
+        ],
+        "binding": [
+          "A supplied collection_name is copied directly from the form; only an absent value is replaced with a file-derived collection name.",
+          "The request model exposes separate file_id and collection_name fields, so the checked source file and caller-selected destination collection are distinct request-selected objects.",
+          "For a non-admin, the dependency-provided user's ID is used with the requested file ID to retrieve the source file, binding the declared principal to the identity used by the visible ownership check."
+        ],
+        "control": [
+          "The supplied crop identifies the intervening omitted processing as containing no call that authorizes collection_name, leaving source-file ownership distinct from destination permission.",
+          "The visible role/ownership authorization branches only on source-file access: admins retrieve by file ID, while non-admins must retrieve by both file ID and their user ID; continuation also requires that a file was found."
+        ],
+        "effect": [
+          "The visible save path performs VECTOR_DB_CLIENT.insert using collection_name and the generated content items, which is the protected destination-write effect."
+        ],
+        "condition": [
+          "The fixed source shows invocation of the vector database insert but does not supply the vector backend's runtime acceptance, ACL, or rejection behavior for the existing collection.",
+          "When collection_name is supplied, the save operation receives that selected destination and add is set to true; the same runtime user object is also passed onward."
+        ]
+      },
+      "decisiveMissingFacts": [
+        "For whether bytes are ultimately persisted rather than merely reaching the protected insert call, the fixed context does not supply whether VECTOR_DB_CLIENT or its backing vector store independently enforces destination ownership/write grants or rejects this write."
+      ],
+      "suggestedObservations": [
+        "Obtain the authoritative contract or supplied implementation/configuration for VECTOR_DB_CLIENT.insert and the backing collection ACL behavior, limited to whether this call can persist into the named existing collection without a destination write grant."
+      ],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "18-owui-file-dsl-v5",
+      "caseId": "owui-file",
+      "taskId": "owui-process-file-write",
+      "arm": "dsl",
+      "wire": "v5",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "1ec22d8d7ed5ff5b9b702d81b591b5284a2dedbd023fdf9ddaabda40b70efdae",
+      "canonicalConclusion": "source_supported_failure",
+      "modelPolicyStatus": "violated",
+      "explanation": "Source-supported failure: POST /process/file is gated by verified-user authentication. The runtime principal is bound to the dependency-provided user, and the non-admin branch uses that user's id to require ownership of the supplied source file. That check concerns the file only; it does not authorize the distinct destination knowledge-base collection. When the caller supplies collection_name, the handler assigns that request value to collection_name, passes it to save_docs_to_vector_db with add=true, and the visible sink inserts items into that named collection. The supplied crop expressly states that the intervening content/metadata/file-update portion contains no call authorizing collection_name. Thus, under the declared conditions that the caller is a verified non-admin, owns the file, and selects an existing collection that the caller neither owns nor has a write grant for, the file check succeeds and the protected write is reachable without a target-specific destination permission check. The strongest visible authorization decision is therefore allow-by-file-ownership for the non-admin path, not deny-by-destination-authorization as policy requires. Bounded branch comparison (not exhaustive): (1) declared non-admin file owner with a supplied existing collection name: reachable insert into the selected collection, violating the expected deny; (2) non-admin who does not own the file: blocked because the ownership-scoped lookup does not produce a file, but that is outside the declared file-owner relation; (3) admin: a separate unrestricted file lookup exists, but the declared principal-is-not-admin condition excludes this branch. The request-selected collection is bound to the declared destination by direct form-to-argument-to-insert propagation; the separately checked resource is the source file and must not be conflated with the collection. No decisive source-external fact remains: existence of the destination and absence of ownership/write grant are fixed by the declared conditions, while deployment behavior and unexamined conditions outside this bounded path are not asserted and are unnecessary to the source-visible decision.",
+      "facts": {
+        "entry": [
+          "The declared POST entry accepts ProcessFileForm and requires the dependency-provided verified user before processing."
+        ],
+        "binding": [
+          "For a non-admin runtime caller, the source-file lookup is scoped to form_data.file_id and user.id, binding the declared verified non-admin file owner to the authenticated runtime user and checking source-file ownership.",
+          "The caller-supplied collection_name is copied from the request form and used unless absent, in which case a file-derived collection name is substituted.",
+          "After a file is found, the selected collection_name is passed to save_docs_to_vector_db; supplying collection_name also selects add=true, and the authenticated user is passed separately."
+        ],
+        "control": [
+          "The visible role/ownership control selects the source file: admins look up any file by id, while non-admins must match both file id and user id; it does not check ownership of or a write grant on the destination collection.",
+          "The fixed crop identifies the intervening content, metadata, and file-update region and states that it contains no call authorizing collection_name."
+        ],
+        "effect": [
+          "The write sink inserts generated items into the collection identified by collection_name."
+        ],
+        "condition": [
+          "Under the declared non-admin file-owner condition, the ownership-scoped file lookup can yield a file and enter the processing branch that leads toward the vector-database write.",
+          "The source exposes a distinct admin branch that bypasses the user-id-scoped file lookup, but the declared principal-is-not-admin condition selects the else branch instead."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "19-owui-file-markdown-v5",
+      "caseId": "owui-file",
+      "taskId": "owui-process-file-write",
+      "arm": "markdown",
+      "wire": "v5",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "cd67dbb8805c2692bf97a131ed52b3467ad4e3d83c2dd5d6385f8730b841d625",
+      "canonicalConclusion": "source_supported_failure",
+      "modelPolicyStatus": "violated",
+      "explanation": "For the declared non-admin branch, the entry is POST /process/file and is gated by the verified-user dependency; the source-file lookup then requires the file to belong to user.id. That binds the declared principal to the runtime user and distinguishes source-file ownership from destination permission. The request-selected resource is form_data.collection_name, used as collection_name; when supplied, it is passed unchanged to the save operation, while the only alternate destination is the derived file-{file.id} fallback when no collection is supplied. The visible authorization branch checks only source-file access (admin may retrieve any file, whereas a non-admin must match the file owner); no visible control checks ownership or an explicit write grant for the selected collection. The selected existing collection therefore reaches the protected vector-database insert through the supplied collection-name branch, including for the stated verified non-admin owner, so the source-visible behavior violates the policy expectation that an unrelated collection write be denied absent destination ownership or a write grant. The separate admin branch is visible but is outside the stated principal-is-not-admin condition; it broadens file lookup and does not supply a visible collection authorization check. The supplied context does not establish deployment facts such as the runtime implementation or policy behavior of omitted code, but within this fixed crop the relevant omitted region is expressly stated to contain no call authorizing collection_name. The decisive external fact that could change the practical outcome is whether the selected collection exists and whether the insert succeeds; the task supplies existence, while insert success is not separately observed. Destination ownership or an explicit grant is also not supplied, and under the stated policy either would change the normative condition, but the task declares neither. Minimum observations are the runtime result of VECTOR_DB_CLIENT.insert for the supplied collection and any destination-authorization check, if one exists outside this fixed source context.",
+      "facts": {
+        "entry": [
+          "The assessed entry is the POST /process/file handler, whose operation receives the request, form, verified user, and database session."
+        ],
+        "binding": [
+          "The runtime principal is supplied by the get_verified_user dependency and is used as user by the handler.",
+          "The request-selected collection name is copied from form_data.collection_name; only when it is absent is the destination derived as file-{file.id}."
+        ],
+        "control": [
+          "The supplied source context states that the load, metadata, and file-update region contains no call authorizing collection_name.",
+          "For a non-admin, the source file is retrieved only by matching the submitted file identifier with user.id; an admin instead uses the unrestricted file-id lookup branch."
+        ],
+        "effect": [
+          "After a file is found, the selected collection_name is passed to save_docs_to_vector_db; the add flag is true when form_data.collection_name is supplied.",
+          "save_docs_to_vector_db inserts the items into VECTOR_DB_CLIENT using collection_name as the destination."
+        ],
+        "condition": [
+          "A separate admin branch is visible and permits file lookup by file id, but the declared principal-is-not-admin condition selects the non-admin branch; neither branch visibly authorizes the selected collection.",
+          "The selected collection_name is a separate destination resource from the source file, whose ownership is checked only through the non-admin file lookup; the crop shows no destination ownership or write-grant check.",
+          "Under the stated caller-supplies-existing-collection-name and principal-is-not-admin conditions, the non-admin source-file-owner branch is reachable; the existing destination condition is supplied by the task, while destination ownership or an explicit write grant is not supplied.",
+          "The fixed source does not observe whether the external vector-database insert succeeds at runtime; it does show the call path that attempts the insert with the selected collection."
+        ]
+      },
+      "decisiveMissingFacts": [
+        "Whether VECTOR_DB_CLIENT.insert succeeds for the supplied existing collection at runtime.",
+        "Whether any destination-authorization control exists outside the supplied fixed source crop and is invoked by the actual save or vector-database implementation.",
+        "Whether the caller has destination ownership or an explicit write grant; the task states neither, but it is not independently source-observed."
+      ],
+      "suggestedObservations": [
+        "Observe the runtime result or audit event for VECTOR_DB_CLIENT.insert using the supplied collection name.",
+        "Inspect only the invoked save/vector-database authorization behavior if it is necessary to resolve the explicitly unshown external control, without treating it as established by this crop.",
+        "Verify the caller's ownership or explicit write grant for the selected destination if the policy condition is to be evaluated independently of the task's stated facts."
+      ],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "20-owui-file-dsl-v4",
+      "caseId": "owui-file",
+      "taskId": "owui-process-file-write",
+      "arm": "dsl",
+      "wire": "v4",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "ccd2eae1997a4e0a5cb77c69da88c4d96fdc2c4ad1934c4c8ecdfc2fdac6a1dc",
+      "canonicalConclusion": "source_supported_failure",
+      "modelPolicyStatus": null,
+      "explanation": "The declared entry is POST /process/file, and the runtime caller is bound through the verified-user dependency. For a non-admin, the visible file lookup checks the supplied file ID together with user.id, so the principal is bound to ownership of the source file; the admin branch instead permits lookup by file ID alone. That control does not bind the caller to write permission on the destination collection. The request-selected collection_name is taken from the form and, when supplied, is passed unchanged into save_docs_to_vector_db. The visible protected effect inserts items into VECTOR_DB_CLIENT using that collection_name. The fixed crop expressly states that the intervening load/commit region contains no call authorizing collection_name. Thus, under the stated caller-supplies-existing-collection-name and principal-is-not-admin conditions, the strongest source-visible decision is file-ownership authorization only, with no destination knowledge-base write check; the requested content-write effect remains reachable for the non-admin branch. This supports failure of the accepted policy expectation that ownership of the source file alone must not authorize writing to an unrelated knowledge base. The admin branch is not the declared principal branch and does not cure the non-admin path. No source-external fact is needed to decide this bounded source result, although deployment behavior and repository-wide completeness are not claimed. Bounded branch comparison: (1) supplied existing collection plus non-admin: reachable protected effect and source-supported failure; (2) no supplied collection: the source derives a file-based collection name, so this is outside the caller-selected-existing-collection condition and is not the assessed branch; (3) admin caller: a separate file-lookup branch exists, but it is outside the declared principal condition and does not establish destination authorization for the assessed non-admin. Unexamined conditions include downstream implementation details outside the allowed crop and whether the deployment actually executes this exact source, neither of which is supplied or needed for the source-visible assessment.",
+      "facts": {
+        "entry": [
+          "The declared entry is the POST /process/file route implemented by process_file."
+        ],
+        "binding": [
+          "The selected collection_name is passed to save_docs_to_vector_db together with the processed documents and caller user.",
+          "The route obtains its runtime caller through the verified-user dependency.",
+          "The selected collection name comes from the request form, with a file-derived fallback only when the caller does not supply one."
+        ],
+        "control": [
+          "The fixed source context states that the intervening processing region contains no call authorizing collection_name.",
+          "For a non-admin caller, the source file is retrieved using both the submitted file ID and the caller's user ID; an admin uses a separate file-ID-only branch."
+        ],
+        "effect": [
+          "The write sink inserts the generated items into VECTOR_DB_CLIENT under the supplied collection_name."
+        ],
+        "condition": [
+          "For the assessed supplied-name condition, the request value is retained as collection_name rather than replaced by the file-derived fallback.",
+          "The assessed principal is the non-admin branch, while the source separately exposes an admin branch."
+        ]
+      },
+      "decisiveMissingFacts": [],
+      "suggestedObservations": [
+        "If an execution observation were required, observe a verified non-admin caller who owns the submitted file and supplies an existing collection name for which the caller has no write grant, then determine whether the vector insertion is attempted under that same collection name."
+      ],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "21-owui-header-dsl-v4",
+      "caseId": "owui-header",
+      "taskId": "owui-trusted-header-deployment",
+      "arm": "dsl",
+      "wire": "v4",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "9a9c91c9b023150471a7e45c0667b57e7801ee3b27e4266beeb7c515bfcf5410",
+      "canonicalConclusion": "unknown",
+      "modelPolicyStatus": null,
+      "explanation": "The declared POST /signin entry is source-visible, but the real-deployment policy outcome is not decidable from this fixed crop. The request must first pass the ENABLE_PASSWORD_AUTH gate (src-8d5759765262cf30 lines 11-15). The trusted-email branch must then be enabled by a configured environment-controlled header name (src-5f54873929978798 lines 10-13; src-8d5759765262cf30 lines 17-18), and the named header must be present or the request is rejected (src-8d5759765262cf30 lines 17-21). Its request value is lowercased and assigned to email, making that client-visible value the identity selector within this entry (src-8d5759765262cf30 lines 21-22). The code looks up that email, optionally invokes signup if it is absent, and then authenticates by the same email (src-8d5759765262cf30 lines 31-40). Thus, for the obligation's arbitrary existing-user resource, the selected email is bound to a user only if authenticate_user_by_email returns a user; that user is then passed to create_session_response with cookie setting enabled (src-8d5759765262cf30 lines 40-41 and 59-62).\n\nThe strongest source-visible controls on this path are application gates: password sign-in enabled, trusted-email header name configured, header present, and authentication producing a user. The accepted policy adds deployment controls not implemented or established by these crops: a trusted reverse proxy must be the sole reachable ingress, remove client-supplied identity headers, and inject authenticated identity itself. Because ingress reachability and proxy stripping/replacement are not supplied, source capability must be separated from exploitability: the application can consume a header-selected email and issue a session, but the fixed context does not establish that an unauthenticated external client can deliver an arbitrary value to that branch in the actual deployment.\n\nBounded branch comparison (hypotheses, not observed deployment facts): (1) ENABLE_PASSWORD_AUTH false: this entry is blocked with 403 before trusted-header processing. (2) Password auth enabled but no trusted-email header name configured: this declared trusted-email branch is not entered; behavior in omitted sign-in modes is unexamined. (3) Entry and header name enabled but the named header absent: blocked with 400. (4) Gates pass, a noncompliant/directly reachable ingress preserves the external client's chosen header, and email authentication returns the selected existing user: the session effect is reachable and the expected deny would fail. (5) Gates pass but the accepted-policy ingress control is enforced—sole trusted proxy, client header removed/replaced, authenticated identity injected—then this external principal cannot choose an arbitrary existing identity through its supplied value, so this vector is blocked. (6) Gates pass but email authentication produces no user: no session is returned. The optional provisioning branch runs only after no user is found for the selected email; it passes that same email to signup before authentication, so it may create/bind a previously absent identity but does not alter the existing-user lookup case named by this obligation. Unexamined conditions include signup-handler behavior, authenticate_user_by_email internals, create_session_response internals, omitted sign-in modes, middleware, and any other repository or deployment controls; source discovery is not-tested, so no completeness claim is made.\n\nDecisive deployment facts absent from the fixed context are the actual ENABLE_PASSWORD_AUTH value, actual trusted-email header-name value, whether any ingress reachable by the unauthenticated external client accepts the chosen header, whether a trusted proxy is the sole ingress and strips/replaces that header with authenticated identity, and whether authentication returns the selected existing user. Therefore neither source-supported policy failure nor source-refuted enforcement can be established.",
+      "facts": {
+        "entry": [
+          "The declared entry is an asynchronous POST /signin handler receiving the request and sign-in form."
+        ],
+        "binding": [
+          "The handler calls email-based authentication with the selected email and continues on the protected branch only when it yields a user.",
+          "The value of the configured request header is lowercased and assigned as the email identity selector; the initial display name is also set from it."
+        ],
+        "control": [
+          "The trusted-email branch is conditional on a configured trusted-email header name and rejects the request if that named header is absent.",
+          "The handler rejects with 403 before trusted-header processing when password authentication is disabled."
+        ],
+        "effect": [
+          "When user is truthy, the handler creates and returns a session response for that user with cookie setting enabled; otherwise it rejects with invalid credentials."
+        ],
+        "condition": [
+          "The trusted email, name, groups, and role header names are environment-controlled values; the trusted email header defaults to no configured value.",
+          "If no user is found for the selected email, the handler invokes signup using that same email and the derived name before authentication."
+        ]
+      },
+      "decisiveMissingFacts": [
+        "The actual deployment value of ENABLE_PASSWORD_AUTH.",
+        "The actual deployment value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER.",
+        "Whether an ingress reachable by the unauthenticated external client can forward a client-chosen value under the configured trusted-email header name to POST /signin.",
+        "Whether a trusted reverse proxy is the sole reachable ingress and removes/replaces client-supplied identity headers with an identity it authenticated.",
+        "Whether authenticate_user_by_email yields the arbitrary existing user selected by the supplied email in the actual deployment."
+      ],
+      "suggestedObservations": [
+        "Inspect the deployed application configuration for ENABLE_PASSWORD_AUTH and WEBUI_AUTH_TRUSTED_EMAIL_HEADER without changing them.",
+        "Inspect deployment routing and exposure to determine whether the application has any ingress reachable other than the trusted identity proxy.",
+        "Inspect the active proxy configuration to verify that the configured identity header is removed from client requests and replaced only after proxy authentication.",
+        "Using authorized deployment records or a controlled non-invasive test, determine whether the configured header value reaching POST /signin is proxy-derived rather than client-controlled.",
+        "Using authorized application/database observations, confirm whether authenticate_user_by_email resolves a selected existing email to a user and whether the handler reaches session creation."
+      ],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "22-owui-header-markdown-v5",
+      "caseId": "owui-header",
+      "taskId": "owui-trusted-header-deployment",
+      "arm": "markdown",
+      "wire": "v5",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "6544d38f9ad0d8878028b109ef02ce28debddaa726a6d781737e2d062a3ebaad",
+      "canonicalConclusion": "unknown",
+      "modelPolicyStatus": "undetermined",
+      "explanation": "The fixed source does not establish the actual deployment result, so the normative deny expectation is undetermined. Processing first requires ENABLE_PASSWORD_AUTH to be true; otherwise the entry is blocked with 403. If the trusted-email header-name setting is nonempty, the trusted-header branch requires that configured header to be present, lowercases its request value, and uses that value as the email identity. If the setting is empty, this trusted-header branch is not selected, but the omitted other sign-in modes cannot be assessed from this crop. For the trusted-header branch, an existing user is looked up by the header-derived email, and a missing user is provisioned before authenticate_user_by_email is called; the session effect is reachable only when that authentication call yields a user, after which create_session_response is called with that user. Thus the selected identity is bound to the session through the returned user object, while optional name, groups, and role headers can affect provisioning or post-authentication user attributes; they do not replace the email-to-user binding shown here. The source-visible application gates are password-auth enablement, configured trusted-header selection, header presence, and successful email authentication. The accepted policy additionally requires sole trusted-proxy ingress with client identity-header removal and authenticated identity injection. Whether that deployment control holds, whether the configured header name has a value, the actual ENABLE_PASSWORD_AUTH value, the reachable ingress and proxy behavior, and the authentication/provisioning outcome are not supplied. Therefore the fixed source shows a reachable impersonation-capable application path under the relevant branch, but cannot decide whether an unauthenticated external client can reach it in the actual deployment. The minimum deciding observations are the effective ENABLE_PASSWORD_AUTH and trusted-email-header configuration, the externally reachable ingress topology, whether the proxy strips and replaces the identity header and authenticates it, and the resulting authenticate_user_by_email/session behavior for a controlled request. No repository-wide entry or path completeness is claimed; omitted sign-in modes and other deployment controls are unexamined.",
+      "facts": {
+        "entry": [
+          "The POST /signin entry rejects processing before the trusted-header branch when ENABLE_PASSWORD_AUTH is false.",
+          "The trusted-email path is selected only when WEBUI_AUTH_TRUSTED_EMAIL_HEADER is truthy, and it rejects a request lacking that configured header."
+        ],
+        "binding": [
+          "The header-derived email is used to find an existing user; if none is found, signup_handler is invoked with that email, and authentication then runs by email.",
+          "The value of the configured request header is lowercased and assigned to email, which is then used as the identity input.",
+          "When authentication yields a user, the session response is created using that user, binding the selected authenticated identity to the session effect."
+        ],
+        "control": [
+          "The visible application controls are password-auth enablement, trusted-header configuration and presence, existing-user lookup or provisioning, and successful email authentication; optional trusted groups and role headers can update attributes after authentication."
+        ],
+        "effect": [
+          "The protected session effect is reached only on the user-present branch; otherwise the handler raises an invalid-credentials error."
+        ],
+        "condition": [
+          "The source exposes no ingress, proxy-stripping, proxy-replacement, reachability, or upstream authentication observation; those deployment facts are decisive for the accepted trusted-proxy policy.",
+          "The trusted email, name, groups, and role header names are environment-controlled, but the fixed source does not provide their effective values.",
+          "If the header email does not identify an existing user, the optional provisioning branch creates or signs up a user before email authentication, so it can establish the user record associated with the header-derived identity before authentication."
+        ]
+      },
+      "decisiveMissingFacts": [
+        "The effective ENABLE_PASSWORD_AUTH value.",
+        "The effective WEBUI_AUTH_TRUSTED_EMAIL_HEADER value and the actual request header name/value presented at the reachable ingress.",
+        "Whether the external client can reach this application through an ingress that is the sole trusted ingress, strips client-supplied identity headers, and injects an identity authenticated by that proxy.",
+        "The authentication and session outcome for the selected email, including whether authenticate_user_by_email yields a user after any provisioning branch."
+      ],
+      "suggestedObservations": [
+        "Inspect the effective deployment configuration for ENABLE_PASSWORD_AUTH and WEBUI_AUTH_TRUSTED_EMAIL_HEADER without inferring values from the source defaults.",
+        "Observe the actual externally reachable ingress and verify that it is the sole path, removes client-supplied trusted identity headers, and replaces them only with an identity authenticated by the trusted proxy.",
+        "With authorization, test or trace a controlled POST /signin at that ingress, recording the effective trusted-email header after proxy processing, authenticate_user_by_email result, and whether create_session_response issues the selected user's session.",
+        "If the header email is not pre-existing, observe whether signup_handler provisions it and whether that provisioned user is the one authenticated before session creation."
+      ],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "23-owui-header-dsl-v5",
+      "caseId": "owui-header",
+      "taskId": "owui-trusted-header-deployment",
+      "arm": "dsl",
+      "wire": "v5",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "30174dc3fa07de986f26aa91d56c561bd760fe821694d59ac0b83cea056abb67",
+      "canonicalConclusion": "unknown",
+      "modelPolicyStatus": "undetermined",
+      "explanation": "The source-visible entry is POST /signin. Processing must first pass the ENABLE_PASSWORD_AUTH gate; if it is false, the request is rejected before the trusted-header path. It must then have the trusted-email header feature configured, because the branch is entered only when the environment-controlled header name is nonempty, and the request must contain that configured header; otherwise the request is rejected. The header value is lowercased and assigned to email, so a request-controlled value becomes the lookup identity for this entry. An optional trusted name header affects signup naming, while optional groups and role headers can mutate the selected user's groups or role after authentication; these are not the core identity-binding step. If no existing user matches, the visible optional provisioning branch calls signup_handler with the header-selected email before authentication, so it can create or provision the identity that is then looked up. The session resource is bound only after authenticate_user_by_email returns a user, when create_session_response is called with that user and set_cookie enabled; no session is returned when authentication yields no user. The strongest source-visible application controls are the password-auth gate, configured-header presence check, and the requirement that email authentication produce a user. The accepted policy additionally requires that only a trusted proxy can reach the application and that it strips or replaces client-supplied identity headers. Those deployment-ingress controls are not represented in the supplied source crop or as observed deployment facts. Accordingly, the source demonstrates application capability for header-selected identity-to-session processing under the stated branches, but it does not decide whether an unauthenticated external client can actually reach this path with a spoofed header in the real deployment. Bounded branch comparison: (1) password authentication disabled: blocked before the trusted-header path; (2) trusted email header name unset: blocked because the branch is not entered; (3) configured header absent: blocked with a 400 response; (4) configured header present, authentication yields no user, and no provisioning succeeds: blocked at the final invalid-credential path; (5) configured header present and authentication yields a user, including after optional provisioning: the protected session effect is reachable in application source; (6) trusted-proxy-only ingress with stripping/replacement versus client-reachable ingress that preserves a supplied header: the former satisfies the accepted deployment condition, while the latter violates it, but which case exists is unknown here. The decisive missing facts are the actual ENABLE_PASSWORD_AUTH value, the actual trusted-email header configuration, whether the external client can reach this endpoint, whether the ingress is solely a trusted proxy, whether it removes client-supplied identity headers and injects the authenticated identity, and whether header-selected email authentication or provisioning produces a user. These are not present in fixed context. Source discovery is not-tested, so this is not a repository-wide completeness claim. The requested source-visible gates, identity transformation, session binding, controls, protected branch, deployment dependencies, optional provisioning effect, bounded branches, and unexamined conditions are covered; other omitted sign-in modes and whole-repository paths are unexamined.",
+      "facts": {
+        "entry": [
+          "The declared entry is the POST /signin handler, whose supplied crop shows the sign-in request parameters and handler body."
+        ],
+        "binding": [
+          "The configured request header value is lowercased and assigned to email, making the request value the lookup identity for this branch.",
+          "When no user exists for the selected email, the branch invokes signup_handler with that email before calling email authentication; this optional provisioning can create the identity used by the subsequent lookup.",
+          "The selected authenticated user is passed to create_session_response with set_cookie enabled, binding that user to the returned session response."
+        ],
+        "control": [
+          "The trusted-header path proceeds to its authenticated-user effects only when authenticate_user_by_email returns a user.",
+          "Optional trusted group and role headers can synchronize groups or update the selected user's role after authentication, but they do not replace the email lookup identity.",
+          "Processing raises a forbidden error and stops when ENABLE_PASSWORD_AUTH is false."
+        ],
+        "effect": [
+          "The protected effect is session creation for the selected user; if user is absent, the handler instead raises an invalid-credential error."
+        ],
+        "condition": [
+          "Whether the accepted trusted-proxy ingress condition holds is not established by the supplied application source crop.",
+          "The trusted-email branch is conditional on a configured environment-controlled header name, and the request is rejected if that configured header is absent."
+        ]
+      },
+      "decisiveMissingFacts": [
+        "The deployed value of ENABLE_PASSWORD_AUTH, to determine whether the entry is enabled.",
+        "The deployed value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER, to determine whether the trusted-email branch is configured and which header is used.",
+        "Whether the unauthenticated external client can reach this POST /signin ingress in the actual deployment.",
+        "Whether the sole reachable ingress is a trusted reverse proxy that removes client-supplied identity headers and injects the authenticated identity, as required by the accepted policy.",
+        "Whether email authentication, including any optional signup provisioning, returns a user for the supplied header-selected email."
+      ],
+      "suggestedObservations": [
+        "Inspect the deployed effective ENABLE_PASSWORD_AUTH value.",
+        "Inspect the deployed effective trusted-email header configuration.",
+        "Observe or verify the actual network path and whether the external client can reach POST /signin.",
+        "Verify proxy behavior for stripping/replacing the trusted identity header and confirm that no alternate ingress is reachable.",
+        "Use a controlled deployment test or authoritative authentication state to determine whether the selected email yields a user and session."
+      ],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "24-owui-header-markdown-v4",
+      "caseId": "owui-header",
+      "taskId": "owui-trusted-header-deployment",
+      "arm": "markdown",
+      "wire": "v4",
+      "status": "completed",
+      "finalKind": "initial",
+      "rawOutputSha256": "e652b8cc297c5307055943c05dc11c6d8dae43b4d7a02352efd3a4f2bb599daa",
+      "canonicalConclusion": "unknown",
+      "modelPolicyStatus": null,
+      "explanation": "The fixed source establishes an application capability but not the actual deployment result. (1) The visible gates are POST /signin, ENABLE_PASSWORD_AUTH being true, a configured trusted-email-header name selecting this branch, presence of that named header, and authenticate_user_by_email yielding a user. (2) When the branch is selected, the request value under the configured header name is lowercased into email and passed to authenticate_user_by_email; no additional client-credential check is shown between those steps in this crop. (3) If authentication returns a user, that returned user object is passed to create_session_response with set_cookie=True, binding the selected email lookup result to the authenticated session resource. (4) The strongest visible application controls are the password-auth entry gate, configuration and presence of the named header, and the requirement that email authentication produce a user. The accepted policy adds a deployment control not implemented or evidenced by these sources: a trusted reverse proxy must be the sole reachable ingress, remove client-supplied identity headers, and inject the authenticated identity itself. (5) The protected effect is reachable on the source-visible branch where password auth is enabled, the trusted-email-header setting is truthy, the named header is present, and email authentication returns a user. (6) The effective ENABLE_PASSWORD_AUTH value, configured trusted-email-header name, externally reachable ingress set, proxy stripping/replacement behavior, proxy authentication outcome, and selected-email authentication result can change the deployment answer; none is supplied as an actual deployment observation. (7) The optional provisioning branch checks whether the email already exists and, if absent, invokes signup_handler with that same request-derived email before authenticating by email. Thus it can create the identity that is subsequently looked up, but it does not itself create the session; for an already existing selected user, the visible condition skips provisioning. At most six relevant branch summaries are: password auth disabled blocks with 403; password auth enabled but no trusted-header configuration does not select this shown path; configured branch with the named header absent blocks with 400; header present but authentication producing no user cannot reach the shown session effect; authentication producing a user with policy-compliant ingress prevents an external client from choosing the injected identity under the accepted policy; authentication producing a user with a reachable ingress that preserves a client-supplied identity header would allow that value to select the session identity and would fail the deny expectation. Which deployment branch applies is unknown. Other sign-in modes are expressly omitted and unexamined, as are signup_handler internals, authenticate_user_by_email internals, session-response internals, middleware, proxy configuration, and network topology; the fixed crop is not evidence of repository-wide or all-entry completeness.",
+      "facts": {
+        "entry": [
+          "The supplied entry is POST /signin, and it checks ENABLE_PASSWORD_AUTH before reaching the trusted-email branch, returning 403 when that gate is false."
+        ],
+        "binding": [
+          "The value of the configured trusted-email request header is lowercased and assigned as the email identity used by the branch.",
+          "The display name defaults to the request-derived email and may instead come from the optionally configured trusted-name header after URL decoding.",
+          "If no user exists for the request-derived email, the branch invokes signup_handler with that same email and generated credentials before attempting email authentication.",
+          "The user object produced by email authentication is the user object passed into create_session_response."
+        ],
+        "control": [
+          "The trusted email, name, groups, and role header names are environment-controlled values; the trusted email header defaults to None when not configured.",
+          "The request-derived email is passed to authenticate_user_by_email, and subsequent trusted-header processing is conditioned on that call yielding a user."
+        ],
+        "effect": [
+          "When user is truthy, the shown code returns a session response and requests cookie setting; otherwise it returns invalid credentials."
+        ],
+        "condition": [
+          "Within the shown trusted-email path, reaching the session effect requires traversal of the password-auth gate, trusted-header branch and header-presence check, followed by a truthy user result.",
+          "The supplied source explicitly omits handling for other sign-in modes, so those paths are unexamined in this assessment.",
+          "The trusted-email branch is selected only when WEBUI_AUTH_TRUSTED_EMAIL_HEADER is truthy; within that branch, absence of the configured header name causes a 400 response."
+        ]
+      },
+      "decisiveMissingFacts": [
+        "The actual runtime value of ENABLE_PASSWORD_AUTH.",
+        "The actual runtime value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER, including the exact selected header name.",
+        "Which ingress paths an unauthenticated external client can actually reach, including whether the application is directly reachable around a proxy.",
+        "Whether every reachable ingress removes any client-supplied configured identity header and replaces it only after authenticating the upstream principal.",
+        "Whether the ingress authentication outcome constrains the injected email to the authenticated external principal rather than accepting an arbitrary client choice.",
+        "Whether authenticate_user_by_email yields the selected existing user for the request-derived email in the actual deployment."
+      ],
+      "suggestedObservations": [
+        "Read the effective runtime values of ENABLE_PASSWORD_AUTH and WEBUI_AUTH_TRUSTED_EMAIL_HEADER from the deployed process or its resolved configuration.",
+        "Enumerate externally reachable ingress paths and verify whether any path reaches the application without the trusted proxy; this must include direct service, alternate load balancer, and port exposure checks appropriate to the deployment.",
+        "At each reachable ingress, use a controlled test identity to trace a client-supplied configured email header and observe the header delivered upstream, confirming removal and authenticated replacement rather than preservation.",
+        "Verify the proxy's effective authentication and header-injection configuration and correlate an authenticated test principal with the exact email value delivered to the application.",
+        "Using a controlled existing test user, observe whether the trusted-email request reaches authenticate_user_by_email and whether a session cookie/response is created; test both an attempted arbitrary client header and the proxy-authenticated identity."
+      ],
+      "validation": {
+        "structure": "valid",
+        "completeness": "accepted",
+        "diagnostics": []
+      }
+    }
+  ]
+}

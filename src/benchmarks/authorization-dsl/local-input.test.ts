@@ -3,7 +3,8 @@ import { mkdtemp, mkdir, rm, symlink, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import type { AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
-import { loadLocalAuthorizationInput } from "./local-input.ts"
+import * as localInput from "./local-input.ts"
+const { loadLocalAuthorizationInput } = localInput
 
 const cleanupRoots: string[] = []
 
@@ -90,6 +91,30 @@ async function makeFixture(inputOverrides: Record<string, unknown> = {}) {
 }
 
 describe("loadLocalAuthorizationInput", () => {
+  it("checks a value at a future output coordinate without writing an input file", async () => {
+    const fixture = await makeFixture()
+    const loader = (localInput as any).loadLocalAuthorizationInputValue
+    expect(typeof loader).toBe("function")
+    const inputPath = path.join(fixture.root, "generated", "assessment.json")
+    const loaded = await loader({ ...fixture.input, sourceRoot: "../project" }, inputPath)
+    expect(loaded.status).toBe("valid")
+    expect(loaded.sourceRoot).toBe(fixture.projectRoot)
+    expect(loaded.sourceBundle.files).toHaveLength(1)
+  })
+
+  it("loads an explicit sibling source root without allowing listed sources to escape it", async () => {
+    const fixture = await makeFixture()
+    const out = path.join(fixture.root, "generated")
+    await mkdir(out)
+    const inputPath = path.join(out, "assessment.json")
+    await writeFile(inputPath, JSON.stringify({ ...fixture.input, sourceRoot: "../project" }))
+    const loaded = await loadLocalAuthorizationInput(inputPath)
+    expect(loaded.status).toBe("valid")
+    await writeFile(inputPath, JSON.stringify({ ...fixture.input, sourceRoot: "../project", sources: ["../assessment.json"] }))
+    const escaped = await loadLocalAuthorizationInput(inputPath)
+    expect(escaped.status).toBe("invalid")
+    if (escaped.status === "invalid") expect(escaped.diagnostics.some(d => d.code === "unsafe-input-path")).toBe(true)
+  })
   it("loads ordinary source paths without a manifest or oracle and instantiates the common profile", async () => {
     const fixture = await makeFixture()
     const loaded = await loadLocalAuthorizationInput(fixture.inputPath)
@@ -176,7 +201,7 @@ describe("loadLocalAuthorizationInput", () => {
       }))
     }
 
-    const escapedRoot = await makeFixture({ sourceRoot: "../outside" })
+    const escapedRoot = await makeFixture({ sourceRoot: "C:/outside" })
     const escapedRootResult = await loadLocalAuthorizationInput(escapedRoot.inputPath)
     expect(escapedRootResult.status).toBe("invalid")
     if (escapedRootResult.status === "invalid") {

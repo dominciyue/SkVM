@@ -1,0 +1,245 @@
+{
+  "unit": {
+    "id": "12-linkding-asset-original-dsl-v4",
+    "caseId": "linkding-asset-original",
+    "arm": "dsl",
+    "wire": "v4",
+    "method": "plain"
+  },
+  "configSha256": "0036d58419e9beda5af0c10497662283ef6b08c0fe517c39678e7c1e77a07895",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v4",
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260926T171128178Z-2cd99e53",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-explicit-policy-v1\\runs\\12-linkding-asset-original-dsl-v4\\sessions\\20260926T171128178Z-2cd99e53",
+    "createdAt": "2026-09-26T17:11:28.178Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-external-reuse-v1\\authors\\linkding-dsl\\asset-original.json",
+    "taskId": "ab-linkding-asset-original",
+    "repository": "https://github.com/sissbruecker/linkding",
+    "sourceRef": "27b7303baf41bb28babc610ac8eaa486e1ddfab5",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 396,
+        "declaration": 3723,
+        "publicAnalysis": 763,
+        "source": 42584,
+        "outputContract": 2255,
+        "total": 49826,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "ab-linkding-asset-original",
+      "repository": "https://github.com/sissbruecker/linkding",
+      "sourceRef": "27b7303baf41bb28babc610ac8eaa486e1ddfab5",
+      "results": [
+        {
+          "obligationId": "scenario%3Aassessment::entry%3Atarget",
+          "conclusion": "source_refuted",
+          "explanation": "The supplied source enforces the declared allow expectation for the stated case. The route binds GET assets/<asset_id> to the declared view, which resolves the request-selected asset through asset_read. That helper loads the asset by the supplied asset identifier and then authorizes the distinct related bookmark through bookmark_read. For this non-owner authenticated reader, bookmark_read computes ownership from bookmark.owner versus request.user, and computes the authenticated shared-reader branch from request.user.is_authenticated, bookmark.shared, and bookmark.owner.profile.enable_sharing. The supplied state makes that branch true, while public sharing is not needed. The strongest visible authorization control therefore permits the request rather than requiring ownership. The view then reaches stream_asset_file, the protected read effect, and adds response headers. The stated role and relation matter because the caller is not the owner, so the owner branch is false, but the shared authenticated-reader branch independently authorizes access. The fixed context supplies the relevant identity and settings as task assumptions and assumes requests reach the view; no additional source-external fact is decisive for this bounded assessment. Deployment behavior, middleware, authentication implementation, exact response status, and other entries are not tested, so this is not a repository-wide completeness claim.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The declared view resolves the request-selected asset before attempting to stream it.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/assets.py",
+                    "startLine": 8,
+                    "endLine": 13,
+                    "quote": "def view(request, asset_id: int):\n    asset = access.asset_read(request, asset_id)\n    try:\n        response = assets.stream_asset_file(asset)\n    except FileNotFoundError:\n        raise Http404(\"Asset file does not exist\") from None"
+                  }
+                ]
+              },
+              {
+                "statement": "The assets/<asset_id> URL is routed to the asset view, and the view receives the asset identifier.",
+                "citations": [
+                  {
+                    "path": "bookmarks/urls.py",
+                    "startLine": 47,
+                    "endLine": 51,
+                    "quote": "    path(\n        \"assets/<int:asset_id>\",\n        assets_views.view,\n        name=\"assets.view\",\n    ),"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The authorization logic binds the caller to request.user and uses that identity for ownership and authentication checks.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/access.py",
+                    "startLine": 13,
+                    "endLine": 20,
+                    "quote": "    is_owner = bookmark.owner == request.user\n    is_shared = (\n        request.user.is_authenticated\n        and bookmark.shared\n        and bookmark.owner.profile.enable_sharing\n    )\n    is_public_shared = bookmark.shared and bookmark.owner.profile.enable_public_sharing\n    if not is_owner and not is_shared and not is_public_shared:"
+                  }
+                ]
+              },
+              {
+                "statement": "The supplied asset identifier selects a BookmarkAsset, and the selected asset is then tied to its bookmark through asset.bookmark_id.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/access.py",
+                    "startLine": 46,
+                    "endLine": 53,
+                    "quote": "def asset_read(request: HttpRequest, asset_id: int | str):\n    try:\n        asset = BookmarkAsset.objects.get(pk=asset_id)\n    except BookmarkAsset.DoesNotExist:\n        raise Http404(\"Asset does not exist\") from None\n\n    bookmark_read(request, asset.bookmark_id)\n    return asset"
+                  }
+                ]
+              },
+              {
+                "statement": "The related bookmark is the distinct resource checked by bookmark_read; it is loaded by bookmark identifier and evaluated against the caller and sharing settings.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/access.py",
+                    "startLine": 7,
+                    "endLine": 20,
+                    "quote": "def bookmark_read(request: HttpRequest, bookmark_id: int | str):\n    try:\n        bookmark = Bookmark.objects.get(pk=int(bookmark_id))\n    except Bookmark.DoesNotExist:\n        raise Http404(\"Bookmark does not exist\") from None\n\n    is_owner = bookmark.owner == request.user\n    is_shared = (\n        request.user.is_authenticated\n        and bookmark.shared\n        and bookmark.owner.profile.enable_sharing\n    )\n    is_public_shared = bookmark.shared and bookmark.owner.profile.enable_public_sharing\n    if not is_owner and not is_shared and not is_public_shared:"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "For a non-owner, the owner branch is false, but authenticated status together with bookmark sharing and owner sharing enables the separate reader branch; public sharing is a separate alternative branch.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/access.py",
+                    "startLine": 13,
+                    "endLine": 20,
+                    "quote": "    is_owner = bookmark.owner == request.user\n    is_shared = (\n        request.user.is_authenticated\n        and bookmark.shared\n        and bookmark.owner.profile.enable_sharing\n    )\n    is_public_shared = bookmark.shared and bookmark.owner.profile.enable_public_sharing\n    if not is_owner and not is_shared and not is_public_shared:"
+                  }
+                ]
+              },
+              {
+                "statement": "The strongest visible gate denies only when the caller is neither the owner nor an authenticated reader of a shared bookmark with owner sharing enabled, nor a public reader; the authenticated shared-reader branch is sufficient here.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/access.py",
+                    "startLine": 13,
+                    "endLine": 21,
+                    "quote": "    is_owner = bookmark.owner == request.user\n    is_shared = (\n        request.user.is_authenticated\n        and bookmark.shared\n        and bookmark.owner.profile.enable_sharing\n    )\n    is_public_shared = bookmark.shared and bookmark.owner.profile.enable_public_sharing\n    if not is_owner and not is_shared and not is_public_shared:\n        raise Http404(\"Bookmark does not exist\")"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The streaming helper opens the selected asset file, transparently decompressing it when configured, and constructs the response content.",
+                "citations": [
+                  {
+                    "path": "bookmarks/services/assets.py",
+                    "startLine": 231,
+                    "endLine": 243,
+                    "quote": "def open_asset_file(asset: BookmarkAsset) -> BinaryIO:\n    \"\"\"\n    Opens the asset file for reading, transparently decompressing gzipped\n    files. Raises FileNotFoundError if the file does not exist.\n    \"\"\"\n    filepath = os.path.join(settings.LD_ASSET_FOLDER, asset.file)\n\n    if not os.path.isfile(filepath):\n        raise FileNotFoundError(filepath)\n\n    if asset.gzip:\n        return gzip.open(filepath, \"rb\")\n    return open(filepath, \"rb\")  # noqa: SIM115"
+                  },
+                  {
+                    "path": "bookmarks/services/assets.py",
+                    "startLine": 246,
+                    "endLine": 263,
+                    "quote": "def stream_asset_file(asset: BookmarkAsset) -> StreamingHttpResponse:\n    \"\"\"\n    Creates a response that streams the (decompressed) asset file content in\n    fixed-size chunks. Callers can add headers to the response as needed.\n    Raises FileNotFoundError if the file does not exist.\n\n    Notes on why this is implemented this way:\n    - Do not use Django's FileResponse for asset files. Under uWSGI it hands the\n      file descriptor to sendfile(), which sends the raw compressed bytes for\n      gzipped assets while announcing the uncompressed content length.\n    - Do not pass the file object to StreamingHttpResponse directly. Iterating\n      a file yields lines, which loads files without newlines (e.g. binary\n      uploads) into memory as a whole.\n    FileWrapper closes the underlying file when the response is closed.\n    \"\"\"\n    file = open_asset_file(asset)\n    content = FileWrapper(file, STREAM_CHUNK_SIZE)\n    return StreamingHttpResponse(content, content_type=asset.content_type)"
+                  }
+                ]
+              },
+              {
+                "statement": "After authorization, the view invokes asset streaming, catches a missing file, and returns the streaming response with content-related headers.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/assets.py",
+                    "startLine": 8,
+                    "endLine": 22,
+                    "quote": "def view(request, asset_id: int):\n    asset = access.asset_read(request, asset_id)\n    try:\n        response = assets.stream_asset_file(asset)\n    except FileNotFoundError:\n        raise Http404(\"Asset file does not exist\") from None\n\n    response[\"Content-Disposition\"] = f'inline; filename=\"{asset.download_name}\"'\n    if asset.content_type and asset.content_type.startswith(\"video/\"):\n        response[\"Content-Security-Policy\"] = \"default-src 'none'; media-src 'self';\"\n    elif asset.content_type == \"application/pdf\":\n        response[\"Content-Security-Policy\"] = \"default-src 'none'; object-src 'self';\"\n    else:\n        response[\"Content-Security-Policy\"] = \"sandbox allow-scripts\"\n    return response"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "Under the fixed-context assumptions, the caller identity, sharing state, owner setting, existing asset, valid file, request method, and reachability assumptions are supplied by the task; no additional decisive external observation is required to decide this source-visible authorization path.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/access.py",
+                    "startLine": 46,
+                    "endLine": 53,
+                    "quote": "def asset_read(request: HttpRequest, asset_id: int | str):\n    try:\n        asset = BookmarkAsset.objects.get(pk=asset_id)\n    except BookmarkAsset.DoesNotExist:\n        raise Http404(\"Asset does not exist\") from None\n\n    bookmark_read(request, asset.bookmark_id)\n    return asset"
+                  },
+                  {
+                    "path": "bookmarks/views/assets.py",
+                    "startLine": 8,
+                    "endLine": 22,
+                    "quote": "def view(request, asset_id: int):\n    asset = access.asset_read(request, asset_id)\n    try:\n        response = assets.stream_asset_file(asset)\n    except FileNotFoundError:\n        raise Http404(\"Asset file does not exist\") from None\n\n    response[\"Content-Disposition\"] = f'inline; filename=\"{asset.download_name}\"'\n    if asset.content_type and asset.content_type.startswith(\"video/\"):\n        response[\"Content-Security-Policy\"] = \"default-src 'none'; media-src 'self';\"\n    elif asset.content_type == \"application/pdf\":\n        response[\"Content-Security-Policy\"] = \"default-src 'none'; object-src 'self';\"\n    else:\n        response[\"Content-Security-Policy\"] = \"sandbox allow-scripts\"\n    return response"
+                  }
+                ]
+              },
+              {
+                "statement": "The relevant source-visible condition is the sharing gate: authenticated status, bookmark shared state, and owner enable_sharing control the non-owner reader branch; public sharing is independently checked.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/access.py",
+                    "startLine": 13,
+                    "endLine": 20,
+                    "quote": "    is_owner = bookmark.owner == request.user\n    is_shared = (\n        request.user.is_authenticated\n        and bookmark.shared\n        and bookmark.owner.profile.enable_sharing\n    )\n    is_public_shared = bookmark.shared and bookmark.owner.profile.enable_public_sharing\n    if not is_owner and not is_shared and not is_public_shared:"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "relationCoverage": [],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 11856,
+        "output": 1352,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

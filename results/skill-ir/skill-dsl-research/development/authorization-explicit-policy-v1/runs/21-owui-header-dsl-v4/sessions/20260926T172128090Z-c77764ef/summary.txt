@@ -1,0 +1,36 @@
+Authorization assessment
+Session: 20260926T172128090Z-c77764ef
+Status: completed
+Task: owui-trusted-header-deployment
+Method: plain (explicit); requested: plain; condition request ignored: true
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: task-supplied (input)
+
+Conclusions
+- external-client-trusted-header-impersonation::post-signin-trusted-email: unknown — The declared POST /signin entry is source-visible, but the real-deployment policy outcome is not decidable from this fixed crop. The request must first pass the ENABLE_PASSWORD_AUTH gate (src-8d5759765262cf30 lines 11-15). The trusted-email branch must then be enabled by a configured environment-controlled header name (src-5f54873929978798 lines 10-13; src-8d5759765262cf30 lines 17-18), and the named header must be present or the request is rejected (src-8d5759765262cf30 lines 17-21). Its request value is lowercased and assigned to email, making that client-visible value the identity selector within this entry (src-8d5759765262cf30 lines 21-22). The code looks up that email, optionally invokes signup if it is absent, and then authenticates by the same email (src-8d5759765262cf30 lines 31-40). Thus, for the obligation's arbitrary existing-user resource, the selected email is bound to a user only if authenticate_user_by_email returns a user; that user is then passed to create_session_response with cookie setting enabled (src-8d5759765262cf30 lines 40-41 and 59-62).
+
+The strongest source-visible controls on this path are application gates: password sign-in enabled, trusted-email header name configured, header present, and authentication producing a user. The accepted policy adds deployment controls not implemented or established by these crops: a trusted reverse proxy must be the sole reachable ingress, remove client-supplied identity headers, and inject authenticated identity itself. Because ingress reachability and proxy stripping/replacement are not supplied, source capability must be separated from exploitability: the application can consume a header-selected email and issue a session, but the fixed context does not establish that an unauthenticated external client can deliver an arbitrary value to that branch in the actual deployment.
+
+Bounded branch comparison (hypotheses, not observed deployment facts): (1) ENABLE_PASSWORD_AUTH false: this entry is blocked with 403 before trusted-header processing. (2) Password auth enabled but no trusted-email header name configured: this declared trusted-email branch is not entered; behavior in omitted sign-in modes is unexamined. (3) Entry and header name enabled but the named header absent: blocked with 400. (4) Gates pass, a noncompliant/directly reachable ingress preserves the external client's chosen header, and email authentication returns the selected existing user: the session effect is reachable and the expected deny would fail. (5) Gates pass but the accepted-policy ingress control is enforced—sole trusted proxy, client header removed/replaced, authenticated identity injected—then this external principal cannot choose an arbitrary existing identity through its supplied value, so this vector is blocked. (6) Gates pass but email authentication produces no user: no session is returned. The optional provisioning branch runs only after no user is found for the selected email; it passes that same email to signup before authentication, so it may create/bind a previously absent identity but does not alter the existing-user lookup case named by this obligation. Unexamined conditions include signup-handler behavior, authenticate_user_by_email internals, create_session_response internals, omitted sign-in modes, middleware, and any other repository or deployment controls; source discovery is not-tested, so no completeness claim is made.
+
+Decisive deployment facts absent from the fixed context are the actual ENABLE_PASSWORD_AUTH value, actual trusted-email header-name value, whether any ingress reachable by the unauthenticated external client accepts the chosen header, whether a trusted proxy is the sole ingress and strips/replaces that header with authenticated identity, and whether authentication returns the selected existing user. Therefore neither source-supported policy failure nor source-refuted enforcement can be established.
+  Evidence: The declared entry is an asynchronous POST /signin handler receiving the request and sign-in form. (inputs/owui-trusted-header-deployment/auths_signin.py:4-10)
+  Evidence: The handler calls email-based authentication with the selected email and continues on the protected branch only when it yields a user. (inputs/owui-trusted-header-deployment/auths_signin.py:40-41)
+  Evidence: The value of the configured request header is lowercased and assigned as the email identity selector; the initial display name is also set from it. (inputs/owui-trusted-header-deployment/auths_signin.py:21-22)
+  Evidence: The trusted-email branch is conditional on a configured trusted-email header name and rejects the request if that named header is absent. (inputs/owui-trusted-header-deployment/auths_signin.py:17-20)
+  Evidence: The handler rejects with 403 before trusted-header processing when password authentication is disabled. (inputs/owui-trusted-header-deployment/auths_signin.py:11-15)
+  Evidence: When user is truthy, the handler creates and returns a session response for that user with cookie setting enabled; otherwise it rejects with invalid credentials. (inputs/owui-trusted-header-deployment/auths_signin.py:59-62)
+  Evidence: The trusted email, name, groups, and role header names are environment-controlled values; the trusted email header defaults to no configured value. (inputs/owui-trusted-header-deployment/env_trusted_headers.py:10-13)
+  Evidence: If no user is found for the selected email, the handler invokes signup using that same email and the derived name before authentication. (inputs/owui-trusted-header-deployment/auths_signin.py:31-38)
+  Unknown: The actual deployment value of ENABLE_PASSWORD_AUTH.
+  Unknown: The actual deployment value of WEBUI_AUTH_TRUSTED_EMAIL_HEADER.
+  Unknown: Whether an ingress reachable by the unauthenticated external client can forward a client-chosen value under the configured trusted-email header name to POST /signin.
+  Unknown: Whether a trusted reverse proxy is the sole reachable ingress and removes/replaces client-supplied identity headers with an identity it authenticated.
+  Unknown: Whether authenticate_user_by_email yields the arbitrary existing user selected by the supplied email in the actual deployment.
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

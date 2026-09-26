@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "ab-linkding-remove-changed",
+  "taskId": "ab-linkding-remove-changed",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "90bf28cca4c185a432ee2a68d2c027a2e5b740289883399a2a9913b9a496000b",
+  "rubricVersion": "ab-rubric-v3",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "AE-development-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "decision-control",
+      "status": "supported",
+      "reason": "The answer identifies the owner-scoped write lookup and correctly says the stated owner is allowed.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "Actual disposition is allow. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared"
+    },
+    {
+      "criterionId": "binding-effect",
+      "status": "supported",
+      "reason": "It tracks the posted bookmark ID and request.user through bookmark_write to the reachable bookmark.delete call.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared"
+    },
+    {
+      "criterionId": "scenario-explanation",
+      "status": "supported",
+      "reason": "It explains why changing from shared non-owner to owner changes the result, while ordinary role and sharing flags do not grant write access.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "Stated scenario: {'role': 'authenticated ordinary user', 'facts': ['Caller is the bookmark owner', 'No superuser or special role', 'POST contains only remove=<bookmark id>'], 'relation': 'owner of the same shared bookmark', 'expectation': 'allow'}. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared"
+    },
+    {
+      "criterionId": "bounded-evidence",
+      "status": "supported",
+      "reason": "It limits the claim to the supplied source and distinguishes task assumptions from observed authorization control.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "Standard Django behavior and stated identity/settings are assumptions; no deployed execution verified. Missing unrelated dependencies do not force unknown on this bounded authorization reachability question."
+    },
+    {
+      "criterionId": "http-detail",
+      "status": "supported",
+      "reason": "The answer or its authored fact statements describe the lookup's not-found behavior for a non-owner or the response path; a numeric status is optional.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "Exact HTTP detail is not required by the public task; do not conflate a source quote containing status text with answer explanation."
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The source enforces the declared allow expectation, so the policy-failure proposition is refuted.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "bookmarks/views/bookmarks.py",
+        "startLine": 346,
+        "endLine": 378
+      },
+      {
+        "path": "bookmarks/views/access.py",
+        "startLine": 28,
+        "endLine": 32
+      }
+    ],
+    "oracleRule": "Policy enforced; actual allow. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer limits its claim to supplied source and stated assumptions and does not assert an observed deployment outcome.",
+    "answerLocation": "/results/0/explanation",
+    "sourceLocations": [
+      {
+        "path": "bookmarks/views/bookmarks.py",
+        "startLine": 346,
+        "endLine": 378
+      },
+      {
+        "path": "bookmarks/views/access.py",
+        "startLine": 28,
+        "endLine": 32
+      }
+    ],
+    "oracleRule": "Only supplied source and declared state; no deployment or repository completeness claim."
+  }
+}

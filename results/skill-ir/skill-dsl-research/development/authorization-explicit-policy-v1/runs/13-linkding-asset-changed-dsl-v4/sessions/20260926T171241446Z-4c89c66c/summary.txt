@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T171241446Z-4c89c66c
+Status: completed
+Task: ab-linkding-asset-changed
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/sissbruecker/linkding@27b7303baf41bb28babc610ac8eaa486e1ddfab5
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The declared GET route binds assets/<asset_id> to assets_views.view, which first calls access.asset_read. That helper retrieves the requested asset by its identifier and then authorizes access through the asset's associated bookmark. The bookmark authorization distinguishes the owner branch, authenticated shared-reader branch, and public-sharing branch. For the supplied anonymous non-owner, bookmark.shared is true and owner.enable_sharing is true, but the authenticated-reader branch is false because the caller is anonymous, and the public-sharing branch is false because owner.enable_public_sharing is false. The visible gate therefore raises Http404 before streaming or reading the asset. The request-selected asset is bound by asset_id, while the separately checked resource is the asset's bookmark; the bookmark relation is used for authorization rather than treating asset existence alone as sufficient. The protected effect is reached only after this gate and consists of opening and streaming the existing asset file. Thus the actual source-visible decision is deny, and the supplied policy expectation of deny is enforced for the stated state, so the policy-failure expectation is refuted. This assessment relies on the declared assumptions that the request reaches the supplied view with the stated identity and settings and passes unrelated infrastructure checks; it makes no repository-wide or deployment-completeness claim.
+  Evidence: The view calls access.asset_read before attempting the asset operation. (bookmarks/views/assets.py:8-13)
+  Evidence: The assets/<asset_id> route dispatches to assets_views.view. (bookmarks/urls.py:47-51)
+  Evidence: The authorization logic binds the caller to request.user and checks both bookmark ownership and request.user.is_authenticated. (bookmarks/views/access.py:7-19)
+  Evidence: The requested asset is retrieved by asset_id, and its associated bookmark is the separately checked authorization resource. (bookmarks/views/access.py:46-53)
+  Evidence: Access is denied when the caller is neither the owner, nor an authenticated reader of a shared bookmark whose owner enables sharing, nor a reader of a publicly shared bookmark. (bookmarks/views/access.py:13-23)
+  Evidence: Only after asset_read succeeds does the view call stream_asset_file, which opens the asset file and returns a streaming response. (bookmarks/views/assets.py:8-15, bookmarks/services/assets.py:231-263)
+  Evidence: The authenticated shared-reader branch requires request.user.is_authenticated together with bookmark.shared and bookmark.owner.profile.enable_sharing; the public branch requires bookmark.shared and bookmark.owner.profile.enable_public_sharing. (bookmarks/views/access.py:13-20)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

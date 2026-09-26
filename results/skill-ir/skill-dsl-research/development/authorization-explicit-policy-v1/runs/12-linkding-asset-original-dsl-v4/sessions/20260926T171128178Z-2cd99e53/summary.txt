@@ -1,0 +1,28 @@
+Authorization assessment
+Session: 20260926T171128178Z-2cd99e53
+Status: completed
+Task: ab-linkding-asset-original
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/sissbruecker/linkding@27b7303baf41bb28babc610ac8eaa486e1ddfab5
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The supplied source enforces the declared allow expectation for the stated case. The route binds GET assets/<asset_id> to the declared view, which resolves the request-selected asset through asset_read. That helper loads the asset by the supplied asset identifier and then authorizes the distinct related bookmark through bookmark_read. For this non-owner authenticated reader, bookmark_read computes ownership from bookmark.owner versus request.user, and computes the authenticated shared-reader branch from request.user.is_authenticated, bookmark.shared, and bookmark.owner.profile.enable_sharing. The supplied state makes that branch true, while public sharing is not needed. The strongest visible authorization control therefore permits the request rather than requiring ownership. The view then reaches stream_asset_file, the protected read effect, and adds response headers. The stated role and relation matter because the caller is not the owner, so the owner branch is false, but the shared authenticated-reader branch independently authorizes access. The fixed context supplies the relevant identity and settings as task assumptions and assumes requests reach the view; no additional source-external fact is decisive for this bounded assessment. Deployment behavior, middleware, authentication implementation, exact response status, and other entries are not tested, so this is not a repository-wide completeness claim.
+  Evidence: The declared view resolves the request-selected asset before attempting to stream it. (bookmarks/views/assets.py:8-13)
+  Evidence: The assets/<asset_id> URL is routed to the asset view, and the view receives the asset identifier. (bookmarks/urls.py:47-51)
+  Evidence: The authorization logic binds the caller to request.user and uses that identity for ownership and authentication checks. (bookmarks/views/access.py:13-20)
+  Evidence: The supplied asset identifier selects a BookmarkAsset, and the selected asset is then tied to its bookmark through asset.bookmark_id. (bookmarks/views/access.py:46-53)
+  Evidence: The related bookmark is the distinct resource checked by bookmark_read; it is loaded by bookmark identifier and evaluated against the caller and sharing settings. (bookmarks/views/access.py:7-20)
+  Evidence: For a non-owner, the owner branch is false, but authenticated status together with bookmark sharing and owner sharing enables the separate reader branch; public sharing is a separate alternative branch. (bookmarks/views/access.py:13-20)
+  Evidence: The strongest visible gate denies only when the caller is neither the owner nor an authenticated reader of a shared bookmark with owner sharing enabled, nor a public reader; the authenticated shared-reader branch is sufficient here. (bookmarks/views/access.py:13-21)
+  Evidence: The streaming helper opens the selected asset file, transparently decompressing it when configured, and constructs the response content. (bookmarks/services/assets.py:231-243, bookmarks/services/assets.py:246-263)
+  Evidence: After authorization, the view invokes asset streaming, catches a missing file, and returns the streaming response with content-related headers. (bookmarks/views/assets.py:8-22)
+  Evidence: Under the fixed-context assumptions, the caller identity, sharing state, owner setting, existing asset, valid file, request method, and reachability assumptions are supplied by the task; no additional decisive external observation is required to decide this source-visible authorization path. (bookmarks/views/access.py:46-53, bookmarks/views/assets.py:8-22)
+  Evidence: The relevant source-visible condition is the sharing gate: authenticated status, bookmark shared state, and owner enable_sharing control the non-owner reader branch; public sharing is independently checked. (bookmarks/views/access.py:13-20)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

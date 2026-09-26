@@ -1,0 +1,316 @@
+{
+  "unit": {
+    "id": "06-linkding-remove-changed-markdown-v5",
+    "caseId": "linkding-remove-changed",
+    "arm": "markdown",
+    "wire": "v5",
+    "method": "plain"
+  },
+  "configSha256": "0036d58419e9beda5af0c10497662283ef6b08c0fe517c39678e7c1e77a07895",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v5",
+    "researchIdentity": {
+      "arm": "markdown",
+      "instructionOrigin": "independent-author",
+      "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/authors/linkding-md/remove-changed.md",
+      "sha256": "5ccdd55800e3825fdc2eaf0c7324081d5b4eb3a3ef60eff766922376eeec5f1d",
+      "characters": 3171
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260926T170752839Z-8a0cb7c8",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-explicit-policy-v1\\runs\\06-linkding-remove-changed-markdown-v5\\sessions\\20260926T170752839Z-8a0cb7c8",
+    "createdAt": "2026-09-26T17:07:52.839Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-external-reuse-v1\\manifests\\linkding\\remove-changed.json",
+    "taskId": "ab-linkding-remove-changed",
+    "repository": "https://github.com/sissbruecker/linkding",
+    "sourceRef": "27b7303baf41bb28babc610ac8eaa486e1ddfab5",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 138,
+        "declaration": 3171,
+        "source": 42584,
+        "outputContract": 2590,
+        "total": 48569,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "ab-linkding-remove-changed",
+      "repository": "https://github.com/sissbruecker/linkding",
+      "sourceRef": "27b7303baf41bb28babc610ac8eaa486e1ddfab5",
+      "results": [
+        {
+          "obligationId": "scenario%3Aassessment::entry%3Atarget",
+          "conclusion": "source_refuted",
+          "explanation": "Actual source decision: allow. The URL maps POST bookmarks/shared/action to shared_action. That entry requires authentication, rejects only bulk execution, and delegates the supplied single remove field to handle_action. The remove branch passes the posted bookmark ID to remove. The strongest visible authorization control is access.bookmark_write, whose ORM lookup binds both the selected bookmark primary key and owner=request.user; failure is hidden as not found. Under the task assumptions that the authenticated caller owns the existing bookmark and the request contains only that remove ID, this lookup succeeds and remove invokes deletion. Thus the fixed source enforces the declared expectation for this state: the owner may delete. Sharing does not broaden deletion authority: bookmark_read permits qualifying authenticated sharing for reads but expressly rejects a non-owner POST, while bookmark_write independently requires ownership. Consequently shared=True and the owner's enable_sharing=True make the item readable to qualifying users but do not grant them removal; enable_public_sharing=False is immaterial to this owner-write path. The ordinary-user/no-special-role fact also does not block the operation because the selected write control tests ownership rather than superuser or role status. Caller authentication, caller/resource ownership, sharing settings, request contents, CSRF/infrastructure passage, and ordinary Django ORM/decorator behavior are task assumptions rather than deployment facts established by these files. Given those declared assumptions, no decisive external fact is missing for the bounded authorization-reachability decision; storage-level deletion success and exact HTTP status are outside the requested decision.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "When the POST contains remove, the dispatcher calls remove with the posted bookmark identifier.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/bookmarks.py",
+                    "startLine": 361,
+                    "endLine": 368,
+                    "quote": "def handle_action(request: HttpRequest, query: QuerySet[Bookmark] = None):\n    # Single bookmark actions\n    if \"archive\" in request.POST:\n        return archive(request, request.POST[\"archive\"])\n    if \"unarchive\" in request.POST:\n        return unarchive(request, request.POST[\"unarchive\"])\n    if \"remove\" in request.POST:\n        return remove(request, request.POST[\"remove\"])"
+                  }
+                ]
+              },
+              {
+                "statement": "The supplied shared action URL is routed to the shared_action view.",
+                "citations": [
+                  {
+                    "path": "bookmarks/urls.py",
+                    "startLine": 35,
+                    "endLine": 40,
+                    "quote": "    path(\"bookmarks/shared\", bookmarks_views.shared, name=\"bookmarks.shared\"),\n    path(\n        \"bookmarks/shared/action\",\n        bookmarks_views.shared_action,\n        name=\"bookmarks.shared.action\",\n    ),"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The write lookup jointly binds the requested bookmark primary key to owner=request.user, returning only a bookmark owned by the authenticated principal and otherwise raising not found.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/access.py",
+                    "startLine": 28,
+                    "endLine": 32,
+                    "quote": "def bookmark_write(request: HttpRequest, bookmark_id: int | str):\n    try:\n        return Bookmark.objects.get(pk=bookmark_id, owner=request.user)\n    except Bookmark.DoesNotExist:\n        raise Http404(\"Bookmark does not exist\") from None"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The shared action entry requires login, rejects bulk actions, and otherwise delegates the request to the common action dispatcher.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/bookmarks.py",
+                    "startLine": 346,
+                    "endLine": 353,
+                    "quote": "@login_required\ndef shared_action(request: HttpRequest):\n    if \"bulk_execute\" in request.POST:\n        return HttpResponseBadRequest(\"View does not support bulk actions\")\n\n    response = handle_action(request)\n    if response:\n        return response"
+                  }
+                ]
+              },
+              {
+                "statement": "The removal helper applies the owner-only bookmark_write control before performing deletion.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/bookmarks.py",
+                    "startLine": 255,
+                    "endLine": 257,
+                    "quote": "def remove(request: HttpRequest, bookmark_id: int | str):\n    bookmark = access.bookmark_write(request, bookmark_id)\n    bookmark.delete()"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "After the owner-bound lookup succeeds, the protected effect is invocation of delete on that bookmark.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/bookmarks.py",
+                    "startLine": 255,
+                    "endLine": 257,
+                    "quote": "def remove(request: HttpRequest, bookmark_id: int | str):\n    bookmark = access.bookmark_write(request, bookmark_id)\n    bookmark.delete()"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The selected write control contains an ownership predicate and no superuser or special-role alternative, so ownership—not elevated role or shared visibility—is decisive.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/access.py",
+                    "startLine": 28,
+                    "endLine": 32,
+                    "quote": "def bookmark_write(request: HttpRequest, bookmark_id: int | str):\n    try:\n        return Bookmark.objects.get(pk=bookmark_id, owner=request.user)\n    except Bookmark.DoesNotExist:\n        raise Http404(\"Bookmark does not exist\") from None"
+                  }
+                ]
+              },
+              {
+                "statement": "Read access can arise from ownership, authenticated sharing when the owner enables sharing, or public sharing, but a POST by a non-owner is rejected.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/access.py",
+                    "startLine": 13,
+                    "endLine": 23,
+                    "quote": "    is_owner = bookmark.owner == request.user\n    is_shared = (\n        request.user.is_authenticated\n        and bookmark.shared\n        and bookmark.owner.profile.enable_sharing\n    )\n    is_public_shared = bookmark.shared and bookmark.owner.profile.enable_public_sharing\n    if not is_owner and not is_shared and not is_public_shared:\n        raise Http404(\"Bookmark does not exist\")\n    if request.method == \"POST\" and not is_owner:\n        raise Http404(\"Bookmark does not exist\")"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aassessment::entry%3Atarget",
+          "explanation": "Actual source decision: allow. The URL maps POST bookmarks/shared/action to shared_action. That entry requires authentication, rejects only bulk execution, and delegates the supplied single remove field to handle_action. The remove branch passes the posted bookmark ID to remove. The strongest visible authorization control is access.bookmark_write, whose ORM lookup binds both the selected bookmark primary key and owner=request.user; failure is hidden as not found. Under the task assumptions that the authenticated caller owns the existing bookmark and the request contains only that remove ID, this lookup succeeds and remove invokes deletion. Thus the fixed source enforces the declared expectation for this state: the owner may delete. Sharing does not broaden deletion authority: bookmark_read permits qualifying authenticated sharing for reads but expressly rejects a non-owner POST, while bookmark_write independently requires ownership. Consequently shared=True and the owner's enable_sharing=True make the item readable to qualifying users but do not grant them removal; enable_public_sharing=False is immaterial to this owner-write path. The ordinary-user/no-special-role fact also does not block the operation because the selected write control tests ownership rather than superuser or role status. Caller authentication, caller/resource ownership, sharing settings, request contents, CSRF/infrastructure passage, and ordinary Django ORM/decorator behavior are task assumptions rather than deployment facts established by these files. Given those declared assumptions, no decisive external fact is missing for the bounded authorization-reachability decision; storage-level deletion success and exact HTTP status are outside the requested decision.",
+          "facts": [
+            {
+              "id": "f-entry-route",
+              "kind": "entry",
+              "statement": "The supplied shared action URL is routed to the shared_action view.",
+              "citations": [
+                {
+                  "sourceId": "src-a51fad5856e205e8",
+                  "startLine": 35,
+                  "endLine": 40
+                }
+              ]
+            },
+            {
+              "id": "f-entry-auth",
+              "kind": "control",
+              "statement": "The shared action entry requires login, rejects bulk actions, and otherwise delegates the request to the common action dispatcher.",
+              "citations": [
+                {
+                  "sourceId": "src-b082ceda16e389bc",
+                  "startLine": 346,
+                  "endLine": 353
+                }
+              ]
+            },
+            {
+              "id": "f-dispatch",
+              "kind": "entry",
+              "statement": "When the POST contains remove, the dispatcher calls remove with the posted bookmark identifier.",
+              "citations": [
+                {
+                  "sourceId": "src-b082ceda16e389bc",
+                  "startLine": 361,
+                  "endLine": 368
+                }
+              ]
+            },
+            {
+              "id": "f-principal-resource-binding",
+              "kind": "binding",
+              "statement": "The write lookup jointly binds the requested bookmark primary key to owner=request.user, returning only a bookmark owned by the authenticated principal and otherwise raising not found.",
+              "citations": [
+                {
+                  "sourceId": "src-8eccbcbd2d3dd02b",
+                  "startLine": 28,
+                  "endLine": 32
+                }
+              ]
+            },
+            {
+              "id": "f-strongest-control",
+              "kind": "control",
+              "statement": "The removal helper applies the owner-only bookmark_write control before performing deletion.",
+              "citations": [
+                {
+                  "sourceId": "src-b082ceda16e389bc",
+                  "startLine": 255,
+                  "endLine": 257
+                }
+              ]
+            },
+            {
+              "id": "f-effect",
+              "kind": "effect",
+              "statement": "After the owner-bound lookup succeeds, the protected effect is invocation of delete on that bookmark.",
+              "citations": [
+                {
+                  "sourceId": "src-b082ceda16e389bc",
+                  "startLine": 255,
+                  "endLine": 257
+                }
+              ]
+            },
+            {
+              "id": "f-sharing-condition",
+              "kind": "condition",
+              "statement": "Read access can arise from ownership, authenticated sharing when the owner enables sharing, or public sharing, but a POST by a non-owner is rejected.",
+              "citations": [
+                {
+                  "sourceId": "src-8eccbcbd2d3dd02b",
+                  "startLine": 13,
+                  "endLine": 23
+                }
+              ]
+            },
+            {
+              "id": "f-role-relation",
+              "kind": "condition",
+              "statement": "The selected write control contains an ownership predicate and no superuser or special-role alternative, so ownership—not elevated role or shared visibility—is decisive.",
+              "citations": [
+                {
+                  "sourceId": "src-8eccbcbd2d3dd02b",
+                  "startLine": 28,
+                  "endLine": 32
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "policyStatus": "satisfied"
+        }
+      ]
+    },
+    "normalizerVersion": "authorization-wire-normalizer/v5",
+    "relationCoverage": [],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 11654,
+        "output": 1061,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}
