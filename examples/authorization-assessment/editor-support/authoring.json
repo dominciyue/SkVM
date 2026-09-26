@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "synthetic-editor-record-archive",
+  "request": "May authenticated member alice archive record r-1 owned by bob when alice is not a supervisor? Also explain how the owner and supervisor conditions affect the policy.",
+  "repository": "https://example.test/editor-support/records",
+  "sourceRef": "synthetic-editor-v1",
+  "sourceRoot": "project",
+  "sources": [
+    "src/records.ts"
+  ],
+  "policies": {
+    "archive": {
+      "text": "Only an authenticated record owner or an authenticated supervisor may archive a record.",
+      "location": "authoring.json#/policies/archive",
+      "revision": "synthetic-policy-v1",
+      "acceptance": "accepted",
+      "reason": "The synthetic task author explicitly supplies this policy independently of the implementation."
+    }
+  },
+  "principals": {
+    "member": {
+      "role": "member",
+      "facts": [
+        "The principal id is alice.",
+        "The principal is authenticated.",
+        "The principal is not a supervisor."
+      ],
+      "capabilities": [
+        "authenticated"
+      ]
+    }
+  },
+  "resources": {
+    "record": {
+      "type": "record",
+      "facts": [
+        "Record r-1 exists and is owned by bob.",
+        "The record has not been archived."
+      ]
+    }
+  },
+  "entries": {
+    "archive": {
+      "name": "archiveRecord",
+      "locations": [
+        {
+          "path": "src/records.ts",
+          "startLine": 6,
+          "endLine": 12
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "archive": {
+      "principal": "member",
+      "resource": "record",
+      "policy": "archive",
+      "entries": [
+        "archive"
+      ],
+      "relation": "different-owner-without-supervisor-role",
+      "operation": "archive",
+      "expectation": "deny",
+      "conditions": {
+        "is-owner": {
+          "basis": "The policy permits an authenticated owner; the original task specifies alice differs from bob."
+        },
+        "is-supervisor": {
+          "basis": "The policy also permits authenticated supervisors; the original task specifies member role."
+        }
+      },
+      "analyzeConditions": {
+        "names": [
+          "is-owner",
+          "is-supervisor"
+        ],
+        "maxBranches": 4
+      }
+    }
+  },
+  "additionalQuestions": [
+    "Separate the concrete original scenario from alternative owner or supervisor branches."
+  ],
+  "additionalConstraints": [
+    "Treat this as a synthetic source-only assessment; do not execute the target."
+  ]
+}

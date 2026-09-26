@@ -1,0 +1,384 @@
+{
+  "schemaVersion": "authorization-editor-support-verification/v1",
+  "completedAt": "2026-09-27T00:00:39+08:00",
+  "startedDate": "2026-09-26",
+  "baselineHead": "c2fe823d19df4947b8e2b42a1bffff8b89599973",
+  "redGreen": {
+    "firstRed": {
+      "command": "bun test ./src/benchmarks/authorization-dsl/editor-support",
+      "exitCode": 1,
+      "passes": 0,
+      "failures": 1,
+      "reason": "Expected local authoring-v2.schema.json asset to exist; received false before implementation."
+    },
+    "apiRed": {
+      "exitCode": 1,
+      "reason": "New test imports could not find schema.ts before implementation. A test-only extra-parenthesis typo was corrected before this run."
+    },
+    "firstImplementation": {
+      "passes": 7,
+      "failures": 2,
+      "reason": "Coverage checker compared Zod integer >0 directly to schema >=1; corrected to compare effective integer bounds."
+    },
+    "green": {
+      "passes": 9,
+      "failures": 0,
+      "assertions": 517
+    }
+  },
+  "checks": [
+    {
+      "command": "bun test ./src/benchmarks/authorization-dsl/editor-support",
+      "exitCode": 0,
+      "passes": 9,
+      "failures": 0,
+      "assertions": 517,
+      "output": "bun test v1.3.14 (0d9b296a)\n\nsrc\\benchmarks\\authorization-dsl\\editor-support\\schema.test.ts:\n(pass) the draft-07 editor schema is available as a local asset [0.32ms]\n(pass) load returns a draft-07 schema copy without exposing mutable validator state [0.68ms]\n(pass) finite structural fixtures agree with the real v2 parser [85.51ms]\n(pass) diagnostics identify missing and unknown fields including escaped dictionary names [1.84ms]\n(pass) field coverage follows nested runtime objects, required keys and structure [3.18ms]\n(pass) explicit runtime-only cases remain editor-valid but fail the authoritative runtime [2.13ms]\n(pass) verification reports parity and rejects schema drift [59.11ms]\n(pass) the private editor association targets authoring.json and resolves from the example workspace [2.89ms]\n(pass) a copied ordinary directory checks source locations without providers or rewriting inputs [21.86ms]\n\n 9 pass\n 0 fail\n 517 expect() calls\nRan 9 tests across 1 file. [345.00ms]\n"
+    },
+    {
+      "command": "bun test ./src/benchmarks/authorization-dsl/authoring-v2.test.ts",
+      "exitCode": 0,
+      "passes": 4,
+      "failures": 0,
+      "assertions": 41,
+      "output": "bun test v1.3.14 (0d9b296a)\n\nsrc\\benchmarks\\authorization-dsl\\authoring-v2.test.ts:\n(pass) v2 lowers a complete author declaration without internal IDs, deterministically and without mutation [7.69ms]\n(pass) v2 diagnoses author paths without guessing policy or expectations or cascading absent parents [2.24ms]\n(pass) v2 shares entities across scenarios and derives explicit condition bindings with collision-free names [3.64ms]\n(pass) v2 reports ill-formed Unicode names rather than throwing during ID encoding [0.29ms]\n\n 4 pass\n 0 fail\n 41 expect() calls\nRan 4 tests across 1 file. [134.00ms]\n"
+    },
+    {
+      "command": "bun ./src/benchmarks/authorization-dsl/editor-support/verify.ts",
+      "exitCode": 0,
+      "report": {
+        "schemaVersion": "authorization-editor-verification/v1",
+        "valid": true,
+        "structuralCases": 105,
+        "runtimeOnlyCases": 12,
+        "runtimeOnlyChecks": [
+          {
+            "id": "line-order",
+            "stage": "v2-parser",
+            "description": "endLine must not precede startLine."
+          },
+          {
+            "id": "reference-existence",
+            "stage": "normalization",
+            "description": "Scenario principal/resource/policy/entry and requested condition names must exist."
+          },
+          {
+            "id": "repeated-references",
+            "stage": "normalization",
+            "description": "Scenario entry references and requested condition names must be unique."
+          },
+          {
+            "id": "policy-readiness",
+            "stage": "normalization",
+            "description": "Every referenced policy must have author acceptance accepted."
+          },
+          {
+            "id": "unicode-well-formedness",
+            "stage": "v2-parser",
+            "description": "Dictionary names and references must be encodable as well-formed Unicode (no lone surrogates)."
+          },
+          {
+            "id": "source-paths-and-files",
+            "stage": "authorization-check",
+            "description": "sourceRoot and source paths must be safe, resolve within the permitted root (including symlinks/junctions), and identify readable supplied files."
+          },
+          {
+            "id": "source-locations",
+            "stage": "authorization-check",
+            "description": "Entry locations must identify supplied source and fit its actual line range."
+          }
+        ],
+        "runtimeDiagnostics": [
+          {
+            "name": "reversed line range",
+            "check": "line-order",
+            "diagnostics": [
+              {
+                "code": "author-v2-invalid",
+                "path": "entries.archive.locations.0",
+                "message": "endLine must not precede startLine",
+                "fix": "Provide entries.archive.locations.0 using the authoring-v2 example; policy and expectation must be authored, never inferred from code."
+              }
+            ]
+          },
+          {
+            "name": "missing principal",
+            "check": "reference-existence",
+            "diagnostics": [
+              {
+                "code": "author-v2-reference",
+                "path": "scenarios.archive.principal",
+                "message": "Unknown principal missing.",
+                "fix": "Choose a declared name from principals: support."
+              }
+            ]
+          },
+          {
+            "name": "missing resource",
+            "check": "reference-existence",
+            "diagnostics": [
+              {
+                "code": "author-v2-reference",
+                "path": "scenarios.archive.resource",
+                "message": "Unknown resource missing.",
+                "fix": "Choose a declared name from resources: record."
+              }
+            ]
+          },
+          {
+            "name": "missing policy",
+            "check": "reference-existence",
+            "diagnostics": [
+              {
+                "code": "author-v2-reference",
+                "path": "scenarios.archive.policy",
+                "message": "Unknown policy missing.",
+                "fix": "Choose a declared name from policies: archive."
+              }
+            ]
+          },
+          {
+            "name": "missing entry",
+            "check": "reference-existence",
+            "diagnostics": [
+              {
+                "code": "author-v2-reference",
+                "path": "scenarios.archive.entries.0",
+                "message": "Unknown or repeated entry missing.",
+                "fix": "Choose each declared entry at most once: archive."
+              }
+            ]
+          },
+          {
+            "name": "missing condition",
+            "check": "reference-existence",
+            "diagnostics": [
+              {
+                "code": "author-v2-reference",
+                "path": "scenarios.archive.analyzeConditions.names.0",
+                "message": "Missing or repeated condition missing.",
+                "fix": "Declare missing under scenarios.archive.conditions with its author-provided basis, or remove this request."
+              }
+            ]
+          },
+          {
+            "name": "repeated entry",
+            "check": "repeated-references",
+            "diagnostics": [
+              {
+                "code": "author-v2-reference",
+                "path": "scenarios.archive.entries.1",
+                "message": "Unknown or repeated entry archive.",
+                "fix": "Choose each declared entry at most once: archive."
+              }
+            ]
+          },
+          {
+            "name": "repeated condition",
+            "check": "repeated-references",
+            "diagnostics": [
+              {
+                "code": "author-v2-reference",
+                "path": "scenarios.archive.analyzeConditions.names.1",
+                "message": "Missing or repeated condition owner.",
+                "fix": "Declare owner under scenarios.archive.conditions with its author-provided basis, or remove this request."
+              }
+            ]
+          },
+          {
+            "name": "conflicted policy",
+            "check": "policy-readiness",
+            "diagnostics": [
+              {
+                "code": "author-v2-reference",
+                "path": "policies.archive.acceptance",
+                "message": "Policy is not accepted; its scenarios cannot run.",
+                "fix": "Resolve the policy and record the author acceptance reason before running; do not infer acceptance from implementation."
+              }
+            ]
+          },
+          {
+            "name": "unresolved policy",
+            "check": "policy-readiness",
+            "diagnostics": [
+              {
+                "code": "author-v2-reference",
+                "path": "policies.archive.acceptance",
+                "message": "Policy is not accepted; its scenarios cannot run.",
+                "fix": "Resolve the policy and record the author acceptance reason before running; do not infer acceptance from implementation."
+              }
+            ]
+          },
+          {
+            "name": "lone surrogate dictionary name",
+            "check": "unicode-well-formedness",
+            "diagnostics": [
+              {
+                "code": "author-v2-invalid",
+                "path": "scenarios.\\ud800",
+                "message": "Use a well-formed Unicode name without surrounding whitespace, control characters or prototype keys.",
+                "fix": "Provide scenarios.\\ud800 using the authoring-v2 example; policy and expectation must be authored, never inferred from code."
+              }
+            ]
+          },
+          {
+            "name": "lone surrogate reference",
+            "check": "unicode-well-formedness",
+            "diagnostics": [
+              {
+                "code": "author-v2-invalid",
+                "path": "scenarios.archive.principal",
+                "message": "Use a well-formed Unicode name without surrounding whitespace, control characters or prototype keys.",
+                "fix": "Provide scenarios.archive.principal using the authoring-v2 example; policy and expectation must be authored, never inferred from code."
+              }
+            ]
+          }
+        ],
+        "providerCalls": 0,
+        "targetExecutions": 0,
+        "diagnostics": []
+      }
+    },
+    {
+      "command": "bun ./src/index.ts authorization check --input=./examples/authorization-assessment/editor-support/authoring.json",
+      "exitCode": 0,
+      "reportWithoutPreview": {
+        "schemaVersion": "authorization-local-check/v1",
+        "status": "valid",
+        "inputPath": "D:\\skill优化\\SkVM\\examples\\authorization-assessment\\editor-support\\authoring.json",
+        "taskId": "synthetic-editor-record-archive",
+        "repository": "https://example.test/editor-support/records",
+        "sourceRef": "synthetic-editor-v1",
+        "sourceRoot": "D:\\skill优化\\SkVM\\examples\\authorization-assessment\\editor-support\\project",
+        "sourceFiles": [
+          "src/records.ts"
+        ],
+        "arm": "B",
+        "methodSelection": {
+          "effective": "conditions",
+          "selectionOrigin": "input-request",
+          "conditionRequestIgnored": false
+        },
+        "wireVersion": "source-authorization-assessment-wire/v3",
+        "analysisProfile": {
+          "id": "authorization-core-v1",
+          "origin": "derived"
+        },
+        "requirementCount": 6,
+        "ledgerEntryCount": 6,
+        "conditionRequestCount": 1,
+        "conditionPlanEntryCount": 1,
+        "promptCharacters": {
+          "instructions": 396,
+          "declaration": 3222,
+          "publicAnalysis": 1288,
+          "analysisLedger": 5342,
+          "conditionAnalysis": 650,
+          "source": 1058,
+          "outputContract": 3990,
+          "total": 16116,
+          "tokenMeasurement": "provider-reported-only"
+        },
+        "diagnostics": []
+      }
+    },
+    {
+      "command": "bun ./src/index.ts authorization locate --root=./examples/authorization-assessment/editor-support/project --file=src/records.ts --match=\"export function archiveRecord\"",
+      "exitCode": 0,
+      "report": {
+        "schemaVersion": "authorization-source-location/v1",
+        "status": "unique",
+        "path": "src/records.ts",
+        "lineNumberBasis": "current-provided-file",
+        "lineCount": 12,
+        "totalMatches": 1,
+        "truncated": false,
+        "matches": [
+          {
+            "line": 6,
+            "text": "export function archiveRecord(principal: Principal, record: RecordData): RecordData {",
+            "context": [
+              {
+                "line": 4,
+                "text": "// Synthetic policy: only an authenticated owner or supervisor may archive."
+              },
+              {
+                "line": 5,
+                "text": "// The author declares this requirement; the assessment compares source to it."
+              },
+              {
+                "line": 6,
+                "text": "export function archiveRecord(principal: Principal, record: RecordData): RecordData {"
+              },
+              {
+                "line": 7,
+                "text": "  if (!principal.authenticated) throw new Error(\"Authentication required\")"
+              },
+              {
+                "line": 8,
+                "text": "  const isOwner = principal.id === record.ownerId"
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "portableDirectory": {
+    "test": "a copied ordinary directory checks source locations without providers or rewriting inputs",
+    "location": "Ephemeral directory within AC results, cleaned after testing.",
+    "sourceLocations": "function lines 6-12; literal locate line 6",
+    "providerFactoryCalls": 0,
+    "inputUnchanged": true,
+    "sourceUnchanged": true,
+    "originalExampleUnchanged": true,
+    "expectedRuntimeRejections": [
+      "sourceRoot escape",
+      "missing source file",
+      "endLine outside supplied file"
+    ],
+    "schemaCopied": true,
+    "localAssociationResolved": true
+  },
+  "independentReviews": [
+    {
+      "scope": "schema/runtime structure and validator behavior",
+      "result": "No blocking findings; independent finite comparison had zero differences."
+    },
+    {
+      "scope": "example, local paths, README and real check/locate",
+      "result": "No blocking findings; unique function at line 6 and ordinary check valid."
+    }
+  ],
+  "constraints": {
+    "providerCalls": 0,
+    "targetExecutions": 0,
+    "dependencyInstalls": 0,
+    "gitWrites": 0,
+    "abAnswersOrOracleRead": false,
+    "coreV2Modified": false,
+    "sharedDocsModified": false
+  },
+  "versions": {
+    "bun": "1.3.14",
+    "zod": "3.25.76",
+    "ajv": "8.20.0",
+    "zodToJSONSchemaAvailable": false
+  },
+  "speed": {
+    "requested": "Fast / 1.5x",
+    "configuredServiceTier": "priority",
+    "actualRequestTier": "unobserved",
+    "globalConfigModified": false,
+    "observedSpeedMultiplier": null
+  },
+  "limitations": [
+    "Runtime remains authoritative; finite checks do not prove complete semantic equivalence.",
+    "No model or author-efficiency experiment and no savings claim.",
+    "Editor association paths verified; editor UI not exercised.",
+    "Full-repository typecheck and publication reserved for AB integrator.",
+    "Application provider cost zero for zero calls; development agent cost not measured."
+  ],
+  "serializationNote": "Surrogate code units in diagnostic strings are displayed as literal Unicode escapes for transport compatibility. Original runtime fixtures remain unchanged."
+}

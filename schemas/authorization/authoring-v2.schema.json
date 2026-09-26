@@ -1,0 +1,506 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SkVM authorization authoring v2 (editor structure)",
+  "description": "Author-authored task input. Structure validation does not establish source semantics or policy correctness.",
+  "$comment": "Runtime-only checks are enumerated and exercised in src/benchmarks/authorization-dsl/editor-support/verify.ts: line order, references, repeated references, policy readiness, Unicode well-formedness, source paths/files and source locations. This schema does not prove authorization correctness.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "authorization-assessment-authoring/v2",
+      "description": "Exact authoring language version; no editor-specific fields are allowed in the declaration."
+    },
+    "taskId": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/text"
+        }
+      ],
+      "description": "Author-chosen identifier for this bounded assessment."
+    },
+    "request": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/text"
+        }
+      ],
+      "description": "Natural-language question and scenario facts supplied by the task author."
+    },
+    "repository": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/text"
+        }
+      ],
+      "description": "Identity of the single repository being assessed; author-declared, not fetched or verified by this schema."
+    },
+    "sourceRef": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/text"
+        }
+      ],
+      "description": "Author-declared revision of the supplied source; this field does not verify a checkout."
+    },
+    "sourceRoot": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/text"
+        }
+      ],
+      "description": "Directory relative to this input JSON file. Runtime requires it to remain beneath that directory and checks real paths."
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/text"
+          }
+        ],
+        "description": "Explicit source path relative to sourceRoot; use supplied-file line numbers in entry locations."
+      },
+      "minItems": 1,
+      "description": "Non-empty list of the source files available for this assessment."
+    },
+    "policies": {
+      "type": "object",
+      "description": "Named author-provided policies. Policy acceptance and expectations must not be guessed from implementation.",
+      "propertyNames": {
+        "$ref": "#/definitions/key"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/policy"
+      },
+      "minProperties": 1
+    },
+    "principals": {
+      "type": "object",
+      "description": "Named actors shared by scenarios.",
+      "propertyNames": {
+        "$ref": "#/definitions/key"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/principal"
+      },
+      "minProperties": 1
+    },
+    "resources": {
+      "type": "object",
+      "description": "Named resources shared by scenarios.",
+      "propertyNames": {
+        "$ref": "#/definitions/key"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/resource"
+      },
+      "minProperties": 1
+    },
+    "entries": {
+      "type": "object",
+      "description": "Named source entry points; locations refer to the supplied local files.",
+      "propertyNames": {
+        "$ref": "#/definitions/key"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/entry"
+      },
+      "minProperties": 1
+    },
+    "scenarios": {
+      "type": "object",
+      "description": "Named authorization obligations linking declared actors, resources, policies and entries.",
+      "propertyNames": {
+        "$ref": "#/definitions/key"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/scenario"
+      },
+      "minProperties": 1
+    },
+    "additionalQuestions": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/text"
+          }
+        ],
+        "description": "Additional author question."
+      },
+      "description": "Optional questions appended to the common analysis requirements."
+    },
+    "additionalConstraints": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/definitions/text"
+          }
+        ],
+        "description": "Additional author constraint."
+      },
+      "description": "Optional constraints appended to the bounded source-visible assessment constraints."
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "taskId",
+    "request",
+    "repository",
+    "sourceRef",
+    "sourceRoot",
+    "sources",
+    "policies",
+    "principals",
+    "resources",
+    "entries",
+    "scenarios"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Text must contain a non-whitespace character. Runtime trims surrounding whitespace; editor checks do not rewrite the input."
+    },
+    "key": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!\\s)[\\s\\S]*\\S$",
+      "not": {
+        "anyOf": [
+          {
+            "enum": [
+              "__proto__",
+              "prototype",
+              "constructor"
+            ]
+          },
+          {
+            "pattern": "[\\u0000-\\u001f\\u007f]"
+          }
+        ]
+      },
+      "description": "A named declaration or reference. No surrounding whitespace, ASCII control characters or reserved prototype names. Well-formed Unicode is checked by runtime."
+    },
+    "policy": {
+      "type": "object",
+      "description": "A policy and its author-controlled provenance.",
+      "properties": {
+        "text": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/text"
+            }
+          ],
+          "description": "Explicit policy text authored independently of the implementation."
+        },
+        "location": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/text"
+            }
+          ],
+          "description": "Author-provided policy provenance, such as a document path, URL or JSON pointer."
+        },
+        "revision": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/text"
+            }
+          ],
+          "description": "Version of the policy source supplied by the author."
+        },
+        "acceptance": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "conflicted",
+            "unresolved"
+          ],
+          "description": "Author's acceptance state. Runtime blocks scenarios that reference a policy which is not accepted."
+        },
+        "reason": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/text"
+            }
+          ],
+          "description": "Author's explanation of policy acceptance or unresolved disagreement."
+        }
+      },
+      "required": [
+        "text",
+        "location",
+        "revision",
+        "acceptance",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "principal": {
+      "type": "object",
+      "description": "A named principal; runtime does not infer omitted facts.",
+      "properties": {
+        "role": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/text"
+            }
+          ],
+          "description": "Declared principal role, such as member or supervisor."
+        },
+        "facts": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/text"
+              }
+            ],
+            "description": "Explicit fact about the principal."
+          },
+          "description": "Optional known facts; omission means not declared."
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/text"
+              }
+            ],
+            "description": "Explicit starting capability."
+          },
+          "description": "Optional starting capabilities; omission means not declared."
+        }
+      },
+      "required": [
+        "role"
+      ],
+      "additionalProperties": false
+    },
+    "resource": {
+      "type": "object",
+      "description": "A resource referenced by one or more scenarios.",
+      "properties": {
+        "type": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/text"
+            }
+          ],
+          "description": "Declared resource type."
+        },
+        "facts": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/text"
+              }
+            ],
+            "description": "Explicit fact about the resource."
+          },
+          "description": "Optional known facts; omission means not declared."
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "location": {
+      "type": "object",
+      "description": "Location in the exact supplied file, not an upstream excerpt's original line numbers.",
+      "properties": {
+        "path": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/text"
+            }
+          ],
+          "description": "Source path relative to sourceRoot and present in sources."
+        },
+        "startLine": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "First included line in the supplied file, one-based."
+        },
+        "endLine": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Last included line, inclusive. Runtime checks endLine >= startLine and the actual file length."
+        }
+      },
+      "required": [
+        "path",
+        "startLine",
+        "endLine"
+      ],
+      "additionalProperties": false
+    },
+    "entry": {
+      "type": "object",
+      "description": "A named entry point and its source ranges.",
+      "properties": {
+        "name": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/text"
+            }
+          ],
+          "description": "Human-readable entry or function name; not a symbol resolver."
+        },
+        "locations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/location"
+          },
+          "minItems": 1,
+          "description": "One or more explicit supplied-source ranges."
+        }
+      },
+      "required": [
+        "name",
+        "locations"
+      ],
+      "additionalProperties": false
+    },
+    "condition": {
+      "type": "object",
+      "description": "Named scenario condition; omitted conditions are not inferred.",
+      "properties": {
+        "basis": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/text"
+            }
+          ],
+          "description": "Author-provided reason or evidence for considering this condition."
+        }
+      },
+      "required": [
+        "basis"
+      ],
+      "additionalProperties": false
+    },
+    "analyzeConditions": {
+      "type": "object",
+      "description": "Optional bounded condition-analysis request.",
+      "properties": {
+        "names": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/key"
+          },
+          "minItems": 1,
+          "description": "Declared condition names to analyze. Runtime checks existence and repeated names."
+        },
+        "maxBranches": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12,
+          "description": "Optional branch bound (1 through 12); runtime lowering uses 8 when omitted."
+        }
+      },
+      "required": [
+        "names"
+      ],
+      "additionalProperties": false
+    },
+    "scenario": {
+      "type": "object",
+      "description": "An authored authorization obligation; JSON validity alone does not show that it is runnable.",
+      "properties": {
+        "principal": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/key"
+            }
+          ],
+          "description": "Name in principals; reference existence is checked by runtime."
+        },
+        "resource": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/key"
+            }
+          ],
+          "description": "Name in resources; reference existence is checked by runtime."
+        },
+        "policy": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/key"
+            }
+          ],
+          "description": "Name in policies. The referenced policy must be accepted to run."
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/key"
+          },
+          "minItems": 1,
+          "description": "Names in entries. Runtime rejects unknown or repeated names."
+        },
+        "relation": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/text"
+            }
+          ],
+          "description": "Explicit principal/resource relationship, such as same-owner or different-owner."
+        },
+        "operation": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/text"
+            }
+          ],
+          "description": "The protected operation under assessment."
+        },
+        "expectation": {
+          "type": "string",
+          "enum": [
+            "allow",
+            "deny",
+            "conditional"
+          ],
+          "description": "Author-provided policy expectation; never infer this from the implementation's behavior."
+        },
+        "conditions": {
+          "type": "object",
+          "description": "Optional named conditions with author-provided bases; an empty dictionary is permitted.",
+          "propertyNames": {
+            "$ref": "#/definitions/key"
+          },
+          "additionalProperties": {
+            "$ref": "#/definitions/condition"
+          }
+        },
+        "analyzeConditions": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/analyzeConditions"
+            }
+          ],
+          "description": "Optional request to enumerate bounded outcomes for the named conditions."
+        }
+      },
+      "required": [
+        "principal",
+        "resource",
+        "policy",
+        "entries",
+        "relation",
+        "operation",
+        "expectation"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
