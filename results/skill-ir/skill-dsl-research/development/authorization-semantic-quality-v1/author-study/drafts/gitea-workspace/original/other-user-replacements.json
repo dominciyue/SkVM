@@ -1,0 +1,55 @@
+[
+  {
+    "field": "taskId",
+    "value": "gitea-collaborator-permission-other-user",
+    "origin": "Author scenario: authenticated repository-read collaborator querying another user"
+  },
+  {
+    "field": "request",
+    "value": "May an authenticated repository-read collaborator who is neither a site administrator nor a repository administrator query another existing user's repository permission?",
+    "origin": "Author scenario: other-user collaborator target"
+  },
+  {
+    "field": "principals",
+    "value": {
+      "actor": {
+        "role": "repository-read collaborator",
+        "facts": [
+          "The principal is authenticated.",
+          "The principal is a repository collaborator with read permission.",
+          "The principal is not a site administrator.",
+          "The principal is not a repository administrator.",
+          "The requested collaborator username is different from the principal's username."
+        ],
+        "capabilities": ["authenticated", "repository-read"]
+      }
+    },
+    "origin": "Explicit other-user principal identity and administrator exclusions"
+  },
+  {
+    "field": "resources",
+    "value": {
+      "permission": {
+        "type": "repository collaborator permission",
+        "facts": [
+          "The repository exists.",
+          "Another existing user's repository permission is requested.",
+          "The requested collaborator username is not the caller's username."
+        ]
+      }
+    },
+    "origin": "Explicit other-user collaborator resource relationship"
+  },
+  {
+    "field": "scenarios",
+    "value": {
+      "query-permission": {
+        "principal": "actor", "resource": "permission", "policy": "query-permission",
+        "entries": ["get-repo-permissions"],
+        "relation": "different-user-without-site-or-repository-administrator-role",
+        "operation": "GET collaborator repository permission", "expectation": "deny"
+      }
+    },
+    "origin": "Author applies the declared policy to the explicit other-user facts"
+  }
+]

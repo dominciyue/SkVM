@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "authorization-ah-author-briefs/v1",
+  "frozenBeforeAuthorOutput": true,
+  "selectionRule": "Use the first two eligible panel project families with accepted policies and two simple bounded principal/resource states; one supports a later common policy change and the other a later principal-to-resource relation change. No model answer or evaluator judgment was used for selection.",
+  "commonAuthorInstructions": "Write a usable task declaration for the stated source-visible authorization assessment. Use only the supplied neutral brief, source crop and representation usage guide. Do not run or contact the project, infer deployment facts, or read any AH authoring input, evaluator, rubric, oracle, panel result or alternate author's output. You may run one local deterministic check after drafting and make at most one correction based on its concrete diagnostics. Return the exact authored file contents and report any check result and time/cost unknowns; do not silently change meaning to make a check pass.",
+  "packs": [
+    {
+      "id": "fastapi-item-update",
+      "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+      "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+      "sourceFile": "inputs/fastapi-foreign-update/source/items.py",
+      "sourceScope": "items.py:75-96, update_item for PUT /items/{id}; read adjacent code only to understand the declared route context",
+      "acceptedPolicy": "An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.",
+      "states": [
+        { "id": "foreign", "principal": "authenticated active non-superuser", "resource": "an existing item owned by a different user", "operation": "update item fields through PUT /items/{id}" },
+        { "id": "owned", "principal": "authenticated active non-superuser", "resource": "an existing item owned by the caller", "operation": "update item fields through PUT /items/{id}" }
+      ]
+    },
+    {
+      "id": "gitea-collaborator-permission",
+      "repository": "https://github.com/go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "sourceFile": "inputs/gitea-collaborator/source/collaborators.go",
+      "sourceScope": "collaborators.go:1-58, GetRepoPermissions endpoint",
+      "acceptedPolicy": "A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.",
+      "states": [
+        { "id": "other-user", "principal": "authenticated repository-read collaborator; neither site nor repository administrator", "resource": "another existing user's repository permission", "operation": "GET collaborator repository permission" },
+        { "id": "self", "principal": "authenticated repository-read collaborator; neither site nor repository administrator", "resource": "the caller's own repository permission", "operation": "GET collaborator repository permission" }
+      ]
+    }
+  ],
+  "authorAccounting": { "humanMinutes": null, "reason": "Model-assisted independent authors; no human timing supplied." }
+}

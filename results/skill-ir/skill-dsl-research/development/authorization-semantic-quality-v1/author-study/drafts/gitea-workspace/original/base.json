@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "gitea-collaborator-permission-base",
+  "request": "Assess whether the caller may query the specified collaborator's repository permission under the supplied policy.",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceRoot": "../../../../inputs/gitea-collaborator/source",
+  "sources": ["collaborators.go"],
+  "policies": {
+    "query-permission": {
+      "text": "A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none of those relations holds, the request is rejected with HTTP 403 before the target collaborator is loaded.",
+      "location": "base.json#/policies/query-permission",
+      "revision": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "acceptance": "accepted",
+      "reason": "Accepted policy supplied in the neutral author brief."
+    }
+  },
+  "principals": {
+    "actor": {
+      "role": "repository-read collaborator",
+      "facts": [
+        "The principal is authenticated.",
+        "The principal is a repository collaborator with read permission.",
+        "The principal is not a site administrator.",
+        "The principal is not a repository administrator."
+      ],
+      "capabilities": ["authenticated", "repository-read"]
+    }
+  },
+  "resources": {
+    "permission": {
+      "type": "repository collaborator permission",
+      "facts": [
+        "The repository exists.",
+        "The requested collaborator account exists."
+      ]
+    }
+  },
+  "entries": {
+    "get-repo-permissions": {
+      "name": "GetRepoPermissions",
+      "locations": [
+        { "path": "collaborators.go", "startLine": 4, "endLine": 58 }
+      ]
+    }
+  },
+  "scenarios": {
+    "query-permission": {
+      "principal": "actor", "resource": "permission", "policy": "query-permission",
+      "entries": ["get-repo-permissions"], "relation": "variant-specific-collaborator-identity",
+      "operation": "GET collaborator repository permission", "expectation": "deny"
+    }
+  }
+}

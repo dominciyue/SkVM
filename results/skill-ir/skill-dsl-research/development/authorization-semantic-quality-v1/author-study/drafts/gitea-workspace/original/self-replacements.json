@@ -1,0 +1,54 @@
+[
+  {
+    "field": "taskId", "value": "gitea-collaborator-permission-self",
+    "origin": "Author scenario: authenticated repository-read collaborator querying self"
+  },
+  {
+    "field": "request",
+    "value": "May an authenticated repository-read collaborator who is neither a site administrator nor a repository administrator query their own repository permission?",
+    "origin": "Author scenario: self collaborator target"
+  },
+  {
+    "field": "principals",
+    "value": {
+      "actor": {
+        "role": "repository-read collaborator",
+        "facts": [
+          "The principal is authenticated.",
+          "The principal is a repository collaborator with read permission.",
+          "The principal is not a site administrator.",
+          "The principal is not a repository administrator.",
+          "The requested collaborator username is the principal's own username."
+        ],
+        "capabilities": ["authenticated", "repository-read"]
+      }
+    },
+    "origin": "Explicit self-query principal identity and administrator exclusions"
+  },
+  {
+    "field": "resources",
+    "value": {
+      "permission": {
+        "type": "repository collaborator permission",
+        "facts": [
+          "The repository exists.",
+          "The caller's own repository permission is requested.",
+          "The requested collaborator username equals the caller's username."
+        ]
+      }
+    },
+    "origin": "Explicit self-query collaborator resource relationship"
+  },
+  {
+    "field": "scenarios",
+    "value": {
+      "query-permission": {
+        "principal": "actor", "resource": "permission", "policy": "query-permission",
+        "entries": ["get-repo-permissions"],
+        "relation": "same-user-without-site-or-repository-administrator-role",
+        "operation": "GET collaborator repository permission", "expectation": "allow"
+      }
+    },
+    "origin": "Author applies the declared policy to the explicit self-query facts"
+  }
+]

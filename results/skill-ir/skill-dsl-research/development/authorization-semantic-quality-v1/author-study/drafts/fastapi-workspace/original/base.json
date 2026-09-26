@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "fastapi-item-update-base",
+  "request": "Assess the explicitly declared item update scenario against the supplied policy.",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "sourceRoot": "../../../../inputs/fastapi-foreign-update/source",
+  "sources": ["items.py"],
+  "policies": {
+    "item-update": {
+      "text": "An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.",
+      "location": "base.json#/policies/item-update",
+      "revision": "fastapi-item-update-policy-v1",
+      "acceptance": "accepted",
+      "reason": "The task author explicitly supplies the accepted policy from the neutral brief."
+    }
+  },
+  "principals": { "actor": { "role": "authenticated active non-superuser", "facts": ["The principal is authenticated.", "The principal is active.", "The principal is not a superuser."], "capabilities": ["authenticated", "active"] } },
+  "resources": { "item": { "type": "item", "facts": ["An existing item is available for update."] } },
+  "entries": { "update-item": { "name": "update_item", "locations": [{ "path": "items.py", "startLine": 75, "endLine": 96 }] } },
+  "scenarios": { "update-item": { "principal": "actor", "resource": "item", "policy": "item-update", "entries": ["update-item"], "relation": "declared-item-ownership", "operation": "update item fields through PUT /items/{id}", "expectation": "deny" } }
+}
