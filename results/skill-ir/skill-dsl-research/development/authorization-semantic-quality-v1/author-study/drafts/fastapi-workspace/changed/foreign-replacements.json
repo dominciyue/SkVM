@@ -1,0 +1,7 @@
+[
+  { "field": "taskId", "value": "fastapi-item-update-foreign", "origin": "Author scenario: authenticated active non-superuser updating another user's item" },
+  { "field": "request", "value": "May an authenticated active non-superuser update fields through PUT /items/{id} when the existing item is owned by a different user?", "origin": "Author scenario: foreign-owned item update" },
+  { "field": "principals", "value": { "actor": { "role": "authenticated active non-superuser", "facts": ["The principal is authenticated.", "The principal is active.", "The principal is not a superuser."], "capabilities": ["authenticated", "active"] } }, "origin": "Explicit foreign-scenario principal identity and status" },
+  { "field": "resources", "value": { "item": { "type": "item", "facts": ["An existing item exists.", "The item is owned by a different user from the caller."] } }, "origin": "Explicit foreign-scenario ownership relationship" },
+  { "field": "scenarios", "value": { "update-item": { "principal": "actor", "resource": "item", "policy": "item-update", "entries": ["update-item"], "relation": "different-owner-active-non-superuser", "operation": "update item fields through PUT /items/{id}", "expectation": "allow" } }, "origin": "Author applies the revised accepted policy to the explicit foreign-owner facts" }
+]

@@ -1,0 +1,55 @@
+[
+  {
+    "field": "taskId",
+    "value": "gitea-collaborator-permission-other-user",
+    "origin": "Author scenario: authenticated repository-read collaborator querying another user"
+  },
+  {
+    "field": "request",
+    "value": "May an authenticated repository-read collaborator who is neither a site administrator nor a repository administrator query their own repository permission?",
+    "origin": "Change request: the requested collaborator username now equals the caller's username"
+  },
+  {
+    "field": "principals",
+    "value": {
+      "actor": {
+        "role": "repository-read collaborator",
+        "facts": [
+          "The principal is authenticated.",
+          "The principal is a repository collaborator with read permission.",
+          "The principal is not a site administrator.",
+          "The principal is not a repository administrator.",
+          "The requested collaborator username equals the principal's username."
+        ],
+        "capabilities": ["authenticated", "repository-read"]
+      }
+    },
+    "origin": "Change request: existing other-user state changed to a self-query while retaining administrator exclusions"
+  },
+  {
+    "field": "resources",
+    "value": {
+      "permission": {
+        "type": "repository collaborator permission",
+        "facts": [
+          "The repository exists.",
+          "The caller's own repository permission is requested.",
+          "The requested collaborator username equals the caller's username."
+        ]
+      }
+    },
+    "origin": "Change request: existing other-user resource relationship changed to self-query"
+  },
+  {
+    "field": "scenarios",
+    "value": {
+      "query-permission": {
+        "principal": "actor", "resource": "permission", "policy": "query-permission",
+        "entries": ["get-repo-permissions"],
+        "relation": "same-user-without-site-or-repository-administrator-role",
+        "operation": "GET collaborator repository permission", "expectation": "allow"
+      }
+    },
+    "origin": "Change request: same-user relation satisfies the unchanged accepted policy"
+  }
+]
