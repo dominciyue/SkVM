@@ -17,6 +17,7 @@ import {
 import type { AnalysisDiagnostic } from "../../task-dsl/authorization/relations.ts"
 import type { AuthorizationResultV0 } from "../../task-dsl/authorization/schema.ts"
 import { compileAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
+import { compileAuthorizationReasoningPlan, validAuthorizationReasoningStrategy, type AuthorizationReasoningPlan, type AuthorizationReasoningStrategy } from "../../task-dsl/authorization/reasoning-plan.ts"
 import {
   runAuthorizationTask,
   type AuthorizationTaskRun,
@@ -46,6 +47,8 @@ export interface LocalAuthorizationCheckReport {
   studyArm?: AuthorizationStudyArm
   methodSelection?: AuthorizationMethodSelection
   wireVersion?: string
+  reasoningStrategy?: AuthorizationReasoningStrategy
+  reasoningPlan?: AuthorizationReasoningPlan
   analysisProfile?: LocalAnalysisProfile
   requirementCount?: number
   ledgerEntryCount?: number
@@ -94,6 +97,7 @@ const PersistedLocalSessionSchema = z.object({
   arm: z.enum(["N", "B", "D"]).optional(),
   studyArm: AuthorizationStudyArmSchema.optional(),
   analysisProfile: z.unknown().optional(),
+  reasoningStrategy: z.enum(["standard", "control-binding-v1"]).optional(),
   noAutomaticResend: z.literal(true).optional(),
 }).passthrough()
 const PersistedLocalSessionReportSchema = z.object({
@@ -107,6 +111,7 @@ const PersistedLocalSessionReportSchema = z.object({
   model: NonEmptyString.optional(),
   arm: z.enum(["N", "B", "D"]).optional(),
   studyArm: AuthorizationStudyArmSchema.optional(),
+  reasoningStrategy: z.enum(["standard", "control-binding-v1"]).optional(),
   finalKind: z.enum(["initial", "repair"]).optional(),
 }).passthrough()
 const PersistedLocalDispatchSchema = z.object({
@@ -115,6 +120,7 @@ const PersistedLocalDispatchSchema = z.object({
   model: NonEmptyString,
   arm: z.enum(["N", "B", "D"]),
   studyArm: AuthorizationStudyArmSchema.optional(),
+  reasoningStrategy: z.enum(["standard", "control-binding-v1"]).optional(),
 }).passthrough()
 const PersistedAuthorizationRunSchema = z.object({
   status: AuthorizationTaskRunStatusSchema,
@@ -148,6 +154,7 @@ export interface LocalAuthorizationSessionReport {
   methodSelection?: AuthorizationMethodSelection
   wireVersion?: string
   analysisProfile?: LocalAnalysisProfile
+  reasoningStrategy?: AuthorizationReasoningStrategy
   finalKind?: "initial" | "repair"
   canonicalResult?: AuthorizationResultV0
   wireResult?: unknown
@@ -287,7 +294,12 @@ function checkReport(
   method?: AuthorizationMethod,
   wireVersion: "legacy" | "v4" | "v5" = "legacy",
   researchInstructions?: MarkdownStudyInput,
+  reasoningStrategy: AuthorizationReasoningStrategy = "standard",
 ): LocalAuthorizationCheckReport {
+  if (!validAuthorizationReasoningStrategy(reasoningStrategy)) return {
+    schemaVersion: "authorization-local-check/v1", status: "invalid", inputPath: loaded.inputPath,
+    diagnostics: [localStudyDiagnostic("invalid-reasoning-strategy", "Reasoning strategy must be standard or control-binding-v1.", "reasoningStrategy")],
+  }
   if (loaded.status === "invalid") {
     return {
       schemaVersion: "authorization-local-check/v1",
@@ -343,7 +355,7 @@ function checkReport(
     arm,
     selected.analysisPlan,
     selected.conditionPlan,
-    { ...selected.renderOptions, wireVersion, researchInstructions },
+    { ...selected.renderOptions, wireVersion, researchInstructions, reasoningStrategy },
   )
   const renderedPrompt = rendered.prompt.replace("<SOURCE_CONTEXT_INSERTED_BY_HOST>", sourceContext)
   const preview = [
@@ -362,6 +374,8 @@ function checkReport(
     arm,
     ...(studyArm ? { studyArm } : {}),
     methodSelection: resolved.selection,
+    reasoningStrategy,
+    ...(reasoningStrategy !== "standard" ? { reasoningPlan: compileAuthorizationReasoningPlan(compiled, reasoningStrategy) } : {}),
     wireVersion: `source-authorization-assessment-wire/v${wireVersion === "v5" ? 5 : wireVersion === "v4" ? 4 : resolved.studyArm === "P" ? 1 : resolved.studyArm === "L" ? 2 : 3}`,
     analysisProfile: loaded.analysisProfile,
     requirementCount: loaded.analysisRequirements.length,
@@ -398,8 +412,9 @@ export async function checkLocalAuthorizationInput(
   arm: AuthorizationRenderArm = "B",
   method?: AuthorizationMethod,
   wireVersion: "legacy" | "v4" | "v5" = "legacy",
+  reasoningStrategy: AuthorizationReasoningStrategy = "standard",
 ): Promise<LocalAuthorizationCheckReport> {
-  return checkReport(await loadLocalAuthorizationInput(inputFile), arm, undefined, method, wireVersion)
+  return checkReport(await loadLocalAuthorizationInput(inputFile), arm, undefined, method, wireVersion, undefined, reasoningStrategy)
 }
 
 export async function checkLocalAuthorizationStudyInput(
@@ -546,13 +561,15 @@ export async function executeLocalAuthorizationRun(input: {
   studyArm?: AuthorizationStudyArm
   method?: AuthorizationMethod
   wireVersion?: "legacy" | "v4" | "v5"
+  reasoningStrategy?: AuthorizationReasoningStrategy
   executionOptions?: RunAuthorizationTaskOptions
   providerFactory?: LocalAuthorizationProviderFactory
   env?: LocalAuthorizationRunnerEnv
 }): Promise<LocalAuthorizationSessionReport | LocalAuthorizationCheckReport> {
   const arm = input.arm ?? "B"
   const loaded = await loadLocalAuthorizationInput(input.inputFile)
-  const checked = checkReport(loaded, arm, input.studyArm, input.method, input.wireVersion, input.researchInstructions)
+  const reasoningStrategy = input.reasoningStrategy ?? "standard"
+  const checked = checkReport(loaded, arm, input.studyArm, input.method, input.wireVersion, input.researchInstructions, reasoningStrategy)
   if (loaded.status === "invalid" || checked.status === "invalid") return checked
   const effectiveStudyArm = methodStudyArm[checked.methodSelection!.effective]
   const selected = studyExecutionInputs(loaded, effectiveStudyArm)
@@ -561,7 +578,7 @@ export async function executeLocalAuthorizationRun(input: {
     instructionPath: input.researchInstructions.instructionPath, sha256: sha256(input.researchInstructions.instructions),
     characters: input.researchInstructions.instructions.length,
   } : undefined
-  const selectionMetadata = { methodSelection: checked.methodSelection, wireVersion: checked.wireVersion,
+  const selectionMetadata = { methodSelection: checked.methodSelection, wireVersion: checked.wireVersion, reasoningStrategy,
     ...(researchIdentity ? {researchIdentity} : {}) }
 
   const session = await createSession(input.outRoot)
@@ -703,7 +720,7 @@ export async function executeLocalAuthorizationRun(input: {
       provider,
       arm,
       wireVersion: input.wireVersion,
-      renderOptions: { ...selected.renderOptions, researchInstructions: input.researchInstructions },
+      renderOptions: { ...selected.renderOptions, researchInstructions: input.researchInstructions, reasoningStrategy },
       options: executionOptions,
       onLifecycleEvent: event => appendFile(
         path.join(session.sessionPath, runArtifacts.events!),
@@ -803,6 +820,7 @@ async function validateDispatchIdentity(
     || (session.studyArm !== undefined && dispatch.studyArm !== session.studyArm)
     || !samePersistedValue(session.methodSelection, dispatch.methodSelection)
     || !samePersistedValue(session.wireVersion, dispatch.wireVersion)
+    || (session.reasoningStrategy ?? "standard") !== (dispatch.reasoningStrategy ?? "standard")
   ) {
     throw new LocalAuthorizationRunnerError(`Dispatch artifact identity does not match session ${sessionId}.`)
   }
@@ -826,18 +844,20 @@ async function validateTerminalSession(input: {
     || (session.studyArm !== undefined && report.studyArm !== session.studyArm)
     || !samePersistedValue(session.methodSelection, report.methodSelection)
     || !samePersistedValue(session.wireVersion, report.wireVersion)
+    || (session.reasoningStrategy ?? "standard") !== (report.reasoningStrategy ?? "standard")
   ) {
     throw new LocalAuthorizationRunnerError(`Persisted session identity does not match directory ${sessionId}.`)
   }
 
   const checkPath = path.join(sessionPath, "check.json")
   if (await pathKind(checkPath) === "file") {
-    const check = JSON.parse(await readFile(checkPath, "utf8")) as { inputPath?: string; taskId?: string; methodSelection?: unknown; wireVersion?: unknown }
+    const check = JSON.parse(await readFile(checkPath, "utf8")) as { inputPath?: string; taskId?: string; methodSelection?: unknown; wireVersion?: unknown; reasoningStrategy?: AuthorizationReasoningStrategy; reasoningPlan?: AuthorizationReasoningPlan }
     if (
       (check.inputPath !== undefined && path.resolve(report.inputPath ?? "") !== path.resolve(check.inputPath))
       || (check.taskId !== undefined && report.taskId !== check.taskId)
       || !samePersistedValue(check.methodSelection, report.methodSelection)
       || !samePersistedValue(check.wireVersion, report.wireVersion)
+      || (check.reasoningStrategy ?? "standard") !== (report.reasoningStrategy ?? "standard")
     ) {
       throw new LocalAuthorizationRunnerError(`Persisted session identity does not match check artifact for ${sessionId}.`)
     }
@@ -862,6 +882,7 @@ async function validateTerminalSession(input: {
       || run.arm !== report.arm
       || run.finalKind !== report.finalKind
       || (report.wireVersion !== undefined && run.wireVersion !== report.wireVersion)
+      || (report.reasoningStrategy === "control-binding-v1" && !samePersistedValue(runRecord.reasoningPlan, (JSON.parse(await readFile(checkPath, "utf8")) as LocalAuthorizationCheckReport).reasoningPlan))
       || !samePersistedValue(artifact?.result, report.canonicalResult)
       || (report.wireVersion === "source-authorization-assessment-wire/v5" && (!samePersistedValue(artifact?.wireResult, report.wireResult) || !samePersistedValue(artifact?.normalization?.normalizerVersion, report.normalizerVersion)))
       || !samePersistedValue(artifact ? artifact.relationCoverage ?? [] : undefined, report.relationCoverage)
@@ -909,6 +930,7 @@ async function inspectSession(sessionPath: string, sessionId: string): Promise<L
     ...(session.model ? { model: session.model } : {}),
     ...(session.arm ? { arm: session.arm } : {}),
     ...(session.studyArm ? { studyArm: session.studyArm } : {}),
+    reasoningStrategy: session.reasoningStrategy ?? "standard",
     ...(session.methodSelection ? { methodSelection: session.methodSelection as AuthorizationMethodSelection } : {}),
     ...(typeof session.wireVersion === "string" ? { wireVersion: session.wireVersion } : {}),
     ...(session.analysisProfile ? { analysisProfile: session.analysisProfile as LocalAnalysisProfile } : {}),
@@ -995,14 +1017,20 @@ function parseWire(value: string | undefined): "legacy" | "v4" | "v5" {
   throw new LocalAuthorizationRunnerError("wire must be legacy, v4 or v5; legacy selects v1/v2/v3 by method.")
 }
 
+function parseReasoning(value: string | undefined): AuthorizationReasoningStrategy {
+  if (value === undefined || value === "standard") return "standard"
+  if (value === "control-binding-v1") return value
+  throw new LocalAuthorizationRunnerError("reasoning must be standard or control-binding-v1.")
+}
+
 function helpText(): string {
   return [
     "Authorization local assessment",
     "",
     "Commands:",
-    "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5] [--arm=N|B|D]",
-    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5] [--arm=N|B|D]",
-    "  compare --previous=<session> --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5]",
+    "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5] [--arm=N|B|D] [--reasoning=standard|control-binding-v1]",
+    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5] [--arm=N|B|D] [--reasoning=standard|control-binding-v1]",
+    "  compare --previous=<session> --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5] [--reasoning=standard|control-binding-v1]",
     "  inspect --out=<output-root-or-session>",
     "",
     "Only run initializes a provider. Every run creates a new immutable session; inspect never resends it.",
@@ -1020,26 +1048,28 @@ export async function runLocalAuthorizationCli(
   const command = argv[0]!
   try {
     if (command === "compare") {
-      const options = parseOptions(argv.slice(1), new Set(["previous", "input", "method", "wire"]))
+      const options = parseOptions(argv.slice(1), new Set(["previous", "input", "method", "wire", "reasoning"]))
       const report = await compareAuthorizationInput(requireOption(options,"previous","compare"), requireOption(options,"input","compare"), {
         ...(options.method ? {method:parseMethod(options.method)} : {}), ...(options.wire ? {wireVersion:parseWire(options.wire)} : {}),
+        ...(options.reasoning ? {reasoningStrategy:parseReasoning(options.reasoning)} : {}),
       })
       dependencies.stdout(JSON.stringify(report,null,2))
       return report.status === "input-invalid" ? 1 : 0
     }
     if (command === "check") {
-      const options = parseOptions(argv.slice(1), new Set(["input", "arm", "method", "wire"]))
+      const options = parseOptions(argv.slice(1), new Set(["input", "arm", "method", "wire", "reasoning"]))
       const report = await checkLocalAuthorizationInput(
         requireOption(options, "input", "check"),
         parseArm(options.arm),
         parseMethod(options.method),
         parseWire(options.wire),
+        parseReasoning(options.reasoning),
       )
       dependencies.stdout(JSON.stringify(report, null, 2))
       return report.status === "valid" ? 0 : 1
     }
     if (command === "run") {
-      const options = parseOptions(argv.slice(1), new Set(["input", "model", "out", "arm", "method", "wire"]))
+      const options = parseOptions(argv.slice(1), new Set(["input", "model", "out", "arm", "method", "wire", "reasoning"]))
       const report = await executeLocalAuthorizationRun({
         inputFile: requireOption(options, "input", "run"),
         model: requireOption(options, "model", "run"),
@@ -1047,6 +1077,7 @@ export async function runLocalAuthorizationCli(
         arm: parseArm(options.arm),
         method: parseMethod(options.method),
         wireVersion: parseWire(options.wire),
+        reasoningStrategy: parseReasoning(options.reasoning),
         ...(dependencies.providerFactory ? { providerFactory: dependencies.providerFactory } : {}),
         ...(dependencies.env ? { env: dependencies.env } : {}),
       })

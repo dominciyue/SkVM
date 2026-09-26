@@ -163,6 +163,37 @@ function dependencies(
 }
 
 describe("local authorization runner", () => {
+  it("rejects unknown reasoning before provider creation and persists focused prompt identity", async () => {
+    const fixture = await makeFixture()
+    const calls = { factory: 0, provider: 0 }
+    const output: string[] = []
+    const deps = dependencies(fixture.inputPath, calls, output)
+    expect(await runLocalAuthorizationCli(["run", `--input=${fixture.inputPath}`, "--model=mock/model", `--out=${fixture.outRoot}`, "--reasoning=imaginary"], deps)).toBe(2)
+    expect(calls).toEqual({ factory: 0, provider: 0 })
+
+    const prompts: string[] = []
+    const providerFactory = async () => {
+      const provider = await providerFor(fixture.inputPath, calls)
+      return { ...provider, complete: async (params: Parameters<LLMProvider["complete"]>[0]) => {
+        prompts.push(JSON.stringify(params.messages))
+        return provider.complete(params)
+      } } as LLMProvider
+    }
+    const report = await executeLocalAuthorizationRun({
+      inputFile: fixture.inputPath, model: "mock/model", outRoot: fixture.outRoot,
+      reasoningStrategy: "control-binding-v1", providerFactory, env: {},
+    })
+    expect(report.status).toBe("completed")
+    if (!("sessionPath" in report)) throw Error("session")
+    expect(prompts[0]).toContain("checked by each claimed control")
+    expect(report.reasoningStrategy).toBe("control-binding-v1")
+    const descriptor = JSON.parse(await readFile(path.join(report.sessionPath, "session.json"), "utf8"))
+    const executionDependencies = JSON.parse(await readFile(path.join(report.sessionPath, "execution-dependencies.json"), "utf8"))
+    expect(descriptor.reasoningStrategy).toBe("control-binding-v1")
+    expect(executionDependencies.reasoningPlan.entries).toHaveLength(1)
+    expect((await inspectLocalAuthorizationOutput(report.sessionPath)).reasoningStrategy).toBe("control-binding-v1")
+  })
+
   it("defaults the public check function to B while preserving explicit D", async () => {
     const fixture = await makeFixture()
 

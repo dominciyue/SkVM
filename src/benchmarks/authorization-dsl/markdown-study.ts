@@ -23,6 +23,7 @@ export async function executeMarkdownStudyRun(input: Omit<Parameters<typeof exec
       if (loaded.status !== "valid" || descriptor.model !== input.model
           || descriptor.wireVersion !== `source-authorization-assessment-wire/${wireVersion}`
           || descriptor.inputSha256 !== hash(loaded.rawInput)
+          || (descriptor.reasoningStrategy ?? "standard") !== (input.reasoningStrategy ?? "standard")
           || retained.sha256 !== hash(markdown.instructions)
           || retained.instructions !== markdown.instructions || retained.instructionOrigin !== markdown.instructionOrigin
           || retained.instructionPath !== markdown.instructionPath

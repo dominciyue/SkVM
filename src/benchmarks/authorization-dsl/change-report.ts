@@ -4,6 +4,7 @@ import path from "node:path"
 import {stableAuthorizationJson} from "../../task-dsl/authorization/result.ts"
 import {compileAuthorizationTask} from "../../task-dsl/authorization/semantics.ts"
 import type {AuthorizationMethod} from "../../task-dsl/authorization/method.ts"
+import type {AuthorizationReasoningStrategy} from "../../task-dsl/authorization/reasoning-plan.ts"
 import {loadLocalAuthorizationInput,type LocalInputResult} from "./local-input.ts"
 import type {LocalAuthorizationCheckReport} from "./local-run.ts"
 
@@ -23,12 +24,13 @@ export function createExecutionDependencies(loaded:ValidInput, checked:LocalAuth
     profile:loaded.analysisProfile,requirements:loaded.analysisRequirements,conditionRequest:loaded.conditionAnalysisRequest??null,
     normalizerVersion:loaded.provenance.normalizerVersion??"authoring-v1-lowering/1",
     method:checked.methodSelection!.effective,wireVersion:checked.wireVersion!,arm:checked.arm!,
+    reasoningStrategy:checked.reasoningStrategy??"standard",reasoningPlan:checked.reasoningPlan??null,
     resultContract:"source-authorization-assessment-result/v0",promptSha256:hash(checked.preview??""),
   }
 }
 type Snapshot=ReturnType<typeof createExecutionDependencies>
 
-export async function compareAuthorizationInput(previousSessionPath:string,inputPath:string,options:{method?:AuthorizationMethod;wireVersion?:"legacy"|"v4"|"v5"}={}) {
+export async function compareAuthorizationInput(previousSessionPath:string,inputPath:string,options:{method?:AuthorizationMethod;wireVersion?:"legacy"|"v4"|"v5";reasoningStrategy?:AuthorizationReasoningStrategy}={}) {
   const {inspectLocalAuthorizationOutput,checkLocalAuthorizationInput}=await import("./local-run.ts")
   const previous=await inspectLocalAuthorizationOutput(previousSessionPath)
   const loaded=await loadLocalAuthorizationInput(inputPath)
@@ -41,9 +43,10 @@ export async function compareAuthorizationInput(previousSessionPath:string,input
   const method=options.method??old?.method??previous.methodSelection?.effective
   const previousWire=old?.wireVersion??previous.wireVersion
   const wireVersion=options.wireVersion??(previousWire==="source-authorization-assessment-wire/v5"?"v5":previousWire==="source-authorization-assessment-wire/v4"?"v4":"legacy")
+  const reasoningStrategy=options.reasoningStrategy??old?.reasoningStrategy??previous.reasoningStrategy??"standard"
   if(!method)missingDependencies.push("method")
   if(!old?.wireVersion&&!previous.wireVersion)missingDependencies.push("wireVersion")
-  const checked=await checkLocalAuthorizationInput(inputPath,old?.arm??previous.arm??"B",method,wireVersion)
+  const checked=await checkLocalAuthorizationInput(inputPath,old?.arm??previous.arm??"B",method,wireVersion,reasoningStrategy)
   if(checked.status!=="valid")return {...base,status:"input-invalid",affectedScenarioIds:[],missingDependencies,diagnostics:checked.diagnostics,reasons:["current-input-invalid"]}
   const next=createExecutionDependencies(loaded,checked)
   const oldScenarios=old?.scenarios??{}
@@ -54,6 +57,7 @@ export async function compareAuthorizationInput(previousSessionPath:string,input
   if(missingDependencies.length)reasons.push("missing-execution-dependencies")
   if(old && !missingDependencies.length) {
     for(const k of required.filter(k=>k!=="scenarios"))if(hash(old[k])!==hash(next[k]))reasons.push(k==="sourceBundle"?"source-bundle-changed":`${k}-changed`)
+    if((old.reasoningStrategy??"standard")!==next.reasoningStrategy||hash(old.reasoningPlan??null)!==hash(next.reasoningPlan))reasons.push("reasoning-plan-changed")
   }
   if(added.length)reasons.push("scenarios-added")
   if(removed.length)reasons.push("scenarios-removed")

@@ -111,6 +111,8 @@ E1 登记 26 个来源记录，其中 12 个选入的外部 skill 成员来自 1
 
 分母保持分离：12 个 skill 成员不等于 12 类任务；一张卡可含多个职责，但本轮只选择与类别比较有关的任务种类；paper/workbook/page 是输入实例；模板、helper、issue 和同维护者 domain tool 是依赖或问题证据，不增加成员或独立谱系。
 
+AH回读安全来源时只映射Cloudflare与GitHub两个独立skill家族中的单repo/ref授权分析职责；目标源码中的Open WebUI、FastAPI、Gitea三个项目与八个任务状态是测试输入，不是额外skill成员。full/diff审计、patch、secret和dependency职责仍按原来源保存。出处、依赖读取深度与近似反例见[AH职责图](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/skill-duty-map.json)。
+
 ### 4.6 E3 实际问题、已有解法与证据强弱
 
 E3 不把“结构化会更稳定”当需求证据。每个候选都先回答：什么触发问题、影响什么、现有方案已经解决了什么、剩余部分是否真需要新的领域表达。完整问题记录位于 [observations.jsonl](../../results/skill-ir/skill-dsl-research/observations.jsonl)。
@@ -852,6 +854,12 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 **复用的实际问题。** AF的整字段替换可能遮住base政策的更新，这也是合法override。新增只读变更反馈应定位继承、覆盖、最终值变化和复查范围，提醒作者核对适用性，不能擅自覆盖其政策。两个中立任务包分别安排独立MD/workspace作者的原任务和变化任务，记录真实草稿、诊断、修正和遗漏；模型作者与真人分钟分开。完整运行依赖继续用于旧结果适用性判断，不按答案引用子集缩小。
 
 **研究维护。** 来源职责映射补到§4/§7.9，本轮设计、反例、实现问题和取舍在本节更新，机器材料进入AH单一结果根。实际问题按触发、根因、解决、验证、方法变化简写；当前主题随实现同步，不建立另一套每轮研究报告。新任务负责有限回归、普通使用示例及origin发布，旧结果与本地历史材料保持原样。
+
+**AH0–AH6实际进度。** [来源职责映射](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/skill-duty-map.json)确认Cloudflare security-audit与GitHub security-review是两个独立正例家族，但仅取其单repo/ref授权路径职责；Trail of Bits diff review及Sentry skill-scanner保留近似反例。目标项目是输入，不扩增skill分母。两个不同源码情形给出可问的区别：Open WebUI file路径检查源文件ownership却写入另一目标集合；process_text路径的caller/helper先做有效目标写权限检查，不能仅因sink局部无检查就报失败。现有六类requirement和fact/citation足以承载答案，缺的是义务局部的对象/路径适用范围提问。故纯`reasoning-plan.ts`只产生问题、不填源码结论，不增加schema或wire；standard无新增段，MD与DSL共享同段，repair保留。普通check/run、会话身份、inspect和compare均接通；两个聚焦红绿阶段及typecheck通过。这是工程事实，语义收益待四臂模型评价。
+
+**工作区反馈。** 只读比较从同一次plan读取保存base字段快照，并为每个variant保存有效源码字节摘要。报告共同字段变化、继承/整字段override、有效声明变化、成员增删及复查原因；相同值override仍按显式来源解释，单纯生成目录搬移且源码字节相同不冒充有效源码变化。旧run适用性仍由完整执行依赖检查，引用过的部分文件不足以自动复用答案。AH6 synthetic测试覆盖政策继承、override遮蔽、无效引用、成员增删和坐标搬移；尚无真人节省证据。
+
+**AH2材料与分母。** [候选登记](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/candidate-selection.json)在新模型输出前固定4个旧锚点+4个Gitea/FastAPI新AH状态，三项目、零synthetic真实面板状态；Gitea曾出现在早期development面板，不能写成未暴露或新skill家族。八份普通authoring/v2均通过无provider检查；独立干净上下文Markdown作者的原稿及文件坐标修订理由单列。四臂预计8×4加3个预选新状态重复×4，共44单元；新状态缺外部部署事实型合格材料，因此没有硬凑第4个重复。rubric按实际效果allow/deny/unknown、政策标签、必要关系、解释和可选细节分层，评价材料与模型输入物理分开。此处尚无AH真实模型结果。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

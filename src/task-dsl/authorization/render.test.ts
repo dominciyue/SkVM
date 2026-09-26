@@ -63,6 +63,27 @@ const task: AuthorizationTaskV0 = {
 }
 
 describe("renderAuthorizationTask", () => {
+  it("adds the same bounded reasoning questions to DSL and independent Markdown only when selected", () => {
+    const compiled = compileAuthorizationTask(task)
+    const defaultPrompt = renderAuthorizationTask(compiled, "B", undefined, undefined, { wireVersion: "v4" })
+    const explicitStandard = renderAuthorizationTask(compiled, "B", undefined, undefined, { wireVersion: "v4", reasoningStrategy: "standard" })
+    expect(explicitStandard.prompt).toBe(defaultPrompt.prompt)
+    expect(defaultPrompt.sections.reasoningPlan).toBeUndefined()
+
+    const dsl = renderAuthorizationTask(compiled, "B", undefined, undefined, { wireVersion: "v4", reasoningStrategy: "control-binding-v1" })
+    const markdown = renderAuthorizationTask(compiled, "B", undefined, undefined, {
+      wireVersion: "v4",
+      reasoningStrategy: "control-binding-v1",
+      researchInstructions: { instructions: "Assess the declared update.", instructionOrigin: "independent-author", instructionPath: "author.md" },
+    })
+    expect(dsl.sections.reasoningPlan).toBe(markdown.sections.reasoningPlan)
+    expect(dsl.sections.reasoningPlan).toContain("checked by each claimed control")
+    expect(markdown.prompt).toContain("## Control binding questions")
+    expect(markdown.prompt).not.toContain("Canonical declaration")
+    expect(markdown.prompt.match(/<SOURCE_CONTEXT_INSERTED_BY_HOST>/g)).toHaveLength(1)
+    expect(measureAuthorizationPromptCharacters(dsl, "source").reasoningPlan).toBe(dsl.sections.reasoningPlan?.length)
+  })
+
   it("keeps one fact object for N, B, and D while changing visible organization", () => {
     const compiled = compileAuthorizationTask(task)
     const natural = renderAuthorizationTask(compiled, "N")

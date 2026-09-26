@@ -28,6 +28,22 @@ test("check-only returns the complete plan without writes or provider setup", as
   expect(await readdir(f.root)).toEqual(before)
   expect(io.errors).toEqual([])
 })
+test("check-only compare reports a common policy override without writing either workspace", async () => {
+  const f = await fixture(), io = capture()
+  const oldWorkspace = path.join(f.root, "old-workspace.json")
+  const oldBase = path.join(f.root, "old-base.json")
+  await writeFile(oldBase, await readFile(path.join(f.root, "base.json"), "utf8"))
+  await writeFile(oldWorkspace, JSON.stringify({ schemaVersion: "authorization-scenario-workspace/v1", base: "old-base.json", variants: [{ id: "owner", replacements: "changes.json" }] }))
+  const current = JSON.parse(await readFile(path.join(f.root, "base.json"), "utf8"))
+  current.policies.archive.text += " Supervisors may also archive."
+  await writeFile(path.join(f.root, "base.json"), JSON.stringify(current))
+  const code = await runAuthorizationComposeCli([`--workspace=${f.workspace}`, `--out=${f.out}`, "--check-only", `--compare-with=${oldWorkspace}`], io)
+  expect(code).toBe(0)
+  const report = JSON.parse(io.output[0]!)
+  expect(report.status).toBe("valid")
+  expect(report.commonChangedFields).toContain("policies")
+  expect(report.variants[0].effectiveChangedFields).toContain("policies")
+})
 test("CLI prints exact variant/field semantic diagnostics and returns 1", async () => {
   const f = await fixture(), io = capture()
   const base = JSON.parse(await readFile(path.join(f.root, "base.json"), "utf8"))

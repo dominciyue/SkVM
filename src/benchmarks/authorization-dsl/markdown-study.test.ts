@@ -72,6 +72,25 @@ test("repair preserves independent MD and diagnostics without recovering the man
   expect(f.prompts[1]).toContain("citation-out-of-range")
 })
 
+test("focused Markdown and DSL receive the same public questions, repair keeps them, and resume rejects strategy changes",async()=>{
+  const f=await fixture()
+  const mdInput={inputFile:f.inputFile,model:"mock/test",outRoot:path.join(f.root,"md-focused"),markdown,reasoningStrategy:"control-binding-v1" as const,providerFactory:()=>f.provider(true)}
+  const md=await executeMarkdownStudyRun(mdInput)
+  expect(md.status).toBe("completed")
+  if(!("sessionPath" in md)) throw Error("session")
+  const dsl=await executeLocalAuthorizationRun({inputFile:f.inputFile,model:"mock/test",outRoot:path.join(f.root,"dsl-focused"),method:"plain",wireVersion:"v4",reasoningStrategy:"control-binding-v1",providerFactory:()=>f.provider()})
+  if(!("sessionPath" in dsl)) throw Error("session")
+  const mdRun=JSON.parse(await readFile(path.join(md.sessionPath,"run.json"),"utf8"))
+  const dslRun=JSON.parse(await readFile(path.join(dsl.sessionPath,"run.json"),"utf8"))
+  expect(mdRun.promptSections.reasoningPlan).toBe(dslRun.promptSections.reasoningPlan)
+  expect(f.prompts[0]).toContain("checked by each claimed control")
+  expect(f.prompts[1]).toContain("checked by each claimed control")
+  expect(f.calls()).toBe(3)
+  await executeMarkdownStudyRun(mdInput)
+  expect(f.calls()).toBe(3)
+  await expect(executeMarkdownStudyRun({...mdInput,reasoningStrategy:"standard"})).rejects.toThrow("identity")
+})
+
 test("unknown origin and empty Markdown fail before provider creation; missing semantic information is not filled",async()=>{
   const f=await fixture();let created=0
   for(const bad of [{...markdown,instructions:" "},{...markdown,instructionOrigin:"dsl-rendered"}]) {

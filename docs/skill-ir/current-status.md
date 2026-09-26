@@ -24,7 +24,7 @@ AE实际执行24首轮、0追加；AF/AG不调用业务模型，也不增加AE�
 
 **交付后复核与工作区整理（2026-09-27）：** 在`b4a9e83e`上重新验证352 tests/1 platform skip、2440断言，typecheck通过，AE离线摘要一致。四组最终均6/6；MD首答均6/6，DSL首答均5/6，回退/修复计入26次调用。AF/AG各23项交接文件摘要与当前文件一致，全部已跟踪。七项旧源码状态中六项是注释整理，语法树相同，已独立提交`ac230e90`；另一项仅EOL/index状态已归一，无功能逻辑变化。233项历史未跟踪路径保留原位，按明确清单写入本机`.git/info/exclude`，未删除或上传原始trace/cache；恢复清单位于仓库外`project-maintenance/20260927-020008/`。旧AB扫描日志四条退役引用登记到已有精确引用清单，原日志字节不改。
 
-**当前已授权队列：** [AH0–AH14：语义质量与真实编写复用](../superpowers/plans/2026-09-27-authorization-semantic-quality-and-reuse.md)。用户确认回答质量约60%、编写复用约40%，由一个`gpt-6-sol / max`开发任务连续负责实现、研究与发布，直接使用本地`skill-ir-aot`。重点是控制对象/目标资源、上游路径、角色例外和决定性外部事实的可选分析策略，配套AF共同政策变更反馈。Markdown/DSL各用standard和相同新策略组成四臂；复用authoring/v2、现有wire/host/计量，不再以协议更名为主线。最多56个预定分析单元、至多8个有实现依据的修订单元，作者记录单列；规划阶段未创建运行结果或发起实验调用。设计与连续队列见[当前计划](skill-ir-aot-optimization-plan.md#当前-ah-执行队列)及[研究§7.27](skill-dsl-research.md#727-ah-语义质量与真实编写复用)。AH0启动时建立机器状态。
+**当前执行队列：** [AH0–AH14：语义质量与真实编写复用](../superpowers/plans/2026-09-27-authorization-semantic-quality-and-reuse.md)。用户确认回答质量约60%、编写复用约40%，由一个`gpt-6-sol / max`开发任务连续负责实现、研究与发布，直接使用本地`skill-ir-aot`。AH0–AH6工程已实现可选`control-binding-v1`问题计划和工作区只读变更反馈；聚焦红绿测试与typecheck通过，尚未据此声称模型质量收益。AH2登记4个旧锚点及4个此前未进AH面板的公开development状态（3个目标项目），独立Markdown初稿及逐项事实对齐已保存；计划44个四臂与预选重复分析单元，实际dispatch仍为0。现阶段在冻结config、薄driver和离线检查，随后连续执行真实面板、作者任务及发布。机器状态见[AH status](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/status.json)，设计与队列见[当前计划](skill-ir-aot-optimization-plan.md#当前-ah-执行队列)及[研究§7.27](skill-dsl-research.md#727-ah-语义质量与真实编写复用)。旧受保护材料和历史本地排除项不动。
 
 旧远端功能分支另有6条补丁已等效纳入、3条保留不同补丁（5–6月的CLI、Docker sandbox和旧evidence实验），均非AE/AF/AG遗漏，本轮未把这些旧方案合并入主线。维护后的干净基线为`08ac8b93`，历史原始材料仍按明确本地清单保留。
 

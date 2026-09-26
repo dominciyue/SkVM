@@ -3,6 +3,7 @@ import type { CompiledAuthorizationTask } from "./semantics.ts"
 import type { AnalysisPlan } from "./relations.ts"
 import type { ConditionAnalysisPlan } from "./conditions.ts"
 import type { AuthorizationWireVersion } from "./policy-result.ts"
+import { compileAuthorizationReasoningPlan, renderAuthorizationReasoningPlan, type AuthorizationReasoningPlan, type AuthorizationReasoningStrategy } from "./reasoning-plan.ts"
 
 export type AuthorizationRenderArm = "N" | "B" | "D"
 
@@ -39,6 +40,7 @@ export interface RenderedAuthorizationTask {
   sections: AuthorizationPromptSections
   analysisPlan?: AnalysisPlan
   conditionPlan?: ConditionAnalysisPlan
+  reasoningPlan?: AuthorizationReasoningPlan
 }
 
 export interface AuthorizationRenderOptions {
@@ -47,6 +49,7 @@ export interface AuthorizationRenderOptions {
   wireVersion?: AuthorizationWireVersion
   declarationStyle?: "arm-default" | "natural"
   publicAnalysisQuestions?: readonly string[]
+  reasoningStrategy?: AuthorizationReasoningStrategy
 }
 
 export interface MarkdownStudyInput {
@@ -68,6 +71,7 @@ export interface AuthorizationPromptSections {
   instructions: string
   declaration: string
   publicAnalysis?: string
+  reasoningPlan?: string
   analysisLedger?: string
   conditionAnalysis?: string
   outputContract: string
@@ -78,6 +82,7 @@ export interface AuthorizationPromptCharacterBreakdown {
   instructions: number
   declaration: number
   publicAnalysis?: number
+  reasoningPlan?: number
   analysisLedger?: number
   conditionAnalysis?: number
   source: number
@@ -232,7 +237,7 @@ function composeAuthorizationPrompt(sections: AuthorizationPromptSections): stri
 ## ${sections.declarationLabel ?? "Canonical declaration"}
 ${sections.declaration}
 
-${sections.publicAnalysis ? `## Public analysis questions\n${sections.publicAnalysis}\n\n` : ""}${sections.analysisLedger ? `## Analysis requirement ledger\n${sections.analysisLedger}\n\n` : ""}${sections.conditionAnalysis ? `## Condition analysis request\n${sections.conditionAnalysis}\n\n` : ""}## Result contract
+${sections.publicAnalysis ? `## Public analysis questions\n${sections.publicAnalysis}\n\n` : ""}${sections.reasoningPlan ? `## Control binding questions\n${sections.reasoningPlan}\n\n` : ""}${sections.analysisLedger ? `## Analysis requirement ledger\n${sections.analysisLedger}\n\n` : ""}${sections.conditionAnalysis ? `## Condition analysis request\n${sections.conditionAnalysis}\n\n` : ""}## Result contract
 ${sections.outputContract}
 
 ## Fixed source context
@@ -248,6 +253,9 @@ export function measureAuthorizationPromptCharacters(
     declaration: rendered.sections.declaration.length,
     ...(rendered.sections.publicAnalysis
       ? { publicAnalysis: rendered.sections.publicAnalysis.length }
+      : {}),
+    ...(rendered.sections.reasoningPlan
+      ? { reasoningPlan: rendered.sections.reasoningPlan.length }
       : {}),
     ...(rendered.sections.analysisLedger
       ? { analysisLedger: rendered.sections.analysisLedger.length }
@@ -274,6 +282,10 @@ export function renderAuthorizationTask(
     throw new Error("Independent Markdown requires a nonempty independent-author input and plain/v4 or plain/v5 on render arm B.")
   }
   const facts = collectFacts(compiled.task)
+  const reasoningPlan = options.reasoningStrategy === undefined
+    ? undefined
+    : compileAuthorizationReasoningPlan(compiled, options.reasoningStrategy)
+  const reasoningText = reasoningPlan ? renderAuthorizationReasoningPlan(reasoningPlan) : ""
   const expandedObligationIds = [
     ...compiled.runnableObligations.map(obligation => obligation.id),
     ...compiled.blockedObligations.map(obligation => obligation.id),
@@ -296,6 +308,7 @@ export function renderAuthorizationTask(
     ...(publicAnalysisQuestions.length > 0
       ? { publicAnalysis: publicAnalysisQuestions.map(question => `- ${question}`).join("\n") }
       : {}),
+    ...(reasoningText ? { reasoningPlan: reasoningText } : {}),
     ...(analysisPlan
       ? {
           analysisLedger: JSON.stringify({
@@ -330,5 +343,6 @@ export function renderAuthorizationTask(
     sections,
     ...(analysisPlan ? { analysisPlan } : {}),
     ...(conditionPlan ? { conditionPlan } : {}),
+    ...(reasoningPlan?.entries.length ? { reasoningPlan } : {}),
   }
 }

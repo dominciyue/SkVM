@@ -36,12 +36,14 @@ export interface WorkspaceVariantPlan {
   provenancePath: string
   input: AuthorizationAuthoringInputV2
   provenance: WorkspaceProvenance
+  sourceContentSha256: string
 }
 export interface AuthorizationWorkspacePlan {
   schemaVersion: "authorization-scenario-workspace-plan/v1"
   status: "valid" | "invalid"
   workspaceFile: string
   outDir: string
+  base?: AuthorizationAuthoringInputV2
   variants: WorkspaceVariantPlan[]
   diagnostics: WorkspaceDiagnostic[]
 }
@@ -65,7 +67,7 @@ export async function planAuthorizationWorkspace(workspaceFile: string, outDir: 
     field = "base"; file = path.resolve(path.dirname(result.workspaceFile), config.base)
     const baseFile = file, baseBytes = await readFile(baseFile, "utf8"), base: unknown = JSON.parse(baseBytes)
     // Validate once even when every variant is malformed. Composition still owns replacement semantics.
-    composeAuthorizationAuthoring(base, [])
+    result.base = composeAuthorizationAuthoring(base, []).input
     for (const variant of config.variants) {
       const replacementsFile = path.resolve(path.dirname(result.workspaceFile), variant.replacements)
       try {
@@ -91,6 +93,7 @@ export async function planAuthorizationWorkspace(workspaceFile: string, outDir: 
         const checked = await loadLocalAuthorizationInputValue(composed.input, relativeToFile)
         if (checked.status === "invalid") result.diagnostics.push(...checked.diagnostics.map(diagnostic => ({ code: diagnostic.code, field: diagnostic.path ?? "$", message: diagnostic.message, variantId: variant.id, file: inputPath, ...("fix" in diagnostic && typeof diagnostic.fix === "string" ? { fix: diagnostic.fix } : {}) })))
         result.variants.push({ id: variant.id, inputPath, provenancePath: path.join(result.outDir, `${variant.id}.provenance.json`), input,
+          sourceContentSha256: checked.status === "valid" ? sha256(JSON.stringify(checked.sourceBundle.files.map(source => ({ path: source.relativePath, content: source.content, cropRange: source.cropRange })))) : "",
           provenance: { schemaVersion: "authorization-scenario-provenance/v1", variantId: variant.id, workspaceFile: result.workspaceFile, workspaceSha256: sha256(workspaceBytes), baseFile, baseFileSha256: sha256(baseBytes), baseSha256: composed.baseSha256, replacementsFile, replacementsSha256: sha256(replacementsBytes), changedFields: replacements.map(replacement => replacement.field), fieldOrigins: composed.fieldOrigins, sourceRoot: { authored: authoredRoot, relativeToFile, effective, generated, reason: "Mechanical coordinate relocation; policy and task semantics unchanged." }, semanticClaim: "none; provenance only" },
         })
       } catch (error) { result.diagnostics.push(...errors(error, "replacements", replacementsFile, variant.id)) }

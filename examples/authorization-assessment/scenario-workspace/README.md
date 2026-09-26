@@ -25,11 +25,23 @@ provider. Successful publication creates six files: one `<id>.json` and one
 model answers. Keep the source project available; it is neither copied nor
 modified by generation. This example does not claim a published npm command.
 
+To inspect a common-policy change before publishing, compare this workspace to
+the included earlier declaration. This read-only command marks inherited
+changes and explicit overrides for each variant:
+
+```powershell
+bun ./src/cli/authorization-compose.ts --workspace=./examples/authorization-assessment/scenario-workspace/workspace.json --out=./examples/authorization-assessment/scenario-workspace/generated --check-only --compare-with=./examples/authorization-assessment/scenario-workspace/previous-workspace.json
+```
+
 An actual model assessment is a separate, explicitly requested operation:
 
 ```powershell
 bun ./src/index.ts authorization run --input=./examples/authorization-assessment/scenario-workspace/generated/owner.json --model=<provider/model> --out=./assessment-sessions --method=plain --wire=v4
 ```
+
+Add `--reasoning=control-binding-v1` to `check` or `run` for focused questions
+about the controlling object, effect target, path, exceptions and decisive
+external facts. A check preview does not call the model.
 
 The AF verification does not run this model command. Wire/method selection is
 independent of workspace assembly.
@@ -38,7 +50,9 @@ independent of workspace assembly.
 
 `workspace.json` contains only `schemaVersion`, `base` and `variants`. Base and
 replacement filenames resolve relative to this workspace file. The example has
-five maintained JSON files: one config, one base and three replacement lists.
+five current JSON files: one config, one base and three replacement lists.
+The two `previous-*` files preserve an earlier declaration for the read-only
+comparison.
 Repository/ref, source files, policy and entry locations live in the shared base.
 Each variation explicitly supplies task ID, question, principal facts, resource
 facts and complete scenario relationships/expectation. Other fields remain the

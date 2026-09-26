@@ -31,6 +31,7 @@ import {
   type ConditionAnalysisValidation,
 } from "../../task-dsl/authorization/conditions.ts"
 import type { AuthorizationResultV0, AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
+import type { AuthorizationReasoningPlan } from "../../task-dsl/authorization/reasoning-plan.ts"
 import { compileAuthorizationTask, type CompiledAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
 import {
   AuthorizationWireResultV1Schema,
@@ -158,6 +159,7 @@ export interface AuthorizationTaskRun {
   compiled: CompiledAuthorizationTask
   analysisPlan?: AnalysisPlan
   conditionPlan?: ConditionAnalysisPlan
+  reasoningPlan?: AuthorizationReasoningPlan
   renderedPrompt: string
   promptSections?: RenderedAuthorizationTask["sections"]
   promptCharacters?: AuthorizationRunPromptCharacters
@@ -244,6 +246,9 @@ function buildRepairPrompt(
     methodContext: [
       rendered.sections.publicAnalysis
         ? `## Public analysis questions\n${rendered.sections.publicAnalysis}`
+        : "",
+      rendered.sections.reasoningPlan
+        ? `## Control binding questions\n${rendered.sections.reasoningPlan}`
         : "",
       rendered.sections.analysisLedger
         ? `## Analysis requirement ledger\n${rendered.sections.analysisLedger}`
@@ -332,6 +337,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
       },
       ...(analysisPlan ? { analysisPlan } : {}),
       ...(conditionPlan ? { conditionPlan } : {}),
+      ...(rendered.reasoningPlan ? { reasoningPlan: rendered.reasoningPlan } : {}),
       promptCharacters,
       attempts: telemetry.attempts,
       events: telemetry.events,
