@@ -1,0 +1,220 @@
+{
+  "unit": {
+    "id": "initial-gitea-assignee-M1",
+    "phase": "initial",
+    "caseId": "gitea-assignee",
+    "arm": "M1",
+    "reasoningStrategy": "control-binding-v1",
+    "wire": "v4"
+  },
+  "configSha256": "b22651ddbf1722d57596d66f67bc6aa5b25ae0cb5993c2833ce7dc7d98a73284",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v4",
+    "reasoningStrategy": "control-binding-v1",
+    "researchIdentity": {
+      "arm": "markdown",
+      "instructionOrigin": "independent-author",
+      "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/markdown/gitea-assignee.md",
+      "sha256": "e41b68178d9e6dd3f3a60036971d2ede73e8d791cef6546510ac050cba4fac6b",
+      "characters": 786
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260926T195443231Z-af10017b",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-semantic-quality-v1\\runs\\initial-gitea-assignee-M1\\sessions\\20260926T195443231Z-af10017b",
+    "createdAt": "2026-09-26T19:54:43.231Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-semantic-quality-v1\\inputs\\gitea-assignee\\authoring.json",
+    "taskId": "gitea-issue-assignee-nonwriter",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 138,
+        "declaration": 786,
+        "reasoningPlan": 1917,
+        "source": 3396,
+        "outputContract": 2286,
+        "total": 8640,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "gitea-issue-assignee-nonwriter",
+      "repository": "https://github.com/go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "results": [
+        {
+          "obligationId": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees",
+          "conclusion": "source_refuted",
+          "explanation": "The POST entry invokes the shared assignee-update helper with isAdd=true. That helper first resolves the issue within ctx.Repo.Repository, then checks ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull); when repository issue/pull write permission is absent, it returns 403. This occurs before attribute loading, assignee-name resolution, and AddAssignees, so the declared rejection-before-resolution-or-mutation expectation is enforced. The checked object is repository-context permission, parameterized by whether the loaded target is a pull request; it is not ownership of the assignee-set object itself. The source-backed link is that the issue is loaded using the current repository ID and that same issue is later passed to the assignee mutation. The crop does not establish any separate upstream route, middleware, or token-scope gate, and lines 51-52 expressly mark upstream material as outside the crop; no upstream control is needed for this conclusion because the helper directly gates the assessed path. The only visible operation branch selects add versus remove, and this entry fixes the add branch by passing true. No owner, grantee, staff, administrator, or other exception is visible in the permission check; token issue-write scope is distinct from, and does not bypass, the explicit repository permission check. The request actor is represented as ctx.Doer at the mutation, while authorization is read from ctx.Repo.Permission; the crop does not independently show how authentication middleware populated those fields, so it supports no broader identity- or route-completeness claim. Under the supplied condition that the principal lacks repository issue-write permission, no missing source-external fact changes the bounded result. If that declared permission fact were changed so the check passed, execution could continue to assignee resolution and mutation, but that is a changed condition rather than an unresolved fact in this assessment.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The POST add-assignees handler obtains the request options and calls updateIssueAssignees with isAdd set to true.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 4,
+                    "endLine": 49,
+                    "quote": "// AddIssueAssignees add assignees to an issue\nfunc AddIssueAssignees(ctx *context.APIContext) {\n\t// swagger:operation POST /repos/{owner}/{repo}/issues/{index}/assignees issue issueAddAssignees\n\t// ---\n\t// summary: Add assignees to an issue\n\t// consumes:\n\t// - application/json\n\t// produces:\n\t// - application/json\n\t// parameters:\n\t// - name: owner\n\t//   in: path\n\t//   description: owner of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: repo\n\t//   in: path\n\t//   description: name of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: index\n\t//   in: path\n\t//   description: index of the issue\n\t//   type: integer\n\t//   format: int64\n\t//   required: true\n\t// - name: body\n\t//   in: body\n\t//   required: true\n\t//   schema:\n\t//     \"$ref\": \"#/definitions/IssueAssigneesOption\"\n\t// responses:\n\t//   \"201\":\n\t//     \"$ref\": \"#/responses/Issue\"\n\t//   \"400\":\n\t//     \"$ref\": \"#/responses/error\"\n\t//   \"403\":\n\t//     \"$ref\": \"#/responses/forbidden\"\n\t//   \"404\":\n\t//     \"$ref\": \"#/responses/notFound\"\n\t//   \"422\":\n\t//     \"$ref\": \"#/responses/validationError\"\n\n\topts := web.GetForm[*api.IssueAssigneesOption](ctx)\n\tupdateIssueAssignees(ctx, *opts, true)\n}"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The visible authorization state is ctx.Repo.Permission, while the actor supplied to the eventual assignee service call is ctx.Doer; the crop does not show the middleware that populated or related those context fields.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 60,
+                    "endLine": 83,
+                    "quote": "\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.Status(http.StatusForbidden)\n\t\treturn\n\t}\n\n\tif err := issue.LoadAttributes(ctx); err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tassigneeIDs, err := user_model.GetUserIDsByNames(ctx, opts.Assignees, false)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusUnprocessableEntity, err.Error())\n\t\t\treturn\n\t\t}\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tif isAdd {\n\t\terr = issue_service.AddAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t} else {\n\t\terr = issue_service.RemoveAssignees(ctx, issue, ctx.Doer, assigneeIDs)"
+                  }
+                ]
+              },
+              {
+                "statement": "The helper loads the target issue by index using the current repository ID, binding the operation to an issue in ctx.Repo.Repository.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 53,
+                    "endLine": 58,
+                    "quote": "func updateIssueAssignees(ctx *context.APIContext, opts api.IssueAssigneesOption, isAdd bool) {\n\tissue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.PathParamInt64(\"index\"))\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "Before subsequent processing, the helper checks repository issue-or-pull write permission using the loaded issue's pull-request status and returns Forbidden when that permission is absent, with no visible exception branch.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 60,
+                    "endLine": 63,
+                    "quote": "\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.Status(http.StatusForbidden)\n\t\treturn\n\t}"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "With isAdd true, the protected effect is the AddAssignees service call on the loaded issue, using ctx.Doer and the resolved assignee IDs.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 70,
+                    "endLine": 84,
+                    "quote": "\tassigneeIDs, err := user_model.GetUserIDsByNames(ctx, opts.Assignees, false)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusUnprocessableEntity, err.Error())\n\t\t\treturn\n\t\t}\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tif isAdd {\n\t\terr = issue_service.AddAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t} else {\n\t\terr = issue_service.RemoveAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t}"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The helper's visible alternate branch removes assignees only when isAdd is false; the assessed entry passes true and therefore selects the add path if authorization and prior processing succeed.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 47,
+                    "endLine": 48,
+                    "quote": "\topts := web.GetForm[*api.IssueAssigneesOption](ctx)\n\tupdateIssueAssignees(ctx, *opts, true)"
+                  }
+                ]
+              },
+              {
+                "statement": "Issue attribute loading and assignee-name-to-user-ID resolution occur only after the repository permission check, so they are not reached on the forbidden branch.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 60,
+                    "endLine": 78,
+                    "quote": "\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.Status(http.StatusForbidden)\n\t\treturn\n\t}\n\n\tif err := issue.LoadAttributes(ctx); err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tassigneeIDs, err := user_model.GetUserIDsByNames(ctx, opts.Assignees, false)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusUnprocessableEntity, err.Error())\n\t\t\treturn\n\t\t}\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}"
+                  }
+                ]
+              },
+              {
+                "statement": "The visible helper gate is a repository permission check; this crop contains no token-scope check or token-scope bypass of that repository permission requirement.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 53,
+                    "endLine": 63,
+                    "quote": "func updateIssueAssignees(ctx *context.APIContext, opts api.IssueAssigneesOption, isAdd bool) {\n\tissue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.PathParamInt64(\"index\"))\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.Status(http.StatusForbidden)\n\t\treturn\n\t}"
+                  }
+                ]
+              },
+              {
+                "statement": "Upstream lines between the entry and helper are expressly outside the fixed crop, so the source supports no claim about additional route or middleware gates or bypasses.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 51,
+                    "endLine": 53,
+                    "quote": "// Upstream lines 66-188 are outside this fixed task crop.\n\nfunc updateIssueAssignees(ctx *context.APIContext, opts api.IssueAssigneesOption, isAdd bool) {"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "relationCoverage": [],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 2659,
+        "output": 2123,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

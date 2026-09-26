@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260926T195315340Z-92b6ad11
+Status: completed
+Task: gitea-collaborator-permission
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adifferent-user-query::entry%3Aget-repo-permissions: source_refuted — The declared policy expectation is deny, and the fixed source enforces that expectation on the declared entry for the supplied principal and relation. The entry reads the request-selected collaborator username, then applies a pre-load authorization gate: access is allowed past the gate only when the runtime doer is a site administrator, the selected username equals the doer's username, or the doer is a repository administrator. For the supplied caller, the author facts establish authenticated repository-read collaborator status, no site-administrator role, no repository-administrator role, and a different target username; therefore the visible branch returns HTTP 403 before the target collaborator is loaded. The request-selected collaborator path parameter is subsequently used to load the collaborator and, only after that, to query that user's repository permission; the repository permission object is the protected effect, not the doer object checked by the gate. No supplied upstream route, middleware, or helper source is available, so their independent applicability cannot be claimed; the entry-local gate itself is directly applicable once the declared entry is reached. The only source-visible exceptions are site administrator, repository administrator, or querying the caller's own username; none applies to this declared relation. The protected permission query and success response occur only after the gate, so this caller cannot reach them through the non-exception branch. No decisive source-external fact remains unknown for the bounded decision because the relevant identity, role, and username-difference facts are supplied; deployment routing or repository-wide completeness is outside scope and not inferred.
+  Evidence: The declared entry is the repository collaborator-permission GET handler, which takes the collaborator username from the request path. (collaborators.go:4-6, collaborators.go:22-25, collaborators.go:35-35)
+  Evidence: The gate checks the request doer and its relation to the selected username, while the later permission operation targets the loaded collaborator and repository; ownership or properties of the doer are not themselves the repository permission resource. (collaborators.go:35-36, collaborators.go:41-52)
+  Evidence: The authorization control evaluates the runtime request doer through its administrator, username, and repository-administrator properties; the supplied principal facts bind the declared caller to the non-site-admin, non-repository-admin doer with a different username. (collaborators.go:35-36)
+  Evidence: The selected collaborator resource is bound from the request path username and is used to load the collaborator account before the permission lookup. (collaborators.go:35-35, collaborators.go:41-49)
+  Evidence: The source-visible bypass branches are site-administrator status, case-insensitive self-username equality, or repository-administrator status; these are the only exceptions shown by this entry-local control. (collaborators.go:35-38)
+  Evidence: Before the collaborator lookup, the entry denies when the doer is not a site administrator, the username is not the doer's own username, and the doer is not a repository administrator; the denial is HTTP 403 and returns immediately. (collaborators.go:35-39)
+  Evidence: The protected repository-permission query is performed only after collaborator loading and invokes the individual-user repository-permission operation for the selected collaborator. (collaborators.go:41-55)
+  Evidence: A successful permission result is serialized only after the permission query completes; the denied branch returns before either the query or success response. (collaborators.go:35-39, collaborators.go:51-58)
+  Evidence: Under the supplied condition that the caller username differs from the collaborator username and the caller is neither a site administrator nor a repository administrator, none of the visible exception branches applies. (collaborators.go:35-39)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

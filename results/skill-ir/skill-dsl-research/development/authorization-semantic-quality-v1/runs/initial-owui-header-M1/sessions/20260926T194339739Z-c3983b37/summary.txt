@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260926T194339739Z-c3983b37
+Status: completed
+Task: owui-trusted-header-deployment
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email: unknown — The fixed source establishes an application capability, but not deployment reachability. The POST sign-in entry is present and, when password authentication is enabled and the configured trusted-email header is present, the application reads that header as an email identity, creates the user if absent, authenticates by email, and returns a session for the resulting user. The header-presence check concerns the request header and the email lookup concerns the selected user identity; neither is itself ownership or permission on the existing-user-session resource. The source-backed link is that successful email authentication supplies the user passed to session creation. No upstream route, reverse-proxy middleware, sole-ingress constraint, header stripping, or injected identity is supplied, so no source-backed control prevents a header that reaches this handler from selecting an arbitrary existing user. Conversely, the source does not establish that an unauthenticated external client can reach the handler with a client-controlled header. If a trusted reverse proxy is the sole reachable ingress, removes client-supplied identity headers, and injects the authenticated identity, the stated policy is enforced and the failure is refuted; if the external client can reach this application path while supplying the configured header, the source supports the impersonation failure. The decisive missing external fact is the actual deployment ingress behavior and reachability, not an owner, grantee, staff, or administrator exception; no such exception is shown for this effect. Minimum observation: verify the externally reachable request path and demonstrate whether client-supplied trusted-email headers are stripped and replaced by a proxy-authenticated identity before the request reaches POST /signin.
+  Evidence: The application defines a POST /signin handler that receives the request and sign-in form data. (inputs/owui-trusted-header-deployment/auths_signin.py:4-10)
+  Evidence: The handler uses the configured trusted-email header value from the request as the email identity; the supplied source shows no application authentication of the sender before this read. (inputs/owui-trusted-header-deployment/auths_signin.py:17-25)
+  Evidence: The header-selected email is looked up or provisioned as a user, then that authenticated user is passed to session-response creation; the source does not equate possession of the user record with authorization over the session resource. (inputs/owui-trusted-header-deployment/auths_signin.py:31-40, inputs/owui-trusted-header-deployment/auths_signin.py:59-60)
+  Evidence: The visible gates are that password authentication must be enabled and the configured trusted-email header must be present; these gates check application configuration and request-header presence, not trusted proxy provenance. (inputs/owui-trusted-header-deployment/auths_signin.py:11-19)
+  Evidence: After email authentication succeeds, the handler returns a session response for the selected user. (inputs/owui-trusted-header-deployment/auths_signin.py:40-40, inputs/owui-trusted-header-deployment/auths_signin.py:59-62)
+  Evidence: Whether an external client can reach this handler through a sole trusted ingress that strips client identity headers and injects an authenticated identity is not present in the fixed source. (inputs/owui-trusted-header-deployment/auths_signin.py:57-57)
+  Evidence: The trusted email, name, groups, and role header names are optional environment-configured values; the supplied source does not state any reverse-proxy or deployment enforcement for them. (inputs/owui-trusted-header-deployment/env_trusted_headers.py:10-13)
+  Unknown: Whether the externally reachable ingress is a trusted reverse proxy that is the sole path to the application, removes client-supplied trusted identity headers, and injects the authenticated identity.
+  Unknown: Whether an unauthenticated external client can reach POST /signin with a client-controlled value for the configured trusted-email header.
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

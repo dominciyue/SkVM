@@ -1,0 +1,30 @@
+Authorization assessment
+Session: 20260926T200619079Z-15177aae
+Status: completed
+Task: gitea-issue-lock-writer-nonadmin
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock: source_supported_failure — The declared policy expectation is deny, and the supplied fixed source supports that denial for the stated non-admin caller. The PUT lock entry is attached to reqToken() and reqAdmin(); reqAdmin rejects when neither repository-admin nor site-admin status is present, before the handler proceeds. The handler binds the request identity used for the mutation through ctx.ContextUser, while the supplied scenario fixes that caller as authenticated, issue-writing, and non-admin. It resolves the requested issue from ctx.Repo.Repository.ID and the path index, so the selected object is the declared existing issue; the separate checked property is issue.IsPull, which selects the issue-versus-pull permission branch. The handler then checks issue-write permission, but that is weaker than and cannot bypass the route-level administrator gate. Because the issue is fixed as unlocked, a request that passed both visible gates would reach LockIssue; under the stated conditions it cannot reach that effect because reqAdmin denies first. Full token scope and issue-write permission are not treated as administrator status. The fixed source does not establish deployment or repository-wide route completeness, so those source-external facts are not inferred; they could change an assessment of an actual deployment, but no such fact is supplied or needed for the bounded source decision. Public-question coverage: the pre-entry gate is reqAdmin, identity is represented by the API context and ctx.ContextUser, the request-selected issue is bound by repository ID plus path index with issue.IsPull as the distinct permission-branch resource property, the strongest decision is the non-admin forbidden branch, the protected effect is the LockIssue call reached only after the unlocked and write-permission checks, and the only potentially answer-changing external matter is whether the deployed route and middleware match this fixed source.
+  Evidence: The lock PUT route binds the lock operation to the repository API route and applies token and administrator middleware before the handler. (route_guard.go:16-20)
+  Evidence: The selected issue's pull-request status is separately used to choose the issue-write permission check branch. (issue_lock.go:49-51)
+  Evidence: If the lock mutation is reached, its doer is the runtime context user. (issue_lock.go:54-59)
+  Evidence: The route's administrator decision is made from the runtime API context, using repository-administrator and site-administrator status checks. (route_guard.go:4-11)
+  Evidence: The handler selects the issue using the repository ID from the API context and the integer issue index from the request path. (issue_lock.go:42-47)
+  Evidence: After route authorization, the handler independently requires permission to write issues or pulls and otherwise returns forbidden. (issue_lock.go:49-52)
+  Evidence: The strongest visible authorization control is the route-level administrator gate, which returns forbidden when both repository-admin and site-admin checks are false. (route_guard.go:4-11)
+  Evidence: For an unlocked issue that passes the write-permission check, the handler constructs lock options and invokes the issue lock operation before returning no content. (issue_lock.go:54-69)
+  Evidence: When the administrator gate fails, it returns forbidden and the route does not proceed to the lock handler or mutation. (route_guard.go:5-11)
+  Evidence: The bounded scenario supplies an authenticated caller with repository issue-write permission and with neither repository-administrator nor site-administrator status. (route_guard.go:4-10)
+  Evidence: The bounded scenario supplies an existing readable issue that is currently unlocked; the handler's unlocked branch is the branch that can invoke the lock mutation. (issue_lock.go:54-67)
+  Unknown: The fixed source does not test whether a deployed instance registers and executes this exact route with the shown reqAdmin middleware; deployment behavior and repository-wide route discovery remain outside scope.
+  Unknown: The fixed source does not independently show how an actual bearer token is mapped into the runtime API context; the bounded scenario supplies the authenticated and non-admin identity conditions.
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

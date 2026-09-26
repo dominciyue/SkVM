@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T200440200Z-93336b87
+Status: completed
+Task: gitea-issue-assignee-nonwriter
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees: source_refuted — The fixed crop supports enforcement of the declared policy expectation for this bounded entry and scenario. The POST handler invokes the shared update helper with isAdd=true. That helper first resolves the issue within ctx.Repo.Repository by repository ID and issue index, then checks ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull). Thus the claimed control checks the request context's repository permission, parameterized by whether the resolved issue is a pull request; it does not check ownership of the assignee-set object itself. The source-backed link to the affected resource is that the same resolved issue is passed to AddAssignees, which changes that issue's assignees. If repository issue/pull write permission is absent, the helper returns 403 before loading attributes, resolving requested usernames, or reaching mutation. For this add entry, isAdd is unconditionally true, so the visible remove branch is not a bypass; the add mutation is reachable only after the permission gate. The authenticated principal is represented at the eventual effect as ctx.Doer, while authorization is separately decided through ctx.Repo.Permission. The crop contains no token-scope check and therefore does not equate issue-write token scope with repository issue-write permission; the stipulated token scope does not bypass the visible repository-permission gate. No owner, grantee, staff, administrator, or other exception is visible on this assessed path. Although the question's enumerated conditions includes requester-has-repository-issue-write, that conflicts with the controlling scenario statement that the principal lacks it: under the scenario's absence condition the source denies before assignee resolution or mutation; if repository issue/pull write permission were instead present, this particular gate would pass and later processing could proceed, but that counterfactual is outside the stated principal relation and would not establish eventual success. Given the supplied facts that the issue exists and repository write permission is absent, no source-external fact is decisive for this bounded outcome. This is fixed-crop analysis only and makes no claim about uncropped routes, middleware, deployment, other entries, or broader versions.
+  Evidence: The assessed POST add-assignees handler reads the request form and calls the update helper with the add selector set to true. (issue_assignee.go:4-49)
+  Evidence: The eventual assignee service call identifies the acting principal as ctx.Doer, separately from the earlier authorization decision made through ctx.Repo.Permission. (issue_assignee.go:80-84)
+  Evidence: The helper binds the target issue by looking it up using the request repository ID and issue index before authorization or assignee resolution. (issue_assignee.go:53-58)
+  Evidence: The strongest visible authorization control tests ctx.Repo.Permission for issue-or-pull write ability using the resolved issue's pull-request status, and returns Forbidden immediately when the test fails. (issue_assignee.go:60-63)
+  Evidence: When the add selector is true, the protected effect is AddAssignees on the same resolved issue using the resolved assignee IDs; the alternative branch removes assignees rather than bypassing the add-path gate. (issue_assignee.go:80-84)
+  Evidence: Requested assignee usernames are resolved only after the repository permission check and a subsequent issue-attribute load, so the absent-permission rejection precedes assignee resolution. (issue_assignee.go:65-78)
+  Evidence: A Created response for the add operation occurs only after the service call completes without error and the issue is reloaded, confirming that the visible mutation path lies downstream of the permission gate. (issue_assignee.go:86-101)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

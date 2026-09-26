@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260926T201032394Z-71662577
+Status: completed
+Task: gitea-collaborator-permission
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adifferent-user-query::entry%3Aget-repo-permissions: source_refuted — The fixed entry is the declared GET collaborator-permission handler. It obtains the request-selected collaborator username from the path and checks the runtime caller through ctx.Doer.IsAdmin, ctx.Doer.LowerName, and ctx.IsUserRepoAdmin. The supplied principal facts bind the caller to an authenticated collaborator who is neither a site administrator nor a repository administrator, while the selected collaborator is a different existing user. Under those facts, the visible authorization guard has no allowing branch: the self-query branch is false, the site-administrator branch is false, and the repository-administrator branch is false. The handler returns HTTP 403 and returns before loading the target collaborator. The selected path username is therefore the request binding for the declared collaborator resource; the repository object used later by the permission helper is a separate checked resource, and ownership or permission on that repository is not treated as permission to query another user's collaborator permission. No upstream route, middleware, or helper gate is supplied in the fixed context; the shown in-entry guard is the strongest and only source-visible pre-effect control, and no bypass branch is visible before the effect. The protected permission lookup and success response occur only after the guard and target-user load, so this principal/resource relation cannot reach them on the denied branch. The applicable exception is only the source-visible self-query, site-administrator, or repository-administrator branch; none applies here. No decisive source-external fact is needed to decide this bounded obligation from the supplied facts. Source discovery is not-tested, so this conclusion is limited to the declared entry and fixed crop and makes no repository-wide claim.
+  Evidence: The declared entry is the GET handler for obtaining repository permissions for a named collaborator. (collaborators.go:4-6)
+  Evidence: The authorization decision uses the runtime caller identity exposed as ctx.Doer, including administrator status and the caller's lowercased name. (collaborators.go:35-37)
+  Evidence: The later permission operation receives the repository object from ctx.Repo.Repository and the separately loaded collaborator object, so the repository checked by that operation is distinct from the requested collaborator resource. (collaborators.go:41-51)
+  Evidence: The requested collaborator object is selected from the collaborator path parameter, which is documented as the username whose permissions are obtained. (collaborators.go:22-25, collaborators.go:35-35)
+  Evidence: Before loading the selected collaborator, the handler allows only a site administrator, a caller querying the caller's own username, or a repository administrator; otherwise it sends HTTP 403 and returns. (collaborators.go:35-39)
+  Evidence: For the supplied non-administrator, different-user principal, the guard returns before the target collaborator is loaded, preventing the permission lookup and success response on the assessed path. (collaborators.go:35-42)
+  Evidence: Only after the authorization guard and collaborator lookup does the handler request the individual user's repository permission and return the permission response. (collaborators.go:41-57)
+  Evidence: The self-query exception is inapplicable because the assessed relation is that the caller username differs from the selected collaborator username; the remaining visible role branches require site-administrator or repository-administrator status. (collaborators.go:35-38)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

@@ -1,0 +1,29 @@
+Authorization assessment
+Session: 20260926T194713943Z-99b56cde
+Status: completed
+Task: owui-trusted-header-deployment
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email: unknown — The declared entry is POST /signin, and the source-visible path is gated first by ENABLE_PASSWORD_AUTH; when the configured trusted-email header name is present, the request header value is lowercased and used as the email identity. The source then checks for a user record by that email, creates one if absent, authenticates by email, and—if authentication yields a user—returns a session response. Thus, on the trusted-header branch, the caller-controlled header value selects the user record and the resulting authenticated identity; the checked user record must be the same record returned by authenticate_user_by_email, while the source does not show a separate ownership or role authorization check that would distinguish the selected existing user from the requested session identity. Optional trusted role handling can update the selected user's role, but it is not an authorization barrier to session creation. The strongest visible controls are password-auth enablement, configured-header presence, user lookup/authentication, and the final user-presence check before session creation; none establishes that the header was injected by a trusted proxy. If an unauthenticated external client can reach this route while supplying the configured header, the source-visible branch supports the policy failure and can reach the protected session effect. The real deployment conclusion remains unknown because the supplied context does not establish the header configuration, ENABLE_PASSWORD_AUTH value, ingress reachability, or whether a sole trusted proxy removes and replaces client-supplied identity headers. The minimum deciding observation is deployment evidence showing all relevant ingress paths and whether the trusted proxy is sole-reachable and strips/replaces the identity header, together with the effective header-name and password-auth configuration. Coverage: entry and gates; principal-to-identity binding; request-selected user/resource binding and distinctness of the selected user record; strongest authorization control including role handling; protected session effect; and the deployment fact that can change the result are all addressed from the supplied context, without repository-wide or deployment discovery.
+  Evidence: The assessed entry is the POST /signin handler. (inputs/owui-trusted-header-deployment/auths_signin.py:4-5)
+  Evidence: The request's configured trusted-email header value is lowercased and assigned as the email used by the sign-in path, so the header selects the runtime identity candidate. (inputs/owui-trusted-header-deployment/auths_signin.py:17-22)
+  Evidence: The selected email is checked against the user store, may be used to create a user when absent, and is then passed to email authentication; the authenticated user is the user record associated with the selected email. (inputs/owui-trusted-header-deployment/auths_signin.py:31-40)
+  Evidence: The strongest visible application controls are successful email authentication and, optionally, trusted-role processing; valid role-header values may update the selected user's role, but the source shows no proxy-origin or ownership check. (inputs/owui-trusted-header-deployment/auths_signin.py:40-55)
+  Evidence: When a user exists after the branch, the handler creates and returns a session response; otherwise it returns an invalid-credentials error. (inputs/owui-trusted-header-deployment/auths_signin.py:59-62)
+  Evidence: The trusted-email header name is environment-controlled, and the handler enters the trusted-header path only when that configured name is truthy; the header must be present. (inputs/owui-trusted-header-deployment/env_trusted_headers.py:10-13, inputs/owui-trusted-header-deployment/auths_signin.py:17-19)
+  Evidence: The handler rejects the request before the trusted-header branch when password authentication is disabled. (inputs/owui-trusted-header-deployment/auths_signin.py:11-15)
+  Evidence: The fixed context does not supply whether every reachable ingress is a sole trusted proxy that removes client-supplied identity headers and injects the authenticated identity. (inputs/owui-trusted-header-deployment/auths_signin.py:17-22)
+  Evidence: The fixed context does not supply the effective values of the trusted-email-header setting or ENABLE_PASSWORD_AUTH in the actual deployment. (inputs/owui-trusted-header-deployment/env_trusted_headers.py:10-13, inputs/owui-trusted-header-deployment/auths_signin.py:11-18)
+  Unknown: Whether an unauthenticated external client can reach POST /signin through any ingress without a trusted proxy removing and replacing the configured identity header.
+  Unknown: Whether the actual deployment has a configured trusted-email header name and has ENABLE_PASSWORD_AUTH enabled.
+  Unknown: Whether the trusted proxy, if present, is the sole reachable ingress and guarantees client-supplied identity headers are removed before injecting the authenticated identity.
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

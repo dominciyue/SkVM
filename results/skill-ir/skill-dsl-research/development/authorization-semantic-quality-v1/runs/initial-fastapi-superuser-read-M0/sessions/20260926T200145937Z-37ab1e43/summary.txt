@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T200145937Z-37ab1e43
+Status: completed
+Task: fastapi-items-superuser-read
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aread-item::entry%3Aread-item: source_refuted — The declared GET-by-ID entry binds the current principal and requested item ID, loads the item, and applies an ownership check that is bypassed when the principal is a superuser. Under the stated active-superuser, different-owner, existing-item conditions, the visible control therefore permits the protected return effect, which enforces the declared policy expectation that an active superuser may read regardless of owner. The source does not independently establish how authentication makes the principal active or superuser; those are supplied scenario conditions and would require source-external verification if they were not stipulated.
+  Evidence: The declared item-read operation is the GET handler for an item identified by an ID and returns an item-shaped response. (items.py:48-52)
+  Evidence: The handler receives the current user as its principal input. (items.py:48-50)
+  Evidence: The requested resource is identified by the UUID parameter and is loaded as the item used by the authorization check and return. (items.py:49-53)
+  Evidence: Access is rejected only when the current user is not a superuser and the loaded item's owner ID differs from the current user's ID; the superuser branch bypasses that ownership rejection. (items.py:53-57)
+  Evidence: After the not-found and authorization checks, the loaded item is returned as the read result. (items.py:53-58)
+  Evidence: Whether the supplied principal is authenticated, active, and a superuser is not established by this source crop; the assessment treats those facts as stated scenario conditions, and otherwise they require source-external verification. (items.py:48-50)
+  Evidence: The stated existing-item condition is consistent with the handler's not-found guard being passed; an absent item would instead produce a not-found error. (items.py:53-55)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

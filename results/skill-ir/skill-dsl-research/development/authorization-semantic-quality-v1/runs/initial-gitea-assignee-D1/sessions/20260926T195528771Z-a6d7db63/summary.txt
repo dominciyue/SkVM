@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260926T195528771Z-a6d7db63
+Status: completed
+Task: gitea-issue-assignee-nonwriter
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees: source_refuted — The fixed source refutes the claimed policy failure for the bounded scenario. The declared POST entry invokes the assignee-update helper, which first binds the request's issue index to an issue in the repository, then checks repository issue/pull-request write permission. If that permission is absent, it returns Forbidden before loading attributes, resolving assignees, or invoking the add-assignees mutation. The caller identity used by the operation is represented by ctx.Doer in the downstream mutation and response conversion, while the strongest visible authorization control is ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull); the supplied crop does not show token authentication middleware or the token-to-ctx.Doer binding, but those source-external details do not change the result under the declared condition that repository issue-write permission is false. The request-selected issue is the protected issue context and the assignee set is the effect affected by the add operation; assignee resolution is a separate user object lookup and does not itself authorize the issue mutation. No owner, grantee, staff, or administrator bypass is visible in this path: the only shown branch is the permission check, followed by an unconditional denial when it is false. Because the scenario fixes an existing issue, an existing assignee, an authenticated caller, and no repository issue-write permission, the operation cannot reach the protected add-assignees effect. If the missing repository permission fact were instead true, the path would proceed past this gate subject to later errors and service behavior; the minimum deciding observation would be the effective result of CanWriteIssuesOrPulls for the bound issue and caller. That fact is supplied as false in the bounded scenario, so no decisive missing source-external fact makes this result unknown. Source discovery remains not-tested and this conclusion is limited to the supplied entry and fixed crop.
+  Evidence: The declared POST assignee endpoint is implemented by AddIssueAssignees, which obtains the request options and calls updateIssueAssignees with the add branch enabled. (issue_assignee.go:4-49)
+  Evidence: The assessed operation carries ctx.Doer as the caller identity into the assignee service and uses it when producing the response; the crop does not expose the upstream token-to-Doer authentication binding. (issue_assignee.go:80-83)
+  Evidence: Requested assignee names are resolved separately into user IDs after the issue permission gate; this user lookup is distinct from authorization on the issue and its assignee set. (issue_assignee.go:65-78)
+  Evidence: The path-selected issue index is resolved against ctx.Repo.Repository.ID, and the resulting issue is the object used for the permission check and later mutation. (issue_assignee.go:53-60)
+  Evidence: Within the supplied path, no owner, grantee, staff, administrator, or other bypass branch is shown around the repository issue/pull-request write-permission check. (issue_assignee.go:60-63)
+  Evidence: The strongest visible authorization control requires CanWriteIssuesOrPulls for the bound issue, and returns HTTP Forbidden immediately when the check is false. (issue_assignee.go:53-63)
+  Evidence: Only after the permission check, issue attribute loading, and assignee-name resolution does the add branch invoke issue_service.AddAssignees with the bound issue, ctx.Doer, and resolved assignee IDs. (issue_assignee.go:65-83)
+  Evidence: A false repository issue/pull-request write-permission result returns before assignee resolution and before AddAssignees, so the declared assignee-set mutation is not reachable for the non-writer branch. (issue_assignee.go:60-83)
+  Evidence: The source-visible add branch can reach the mutation and a created response only after the permission gate succeeds and the preceding issue and assignee processing succeeds. (issue_assignee.go:80-101)
+  Evidence: The bounded conditions fix an existing issue, an existing requested assignee, an authenticated caller, true issue-write token scope, and false repository issue-write permission; the source control checks repository permission rather than token scope. (issue_assignee.go:53-63)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

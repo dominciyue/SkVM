@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T195156315Z-1231adb1
+Status: completed
+Task: gitea-collaborator-permission
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adifferent-user-query::entry%3Aget-repo-permissions: source_refuted — The declared policy expectation is enforced by the supplied entry for the stated different-user, non-administrator principal. The entry reads the request-selected collaborator username, then applies a pre-load authorization gate: access proceeds only when the caller is a site administrator, the selected username matches the runtime caller identity, or the caller is a repository administrator. With the supplied facts, the caller is neither administrator and the username differs, so the gate returns HTTP 403 before the target collaborator is loaded. The request-selected collaborator path parameter is bound to the target user lookup, while the repository is supplied separately through the request context; the target collaborator must remain distinct from the caller for this scenario. The protected permission lookup and successful JSON response occur only after the gate and target-user load, so this branch cannot reach the protected effect. No decisive source-external fact is needed to decide the source-visible branch under the supplied principal and resource facts. Deployment routing or runtime identity wiring is not tested and could affect an operational assessment, but is outside this fixed source conclusion.
+  Evidence: The declared entry is the repository collaborator-permission GET handler and exposes the collaborator username as a required path-selected input. (collaborators.go:4-25)
+  Evidence: The assessed relation is the distinct-user branch because the source compares the selected collaborator username with the runtime caller name, and the supplied facts state that they differ. (collaborators.go:35-36)
+  Evidence: The authorization decision uses the runtime caller identity from ctx.Doer, including its administrator flag and normalized caller name. (collaborators.go:35-36)
+  Evidence: The request-selected collaborator username is read from the collaborator path parameter and is used to load the named collaborator; the repository remains the repository in the request context used by the permission lookup. (collaborators.go:35-35)
+  Evidence: Before loading the selected collaborator, the handler denies access unless the caller is an administrator, the selected username matches the caller, or the caller is a repository administrator. (collaborators.go:36-39)
+  Evidence: The protected repository-permission lookup and successful permission response occur only after the authorization gate and collaborator lookup return successfully. (collaborators.go:41-57)
+  Evidence: For the supplied authenticated repository-read collaborator, the caller is neither a site administrator nor a repository administrator and queries another user's username, making the denial condition true. (collaborators.go:35-39)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

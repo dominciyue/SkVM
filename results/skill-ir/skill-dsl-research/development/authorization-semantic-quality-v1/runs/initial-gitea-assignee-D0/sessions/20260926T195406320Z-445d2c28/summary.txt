@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260926T195406320Z-445d2c28
+Status: completed
+Task: gitea-issue-assignee-nonwriter
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees: source_refuted — The POST handler parses the assignee request and invokes the shared updater in add mode. The updater binds the request-selected issue by looking up the path index within ctx.Repo.Repository.ID. That issue is distinct from the requested assignee users, whose names are resolved only later. The runtime actor used for the mutation is ctx.Doer, while the decisive authorization state is ctx.Repo.Permission. After a successful issue lookup, the strongest visible control calls CanWriteIssuesOrPulls(issue.IsPull); this accounts for the issue-versus-pull branch, and the crop shows no separate owner or role bypass. Under the declared condition that this caller lacks repository issue/pull write permission, the control returns 403 and exits before attribute loading, assignee resolution, or AddAssignees. Therefore the protected addition cannot be reached; it is reachable in this function only on the branch where the repository permission check succeeds and isAdd is true. The fixed crop does not show authentication or token-scope middleware, but authentication and issue-write token scope are supplied scenario conditions, and token scope must not be treated as repository permission. No source-external fact is decisive under the bounded conditions. This assessment is limited to the declared entry and supplied crop and makes no repository-wide or deployment claim.
+  Evidence: The declared POST endpoint is implemented by AddIssueAssignees, which obtains IssueAssigneesOption and calls updateIssueAssignees with add mode enabled. (issue_assignee.go:4-6, issue_assignee.go:47-49)
+  Evidence: On the mutation branch, the runtime actor supplied to the assignee service is ctx.Doer. (issue_assignee.go:80-84)
+  Evidence: Requested assignee users are separately resolved from names to user IDs only after the repository permission check, so they are distinct from the issue selected by repository ID and issue index. (issue_assignee.go:65-78)
+  Evidence: The request-selected issue is looked up by the path index within the repository identified by ctx.Repo.Repository.ID; failure returns before authorization or mutation. (issue_assignee.go:53-58)
+  Evidence: The forbidden return occurs before assignee-name resolution and before the add mutation, preventing the requested operation when the repository permission check fails. (issue_assignee.go:60-81)
+  Evidence: The updater checks ctx.Repo.Permission.CanWriteIssuesOrPulls using issue.IsPull and immediately returns HTTP 403 when that repository issue-or-pull write permission is absent. (issue_assignee.go:60-63)
+  Evidence: The protected effect is the AddAssignees service call with the selected issue, ctx.Doer, and resolved assignee IDs; it occurs only when isAdd is true after all preceding returns have been avoided. (issue_assignee.go:70-81)
+  Evidence: Assignee existence is evaluated through name-to-user-ID resolution, but that resolution is unreachable when repository issue/pull write permission is absent. (issue_assignee.go:60-78)
+  Evidence: The declared existing-issue condition selects the successful issue-lookup path; an unsuccessful lookup would return even earlier. (issue_assignee.go:54-58)
+  Evidence: A successful add and created response require passing the repository permission control, resolving assignees, executing AddAssignees without error, and remaining on the add branch. (issue_assignee.go:80-101)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

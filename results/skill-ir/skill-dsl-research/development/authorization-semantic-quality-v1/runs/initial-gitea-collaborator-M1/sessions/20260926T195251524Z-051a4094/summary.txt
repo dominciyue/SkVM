@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T195251524Z-051a4094
+Status: completed
+Task: gitea-collaborator-permission
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adifferent-user-query::entry%3Aget-repo-permissions: source_refuted — The fixed handler is the GET collaborator-permission entry. It binds the path collaborator username, then checks three alternatives before any target lookup: the authenticated caller is a site administrator, the caller's normalized username equals the requested collaborator username, or the caller is a repository administrator. The declared scenario makes all three alternatives false, so the handler emits Forbidden and returns before loading the collaborator, computing individual repository permission, or returning the permission response. The checks concern different predicates and objects: IsAdmin concerns the caller's site-admin status; EqualFold compares the caller identity to the collaborator path value; IsUserRepoAdmin concerns repository-admin status in the current repository context. The latter two are source-linked to the protected collaborator-permission operation by their placement in this handler and by the same collaboratorUsername flowing to the later target lookup; the crop does not expose the implementation of IsUserRepoAdmin, so no broader object-equivalence claim is made. The visible bypass branches are exactly site admin, same username, and repository admin; although the principal is a collaborator with read access, no collaborator-wide exception appears—only the self-query branch covers an ordinary collaborator, and it does not apply to the declared different-user relation. No upstream route, middleware, or helper gate beyond this in-handler control is supplied, so none is claimed; that source-discovery gap does not make this bounded decision unknown because the visible handler itself rejects before the protected effect under all declared facts. No missing source-external fact would change the outcome while those scenario facts remain fixed: changing site-admin status, repository-admin status, or username equality would instead enter a visible bypass branch, but each is already declared false.
+  Evidence: The assessed entry is the handler for GET repository collaborator permission, parameterized by owner, repository, and collaborator. (collaborators.go:4-6)
+  Evidence: The handler binds the requested collaborator from the path and compares it with the authenticated caller's normalized username while also consulting caller site-admin and repository-admin status. (collaborators.go:35-36)
+  Evidence: The protected resource is the repository permission of the collaborator named by the collaborator path parameter. (collaborators.go:22-26)
+  Evidence: Before target lookup, the handler rejects unless the caller is a site administrator, is querying the same username, or is a repository administrator; rejection returns immediately. (collaborators.go:35-39)
+  Evidence: If execution passes the guard and lookup, the handler obtains that collaborator's individual permission for the current repository and returns the collaborator-permission representation. (collaborators.go:51-57)
+  Evidence: The target collaborator is loaded only after the authorization guard and its early return. (collaborators.go:36-41)
+  Evidence: Under the declared non-site-admin, non-repository-admin, different-username scenario, none of the three visible authorization exceptions applies; ordinary collaborator or repository-read status is not a separate visible exception. (collaborators.go:36-39)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

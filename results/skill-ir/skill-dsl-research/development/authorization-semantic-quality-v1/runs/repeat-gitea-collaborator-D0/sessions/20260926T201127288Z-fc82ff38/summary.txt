@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260926T201127288Z-fc82ff38
+Status: completed
+Task: gitea-collaborator-permission
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adifferent-user-query::entry%3Aget-repo-permissions: source_refuted — The declared policy expectation is denial, and the fixed source visibly enforces that expectation for the stated non-admin, non-repository-admin, different-user case. The entry is the repository-permission GET handler. The caller identity used by the gate is the runtime Doer: its administrator flag and lower-cased username are compared with the request collaborator username, while repository-administrator status is obtained from the request context. The request-selected resource is the collaborator named by the path parameter; the separately checked resource is the repository represented by the request context and its repository-administrator relation. For a different username with neither administrator role, the strongest visible control returns HTTP 403 before the collaborator lookup, so the permission lookup and successful JSON effect are unreachable on that branch. The visible allow branches are site administrator, repository administrator, or username equality (the self-query branch). No additional declared conditions exist. No source-external fact is needed to decide the source-level branch from the supplied principal and resource facts; actual route wiring or deployment behavior is not supplied and is outside this fixed-context assessment, so no repository-wide completeness claim is made.
+  Evidence: The declared operation is implemented by the repository-permission GET handler, which accepts owner, repository, and collaborator path parameters and documents successful, not-found, and forbidden outcomes. (collaborators.go:4-33)
+  Evidence: The collaborator username selected from the request must remain distinct from the caller username for this scenario, while the repository-administrator check concerns the repository in the request context rather than the selected collaborator account. (collaborators.go:35-39)
+  Evidence: The authorization gate binds the assessed caller to the request context's Doer administrator flag and lower-cased username, and checks repository-administrator status through the request context. (collaborators.go:35-39)
+  Evidence: The requested collaborator resource is selected from the request's collaborator path parameter and is later loaded by that username; the repository used for the permission query comes from the request context. (collaborators.go:35-35, collaborators.go:41-51)
+  Evidence: The visible authorization branches permit continuation for a site administrator, a repository administrator, or a caller whose username equals the requested collaborator username. (collaborators.go:35-39)
+  Evidence: The handler rejects with HTTP 403 when the caller is not a site administrator, the collaborator username is not the caller's username, and the caller is not a repository administrator; this gate precedes loading the target collaborator. (collaborators.go:35-41)
+  Evidence: Only after the gate and collaborator lookup does the handler query the individual user's repository permission and emit the successful permission response. (collaborators.go:41-57)
+  Evidence: Under the supplied condition that the requested collaborator username differs from the caller username and both administrator relations are absent, the rejection branch is selected; no further declared conditions are required. (collaborators.go:35-39)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

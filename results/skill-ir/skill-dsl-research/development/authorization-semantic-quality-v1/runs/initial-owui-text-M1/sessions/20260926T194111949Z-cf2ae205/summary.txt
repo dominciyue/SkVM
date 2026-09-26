@@ -1,0 +1,28 @@
+Authorization assessment
+Session: 20260926T194111949Z-cf2ae205
+Status: completed
+Task: owui-process-text-controlled
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Anon-admin-without-kb-write-grant::entry%3Apost-process-text: source_refuted — The fixed source refutes the declared policy failure for the stated existing-knowledge-base case. A verified user is the declared caller, and when POST /process/text receives an explicit collection name, that supplied name is sent through _validate_collection_access with access_type='write' before the vector-database write. The validator delegates to filter_accessible_collections, whose non-admin path checks an existing knowledge base with Knowledges.check_access_by_user_id(..., permission='write'); a denied existing KB is not added, and the separate allow branch applies only when no KB exists. Thus the ownership/write-grant object is the supplied existing knowledge-base collection itself, not merely the caller or another object. The visible admin bypass does not apply to the stated non-admin principal, and the legacy/ephemeral bypass is inapplicable to the stated existing target KB. The supplied content is then placed in a document and passed with that collection name to save_docs_to_vector_db, but only after the write validator. No source-external fact is decisive under the declared condition that the target is an existing KB and the principal lacks a write grant; the minimum observation supporting the bounded conclusion is the runtime truth of those declared conditions, especially that the named collection resolves as an existing KB and the write check is false.
+  Evidence: The assessed entry is POST /process/text, whose handler receives the request, form data, and a verified user. (inputs/owui-process-text-controlled/retrieval_process_text.py:7-12)
+  Evidence: The handler binds the caller through get_verified_user. (inputs/owui-process-text-controlled/retrieval_process_text.py:8-12)
+  Evidence: The target collection is taken from form_data.collection_name when supplied by the caller. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-17)
+  Evidence: The alternative allow branch is limited to names for which no knowledge base exists; it does not cover the stated existing target knowledge base. (inputs/owui-process-text-controlled/retrieval_access_policy.py:43-51)
+  Evidence: For a non-admin and a name that is an existing knowledge base, the shared policy uses Knowledges.check_access_by_user_id with the requested access type and adds the name only when that check succeeds. (inputs/owui-process-text-controlled/retrieval_access_policy.py:10-20, inputs/owui-process-text-controlled/retrieval_access_policy.py:43-49)
+  Evidence: The validator delegates the requested collection set and write access type to filter_accessible_collections, then denies any requested name absent from the returned allowed set. (inputs/owui-process-text-controlled/retrieval_process_text.py:31-44)
+  Evidence: An explicitly supplied collection name is checked by _validate_collection_access before document construction and the vector-database call, using access_type='write'. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-18)
+  Evidence: After the collection-selection and validation logic, attacker-selected form_data.content is placed in a document and sent to save_docs_to_vector_db under the selected collection name. (inputs/owui-process-text-controlled/retrieval_process_text.py:19-28)
+  Evidence: The handler invokes save_docs_to_vector_db with the document list, the selected collection name, and the user. (inputs/owui-process-text-controlled/retrieval_process_text.py:19-28)
+  Evidence: The administrator bypass returns all names only when user.role is admin, so it does not apply to the stated verified non-admin principal. (inputs/owui-process-text-controlled/retrieval_access_policy.py:21-24)
+  Evidence: The stated relation is that the principal has no ownership or explicit write grant on the existing target knowledge base; under the source policy, the relevant check is write access to that named KB itself, not ownership of the caller or another collection. (inputs/owui-process-text-controlled/retrieval_access_policy.py:17-20, inputs/owui-process-text-controlled/retrieval_access_policy.py:43-49)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

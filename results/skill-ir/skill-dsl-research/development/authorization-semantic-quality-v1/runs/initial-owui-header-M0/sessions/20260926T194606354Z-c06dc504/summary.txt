@@ -1,0 +1,29 @@
+Authorization assessment
+Session: 20260926T194606354Z-c06dc504
+Status: completed
+Task: owui-trusted-header-deployment
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email: unknown — The fixed application source exposes a conditional impersonation capability: when the trusted-email-header setting is configured, the request header value is lowercased and used to look up or create the account, then the resulting user is used to create a session. The visible checks require password authentication to be enabled and require the configured header to be present, but they do not authenticate the sender of that header. Under the declared policy, that capability is safe only if a trusted reverse proxy is the sole reachable ingress, strips client-supplied identity headers, and injects the authenticated identity. The source establishes the application-side capability and the identity-to-account/session binding, but it does not establish whether an unauthenticated external client can reach this entry directly, whether a proxy is sole ingress, whether it strips the relevant header, or whether it injects an authenticated identity. Therefore the application-source capability is visible, while deployment reachability and trusted-header provenance remain undecided; the minimum deployment facts needed are ingress reachability, proxy exclusivity, header stripping, and identity injection behavior, plus the effective trusted-header configuration.
+  Evidence: The application defines a POST sign-in handler that accepts a request and sign-in form data and can return a session user response. (inputs/owui-trusted-header-deployment/auths_signin.py:4-10)
+  Evidence: When the trusted email header setting is enabled, the handler requires that header, lowercases its value, and assigns that value as the email identity used by the sign-in flow. (inputs/owui-trusted-header-deployment/auths_signin.py:17-22)
+  Evidence: The header-derived email is used to find an existing account, or to create one when no matching account exists, and the account is then authenticated by email. (inputs/owui-trusted-header-deployment/auths_signin.py:31-40)
+  Evidence: The visible controls are that password authentication must be enabled and that the configured trusted header must be present; these lines show no sender authentication for the header value. (inputs/owui-trusted-header-deployment/auths_signin.py:11-19)
+  Evidence: If the user object is available, the handler creates a session response and sets the session cookie; otherwise it returns an invalid-credentials error. (inputs/owui-trusted-header-deployment/auths_signin.py:59-62)
+  Evidence: The supplied source does not state whether a trusted reverse proxy is the sole reachable ingress, removes client-supplied identity headers, or injects the authenticated identity. (inputs/owui-trusted-header-deployment/auths_signin.py:1-3)
+  Evidence: The trusted email header name is obtained from an environment setting and may be unset or configured at deployment time. (inputs/owui-trusted-header-deployment/env_trusted_headers.py:10-10)
+  Unknown: Whether the effective deployment enables the trusted email header setting and which header name is configured.
+  Unknown: Whether an unauthenticated external client can reach this application entry directly rather than only through a trusted reverse proxy.
+  Unknown: Whether a trusted reverse proxy is the sole reachable ingress to this entry.
+  Unknown: Whether the proxy removes client-supplied trusted identity headers before forwarding requests.
+  Unknown: Whether the proxy injects the authenticated identity into the configured header and prevents unauthenticated requests from supplying it.
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

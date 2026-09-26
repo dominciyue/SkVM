@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "fastapi-items-foreign-update",
+  "request": "Determine whether an authenticated non-superuser can update an item owned by another user through PUT /items/{id}.",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "sourceRoot": "source",
+  "sources": [
+    "items.py"
+  ],
+  "policies": {
+    "modify-item": {
+      "text": "An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.",
+      "location": "second-project/model-input/task.json#/normativePolicy",
+      "revision": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+      "acceptance": "accepted",
+      "reason": "accepted by the study task author for this bounded assessment"
+    }
+  },
+  "principals": {
+    "caller": {
+      "role": "authenticated non-superuser",
+      "facts": [
+        "Authenticated",
+        "Active",
+        "Not a superuser",
+        "Caller id differs from item.owner_id"
+      ],
+      "capabilities": [
+        "authenticated"
+      ]
+    }
+  },
+  "resources": {
+    "item": {
+      "type": "item",
+      "facts": [
+        "Existing item owned by another user"
+      ]
+    }
+  },
+  "entries": {
+    "update-item": {
+      "name": "update_item",
+      "locations": [
+        {
+          "path": "items.py",
+          "startLine": 75,
+          "endLine": 96
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "update-item": {
+      "principal": "caller",
+      "resource": "item",
+      "policy": "modify-item",
+      "entries": [
+        "update-item"
+      ],
+      "relation": "different-owner-and-not-superuser",
+      "operation": "update item fields through PUT /items/{id}",
+      "expectation": "deny"
+    }
+  }
+}

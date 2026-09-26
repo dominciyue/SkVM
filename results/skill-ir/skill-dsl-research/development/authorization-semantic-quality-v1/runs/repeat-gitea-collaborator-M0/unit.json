@@ -1,0 +1,197 @@
+{
+  "unit": {
+    "id": "repeat-gitea-collaborator-M0",
+    "phase": "repeat",
+    "caseId": "gitea-collaborator",
+    "arm": "M0",
+    "reasoningStrategy": "standard",
+    "wire": "v4"
+  },
+  "configSha256": "b22651ddbf1722d57596d66f67bc6aa5b25ae0cb5993c2833ce7dc7d98a73284",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v4",
+    "reasoningStrategy": "standard",
+    "researchIdentity": {
+      "arm": "markdown",
+      "instructionOrigin": "independent-author",
+      "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/markdown/gitea-collaborator.md",
+      "sha256": "c7bcd4b14a29d5892573292b18805f2fccd0c2d0e67cf1d27bead50caf2e54bb",
+      "characters": 827
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260926T201245234Z-d37a192f",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-semantic-quality-v1\\runs\\repeat-gitea-collaborator-M0\\sessions\\20260926T201245234Z-d37a192f",
+    "createdAt": "2026-09-26T20:12:45.234Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-semantic-quality-v1\\inputs\\gitea-collaborator\\authoring.json",
+    "taskId": "gitea-collaborator-permission",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 138,
+        "declaration": 827,
+        "source": 2535,
+        "outputContract": 2279,
+        "total": 5865,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "gitea-collaborator-permission",
+      "repository": "https://github.com/go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "results": [
+        {
+          "obligationId": "scenario%3Adifferent-user-query::entry%3Aget-repo-permissions",
+          "conclusion": "source_refuted",
+          "explanation": "The fixed entry is the repository collaborator-permission query. Its target is the collaborator username from the path, and the visible control evaluates the supplied scenario as unauthorized: the caller is neither an administrator, is not querying the caller's own username, and is not a repository administrator. The control emits HTTP 403 and returns before GetUserByName loads the target collaborator. Thus, within this fixed route and scenario, the source enforces the declared policy expectation that only a site administrator, repository administrator, or self-query may proceed; the later permission lookup and JSON response are unreachable on this branch.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The assessed entry is GetRepoPermissions, documented as the GET repository collaborator-permission operation.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 4,
+                    "endLine": 6,
+                    "quote": "// GetRepoPermissions gets repository permissions for a user\nfunc GetRepoPermissions(ctx *context.APIContext) {\n\t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "Authorization is bound to the authenticated caller represented by ctx.Doer, using its administrator flag and lower-cased username.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 36,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {"
+                  }
+                ]
+              },
+              {
+                "statement": "The eventual permission query is bound to the repository in ctx.Repo.Repository and the resolved collaborator.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 51,
+                    "endLine": 51,
+                    "quote": "\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The strongest visible authorization control rejects when the caller is not a site administrator, does not match the target username case-insensitively, and is not a repository administrator.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 37,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The failed authorization branch returns HTTP 403 and exits before the collaborator lookup.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 36,
+                    "endLine": 41,
+                    "quote": "\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}\n\n\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)"
+                  }
+                ]
+              },
+              {
+                "statement": "Target collaborator loading occurs only after the authorization check, through GetUserByName, so it is not reached on the rejection branch.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 39,
+                    "endLine": 42,
+                    "quote": "\t}\n\n\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The target is the collaborator username supplied in the path; the entry documents it as the username whose permissions are obtained.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 22,
+                    "endLine": 25,
+                    "quote": "\t// - name: collaborator\n\t//   in: path\n\t//   description: username of the collaborator whose permissions are to be obtained\n\t//   type: string"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "relationCoverage": [],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 1874,
+        "output": 943,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "owui-process-text-controlled",
+  "request": "At this fixed source ref, determine whether a verified non-admin user can write attacker-selected text to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/text.",
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "sourceRoot": "source",
+  "sources": [
+    "inputs/owui-process-text-controlled/retrieval_process_text.py",
+    "inputs/owui-process-text-controlled/retrieval_access_policy.py"
+  ],
+  "policies": {
+    "knowledge-write-policy": {
+      "text": "A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+      "location": "inputs/owui-process-text-controlled/task.json#/normativeRequirement",
+      "revision": "authorization-case-input/v1@841c9045",
+      "acceptance": "accepted",
+      "reason": "The study task author supplied this bounded normative requirement for the comparison."
+    }
+  },
+  "principals": {
+    "verified-non-admin": {
+      "role": "verified non-administrator",
+      "facts": [
+        "A signed-in non-admin without ownership or an explicit write grant on the selected knowledge base."
+      ],
+      "capabilities": [
+        "authenticated-as-verified-user",
+        "can-submit-process-text-form"
+      ]
+    }
+  },
+  "resources": {
+    "existing-target-knowledge-base": {
+      "type": "knowledge-base-vector-collection",
+      "facts": [
+        "An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal."
+      ]
+    }
+  },
+  "entries": {
+    "post-process-text": {
+      "name": "POST /process/text -> process_text",
+      "locations": [
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+          "startLine": 1,
+          "endLine": 44
+        },
+        {
+          "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+          "startLine": 1,
+          "endLine": 52
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "non-admin-without-kb-write-grant": {
+      "principal": "verified-non-admin",
+      "resource": "existing-target-knowledge-base",
+      "policy": "knowledge-write-policy",
+      "entries": [
+        "post-process-text"
+      ],
+      "relation": "no-ownership-or-explicit-write-grant",
+      "operation": "write-attacker-selected-text-to-existing-knowledge-base",
+      "expectation": "deny",
+      "conditions": {
+        "caller-supplies-existing-collection-name": {
+          "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+        },
+        "principal-is-not-admin": {
+          "basis": "The task asks about a verified non-admin and the shared policy exposes a separate admin branch."
+        }
+      }
+    }
+  },
+  "additionalQuestions": [
+    "identify the principal, operation, target resource relation, entry, and write sink",
+    "trace the supplied collection name through caller-side and shared controls",
+    "state what happens for a non-admin targeting an existing knowledge-base ID without write access",
+    "return source_supported_failure, source_refuted, or unknown with exact input locations"
+  ],
+  "additionalConstraints": [
+    "Use only the allowed case inputs.",
+    "Do not search for advisories, fixes, later versions, or deployment behavior.",
+    "Do not execute the project or propose a patch."
+  ]
+}

@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260926T200003568Z-99b3f3cd
+Status: completed
+Task: gitea-issue-lock-writer-nonadmin
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock: source_supported_failure — The declared policy expectation is enforced by the supplied source, so the expected deny does not fail: the route applies the repository/site-administrator guard before the handler, and the declared principal is neither administrator role. The route also requires token authentication. If that guard were passed, the handler resolves the issue from the repository and request index, checks issue-write permission, and—because the declared issue is unlocked—can reach the lock mutation; the declared writer permission satisfies that later check, but does not substitute for the stronger route-level administrator gate. The request-selected issue is bound by the repository context and path index, while the repository itself is the separately checked resource context. The source does not establish repository-wide completeness or deployment behavior; no source-external fact is needed to decide this bounded source question, although actual deployment routing or code outside the supplied excerpts remains untested.
+  Evidence: The declared PUT lock operation is registered in the lock route group and is followed by token and administrator middleware. (route_guard.go:16-20)
+  Evidence: The route requires an authenticated token before the operation proceeds; the supplied principal is declared authenticated with full token scope. (route_guard.go:16-20)
+  Evidence: The runtime authorization identity is checked for repository-administrator or site-administrator status, and the declared principal has neither status. (route_guard.go:4-10)
+  Evidence: The handler selects the issue using the repository context and the request path issue index, binding the selected object to the declared existing issue scenario. (issue_lock.go:42-47)
+  Evidence: The repository context used to resolve the issue is distinct from the issue object selected by its path index and is also used when assigning the issue repository before mutation. (issue_lock.go:42-43, issue_lock.go:61-62)
+  Evidence: After the route guard, the handler separately requires issue-write permission for the selected issue and returns forbidden when absent. (issue_lock.go:49-52)
+  Evidence: The strongest visible authorization control is the pre-handler requirement that the caller pass either repository-administrator or site-administrator status; otherwise the route returns forbidden and stops. (route_guard.go:4-11)
+  Evidence: Only after the issue-write check, and only when the issue is not locked, does the handler construct lock options and invoke the lock mutation; the unlocked condition makes this the relevant permitted branch, but the failed route guard prevents reaching it for the declared principal. (issue_lock.go:54-67)
+  Evidence: If both route authorization and issue-write checks pass, the handler reports no content after the optional lock mutation; this branch is unavailable to the declared nonadministrator because the route guard stops first. (issue_lock.go:61-70)
+  Evidence: The bounded scenario supplies authentication, issue existence/readability, issue-write permission, unlocked state, and absence of both administrator roles; the source-visible administrator guard therefore fails before the handler path. (route_guard.go:7-10, issue_lock.go:49-54)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

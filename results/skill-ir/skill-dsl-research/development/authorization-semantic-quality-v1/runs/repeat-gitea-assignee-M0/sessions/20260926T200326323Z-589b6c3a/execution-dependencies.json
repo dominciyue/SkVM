@@ -1,0 +1,295 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "gitea-issue-assignee-nonwriter",
+    "request": "Determine whether an authenticated caller whose token has issue-write scope, but who lacks repository issue-write permission, may add an existing user to an existing issue through POST /repos/{owner}/{repo}/issues/{index}/assignees.",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:issue-assignee-write-policy",
+        "kind": "explicit-task-requirement",
+        "text": "Adding issue assignees requires repository permission to write the issue or pull request; a caller without that permission is rejected before assignee resolution or mutation.",
+        "location": "policy.json#/normativePolicy",
+        "revision": "gitea@fc28937:routers/api/v1/repo/issue_assignee.go#L20-L65,L189-L238",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The fixed public source places the repository permission check before assignee resolution and mutation."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:authenticated-token-holder-without-repo-issue-write",
+        "role": "authenticated issue-scope token holder without repository issue-write permission",
+        "description": "Author facts: [\"The caller has an issue-write token scope and can identify the issue, but has no repository permission to write issues or pull requests.\"]",
+        "startingCapabilities": [
+          "authenticated",
+          "token-scope-write-issue",
+          "repository-issue-read"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:existing-issue-assignee-set",
+        "type": "issue assignee set",
+        "description": "Author facts: [\"The assignee set of an existing issue, with an existing user requested for addition.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:post-issue-assignees",
+        "name": "POST /repos/{owner}/{repo}/issues/{index}/assignees",
+        "locations": [
+          {
+            "path": "issue_assignee.go",
+            "startLine": 4,
+            "endLine": 49
+          },
+          {
+            "path": "issue_assignee.go",
+            "startLine": 53,
+            "endLine": 102
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:deny-nonwriter-assignee-add",
+        "principalId": "principal:authenticated-token-holder-without-repo-issue-write",
+        "resourceId": "resource:existing-issue-assignee-set",
+        "relation": "token-authorized-but-without-repository-issue-write-permission",
+        "operation": "add-issue-assignee",
+        "expectation": "deny",
+        "conditions": [
+          {
+            "name": "assignee-exists",
+            "basis": "The requested assignee exists in the bounded scenario."
+          },
+          {
+            "name": "issue-exists",
+            "basis": "The bounded scenario fixes an existing issue."
+          },
+          {
+            "name": "requester-authenticated",
+            "basis": "The bounded scenario fixes an authenticated caller."
+          },
+          {
+            "name": "requester-has-repository-issue-write",
+            "basis": "False in the bounded scenario."
+          },
+          {
+            "name": "token-has-issue-write-scope",
+            "basis": "True in the bounded scenario; token scope alone does not supply repository permission."
+          }
+        ],
+        "policySourceId": "policy:issue-assignee-write-policy",
+        "entryIds": [
+          "entry:post-issue-assignees"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+      "Trace the declared principal, resource relation, authorization control, and protected effect through the supplied fixed source.",
+      "State any decisive fact unavailable from the fixed source instead of inferring it, and explain how the declared conditions change reachability."
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+      "Use only policy.json and issue_assignee.go from the supplied fixed source context.",
+      "Do not execute or modify Gitea and do not contact a deployment.",
+      "Do not treat an issue-write token scope as repository issue-write permission."
+    ]
+  },
+  "scenarios": {
+    "scenario:deny-nonwriter-assignee-add": {
+      "name": "deny-nonwriter-assignee-add",
+      "obligation": {
+        "id": "scenario:deny-nonwriter-assignee-add",
+        "principalId": "principal:authenticated-token-holder-without-repo-issue-write",
+        "resourceId": "resource:existing-issue-assignee-set",
+        "relation": "token-authorized-but-without-repository-issue-write-permission",
+        "operation": "add-issue-assignee",
+        "expectation": "deny",
+        "conditions": [
+          {
+            "name": "assignee-exists",
+            "basis": "The requested assignee exists in the bounded scenario."
+          },
+          {
+            "name": "issue-exists",
+            "basis": "The bounded scenario fixes an existing issue."
+          },
+          {
+            "name": "requester-authenticated",
+            "basis": "The bounded scenario fixes an authenticated caller."
+          },
+          {
+            "name": "requester-has-repository-issue-write",
+            "basis": "False in the bounded scenario."
+          },
+          {
+            "name": "token-has-issue-write-scope",
+            "basis": "True in the bounded scenario; token scope alone does not supply repository permission."
+          }
+        ],
+        "policySourceId": "policy:issue-assignee-write-policy",
+        "entryIds": [
+          "entry:post-issue-assignees"
+        ]
+      },
+      "principal": {
+        "id": "principal:authenticated-token-holder-without-repo-issue-write",
+        "role": "authenticated issue-scope token holder without repository issue-write permission",
+        "description": "Author facts: [\"The caller has an issue-write token scope and can identify the issue, but has no repository permission to write issues or pull requests.\"]",
+        "startingCapabilities": [
+          "authenticated",
+          "token-scope-write-issue",
+          "repository-issue-read"
+        ]
+      },
+      "resource": {
+        "id": "resource:existing-issue-assignee-set",
+        "type": "issue assignee set",
+        "description": "Author facts: [\"The assignee set of an existing issue, with an existing user requested for addition.\"]"
+      },
+      "policy": {
+        "id": "policy:issue-assignee-write-policy",
+        "kind": "explicit-task-requirement",
+        "text": "Adding issue assignees requires repository permission to write the issue or pull request; a caller without that permission is rejected before assignee resolution or mutation.",
+        "location": "policy.json#/normativePolicy",
+        "revision": "gitea@fc28937:routers/api/v1/repo/issue_assignee.go#L20-L65,L189-L238",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The fixed public source places the repository permission check before assignee resolution and mutation."
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:post-issue-assignees",
+          "name": "POST /repos/{owner}/{repo}/issues/{index}/assignees",
+          "locations": [
+            {
+              "path": "issue_assignee.go",
+              "startLine": 4,
+              "endLine": 49
+            },
+            {
+              "path": "issue_assignee.go",
+              "startLine": 53,
+              "endLine": 102
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "issue_assignee.go",
+      "sha256": "929057ef63428d9135a69195e2900b8c53da31f8815c3fcb67f3f80fd51defd6",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 102
+      },
+      "originalLocations": []
+    }
+  ],
+  "sourceRoot": "source",
+  "sources": [
+    "issue_assignee.go"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:deny-nonwriter-assignee-add"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:deny-nonwriter-assignee-add"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:deny-nonwriter-assignee-add"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:deny-nonwriter-assignee-add"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:deny-nonwriter-assignee-add"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:deny-nonwriter-assignee-add"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": null,
+  "normalizerVersion": "authoring-v2-lowering/1",
+  "method": "plain",
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "arm": "B",
+  "reasoningStrategy": "standard",
+  "reasoningPlan": null,
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "2bca88c34a10588b2b8878516c515908d3f848b6752383017ca36fe8bd357101"
+}

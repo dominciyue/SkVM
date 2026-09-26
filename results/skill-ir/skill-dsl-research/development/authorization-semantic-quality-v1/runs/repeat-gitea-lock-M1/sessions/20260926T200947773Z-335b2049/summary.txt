@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T200947773Z-335b2049
+Status: completed
+Task: gitea-issue-lock-writer-nonadmin
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock: source_refuted — The assessed PUT lock entry is routed through the shown lock group with token and repository/site-administrator gates. For the stated authenticated principal who is neither a repository nor site administrator, reqAdmin fails before LockIssue is reached, so the declared policy expectation (deny a nonadmin issue lock) is enforced and a policy failure is refuted. If the handler were reached, it independently checks issue-or-pull-request write permission on the retrieved issue before the lock effect; the stated issue-writer permission would satisfy that later gate, not replace the earlier administrator gate. The route group and handler crops do not show a bypass branch for this PUT path. The first control checks the requester’s repository/site-admin status, while the later control checks issue/pull-request write permission for the retrieved issue; only the latter is directly tied to the affected issue, and issue ownership or permission on another object is not shown as permission on this issue. The existing-unlocked condition would permit the lock-effect branch only after both upstream route authorization and handler permission checks; the handler skips the effect when the issue is already locked. No source-external fact is decisive for this bounded scenario because the stated nonadmin condition determines the route denial. If that condition were false, the minimum observation would be the requester’s repository/site-admin status: an administrator could pass reqAdmin and then the stated issue-write permission would reach the unlocked lock effect; a nonadministrator is denied at the route gate.
+  Evidence: The lock group’s PUT entry binds the lock option and invokes the issue-lock handler. (route_guard.go:16-20)
+  Evidence: The route applies a token requirement and a repository-or-site-administrator requirement; the scenario states the requester is authenticated but neither kind of administrator. (route_guard.go:4-11, route_guard.go:16-20)
+  Evidence: The handler retrieves the issue using the repository identifier and the requested issue index, establishing the issue object on which the later permission check and lock operation act. (issue_lock.go:42-47)
+  Evidence: If the handler is reached, it returns forbidden unless the requester can write issues or pull requests, with the check parameterized by whether the retrieved issue is a pull request. (issue_lock.go:49-52)
+  Evidence: The administrator guard returns forbidden when the requester is neither a repository administrator nor a site administrator. (route_guard.go:4-11)
+  Evidence: For an unlocked retrieved issue, the handler constructs lock options with the requester and issue, invokes the lock operation, and then returns no content; a locked issue takes the visible no-effect branch. (issue_lock.go:54-69)
+  Evidence: The shown handler requires successful issue lookup and issue-or-pull-request write permission before the unlocked lock branch; the route additionally requires the token and administrator conditions. (issue_lock.go:42-54, route_guard.go:16-20)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

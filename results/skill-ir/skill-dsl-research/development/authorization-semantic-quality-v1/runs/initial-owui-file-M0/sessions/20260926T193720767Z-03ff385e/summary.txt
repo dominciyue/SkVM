@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260926T193720767Z-03ff385e
+Status: completed
+Task: owui-process-file-write
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file: source_supported_failure — The fixed source supports a policy failure. The declared entry is POST /process/file, and the principal is a verified non-admin user obtained through get_verified_user. For a non-admin, the visible file lookup binds the source file to that user's ownership, but the user-controlled form collection_name is then assigned directly and passed unchanged to save_docs_to_vector_db. The visible sink inserts items into VECTOR_DB_CLIENT using that collection_name. The crop shows no authorization check for collection_name or any ownership/write-grant check for the destination before the sink; the omitted middle section is expressly stated to contain no such call. Thus, under the stated condition that the principal lacks permission to write the named existing collection, the source supports that file ownership is treated as sufficient to reach the collection write, contrary to the declared policy.
+  Evidence: The declared entry is POST /process/file. (inputs/owui-process-file-write/retrieval_process_file.py:27-28)
+  Evidence: The submitted collection_name is used directly when present; only a missing value receives the file-derived default. (inputs/owui-process-file-write/retrieval_process_file.py:47-50)
+  Evidence: The endpoint principal is supplied by the get_verified_user dependency. (inputs/owui-process-file-write/retrieval_process_file.py:29-32)
+  Evidence: The selected collection_name is passed to save_docs_to_vector_db together with the processed documents and the principal user. (inputs/owui-process-file-write/retrieval_process_file.py:62-74)
+  Evidence: For a non-admin principal, the file is looked up by file ID together with user ID, binding processing to a file owned by that user. (inputs/owui-process-file-write/retrieval_process_file.py:40-45)
+  Evidence: save_docs_to_vector_db inserts the generated items into VECTOR_DB_CLIENT under collection_name. (inputs/owui-process-file-write/retrieval_process_file.py:14-18)
+  Evidence: The fixed source shows no call authorizing collection_name in the omitted load-and-commit section. (inputs/owui-process-file-write/retrieval_process_file.py:52-53)
+  Evidence: The assessed condition is that the verified non-admin principal owns the supplied file but lacks ownership or an explicit write grant for the named destination collection. (inputs/owui-process-file-write/retrieval_process_file.py:40-50)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

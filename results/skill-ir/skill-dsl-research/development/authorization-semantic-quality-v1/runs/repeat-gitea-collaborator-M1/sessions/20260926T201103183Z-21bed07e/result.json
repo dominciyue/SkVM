@@ -1,0 +1,187 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "reasoningStrategy": "control-binding-v1",
+  "researchIdentity": {
+    "arm": "markdown",
+    "instructionOrigin": "independent-author",
+    "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/markdown/gitea-collaborator.md",
+    "sha256": "c7bcd4b14a29d5892573292b18805f2fccd0c2d0e67cf1d27bead50caf2e54bb",
+    "characters": 827
+  },
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260926T201103183Z-21bed07e",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-semantic-quality-v1\\runs\\repeat-gitea-collaborator-M1\\sessions\\20260926T201103183Z-21bed07e",
+  "createdAt": "2026-09-26T20:11:03.183Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-semantic-quality-v1\\inputs\\gitea-collaborator\\authoring.json",
+  "taskId": "gitea-collaborator-permission",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 138,
+      "declaration": 827,
+      "reasoningPlan": 1704,
+      "source": 2535,
+      "outputContract": 2279,
+      "total": 7600,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "gitea-collaborator-permission",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "results": [
+      {
+        "obligationId": "scenario%3Adifferent-user-query::entry%3Aget-repo-permissions",
+        "conclusion": "source_refuted",
+        "explanation": "The declared policy expectation is enforced on the bounded path. The entry is the GET collaborator-permission handler. It binds the requested collaborator username from the path, then checks three alternatives before any target-user load: site-administrator status on the caller, case-insensitive equality between the caller's username and requested collaborator username, or repository-administrator status for the repository context. These checks are not ownership checks on the collaborator-permission result itself: the first and third are administrator-authority checks, while the self-query branch is linked to the affected target by comparing the authenticated caller's name directly with the collaborator path parameter. Under the stipulated scenario, the caller is neither administrator and the usernames differ, so no exception applies; mere repository read access or collaborator status is not a visible exception in this control. The handler therefore emits Forbidden and returns before GetUserByName, the permission lookup, or the success response. The supplied route annotation and handler establish applicability to this exact GET path; no upstream middleware or helper gate is claimed from the crop, and the visible handler-local control has no applicable bypass branch under the stated facts. No source-external fact is decisive because the scenario fixes every predicate used by the visible gate. If any fixed predicate changed, the conditional result would change at the gate: site-admin, repo-admin, or same-username status would bypass this rejection and proceed toward target loading, but those are contrary to the declared conditions rather than missing facts.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The assessed entry is the handler for GET repository collaborator permission.",
+              "citations": [
+                {
+                  "path": "collaborators.go",
+                  "startLine": 4,
+                  "endLine": 6,
+                  "quote": "// GetRepoPermissions gets repository permissions for a user\nfunc GetRepoPermissions(ctx *context.APIContext) {\n\t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The authorization condition evaluates the authenticated caller through ctx.Doer, including caller site-administrator status and caller lowercased username.",
+              "citations": [
+                {
+                  "path": "collaborators.go",
+                  "startLine": 35,
+                  "endLine": 36,
+                  "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {"
+                }
+              ]
+            },
+            {
+              "statement": "The target collaborator is bound from the collaborator path parameter, which denotes the username whose repository permission is requested.",
+              "citations": [
+                {
+                  "path": "collaborators.go",
+                  "startLine": 22,
+                  "endLine": 26,
+                  "quote": "\t// - name: collaborator\n\t//   in: path\n\t//   description: username of the collaborator whose permissions are to be obtained\n\t//   type: string\n\t//   required: true"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "Before target loading, the handler permits passage only if the caller is a site administrator, the caller username equals the requested collaborator username case-insensitively, or the caller is a repository administrator; otherwise it returns Forbidden.",
+              "citations": [
+                {
+                  "path": "collaborators.go",
+                  "startLine": 35,
+                  "endLine": 39,
+                  "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                }
+              ]
+            },
+            {
+              "statement": "The target collaborator is loaded only after the rejecting authorization branch and its return, so rejection occurs before target loading.",
+              "citations": [
+                {
+                  "path": "collaborators.go",
+                  "startLine": 36,
+                  "endLine": 41,
+                  "quote": "\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}\n\n\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "The protected effect consists of resolving the target collaborator's individual repository permission and returning the collaborator-permission representation on success.",
+              "citations": [
+                {
+                  "path": "collaborators.go",
+                  "startLine": 51,
+                  "endLine": 57,
+                  "quote": "\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "For a non-site-admin, non-repo-admin caller whose username differs from the requested collaborator username, all three visible exceptions are false; collaborator or repository-reader status is not an additional exception in this condition.",
+              "citations": [
+                {
+                  "path": "collaborators.go",
+                  "startLine": 35,
+                  "endLine": 39,
+                  "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": []
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "relationCoverage": [],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 153,
+      "output": 1056,
+      "cacheRead": 2048,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

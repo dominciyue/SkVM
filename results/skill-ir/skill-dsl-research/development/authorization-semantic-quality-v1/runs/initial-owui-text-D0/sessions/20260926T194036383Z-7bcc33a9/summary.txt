@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260926T194036383Z-7bcc33a9
+Status: completed
+Task: owui-process-text-controlled
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Anon-admin-without-kb-write-grant::entry%3Apost-process-text: source_supported_failure — The declared entry accepts a caller-selected collection name and, when supplied, invokes the write-access validator before constructing the document and calling the vector-database save sink. The principal is source-bound through the verified-user dependency and the supplied user object; the selected collection name is passed into the shared validator with access_type='write'. For a non-admin, the strongest visible control checks knowledge-base access using the user's ID and the requested permission, but the fixed source also contains a fallback: if access is denied and no knowledge base exists for that ID, the name is allowed as an ephemeral/legacy collection. Under the declared condition that the selected object is an existing knowledge-base collection and the principal has no ownership or explicit write grant, the KB access check does not add the name, the no-KB fallback is inapplicable, and the validator raises HTTP 403, so the protected save effect is not reached. This supports enforcement of the stated deny expectation and therefore does not support a policy failure; however, the conclusion is limited to the supplied entry and source crop because repository discovery is not-tested. The public questions are addressed: the pre-effect gate is _validate_collection_access and its shared filter; identity is the verified-user dependency and user.id; the request name is the resource identifier, while the separately checked resource is the knowledge-base record returned by the existence lookup; the strongest branch is non-admin KB write-access validation, with admin bypass expressly inapplicable; the save effect is reachable only after validation, while the denied existing-KB/no-write branch stops at 403; and no source-external fact changes the answer within the declared conditions, although deployment/runtime behavior and undiscovered entries remain untested and are outside scope.
+  Evidence: The declared POST entry reads the optional collection name and, when supplied, invokes collection-access validation before proceeding. (inputs/owui-process-text-controlled/retrieval_process_text.py:4-17)
+  Evidence: The supplied collection name is placed in the requested set and passed to the shared access filter; the filter checks the same name against knowledge-base access and knowledge-base existence. (inputs/owui-process-text-controlled/retrieval_process_text.py:31-39, inputs/owui-process-text-controlled/retrieval_access_policy.py:43-50)
+  Evidence: The operation receives its caller through the verified-user dependency, and the resulting user identity is used in document metadata and access checks. (inputs/owui-process-text-controlled/retrieval_process_text.py:7-13, inputs/owui-process-text-controlled/retrieval_process_text.py:19-28)
+  Evidence: For non-admin users, a non-special collection name is accepted only when the knowledge-base access check succeeds, or when no knowledge base exists for that name; an existing knowledge base without access therefore is not accepted. (inputs/owui-process-text-controlled/retrieval_access_policy.py:22-23, inputs/owui-process-text-controlled/retrieval_access_policy.py:43-50)
+  Evidence: The shared validator is called with write access, and a denied requested name causes an HTTP 403 before the handler returns to the save path. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-17, inputs/owui-process-text-controlled/retrieval_process_text.py:31-44)
+  Evidence: Only after collection validation does the handler construct attacker-controlled document content and call the vector-database save operation for the selected collection. (inputs/owui-process-text-controlled/retrieval_process_text.py:19-28)
+  Evidence: The assessed condition fixes the selected name as an existing knowledge-base collection and fixes that the principal has neither ownership nor an explicit write grant. (inputs/owui-process-text-controlled/retrieval_access_policy.py:43-50)
+  Evidence: The admin bypass returns all requested collection names, but the declared principal is a verified non-admin, so that branch does not apply. (inputs/owui-process-text-controlled/retrieval_access_policy.py:22-24)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

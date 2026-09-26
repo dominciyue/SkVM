@@ -1,0 +1,203 @@
+{
+  "unit": {
+    "id": "repeat-gitea-lock-M0",
+    "phase": "repeat",
+    "caseId": "gitea-lock",
+    "arm": "M0",
+    "reasoningStrategy": "standard",
+    "wire": "v4"
+  },
+  "configSha256": "b22651ddbf1722d57596d66f67bc6aa5b25ae0cb5993c2833ce7dc7d98a73284",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v4",
+    "reasoningStrategy": "standard",
+    "researchIdentity": {
+      "arm": "markdown",
+      "instructionOrigin": "independent-author",
+      "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/markdown/gitea-lock.md",
+      "sha256": "a930f36d2ef364d173a5958de9fe244e5a267d7b899cfdfff398c5e47181d5c4",
+      "characters": 810
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260926T200748346Z-e9dcb95d",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-semantic-quality-v1\\runs\\repeat-gitea-lock-M0\\sessions\\20260926T200748346Z-e9dcb95d",
+    "createdAt": "2026-09-26T20:07:48.346Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-semantic-quality-v1\\inputs\\gitea-lock\\authoring.json",
+    "taskId": "gitea-issue-lock-writer-nonadmin",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 138,
+        "declaration": 810,
+        "source": 3527,
+        "outputContract": 2277,
+        "total": 6838,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "gitea-issue-lock-writer-nonadmin",
+      "repository": "https://github.com/go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "results": [
+        {
+          "obligationId": "scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock",
+          "conclusion": "source_refuted",
+          "explanation": "The fixed source supports enforcement of the declared denial policy. The PUT lock route is entered through a route group that applies token authentication and reqAdmin before dispatching to the lock handler. reqAdmin returns HTTP 403 unless the principal is a repository administrator or site administrator; the stated principal is neither, so the request is denied before the handler can reach its issue-or-pull-request write-permission check or the lock effect. The handler nevertheless visibly contains that second write-permission gate and, for an existing unlocked issue, constructs lock options with the authenticated context user as doer and invokes the lock operation only after the gate. Thus the supplied source supports both required authorization gates and their relationship to the protected effect under the fixed scenario, without making any deployment or repository-wide completeness claim.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The lock route's PUT operation binds the lock-issue option and dispatches to the issue-lock handler.",
+                "citations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 16,
+                    "endLine": 19,
+                    "quote": "m.Group(\"/lock\", func() {\n\tm.Combo(\"\").\n\t\tPut(bind(api.LockIssueOption{}), repo.LockIssue).\n\t\tDelete(repo.UnlockIssue)"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The route requires a token and applies the repository-or-site-administrator guard to the requesting principal before dispatch.",
+                "citations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 16,
+                    "endLine": 20,
+                    "quote": "m.Group(\"/lock\", func() {\n\tm.Combo(\"\").\n\t\tPut(bind(api.LockIssueOption{}), repo.LockIssue).\n\t\tDelete(repo.UnlockIssue)\n}, reqToken(), reqAdmin())"
+                  }
+                ]
+              },
+              {
+                "statement": "The handler resolves the targeted issue from the repository context and the issue index path parameter.",
+                "citations": [
+                  {
+                    "path": "issue_lock.go",
+                    "startLine": 42,
+                    "endLine": 47,
+                    "quote": "\treason := web.GetForm[*api.LockIssueOption](ctx).Reason\n\tissue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.PathParamInt64(\"index\"))\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The first authorization gate rejects the request with HTTP 403 when the principal is neither a repository administrator nor a site administrator.",
+                "citations": [
+                  {
+                    "path": "route_guard.go",
+                    "startLine": 4,
+                    "endLine": 11,
+                    "quote": "// reqAdmin user should be an owner or a collaborator with admin write of a repository, or site admin\nfunc reqAdmin() func(ctx *context.APIContext) {\n\treturn func(ctx *context.APIContext) {\n\t\tif !ctx.IsUserRepoAdmin() && !ctx.IsUserSiteAdmin() {\n\t\t\tctx.APIError(http.StatusForbidden, \"user should be an owner or a collaborator with admin write of a repository\")\n\t\t\treturn\n\t\t}\n\t}"
+                  }
+                ]
+              },
+              {
+                "statement": "After issue resolution, the handler rejects with HTTP 403 unless the principal has permission to write issues or pull requests, selected according to whether the target is a pull request.",
+                "citations": [
+                  {
+                    "path": "issue_lock.go",
+                    "startLine": 49,
+                    "endLine": 52,
+                    "quote": "\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.APIError(http.StatusForbidden, \"no permission to lock this issue\")\n\t\treturn\n\t}"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "For an unlocked target that passes authorization, the handler records the context user as doer, associates the issue, and invokes the issue-lock operation.",
+                "citations": [
+                  {
+                    "path": "issue_lock.go",
+                    "startLine": 54,
+                    "endLine": 67,
+                    "quote": "\tif !issue.IsLocked {\n\t\topt := &issues_model.IssueLockOptions{\n\t\t\tDoer:   ctx.ContextUser,\n\t\t\tIssue:  issue,\n\t\t\tReason: reason,\n\t\t}\n\n\t\tissue.Repo = ctx.Repo.Repository\n\t\terr = issues_model.LockIssue(ctx, opt)\n\t\tif err != nil {\n\t\t\tctx.APIErrorInternal(err)\n\t\t\treturn\n\t\t}\n\t}"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The fixed scenario supplies a readable existing unlocked issue and a principal who is neither a repository administrator nor a site administrator; the source's unlocked branch is the branch that would contain the lock effect if earlier gates passed.",
+                "citations": [
+                  {
+                    "path": "issue_lock.go",
+                    "startLine": 43,
+                    "endLine": 47,
+                    "quote": "\tissue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.PathParamInt64(\"index\"))\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}"
+                  },
+                  {
+                    "path": "issue_lock.go",
+                    "startLine": 54,
+                    "endLine": 69,
+                    "quote": "\tif !issue.IsLocked {\n\t\topt := &issues_model.IssueLockOptions{\n\t\t\tDoer:   ctx.ContextUser,\n\t\t\tIssue:  issue,\n\t\t\tReason: reason,\n\t\t}\n\n\t\tissue.Repo = ctx.Repo.Repository\n\t\terr = issues_model.LockIssue(ctx, opt)\n\t\tif err != nil {\n\t\t\tctx.APIErrorInternal(err)\n\t\t\treturn\n\t\t}\n\t}\n\n\tctx.Status(http.StatusNoContent)"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "relationCoverage": [],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 833,
+        "output": 856,
+        "cacheRead": 1408,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

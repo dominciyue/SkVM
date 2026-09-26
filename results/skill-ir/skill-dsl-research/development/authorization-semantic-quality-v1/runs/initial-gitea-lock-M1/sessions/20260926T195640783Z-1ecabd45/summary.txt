@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T195640783Z-1ecabd45
+Status: completed
+Task: gitea-issue-lock-writer-nonadmin
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock: source_refuted — The declared policy expectation is enforced on the supplied path, so the expected deny-nonadmin failure is refuted. The PUT lock entry is grouped under reqToken and reqAdmin; reqAdmin checks repository- or site-administrator status and returns forbidden when both are false. Under the fixed scenario, the principal is authenticated but is neither kind of administrator, so this upstream gate stops the request before LockIssue. The handler separately checks issue or pull-request write permission against the retrieved issue, but that later gate cannot bypass the earlier administrator gate. The lock effect is reachable only after the permission check and, because the target is declared unlocked, through the unlocked branch; the locked-state branch that skips the effect is not applicable. For the object comparison, reqAdmin checks the requester's repository/site-admin relationship, not ownership of or permission on the issue; CanWriteIssuesOrPulls is evaluated in the handler for the retrieved issue and is the source-visible issue-related gate. No owner, collaborator-admin, or site-admin exception applies under the stated principal facts; those exceptions are the conditions described by reqAdmin, not permission inherited from issue-write access. No source-external fact is decisive for this bounded result: changing the administrator-status observation would change the outcome—if repository or site administrator, the first gate would pass and the issue-write check would then matter; if neither, the request is denied before the lock effect. The minimum observation is the requester's repository- and site-administrator status, already supplied by the scenario.
+  Evidence: The lock PUT entry binds the lock option to LockIssue and is placed in a route group with reqToken and reqAdmin. (route_guard.go:16-20)
+  Evidence: The assessed principal is authenticated and, under the fixed scenario, lacks repository-administrator and site-administrator status. (route_guard.go:4-11)
+  Evidence: LockIssue retrieves the target issue by the repository context and the requested issue index. (issue_lock.go:42-47)
+  Evidence: reqAdmin requires repository-admin or site-admin status and returns forbidden when neither condition holds. (route_guard.go:4-11)
+  Evidence: After issue retrieval, LockIssue requires CanWriteIssuesOrPulls for the retrieved issue's pull-request classification and returns forbidden otherwise. (issue_lock.go:49-52)
+  Evidence: The handler constructs lock options for the retrieved issue and invokes the issue lock operation, then returns no content. (issue_lock.go:55-69)
+  Evidence: The lock operation is entered only when the retrieved issue is not already locked; the supplied target is declared unlocked. (issue_lock.go:54-58)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

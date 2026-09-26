@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T193744435Z-387ebb4a
+Status: completed
+Task: owui-process-file-write
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file: source_supported_failure — The declared POST entry is gated by verified-user authentication. The runtime principal is the dependency-provided user; for a non-admin, the route checks that the requested file belongs to that user's ID. That check binds and authorizes the source file only, not the caller-selected destination collection. The request model accepts collection_name, the route copies that value directly, and only substitutes a file-derived collection when the caller omits it. For the stated condition, the supplied existing collection name therefore remains the destination resource, while the separately checked file remains the owned source resource. The strongest visible authorization decision is the role/file-ownership branch: admins may fetch any file, while non-admins must fetch by file ID and user ID. No destination-ownership or explicit-write-grant branch is visible; the supplied context expressly states that the intervening processing contains no authorization call for collection_name. The selected name is passed to save_docs_to_vector_db with add enabled when the name was supplied, and the shown sink inserts items into that collection. Thus, under the non-admin branch where the owned file is found and a collection name is supplied, the assessed operation reaches the protected write effect despite the declared absence of destination write permission, supporting failure of the expected deny policy. A deployment-specific restriction inside the external vector database client could affect whether the insert ultimately succeeds at runtime, but no such restriction is supplied and deployment behavior is outside this fixed source assessment; it does not negate the source-visible authorization failure at the declared entry.
+  Evidence: POST /process/file invokes process_file and requires the dependency-provided verified user before the assessed path proceeds. (inputs/owui-process-file-write/retrieval_process_file.py:27-33)
+  Evidence: The retained collection_name is passed to save_docs_to_vector_db, and add is true when the caller supplied collection_name. (inputs/owui-process-file-write/retrieval_process_file.py:62-74)
+  Evidence: The runtime caller is the verified user, and the non-admin branch retrieves the source file by both the submitted file ID and that user's ID; the admin branch instead retrieves by file ID alone. (inputs/owui-process-file-write/retrieval_process_file.py:40-44)
+  Evidence: The request schema permits the caller to submit collection_name, and the route assigns that submitted value to the destination variable. (inputs/owui-process-file-write/retrieval_process_file.py:21-24, inputs/owui-process-file-write/retrieval_process_file.py:45-48)
+  Evidence: The strongest visible authorization control for a non-admin is ownership of the source file; the supplied context states that the omitted intervening processing has no call authorizing collection_name. (inputs/owui-process-file-write/retrieval_process_file.py:40-44, inputs/owui-process-file-write/retrieval_process_file.py:52-53)
+  Evidence: The write sink calls the vector database client's insert operation with collection_name and the generated items. (inputs/owui-process-file-write/retrieval_process_file.py:14-18)
+  Evidence: A file-derived collection name is used only when collection_name is absent, so under the declared caller-supplied-name condition the selected existing collection name is retained. (inputs/owui-process-file-write/retrieval_process_file.py:47-50)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

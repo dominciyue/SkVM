@@ -1,0 +1,291 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "owui-process-file-write",
+    "request": "At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.",
+    "repository": "https://github.com/open-webui/open-webui",
+    "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:destination-knowledge-write-policy",
+        "kind": "explicit-task-requirement",
+        "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+        "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+        "revision": "authorization-case-input/v1@841c9045",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The study task author supplied this bounded normative requirement for the comparison."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:verified-non-admin-file-owner",
+        "role": "verified non-administrator who owns the supplied source file",
+        "description": "Author facts: [\"A signed-in non-admin whose file ownership is distinct from authorization on the destination knowledge base.\"]",
+        "startingCapabilities": [
+          "authenticated-as-verified-user",
+          "owns-supplied-source-file",
+          "can-submit-process-file-form"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:existing-destination-knowledge-base",
+        "type": "knowledge-base-vector-collection",
+        "description": "Author facts: [\"An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:post-process-file",
+        "name": "POST /process/file -> process_file",
+        "locations": [
+          {
+            "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+            "startLine": 1,
+            "endLine": 74
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:file-owner-without-destination-write-grant",
+        "principalId": "principal:verified-non-admin-file-owner",
+        "resourceId": "resource:existing-destination-knowledge-base",
+        "relation": "owns-source-file-but-no-destination-write-grant",
+        "operation": "write-file-content-to-existing-knowledge-base",
+        "expectation": "deny",
+        "conditions": [
+          {
+            "name": "caller-supplies-existing-collection-name",
+            "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+          },
+          {
+            "name": "principal-is-not-admin",
+            "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+          }
+        ],
+        "policySourceId": "policy:destination-knowledge-write-policy",
+        "entryIds": [
+          "entry:post-process-file"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+      "identify the principal, operation, target resource relation, entry, and write sink",
+      "trace the user-controlled collection name through any target-specific authorization control",
+      "distinguish file ownership from destination knowledge-base write permission",
+      "return source_supported_failure, source_refuted, or unknown with exact input locations"
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+      "Use only the allowed case inputs.",
+      "Do not search for advisories, fixes, later versions, or deployment behavior.",
+      "Do not execute the project or propose a patch."
+    ]
+  },
+  "scenarios": {
+    "scenario:file-owner-without-destination-write-grant": {
+      "name": "file-owner-without-destination-write-grant",
+      "obligation": {
+        "id": "scenario:file-owner-without-destination-write-grant",
+        "principalId": "principal:verified-non-admin-file-owner",
+        "resourceId": "resource:existing-destination-knowledge-base",
+        "relation": "owns-source-file-but-no-destination-write-grant",
+        "operation": "write-file-content-to-existing-knowledge-base",
+        "expectation": "deny",
+        "conditions": [
+          {
+            "name": "caller-supplies-existing-collection-name",
+            "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+          },
+          {
+            "name": "principal-is-not-admin",
+            "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+          }
+        ],
+        "policySourceId": "policy:destination-knowledge-write-policy",
+        "entryIds": [
+          "entry:post-process-file"
+        ]
+      },
+      "principal": {
+        "id": "principal:verified-non-admin-file-owner",
+        "role": "verified non-administrator who owns the supplied source file",
+        "description": "Author facts: [\"A signed-in non-admin whose file ownership is distinct from authorization on the destination knowledge base.\"]",
+        "startingCapabilities": [
+          "authenticated-as-verified-user",
+          "owns-supplied-source-file",
+          "can-submit-process-file-form"
+        ]
+      },
+      "resource": {
+        "id": "resource:existing-destination-knowledge-base",
+        "type": "knowledge-base-vector-collection",
+        "description": "Author facts: [\"An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal.\"]"
+      },
+      "policy": {
+        "id": "policy:destination-knowledge-write-policy",
+        "kind": "explicit-task-requirement",
+        "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+        "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+        "revision": "authorization-case-input/v1@841c9045",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The study task author supplied this bounded normative requirement for the comparison."
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:post-process-file",
+          "name": "POST /process/file -> process_file",
+          "locations": [
+            {
+              "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+              "startLine": 1,
+              "endLine": 74
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "inputs/owui-process-file-write/retrieval_process_file.py",
+      "sha256": "c3665c4eb3f81ac872e35946f19b8814af73eb9aafc43b0af3bc3174642f1149",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 74
+      },
+      "originalLocations": []
+    }
+  ],
+  "sourceRoot": "source",
+  "sources": [
+    "inputs/owui-process-file-write/retrieval_process_file.py"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:file-owner-without-destination-write-grant"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:file-owner-without-destination-write-grant"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:file-owner-without-destination-write-grant"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:file-owner-without-destination-write-grant"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:file-owner-without-destination-write-grant"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:file-owner-without-destination-write-grant"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": null,
+  "normalizerVersion": "authoring-v2-lowering/1",
+  "method": "plain",
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "arm": "B",
+  "reasoningStrategy": "control-binding-v1",
+  "reasoningPlan": {
+    "strategy": "control-binding-v1",
+    "entries": [
+      {
+        "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+        "principalId": "principal:verified-non-admin-file-owner",
+        "resourceId": "resource:existing-destination-knowledge-base",
+        "entryId": "entry:post-process-file",
+        "questions": [
+          {
+            "focus": "checked-object-versus-effect-target",
+            "question": "For principal principal:verified-non-admin-file-owner at entry entry:post-process-file, which object is checked by each claimed control, and is that same object the resource:existing-destination-knowledge-base affected by write-file-content-to-existing-knowledge-base? If different, identify the source-backed link or gap without treating ownership of one object as permission on another."
+          },
+          {
+            "focus": "control-applicability-and-bypass",
+            "question": "For entry entry:post-process-file and write-file-content-to-existing-knowledge-base on resource:existing-destination-knowledge-base, does each claimed upstream route, middleware, or helper gate apply to the assessed path before the effect? Describe applicable conditions and any visible bypass branch with source support."
+          },
+          {
+            "focus": "role-and-relation-exceptions",
+            "question": "For principal:verified-non-admin-file-owner with relation owns-source-file-but-no-destination-write-grant to resource:existing-destination-knowledge-base under declared conditions caller-supplies-existing-collection-name, principal-is-not-admin, which owner, grantee, staff, or administrator exception actually applies to write-file-content-to-existing-knowledge-base? Distinguish an applicable exception from an exception present elsewhere or one that does not cover this target."
+          },
+          {
+            "focus": "decisive-external-facts",
+            "question": "For this bounded write-file-content-to-existing-knowledge-base decision on resource:existing-destination-knowledge-base, which missing source-external fact, if any, would change the outcome? State the conditional outcomes and minimum observation; do not turn unrelated unknown facts into an unknown decision."
+          }
+        ]
+      }
+    ]
+  },
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "65b3dabf1c5d0f00f0e2fcf1d799674cbd97c5ebf6e3e3353cee2331a4acd422"
+}

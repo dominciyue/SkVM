@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T195102392Z-e0bc8ffc
+Status: completed
+Task: gitea-collaborator-permission
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adifferent-user-query::entry%3Aget-repo-permissions: source_refuted — The entry is the GetRepoPermissions handler for the collaborator-permission query. The principal is represented by ctx.Doer, and the visible authorization decision checks site-admin status, whether the requested collaborator username equals the caller's username, and repository-admin status. Under the supplied scenario, the authenticated caller is neither kind of administrator and the target is a different existing collaborator, so the rejection condition is satisfied. The handler returns forbidden before GetUserByName loads the target collaborator; the later permission lookup and success response are therefore protected effects. The fixed source supports enforcement of the declared policy expectation, so it refutes a policy failure. This assessment is limited to this supplied entry and route crop; source discovery and repository-wide completeness are not tested.
+  Evidence: The source entry is the GetRepoPermissions handler implementing the repository collaborator-permission query. (collaborators.go:4-6)
+  Evidence: The authorization decision binds the caller to ctx.Doer and evaluates its IsAdmin and LowerName fields. (collaborators.go:35-37)
+  Evidence: The requested target is bound from the collaborator path parameter, and the target repository used for the later permission operation is ctx.Repo.Repository. (collaborators.go:22-25, collaborators.go:41-51)
+  Evidence: The strongest visible authorization control rejects when the caller is not a site administrator, is not querying its own username, and is not a repository administrator. (collaborators.go:35-39)
+  Evidence: When the rejection predicate is true, the handler emits HTTP 403 and returns before loading the collaborator. (collaborators.go:36-41)
+  Evidence: Target collaborator loading occurs only after the authorization check, so the forbidden return protects the GetUserByName target load. (collaborators.go:35-41)
+  Evidence: For the supplied scenario, the caller is neither administrator type and the requested collaborator username differs from the caller username; therefore the visible rejection predicate is true. (collaborators.go:35-39)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

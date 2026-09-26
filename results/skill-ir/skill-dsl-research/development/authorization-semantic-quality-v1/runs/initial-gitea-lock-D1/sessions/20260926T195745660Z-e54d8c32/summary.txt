@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260926T195745660Z-e54d8c32
+Status: completed
+Task: gitea-issue-lock-writer-nonadmin
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock: source_refuted — The declared policy expectation is deny, and the supplied fixed source supports enforcement of that denial for the stated principal and conditions. The PUT lock entry is bound in the route group to the lock operation and is preceded by both token authentication and reqAdmin. reqAdmin rejects unless the runtime context identifies the caller as either a repository administrator or a site administrator; the supplied principal is expressly neither, so the assessed path stops before LockIssue. In the handler, the request-selected issue is loaded using the repository in the request context and the path index, and the issue-write check is a second, target-issue control. The caller's issue-write permission therefore does not substitute for the upstream administrator gate. The handler would construct the lock options with the loaded issue and the authenticated context user and invoke the lock effect only if the route gate passed, issue-write permission passed, and the issue was unlocked. Under the declared unlocked, authenticated, readable, issue-writer, non-repository-admin, non-site-admin conditions, that protected effect is unreachable because reqAdmin returns first. No owner, collaborator-admin, or site-admin exception applies: the only visible route exception is the positive repository-admin/site-admin condition, and neither is supplied for this principal. The source does not establish repository-wide route completeness or deployment behavior, but no source-external fact is decisive for this bounded fixed-source decision; changing the answer would require changing the declared administrator status or observing a different deployed route/control than the supplied entry, neither of which is part of the stated conditions.
+  Evidence: The declared PUT lock operation is routed through the lock group and is followed by token and administrator middleware before the LockIssue handler. (route_guard.go:16-20)
+  Evidence: The runtime caller is represented by the API context used by the administrator checks; the route proceeds only when that context is repository-admin or site-admin, while the handler uses the context user as the operation doer. (route_guard.go:4-11, issue_lock.go:54-59)
+  Evidence: The requested issue is bound by the repository identity in the API context and the request's numeric issue index; the distinct upstream administrator check concerns repository or site-administrator status, not ownership of the issue object itself. (issue_lock.go:42-47, route_guard.go:4-8)
+  Evidence: If the upstream administrator gate is passed, the handler separately checks issue-write permission for the loaded issue or pull type and returns forbidden when it is absent; the declared issue-write permission satisfies this weaker downstream gate but does not bypass reqAdmin. (issue_lock.go:42-52)
+  Evidence: The strongest visible authorization control is reqAdmin: lacking both repository-administrator and site-administrator status produces a forbidden response and returns before the handler can proceed. (route_guard.go:4-11)
+  Evidence: Only after the visible authorization checks, and only while the loaded issue is unlocked, does the handler construct lock options and invoke the issue-lock operation; otherwise the unlocked branch is not reached or the handler returns without mutation. (issue_lock.go:49-69)
+  Evidence: The declared authenticated caller has issue-write permission but neither repository-administrator nor site-administrator status, so the administrator route gate fails even though the downstream issue-write condition is true. (route_guard.go:4-11, issue_lock.go:49-52)
+  Evidence: The declared issue is existing, readable, and currently unlocked; if all upstream gates passed, the unlocked branch would reach the lock mutation, but with the declared non-admin status the upstream gate prevents that reachability. (issue_lock.go:42-47, issue_lock.go:54-69)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

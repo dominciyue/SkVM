@@ -1,0 +1,23 @@
+Authorization assessment
+Session: 20260926T200225319Z-d8fefa43
+Status: completed
+Task: fastapi-items-superuser-read
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aread-item::entry%3Aread-item: source_refuted — The declared policy expectation is source-supported, not failed. The declared GET item entry is read_item. Its parameters include SessionDep, CurrentUser, and the request id; the supplied source therefore shows the operation receiving the runtime identity dependency and the request-selected identifier, though the implementation of those dependency bindings is outside the fixed source. The identifier is used to load the selected Item, so the selected object is the declared item resource; the checked resource relation is its owner_id compared with current_user.id, which must remain distinct because the scenario states different ownership. The strongest visible authorization control is the branch that raises 403 only when the caller is not a superuser and the item owner differs from the caller. For an active superuser, the non-superuser branch is bypassed, so the cross-owner read is allowed by the visible control. The protected effect is returning the loaded item, and that return is reachable after the not-found check and authorization branch for the stated existing item. The supplied source does not expose the implementation of CurrentUser, SessionDep, router registration, or deployment behavior; those facts could change whether the declared runtime principal, route, and session/object binding actually occur, but they are not needed to identify a source-visible authorization failure in the shown method and remain source-external and untested.
+  Evidence: The declared GET-by-identifier operation is implemented by read_item, which accepts a session, current user, and UUID identifier. (items.py:48-50)
+  Evidence: The operation uses the current_user parameter as the runtime identity for authorization, while the supplied crop does not show how CurrentUser binds that parameter to the authenticated caller. (items.py:48-50)
+  Evidence: The request identifier is passed to session.get(Item, id), binding the selected request object to the loaded Item; its owner_id is the separately checked ownership resource attribute compared with current_user.id. (items.py:49-56)
+  Evidence: The visible authorization gate rejects only a non-superuser whose identity differs from the loaded item's owner; a superuser bypasses that rejection branch. (items.py:53-57)
+  Evidence: After the not-found and authorization checks, the loaded item is returned, making the requested read effect reachable for the stated existing cross-owner item and superuser branch. (items.py:53-58)
+  Evidence: The stated different-owner-and-active-superuser condition is not contradicted by the visible authorization branch: the branch checks is_superuser and does not separately reject an active superuser for cross-owner access. (items.py:56-58)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

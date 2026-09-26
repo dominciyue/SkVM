@@ -1,0 +1,185 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "reasoningStrategy": "control-binding-v1",
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260926T200110189Z-301f8c7f",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-semantic-quality-v1\\runs\\initial-fastapi-superuser-read-D1\\sessions\\20260926T200110189Z-301f8c7f",
+  "createdAt": "2026-09-26T20:01:10.189Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-semantic-quality-v1\\inputs\\fastapi-superuser-read\\authoring.json",
+  "taskId": "fastapi-items-superuser-read",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 2218,
+      "publicAnalysis": 763,
+      "reasoningPlan": 1520,
+      "source": 4317,
+      "outputContract": 2257,
+      "total": 11607,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "fastapi-items-superuser-read",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "results": [
+      {
+        "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+        "conclusion": "unknown",
+        "explanation": "The declared GET item entry is the /items/{id} handler, which receives a session, a runtime current_user value, and the request id. The source crop names that value CurrentUser, but the imported dependency's definition and route/dependency wiring are not supplied, so the crop does not establish that current_user is necessarily the declared authenticated active caller or that its is_superuser value reflects that caller. The request id is used to load one Item; the existence check and authorization check both apply to that same loaded item, so there is no source-visible substitution of ownership on a different target. The identity object remains distinct from the item: the control reads current_user.is_superuser and, only for a non-superuser, compares the loaded item's owner_id with current_user.id. For the declared different-owner relation, the strongest visible decision is that a true superuser value bypasses the ownership-denial branch; a false superuser value combined with differing IDs raises 403. The 404 gate applies first when the request-selected item is absent, but the declared resource is stated to exist. If the item exists and the superuser branch applies, execution reaches the protected effect by returning that same item. No other upstream route, middleware, helper, owner, grantee, staff, or administrator control is visible in the supplied crop; repository discovery is not tested. The decisive gap is the CurrentUser dependency/binding: if it binds this authenticated active caller and supplies is_superuser=true, the expected allow is enforced and the appropriate conclusion would be source_refuted; if it does not bind that caller, rejects inactive/unauthenticated access, or supplies is_superuser=false, the assessed path may not reach the return and the expected allow may fail. Because that binding is not supplied, the bounded result is unknown rather than treating the visible superuser bypass alone as proof of end-to-end enforcement.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The declared handler is registered for GET /items/{id} and accepts session, current_user, and UUID id inputs.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 48,
+                  "endLine": 49,
+                  "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The handler's authorization logic uses the current_user parameter as the runtime identity, but this crop only shows that CurrentUser is imported and does not show how it authenticates, activates, or binds the declared caller.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 7,
+                  "endLine": 7,
+                  "quote": "from app.api.deps import CurrentUser, SessionDep"
+                }
+              ]
+            },
+            {
+              "statement": "The request UUID is used to load the Item that is subsequently checked and returned, binding the request-selected object to the affected resource within this handler.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 53,
+                  "endLine": 58,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    return item"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "Before authorization and return, absence of the request-selected item causes a 404 response.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 53,
+                  "endLine": 55,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")"
+                }
+              ]
+            },
+            {
+              "statement": "The strongest visible authorization control denies only when current_user is not a superuser and the loaded item's owner_id differs from current_user.id; therefore a true superuser value bypasses the different-owner denial on this same item.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 56,
+                  "endLine": 57,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "After the existence and authorization gates, the protected read effect is reached by returning the loaded item.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 58,
+                  "endLine": 58,
+                  "quote": "    return item"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "With no additional declared condition, the visible branches are: missing item yields 404; an existing different-owner item with a non-superuser identity yields 403; otherwise the item is returned.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 53,
+                  "endLine": 58,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    return item"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [
+          "The definition and effective wiring of CurrentUser, including whether it binds current_user to the declared authenticated active caller and sets is_superuser=true for that caller."
+        ],
+        "suggestedObservations": [
+          "Inspect the exact-ref definition and dependency chain for CurrentUser and the router inclusion/dependency wiring applicable to GET /items/{id}; minimally confirm that the runtime current_user is the authenticated active caller and has is_superuser=true before read_item executes."
+        ]
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "relationCoverage": [],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 2981,
+      "output": 1632,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

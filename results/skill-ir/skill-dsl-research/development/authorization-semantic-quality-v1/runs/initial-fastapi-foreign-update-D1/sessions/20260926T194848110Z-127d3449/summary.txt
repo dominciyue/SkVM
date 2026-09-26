@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T194848110Z-127d3449
+Status: completed
+Task: fastapi-items-foreign-update
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aupdate-item::entry%3Aupdate-item: source_refuted — The declared PUT entry is update_item. The source visibly obtains the request-selected object with session.get(Item, id), so the path parameter is bound to the affected item. The caller identity is supplied as current_user, and the authorization check compares that caller's superuser status and id with the fetched item's owner_id. For the declared non-superuser caller and different-owner item, the non-superuser ownership branch is applicable: the condition is true, so the endpoint raises HTTP 403 before constructing the update dictionary or performing the update, add, commit, refresh, and return effect. The superuser branch is visible as an exception, but it does not apply to the declared caller. The source therefore supports enforcement of the expected deny disposition, refuting a policy failure. No upstream route, middleware, or helper is shown in the supplied crop, so none can be credited or assessed beyond this handler. The only potentially outcome-changing source-external fact is whether the actual runtime caller is non-superuser and whether the selected item is owned by another user; both are supplied as author facts for this bounded scenario. Deployment/registration behavior and repository-wide completeness remain untested and are not needed to decide this declared path.
+  Evidence: The declared PUT item-update operation enters the update_item handler, which receives the item identifier, caller identity, session, and update payload. (items.py:75-82)
+  Evidence: The handler uses current_user as the runtime identity for the authorization comparison, including its superuser flag and identifier. (items.py:76-81)
+  Evidence: The request id is used to fetch the Item object that the handler subsequently checks and updates; no separate checked resource is shown. (items.py:80-86)
+  Evidence: A missing fetched item stops the path with a not-found error before authorization or update effect. (items.py:86-88)
+  Evidence: The strongest visible authorization control permits a superuser branch and otherwise requires the fetched item's owner_id to equal current_user.id; failure raises a forbidden error. (items.py:89-90)
+  Evidence: Only after the authorization check does the handler apply supplied fields and persist, refresh, and return the item. (items.py:91-96)
+  Evidence: For the declared authenticated non-superuser caller and existing item owned by another user, the non-superuser ownership condition is satisfied as a denial condition, so the forbidden branch applies; no owner, grantee, staff, or administrator exception applies to this relation. (items.py:89-90)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

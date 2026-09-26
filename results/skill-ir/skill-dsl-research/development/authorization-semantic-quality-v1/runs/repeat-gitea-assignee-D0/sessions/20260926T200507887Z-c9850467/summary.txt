@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260926T200507887Z-c9850467
+Status: completed
+Task: gitea-issue-assignee-nonwriter
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees: source_refuted — The fixed source supports enforcement of the declared deny expectation, so it refutes a policy failure. The declared entry is the POST handler, which parses the assignee request and delegates to the update routine. That routine binds the repository and path index to an issue lookup, then checks the repository issue-or-pull-request write permission before loading or resolving assignees. With the bounded condition that the caller lacks that permission, the handler returns Forbidden and does not reach assignee resolution or the add mutation. The runtime identity/authentication and token-scope plumbing are not shown in this crop; those facts are supplied by the bounded scenario rather than inferred from source. The request-selected issue is distinct from the requested assignee: the issue is selected by repository ID plus path index, while assignees are resolved later from request names. The protected effect is the add branch using the resolved IDs and the caller identity. No source-external fact is needed to decide this bounded case; an actual runtime result could differ only if the declared identity/permission conditions or route-to-handler binding differed, which is outside the supplied fixed context and is not inferred.
+  Evidence: The declared POST operation enters the add-assignees handler, which parses the request option and invokes the assignee update routine in add mode. (issue_assignee.go:4-6, issue_assignee.go:47-48)
+  Evidence: The requested assignee object is a distinct later lookup: request-provided assignee names are resolved to user IDs only after the issue permission gate succeeds. (issue_assignee.go:60-70)
+  Evidence: The mutation branch passes the context caller identity as the doer to the assignee service; authentication and token-scope establishment are not visible in the supplied crop and are instead fixed by the scenario. (issue_assignee.go:80-83)
+  Evidence: The request-selected issue is bound by the repository ID in the request context and the integer index path parameter, and a lookup failure terminates the operation. (issue_assignee.go:53-58)
+  Evidence: The strongest visible authorization control checks whether the context repository permission can write issues or pull requests; failure returns HTTP Forbidden immediately. (issue_assignee.go:60-63)
+  Evidence: The protected add effect is the add-mode issue service call with the resolved assignee IDs and the context doer; the permission failure prevents reaching it. (issue_assignee.go:70-83)
+  Evidence: Because the permission check returns before assignee resolution, the requested existing user is not resolved and the issue assignee set is not mutated on the declared nonwriter path. (issue_assignee.go:60-81)
+  Evidence: Under the declared bounded condition that the caller lacks repository issue-write permission, the visible permission predicate is the failing branch, regardless of the separately declared issue-write token scope. (issue_assignee.go:60-63)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

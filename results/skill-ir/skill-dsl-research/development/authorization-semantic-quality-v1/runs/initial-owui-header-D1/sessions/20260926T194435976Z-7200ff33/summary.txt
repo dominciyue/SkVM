@@ -1,0 +1,30 @@
+Authorization assessment
+Session: 20260926T194435976Z-7200ff33
+Status: completed
+Task: owui-trusted-header-deployment
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email: unknown — The fixed source shows a runnable application path but cannot decide the actual-deployment policy question. Entry is POST /signin, and the visible gates are ENABLE_PASSWORD_AUTH and configuration of WEBUI_AUTH_TRUSTED_EMAIL_HEADER. When password authentication is enabled and the trusted-email header variable is configured, the path requires that header, lowercases its value, uses it as the email identity, creates the user if absent, authenticates by that email, and returns a session response when authentication yields a user. Thus an unauthenticated caller who can supply the configured header has an application-source capability to select the email identity and reach session creation; the source does not establish that such a caller can reach the application directly in the actual deployment. The requested object is the existing user selected by the header, while the session is the protected effect created for that user; the user lookup/authentication object is distinct from the resulting session, and no source-visible ownership, staff, administrator, or other exception is needed or shown for this path. No upstream route, middleware, or helper control is supplied that removes or replaces the header before this handler, and no role/ownership branch authorizes or denies this operation. Under the accepted policy, the expectation is enforced only if the deployment has a sole trusted-proxy ingress that removes client-supplied identity headers and injects the authenticated identity. If that deployment condition holds, the client cannot use its own header on the reachable ingress and the policy failure is refuted; if it does not hold and the configured path is reachable with a client-controlled trusted-email header, the source-visible path supports the policy failure. The decisive missing source-external fact is the actual ingress topology and proxy behavior, including whether direct or alternate reachability exists and whether the proxy strips/replaces the identity header. Source discovery is not-tested, so this is not a repository-wide completeness claim.
+  Evidence: The assessed entry is the POST /signin handler, which first checks whether password authentication is enabled and then may enter the trusted-email-header branch. (inputs/owui-trusted-header-deployment/auths_signin.py:4-18)
+  Evidence: The configured request header is read from the request, lowercased, and assigned as the email identity used by the sign-in flow. (inputs/owui-trusted-header-deployment/auths_signin.py:17-22)
+  Evidence: The header-selected email is checked against the user store and then passed to authenticate_user_by_email; this binds the selected existing-user identity to the operation, while the resulting session remains a distinct object. (inputs/owui-trusted-header-deployment/auths_signin.py:31-40)
+  Evidence: ENABLE_PASSWORD_AUTH is the strongest visible pre-branch application gate: when false, the handler rejects the request before the trusted-header path. (inputs/owui-trusted-header-deployment/auths_signin.py:11-15)
+  Evidence: The visible authentication decision is whether authenticate_user_by_email returns a user; only that successful branch proceeds to session creation, with no ownership, staff, administrator, or role exception shown for this operation. (inputs/owui-trusted-header-deployment/auths_signin.py:40-41, inputs/owui-trusted-header-deployment/auths_signin.py:59-62)
+  Evidence: If a client-controlled trusted-email header can reach this branch, the source supports obtaining a session for the header-selected existing user; if a sole trusted proxy strips and replaces that header on the only ingress, the declared policy failure is not supported. (inputs/owui-trusted-header-deployment/auths_signin.py:21-21, inputs/owui-trusted-header-deployment/auths_signin.py:40-41, inputs/owui-trusted-header-deployment/auths_signin.py:59-60)
+  Evidence: After successful email authentication, the handler returns create_session_response for the selected user, which is the protected session effect assessed here. (inputs/owui-trusted-header-deployment/auths_signin.py:59-60)
+  Evidence: Whether the unauthenticated external client can exploit the application path depends on deployment facts not present in the fixed source: sole trusted-proxy ingress, removal of client-supplied identity headers, identity injection, and absence of alternate/direct reachability. (inputs/owui-trusted-header-deployment/auths_signin.py:17-22)
+  Evidence: The session effect is reachable only when email authentication produces a user; otherwise the handler raises an invalid-credential error. (inputs/owui-trusted-header-deployment/auths_signin.py:40-41, inputs/owui-trusted-header-deployment/auths_signin.py:59-62)
+  Evidence: The trusted-email branch is entered only when WEBUI_AUTH_TRUSTED_EMAIL_HEADER is configured; the variable is environment-controlled and defaults to unset. (inputs/owui-trusted-header-deployment/env_trusted_headers.py:10-10, inputs/owui-trusted-header-deployment/auths_signin.py:17-18)
+  Unknown: Whether the actual deployment exposes only a trusted reverse-proxy ingress or also permits direct/alternate reachability to this handler.
+  Unknown: Whether the reachable proxy removes client-supplied trusted-email identity headers and injects the authenticated identity itself.
+  Unknown: Whether the deployment actually has the trusted-email header configured and password-auth sign-in enabled, if those declared conditions are not independently established.
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260926T194934500Z-f4d4e474
+Status: completed
+Task: fastapi-items-foreign-update
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aupdate-item::entry%3Aupdate-item: source_refuted — The declared PUT entry loads the item identified by the request id, then checks the bound current user before any update effect. For a non-superuser whose id differs from the existing item's owner_id, the visible condition raises HTTP 403 and execution does not reach the update, commit, or return statements. Thus the supplied source supports enforcement of the stated ownership policy for this scenario. The source does not define the authentication/dependency implementation behind CurrentUser; that source-external fact must be established separately to confirm that current_user accurately represents an authenticated principal and its superuser status, but it is not needed to trace the visible authorization branch under the task's stated conditions.
+  Evidence: The update operation is declared for the item-specific PUT route and its handler spans the supplied update entry. (items.py:75-82)
+  Evidence: The handler binds the request principal through current_user, and the authorization check uses that principal's is_superuser and id attributes. (items.py:78-80, items.py:86-90)
+  Evidence: The handler binds the resource by loading Item with the request id. (items.py:80-86)
+  Evidence: The strongest visible authorization control permits bypass only for a superuser; otherwise it compares the loaded item's owner_id with current_user.id and raises 403 when they differ. (items.py:86-90)
+  Evidence: Only after the authorization check does the handler apply the supplied update, add the item, commit, refresh, and return it. (items.py:91-96)
+  Evidence: Under the stated condition that the principal is not a superuser and the loaded item's owner_id differs from the principal's id, the visible authorization branch raises 403 before the update effect. (items.py:86-92)
+  Unknown: The implementation and runtime correctness of CurrentUser are outside the supplied source; it must be established that current_user is populated only for an authenticated principal and that its id and is_superuser values accurately represent that principal.
+  Unknown: The runtime fact that the supplied id resolves to an existing Item and that its owner_id differs from current_user.id is stated by the task but is not independently shown in items.py.
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

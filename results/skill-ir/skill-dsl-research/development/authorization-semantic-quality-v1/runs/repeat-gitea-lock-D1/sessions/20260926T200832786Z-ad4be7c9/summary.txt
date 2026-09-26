@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260926T200832786Z-ad4be7c9
+Status: completed
+Task: gitea-issue-lock-writer-nonadmin
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock: source_refuted — The fixed source refutes a policy-enforcement failure for the bounded scenario. The declared PUT lock entry is in the shown lock route group, where reqToken and reqAdmin apply before the handler. reqAdmin returns a forbidden response unless the caller is a repository administrator or site administrator. The declared caller is authenticated and has issue-write permission but is neither administrator, so the strongest visible gate denies the request before the handler's mutation path. The handler nevertheless visibly binds the path index and repository ID to the looked-up issue, checks issue-write permission on that issue, and would call the lock mutation only when the issue is unlocked and the earlier controls have permitted progress. The caller's token scope and issue-write permission do not substitute for the route-level administrator requirement. No decisive source-external fact is needed to change this bounded result: under the supplied nonadmin conditions, the route guard blocks the effect. Source discovery is not-tested, so this conclusion is limited to the declared entry and supplied source crop.
+  Evidence: The declared lock operation is bound to the PUT route in the shown lock route group, and the route applies token and administrator middleware before dispatching to the lock handler. (route_guard.go:16-20)
+  Evidence: The route requires a token, the administrator control evaluates the request context, and the handler supplies the context user as the doer of the lock operation; the fixed source does not show a separate identity-resolution implementation. (route_guard.go:16-20, issue_lock.go:54-58)
+  Evidence: The requested issue is selected by the repository ID in the request context together with the integer index path parameter; the selected issue is then the issue checked and passed to the lock options. The repository object assigned before mutation is a distinct checked repository context object, not an ownership-based substitute for the issue permission check. (issue_lock.go:42-49, issue_lock.go:54-62)
+  Evidence: The strongest visible authorization control is reqAdmin: it permits route progress only when either repository-administrator or site-administrator status is true; otherwise it returns forbidden. (route_guard.go:4-11)
+  Evidence: After route admission, the handler separately requires issue-write permission for the selected issue or pull; the declared issue-writer condition satisfies this weaker gate but not the administrator gate. (issue_lock.go:42-51)
+  Evidence: The visible nonadministrator branch returns a forbidden API response before handler dispatch, while the successful handler path returns no content after the optional lock mutation. (route_guard.go:7-10, issue_lock.go:62-70)
+  Evidence: If all upstream controls permitted progress, the handler would call the lock operation only when the selected issue is not already locked; that protected mutation is therefore unreachable for the declared nonadministrator caller. (issue_lock.go:54-67)
+  Evidence: The fixed scenario supplies an authenticated caller, readable existing issue, issue-write permission, and an initially unlocked issue, while repository-admin and site-admin status are false. These conditions make the route-level administrator denial applicable and make the no-op locked branch inapplicable only hypothetically; the request does not reach either handler branch after route denial. (route_guard.go:4-10, issue_lock.go:43-55)
+  Evidence: Under the declared conditions, the repository-admin and site-admin branches are both false. No owner, collaborator, staff, or other exception visible in the supplied route guard bypasses reqAdmin for this lock entry; issue-write permission applies only to the later handler check. (route_guard.go:4-11, issue_lock.go:49-52)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

@@ -1,0 +1,325 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "gitea-issue-lock-writer-nonadmin",
+    "request": "Determine whether an authenticated repository issue writer with full token scope, but with neither repository-administrator nor site-administrator status, may lock an existing unlocked issue through PUT /repos/{owner}/{repo}/issues/{index}/lock.",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:issue-lock-admin-policy",
+        "kind": "explicit-task-requirement",
+        "text": "The issue-lock route requires repository-administrator or site-administrator status; the handler then also requires issue-write permission before locking an unlocked issue.",
+        "location": "policy.json#/normativePolicy",
+        "revision": "gitea@fc28937:routers/api/v1/api.go#L451-L459,L1741-L1745;routers/api/v1/repo/issue_lock.go#L15-L81",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The fixed public route and handler expose both permission gates before the lock mutation."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:authenticated-issue-writer-without-admin-role",
+        "role": "authenticated repository issue writer without an administrator role",
+        "description": "Author facts: [\"The caller has full token scope and repository issue-write permission, but is neither a repository administrator nor a site administrator.\"]",
+        "startingCapabilities": [
+          "authenticated",
+          "token-scope-all",
+          "repository-issue-read",
+          "repository-issue-write"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:existing-unlocked-issue",
+        "type": "repository issue lock state",
+        "description": "Author facts: [\"An existing readable issue whose lock state is currently unlocked.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:put-issue-lock",
+        "name": "PUT /repos/{owner}/{repo}/issues/{index}/lock",
+        "locations": [
+          {
+            "path": "route_guard.go",
+            "startLine": 4,
+            "endLine": 12
+          },
+          {
+            "path": "route_guard.go",
+            "startLine": 16,
+            "endLine": 20
+          },
+          {
+            "path": "issue_lock.go",
+            "startLine": 4,
+            "endLine": 70
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:deny-nonadmin-issue-lock",
+        "principalId": "principal:authenticated-issue-writer-without-admin-role",
+        "resourceId": "resource:existing-unlocked-issue",
+        "relation": "issue-writer-without-repository-or-site-admin-role",
+        "operation": "lock-issue",
+        "expectation": "deny",
+        "conditions": [
+          {
+            "name": "issue-exists-and-is-readable",
+            "basis": "The bounded scenario fixes an existing issue visible to the caller."
+          },
+          {
+            "name": "issue-is-currently-locked",
+            "basis": "False in the bounded scenario, so a permitted path would reach the lock mutation rather than a no-op success."
+          },
+          {
+            "name": "requester-authenticated",
+            "basis": "The bounded scenario fixes an authenticated caller."
+          },
+          {
+            "name": "requester-has-repository-issue-write",
+            "basis": "True in the bounded scenario, isolating the stronger route-level administrator gate."
+          },
+          {
+            "name": "requester-is-repository-admin",
+            "basis": "False in the bounded scenario."
+          },
+          {
+            "name": "requester-is-site-admin",
+            "basis": "False in the bounded scenario."
+          }
+        ],
+        "policySourceId": "policy:issue-lock-admin-policy",
+        "entryIds": [
+          "entry:put-issue-lock"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+      "Trace the declared principal, resource relation, authorization control, and protected effect through the supplied fixed source.",
+      "State any decisive fact unavailable from the fixed source instead of inferring it, and explain how the declared conditions change reachability."
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+      "Use only policy.json, route_guard.go, and issue_lock.go from the supplied fixed source context.",
+      "Do not execute or modify Gitea and do not contact a deployment.",
+      "Do not treat full token scope or repository issue-write permission as repository-administrator status."
+    ]
+  },
+  "scenarios": {
+    "scenario:deny-nonadmin-issue-lock": {
+      "name": "deny-nonadmin-issue-lock",
+      "obligation": {
+        "id": "scenario:deny-nonadmin-issue-lock",
+        "principalId": "principal:authenticated-issue-writer-without-admin-role",
+        "resourceId": "resource:existing-unlocked-issue",
+        "relation": "issue-writer-without-repository-or-site-admin-role",
+        "operation": "lock-issue",
+        "expectation": "deny",
+        "conditions": [
+          {
+            "name": "issue-exists-and-is-readable",
+            "basis": "The bounded scenario fixes an existing issue visible to the caller."
+          },
+          {
+            "name": "issue-is-currently-locked",
+            "basis": "False in the bounded scenario, so a permitted path would reach the lock mutation rather than a no-op success."
+          },
+          {
+            "name": "requester-authenticated",
+            "basis": "The bounded scenario fixes an authenticated caller."
+          },
+          {
+            "name": "requester-has-repository-issue-write",
+            "basis": "True in the bounded scenario, isolating the stronger route-level administrator gate."
+          },
+          {
+            "name": "requester-is-repository-admin",
+            "basis": "False in the bounded scenario."
+          },
+          {
+            "name": "requester-is-site-admin",
+            "basis": "False in the bounded scenario."
+          }
+        ],
+        "policySourceId": "policy:issue-lock-admin-policy",
+        "entryIds": [
+          "entry:put-issue-lock"
+        ]
+      },
+      "principal": {
+        "id": "principal:authenticated-issue-writer-without-admin-role",
+        "role": "authenticated repository issue writer without an administrator role",
+        "description": "Author facts: [\"The caller has full token scope and repository issue-write permission, but is neither a repository administrator nor a site administrator.\"]",
+        "startingCapabilities": [
+          "authenticated",
+          "token-scope-all",
+          "repository-issue-read",
+          "repository-issue-write"
+        ]
+      },
+      "resource": {
+        "id": "resource:existing-unlocked-issue",
+        "type": "repository issue lock state",
+        "description": "Author facts: [\"An existing readable issue whose lock state is currently unlocked.\"]"
+      },
+      "policy": {
+        "id": "policy:issue-lock-admin-policy",
+        "kind": "explicit-task-requirement",
+        "text": "The issue-lock route requires repository-administrator or site-administrator status; the handler then also requires issue-write permission before locking an unlocked issue.",
+        "location": "policy.json#/normativePolicy",
+        "revision": "gitea@fc28937:routers/api/v1/api.go#L451-L459,L1741-L1745;routers/api/v1/repo/issue_lock.go#L15-L81",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The fixed public route and handler expose both permission gates before the lock mutation."
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:put-issue-lock",
+          "name": "PUT /repos/{owner}/{repo}/issues/{index}/lock",
+          "locations": [
+            {
+              "path": "route_guard.go",
+              "startLine": 4,
+              "endLine": 12
+            },
+            {
+              "path": "route_guard.go",
+              "startLine": 16,
+              "endLine": 20
+            },
+            {
+              "path": "issue_lock.go",
+              "startLine": 4,
+              "endLine": 70
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "route_guard.go",
+      "sha256": "51b7c43433aae31994b8c2ff084dda6aa520f9771f9b104dc4024a70a4ff5f28",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 20
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "issue_lock.go",
+      "sha256": "bf423857681afca2c99355f151e24ff99c2b02da59b3154db2159b14392ae832",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 70
+      },
+      "originalLocations": []
+    }
+  ],
+  "sourceRoot": "source",
+  "sources": [
+    "route_guard.go",
+    "issue_lock.go"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:deny-nonadmin-issue-lock"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:deny-nonadmin-issue-lock"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:deny-nonadmin-issue-lock"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:deny-nonadmin-issue-lock"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:deny-nonadmin-issue-lock"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:deny-nonadmin-issue-lock"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": null,
+  "normalizerVersion": "authoring-v2-lowering/1",
+  "method": "plain",
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "arm": "B",
+  "reasoningStrategy": "standard",
+  "reasoningPlan": null,
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "bbf94868802e882d7b264cfa9547bba02d870dc5cc3200060f05a8f2a792cb68"
+}

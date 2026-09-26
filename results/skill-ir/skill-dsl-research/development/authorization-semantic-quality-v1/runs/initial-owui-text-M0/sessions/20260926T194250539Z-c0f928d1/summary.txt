@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260926T194250539Z-c0f928d1
+Status: completed
+Task: owui-process-text-controlled
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Anon-admin-without-kb-write-grant::entry%3Apost-process-text: source_refuted — The fixed source supports enforcement of the declared policy for this path. The POST /process/text handler obtains its caller through get_verified_user, takes the supplied collection_name, and invokes _validate_collection_access with access_type='write' before constructing the document or calling save_docs_to_vector_db. That validator delegates to filter_accessible_collections. For a non-admin and an existing knowledge-base name, the shared policy adds the name only when Knowledges.check_access_by_user_id(..., permission='write') succeeds; if the check fails and the knowledge base exists, the legacy/ephemeral fallback does not apply. The validator then raises HTTP 403 for the denied name, so the attacker-selected text does not reach the vector-database write sink under the stated condition.
+  Evidence: The declared entry is the POST /process/text handler, which receives a verified user and processes the submitted text. (inputs/owui-process-text-controlled/retrieval_process_text.py:7-12)
+  Evidence: The operation uses the supplied form_data.collection_name as the target collection when it is present. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-17)
+  Evidence: The request principal is bound through the get_verified_user dependency. (inputs/owui-process-text-controlled/retrieval_process_text.py:8-12)
+  Evidence: For non-admin users, an ordinary collection name is admitted only when the knowledge-base access check succeeds for the requested access type; if no knowledge base exists, only then is it treated as a legacy or ephemeral collection and allowed. (inputs/owui-process-text-controlled/retrieval_access_policy.py:10-20, inputs/owui-process-text-controlled/retrieval_access_policy.py:43-51)
+  Evidence: The handler invokes collection-access validation with access_type='write', and the validator delegates to the shared accessible-collection policy. (inputs/owui-process-text-controlled/retrieval_process_text.py:16-18, inputs/owui-process-text-controlled/retrieval_process_text.py:31-39)
+  Evidence: A denied requested collection causes the validator to raise HTTP 403 before the vector-database write call. (inputs/owui-process-text-controlled/retrieval_process_text.py:37-44)
+  Evidence: After validation, the submitted text is placed in a document and passed with the selected collection name to save_docs_to_vector_db. (inputs/owui-process-text-controlled/retrieval_process_text.py:19-28)
+  Evidence: The relevant stated condition is a non-admin principal targeting an existing knowledge base without an explicit write grant, so the write permission check does not succeed and the existing-KB fallback is unavailable. (inputs/owui-process-text-controlled/retrieval_access_policy.py:21-23, inputs/owui-process-text-controlled/retrieval_access_policy.py:43-51)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

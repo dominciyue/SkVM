@@ -1,0 +1,215 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "reasoningStrategy": "standard",
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260926T194036383Z-7bcc33a9",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-semantic-quality-v1\\runs\\initial-owui-text-D0\\sessions\\20260926T194036383Z-7bcc33a9",
+  "createdAt": "2026-09-26T19:40:36.383Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-semantic-quality-v1\\inputs\\owui-text\\authoring.json",
+  "taskId": "owui-process-text-controlled",
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 3596,
+      "publicAnalysis": 763,
+      "source": 5404,
+      "outputContract": 2288,
+      "total": 12552,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "owui-process-text-controlled",
+    "repository": "https://github.com/open-webui/open-webui",
+    "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+    "results": [
+      {
+        "obligationId": "scenario%3Anon-admin-without-kb-write-grant::entry%3Apost-process-text",
+        "conclusion": "source_supported_failure",
+        "explanation": "The declared entry accepts a caller-selected collection name and, when supplied, invokes the write-access validator before constructing the document and calling the vector-database save sink. The principal is source-bound through the verified-user dependency and the supplied user object; the selected collection name is passed into the shared validator with access_type='write'. For a non-admin, the strongest visible control checks knowledge-base access using the user's ID and the requested permission, but the fixed source also contains a fallback: if access is denied and no knowledge base exists for that ID, the name is allowed as an ephemeral/legacy collection. Under the declared condition that the selected object is an existing knowledge-base collection and the principal has no ownership or explicit write grant, the KB access check does not add the name, the no-KB fallback is inapplicable, and the validator raises HTTP 403, so the protected save effect is not reached. This supports enforcement of the stated deny expectation and therefore does not support a policy failure; however, the conclusion is limited to the supplied entry and source crop because repository discovery is not-tested. The public questions are addressed: the pre-effect gate is _validate_collection_access and its shared filter; identity is the verified-user dependency and user.id; the request name is the resource identifier, while the separately checked resource is the knowledge-base record returned by the existence lookup; the strongest branch is non-admin KB write-access validation, with admin bypass expressly inapplicable; the save effect is reachable only after validation, while the denied existing-KB/no-write branch stops at 403; and no source-external fact changes the answer within the declared conditions, although deployment/runtime behavior and undiscovered entries remain untested and are outside scope.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The declared POST entry reads the optional collection name and, when supplied, invokes collection-access validation before proceeding.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 4,
+                  "endLine": 17,
+                  "quote": "collection_name: Optional[str] = None\n\n\n@router.post('/process/text')\nasync def process_text(\n    request: Request,\n    form_data: ProcessTextForm,\n    user=Depends(get_verified_user),\n):\n    collection_name = form_data.collection_name\n    if collection_name is None:\n        collection_name = calculate_sha256_string(form_data.content)\n    else:\n        await _validate_collection_access([collection_name], user, access_type='write')"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The supplied collection name is placed in the requested set and passed to the shared access filter; the filter checks the same name against knowledge-base access and knowledge-base existence.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 31,
+                  "endLine": 39,
+                  "quote": "async def _validate_collection_access(collection_names: list[str], user, access_type: str = 'read') -> None:\n    \"\"\"\n    Raise 403 if the user lacks access to any of the requested collections.\n    Delegates to the shared filter_accessible_collections utility so the\n    access rules stay in one place.\n    \"\"\"\n    requested = set(collection_names)\n    allowed = await filter_accessible_collections(requested, user, access_type=access_type)\n    denied = requested - allowed"
+                },
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+                  "startLine": 43,
+                  "endLine": 50,
+                  "quote": "            # May be a knowledge-base ID or a legacy/ephemeral collection.\n            # If it IS a KB, enforce access control.  If no such KB\n            # exists, treat it as a non-sensitive collection (e.g. legacy\n            # model knowledge, process_text SHA256 collections) and allow.\n            if await Knowledges.check_access_by_user_id(name, user.id, permission=access_type):\n                validated.add(name)\n            elif not await Knowledges.get_knowledge_by_id(name):\n                # Not a KB at all — legacy/ephemeral collection, allow"
+                }
+              ]
+            },
+            {
+              "statement": "The operation receives its caller through the verified-user dependency, and the resulting user identity is used in document metadata and access checks.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 7,
+                  "endLine": 13,
+                  "quote": "@router.post('/process/text')\nasync def process_text(\n    request: Request,\n    form_data: ProcessTextForm,\n    user=Depends(get_verified_user),\n):\n    collection_name = form_data.collection_name"
+                },
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 19,
+                  "endLine": 28,
+                  "quote": "    docs = [\n        Document(\n            page_content=form_data.content,\n            metadata={'name': form_data.name, 'created_by': user.id},\n        )\n    ]\n    text_content = form_data.content\n    log.debug(f'text_content: {text_content}')\n\n    result = await run_in_threadpool(save_docs_to_vector_db, request, docs, collection_name, user=user)"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "For non-admin users, a non-special collection name is accepted only when the knowledge-base access check succeeds, or when no knowledge base exists for that name; an existing knowledge base without access therefore is not accepted.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+                  "startLine": 22,
+                  "endLine": 23,
+                  "quote": "    if user.role == 'admin':\n        return collection_names"
+                },
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+                  "startLine": 43,
+                  "endLine": 50,
+                  "quote": "            # May be a knowledge-base ID or a legacy/ephemeral collection.\n            # If it IS a KB, enforce access control.  If no such KB\n            # exists, treat it as a non-sensitive collection (e.g. legacy\n            # model knowledge, process_text SHA256 collections) and allow.\n            if await Knowledges.check_access_by_user_id(name, user.id, permission=access_type):\n                validated.add(name)\n            elif not await Knowledges.get_knowledge_by_id(name):\n                # Not a KB at all — legacy/ephemeral collection, allow"
+                }
+              ]
+            },
+            {
+              "statement": "The shared validator is called with write access, and a denied requested name causes an HTTP 403 before the handler returns to the save path.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 13,
+                  "endLine": 17,
+                  "quote": "    collection_name = form_data.collection_name\n    if collection_name is None:\n        collection_name = calculate_sha256_string(form_data.content)\n    else:\n        await _validate_collection_access([collection_name], user, access_type='write')"
+                },
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 31,
+                  "endLine": 44,
+                  "quote": "async def _validate_collection_access(collection_names: list[str], user, access_type: str = 'read') -> None:\n    \"\"\"\n    Raise 403 if the user lacks access to any of the requested collections.\n    Delegates to the shared filter_accessible_collections utility so the\n    access rules stay in one place.\n    \"\"\"\n    requested = set(collection_names)\n    allowed = await filter_accessible_collections(requested, user, access_type=access_type)\n    denied = requested - allowed\n    if denied:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=ERROR_MESSAGES.ACCESS_PROHIBITED,\n        )"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "Only after collection validation does the handler construct attacker-controlled document content and call the vector-database save operation for the selected collection.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 19,
+                  "endLine": 28,
+                  "quote": "    docs = [\n        Document(\n            page_content=form_data.content,\n            metadata={'name': form_data.name, 'created_by': user.id},\n        )\n    ]\n    text_content = form_data.content\n    log.debug(f'text_content: {text_content}')\n\n    result = await run_in_threadpool(save_docs_to_vector_db, request, docs, collection_name, user=user)"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The assessed condition fixes the selected name as an existing knowledge-base collection and fixes that the principal has neither ownership nor an explicit write grant.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+                  "startLine": 43,
+                  "endLine": 50,
+                  "quote": "            # May be a knowledge-base ID or a legacy/ephemeral collection.\n            # If it IS a KB, enforce access control.  If no such KB\n            # exists, treat it as a non-sensitive collection (e.g. legacy\n            # model knowledge, process_text SHA256 collections) and allow.\n            if await Knowledges.check_access_by_user_id(name, user.id, permission=access_type):\n                validated.add(name)\n            elif not await Knowledges.get_knowledge_by_id(name):\n                # Not a KB at all — legacy/ephemeral collection, allow"
+                }
+              ]
+            },
+            {
+              "statement": "The admin bypass returns all requested collection names, but the declared principal is a verified non-admin, so that branch does not apply.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+                  "startLine": 22,
+                  "endLine": 24,
+                  "quote": "    if user.role == 'admin':\n        return collection_names\n"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": []
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "relationCoverage": [],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 3141,
+      "output": 1105,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

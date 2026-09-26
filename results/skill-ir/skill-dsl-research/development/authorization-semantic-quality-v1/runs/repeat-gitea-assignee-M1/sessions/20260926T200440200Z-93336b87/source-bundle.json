@@ -1,0 +1,18 @@
+{
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceMode": "fixed-context",
+  "isolation": "exact-allowlist",
+  "files": [
+    {
+      "relativePath": "issue_assignee.go",
+      "content": "// Fixed excerpts from go-gitea/gitea at fc28937a8d772fe9e4025c9b5f24d5db4d86610b.\n// Original path and ranges: routers/api/v1/repo/issue_assignee.go:20-65,189-238.\n\n// AddIssueAssignees add assignees to an issue\nfunc AddIssueAssignees(ctx *context.APIContext) {\n\t// swagger:operation POST /repos/{owner}/{repo}/issues/{index}/assignees issue issueAddAssignees\n\t// ---\n\t// summary: Add assignees to an issue\n\t// consumes:\n\t// - application/json\n\t// produces:\n\t// - application/json\n\t// parameters:\n\t// - name: owner\n\t//   in: path\n\t//   description: owner of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: repo\n\t//   in: path\n\t//   description: name of the repo\n\t//   type: string\n\t//   required: true\n\t// - name: index\n\t//   in: path\n\t//   description: index of the issue\n\t//   type: integer\n\t//   format: int64\n\t//   required: true\n\t// - name: body\n\t//   in: body\n\t//   required: true\n\t//   schema:\n\t//     \"$ref\": \"#/definitions/IssueAssigneesOption\"\n\t// responses:\n\t//   \"201\":\n\t//     \"$ref\": \"#/responses/Issue\"\n\t//   \"400\":\n\t//     \"$ref\": \"#/responses/error\"\n\t//   \"403\":\n\t//     \"$ref\": \"#/responses/forbidden\"\n\t//   \"404\":\n\t//     \"$ref\": \"#/responses/notFound\"\n\t//   \"422\":\n\t//     \"$ref\": \"#/responses/validationError\"\n\n\topts := web.GetForm[*api.IssueAssigneesOption](ctx)\n\tupdateIssueAssignees(ctx, *opts, true)\n}\n\n// Upstream lines 66-188 are outside this fixed task crop.\n\nfunc updateIssueAssignees(ctx *context.APIContext, opts api.IssueAssigneesOption, isAdd bool) {\n\tissue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.PathParamInt64(\"index\"))\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.Status(http.StatusForbidden)\n\t\treturn\n\t}\n\n\tif err := issue.LoadAttributes(ctx); err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tassigneeIDs, err := user_model.GetUserIDsByNames(ctx, opts.Assignees, false)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusUnprocessableEntity, err.Error())\n\t\t\treturn\n\t\t}\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tif isAdd {\n\t\terr = issue_service.AddAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t} else {\n\t\terr = issue_service.RemoveAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t}\n\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}\n\n\tissue, err = issues_model.GetIssueByID(ctx, issue.ID)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tstatus := http.StatusOK\n\tif isAdd {\n\t\tstatus = http.StatusCreated\n\t}\n\tctx.JSON(status, convert.ToAPIIssue(ctx, ctx.Doer, issue))\n}\n",
+      "sha256": "e404ff3be258bc56363c979205d962200b5d6565271a83c6707407c65327666e",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 102
+      },
+      "originalLocations": []
+    }
+  ]
+}

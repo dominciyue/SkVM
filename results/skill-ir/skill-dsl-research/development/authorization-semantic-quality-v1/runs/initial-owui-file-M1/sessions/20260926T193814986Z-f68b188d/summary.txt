@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T193814986Z-f68b188d
+Status: completed
+Task: owui-process-file-write
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file: source_supported_failure — The declared policy expectation fails on the supplied path. The entry obtains a verified user, then for a non-admin checks only whether the submitted file belongs to that user; the admin branch is not applicable to the declared principal. The checked object is therefore the source file, while the affected resource is the existing collection named by the caller. The source shows no ownership or explicit-write-grant check for that collection. A caller-supplied non-null collection name is passed through to save_docs_to_vector_db, whose visible write sink inserts items using that same collection_name. The supplied crop explicitly states that the omitted processing/update lines contain no call authorizing collection_name. Thus source ownership is not linked to destination-collection authorization, and no visible upstream route, middleware, helper, staff, or administrator exception gates this write. No source-external fact is required to classify this bounded source-visible path; only an unshown implementation-level authorization inside the vector client could alter the result, and that is not established by the supplied source and cannot be inferred here.
+  Evidence: The declared entry is the POST /process/file handler. (inputs/owui-process-file-write/retrieval_process_file.py:27-33)
+  Evidence: The request may supply collection_name, and a non-null supplied value is retained as the collection_name used by the handler. (inputs/owui-process-file-write/retrieval_process_file.py:21-24, inputs/owui-process-file-write/retrieval_process_file.py:45-50)
+  Evidence: The handler receives a verified user, and the non-admin branch retrieves the file using both the submitted file ID and that user's ID. (inputs/owui-process-file-write/retrieval_process_file.py:29-45)
+  Evidence: For a non-admin, the visible authorization control checks the source file against the caller's user ID; it does not check the destination collection named in the request. (inputs/owui-process-file-write/retrieval_process_file.py:40-45)
+  Evidence: The supplied source states that the omitted load/update section contains no call authorizing collection_name; the visible path then invokes the save helper with the caller-selected collection_name. (inputs/owui-process-file-write/retrieval_process_file.py:52-53, inputs/owui-process-file-write/retrieval_process_file.py:62-74)
+  Evidence: The save helper writes items to the collection_name passed to it by calling the vector database insert operation with that collection_name. (inputs/owui-process-file-write/retrieval_process_file.py:14-18)
+  Evidence: The alternate file lookup applies only when user.role is admin; the declared verified non-admin principal therefore does not receive that branch's file-access exception, and neither branch grants destination-collection write permission. (inputs/owui-process-file-write/retrieval_process_file.py:40-45)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

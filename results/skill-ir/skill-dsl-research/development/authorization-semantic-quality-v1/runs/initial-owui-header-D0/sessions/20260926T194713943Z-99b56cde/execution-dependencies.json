@@ -1,0 +1,295 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "owui-trusted-header-deployment",
+    "request": "Determine whether an unauthenticated external client can impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin.",
+    "repository": "https://github.com/open-webui/open-webui",
+    "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:trusted-proxy-identity-policy",
+        "kind": "explicit-task-requirement",
+        "text": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.",
+        "location": "inputs/owui-trusted-header-deployment/task.json#/sourceOfRequirement",
+        "revision": "open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The task input attributes this bounded paraphrase to pinned project hardening guidance; no source-external deployment fact is accepted."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:unauthenticated-external-client",
+        "role": "unauthenticated external client",
+        "description": "Author facts: [\"A client not authenticated by the trusted identity proxy that may control headers on any ingress it can actually reach.\"]",
+        "startingCapabilities": [
+          "can-send-client-controlled-request-headers-to-a-reachable-ingress"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:existing-user-session",
+        "type": "authenticated-user-identity-and-session",
+        "description": "Author facts: [\"The identity and session of an arbitrary existing user named by a trusted-email header.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:post-signin-trusted-email",
+        "name": "POST /signin -> trusted-email-header branch",
+        "locations": [
+          {
+            "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+            "startLine": 1,
+            "endLine": 13
+          },
+          {
+            "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+            "startLine": 1,
+            "endLine": 62
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:external-client-trusted-header-impersonation",
+        "principalId": "principal:unauthenticated-external-client",
+        "resourceId": "resource:existing-user-session",
+        "relation": "external-client-to-arbitrary-existing-user-identity",
+        "operation": "obtain-session-as-header-selected-user",
+        "expectation": "deny",
+        "conditions": [
+          {
+            "name": "deployment-ingress-enforces-header-trust",
+            "basis": "The accepted policy requires sole trusted-proxy ingress and removal/replacement of client-supplied identity headers; actual deployment facts are not supplied."
+          },
+          {
+            "name": "email-authentication-produces-user",
+            "basis": "auths_signin.py returns a session only after authenticate_user_by_email yields a user."
+          },
+          {
+            "name": "password-auth-signin-entry-enabled",
+            "basis": "auths_signin.py checks ENABLE_PASSWORD_AUTH before entering the trusted-header branch."
+          },
+          {
+            "name": "trusted-email-header-name-configured",
+            "basis": "env_trusted_headers.py makes the header name environment-controlled and auths_signin.py enters the branch only when configured."
+          }
+        ],
+        "policySourceId": "policy:trusted-proxy-identity-policy",
+        "entryIds": [
+          "entry:post-signin-trusted-email"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+      "identify the configuration condition and how the header becomes a principal identity",
+      "separate application-source capability from actual deployment reachability and proxy behavior",
+      "name the minimum missing facts needed to decide the real deployment question",
+      "return source_supported_failure, source_refuted, or unknown with exact input locations"
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+      "Use only the allowed case inputs.",
+      "Do not infer environment values, proxy configuration, network topology, or direct reachability.",
+      "Do not contact or execute the target deployment."
+    ]
+  },
+  "scenarios": {
+    "scenario:external-client-trusted-header-impersonation": {
+      "name": "external-client-trusted-header-impersonation",
+      "obligation": {
+        "id": "scenario:external-client-trusted-header-impersonation",
+        "principalId": "principal:unauthenticated-external-client",
+        "resourceId": "resource:existing-user-session",
+        "relation": "external-client-to-arbitrary-existing-user-identity",
+        "operation": "obtain-session-as-header-selected-user",
+        "expectation": "deny",
+        "conditions": [
+          {
+            "name": "deployment-ingress-enforces-header-trust",
+            "basis": "The accepted policy requires sole trusted-proxy ingress and removal/replacement of client-supplied identity headers; actual deployment facts are not supplied."
+          },
+          {
+            "name": "email-authentication-produces-user",
+            "basis": "auths_signin.py returns a session only after authenticate_user_by_email yields a user."
+          },
+          {
+            "name": "password-auth-signin-entry-enabled",
+            "basis": "auths_signin.py checks ENABLE_PASSWORD_AUTH before entering the trusted-header branch."
+          },
+          {
+            "name": "trusted-email-header-name-configured",
+            "basis": "env_trusted_headers.py makes the header name environment-controlled and auths_signin.py enters the branch only when configured."
+          }
+        ],
+        "policySourceId": "policy:trusted-proxy-identity-policy",
+        "entryIds": [
+          "entry:post-signin-trusted-email"
+        ]
+      },
+      "principal": {
+        "id": "principal:unauthenticated-external-client",
+        "role": "unauthenticated external client",
+        "description": "Author facts: [\"A client not authenticated by the trusted identity proxy that may control headers on any ingress it can actually reach.\"]",
+        "startingCapabilities": [
+          "can-send-client-controlled-request-headers-to-a-reachable-ingress"
+        ]
+      },
+      "resource": {
+        "id": "resource:existing-user-session",
+        "type": "authenticated-user-identity-and-session",
+        "description": "Author facts: [\"The identity and session of an arbitrary existing user named by a trusted-email header.\"]"
+      },
+      "policy": {
+        "id": "policy:trusted-proxy-identity-policy",
+        "kind": "explicit-task-requirement",
+        "text": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.",
+        "location": "inputs/owui-trusted-header-deployment/task.json#/sourceOfRequirement",
+        "revision": "open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The task input attributes this bounded paraphrase to pinned project hardening guidance; no source-external deployment fact is accepted."
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:post-signin-trusted-email",
+          "name": "POST /signin -> trusted-email-header branch",
+          "locations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+              "startLine": 1,
+              "endLine": 13
+            },
+            {
+              "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+              "startLine": 1,
+              "endLine": 62
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+      "sha256": "2091f333510fac074790ef93f403a27c8fb9a217d432af1417c928022be51f9e",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 13
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+      "sha256": "ceb40b1cc1fd0d95aac5cb5537a9c9f085ec521ef9018dc8244ea4496069a4b5",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 62
+      },
+      "originalLocations": []
+    }
+  ],
+  "sourceRoot": "source",
+  "sources": [
+    "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+    "inputs/owui-trusted-header-deployment/auths_signin.py"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:external-client-trusted-header-impersonation"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:external-client-trusted-header-impersonation"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:external-client-trusted-header-impersonation"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:external-client-trusted-header-impersonation"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:external-client-trusted-header-impersonation"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:external-client-trusted-header-impersonation"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": null,
+  "normalizerVersion": "authoring-v2-lowering/1",
+  "method": "plain",
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "arm": "B",
+  "reasoningStrategy": "standard",
+  "reasoningPlan": null,
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "01f1326f0801bf281b4490f942e5a3e602d694cb36e9cefb5e533197f7d26498"
+}

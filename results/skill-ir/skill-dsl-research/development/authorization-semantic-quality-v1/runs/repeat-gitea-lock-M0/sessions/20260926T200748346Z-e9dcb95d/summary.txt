@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T200748346Z-e9dcb95d
+Status: completed
+Task: gitea-issue-lock-writer-nonadmin
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock: source_refuted — The fixed source supports enforcement of the declared denial policy. The PUT lock route is entered through a route group that applies token authentication and reqAdmin before dispatching to the lock handler. reqAdmin returns HTTP 403 unless the principal is a repository administrator or site administrator; the stated principal is neither, so the request is denied before the handler can reach its issue-or-pull-request write-permission check or the lock effect. The handler nevertheless visibly contains that second write-permission gate and, for an existing unlocked issue, constructs lock options with the authenticated context user as doer and invokes the lock operation only after the gate. Thus the supplied source supports both required authorization gates and their relationship to the protected effect under the fixed scenario, without making any deployment or repository-wide completeness claim.
+  Evidence: The lock route's PUT operation binds the lock-issue option and dispatches to the issue-lock handler. (route_guard.go:16-19)
+  Evidence: The route requires a token and applies the repository-or-site-administrator guard to the requesting principal before dispatch. (route_guard.go:16-20)
+  Evidence: The handler resolves the targeted issue from the repository context and the issue index path parameter. (issue_lock.go:42-47)
+  Evidence: The first authorization gate rejects the request with HTTP 403 when the principal is neither a repository administrator nor a site administrator. (route_guard.go:4-11)
+  Evidence: After issue resolution, the handler rejects with HTTP 403 unless the principal has permission to write issues or pull requests, selected according to whether the target is a pull request. (issue_lock.go:49-52)
+  Evidence: For an unlocked target that passes authorization, the handler records the context user as doer, associates the issue, and invokes the issue-lock operation. (issue_lock.go:54-67)
+  Evidence: The fixed scenario supplies a readable existing unlocked issue and a principal who is neither a repository administrator nor a site administrator; the source's unlocked branch is the branch that would contain the lock effect if earlier gates passed. (issue_lock.go:43-47, issue_lock.go:54-69)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

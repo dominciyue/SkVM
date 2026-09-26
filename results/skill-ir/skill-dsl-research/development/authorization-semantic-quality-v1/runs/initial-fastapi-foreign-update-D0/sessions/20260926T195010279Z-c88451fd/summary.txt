@@ -1,0 +1,23 @@
+Authorization assessment
+Session: 20260926T195010279Z-c88451fd
+Status: completed
+Task: fastapi-items-foreign-update
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aupdate-item::entry%3Aupdate-item: source_refuted — The declared PUT entry is update_item. Its runtime identity operand is the current_user parameter typed as CurrentUser, and the request path id is used to load the Item assessed by the operation. The loaded item's owner_id remains distinct from the request-selected item identity and is compared with current_user.id. Before mutation, the entry first requires the selected item to exist; otherwise it raises 404. Its strongest visible authorization control then denies exactly the declared relation: when current_user is not a superuser and the loaded item's owner_id differs from current_user.id, it raises 403. The ownership branch or superuser branch can pass this control and reach field update, persistence, refresh, and return. Under the supplied principal facts (non-superuser), resource facts (existing item), and different-owner relation, the 403 branch is taken before the protected effect, so the declared deny expectation is enforced. No source-external fact is needed to decide this bounded source-visible result. The implementation and deployment behavior behind CurrentUser and SessionDep are not supplied and could matter to runtime validation, but they do not overturn the decision within the declared fixed context; repository-wide and deployment completeness remain untested.
+  Evidence: The declared entry is a PUT route with a path id that invokes update_item and accepts session, current_user, id, and update input. (items.py:75-82)
+  Evidence: The operation uses its CurrentUser-typed current_user parameter as the runtime identity for the superuser and caller-id authorization checks. (items.py:75-90)
+  Evidence: The request path id is passed to the session lookup for an Item; authorization then checks that loaded item's owner_id against current_user.id, keeping object identity and ownership identity distinct. (items.py:80-90)
+  Evidence: The strongest visible authorization decision raises 403 when the caller is not a superuser and the loaded item is owned by a different caller id; an owner or superuser passes this branch. (items.py:89-90)
+  Evidence: Only after the existence and authorization checks does the operation apply supplied field updates, add and commit the item, refresh it, and return it. (items.py:91-96)
+  Evidence: The assessed mutation path requires the request-selected item to exist; a missing lookup result terminates with a 404 before authorization or mutation. (items.py:86-88)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

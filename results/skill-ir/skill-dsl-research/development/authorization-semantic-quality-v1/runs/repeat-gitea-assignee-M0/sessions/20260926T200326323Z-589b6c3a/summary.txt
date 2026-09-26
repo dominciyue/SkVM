@@ -1,0 +1,23 @@
+Authorization assessment
+Session: 20260926T200326323Z-589b6c3a
+Status: completed
+Task: gitea-issue-assignee-nonwriter
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees: source_refuted — The fixed source supports enforcement of the declared policy expectation for this entry. The POST add-assignees handler delegates to updateIssueAssignees, which fetches the repository issue and then checks ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull). If that repository permission is absent, it returns HTTP 403 before loading or resolving assignees and before calling the add-assignees mutation. The authenticated principal is used as ctx.Doer in the mutation path, while the visible authorization decision is repository permission, not the principal's issue-write token scope. Thus the stated token scope does not substitute for the missing repository issue/pull-request write permission; under the supplied conditions, the source refutes a policy failure.
+  Evidence: The add-assignees operation is the POST issue assignees handler and invokes the shared assignee-update path with isAdd true. (issue_assignee.go:4-6, issue_assignee.go:47-49)
+  Evidence: The mutation path binds the authenticated request actor as ctx.Doer when adding assignees. (issue_assignee.go:80-83)
+  Evidence: The target issue is bound by the repository ID and the request index before authorization is evaluated. (issue_assignee.go:53-58)
+  Evidence: The strongest visible authorization control requires repository permission to write issues or pull requests, selected according to whether the target is a pull request. (issue_assignee.go:60-63)
+  Evidence: Assignee resolution occurs after the permission check, and the add-assignees service mutation occurs later in the isAdd branch. (issue_assignee.go:65-81)
+  Evidence: When the repository write-permission check is false, the handler returns HTTP 403 before assignee resolution or mutation. (issue_assignee.go:60-74)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

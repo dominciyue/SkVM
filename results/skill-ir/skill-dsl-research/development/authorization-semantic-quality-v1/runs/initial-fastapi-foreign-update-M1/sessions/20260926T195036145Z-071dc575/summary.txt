@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260926T195036145Z-071dc575
+Status: completed
+Task: fastapi-items-foreign-update
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aupdate-item::entry%3Aupdate-item: source_refuted — The declared PUT update entry loads the requested item by the path ID, then applies the ownership/superuser check to that same loaded item before the update effect. The principal is represented by current_user, and the relevant resource is the Item returned by session.get(Item, id), not merely the caller object. For a non-superuser whose ID differs from that item's owner_id, the visible check raises 403 and execution cannot reach the field-update and commit effect; an active superuser bypasses that denial branch. No separate upstream route, middleware, or helper gate is visible in the supplied source, so none can be credited or treated as a bypass. The owner exception applies only when the caller ID equals the target item's owner_id; the superuser exception applies when current_user.is_superuser is true. Neither exception applies in the stated different-owner, non-superuser scenario. The source-external fact needed only to apply the fixed scenario is that the authenticated current_user has the stated ID/role and that session.get(Item, id) returns an existing item with a different owner_id; if those observations instead show a matching owner or superuser role, the control permits the update, while a missing/nonexistent item yields the separate 404 branch. No additional deployment or repository-wide fact is needed for this bounded source decision.
+  Evidence: The PUT item-update handler is declared with the item path identifier, authenticated current user, session, and update payload, and spans the assessed update operation. (items.py:75-82)
+  Evidence: The handler binds the request principal through current_user, which is used in the authorization condition. (items.py:78-80)
+  Evidence: The target resource is the Item loaded from the database using the path id. (items.py:80-86)
+  Evidence: Within the supplied handler source, no separate route, middleware, or helper authorization gate is shown before the item load and in-handler check. (items.py:75-90)
+  Evidence: The authorization check evaluates the loaded item's owner_id against the current user's id, while allowing the superuser branch. (items.py:86-90)
+  Evidence: Only after the authorization check does the handler apply supplied fields, persist the item, commit, refresh, and return it. (items.py:91-96)
+  Evidence: When the caller is not a superuser and the loaded item's owner_id differs from the caller's id, the handler raises a 403 before proceeding. (items.py:89-90)
+  Evidence: The visible permission exceptions are ownership equality for a non-superuser or the superuser condition; the stated different-owner non-superuser relation satisfies neither. (items.py:89-90)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

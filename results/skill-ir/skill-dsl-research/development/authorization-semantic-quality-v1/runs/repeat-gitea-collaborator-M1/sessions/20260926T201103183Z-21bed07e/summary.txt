@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T201103183Z-21bed07e
+Status: completed
+Task: gitea-collaborator-permission
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adifferent-user-query::entry%3Aget-repo-permissions: source_refuted — The declared policy expectation is enforced on the bounded path. The entry is the GET collaborator-permission handler. It binds the requested collaborator username from the path, then checks three alternatives before any target-user load: site-administrator status on the caller, case-insensitive equality between the caller's username and requested collaborator username, or repository-administrator status for the repository context. These checks are not ownership checks on the collaborator-permission result itself: the first and third are administrator-authority checks, while the self-query branch is linked to the affected target by comparing the authenticated caller's name directly with the collaborator path parameter. Under the stipulated scenario, the caller is neither administrator and the usernames differ, so no exception applies; mere repository read access or collaborator status is not a visible exception in this control. The handler therefore emits Forbidden and returns before GetUserByName, the permission lookup, or the success response. The supplied route annotation and handler establish applicability to this exact GET path; no upstream middleware or helper gate is claimed from the crop, and the visible handler-local control has no applicable bypass branch under the stated facts. No source-external fact is decisive because the scenario fixes every predicate used by the visible gate. If any fixed predicate changed, the conditional result would change at the gate: site-admin, repo-admin, or same-username status would bypass this rejection and proceed toward target loading, but those are contrary to the declared conditions rather than missing facts.
+  Evidence: The assessed entry is the handler for GET repository collaborator permission. (collaborators.go:4-6)
+  Evidence: The authorization condition evaluates the authenticated caller through ctx.Doer, including caller site-administrator status and caller lowercased username. (collaborators.go:35-36)
+  Evidence: The target collaborator is bound from the collaborator path parameter, which denotes the username whose repository permission is requested. (collaborators.go:22-26)
+  Evidence: Before target loading, the handler permits passage only if the caller is a site administrator, the caller username equals the requested collaborator username case-insensitively, or the caller is a repository administrator; otherwise it returns Forbidden. (collaborators.go:35-39)
+  Evidence: The target collaborator is loaded only after the rejecting authorization branch and its return, so rejection occurs before target loading. (collaborators.go:36-41)
+  Evidence: The protected effect consists of resolving the target collaborator's individual repository permission and returning the collaborator-permission representation on success. (collaborators.go:51-57)
+  Evidence: For a non-site-admin, non-repo-admin caller whose username differs from the requested collaborator username, all three visible exceptions are false; collaborator or repository-reader status is not an additional exception in this condition. (collaborators.go:35-39)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

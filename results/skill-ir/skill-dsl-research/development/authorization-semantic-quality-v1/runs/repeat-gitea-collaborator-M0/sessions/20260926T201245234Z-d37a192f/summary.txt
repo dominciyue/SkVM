@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T201245234Z-d37a192f
+Status: completed
+Task: gitea-collaborator-permission
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adifferent-user-query::entry%3Aget-repo-permissions: source_refuted — The fixed entry is the repository collaborator-permission query. Its target is the collaborator username from the path, and the visible control evaluates the supplied scenario as unauthorized: the caller is neither an administrator, is not querying the caller's own username, and is not a repository administrator. The control emits HTTP 403 and returns before GetUserByName loads the target collaborator. Thus, within this fixed route and scenario, the source enforces the declared policy expectation that only a site administrator, repository administrator, or self-query may proceed; the later permission lookup and JSON response are unreachable on this branch.
+  Evidence: The assessed entry is GetRepoPermissions, documented as the GET repository collaborator-permission operation. (collaborators.go:4-6)
+  Evidence: Authorization is bound to the authenticated caller represented by ctx.Doer, using its administrator flag and lower-cased username. (collaborators.go:35-36)
+  Evidence: The eventual permission query is bound to the repository in ctx.Repo.Repository and the resolved collaborator. (collaborators.go:51-51)
+  Evidence: The strongest visible authorization control rejects when the caller is not a site administrator, does not match the target username case-insensitively, and is not a repository administrator. (collaborators.go:35-37)
+  Evidence: The failed authorization branch returns HTTP 403 and exits before the collaborator lookup. (collaborators.go:36-41)
+  Evidence: Target collaborator loading occurs only after the authorization check, through GetUserByName, so it is not reached on the rejection branch. (collaborators.go:39-42)
+  Evidence: The target is the collaborator username supplied in the path; the entry documents it as the username whose permissions are obtained. (collaborators.go:22-25)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

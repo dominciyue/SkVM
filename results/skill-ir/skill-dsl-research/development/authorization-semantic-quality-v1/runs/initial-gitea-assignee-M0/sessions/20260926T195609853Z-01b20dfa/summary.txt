@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260926T195609853Z-01b20dfa
+Status: completed
+Task: gitea-issue-assignee-nonwriter
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees: source_refuted — The fixed entry invokes the assignee-update helper for the POST add operation. In that helper, repository issue/pull-request write permission is checked before assignee-name resolution and before the add-assignees mutation; failure returns HTTP 403. Under the declared condition that the principal lacks repository issue-write permission, the source therefore supports enforcement of the stated rejection-before-resolution-or-mutation policy. The authenticated issue-write token scope is distinct from the repository permission used by this control: the crop shows no token-scope decision, while it explicitly tests ctx.Repo.Permission.CanWriteIssuesOrPulls. The issue and requested user being present do not alter this ordering; user resolution is later than the permission check, and mutation is later still. This assessment is limited to the supplied entry and crop, not repository-wide completeness or deployment behavior.
+  Evidence: The add-assignees API entry is the POST issue-assignees operation and invokes updateIssueAssignees with isAdd true. (issue_assignee.go:4-6, issue_assignee.go:47-49)
+  Evidence: The operation executes with the API context and later passes ctx.Doer to the assignee mutation service. (issue_assignee.go:53-54, issue_assignee.go:80-83)
+  Evidence: The target issue is obtained using the repository ID and the path issue index before authorization proceeds. (issue_assignee.go:53-58)
+  Evidence: The helper checks repository permission to write issues or pull requests and returns HTTP 403 when the check fails. (issue_assignee.go:60-63)
+  Evidence: The add-assignees service call occurs only after assignee IDs have been resolved and only on the add branch. (issue_assignee.go:70-83)
+  Evidence: Requested assignee names are resolved only after the repository permission check and its failure return. (issue_assignee.go:60-63, issue_assignee.go:65-75)
+  Evidence: The decisive authorization condition in this path is the repository permission predicate, rather than any token-scope predicate shown in the supplied crop. (issue_assignee.go:60-63)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

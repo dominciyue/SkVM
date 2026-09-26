@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260926T194220835Z-789c7022
+Status: completed
+Task: owui-process-text-controlled
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Anon-admin-without-kb-write-grant::entry%3Apost-process-text: source_refuted — The declared entry is POST /process/text, and its runtime principal is the identity returned by the verified-user dependency. When the caller supplies a collection name, that exact value is passed to the collection-access validator with access_type='write'; only the no-name branch substitutes a content hash, so that branch does not apply under caller-supplies-existing-collection-name. The validator compares the requested set with the set allowed by the shared filter and raises HTTP 403 if the requested name is absent. For a non-admin, the admin bypass does not apply. Under the stated condition that the supplied ordinary collection name identifies an existing knowledge base, the filter checks that name as the knowledge-base identifier through check_access_by_user_id(name, user.id, permission='write'). Because the declared principal has neither ownership nor an explicit write grant, the applicable write-access check does not admit the name; because the knowledge base exists, the fallback for a name that is not a knowledge base also does not admit it. Thus the validator raises before save_docs_to_vector_db, and attacker-selected form content cannot reach the declared write effect through this branch. The file, user-memory, web-search, system meta-collection, and nonexistent/legacy-name branches check or classify different resources and do not confer permission on the existing target knowledge base. No owner, grantee, staff, or administrator exception applies on the declared facts: only the visible administrator bypass could avoid all checks, while the knowledge-base branch requires the denied write permission. No source-external fact is decisive because non-admin status, existing-knowledge-base identity, and lack of write access are fixed by the declaration. If any of those fixed conditions were not established in a different case, the minimum observations would be the runtime role, whether the selected name resolves to an existing knowledge base, and the result of its write-access check; those are not unresolved here. This is a bounded assessment of the supplied entry and source crops, not a repository-wide or deployment claim.
+  Evidence: POST /process/text invokes process_text and gates the handler with the verified-user dependency. (inputs/owui-process-text-controlled/retrieval_process_text.py:7-12)
+  Evidence: The runtime user returned by the verified-user dependency is used as the caller identity, including user.id in created-document metadata. (inputs/owui-process-text-controlled/retrieval_process_text.py:19-23)
+  Evidence: A caller-supplied form collection_name is retained as the target collection and is sent to validation with write access requested; only an absent name is replaced by a content-derived hash. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-17)
+  Evidence: For an ordinary name, the filter admits an existing knowledge-base identifier only when check_access_by_user_id succeeds for that name, caller user.id, and the requested permission; the alternative allowance applies only when no knowledge base exists for the name. (inputs/owui-process-text-controlled/retrieval_access_policy.py:42-51)
+  Evidence: The system knowledge-bases name is denied, while file, user-memory, and web-search names have distinct checks or allowances; these branches concern differently classified objects and do not establish access to an ordinary existing knowledge-base ID. (inputs/owui-process-text-controlled/retrieval_access_policy.py:27-41)
+  Evidence: The validator filters the exact requested collection names and raises HTTP 403 when any requested name is not returned as allowed. (inputs/owui-process-text-controlled/retrieval_process_text.py:31-44)
+  Evidence: The protected write sink is save_docs_to_vector_db, receiving the attacker-controlled document content and selected collection_name only after collection validation has completed. (inputs/owui-process-text-controlled/retrieval_process_text.py:19-28)
+  Evidence: The shared control has a complete bypass for users whose role is admin; non-admin users proceed through per-name checks. (inputs/owui-process-text-controlled/retrieval_access_policy.py:22-26)
+  Evidence: On the caller-supplied-name branch, validation occurs before document construction and the vector-database save call, so a validation exception prevents the write sink from being reached. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-28)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.
