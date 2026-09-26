@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 authorization/provider/measurement 模块、Python 文档检查。
 
-- 日期：2026-09-27；状态：AH0–AH13已完成并验证，AH14归属提交与origin发布收尾；机器状态见AH结果根。
+- 日期：2026-09-27；状态：AH0–AH14已完成并发布用户origin；机器状态见AH结果根。
 - 基线：`08ac8b939e849b9312a33df245b83db3a2eebdf0` 加本轮规划提交；仓库 `D:/skill优化/SkVM`，分支 `skill-ir-aot`。
 - 开发模型：`gpt-6-sol / max`；该选择用于开发任务，不自动替换实验中登记的模型。
 - 结果根：`results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/`。
@@ -278,11 +278,13 @@ git diff --check
 ```
 
 ### AH14 提交与交付
-- [ ] 聚焦按“关系策略/使用反馈/研究证据/文档”提交，只纳入本轮清单。更新唯一current-status、当前plan/spec、usage/guide、实验目录及根conversation_log。
-- [ ] 仅推 `origin/skill-ir-aot`；核对远端HEAD与ahead/behind，保留他人改动和历史本地排除项。无第三方写者时保证本轮无遗留未提交文件。
-- [ ] 最终交付：实现了什么、可运行命令、四臂真实结果、作者变更事实、开销、未解决项和下一建议。工程完成与研究结果分列，完成后停止。
+- [x] 聚焦按“关系策略/使用反馈/研究证据/文档”提交，只纳入本轮清单。更新唯一current-status、当前plan/spec、usage/guide、实验目录及根conversation_log。
+- [x] 仅推 `origin/skill-ir-aot`；核对远端HEAD与ahead/behind，保留他人改动和历史本地排除项。无第三方写者时保证本轮无遗留未提交文件。
+- [x] 最终交付：实现了什么、可运行命令、四臂真实结果、作者变更事实、开销、未解决项和下一建议。工程完成与研究结果分列，完成后停止。
 
 **AH13验收记录（2026-09-27）。** AH4–AH6按先红后绿实现；实际冻结分母为8状态、3状态重复、四臂44单元，44/44 completed，44次provider调用，0 fallback、0 domain repair、0目标执行，未触发共享实现修订。AH9的44条匿名首评和9条独立二审保留两条criterion裁定修正；首轮full为M0/D0/M1/D1 6/4/6/5（各8），重复为2/1/2/2（各3），真实初轮与重复分账。作者两包4原稿与4变化交付，排除两次不合规/不完整尝试，Gitea旧taskId来源文字遗漏按原件记录；无人类工时或作者token实测。普通临时目录演示与synthetic示例通过，作者变化未生成新语义答案。有限并发可选项未启用；共享实现bug与付费修订条件未触发，故0修订。验证为338 pass、1平台skip、2372断言，主/AH脚本typecheck通过，文档12测试通过、14401文件扫描0 broken/legacy/governance errors，775 JSON及91 JSONL/283记录可解析，定向凭据模式0命中；零provider离线replay SHA-256 `d0d7cce1cec974a165c8dd2682005dfb21f6074b46fe0e8faab5f09408d49ee5`。结果及方法取舍见[研究§7.27](../../skill-ir/skill-dsl-research.md#727-ah-语义质量与真实编写复用)和[机器汇总](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/panel-summary.json)。
+
+**AH14发布记录。** 归属证据与文档提交`834310e515ec41802216f8641533a79e43aee283`已推到`origin/skill-ir-aot`，`git ls-remote`核对远端HEAD同SHA，`git status --short --branch`显示本地与origin一致。仅用户origin收到本轮提交；旧保护集与历史本地排除项未纳入。
 
 ## 6. 失败、预算与持续推进
 

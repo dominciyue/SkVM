@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-27
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AE/AF/AG已发布；AH0–AH14工程、44条真实四臂评价、独立作者原/变任务与离线复验已完成，当前归属提交与发布见AH结果根status.json。
+- 状态：AE/AF/AG与AH0–AH14均已发布；AH工程、44条真实四臂评价、独立作者原/变任务及离线复验完成，证据提交`834310e5`已在用户origin核对。无自动后续调用。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AH0–AH14](../superpowers/plans/2026-09-27-authorization-semantic-quality-and-reuse.md)
