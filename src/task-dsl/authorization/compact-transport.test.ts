@@ -75,3 +75,22 @@ it("sends the method-specific compact schema through the actual provider extract
   expect(run.firstResponse?.deliveryComplete).toBe(true)
   expect(run.renderedPrompt).not.toContain("using /results/<index>")
 })
+
+for (const method of ["plain", "ledger", "conditions"] as const) it(`v5 ${method} uses policyStatus through schema, host and sidecars`, async () => {
+  const { loaded, request, requirements, wire } = await fixture()
+  const { conclusion, coverage, condition, ...item } = wire.results[0]!
+  const answer = { results: [{ ...item, policyStatus: "satisfied", ...(method !== "plain" ? { coverage } : {}), ...(method === "conditions" ? { condition } : {}) }] }
+  let captured: any
+  const run = await runAuthorizationTask({ task: loaded.task, sourceBundle: loaded.sourceBundle, ...(method !== "plain" ? { analysisRequirements: requirements } : {}), ...(method === "conditions" ? { conditionAnalysisRequest: request } : {}), arm: "B", wireVersion: "v5" as any, options: { timeoutMs: 1000, maxTokens: 6000, maxDomainRepairs: 1 }, provider: {
+    name: "policy-capture", async complete(params) { captured = params; return { text: "", toolCalls: [{ id: "answer", name: "submit_authorization_result", arguments: answer }], tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 1, stopReason: "tool_use" } }, async completeWithToolResults() { throw Error("No executor") },
+  } })
+  expect(run.status).toBe("completed")
+  expect(run.wireVersion).toBe("source-authorization-assessment-wire/v5")
+  expect(captured.tools[0].inputSchema.properties.results.items.properties.policyStatus.enum).toEqual(["satisfied", "violated", "undetermined"])
+  expect(run.initial?.normalization?.normalizerVersion).toBe("authorization-wire-normalizer/v5")
+  expect(run.initial?.result.results[0]?.conclusion).toBe("source_refuted")
+  expect(run.initialTransport?.wireResult).toEqual(answer)
+  expect(run.renderedPrompt).toContain("policyStatus")
+  expect(run.renderedPrompt).not.toContain("source_supported_failure")
+  expect(run.firstResponse?.deliveryComplete).toBe(true)
+})

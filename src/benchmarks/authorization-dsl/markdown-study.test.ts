@@ -13,7 +13,7 @@ const roots: string[] = []
 afterEach(async () => { for (const root of roots.splice(0)) await rm(root,{recursive:true,force:true}) })
 const instructions = "Independently authored: assess support archiving another owner's record under owner-or-supervisor policy. Trace the visible control and effect; do not infer deployment facts."
 const markdown: MarkdownStudyInput = {instructions,instructionOrigin:"independent-author",instructionPath:"author.md"}
-async function fixture() {
+async function fixture(wireVersion = "v4") {
   const root = await mkdtemp(path.join(tmpdir(),"authorization-md-")); roots.push(root)
   await cp(path.resolve(import.meta.dir,"../../../examples/authorization-assessment/reusable-skill"),root,{recursive:true})
   const inputFile = path.join(root,"authoring.json")
@@ -30,6 +30,7 @@ async function fixture() {
       prompts.push(JSON.stringify(params.messages)); calls++
       if(timeout) await new Promise(r=>setTimeout(r,50))
       const answer=structuredClone(result)
+      if (wireVersion === "v5") { const item = answer.results[0] as any; delete item.conclusion; item.policyStatus = "satisfied" }
       if(repair && calls===1) answer.results[0]!.facts[0]!.citations[0]!.startLine=999
       return {text:"",toolCalls:[{id:"answer",name:"submit_authorization_result",arguments:answer}],stopReason:"tool_use",tokens:{input:10,output:10,cacheRead:0,cacheWrite:0},durationMs:1}
     },async *stream(){throw Error("unused")},async completeWithToolResults(){throw Error("unused")},
@@ -91,4 +92,24 @@ test("timeout closes MD lifecycle and inspection does not redispatch",async()=>{
   expect((await inspectLocalAuthorizationOutput(r.sessionPath)).status).toBe("timeout-unknown")
   await new Promise(resolve=>setTimeout(resolve,70))
   expect(f.calls()).toBe(1)
+})
+
+test("v5 MD repair retains protocol and resume refuses a wire change or redispatch after timeout",async()=>{
+  const f=await fixture("v5")
+  const input={inputFile:f.inputFile,model:"mock/test",outRoot:path.join(f.root,"md-v5"),markdown,wireVersion:"v5" as const,providerFactory:()=>f.provider(true)}
+  const report=await executeMarkdownStudyRun(input)
+  expect(report.status).toBe("completed")
+  if(!("sessionPath" in report)) throw Error("session")
+  expect((await inspectLocalAuthorizationOutput(report.sessionPath)).wireVersion).toBe("source-authorization-assessment-wire/v5")
+  expect(f.calls()).toBe(2)
+  for (const prompt of f.prompts) {expect(prompt).toContain("policyStatus");expect(prompt).not.toContain("MANIFEST-ONLY-CANARY")}
+  await executeMarkdownStudyRun(input)
+  expect(f.calls()).toBe(2)
+  await expect(executeMarkdownStudyRun({...input,wireVersion:"v4"})).rejects.toThrow("identity")
+  const t=await fixture("v5")
+  const timed={inputFile:t.inputFile,model:"mock/test",outRoot:path.join(t.root,"timeout"),markdown,wireVersion:"v5" as const,executionOptions:{timeoutMs:5,unitTimeoutMs:100,maxTokens:100,maxDomainRepairs:1 as const,maxProviderDispatches:4},providerFactory:()=>t.provider(false,true)}
+  expect((await executeMarkdownStudyRun(timed)).status).toBe("timeout-unknown")
+  await executeMarkdownStudyRun(timed)
+  await new Promise(r=>setTimeout(r,70))
+  expect(t.calls()).toBe(1)
 })

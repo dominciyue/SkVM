@@ -2,6 +2,7 @@ import type { AuthorizationTaskV0 } from "./schema.ts"
 import type { CompiledAuthorizationTask } from "./semantics.ts"
 import type { AnalysisPlan } from "./relations.ts"
 import type { ConditionAnalysisPlan } from "./conditions.ts"
+import type { AuthorizationWireVersion } from "./policy-result.ts"
 
 export type AuthorizationRenderArm = "N" | "B" | "D"
 
@@ -43,7 +44,7 @@ export interface RenderedAuthorizationTask {
 export interface AuthorizationRenderOptions {
   /** Research-only independent instructions; never exposed by the ordinary CLI. */
   researchInstructions?: MarkdownStudyInput
-  wireVersion?: "legacy" | "v4"
+  wireVersion?: AuthorizationWireVersion
   declarationStyle?: "arm-default" | "natural"
   publicAnalysisQuestions?: readonly string[]
 }
@@ -111,8 +112,10 @@ function renderSharedResultRequirements(
   analysisPlan?: AnalysisPlan,
   conditionPlan?: ConditionAnalysisPlan,
   publicAnalysisQuestions: readonly string[] = [],
-  compact = false,
+  wireVersion: AuthorizationWireVersion = "legacy",
 ): string {
+  const compact = wireVersion === "v4" || wireVersion === "v5"
+  const policy = wireVersion === "v5"
   const runnableIds = compiled.runnableObligations.map(obligation => obligation.id)
   const renderedIds = runnableIds.length > 0 ? runnableIds.map(value => `- ${value}`).join("\n") : "- (none)"
   let coverageContract = analysisPlan
@@ -137,11 +140,17 @@ ${conditionPlan.entries.map(entry => [
     coverageContract = coverageContract.replace("Return exactly one coverage item", "In each result item, return exactly one coverage item").replace("Use the exact requirementId and expanded obligationId.", "Use the exact requirementId; the enclosing result supplies obligationId.").replaceAll("factPointers", "factIds").replace("using /results/<index>/facts/<group>/<index>", "using IDs from this item's facts array")
     conditionContract = conditionContract.replace("Return one conditionAnalysis entry", "Return one item-local condition object").replace("Use authorization-condition-analysis-result/v1 and the exact condition IDs.", "Do not output schemaVersion or analyses wrappers. Use the exact condition IDs.").replaceAll("factPointers", "factIds")
   }
-  return `${compact ? "Use compact wire/v4: top-level results only. Each item has obligationId, conclusion, explanation, facts as an array of {id, kind, statement, citations}, decisiveMissingFacts and suggestedObservations. Fact IDs must be unique within each obligation. kind is entry/binding/control/effect/condition. The host fills all version/identity/scope metadata and groups facts; never output those fields. Include item-local coverage only when an analysis ledger is supplied, and item-local condition only when a condition request is supplied. Branches do not repeat obligationId.\n" : ""}Return exactly one result for every runnable expanded obligation, with one of: ${AUTHORIZATION_CONCLUSIONS.join(", ")}.
+  const labels = policy ? `Return exactly one result for every runnable expanded obligation, with policyStatus: satisfied, violated, or undetermined. Do not output conclusion.
+Interpret policyStatus relative to the declared policy expectation, not as direct synonyms for allow or deny:
+- satisfied: the fixed source enforces the declared normative expectation under the stated conditions; that expectation may require either allow or deny.
+- violated: the fixed source violates the declared normative expectation under the stated conditions.
+- undetermined: the fixed source and declared context are insufficient to decide whether the expectation is enforced or violated. Name decisive missing facts and minimum suggested observations.
+For conditional expectations, analyze the declared conditions; the expectation field alone does not establish a policyStatus. If authored task text requests legacy conclusion labels, this result contract supersedes that output-format request; use policyStatus only.` : `Return exactly one result for every runnable expanded obligation, with one of: ${AUTHORIZATION_CONCLUSIONS.join(", ")}.
 Interpret conclusion labels relative to the declared policy expectation, not as direct synonyms for allow or deny:
 - source_supported_failure: the fixed source supports that the declared policy expectation fails under the stated conditions.
 - source_refuted: the fixed source supports that the declared policy expectation is enforced under the stated conditions, refuting a policy failure.
-- unknown: the fixed source and declared context are insufficient to decide whether the expectation fails or is enforced.
+- unknown: the fixed source and declared context are insufficient to decide whether the expectation fails or is enforced.`
+  return `${compact ? `Use compact wire/${wireVersion}: top-level results only. Each item has obligationId, ${policy ? "policyStatus" : "conclusion"}, explanation, facts as an array of {id, kind, statement, citations}, decisiveMissingFacts and suggestedObservations. Fact IDs must be unique within each obligation. kind is entry/binding/control/effect/condition. The host fills all version/identity/scope metadata and groups facts; never output those fields. Include item-local coverage only when an analysis ledger is supplied, and item-local condition only when a condition request is supplied. Branches do not repeat obligationId.\n` : ""}${labels}
 Exact runnable obligation IDs (closed list):
 ${renderedIds}
 Use each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.
@@ -160,7 +169,7 @@ function renderNaturalInstructions(hasAnalysisPlan: boolean): string {
 Assess the authorization question described below using only the supplied fixed source. Explain what the visible source establishes, what it refutes, and what remains unknown. Keep the conclusion bounded to the declared entries and source context.${hasAnalysisPlan ? " Answer every public analysis question and report its coverage without inventing missing facts." : ""}`
 }
 
-function renderNaturalDeclaration(facts: AuthorizationRenderFacts): string {
+function renderNaturalDeclaration(facts: AuthorizationRenderFacts, policy = false): string {
   const lines = [
     `This is task ${facts.taskId}, expressed with ${facts.schemaVersion}. ${facts.request}`,
     `Assess repository ${facts.repository} at source ref ${facts.sourceRef} in ${facts.sourceMode} mode. Source discovery status is ${facts.discoveryStatus}.`,
@@ -201,7 +210,7 @@ function renderNaturalDeclaration(facts: AuthorizationRenderFacts): string {
     ...facts.requiredAnalysis.map(value => `- ${value}`),
     "Constraints:",
     ...facts.constraints.map(value => `- ${value}`),
-    `Allowed conclusions: ${facts.allowedConclusions.join(", ")}.`,
+    policy ? "Allowed policyStatus values: satisfied, violated, undetermined." : `Allowed conclusions: ${facts.allowedConclusions.join(", ")}.`,
   ]
   return lines.join("\n")
 }
@@ -261,8 +270,8 @@ export function renderAuthorizationTask(
   options: AuthorizationRenderOptions = {},
 ): RenderedAuthorizationTask {
   if (options.researchInstructions !== undefined && (!validMarkdownStudyInput(options.researchInstructions)
-    || analysisPlan || conditionPlan || arm !== "B" || options.wireVersion !== "v4")) {
-    throw new Error("Independent Markdown requires a nonempty independent-author input and plain/v4 on render arm B.")
+    || analysisPlan || conditionPlan || arm !== "B" || (options.wireVersion !== "v4" && options.wireVersion !== "v5"))) {
+    throw new Error("Independent Markdown requires a nonempty independent-author input and plain/v4 or plain/v5 on render arm B.")
   }
   const facts = collectFacts(compiled.task)
   const expandedObligationIds = [
@@ -283,7 +292,7 @@ export function renderAuthorizationTask(
   )
   const sections: AuthorizationPromptSections = {
     instructions,
-    declaration: naturalDeclaration ? renderNaturalDeclaration(facts) : JSON.stringify(facts, null, 2),
+    declaration: naturalDeclaration ? renderNaturalDeclaration(facts, options.wireVersion === "v5") : JSON.stringify(options.wireVersion === "v5" ? { ...facts, allowedConclusions: undefined, allowedPolicyStatuses: ["satisfied", "violated", "undetermined"] } : facts, null, 2),
     ...(publicAnalysisQuestions.length > 0
       ? { publicAnalysis: publicAnalysisQuestions.map(question => `- ${question}`).join("\n") }
       : {}),
@@ -304,7 +313,7 @@ export function renderAuthorizationTask(
           }, null, 2),
         }
       : {}),
-    outputContract: renderSharedResultRequirements(compiled, analysisPlan, conditionPlan, publicAnalysisQuestions, options.wireVersion === "v4"),
+    outputContract: renderSharedResultRequirements(compiled, analysisPlan, conditionPlan, publicAnalysisQuestions, options.wireVersion),
     sourceMarker: "<SOURCE_CONTEXT_INSERTED_BY_HOST>",
   }
   if (options.researchInstructions) {

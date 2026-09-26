@@ -12,7 +12,7 @@
 
 **独立工程已集成：** [AC编辑支持](../superpowers/plans/2026-09-26-authorization-authoring-editor-support.md)交付本地draft-07 schema、结构检查与完整示例，105结构用例/12个runtime-only反例通过，提交`8f27afb3`。[AD实验目录工具](../superpowers/plans/2026-09-26-experiment-catalog-maintenance.md)交付离线check/show/export，24测试/147断言及脚本类型检查通过，提交`ffc6578e`。整合授权测试202/202、1,919断言，全仓typecheck通过；两项工程不增加AB研究分母或收益证据。三个任务实际model/effort为Astra ultra，宿主默认priority；逐请求tier未暴露，不宣称实测1.5倍。原始323项证据按原字节归档，七项原源码修改与历史untracked保留。
 
-**当前授权队列（2026-09-27）：** 三个完整独立任务准备派发，开发模型均`gpt-6-astra / ultra`，宿主Fast/priority配置。用户请求1.5倍速度，工具未暴露逐任务倍率，实际倍率未测。
+**当前授权队列（2026-09-27）：** 三个完整独立任务已派发。AE任务`01a0de94-767c-7f71-b253-8df31bdeac84`执行中，已接通v5并通过211授权测试/2004断言，正在准备固定面板；AF已ready待集成，AG进行中。开发模型均`gpt-6-astra / ultra`，宿主Fast/priority配置。用户请求1.5倍速度，工具未暴露逐任务倍率，实际倍率未测。
 
 | 任务 | 独立目标 | 协作边界 |
 |---|---|---|

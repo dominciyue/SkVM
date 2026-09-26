@@ -84,6 +84,8 @@ expect(mapPolicyStatus("undetermined")).toBe("unknown");
 - [ ] host/render/local-run/MD/CLI/check/inspect/compare/resume显式v5，修复只沿同协议走。避免`!==v4`把v5落进legacy。
 - [ ] mock覆盖正常、一次结构repair、unknown、timeout无重发；plain/ledger/conditions逐一通过。ordinary help列新opt-in，默认不变。
 
+AE0–AE3于2026-09-27已执行：基线803dc754，独占文件及原脏状态见AE结果status/journal；合同3红测与接线5红测先失败，实施后23 focused/223断言及211授权回归/2004断言通过。AF所需value loader/显式相对sourceRoot协调由AE实现，8/35通过，详见研究§7.26。当前进入AE4，实际模型调用0。
+
 ### AE4 材料与预运行配置
 - [ ] 准备6例及24单元，列公共事实对照与评价依据；需要的MD材料单独保留作者来源，不拿DSL renderer冒充。
 - [ ] 一次零provider检查，固定实施revision与真实顺序即可，不叠加新的多层冻结链。

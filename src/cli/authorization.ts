@@ -116,12 +116,12 @@ export function authorizationCliHelp(): string {
     "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--arm=N|B|D]",
     "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--arm=N|B|D]",
     "  inspect --out=<output-root-or-session>",
-    "  compare --previous=<session> --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4]",
+    "  compare --previous=<session> --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5]",
     "",
     "init never overwrites an existing file. With --from, keep authoring and output beside each other so sourceRoot stays bounded.",
     "Only run initializes a provider. A condition request in the input opts into wire/v3; otherwise the existing ledger path is used.",
     "Explicit method uses B and conflicts with arm N/D. conditions needs a condition request; plain/ledger leave it unexecuted.",
-    "check/run accept --wire=legacy|v4. legacy selects v1/v2/v3 by method; v4 is compact and currently opt-in.",
+    "check/run accept --wire=legacy|v4|v5. legacy selects v1/v2/v3 by method; v4 is compact, v5 adds explicit policyStatus; both are opt-in.",
     "locate reads only the explicit file; --match is literal. Lines refer to the current provided file; multiple matches require author selection.",
   ].join("\n")
 }

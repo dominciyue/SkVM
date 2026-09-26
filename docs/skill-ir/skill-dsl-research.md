@@ -817,6 +817,12 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 三个任务直接在skill-ir-aot独占路径并行；AF/AG只写新增模块及其结果，AE是共享文档和Git唯一发布者。结果状态分别记录，不把独立工具测试计入方法样本。开发Astra ultra、宿主Fast/priority；被测Sol配置保持登记值，精确1.5倍速度未测。后续在本节追加根因、修复、验证及方法取舍。
 
+**AE1–AE3实现。** `policy-result.ts`以strict schema替换模型字段，复用v4 fact、coverage、condition schema及既有引用检查；satisfied/violated/undetermined仅映射到source_refuted/source_supported_failure/unknown。模型原始v5、normalizer/v5与canonical/v0分开保存，inspect显示两层身份；任何v5归一化错误不交付canonical。host、renderer、普通check/run/inspect/compare和MD恢复贯穿显式v5；MD默认v4、普通legacy默认均保持。旧作者材料中的输出版本提示以共同结果合同为准，不改任务事实。红测覆盖三态、字段互斥、未知缺失事实、非法引用、三method、一次repair、timeout不重发、resume版本与compare继承；预面板授权回归211测试/2004断言通过。
+
+**AF共享接口协调。** 生成输入位于新目录而源码不复制，原input-directory边界禁止`../project`，与搬移合同冲突。AE导出`loadLocalAuthorizationInputValue(value,inputFile)`共用文件loader内核，允许明确的相对父目录选择；源文件仍受effective sourceRoot封闭，root junction不得隐式越过显式选择的共同祖先边界。未来输出目录不必存在，check-only无需写文件。原junction与文件symlink反例继续通过；8测试/35断言。AF独立完成原始坐标与最终坐标双重语义核对。
+
+**后续投入优先级。** 用户确认单次回答质量改善约60%、编写/修改/复用约40%；这是问题选择与投入优先级，不形成加权总分。当前AE/AF/AG范围和预算保持，尚未扩大到完整安全审查或新类别。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

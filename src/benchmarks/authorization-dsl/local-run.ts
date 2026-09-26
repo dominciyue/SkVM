@@ -150,6 +150,8 @@ export interface LocalAuthorizationSessionReport {
   analysisProfile?: LocalAnalysisProfile
   finalKind?: "initial" | "repair"
   canonicalResult?: AuthorizationResultV0
+  wireResult?: unknown
+  normalizerVersion?: string
   relationCoverage?: unknown[]
   coverageValidation?: unknown
   conditionAnalysis?: unknown
@@ -283,7 +285,7 @@ function checkReport(
   arm: AuthorizationRenderArm,
   studyArm?: AuthorizationStudyArm,
   method?: AuthorizationMethod,
-  wireVersion: "legacy" | "v4" = "legacy",
+  wireVersion: "legacy" | "v4" | "v5" = "legacy",
   researchInstructions?: MarkdownStudyInput,
 ): LocalAuthorizationCheckReport {
   if (loaded.status === "invalid") {
@@ -325,9 +327,9 @@ function checkReport(
   }
   const resolved = resolveAuthorizationMethod({ method, studyArm, arm, hasConditionRequest: !!loaded.conditionAnalysisRequest })
   if (researchInstructions !== undefined && (!validMarkdownStudyInput(researchInstructions)
-      || resolved.selection.effective !== "plain" || wireVersion !== "v4" || arm !== "B")) {
+      || resolved.selection.effective !== "plain" || (wireVersion !== "v4" && wireVersion !== "v5") || arm !== "B")) {
     return {schemaVersion:"authorization-local-check/v1",status:"invalid",inputPath:loaded.inputPath,
-      diagnostics:[{code:"invalid-markdown-study-input",path:"researchInstructions",message:"Research instructions require independent-author, nonempty text/path and plain/v4/B."}]}
+      diagnostics:[{code:"invalid-markdown-study-input",path:"researchInstructions",message:"Research instructions require independent-author, nonempty text/path and plain/v4 or v5/B."}]}
   }
   if (resolved.diagnostics.length) return {
     schemaVersion: "authorization-local-check/v1", status: "invalid", inputPath: loaded.inputPath,
@@ -360,7 +362,7 @@ function checkReport(
     arm,
     ...(studyArm ? { studyArm } : {}),
     methodSelection: resolved.selection,
-    wireVersion: `source-authorization-assessment-wire/v${wireVersion === "v4" ? 4 : resolved.studyArm === "P" ? 1 : resolved.studyArm === "L" ? 2 : 3}`,
+    wireVersion: `source-authorization-assessment-wire/v${wireVersion === "v5" ? 5 : wireVersion === "v4" ? 4 : resolved.studyArm === "P" ? 1 : resolved.studyArm === "L" ? 2 : 3}`,
     analysisProfile: loaded.analysisProfile,
     requirementCount: loaded.analysisRequirements.length,
     ledgerEntryCount: selected.analysisPlan?.entries.length ?? 0,
@@ -395,7 +397,7 @@ export async function checkLocalAuthorizationInput(
   inputFile: string,
   arm: AuthorizationRenderArm = "B",
   method?: AuthorizationMethod,
-  wireVersion: "legacy" | "v4" = "legacy",
+  wireVersion: "legacy" | "v4" | "v5" = "legacy",
 ): Promise<LocalAuthorizationCheckReport> {
   return checkReport(await loadLocalAuthorizationInput(inputFile), arm, undefined, method, wireVersion)
 }
@@ -466,6 +468,8 @@ function summaryText(input: {
   if (input.report.taskId) lines.push(`Task: ${input.report.taskId}`)
   if (input.report.methodSelection) lines.push(`Method: ${input.report.methodSelection.effective} (${input.report.methodSelection.selectionOrigin}); requested: ${input.report.methodSelection.requested ?? "omitted"}; condition request ignored: ${input.report.methodSelection.conditionRequestIgnored}`)
   if (input.report.wireVersion) lines.push(`Wire: ${input.report.wireVersion}`)
+  if (input.report.normalizerVersion) lines.push(`Normalizer: ${input.report.normalizerVersion}`)
+  if (input.report.wireVersion === "source-authorization-assessment-wire/v5") lines.push(`Model policy result: ${JSON.stringify(input.report.wireResult)}`)
   if (input.report.repository) lines.push(`Source: ${input.report.repository}@${input.report.sourceRef ?? "unknown"}`)
   if (input.report.analysisProfile) {
     lines.push(`Analysis profile: ${input.report.analysisProfile.id} (${input.report.analysisProfile.origin})`)
@@ -541,7 +545,7 @@ export async function executeLocalAuthorizationRun(input: {
   arm?: AuthorizationRenderArm
   studyArm?: AuthorizationStudyArm
   method?: AuthorizationMethod
-  wireVersion?: "legacy" | "v4"
+  wireVersion?: "legacy" | "v4" | "v5"
   executionOptions?: RunAuthorizationTaskOptions
   providerFactory?: LocalAuthorizationProviderFactory
   env?: LocalAuthorizationRunnerEnv
@@ -715,6 +719,7 @@ export async function executeLocalAuthorizationRun(input: {
       ...(run.finalKind ? { finalKind: run.finalKind } : {}),
       ...(artifact ? {
         canonicalResult: artifact.result,
+        ...(input.wireVersion === "v5" ? { wireResult: artifact.wireResult, normalizerVersion: artifact.normalization?.normalizerVersion } : {}),
         relationCoverage: artifact.relationCoverage ?? [],
         coverageValidation: artifact.coverageValidation,
         ...(artifact.conditionAnalysis
@@ -858,6 +863,7 @@ async function validateTerminalSession(input: {
       || run.finalKind !== report.finalKind
       || (report.wireVersion !== undefined && run.wireVersion !== report.wireVersion)
       || !samePersistedValue(artifact?.result, report.canonicalResult)
+      || (report.wireVersion === "source-authorization-assessment-wire/v5" && (!samePersistedValue(artifact?.wireResult, report.wireResult) || !samePersistedValue(artifact?.normalization?.normalizerVersion, report.normalizerVersion)))
       || !samePersistedValue(artifact ? artifact.relationCoverage ?? [] : undefined, report.relationCoverage)
       || !samePersistedValue(artifact?.coverageValidation, report.coverageValidation)
       || !samePersistedValue(artifact?.conditionAnalysis, report.conditionAnalysis)
@@ -983,10 +989,10 @@ function parseMethod(value: string | undefined): AuthorizationMethod | undefined
   throw new LocalAuthorizationRunnerError("method must be plain, ledger, or conditions.")
 }
 
-function parseWire(value: string | undefined): "legacy" | "v4" {
+function parseWire(value: string | undefined): "legacy" | "v4" | "v5" {
   if (value === undefined || value === "legacy") return "legacy"
-  if (value === "v4") return value
-  throw new LocalAuthorizationRunnerError("wire must be legacy or v4; legacy selects v1/v2/v3 by method.")
+  if (value === "v4" || value === "v5") return value
+  throw new LocalAuthorizationRunnerError("wire must be legacy, v4 or v5; legacy selects v1/v2/v3 by method.")
 }
 
 function helpText(): string {
@@ -994,9 +1000,9 @@ function helpText(): string {
     "Authorization local assessment",
     "",
     "Commands:",
-    "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4] [--arm=N|B|D]",
-    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--wire=legacy|v4] [--arm=N|B|D]",
-    "  compare --previous=<session> --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4]",
+    "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5] [--arm=N|B|D]",
+    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5] [--arm=N|B|D]",
+    "  compare --previous=<session> --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5]",
     "  inspect --out=<output-root-or-session>",
     "",
     "Only run initializes a provider. Every run creates a new immutable session; inspect never resends it.",

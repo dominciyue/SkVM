@@ -28,7 +28,7 @@ export function createExecutionDependencies(loaded:ValidInput, checked:LocalAuth
 }
 type Snapshot=ReturnType<typeof createExecutionDependencies>
 
-export async function compareAuthorizationInput(previousSessionPath:string,inputPath:string,options:{method?:AuthorizationMethod;wireVersion?:"legacy"|"v4"}={}) {
+export async function compareAuthorizationInput(previousSessionPath:string,inputPath:string,options:{method?:AuthorizationMethod;wireVersion?:"legacy"|"v4"|"v5"}={}) {
   const {inspectLocalAuthorizationOutput,checkLocalAuthorizationInput}=await import("./local-run.ts")
   const previous=await inspectLocalAuthorizationOutput(previousSessionPath)
   const loaded=await loadLocalAuthorizationInput(inputPath)
@@ -39,7 +39,8 @@ export async function compareAuthorizationInput(previousSessionPath:string,input
   const required=["task","scenarios","sourceBundle","sourceRoot","sources","profile","requirements","conditionRequest","normalizerVersion","method","wireVersion","arm","resultContract","promptSha256"] as const
   const missingDependencies=old?.schemaVersion!=="authorization-execution-dependencies/v1" ? ["execution-dependencies/v1"] : required.filter(k=>!Object.hasOwn(old!,k))
   const method=options.method??old?.method??previous.methodSelection?.effective
-  const wireVersion=options.wireVersion??((old?.wireVersion??previous.wireVersion)==="source-authorization-assessment-wire/v4"?"v4":"legacy")
+  const previousWire=old?.wireVersion??previous.wireVersion
+  const wireVersion=options.wireVersion??(previousWire==="source-authorization-assessment-wire/v5"?"v5":previousWire==="source-authorization-assessment-wire/v4"?"v4":"legacy")
   if(!method)missingDependencies.push("method")
   if(!old?.wireVersion&&!previous.wireVersion)missingDependencies.push("wireVersion")
   const checked=await checkLocalAuthorizationInput(inputPath,old?.arm??previous.arm??"B",method,wireVersion)

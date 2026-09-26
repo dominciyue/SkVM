@@ -9,10 +9,11 @@ import { AuthorizationWireCitationV1Schema, normalizeAuthorizationWireResult, ty
 
 const Text = z.string().trim().min(1)
 const Fact = z.object({ id: Text, kind: z.enum(["entry", "binding", "control", "effect", "condition"]), statement: Text, citations: z.array(AuthorizationWireCitationV1Schema).min(1) }).strict()
-const Coverage = RelationCoverageSchema.omit({ obligationId: true, factPointers: true }).extend({ factIds: z.array(Text) }).strict()
+export const CompactCoverageSchema = RelationCoverageSchema.omit({ obligationId: true, factPointers: true }).extend({ factIds: z.array(Text) }).strict()
 const Branch = ConditionalOutcomeSchema.omit({ obligationId: true, factPointers: true }).extend({ factIds: z.array(Text) }).strict()
-const Condition = ConditionAnalysisSchema.omit({ obligationId: true, branches: true }).extend({ branches: z.array(Branch).min(1) }).strict()
-const Item = z.object({ obligationId: Text, conclusion: z.enum(["source_supported_failure", "source_refuted", "unknown"]), explanation: Text, facts: z.array(Fact), decisiveMissingFacts: z.array(Text), suggestedObservations: z.array(Text) }).strict()
+export const CompactConditionSchema = ConditionAnalysisSchema.omit({ obligationId: true, branches: true }).extend({ branches: z.array(Branch).min(1) }).strict()
+export const CompactItemSchema = z.object({ obligationId: Text, conclusion: z.enum(["source_supported_failure", "source_refuted", "unknown"]), explanation: Text, facts: z.array(Fact), decisiveMissingFacts: z.array(Text), suggestedObservations: z.array(Text) }).strict()
+const Item = CompactItemSchema, Coverage = CompactCoverageSchema, Condition = CompactConditionSchema
 const Plain = z.object({ results: z.array(Item) }).strict()
 const Ledger = z.object({ results: z.array(Item.extend({ coverage: z.array(Coverage) }).strict()) }).strict()
 const Conditions = z.object({ results: z.array(Item.extend({ coverage: z.array(Coverage), condition: Condition }).strict()) }).strict()

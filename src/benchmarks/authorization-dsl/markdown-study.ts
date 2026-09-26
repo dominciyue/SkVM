@@ -7,8 +7,8 @@ import { validMarkdownStudyInput } from "../../task-dsl/authorization/render.ts"
 import type { MarkdownStudyInput } from "../../task-dsl/authorization/render.ts"
 export type { MarkdownStudyInput } from "../../task-dsl/authorization/render.ts"
 export type ExternalReuseArm = "markdown" | "dsl"
-export async function executeMarkdownStudyRun(input: Omit<Parameters<typeof executeLocalAuthorizationRun>[0],"method"|"wireVersion"|"arm"|"studyArm"> & {markdown:MarkdownStudyInput}) {
-  const {markdown, ...local} = input
+export async function executeMarkdownStudyRun(input: Omit<Parameters<typeof executeLocalAuthorizationRun>[0],"method"|"wireVersion"|"arm"|"studyArm"> & {markdown:MarkdownStudyInput; wireVersion?: "v4" | "v5"}) {
+  const {markdown, wireVersion = "v4", ...local} = input
   if (validMarkdownStudyInput(markdown)) {
     let exists = false
     try { exists = (await stat(path.join(input.outRoot,"sessions.jsonl"))).isFile() }
@@ -21,6 +21,7 @@ export async function executeMarkdownStudyRun(input: Omit<Parameters<typeof exec
       const hash = (s:string) => createHash("sha256").update(s).digest("hex")
       const bundle = JSON.parse(await readFile(path.join(report.sessionPath,"source-bundle.json"),"utf8"))
       if (loaded.status !== "valid" || descriptor.model !== input.model
+          || descriptor.wireVersion !== `source-authorization-assessment-wire/${wireVersion}`
           || descriptor.inputSha256 !== hash(loaded.rawInput)
           || retained.sha256 !== hash(markdown.instructions)
           || retained.instructions !== markdown.instructions || retained.instructionOrigin !== markdown.instructionOrigin
@@ -32,5 +33,5 @@ export async function executeMarkdownStudyRun(input: Omit<Parameters<typeof exec
       return report
     }
   }
-  return executeLocalAuthorizationRun({...local,method:"plain",wireVersion:"v4",arm:"B",researchInstructions:markdown})
+  return executeLocalAuthorizationRun({...local,method:"plain",wireVersion,arm:"B",researchInstructions:markdown})
 }

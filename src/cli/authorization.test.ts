@@ -184,6 +184,35 @@ function dependencies(
 }
 
 describe("authorization CLI", () => {
+  it("runs and inspects explicit v5 and compares with the same protocol by default", async () => {
+    const fixture = await makeFixture({ conditionRequest: true })
+    const calls = { factory: 0, provider: 0 }, stdout: string[] = [], stderr: string[] = []
+    const deps = dependencies(fixture.inputPath, calls, stdout, stderr)
+    deps.providerFactory = async () => {
+      const provider = await mockProvider(fixture.inputPath, calls)
+      const complete = provider.complete.bind(provider)
+      provider.complete = async params => {
+        const response = await complete(params), old = response.toolCalls[0]!.arguments as any, item = old.results[0]
+        response.toolCalls[0]!.arguments = { results: [{ obligationId: item.obligationId, policyStatus: "satisfied", explanation: item.explanation, facts: Object.entries(item.facts).flatMap(([kind, facts]) => (facts as any[]).map((fact, i) => ({ ...fact, id: `${kind}${i}`, kind }))), decisiveMissingFacts: [], suggestedObservations: [] }] }
+        return response
+      }
+      return provider
+    }
+    for (const method of ["plain", "ledger", "conditions"]) {
+      expect(await runAuthorizationCli(["check", `--input=${fixture.inputPath}`, `--method=${method}`, "--wire=v5"], deps)).toBe(0)
+      expect(JSON.parse(stdout.at(-1)!).wireVersion).toBe("source-authorization-assessment-wire/v5")
+    }
+    expect(await runAuthorizationCli(["run", `--input=${fixture.inputPath}`, "--method=plain", "--wire=v5", "--model=mock/model", `--out=${fixture.outRoot}`], deps)).toBe(0)
+    const report = JSON.parse(stdout.at(-1)!)
+    expect(await runAuthorizationCli(["inspect", `--out=${fixture.outRoot}`], deps)).toBe(0)
+    const inspected = JSON.parse(stdout.at(-1)!)
+    expect(inspected.normalizerVersion).toBe("authorization-wire-normalizer/v5")
+    expect(inspected.wireResult.results[0].policyStatus).toBe("satisfied")
+    expect(inspected.canonicalResult.results[0].conclusion).toBe("source_refuted")
+    expect(await runAuthorizationCli(["compare", `--previous=${report.sessionPath}`, `--input=${fixture.inputPath}`], deps)).toBe(0)
+    expect(JSON.parse(stdout.at(-1)!).status).toBe("current")
+    expect(calls).toEqual({ factory: 1, provider: 1 })
+  })
   it("keeps requested condition questions public in plain, ledger and conditions on the same v4 base", async () => {
     const fixture=await makeFixture({conditionRequest:true})
     const calls={factory:0,provider:0},stdout:string[]=[],stderr:string[]=[]
