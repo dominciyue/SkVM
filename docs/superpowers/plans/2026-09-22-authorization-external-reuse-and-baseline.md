@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、SkVM CLI/provider、认证 GitHub CLI。不上新平台、UI、通用模板解释器或仓库自动漏洞发现系统。
 
-- 日期：2026-09-26；revision 2；状态：`resume-authorized`。已有 AB0–AB8、16条真实结果保持；从 AB9 继续，不重跑生成。
+- 日期：2026-09-27；revision 2；状态：`verified-awaiting-publication`。AB0–AB12完成；16条真实结果原样保留，未重跑生成。
 - 基线：`858e4778e3c84b19ee866d7cbd2d3556a1d6c334`；接手以任务书登记后的最新HEAD为准。
 - 结果根：`results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/`。
 - 研究正文：[§7.25](../../skill-ir/skill-dsl-research.md#725-ab-外部复用与普通说明对照)。所有本轮问题、设计修订和结论归回该节。
@@ -182,24 +182,24 @@ compare在DSL变化任务中真实运行；给MD组同一原始文件diff能力�
 - 结果：16 provider calls，known input/output/cache-read 为146,886/17,566/6,528，actualUSD unknown；原始canonical labels为14 `source_refuted`、2 `source_supported_failure`，后一项保留到AB9语义评价，不提前改写。
 
 ### AB9：评价与一次共享修订
-- [ ] 所有生成结束后按同一rubric评价，独立点验收益决定项、错误和unknown；保留初评与裁决理由。
-- [ ] 只有明确共享缺陷才追加红绿修复与至多4单元；可离线验证的机械修订优先离线，不洗初轮数字。
-- [ ] 输出每项目/操作/原变/臂质量与成本，不把多个运行当成多个独立skill家族。
+- [x] 所有生成结束后按同一rubric评价，独立点验收益决定项、错误和unknown；保留初评与裁决理由。
+- [x] 只有明确共享缺陷才追加红绿修复与至多4单元；可离线验证的机械修订优先离线，不洗初轮数字。
+- [x] 输出每项目/操作/原变/臂质量与成本，不把多个运行当成多个独立skill家族。
 
 ### AB10：判断外部复用与方法价值
-- [ ] 回答同包/同schema/同核心代码复用了什么，准备了什么，哪些修改是新项目适配；区分未改核心迁移和事后修方法。
-- [ ] MD若同样好且负担更小，推荐MD或轻DSL并保留有用helper；DSL若减少遗漏/同步改动，指出具体例子与代价。结论不预设positive。
-- [ ] 将类别共同语义、近似反例与能力边界补入统一研究正文，只有新证据才改分类，不启动大规模重新搜skill。
+- [x] 回答同包/同schema/同核心代码复用了什么，准备了什么，哪些修改是新项目适配；区分未改核心迁移和事后修方法。
+- [x] MD若同样好且负担更小，推荐MD或轻DSL并保留有用helper；DSL若减少遗漏/同步改动，指出具体例子与代价。结论不预设positive。
+- [x] 将类别共同语义、近似反例与能力边界补入统一研究正文，只有新证据才改分类，不启动大规模重新搜skill。
 
 ### AB11：普通交付与有限验证
-- [ ] 可复用包在仓外普通目录或临时目录按真实路径check/run结果inspect/compare，不能依赖历史results绝对路径；复用已运行结果不追加付费。
-- [ ] 运行相关聚合测试与`bun run typecheck`，窄只读核验公共信息公平、来源/答案隔离、无隐式repo分支；不重做历史全量审计。
-- [ ] 报告尚需用户提供的政策/源码职责、runtime安装前提、当前模式选择，保留compat默认。
+- [x] 可复用包在仓外普通目录或临时目录按真实路径check/run结果inspect/compare，不能依赖历史results绝对路径；复用已运行结果不追加付费。
+- [x] 运行相关聚合测试与`bun run typecheck`，窄只读核验公共信息公平、来源/答案隔离、无隐式repo分支；不重做历史全量审计。
+- [x] 报告尚需用户提供的政策/源码职责、runtime安装前提、当前模式选择，保留compat默认。
 
 ### AB12：统一研究、状态与复盘
-- [ ] 研究§7.25写实际问题→证据→解决→效果，更新当前结论；同步usage/developer-guide/current-status/plan/spec与任务书执行项。
-- [ ] `python scripts/check_skill_ir_doc_links_test.py`、`python scripts/check_skill_ir_doc_links.py --root .`；本轮JSON解析、一次summary离线重算、归属/敏感信息检查。
-- [ ] 根conversation_log只记阶段事实，机器资料集中一根；不新建一轮一份研究正文。
+- [x] 研究§7.25写实际问题→证据→解决→效果，更新当前结论；同步usage/developer-guide/current-status/plan/spec与任务书执行项。
+- [x] `python scripts/check_skill_ir_doc_links_test.py`、`python scripts/check_skill_ir_doc_links.py --root .`；本轮JSON解析、一次summary离线重算、归属/敏感信息检查。
+- [x] 根conversation_log只记阶段事实，机器资料集中一根；不新建一轮一份研究正文。
 
 ### AB13：发布与结束
 - [ ] 只提交本轮归属文件，推送origin/skill-ir-aot并核对远端；七项原修改和历史untracked保持。
@@ -227,9 +227,9 @@ compare在DSL变化任务中真实运行；给MD组同一原始文件diff能力�
 
 ### 8.2 恢复步骤
 
-- [ ] R0：读取本书、当前状态和研究§7.25，确认16条终态与源文件齐全。以本地实际文件为准，不依赖已失效的processSession 7020。只做本轮检查，不再复跑AB0–AB8。
-- [ ] R1：对本轮未提交原始runs与辅助产物做一次归属/敏感信息检查，精确stage并提交保存；不stage整个results或全仓。此提交仅归档，不提前填写语义成绩。核对`run-panel.ts --check`会写final-checks，若内容不变无需重复运行它。
-- [ ] R2：完成AB9的16条逐criterion评价，保留具体答案指针与源码理由。独立审查只覆盖争议、错误和收益决定项。生成`evaluator/review-decisions.json`后运行以下命令；首轮与共享修订分开。
+- [x] R0：读取本书、当前状态和研究§7.25，确认16条终态与源文件齐全。以本地实际文件为准，不依赖已失效的processSession 7020。只做本轮检查，不再复跑AB0–AB8。
+- [x] R1：对本轮未提交原始runs与辅助产物做一次归属/敏感信息检查，精确stage并提交保存；不stage整个results或全仓。此提交仅归档，不提前填写语义成绩。核对`run-panel.ts --check`会写final-checks，若内容不变无需重复运行它。
+- [x] R2：完成AB9的16条逐criterion评价，保留具体答案指针与源码理由。独立审查只覆盖争议、错误和收益决定项。生成`evaluator/review-decisions.json`后运行以下命令；首轮与共享修订分开。
 
 ```powershell
 bun ./results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/evaluate-panel.ts
@@ -238,7 +238,7 @@ bun ./results/skill-ir/skill-dsl-research/development/authorization-external-reu
 
 现有replay会重写派生review文件；它不修改原始run/result。若需要只读replay，先以测试说明差异再做窄修复，不能为“严格”另建一套回放平台。
 
-- [ ] R3：继续AB10–AB11，判断Markdown/DSL的作者负担、复用层次、质量和开销。普通用户包验证属于AB完整责任，不分给AC/AD。Markdown是研究入口，普通CLI无需新增任意prompt override。模型标签错误若没有可定位的共享实现缺陷，照实评价并交付，不硬凑追加运行；总预算仍是16初轮+至多4修订。
+- [x] R3：继续AB10–AB11，判断Markdown/DSL的作者负担、复用层次、质量和开销。普通用户包验证属于AB完整责任，不分给AC/AD。Markdown是研究入口，普通CLI无需新增任意prompt override。模型标签错误若没有可定位的共享实现缺陷，照实评价并交付，不硬凑追加运行；总预算仍是16初轮+至多4修订。
 - [ ] R4：AB12–AB13照原合同完成。保留9月23日文档治理结构，避免回填历史流水。相关测试/typecheck与一次文档扫描足够，不通过长时反复核验补时长。
 
 ### 8.3 三个完整任务，独立目标与所有权
@@ -262,3 +262,13 @@ AB执行完自身研究后按已派发任务ID用`wait_threads`等完成/需关�
 三个主执行任务均`gpt-6-astra / ultra`。用户请求1.5× speed；派发宿主已查到`service_tier="priority"`，保持现有Fast配置，不修改全局其他设置。task API仅能显式指定model/thinking，记录实际返回或会话上下文中的service tier；不能只在prompt写“1.5x”就声称已生效，也不保证精确墙钟倍速。原始被测Sol与作者成本不改。
 
 任务书与状态文档本次修订由规划任务提交；之后共享文档和Git索引只交给AB发布者。侧任务无模型业务实验或新来源样本，避免竞争provider额度。遇到真实配额中断，保留nextAction、未提交文件清单和终态，不误标completed；收到恢复指令后接着做。
+
+## 九、恢复执行记录（2026-09-26–27）
+
+- R1归档323个原始/辅助文件，索引字节与工作树一致；定向凭据扫描与JSON解析通过，七项保护源码哈希保持，提交`c2fe823d`。原始CRLF和源码空白不做格式清洗。
+- AB9冻结逐项评价：MD 8 full；DSL 6 full、2标签错误；实际授权推理、必要控制和解释均16/16。初评/独立点验/裁决分存，未定位共享生成缺陷，追加单元0。离线summary SHA为`148dc88879dc46a623d26c297add02d85c00ebf0f9e70fd78692b784a558b917`。
+- AB10同包/schema/核心有界复用成立，方法收益未建立；DSL分析token多12.0%、累计响应耗时少8.5%，作者负担方向不一致，USD/真人时间未知。
+- AB11八份DSL输入在仓外临时目录通过check、保留wire离线执行、inspect、compare，原结果payload一致；这是交付验证，新增模型观察/网络调用0。八状态真实prompt parity通过；聚合测试待AC ready后执行。
+- AD白名单12文件与11份digest核对通过，24测试/147断言及脚本严格类型检查通过，归属提交`ffc6578e`；AC待ready后整合。
+- AC随后ready，13项文件及12份digest匹配，归属提交`8f27afb3`；集中授权测试202/202、1,919断言，编辑有限差分105/12及全仓typecheck通过。AD在更新后的三项catalog上check为0 diagnostics。侧任务均已停止写入，无待修缺陷。
+- AB12文档测试12/12；12,377文件扫描broken/legacy/governance errors均0，107项历史引用和5项既有长度软警告保留。AB结果592 JSON、66 JSONL/190条记录均解析成功；定向凭据扫描0，七项保护哈希和323项归档原字节保持。最终核验及侧任务归属见结果根`final-verification.json`、`integration.json`。

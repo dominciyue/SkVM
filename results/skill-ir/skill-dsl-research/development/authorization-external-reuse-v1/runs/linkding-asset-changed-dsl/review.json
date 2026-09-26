@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "ab-linkding-asset-changed",
+  "taskId": "ab-linkding-asset-changed",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "33d20f19bd02512c28d32e85985ba6299ccc185eee984c058145a93a44e45283",
+  "rubricVersion": "ab-rubric-v3",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "AB-development-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "decision-control",
+      "status": "supported",
+      "reason": "All owner/authenticated-shared/public-sharing branches are false for the supplied anonymous non-owner with public sharing disabled; access.py:13-21 raises Http404.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/assets.py",
+          "startLine": 8,
+          "endLine": 22
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 7,
+          "endLine": 25
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 46,
+          "endLine": 53
+        }
+      ],
+      "oracleRule": "Actual disposition is deny. view calls asset_read before stream_asset_file and response; GET read permits owner, authenticated sharing or public sharing; anonymous nonowner with public sharing false is denied; asset is bound by ID then linked bookmark_id is checked"
+    },
+    {
+      "criterionId": "binding-effect",
+      "status": "supported",
+      "reason": "The asset ID is bound to its associated bookmark; the bookmark read guard blocks streaming before assets.py:11.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/assets.py",
+          "startLine": 8,
+          "endLine": 22
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 7,
+          "endLine": 25
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 46,
+          "endLine": 53
+        }
+      ],
+      "oracleRule": "view calls asset_read before stream_asset_file and response; GET read permits owner, authenticated sharing or public sharing; anonymous nonowner with public sharing false is denied; asset is bound by ID then linked bookmark_id is checked"
+    },
+    {
+      "criterionId": "scenario-explanation",
+      "status": "supported",
+      "reason": "The answer explicitly evaluates all three branches and explains why anonymous status changes the decision.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/assets.py",
+          "startLine": 8,
+          "endLine": 22
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 7,
+          "endLine": 25
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 46,
+          "endLine": 53
+        }
+      ],
+      "oracleRule": "Stated scenario: {'role': 'anonymous reader', 'facts': ['Caller is not authenticated or the bookmark owner', 'GET request'], 'relation': 'anonymous non-owner of the same shared bookmark asset', 'expectation': 'deny'}. view calls asset_read before stream_asset_file and response; GET read permits owner, authenticated sharing or public sharing; anonymous nonowner with public sharing false is denied; asset is bound by ID then linked bookmark_id is checked"
+    },
+    {
+      "criterionId": "bounded-evidence",
+      "status": "supported",
+      "reason": "The explanation separates supplied identity/settings/framework assumptions from source observations, limits the claim to the supplied path, and does not invent decisive missing facts. No deployed execution or repository completeness is claimed.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/assets.py",
+          "startLine": 8,
+          "endLine": 22
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 7,
+          "endLine": 25
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 46,
+          "endLine": 53
+        }
+      ],
+      "oracleRule": "Standard Django behavior and stated identity/settings are assumptions; no deployed execution verified. Missing unrelated dependencies do not force unknown on this bounded authorization reachability question."
+    },
+    {
+      "criterionId": "http-detail",
+      "status": "supported",
+      "reason": "The authored explanation or fact statements explicitly describe the relevant not-found/PermissionDenied, streaming response, or redirect behavior. Exact numeric HTTP status is not required; source quote text alone is not credited.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/assets.py",
+          "startLine": 8,
+          "endLine": 22
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 7,
+          "endLine": 25
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 46,
+          "endLine": 53
+        }
+      ],
+      "oracleRule": "Exact HTTP detail is not required by the public task; do not conflate a source quote containing status text with answer explanation."
+    }
+  ],
+  "dispositionReview": {
+    "status": "contradicted",
+    "reason": "Canonical label source_supported_failure contradicts enforced policy and the source-supported deny reasoning. The original label is retained; prose correctness does not repair the delivered label.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "bookmarks/views/assets.py",
+        "startLine": 8,
+        "endLine": 22
+      },
+      {
+        "path": "bookmarks/views/access.py",
+        "startLine": 7,
+        "endLine": 25
+      },
+      {
+        "path": "bookmarks/views/access.py",
+        "startLine": 46,
+        "endLine": 53
+      }
+    ],
+    "oracleRule": "Policy enforced; actual deny. view calls asset_read before stream_asset_file and response; GET read permits owner, authenticated sharing or public sharing; anonymous nonowner with public sharing false is denied; asset is bound by ID then linked bookmark_id is checked"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer explicitly limits itself to supplied source and assumptions; it makes no deployment or whole-repository claim.",
+    "answerLocation": "/results/0/explanation",
+    "sourceLocations": [
+      {
+        "path": "bookmarks/views/assets.py",
+        "startLine": 8,
+        "endLine": 22
+      },
+      {
+        "path": "bookmarks/views/access.py",
+        "startLine": 7,
+        "endLine": 25
+      },
+      {
+        "path": "bookmarks/views/access.py",
+        "startLine": 46,
+        "endLine": 53
+      }
+    ],
+    "oracleRule": "Only supplied source and declared state; no deployment or repository completeness claim."
+  }
+}

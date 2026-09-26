@@ -6,12 +6,14 @@
 
 | 你要回答的问题 | 先看 | 结果边界 |
 |---|---|---|
-| 现在进行到哪一步？ | [当前状态](current-status.md) | 唯一实时状态；AB当前为16/16生成完成，评价待执行 |
+| 现在进行到哪一步？ | [当前状态](current-status.md) | 唯一实时状态；AB评价完成，独立工程集成与发布另列 |
 | 这次实验拿到了什么？ | [实验目录](../../results/skill-ir/experiment-catalog.json) | 机器可读摘要；原始运行仍以results为准 |
 | 某个主张能否对外说？ | [证据索引](evidence-index.md) | 主张、最窄分母、禁止外推 |
 | 如何复现实验或改代码？ | [当前计划](skill-ir-aot-optimization-plan.md) → [开发指南](developer-guide.md) | 计划和组件职责，不复制运行流水 |
 
 当前项目的结果以 development 证据为主。`actualUSD`、真人耗时和跨任务泛化没有记录时保持 `unknown`；实验原始输入、响应、引用和差异报告集中在 `results/skill-ir/`，不在正文中重复。
+
+维护者可用[实验目录工具](../../scripts/experiment-catalog/README.md)离线检查登记路径、按ID/阶段查询或导出新摘要。工具只读取导航信息，摘要带读取版本与时间，不评分或改写原始证据。
 
 ## 从这里开始
 

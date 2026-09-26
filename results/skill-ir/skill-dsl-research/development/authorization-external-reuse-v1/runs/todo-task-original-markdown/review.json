@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "ab-todo-task-original",
+  "taskId": "ab-todo-task-original",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "0df6789b03e0d2a6c662fe49eaa6643ae72112ad754c377cb8a688fed7c4aba7",
+  "rubricVersion": "ab-rubric-v3",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "AB-development-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "decision-control",
+      "status": "supported",
+      "reason": "delete_task.py:27-34 requires creator OR superuser OR assignee OR group membership; the supplied caller has none. TODO_STAFF_ONLY=False passes only the outer gate.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "todo/views/delete_task.py",
+          "startLine": 12,
+          "endLine": 42
+        },
+        {
+          "path": "todo/utils.py",
+          "startLine": 17,
+          "endLine": 27
+        },
+        {
+          "path": "todo/defaults.py",
+          "startLine": 20,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "Actual disposition is deny. authenticated/staff_check gate followed by POST; task selected by ID and deletion permitted for creator OR superuser OR assignee OR group member; explicit TODO_STAFF_ONLY False permits authenticated nonstaff through staff_check; explicit settings override default"
+    },
+    {
+      "criterionId": "binding-effect",
+      "status": "supported",
+      "reason": "task_id selects the Task; its list group and assigned_to relation bind the caller check; PermissionDenied precedes task.delete().",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "todo/views/delete_task.py",
+          "startLine": 12,
+          "endLine": 42
+        },
+        {
+          "path": "todo/utils.py",
+          "startLine": 17,
+          "endLine": 27
+        },
+        {
+          "path": "todo/defaults.py",
+          "startLine": 20,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "authenticated/staff_check gate followed by POST; task selected by ID and deletion permitted for creator OR superuser OR assignee OR group member; explicit TODO_STAFF_ONLY False permits authenticated nonstaff through staff_check; explicit settings override default"
+    },
+    {
+      "criterionId": "scenario-explanation",
+      "status": "supported",
+      "reason": "The answer distinguishes the disabled global staff gate from the remaining object-level disjunction and applies all negative role facts.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "todo/views/delete_task.py",
+          "startLine": 12,
+          "endLine": 42
+        },
+        {
+          "path": "todo/utils.py",
+          "startLine": 17,
+          "endLine": 27
+        },
+        {
+          "path": "todo/defaults.py",
+          "startLine": 20,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "Stated scenario: {'role': 'authenticated non-staff ordinary user', 'facts': ['Not superuser', 'Not task creator', 'Not assigned to task', 'Not member of task list group', 'POST request'], 'relation': 'unrelated to task and group', 'expectation': 'deny'}. authenticated/staff_check gate followed by POST; task selected by ID and deletion permitted for creator OR superuser OR assignee OR group member; explicit TODO_STAFF_ONLY False permits authenticated nonstaff through staff_check; explicit settings override default"
+    },
+    {
+      "criterionId": "bounded-evidence",
+      "status": "supported",
+      "reason": "The explanation separates supplied identity/settings/framework assumptions from source observations, limits the claim to the supplied path, and does not invent decisive missing facts. No deployed execution or repository completeness is claimed.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "todo/views/delete_task.py",
+          "startLine": 12,
+          "endLine": 42
+        },
+        {
+          "path": "todo/utils.py",
+          "startLine": 17,
+          "endLine": 27
+        },
+        {
+          "path": "todo/defaults.py",
+          "startLine": 20,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "Standard Django behavior and stated identity/settings are assumptions; no deployed execution verified. Missing unrelated dependencies do not force unknown on this bounded authorization reachability question."
+    },
+    {
+      "criterionId": "http-detail",
+      "status": "supported",
+      "reason": "The authored explanation or fact statements explicitly describe the relevant not-found/PermissionDenied, streaming response, or redirect behavior. Exact numeric HTTP status is not required; source quote text alone is not credited.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "todo/views/delete_task.py",
+          "startLine": 12,
+          "endLine": 42
+        },
+        {
+          "path": "todo/utils.py",
+          "startLine": 17,
+          "endLine": 27
+        },
+        {
+          "path": "todo/defaults.py",
+          "startLine": 20,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "Exact HTTP detail is not required by the public task; do not conflate a source quote containing status text with answer explanation."
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The source enforces the declared deny expectation, so source_refuted correctly refutes a policy failure.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "todo/views/delete_task.py",
+        "startLine": 12,
+        "endLine": 42
+      },
+      {
+        "path": "todo/utils.py",
+        "startLine": 17,
+        "endLine": 27
+      },
+      {
+        "path": "todo/defaults.py",
+        "startLine": 20,
+        "endLine": 28
+      }
+    ],
+    "oracleRule": "Policy enforced; actual deny. authenticated/staff_check gate followed by POST; task selected by ID and deletion permitted for creator OR superuser OR assignee OR group member; explicit TODO_STAFF_ONLY False permits authenticated nonstaff through staff_check; explicit settings override default"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer explicitly limits itself to supplied source and assumptions; it makes no deployment or whole-repository claim.",
+    "answerLocation": "/results/0/explanation",
+    "sourceLocations": [
+      {
+        "path": "todo/views/delete_task.py",
+        "startLine": 12,
+        "endLine": 42
+      },
+      {
+        "path": "todo/utils.py",
+        "startLine": 17,
+        "endLine": 27
+      },
+      {
+        "path": "todo/defaults.py",
+        "startLine": 20,
+        "endLine": 28
+      }
+    ],
+    "oracleRule": "Only supplied source and declared state; no deployment or repository completeness claim."
+  }
+}

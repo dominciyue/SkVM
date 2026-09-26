@@ -22,6 +22,12 @@
 - `executeMarkdownStudyRun({...local,markdown})`：AB研究入口，独立作者原文替换声明/说明，plain/v4与普通执行共用源码、合同、provider、修复和计量，不把manifest默认分析问题暗中追加给MD。保存原文、来源、路径、SHA与prompt分节；空白或未知来源在provider前拒绝。已存在输出只inspect，同输入/模型/源码/Markdown身份才返回原结果，未知完成不重发。普通CLI无prompt override。模型生成均完成后才消费evaluator。
 - 可复用薄包见[SKILL](../../examples/authorization-assessment/reusable-skill/SKILL.md)，依赖已有SkVM/Bun；AB研究数据和脚本集中于[结果根](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1)。相关验证包含`source-location.test.ts`、`authoring-compose.test.ts`和`markdown-study.test.ts`，修改共享宿主后运行授权聚合与typecheck。
 
+AB离线复现使用结果根的`evaluate-panel.ts --replay`，绑定冻结rubric与review-decisions中的原始响应SHA；它会重写派生review，不改run/result且不调用provider。`verify-prompt-parity.ts --real`核对八状态的作者原文、共同源码与合同。`verify-portable-recorded.ts`把作者输入/源码放入普通临时目录，经注入保留wire完成执行、公共CLI check/inspect/compare，并核对结果payload；这是交付验证，不是新增模型结果。标签、实际授权推理、必要语义与解释分别记录，不能用正文正确覆盖错误canonical标签。
+
+AC编辑资产为[`authoring-v2.schema.json`](../../schemas/authorization/authoring-v2.schema.json)，完整用法见[编辑示例](../../examples/authorization-assessment/editor-support/README.md)。`editor-support/schema.ts`以已有Ajv提供`loadAuthoringEditorSchema()`及`checkEditorStructure(value)`，返回JSON Pointer诊断，不变异输入或访问provider。严格声明不能加入`$schema`，用编辑器`json.schemas`关联本地资产。`bun ./src/benchmarks/authorization-dsl/editor-support/verify.ts`对实际Zod结构及有限正反例检查漂移；runtimeOnlyChecks列明引用、行号顺序、政策就绪、Unicode与真实文件等剩余检查。新增refinement仍需维护者同步清单和反例，有限差分不证明完整语义等价。修改时运行该目录测试、verify和授权聚合/typecheck。
+
+实验导航维护使用[`scripts/experiment-catalog`](../../scripts/experiment-catalog/README.md)的独立check/show/export入口。只读解析catalog及显式artifact路径元数据，保留不同度量、unknown/null/0和扩展字段；export独占创建新文件，拒绝覆盖或写入登记artifact目录。摘要包含读取时间与SHA，不能替代原始结果或被视为最终实时状态。该脚本目录不在全仓typecheck范围，修改时同时运行README列出的严格脚本类型检查；无新长期文档成员。
+
 - `parseAuthorizationTask(input)`：strict 解析 canonical declaration，错误带字段路径。
 - `compileAuthorizationTask(task)`：解析引用与政策状态，只把显式 obligation × entry 展开为稳定 `author::entry` ID。
 - `AnalysisRequirementSchema` / `compileAnalysisRequirements(task, requirements)`：strict 解析六类公开分析问题，并把作者显式 requirement × authored obligation 映射到 runnable expanded obligation；同义务检查 prerequisite 和 cycle，局部错误不抹掉独立有效 ledger。

@@ -58,6 +58,8 @@ The [reusable skill package](../examples/authorization-assessment/reusable-skill
 
 The source-visible authorization capability is available through an opt-in top-level command for an ordinary task and explicit source files. It remains a bounded development capability, not a repository-wide scanner, target executor, patch generator, or production security decision.
 
+The package requires an existing SkVM installation containing this command, or a Bun checkout with dependencies installed. Copy the package directory to an ordinary workspace and use `bun <checkout>/src/index.ts authorization` in place of `skvm authorization` when running from source. Supply the policy and its authority, fixed source revision, relevant control-path files, caller/resource facts, and entry ranges yourself.
+
 ```powershell
 skvm authorization init --out=./assessment.json
 skvm authorization check --input=./assessment.json
@@ -66,6 +68,8 @@ skvm authorization inspect --out=./.skvm/authorization-demo
 ```
 
 For new authoring, use the complete [authoring-v2.json](../examples/authorization-assessment/authoring-v2.json) example. Write `taskId`, the natural `request`, `repository`, fixed `sourceRef`, relative `sourceRoot`, explicit `sources`, and named dictionaries `policies`, `principals`, `resources`, `entries`, `scenarios`. No internal IDs are needed. Policy text/location/revision/acceptance/reason and each scenario's relation/operation/expectation belong to the author; the program never derives policy from source. Each scenario names its principal, resource, policy and entries. Optional facts and capabilities are string arrays; omit them only when not declared. `conditions` maps names to `{basis}`; optional `analyzeConditions:{names,maxBranches}` requests bounded analysis of declared names (1–12 branches, default 8). `additionalQuestions` and `additionalConstraints` append to the shared host rules. Unknown fields and ambiguous names are rejected.
+
+For field descriptions and structure feedback while editing, use the [local editor schema example](../examples/authorization-assessment/editor-support/README.md). Associate the external draft-07 asset through editor settings; do not add `$schema` to the strict declaration. References, accepted policy, Unicode names, real paths and source ranges still require ordinary `authorization check`. The schema does not validate the truth of policy or source reasoning.
 
 ```powershell
 skvm authorization init --format=authoring-v2 --out=./authoring.json
@@ -85,6 +89,8 @@ bun ./src/index.ts authorization compare --previous="$aa/runs/author-fastapi-ori
 ```
 
 Both actual answers enforce their declarations: original deny, changed allow, each with one analysis call. `source_refuted` means the source refutes a policy failure, so it can accompany either correctly enforced outcome; read the explanation. Compare reports `needs-review` and the affected scenario, without upgrading the old answer. The six exposed AA cases support explicit `plain --wire=v4` for ordinary bounded work; use `ledger` for machine-readable coverage and `conditions` for requested bounded branch explanations. These are task-based recommendations, not a change to legacy/default compatibility or a general quality claim.
+
+The [AB external-use evaluation](../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/summary.json) reused this package/schema on linkding and django-todo. Independent Markdown scored 8/8 full and DSL 6/8: two DSL answers reasoned correctly but emitted the opposite conclusion label. Always check label consistency against the explanation; mechanical validation is not semantic approval. DSL dictionaries and compare can help manage structured inputs, but this study did not establish a quality or labor-saving advantage. Markdown remains a research-only route, with no arbitrary prompt override in the public CLI. The [portable verification](../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/portable-recorded-verification.json) used eight retained wire responses offline in a temporary directory; it added no model observations or paid calls.
 
 `init` without format retains the original synthetic normalized template and refuses to overwrite an existing path. The older `authorization-assessment-authoring/v1` remains supported; v1/v2 can optionally be normalized separately:
 

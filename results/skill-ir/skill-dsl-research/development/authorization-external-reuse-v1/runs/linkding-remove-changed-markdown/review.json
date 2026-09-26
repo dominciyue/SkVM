@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "ab-linkding-remove-changed",
+  "taskId": "ab-linkding-remove-changed",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "c7ba16bad9459df665fa6be7545c83580e3f526e86307363aaf5be552f718085",
+  "rubricVersion": "ab-rubric-v3",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "AB-development-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "decision-control",
+      "status": "supported",
+      "reason": "The stated owner passes the same owner-bound lookup; bookmarks.py:255-257 performs deletion. Sharing does not grant extra write rights.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "Actual disposition is allow. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared"
+    },
+    {
+      "criterionId": "binding-effect",
+      "status": "supported",
+      "reason": "The POST remove ID is passed to bookmark_write, bound to request.user, then the returned bookmark is deleted.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared"
+    },
+    {
+      "criterionId": "scenario-explanation",
+      "status": "supported",
+      "reason": "Ownership alone changes from the original state; the answer explains why the fixed shared flag does not restrict owner deletion.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "Stated scenario: {'role': 'authenticated ordinary user', 'facts': ['Caller is the bookmark owner', 'No superuser or special role', 'POST contains only remove=<bookmark id>'], 'relation': 'owner of the same shared bookmark', 'expectation': 'allow'}. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared"
+    },
+    {
+      "criterionId": "bounded-evidence",
+      "status": "supported",
+      "reason": "The explanation separates supplied identity/settings/framework assumptions from source observations, limits the claim to the supplied path, and does not invent decisive missing facts. No deployed execution or repository completeness is claimed.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "Standard Django behavior and stated identity/settings are assumptions; no deployed execution verified. Missing unrelated dependencies do not force unknown on this bounded authorization reachability question."
+    },
+    {
+      "criterionId": "http-detail",
+      "status": "missing",
+      "reason": "No precise success response type/status is stated; optional only, with no quality penalty for absence.",
+      "answerLocation": null,
+      "sourceLocations": [
+        {
+          "path": "bookmarks/views/bookmarks.py",
+          "startLine": 346,
+          "endLine": 378
+        },
+        {
+          "path": "bookmarks/views/access.py",
+          "startLine": 28,
+          "endLine": 32
+        }
+      ],
+      "oracleRule": "Exact HTTP detail is not required by the public task; do not conflate a source quote containing status text with answer explanation."
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The source enforces the declared allow expectation, so source_refuted correctly refutes a policy failure.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "bookmarks/views/bookmarks.py",
+        "startLine": 346,
+        "endLine": 378
+      },
+      {
+        "path": "bookmarks/views/access.py",
+        "startLine": 28,
+        "endLine": 32
+      }
+    ],
+    "oracleRule": "Policy enforced; actual allow. login_required shared_action rejects bulk but forwards single remove via handle_action; remove selects bookmark_write then delete; bookmark_write queries both pk and owner=request.user, denying non-owner even if bookmark is shared"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer explicitly limits itself to supplied source and assumptions; it makes no deployment or whole-repository claim.",
+    "answerLocation": "/results/0/explanation",
+    "sourceLocations": [
+      {
+        "path": "bookmarks/views/bookmarks.py",
+        "startLine": 346,
+        "endLine": 378
+      },
+      {
+        "path": "bookmarks/views/access.py",
+        "startLine": 28,
+        "endLine": 32
+      }
+    ],
+    "oracleRule": "Only supplied source and declared state; no deployment or repository completeness claim."
+  }
+}

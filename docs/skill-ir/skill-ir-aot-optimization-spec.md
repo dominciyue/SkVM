@@ -2529,3 +2529,5 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **AB当前授权合同（2026-09-22）。** [AB0–AB13](../superpowers/plans/2026-09-22-authorization-external-reuse-and-baseline.md)固定现有v2与plain/v4，在预先登记规则后获取至多两个新外部项目，提供薄skill包/显式文件locate并验证独立作者原变任务。Markdown臂必须真实独立编写，共享身份/源码/引用/v4/模型/评价，不用DSL自然渲染冒充基线。比较准备、修改和运行整套流程，manifest不得暗中注入答案或DSL方法。正常至多16分析单元，一次共享修订至多4；失败/未知/源暴露分列，旧保护材料不读、历史结果不改。无需新模板语言，只有共同机械重复有实际证据才提取helper。用户origin主分支连续执行，七项原修改保留。
 
 **2026-09-26并行恢复合同。** AB revision 2从已有16条生成结果继续AB9–AB13；原输入/输出/模型/评分口径保持。独立[AC](../superpowers/plans/2026-09-26-authorization-authoring-editor-support.md)提供运行时语义合同之外的编辑辅助，[AD](../superpowers/plans/2026-09-26-experiment-catalog-maintenance.md)提供只读实验导航工具，均不承担或替换AB研究验收。三个任务Astra ultra，用户请求Fast；文件独占、共享文档和Git仅AB发布者写。编辑schema明确runtime-only约束，目录工具保留未知与不同指标含义；不得据此声称模型质量或真人效率提高。
+
+**AB评价与复用边界（2026-09-26）。** 两项目八状态、16初轮均按冻结v3完成评价：Markdown 8 full，DSL 6 full及2标签错误，实际授权推理与必要解释两臂均8/8。既有合同已定义标签方向，原wire与canonical同错，未定位共享缺陷，追加单元0。评价保留label正确性与实际allow/deny推理分账；离线交付重放不算新模型观察。共同schema/代码/薄包的有界复用成立，整体DSL收益未建立；完整准备/修改/运行开销和限制只在研究§7.25及AB汇总维护。普通入口兼容默认保持，显式plain/v4仍需语义检查；MD对照只代表同helper流程，不是原生完整安全skill或纯语法因果。

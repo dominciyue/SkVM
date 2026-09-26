@@ -1,6 +1,6 @@
 # Skill IR 当前状态
 
-更新于 2026-09-26。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；历史任务书保存当时的执行记录。
+更新于 2026-09-27。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；历史任务书保存当时的执行记录。
 
 ## 当前方向与任务
 
@@ -8,9 +8,9 @@
 
 [V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)、[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)和[Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)均已结束发布，Y最终提交`70906261`。后续复核确认Y主体工程可用，但公共`--method`选择曾有漏项，已在Z补齐；历史机器summary保留。
 
-**当前授权任务：** [AB0–AB13 外部复用与普通说明对照](../superpowers/plans/2026-09-22-authorization-external-reuse-and-baseline.md)已完成16/16个真实生成单元，状态为`generation-complete`，AB9评价待执行。被测模型为`xty/gpt-5.6-sol`，16次调用全部响应、0个completion-unknown、0个目标执行；原始canonical label为14个`source_refuted`与2个`source_supported_failure`，保留原文等待冻结评价。结果入口为[实验目录](../../results/skill-ir/experiment-catalog.json)、[AB状态](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/status.json)和[原始阅读稿](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/answer-reading.txt)。研究设计见[研究§7.25](skill-dsl-research.md#725-ab-外部复用与普通说明对照)。
+**当前授权任务：** [AB0–AB13 外部复用与普通说明对照](../superpowers/plans/2026-09-22-authorization-external-reuse-and-baseline.md)已完成16条冻结评价和包验证，正在统一发布。Markdown 8/8 full，DSL 6/8 full；两条linkding变化任务标签错误，实际授权推理与必要控制/解释均正确，原始答案保留。16次调用全部响应、0 completion-unknown、0目标执行、0追加研究单元，actualUSD未知。DSL分析input+output多12.0%、累计响应耗时少8.5%，作者准备/修改未证明一致节省；同包/schema/核心的有界复用成立，整体DSL收益未建立。详见[AB汇总](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/summary.json)、[状态](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/status.json)及[研究§7.25](skill-dsl-research.md#725-ab-外部复用与普通说明对照)。
 
-**9月26日恢复与独立并行：** AB中断原因为执行账户用量限制，16条结果齐全，恢复从AB9开始，完整AB仍由一个`gpt-6-astra / ultra`任务负责。另授权[AC编辑支持](../superpowers/plans/2026-09-26-authorization-authoring-editor-support.md)和[AD实验目录工具](../superpowers/plans/2026-09-26-experiment-catalog-maintenance.md)两个独立开发任务；它们不分担AB验收项，分别独占新editor-support/schema/example目录和新catalog工具目录。AB拥有共享文档和唯一Git发布权，侧任务ready后统一集成。速度按用户要求使用Fast，宿主默认priority已确认，实际每任务tier另核。详见AB任务书revision 2第八节。本轮运行原始证据有未跟踪文件，保留并由AB精确归档；既有七项源码修改继续保护。
+**独立工程已集成：** [AC编辑支持](../superpowers/plans/2026-09-26-authorization-authoring-editor-support.md)交付本地draft-07 schema、结构检查与完整示例，105结构用例/12个runtime-only反例通过，提交`8f27afb3`。[AD实验目录工具](../superpowers/plans/2026-09-26-experiment-catalog-maintenance.md)交付离线check/show/export，24测试/147断言及脚本类型检查通过，提交`ffc6578e`。整合授权测试202/202、1,919断言，全仓typecheck通过；两项工程不增加AB研究分母或收益证据。三个任务实际model/effort为Astra ultra，宿主默认priority；逐请求tier未暴露，不宣称实测1.5倍。原始323项证据按原字节归档，七项原源码修改与历史untracked保留。
 
 **文档治理：** 日常阅读集中到本页、[文档入口](README.md)、[证据索引](evidence-index.md)和[实验目录](../../results/skill-ir/experiment-catalog.json)；版本化验证材料继续按治理清单保留原路径和原字节。历史长文档不再复制实验流水，结果只在最窄证据位置链接。
 

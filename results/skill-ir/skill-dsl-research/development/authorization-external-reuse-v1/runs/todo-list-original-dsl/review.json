@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "authorization-semantic-review/v1",
+  "caseId": "ab-todo-list-original",
+  "taskId": "ab-todo-list-original",
+  "generation": "initial",
+  "attemptId": "provider-attempt-1",
+  "rawOutputSha256": "8e8738b64932e4f262014ff93388d65d5282136f3a7e5cb04a9ef6ba631febea",
+  "rubricVersion": "ab-rubric-v3",
+  "reviewer": {
+    "kind": "development-agent",
+    "identity": "AB-development-agent"
+  },
+  "criterionReviews": [
+    {
+      "criterionId": "decision-control",
+      "status": "supported",
+      "reason": "del_list.py:20-23 requires group membership AND staff; false global staff setting does not remove the inner staff check.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "todo/views/del_list.py",
+          "startLine": 11,
+          "endLine": 41
+        },
+        {
+          "path": "todo/utils.py",
+          "startLine": 17,
+          "endLine": 27
+        },
+        {
+          "path": "todo/defaults.py",
+          "startLine": 20,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "Actual disposition is deny. authenticated/staff_check followed by group membership and staff required conjunctively before POST deletion; global staff_check can be disabled but does not remove inner staff check; explicit False overrides True default"
+    },
+    {
+      "criterionId": "binding-effect",
+      "status": "supported",
+      "reason": "list_id selects TaskList and its group; the non-staff denial occurs before POST deletion at del_list.py:25-28.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "todo/views/del_list.py",
+          "startLine": 11,
+          "endLine": 41
+        },
+        {
+          "path": "todo/utils.py",
+          "startLine": 17,
+          "endLine": 27
+        },
+        {
+          "path": "todo/defaults.py",
+          "startLine": 20,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "authenticated/staff_check followed by group membership and staff required conjunctively before POST deletion; global staff_check can be disabled but does not remove inner staff check; explicit False overrides True default"
+    },
+    {
+      "criterionId": "scenario-explanation",
+      "status": "supported",
+      "reason": "The answer applies group membership with is_staff=False and distinguishes the permissive decorator from the decisive inner gate.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "todo/views/del_list.py",
+          "startLine": 11,
+          "endLine": 41
+        },
+        {
+          "path": "todo/utils.py",
+          "startLine": 17,
+          "endLine": 27
+        },
+        {
+          "path": "todo/defaults.py",
+          "startLine": 20,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "Stated scenario: {'role': 'authenticated non-staff group member', 'facts': ['Not superuser', 'Member of the list group', 'is_staff=False', 'POST request'], 'relation': 'group member without staff role', 'expectation': 'deny'}. authenticated/staff_check followed by group membership and staff required conjunctively before POST deletion; global staff_check can be disabled but does not remove inner staff check; explicit False overrides True default"
+    },
+    {
+      "criterionId": "bounded-evidence",
+      "status": "supported",
+      "reason": "The explanation separates supplied identity/settings/framework assumptions from source observations, limits the claim to the supplied path, and does not invent decisive missing facts. No deployed execution or repository completeness is claimed.",
+      "answerLocation": "/results/0/explanation",
+      "sourceLocations": [
+        {
+          "path": "todo/views/del_list.py",
+          "startLine": 11,
+          "endLine": 41
+        },
+        {
+          "path": "todo/utils.py",
+          "startLine": 17,
+          "endLine": 27
+        },
+        {
+          "path": "todo/defaults.py",
+          "startLine": 20,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "Standard Django behavior and stated identity/settings are assumptions; no deployed execution verified. Missing unrelated dependencies do not force unknown on this bounded authorization reachability question."
+    },
+    {
+      "criterionId": "http-detail",
+      "status": "supported",
+      "reason": "The authored explanation or fact statements explicitly describe the relevant not-found/PermissionDenied, streaming response, or redirect behavior. Exact numeric HTTP status is not required; source quote text alone is not credited.",
+      "answerLocation": "/results/0",
+      "sourceLocations": [
+        {
+          "path": "todo/views/del_list.py",
+          "startLine": 11,
+          "endLine": 41
+        },
+        {
+          "path": "todo/utils.py",
+          "startLine": 17,
+          "endLine": 27
+        },
+        {
+          "path": "todo/defaults.py",
+          "startLine": 20,
+          "endLine": 28
+        }
+      ],
+      "oracleRule": "Exact HTTP detail is not required by the public task; do not conflate a source quote containing status text with answer explanation."
+    }
+  ],
+  "dispositionReview": {
+    "status": "supported",
+    "reason": "The source enforces the declared deny expectation, so source_refuted correctly refutes a policy failure.",
+    "answerLocation": "/results/0/conclusion",
+    "sourceLocations": [
+      {
+        "path": "todo/views/del_list.py",
+        "startLine": 11,
+        "endLine": 41
+      },
+      {
+        "path": "todo/utils.py",
+        "startLine": 17,
+        "endLine": 27
+      },
+      {
+        "path": "todo/defaults.py",
+        "startLine": 20,
+        "endLine": 28
+      }
+    ],
+    "oracleRule": "Policy enforced; actual deny. authenticated/staff_check followed by group membership and staff required conjunctively before POST deletion; global staff_check can be disabled but does not remove inner staff check; explicit False overrides True default"
+  },
+  "scopeReview": {
+    "status": "supported",
+    "reason": "The answer explicitly limits itself to supplied source and assumptions; it makes no deployment or whole-repository claim.",
+    "answerLocation": "/results/0/explanation",
+    "sourceLocations": [
+      {
+        "path": "todo/views/del_list.py",
+        "startLine": 11,
+        "endLine": 41
+      },
+      {
+        "path": "todo/utils.py",
+        "startLine": 17,
+        "endLine": 27
+      },
+      {
+        "path": "todo/defaults.py",
+        "startLine": 20,
+        "endLine": 28
+      }
+    ],
+    "oracleRule": "Only supplied source and declared state; no deployment or repository completeness claim."
+  }
+}

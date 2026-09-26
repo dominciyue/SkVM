@@ -1,10 +1,10 @@
 # Skill 分类与领域 DSL 研究总文档
 
-更新于 2026-09-22。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并 S0–S11、D0–D11 及后续研究，并记录 DSL 实现中发现和解决的问题。实时执行状态仍由 [current-status](current-status.md) 维护，待办见[当前计划](skill-ir-aot-optimization-plan.md)。
+更新于 2026-09-26。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并 S0–S11、D0–D11 及后续研究，并记录 DSL 实现中发现和解决的问题。实时执行状态仍由 [current-status](current-status.md) 维护，待办见[当前计划](skill-ir-aot-optimization-plan.md)。
 
 ## 1. 当前结论
 
-**AB0–AB8已完成，9月26日授权从AB9恢复。** 两个新项目的16个生成单元全部返回，逐项语义评价与方法收益判断待完成；两条标签与解释方向矛盾保留原文。已有v2作者、locate、Markdown共同宿主与组合helper继续使用。完整恢复任务使用Astra ultra，另行推进独立的编辑支持AC和实验目录维护AD；两个工程任务不影响本轮样本、模型、评分或效果结论。范围继续为单repo/ref、显式源码与政策的有界授权任务。
+**AB已完成16条逐项语义评价，DSL整体收益未建立。** 两个新项目的Markdown为8/8 full，DSL为6/8 full；两条DSL标签与正确授权解释矛盾，原文和错误计分均保留。两臂必要控制与解释都为8/8，DSL分析input+output多12.0%、累计响应耗时少8.5%，作者准备与修改未显示一致节省。同v2、核心代码和薄包可复用，结构化compare提供适用性诊断；它们不证明质量优势。完整结果见§7.25；AC编辑支持和AD实验目录工具独立于研究分母与效果。
 
 已经站得住的判断：
 
@@ -794,6 +794,16 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 **AB8 真实生成结果（2026-09-22）。** 固定顺序的16个 fresh-context 单元全部 `completed`，16/16 provider calls 响应，0 completion-unknown，0目标执行；被测为`xty/gpt-5.6-sol`、temperature0、auto-probe off。已知 input/output/cache-read 为146,886/17,566/6,528 tokens，actualUSD unknown。原始canonical label为14个`source_refuted`与2个`source_supported_failure`；后一项的回答正文自述正确方向但标签相反，保留原始字节，等待AB9冻结评价。四组compare均标记变化任务 `needs-review`，未宣称语义复用或节省调用。机器摘要见[`experiment-catalog.json`](../../results/skill-ir/experiment-catalog.json)，逐单元回答见`authorization-external-reuse-v1/answer-reading.txt`；本轮仍属于development evidence，不证明生产安全、目标执行或跨项目泛化。
 
 **9月26日恢复决定。** 原执行因账户额度中断，已核对16条终态，采用AB revision 2接着评价而不重发生成。run/result原始字节保留，评价区分标签一致性、实际授权推理与解释完整性。部分本轮证据尚未提交，由恢复任务精确归档。新增独立AC编辑支持回应作者未知字段反复修改，AD目录工具回应跨轮结果检索/维护负担；它们各有独立任务书和文件所有权，AB统一发布共享文档。尚无这两个工程任务的使用收益数据。
+
+**AB9评价与裁决。** 所有生成终结后，按冻结v3 rubric逐criterion绑定原始回答哈希，主代理阅读16条解释与事实，并独立点验两项标签错误及todo代表项。Markdown为8 full；DSL为6 full、2 incorrect，均为linkding变化任务。remove-owner正文甚至自行写出正确标签，asset-anonymous也正确说明deny，但两者canonical仍为`source_supported_failure`。实际preview已明确`source_refuted`表示政策被执行，wire与canonical标签相同，未定位共享合同/归一化缺陷，因此追加生成0。实际allow/deny推理、必要控制、解释、scope、transport和delivery均16/16正确或通过，不能据此把两项交付错误改为成功。两条remove变化答案缺精确成功响应细节，仅记optional missing；两臂该细节均7/8，不影响full。初评、独立点验与裁决分别保存，离线重算重现summary SHA `148dc888...b917`，0 provider调用。
+
+**AB10负担与价值。** 两臂各8次调用、无fallback/repair。Markdown input/output为69,011/8,572，DSL为77,875/8,994；累计provider响应耗时497.3/455.1秒。DSL token多12.0%，耗时少8.5%，缓存读取只在MD观察到6,528，因此不推断稳定速度或经济优势。模型作者四组各一次干净修订：首稿语义就绪均0/8，最终各8/8；DSL/MD作者总token为671,649/789,130，项目间方向相反，包含系统、工具和缓存上下文，不是独立人工准备耗时。DSL四组变化涉及6/8/5/6个JSON路径，MD相应替换5/6/3/3行，单位不可互换；未证明同步改动或工时减少。分析、作者、开发/评价代理成本分账，actualUSD与真人时间未知。
+
+同schema/核心/包复用了角色、资源、政策、入口、义务、引用和运行合同；新项目仍需准备源码闭包、规范政策、关系与场景、入口位置及研究专用manifest/rubric。四次compare均`needs-review`，有结构化影响提示但没有缓存答案或减少调用。composer回应两作者机械复制，只是可选整项替换辅助，未用它重写本轮输入或实测节省。同helper下的完整Markdown在本小面板质量更好且分析token更少；无需结构化复用时优先轻说明。MD目前仅研究入口，普通使用继续显式plain/v4，按覆盖/条件需要选择ledger/conditions，兼容默认不改。
+
+**AB11交付与边界。** [薄包](../../examples/authorization-assessment/reusable-skill/SKILL.md)保留完整synthetic输入及实际文件名，依赖已有SkVM/Bun。八份真实DSL输入及源码移到仓外临时目录，经普通CLI check、inspect、compare；执行环节离线注入原始wire建立新验证session，逐条确认语义payload未变，原始session未改，网络provider与新模型观察均0。它验证可携带使用路径，不算新增研究成功。实际prompt parity确认八状态作者MD原文、共同源码和合同一致；无项目名核心分支。两个项目均属Django，当前八状态没有自然政策失效正例或部署unknown；这些输入不是新skill家族，也不支持全仓发现、生产安全、人工节省或纯语法因果。完整分项目/状态/臂成绩与成本见[AB汇总](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/summary.json)。
+
+**独立工程后续。** AC针对作者未知字段问题补充本地draft-07编辑资产、字段反馈和有限结构差分，保持v2/runtime权威；105结构用例及12个runtime-only反例检出，未改变AB材料或增加作者试验。AD提供现有实验目录的离线查询、显式路径核验与带来源版本的摘要导出，不读取答案或重新评分。两者均为确定性工具交付，没有模型质量或真人时间收益数据，也不增加研究样本、skill家族或当前长期文档成员。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

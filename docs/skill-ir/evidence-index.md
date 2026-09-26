@@ -12,7 +12,7 @@ result 流水。状态为 `not-established` 时表示现有比较不能识别该
 | 真实 trace 已产生可复核闭环 | supported-as-selected-development-route；3 skill / 3 repo，2 package + 1 evidence-backed no-change | `results/skill-ir/trace-guided-skill-optimization-20260913/status.json` | 随机代表性、held-out、live API、任意 skill |
 | 新包在匹配任务保持 checker 质量 | supported-on-four-selected-pairs；original 4/4、optimized 4/4 | `results/skill-ir/trace-guided-skill-optimization-20260913/u6/effect-report-all.json` | 跨模型、跨职责、真实 API 行为 |
 | 新包减少总体成本 | not-established；duration/output 降，input/cache/observed total 升，USD unknown | 同上 | 不得声称成本或人工节省 |
-| 外部项目可复用同一授权流程 | generation-complete；2 project × 2 operation × original/changed × 2 arms = 16 units，16/16 responded，语义评价待执行 | `results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/status.json`、`results/skill-ir/experiment-catalog.json` | 不得把原始 label 计作质量分数、不得外推生产安全或跨项目泛化 |
+| 外部项目可复用同一授权流程 | supported-bounded；2项目/4操作/8状态，16/16交付；MD 8 full、DSL 6 full/2标签错误，实际授权推理均正确 | [AB汇总](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/summary.json) | 工程复用不等于DSL收益；不得外推生产安全、纯语法因果、真人节省或一般泛化 |
 
 ## 已支持的窄主张
 

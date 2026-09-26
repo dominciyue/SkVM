@@ -1,0 +1,192 @@
+{
+  "schemaVersion": "authorization-editor-verification/v1",
+  "valid": true,
+  "structuralCases": 105,
+  "runtimeOnlyCases": 12,
+  "runtimeOnlyChecks": [
+    {
+      "id": "line-order",
+      "stage": "v2-parser",
+      "description": "endLine must not precede startLine."
+    },
+    {
+      "id": "reference-existence",
+      "stage": "normalization",
+      "description": "Scenario principal/resource/policy/entry and requested condition names must exist."
+    },
+    {
+      "id": "repeated-references",
+      "stage": "normalization",
+      "description": "Scenario entry references and requested condition names must be unique."
+    },
+    {
+      "id": "policy-readiness",
+      "stage": "normalization",
+      "description": "Every referenced policy must have author acceptance accepted."
+    },
+    {
+      "id": "unicode-well-formedness",
+      "stage": "v2-parser",
+      "description": "Dictionary names and references must be encodable as well-formed Unicode (no lone surrogates)."
+    },
+    {
+      "id": "source-paths-and-files",
+      "stage": "authorization-check",
+      "description": "sourceRoot and source paths must be safe, resolve within the permitted root (including symlinks/junctions), and identify readable supplied files."
+    },
+    {
+      "id": "source-locations",
+      "stage": "authorization-check",
+      "description": "Entry locations must identify supplied source and fit its actual line range."
+    }
+  ],
+  "runtimeDiagnostics": [
+    {
+      "name": "reversed line range",
+      "check": "line-order",
+      "diagnostics": [
+        {
+          "code": "author-v2-invalid",
+          "path": "entries.archive.locations.0",
+          "message": "endLine must not precede startLine",
+          "fix": "Provide entries.archive.locations.0 using the authoring-v2 example; policy and expectation must be authored, never inferred from code."
+        }
+      ]
+    },
+    {
+      "name": "missing principal",
+      "check": "reference-existence",
+      "diagnostics": [
+        {
+          "code": "author-v2-reference",
+          "path": "scenarios.archive.principal",
+          "message": "Unknown principal missing.",
+          "fix": "Choose a declared name from principals: support."
+        }
+      ]
+    },
+    {
+      "name": "missing resource",
+      "check": "reference-existence",
+      "diagnostics": [
+        {
+          "code": "author-v2-reference",
+          "path": "scenarios.archive.resource",
+          "message": "Unknown resource missing.",
+          "fix": "Choose a declared name from resources: record."
+        }
+      ]
+    },
+    {
+      "name": "missing policy",
+      "check": "reference-existence",
+      "diagnostics": [
+        {
+          "code": "author-v2-reference",
+          "path": "scenarios.archive.policy",
+          "message": "Unknown policy missing.",
+          "fix": "Choose a declared name from policies: archive."
+        }
+      ]
+    },
+    {
+      "name": "missing entry",
+      "check": "reference-existence",
+      "diagnostics": [
+        {
+          "code": "author-v2-reference",
+          "path": "scenarios.archive.entries.0",
+          "message": "Unknown or repeated entry missing.",
+          "fix": "Choose each declared entry at most once: archive."
+        }
+      ]
+    },
+    {
+      "name": "missing condition",
+      "check": "reference-existence",
+      "diagnostics": [
+        {
+          "code": "author-v2-reference",
+          "path": "scenarios.archive.analyzeConditions.names.0",
+          "message": "Missing or repeated condition missing.",
+          "fix": "Declare missing under scenarios.archive.conditions with its author-provided basis, or remove this request."
+        }
+      ]
+    },
+    {
+      "name": "repeated entry",
+      "check": "repeated-references",
+      "diagnostics": [
+        {
+          "code": "author-v2-reference",
+          "path": "scenarios.archive.entries.1",
+          "message": "Unknown or repeated entry archive.",
+          "fix": "Choose each declared entry at most once: archive."
+        }
+      ]
+    },
+    {
+      "name": "repeated condition",
+      "check": "repeated-references",
+      "diagnostics": [
+        {
+          "code": "author-v2-reference",
+          "path": "scenarios.archive.analyzeConditions.names.1",
+          "message": "Missing or repeated condition owner.",
+          "fix": "Declare owner under scenarios.archive.conditions with its author-provided basis, or remove this request."
+        }
+      ]
+    },
+    {
+      "name": "conflicted policy",
+      "check": "policy-readiness",
+      "diagnostics": [
+        {
+          "code": "author-v2-reference",
+          "path": "policies.archive.acceptance",
+          "message": "Policy is not accepted; its scenarios cannot run.",
+          "fix": "Resolve the policy and record the author acceptance reason before running; do not infer acceptance from implementation."
+        }
+      ]
+    },
+    {
+      "name": "unresolved policy",
+      "check": "policy-readiness",
+      "diagnostics": [
+        {
+          "code": "author-v2-reference",
+          "path": "policies.archive.acceptance",
+          "message": "Policy is not accepted; its scenarios cannot run.",
+          "fix": "Resolve the policy and record the author acceptance reason before running; do not infer acceptance from implementation."
+        }
+      ]
+    },
+    {
+      "name": "lone surrogate dictionary name",
+      "check": "unicode-well-formedness",
+      "diagnostics": [
+        {
+          "code": "author-v2-invalid",
+          "path": "scenarios.\ud800",
+          "message": "Use a well-formed Unicode name without surrounding whitespace, control characters or prototype keys.",
+          "fix": "Provide scenarios.\ud800 using the authoring-v2 example; policy and expectation must be authored, never inferred from code."
+        }
+      ]
+    },
+    {
+      "name": "lone surrogate reference",
+      "check": "unicode-well-formedness",
+      "diagnostics": [
+        {
+          "code": "author-v2-invalid",
+          "path": "scenarios.archive.principal",
+          "message": "Use a well-formed Unicode name without surrounding whitespace, control characters or prototype keys.",
+          "fix": "Provide scenarios.archive.principal using the authoring-v2 example; policy and expectation must be authored, never inferred from code."
+        }
+      ]
+    }
+  ],
+  "providerCalls": 0,
+  "targetExecutions": 0,
+  "diagnostics": []
+}
