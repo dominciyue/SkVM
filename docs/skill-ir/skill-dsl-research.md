@@ -809,7 +809,7 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 2026-09-27复核AB、AC、AD后，新鲜授权回归202/202、1919断言、目录工具24/24、147断言及typecheck通过；本地与origin均为2525d387。MD8/8、DSL6/8的质量结论保留。两个错误的wire和canonical同向，renderer已有枚举定义，因此下一轮检验更直接的表达能否减少模型标签选择错误，而不把它描述成已定位的归一化bug。
 
-**AE完整方法实验。** [AE任务书](../superpowers/plans/2026-09-27-authorization-explicit-policy-result.md)让可选wire/v5使用`satisfied / violated / undetermined`表达声明政策是否满足，宿主映射既有canonical；源码判断和理由仍由模型产生。普通入口及MD研究入口共用接线，旧v4/default保留。四个已暴露linkding原/变状态加Open WebUI政策失效/部署unknown两例，MD/DSL×v4/v5共24首轮。两因素分开比较，材料与评价要求一致；错误/未知完整保存，一次共享代码修订最多4追加。本轮是development机制验证，实际结果由执行任务补充，当前没有新效果结论。
+**AE完整方法实验。** [AE任务书](../superpowers/plans/2026-09-27-authorization-explicit-policy-result.md)让可选wire/v5使用`satisfied / violated / undetermined`表达声明政策是否满足，宿主映射既有canonical；源码判断和理由仍由模型产生。普通入口及MD研究入口共用接线，旧v4/default保留。四个已暴露linkding原/变状态加Open WebUI政策失效/部署unknown两例，MD/DSL×v4/v5共24首轮。两因素分开比较，材料与评价要求一致；错误/未知完整保存，一次共享代码修订最多4追加。本轮按development机制验证执行，实际结果见下方AE5–AE7记录。
 
 **AF独立使用工具。** [AF任务书](../superpowers/plans/2026-09-27-authorization-scenario-workspace.md)把已存在的整字段composer接到显式场景工作区，验证后一次生成普通authoring/v2输入及来源说明。共同政策只维护一份，变体明确填事实；不自动推政策真值、复用旧答案或引入新任务语言。它有自己的示例、测试和交付，进展不依赖AE真实面板。
 
@@ -823,7 +823,7 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 **后续投入优先级。** 用户确认单次回答质量改善约60%、编写/修改/复用约40%；这是问题选择与投入优先级，不形成加权总分。当前AE/AF/AG范围和预算保持，尚未扩大到完整安全审查或新类别。
 
-**AE4固定材料。** 四个linkding状态的独立作者MD、DSL、neutral manifest和源文件按AB字节复用；Open WebUI file/header用AA普通输入与源码，MD由开发主代理从单独保留的公开brief一次编写，不调用DSL renderer、不读取oracle答案。两臂共享公开问题、条件范围和输出合同；既有材料中v4/旧enum的输出提示由显式v5共同合同覆盖，事实不变。`97788944`实现及实际源码哈希、六例/24单元交替顺序、既有v3 rubric哈希和原预算写入AE panel-config；一次零网络provider演练24/24 completed。下一步只按此配置执行首轮，生成终结前不读评价材料。
+**AE4固定材料。** 四个linkding状态的独立作者MD、DSL、neutral manifest和源文件按AB字节复用；Open WebUI file/header用AA普通输入与源码，MD由开发主代理从单独保留的公开brief一次编写，不调用DSL renderer、不读取oracle答案。两臂共享公开问题、条件范围和输出合同；既有材料中v4/旧enum的输出提示由显式v5共同合同覆盖，事实不变。`97788944`实现及实际源码哈希、六例/24单元交替顺序、既有v3 rubric哈希和原预算写入AE panel-config；一次零网络provider演练24/24 completed。随后按此配置执行首轮，生成终结前未读取评价材料。
 
 **AE5–AE7实际机制结果。** 冻结的24单元均一次获得终态`completed`；生成全部关闭后才读取既有AB/AA rubric，按原始provider回答SHA逐criterion完成24份review。四组Markdown-v4、Markdown-v5、DSL-v4、DSL-v5各6/6 full，政策结论与实际allow/deny/unknown推理均24/24正确，必要语义均支持；四份trusted-header均合理保留部署unknown。新增v5没有减少本轮反向标签错误，因为新v4也没有此类错误；不能把AB旧DSL 2/8错误改写为本轮v5的收益。首答完整交付四组为6/6、6/6、5/6、5/6；DSL-v4有一次prompt-parse fallback，DSL-v5有一次domain repair，最终均full。没有共享实现缺陷，追加单元0。结果仅对这六个已暴露development案例和共同helper流程成立，不说明一般可靠性或单独语法因果。[冻结配置](../../results/skill-ir/skill-dsl-research/development/authorization-explicit-policy-v1/panel-config.json)、[逐项review](../../results/skill-ir/skill-dsl-research/development/authorization-explicit-policy-v1/evaluator/review-decisions.json)、[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-explicit-policy-v1/panel-summary.json)及[离线回放](../../results/skill-ir/skill-dsl-research/development/authorization-explicit-policy-v1/ordinary-verification.json)可复核。
 
@@ -834,6 +834,10 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 **AF场景工作区交付。** 共同base、三个明确场景replacement生成owner/outsider/role-override三份普通authoring/v2与非语义来源sidecar。只读预览报告字段来源与搬移坐标；发布仅Windows，以独占新目录避免覆盖，并在作者原坐标和最终坐标检查声明与源码边界。整份工作区复制到普通C盘临时目录后，三份原场景及共同政策文字更新后的三份输入均经主CLI检查；旧生成字节不变。65个focused测试通过、1个平台跳过、149断言；集成路由额外先红后绿。它证明有界字段装配和维护单份政策，不测真人编辑时间、模型正确率或token节省。见[AF ready](../../results/skill-ir/authorization-scenario-workspace-20260927/ready.json)和[完整示例](../../examples/authorization-assessment/scenario-workspace/README.md)。
 
 **AG计量口径交付。** 纯模块区分`skvm-disjoint`、`inclusive-input`与`unknown`，并让完整总量、已知小计、缺失记录及无法计算的百分比有不同表示；独立离线脚本复算AB16条分析usage，校验19个原始来源hash，旧报告原字节不动。AB完整prompt+output Markdown 84,111、DSL 86,869，即DSL +3.279%；旧+11.969%仅是fresh input+output。作者含缓存input的总量Markdown 789,130、DSL 671,649，账户不能混加。AG focused 50测试/131断言及脚本typecheck通过；它提供可比成本口径，不改变AB质量，也不提供实际USD、真人节省或host精确速度倍率。[AG澄清](../../results/skill-ir/token-accounting-semantics-20260927/ab-accounting-clarification.json)与[计量模块说明](../../scripts/token-accounting/README.md)保存来源和限制。
+
+**交付后复核与下一问题（2026-09-27）。** 重新运行授权、AF/AG与目录工具相关353项测试，352通过、1个平台跳过、2440断言；typecheck及AE零provider离线重算通过。四组`explanationComplete=5`而full=6已点验：每组file-positive没有单独explanation层criterion，因此该维度为not-applicable，并非把partial当full；trusted-header响应细节单独分层，必要判断未因可选细节加分。MD首答6/6、DSL首答5/6和最终6/6继续分列。交接各23份AF/AG文件摘要匹配，当前提交均已跟踪。
+
+当前最明确的研究发现是：单次更名结论协议没有显示增量，模型输出波动存在，六个已暴露案例尚不能区分更深的领域方法。下一步按质量60%/复用40%检查同一授权类内的真实困难关系：身份与目标资源绑定、上游控制、角色例外和外部事实。先用案例定位缺口，再决定是否需要显式控制对象/路径关系，不能只再添加通用coverage字段。实验保留同资料Markdown与旧方法对照，若引入额外模型轮次则匹配调用预算；复用已有AF减少准备重复，费用沿用AG字段。该方向为建议，尚未生成新样本、协议或模型结果。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

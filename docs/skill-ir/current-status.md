@@ -12,7 +12,7 @@
 
 **独立工程已集成：** [AC编辑支持](../superpowers/plans/2026-09-26-authorization-authoring-editor-support.md)交付本地draft-07 schema、结构检查与完整示例，105结构用例/12个runtime-only反例通过，提交`8f27afb3`。[AD实验目录工具](../superpowers/plans/2026-09-26-experiment-catalog-maintenance.md)交付离线check/show/export，24测试/147断言及脚本类型检查通过，提交`ffc6578e`。整合授权测试202/202、1,919断言，全仓typecheck通过；两项工程不增加AB研究分母或收益证据。三个任务实际model/effort为Astra ultra，宿主默认priority；逐请求tier未暴露，不宣称实测1.5倍。原始323项证据按原字节归档，七项原源码修改与历史untracked保留。
 
-**当前授权队列（2026-09-27）：** AE/AF/AG已完成并发布到用户`origin/skill-ir-aot`；AF、AG和AE证据提交分别为`e1ac9893`、`6f3df889`、`c4e17838`，已核对远端头。AE显式wire/v5已接通；24个冻结development单元全部completed、26次provider dispatch，Markdown/DSL×v4/v5四组各6/6 full，实际授权推理和必要语义24/24正确。v5没有本轮质量增量，兼容默认不改；6例12份仓外普通输入/记录回放通过，零新模型调用。AF的三场景工作区与主CLI compose已接通，AG的计量模块及AB缓存口径澄清已接入AE报告；两项均无业务模型调用。授权回归266 pass/1 skip、2132断言，全仓typecheck通过。开发模型为`gpt-6-astra / ultra`，宿主Fast/priority配置；用户请求1.5倍速度，工具未暴露逐任务倍率，实际倍率未测。见[AE汇总](../../results/skill-ir/skill-dsl-research/development/authorization-explicit-policy-v1/panel-summary.json)、[AF ready](../../results/skill-ir/authorization-scenario-workspace-20260927/ready.json)、[AG澄清](../../results/skill-ir/token-accounting-semantics-20260927/ab-accounting-clarification.json)。
+**最近完成队列（2026-09-27）：** AE/AF/AG已完成并发布到用户`origin/skill-ir-aot`；AF、AG和AE证据提交分别为`e1ac9893`、`6f3df889`、`c4e17838`，已核对远端头。AE显式wire/v5已接通；24个冻结development单元全部completed、26次provider dispatch，Markdown/DSL×v4/v5四组各6/6 full，实际授权推理和必要语义24/24正确。v5没有本轮质量增量，兼容默认不改；6例12份仓外普通输入/记录回放通过，零新模型调用。AF的三场景工作区与主CLI compose已接通，AG的计量模块及AB缓存口径澄清已接入AE报告；两项均无业务模型调用。授权回归266 pass/1 skip、2132断言，全仓typecheck通过。开发模型为`gpt-6-astra / ultra`，宿主Fast/priority配置；用户请求1.5倍速度，工具未暴露逐任务倍率，实际倍率未测。见[AE汇总](../../results/skill-ir/skill-dsl-research/development/authorization-explicit-policy-v1/panel-summary.json)、[AF ready](../../results/skill-ir/authorization-scenario-workspace-20260927/ready.json)、[AG澄清](../../results/skill-ir/token-accounting-semantics-20260927/ab-accounting-clarification.json)。
 
 | 任务 | 独立目标 | 协作边界 |
 |---|---|---|
@@ -21,6 +21,10 @@
 | [AG0–AG8](../superpowers/plans/2026-09-27-token-accounting-semantics.md) | 明确缓存口径、计量模块与AB独立澄清 | 新纯模块/脚本/结果；旧provider和报告只读 |
 
 AE实际执行24首轮、0追加；AF/AG不调用业务模型，也不增加AE研究分母。普通默认保持兼容，v5和场景组合均显式选择。三份任务的文件归属、失败处理和验收分别写在各自任务书；开发结果与计量澄清统一见[研究§7.26](skill-dsl-research.md#726-aeafag-结果表达场景复用与计量)。
+
+**交付后复核与工作区整理（2026-09-27）：** 在`b4a9e83e`上重新验证352 tests/1 platform skip、2440断言，typecheck通过，AE离线摘要一致。四组最终均6/6；MD首答均6/6，DSL首答均5/6，回退/修复计入26次调用。AF/AG各23项交接文件摘要与当前文件一致，全部已跟踪。七项旧源码状态中六项是注释整理，语法树相同，已独立提交`ac230e90`；另一项仅EOL/index状态已归一，无功能逻辑变化。233项历史未跟踪路径保留原位，按明确清单写入本机`.git/info/exclude`，未删除或上传原始trace/cache；恢复清单位于仓库外`project-maintenance/20260927-020008/`。旧AB扫描日志四条退役引用登记到已有精确引用清单，原日志字节不改。
+
+**下一步建议：** 按回答质量约60%、编写复用约40%深化同一授权任务类，优先研究控制与资源绑定、例外和上游路径的真实语义缺口，并用AF复用输入准备。暂不追加协议版本或扩为全安全扫描。具体建议见[当前计划](skill-ir-aot-optimization-plan.md#下一阶段建议尚未启动)及[研究§7.26](skill-dsl-research.md#726-aeafag-结果表达场景复用与计量)。本次整理未创建新实验或付费调用。旧远端功能分支另有6条补丁已等效纳入、3条保留不同补丁（5–6月的CLI、Docker sandbox和旧evidence实验），均非AE/AF/AG遗漏，本轮未把这些旧方案合并入主线。
 
 **文档治理：** 日常阅读集中到本页、[文档入口](README.md)、[证据索引](evidence-index.md)和[实验目录](../../results/skill-ir/experiment-catalog.json)；版本化验证材料继续按治理清单保留原路径和原字节。历史长文档不再复制实验流水，结果只在最窄证据位置链接。
 
