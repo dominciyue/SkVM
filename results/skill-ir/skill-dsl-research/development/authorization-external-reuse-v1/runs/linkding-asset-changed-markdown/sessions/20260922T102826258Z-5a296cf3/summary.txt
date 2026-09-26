@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260922T102826258Z-5a296cf3
+Status: completed
+Task: ab-linkding-asset-changed
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/sissbruecker/linkding@27b7303baf41bb28babc610ac8eaa486e1ddfab5
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The fixed source enforces the declared expectation for the supplied state, and the actual source decision is deny. The route binds GET assets/<asset_id> to assets.view, whose entry first invokes asset_read. asset_read retrieves the asset by ID and then authorizes through the asset's associated bookmark. bookmark_read binds the bookmark by ID and compares its owner with request.user, then permits a non-owner only through authenticated sharing or public sharing. For the supplied anonymous non-owner, the authenticated-sharing branch is false because authentication is required, and the public-sharing branch is false because public sharing is disabled; therefore the guard raises Http404 before the file stream is opened. The protected effect would otherwise be reading and streaming the existing asset file, but it is unreachable under these conditions. The role and relation matter because owner status is an independent allow path, authenticated reader status is required for the shared-bookmark path, and an anonymous non-owner can proceed only through public sharing. The supplied caller/resource/settings/file facts are task assumptions; the cited source observations are limited to the supplied files and do not establish repository-wide completeness or deployment behavior. No decisive external fact is missing for this bounded path under the stated assumptions.
+  Evidence: The asset view invokes the asset read access helper before attempting file handling. (bookmarks/views/assets.py:8-13)
+  Evidence: The asset GET route maps assets/<asset_id> to the asset view. (bookmarks/urls.py:46-51)
+  Evidence: Bookmark access derives owner status by comparing the bookmark owner with request.user and derives authenticated shared access only when request.user.is_authenticated, the bookmark is shared, and owner sharing is enabled. (bookmarks/views/access.py:7-18)
+  Evidence: Asset access retrieves the asset by asset ID and applies bookmark_read to the asset's associated bookmark. (bookmarks/views/access.py:46-53)
+  Evidence: A non-owner is rejected unless authenticated shared access or public shared access is true; public shared access requires the bookmark to be shared and the owner's public-sharing setting to be enabled. (bookmarks/views/access.py:13-21)
+  Evidence: When the bookmark read condition is not met, the source raises Http404 before the asset file operation is reached. (bookmarks/views/access.py:19-25)
+  Evidence: If authorization succeeds, the view opens the asset file and returns a streaming response containing the asset content; a missing file is handled separately. (bookmarks/services/assets.py:231-263)
+  Evidence: The GET path does not add a POST-only owner restriction; the decisive read guard is the owner/shared/public-sharing condition. (bookmarks/views/access.py:19-25)
+  Evidence: Applying the task-stated anonymous, non-owner, shared bookmark with owner sharing enabled and public sharing disabled makes authenticated shared access false and public shared access false, so the source denies this request. (bookmarks/views/access.py:13-21)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

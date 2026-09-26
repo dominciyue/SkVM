@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260922T102322178Z-8ed0b785
+Status: completed
+Task: ab-linkding-remove-changed
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/sissbruecker/linkding@27b7303baf41bb28babc610ac8eaa486e1ddfab5
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_supported_failure — The declared route is bound to the supplied entry: the URL configuration maps the shared-action path to the shared_action view, and the view is login-protected. With only the remove field, shared_action rejects only bulk_execute, then handle_action selects the remove branch. That branch passes the request-selected bookmark ID to the write accessor, which queries a bookmark whose owner is exactly request.user; it does not use shared/read access as a deletion grant. Because the task states that the caller owns the same shared bookmark, this ownership control succeeds. The protected effect is then the direct deletion call on that bookmark. Thus the source-visible decision is allow for the stated owner relation, including the role/ownership branch, and the supplied expectation that the owner may delete is enforced; sharing does not expand deletion rights. The conclusion is source_supported_failure relative to the declared expected allow disposition only in the sense that no policy failure is supported? No: under the contract labels, the source supports enforcement, so the correct label is source_refuted. However, the fixed source context does not supply the implementation of the login decorator, the model relation semantics beyond the stated standard ORM assumption, or deployment routing/middleware; those are task assumptions or source-external and are not decisive under the declared assumptions. Source discovery is not-tested, so this is not a completeness claim about other entries or repository behavior.
+  Evidence: The shared-action URL is mapped to the shared_action view, which is decorated as requiring login. (bookmarks/urls.py:35-39, bookmarks/views/bookmarks.py:346-347)
+  Evidence: The entry's authentication gate uses the runtime request identity, and the deletion accessor compares the selected bookmark owner to request.user. (bookmarks/views/bookmarks.py:346-347, bookmarks/views/access.py:28-32)
+  Evidence: The request-selected remove value is passed as the bookmark identifier to a query constrained by owner=request.user; shared/read visibility is not the write binding, and the distinct checked resource is the bookmark owner. (bookmarks/views/bookmarks.py:361-369, bookmarks/views/access.py:28-32)
+  Evidence: The strongest visible authorization control for deletion is the owner-constrained write lookup; a non-owner cannot obtain the bookmark through that accessor, while the stated owner succeeds. (bookmarks/views/access.py:28-32)
+  Evidence: The source-visible authorization outcome is allow for the declared owner of the same shared bookmark, which enforces the expected owner-delete policy; sharing is not used as a deletion authorization path. (bookmarks/views/access.py:28-32, bookmarks/views/bookmarks.py:255-258)
+  Evidence: After the owner-constrained lookup succeeds, the selected bookmark is deleted directly. (bookmarks/views/bookmarks.py:255-258)
+  Evidence: For the supplied POST containing only remove=<existing bookmark id>, handle_action reaches the remove branch; the supplied shared state does not add a deletion restriction for an owner. (bookmarks/views/bookmarks.py:346-358, bookmarks/views/bookmarks.py:361-369)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

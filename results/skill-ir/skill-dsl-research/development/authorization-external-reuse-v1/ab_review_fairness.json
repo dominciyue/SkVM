@@ -1,0 +1,13 @@
+{
+  "agent": "/root/ab_review_fairness",
+  "return": "公共公平核验（只读；未读 evaluator/runs/oracle）：\n\n事实：8 个 brief 与最终 DSL JSON 的 project/ref/sourceRoot/sources、operation/state、policy、principal/resource facts、relation、expectation、entry path/range 全部对齐。原/变仅改变声明关系与 expectation：\n\n- linkding remove：non-owner deny → owner allow\n- linkding asset：authenticated allow → anonymous deny\n- todo task：unrelated deny → assignee allow\n- todo list：non-staff deny → staff allow\n\n证据：brief `linkding/brief.json:32-92`、`todo/brief.json:34-103`；DSL 如 `authors/linkding-dsl/remove-original.json:3-69`、`authors/todo-dsl/task-original.json:3-83`。DSL 保留 common questions/constraints/source gaps；未发现 DSL 状态、角色、资源或 source 闭包缺项。\n\npanel 的 8 cases/16 units 映射正确，DSL/MD/manifest/source SHA 配对一致：`panel-config.json:18-520,524-602`。运行路由中 DSL 使用 `c.dsl`，Markdown 使用 `c.manifest`，随后把 MD 文本作为 instructions 传入：`run-panel.ts:16-21,33,39`。\n\n关键公平偏差：`manifest-provenance.json:11-20` 明确规定 Markdown 不应得到 policy text、principal/resource/entry/scenario、analysis questions、DSL instructions；但 8 份最终 MD 都显式携带这些语义。\n\n证据：\n\n- linkding：`authors/linkding-md/asset-original.md:7-20`、`asset-changed.md:7-20`、`remove-original.md:7-19`、`remove-changed.md:7-19`\n- todo：`authors/todo-md/list-original.md:8-12`、`list-changed.md:8-12`、`task-original.md:8-12`、`task-changed.md:8-12`\n\n这些 MD 直接提供 policy、caller/resource facts、relation 与 expected allow/deny，故 Markdown 对照臂并非仅由 manifest 提供 ID/共同输出/source；存在语义泄漏，影响对照公平性及 Markdown 与 DSL 表现的归因。MD 还直接提供 source line ranges/source files，例如 `linkding-md/remove-original.md:19-20`、`asset-original.md:20`、`todo-md/list-original.md:8,20`，与 provenance 的 `notRenderedToMarkdown` 声明矛盾。\n\n首稿、evaluator、runs 未审查。",
+  "usage": {
+    "input_tokens": 370108,
+    "cached_input_tokens": 318720,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 3296,
+    "reasoning_output_tokens": 770,
+    "total_tokens": 373404
+  },
+  "actualUSD": null
+}

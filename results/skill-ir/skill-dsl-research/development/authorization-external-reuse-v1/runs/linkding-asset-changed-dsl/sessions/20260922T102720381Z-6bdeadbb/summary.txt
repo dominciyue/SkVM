@@ -1,0 +1,23 @@
+Authorization assessment
+Session: 20260922T102720381Z-6bdeadbb
+Status: completed
+Task: ab-linkding-asset-changed
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/sissbruecker/linkding@27b7303baf41bb28babc610ac8eaa486e1ddfab5
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_supported_failure — The declared entry is the GET asset route, which dispatches to the supplied view. The view binds the path asset_id through asset_read, which first selects the requested BookmarkAsset and then authorizes through its associated bookmark. The associated bookmark is the distinct checked resource: access.bookmark_read loads it by primary key and compares its owner and sharing settings with the request identity. For the supplied anonymous, non-owner state, the owner branch is false; the authenticated-reader branch is false because the caller is not authenticated; and the public-reader branch is false because public sharing is disabled. The strongest visible control therefore raises Http404 before stream_asset_file is called, so the actual source-visible decision is deny and the protected file-streaming effect is not reachable. This enforces the expected deny disposition, so the source supports the policy expectation rather than refuting it. The stated role and relation matter because an owner would pass the owner branch, an authenticated reader could pass the shared-plus-owner-sharing branch, and an anonymous non-owner can pass only the public-sharing branch. Those role/settings are supplied task assumptions; the source crop does not establish framework authentication wiring, deployment routing, or repository-wide completeness. Under the fixed assumptions that the request reaches this view and unrelated checks pass, no decisive source-external fact changes the answer. Exact deployment behavior and any alternate entry are not tested; observing the deployed route and request identity/settings would be the minimum observation for deployment confirmation.
+  Evidence: The assets/<asset_id> route dispatches to the asset view, and the view calls asset_read before attempting to produce a response. (bookmarks/urls.py:47-51, bookmarks/views/assets.py:8-13)
+  Evidence: The authorization uses the runtime request user: ownership is compared with request.user, and authenticated-reader eligibility checks request.user.is_authenticated. (bookmarks/views/access.py:7-20)
+  Evidence: The path-selected asset_id is bound to a BookmarkAsset, then its asset.bookmark_id is passed to bookmark_read; bookmark_read separately loads and checks the associated Bookmark. (bookmarks/views/access.py:46-53, bookmarks/views/access.py:7-12)
+  Evidence: The strongest visible authorization gate denies when the caller is neither the bookmark owner nor an eligible authenticated shared reader nor an eligible public reader; the supplied anonymous non-owner with public sharing disabled therefore reaches the denial branch. (bookmarks/views/access.py:13-21)
+  Evidence: Only after asset_read returns does the view call the asset streaming service and set the response headers; the denied branch prevents that protected read effect. (bookmarks/views/assets.py:8-22, bookmarks/services/assets.py:246-263)
+  Evidence: The visible decision distinguishes owner access, authenticated shared access with owner sharing enabled, and public access with public sharing enabled; the supplied state selects none of those branches for the anonymous non-owner. (bookmarks/views/access.py:13-21)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

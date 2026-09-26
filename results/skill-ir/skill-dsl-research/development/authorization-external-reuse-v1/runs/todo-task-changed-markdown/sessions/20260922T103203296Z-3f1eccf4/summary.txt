@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260922T103203296Z-3f1eccf4
+Status: completed
+Task: ab-todo-task-changed
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/shacker/django-todo@95e3a022d239ebaa8771376c838a4d36590ab9b1
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The fixed source supports enforcement of the declared policy expectation for the stated state, so it refutes a policy failure. The route binds POST delete/<task_id> to delete_task, and the view requires authentication plus the staff_check decorator. Because TODO_STAFF_ONLY is explicitly False, staff_check returns True for logged-in users; the caller therefore passes that outer control despite being ordinary and non-staff. On POST, the view binds the supplied task_id to an existing Task, then applies an OR authorization check: creator, superuser, assignee, or member of the task list's group. The caller is an assignee, so the visible authorization check passes even though the caller is neither creator, superuser, nor group member. The protected effect is task.delete(), followed by success messaging and redirect. Thus the source-visible decision is allow for this caller and relation. The caller identity, task existence, assignment, group non-membership, POST method, explicit setting, CSRF and unrelated infrastructure behavior are task assumptions or supplied context; the cited source facts establish the route, bindings, controls, and effect. No decisive external fact is missing under the stated assumptions. Framework, authentication-backend, middleware, deployment, and storage-success details are not established by this crop, but they are outside the requested reachability decision and are expressly assumed or not required.
+  Evidence: The views package exports delete_task from todo.views.delete_task. (todo/views/__init__.py:1-4)
+  Evidence: The URL pattern maps delete/<int:task_id>/ to the exported delete_task view. (todo/urls.py:42-46)
+  Evidence: delete_task is protected by login_required and user_passes_test(staff_check), and receives the request and task_id. (todo/views/delete_task.py:12-14)
+  Evidence: For POST, the task_id is resolved to an existing Task, and the task list and its group are read for redirect construction and authorization. (todo/views/delete_task.py:19-24, todo/views/delete_task.py:27-33)
+  Evidence: When TODO_STAFF_ONLY is false, staff_check returns true rather than requiring staff status, while the login decorator still requires an authenticated user. (todo/utils.py:17-27, todo/views/delete_task.py:12-14)
+  Evidence: The strongest visible task-level authorization control allows the operation if the caller is the creator, a superuser, assigned to the task, or a member of the task list group. (todo/views/delete_task.py:27-34)
+  Evidence: After the authorization check passes, the view deletes the bound task and returns a redirect after recording a success message. (todo/views/delete_task.py:34-39)
+  Evidence: A Task has a creator, an assignee many-to-many relation, and a task-list relation; the task list has a group relation used by the authorization check. (todo/models.py:55-59, todo/models.py:71-89)
+  Evidence: The deletion branch is entered only for POST; non-POST requests are denied. (todo/views/delete_task.py:19-20, todo/views/delete_task.py:41-42)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

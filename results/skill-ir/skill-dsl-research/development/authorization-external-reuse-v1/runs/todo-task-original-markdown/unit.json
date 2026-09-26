@@ -1,0 +1,222 @@
+{
+  "unit": {
+    "id": "todo-task-original-markdown",
+    "caseId": "todo-task-original",
+    "arm": "markdown"
+  },
+  "configSha256": "dfcf2e4dd233f52ac76de552d5b24e3eb778ae19fcc43cf2ae9611437988a864",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v4",
+    "researchIdentity": {
+      "arm": "markdown",
+      "instructionOrigin": "independent-author",
+      "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/authors/todo-md/task-original.md",
+      "sha256": "c74bcece20a280537d13af9201dc962b00f4f6ed9deb2c52fefb27d14432ad24",
+      "characters": 2642
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260922T102928385Z-89721930",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-external-reuse-v1\\runs\\todo-task-original-markdown\\sessions\\20260922T102928385Z-89721930",
+    "createdAt": "2026-09-22T10:29:28.385Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-external-reuse-v1\\manifests\\todo\\task-original.json",
+    "taskId": "ab-todo-task-original",
+    "repository": "https://github.com/shacker/django-todo",
+    "sourceRef": "95e3a022d239ebaa8771376c838a4d36590ab9b1",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 138,
+        "declaration": 2642,
+        "source": 23558,
+        "outputContract": 2255,
+        "total": 28679,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "ab-todo-task-original",
+      "repository": "https://github.com/shacker/django-todo",
+      "sourceRef": "95e3a022d239ebaa8771376c838a4d36590ab9b1",
+      "results": [
+        {
+          "obligationId": "scenario%3Aassessment::entry%3Atarget",
+          "conclusion": "source_refuted",
+          "explanation": "The supplied source enforces the declared policy expectation for the stated caller and resource state. The route binds POST delete/<task_id> to delete_task, which is re-exported by the supplied view package. The entry requires authentication and applies staff_check; with TODO_STAFF_ONLY explicitly False, staff_check returns True for logged-in users, so the ordinary authenticated caller reaches the view. The task is then bound by the supplied task_id, and the view checks the task's creator, superuser status, assignee relation, and task-list group membership. Because the stated caller is none of those, the condition fails and PermissionDenied is raised before task.delete(). Therefore the actual authorization decision is deny, and the protected deletion effect is not reachable for this caller. The caller's non-staff status matters only to the outer staff_check under the explicitly false setting; the unrelated creator, superuser, assignee, and group relations are decisive at the entry's object-level check. Task assumptions supplied by the task include the existing task/list/group, authenticated ordinary non-staff non-superuser identity, absent creator/assignee/group relations, POST method, false setting, and passing CSRF/unrelated infrastructure checks. Observed source facts are the route mapping, decorators, object lookup, authorization predicate, denial branch, and deletion call. No deployment-wide or uninspected-entry completeness claim is made.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The supplied URL configuration maps delete/<int:task_id>/ to the delete_task view, and the view package re-exports delete_task.",
+                "citations": [
+                  {
+                    "path": "todo/urls.py",
+                    "startLine": 42,
+                    "endLine": 46,
+                    "quote": "urlpatterns.extend(\n    [\n        path(\"toggle_done/<int:task_id>/\", views.toggle_done, name=\"task_toggle_done\"),\n        path(\"delete/<int:task_id>/\", views.delete_task, name=\"delete_task\"),\n        path(\"search/\", views.search, name=\"search\"),"
+                  },
+                  {
+                    "path": "todo/views/__init__.py",
+                    "startLine": 1,
+                    "endLine": 4,
+                    "quote": "from todo.views.add_list import add_list  # noqa: F401\nfrom todo.views.del_list import del_list  # noqa: F401\nfrom todo.views.delete_task import delete_task  # noqa: F401\nfrom todo.views.external_add import external_add  # noqa: F401"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The entry requires login and applies user_passes_test(staff_check) before executing the view body.",
+                "citations": [
+                  {
+                    "path": "todo/views/delete_task.py",
+                    "startLine": 12,
+                    "endLine": 14,
+                    "quote": "@login_required\n@user_passes_test(staff_check)\ndef delete_task(request, task_id: int) -> HttpResponse:"
+                  }
+                ]
+              },
+              {
+                "statement": "The Task model defines the creator, assignee, and task-list relationships used by the visible authorization predicate; TaskList has a group relationship.",
+                "citations": [
+                  {
+                    "path": "todo/models.py",
+                    "startLine": 55,
+                    "endLine": 59,
+                    "quote": "class TaskList(models.Model):\n    name = models.CharField(max_length=60)\n    slug = models.SlugField(default=\"\")\n    group = models.ForeignKey(Group, on_delete=models.CASCADE)\n"
+                  },
+                  {
+                    "path": "todo/models.py",
+                    "startLine": 71,
+                    "endLine": 89,
+                    "quote": "class Task(models.Model):\n    title = models.CharField(max_length=140)\n    task_list = models.ForeignKey(TaskList, on_delete=models.CASCADE, null=True)\n    created_date = models.DateField(default=timezone.now, blank=True, null=True)\n    due_date = models.DateField(blank=True, null=True)\n    completed = models.BooleanField(default=False)\n    completed_date = models.DateField(blank=True, null=True)\n    created_by = models.ForeignKey(\n        settings.AUTH_USER_MODEL,\n        null=True,\n        blank=True,\n        related_name=\"todo_created_by\",\n        on_delete=models.CASCADE,\n    )\n    assigned_to = models.ManyToManyField(\n        settings.AUTH_USER_MODEL,\n        blank=True,\n        related_name=\"todo_assigned_to\",\n    )"
+                  }
+                ]
+              },
+              {
+                "statement": "On POST, the view resolves the existing Task identified by the route task_id and derives its task-list resource for the redirect.",
+                "citations": [
+                  {
+                    "path": "todo/views/delete_task.py",
+                    "startLine": 19,
+                    "endLine": 24,
+                    "quote": "    if request.method == \"POST\":\n        task = get_object_or_404(Task, pk=task_id)\n\n        redir_url = reverse(\n            \"todo:list_detail\",\n            kwargs={\"list_id\": task.task_list.id, \"list_slug\": task.task_list.slug},"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The strongest visible object-level authorization control requires at least one of task creator, superuser, assignee, or membership in the task list group; otherwise it raises PermissionDenied.",
+                "citations": [
+                  {
+                    "path": "todo/views/delete_task.py",
+                    "startLine": 27,
+                    "endLine": 35,
+                    "quote": "        # Permissions\n        if not (\n            (task.created_by == request.user)\n            or (request.user.is_superuser)\n            or task.assigned_to.filter(pk=request.user.pk).exists()\n            or (task.task_list.group in request.user.groups.all())\n        ):\n            raise PermissionDenied\n"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "Task deletion occurs only after the object-level authorization check, through task.delete(), followed by success messaging and redirect.",
+                "citations": [
+                  {
+                    "path": "todo/views/delete_task.py",
+                    "startLine": 36,
+                    "endLine": 39,
+                    "quote": "        task.delete()\n\n        messages.success(request, \"Task '{}' has been deleted\".format(task.title))\n        return redirect(redir_url)"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The deletion path is conditioned on request.method being POST; non-POST requests are denied.",
+                "citations": [
+                  {
+                    "path": "todo/views/delete_task.py",
+                    "startLine": 19,
+                    "endLine": 20,
+                    "quote": "    if request.method == \"POST\":\n        task = get_object_or_404(Task, pk=task_id)"
+                  },
+                  {
+                    "path": "todo/views/delete_task.py",
+                    "startLine": 40,
+                    "endLine": 42,
+                    "quote": "\n    else:\n        raise PermissionDenied"
+                  }
+                ]
+              },
+              {
+                "statement": "staff_check consults TODO_STAFF_ONLY and returns True when that setting is false, allowing all logged-in users through this visible gate.",
+                "citations": [
+                  {
+                    "path": "todo/utils.py",
+                    "startLine": 17,
+                    "endLine": 27,
+                    "quote": "def staff_check(user):\n    \"\"\"If TODO_STAFF_ONLY is set to True, limit view access to staff users only.\n        # FIXME: More granular access control needed - see\n        https://github.com/shacker/django-todo/issues/50\n    \"\"\"\n\n    if defaults(\"TODO_STAFF_ONLY\"):\n        return user.is_staff\n    else:\n        # If unset or False, allow all logged in users\n        return True"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "relationCoverage": [],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 720,
+        "output": 1059,
+        "cacheRead": 6528,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

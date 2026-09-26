@@ -1,0 +1,33 @@
+--- task-original.json
++++ task-changed.json
+@@ -1,7 +1,7 @@
+ {
+   "schemaVersion": "authorization-assessment-authoring/v2",
+-  "taskId": "ab-todo-task-original",
+-  "request": "May an authenticated non-staff ordinary user who is not the superuser, task creator, task assignee, or member of the task list group delete an existing task via POST delete/<task_id>?",
++  "taskId": "ab-todo-task-changed",
++  "request": "May an authenticated non-staff ordinary user who is not the superuser or task creator, but is assigned to the task and is not a member of the task list group, delete an existing task via POST delete/<task_id>?",
+   "repository": "https://github.com/shacker/django-todo",
+   "sourceRef": "95e3a022d239ebaa8771376c838a4d36590ab9b1",
+   "sourceRoot": "project",
+@@ -40,7 +40,7 @@
+       "facts": [
+         "Not superuser",
+         "Not task creator",
+-        "Not assigned to task",
++        "Assigned to task",
+         "Not member of task list group",
+         "POST request"
+       ],
+@@ -78,9 +78,9 @@
+       "entries": [
+         "target"
+       ],
+-      "relation": "unrelated-to-task-and-group",
++      "relation": "task-assignee-outside-list-group",
+       "operation": "delete an existing task via POST delete/<task_id>",
+-      "expectation": "deny"
++      "expectation": "allow"
+     }
+   }
+ }

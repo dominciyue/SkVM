@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260922T103101626Z-a0eabbd4
+Status: completed
+Task: ab-todo-task-changed
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/shacker/django-todo@95e3a022d239ebaa8771376c838a4d36590ab9b1
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The supplied source enforces the declared allow expectation for this state, so it refutes a policy failure. The declared route maps POST delete/<task_id> to the delete_task entry, which is re-exported as the project view. The entry requires an authenticated caller and applies staff_check; with TODO_STAFF_ONLY explicitly False, that check allows logged-in users rather than requiring staff. On POST, the numeric task_id is used to retrieve the existing Task, and the task's task_list is used for the redirect and group check. The strongest operation-specific authorization control is the OR permission branch: creator, superuser, assignee, or member of the task list group. The caller is neither creator nor superuser nor group member, but is an assignee, so the branch succeeds. The distinct checked resource is the task list's group; group membership is not required here because the assignee branch independently authorizes the task operation. The protected effect is task.delete(), and the visible path reaches it under the assignee branch, followed by success messaging and redirect. No decisive source-external fact remains unknown within the declared fixed assumptions: framework decorator behavior, identity, TODO_STAFF_ONLY=False, POST method, CSRF/infrastructure passage, and ordinary ORM behavior are expressly supplied assumptions. Deployment and repository-wide completeness remain untested but are not needed for this bounded source decision.
+  Evidence: The delete_task entry is mapped to the delete/<task_id> route, and the supplied view exposes that callable for routing. (todo/urls.py:42-46, todo/views/__init__.py:1-4)
+  Evidence: The entry is guarded by login_required, so the assessed path uses the authenticated request user. (todo/views/delete_task.py:12-14)
+  Evidence: The group resource checked by the authorization branch is the group related to the selected task's task list, distinct from the task itself. (todo/views/delete_task.py:22-33, todo/models.py:55-59)
+  Evidence: On POST, the request task_id selects the existing Task, and the selected task supplies its task_list for subsequent checks and redirect construction. (todo/views/delete_task.py:19-25)
+  Evidence: The strongest operation-specific control authorizes when any one of creator, superuser, assignee, or task-list-group membership is true; the supplied assignee relation makes this condition true despite the other negative role facts. (todo/views/delete_task.py:27-33)
+  Evidence: The staff_check gate returns true for all logged-in users when TODO_STAFF_ONLY is false, so it does not exclude this authenticated ordinary caller. (todo/utils.py:17-27)
+  Evidence: After the authorization condition succeeds, the selected task is deleted and the success response path is taken. (todo/views/delete_task.py:34-39)
+  Evidence: The assessed condition set includes POST, an existing task, and TODO_STAFF_ONLY explicitly false; the POST branch and false-setting behavior are visible in the supplied source. (todo/views/delete_task.py:19-20, todo/utils.py:23-27)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

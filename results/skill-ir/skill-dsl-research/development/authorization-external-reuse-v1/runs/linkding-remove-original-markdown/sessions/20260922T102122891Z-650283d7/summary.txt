@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260922T102122891Z-650283d7
+Status: completed
+Task: ab-linkding-remove-original
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/sissbruecker/linkding@27b7303baf41bb28babc610ac8eaa486e1ddfab5
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The fixed source enforces the declared expectation that only the bookmark owner may delete. The route maps the shared-action endpoint to shared_action, which dispatches a POST containing only remove to remove. remove then obtains the bookmark through bookmark_write, whose query requires owner=request.user; a non-owner therefore cannot obtain the target and the delete call is unreachable. The actual decision for the stated caller and bookmark is deny (via the visible ownership gate, ordinarily as a not-found response), not allow. Sharing changes the read relationship only: bookmark_read permits an authenticated user to read a shared bookmark when the owner's sharing setting is enabled, but its POST path also rejects non-owners, and the deletion path uses the stricter owner-bound write accessor rather than the sharing read accessor. The supplied superuser/role facts do not create an alternate visible bypass in this entry. Task assumptions include the authenticated identity, bookmark state/settings, POST contents, CSRF and unrelated infrastructure checks, and standard Django/ORM behavior; no decisive external fact is needed to decide this bounded source path. Repository-wide completeness, deployment middleware, and other entries are not assessed.
+  Evidence: shared_action invokes handle_action, and handle_action dispatches a remove POST field to remove with the submitted bookmark identifier. (bookmarks/views/bookmarks.py:346-368)
+  Evidence: The shared bookmark action route is bound to shared_action, and the supplied POST-only operation reaches that entry. (bookmarks/urls.py:35-39)
+  Evidence: The entry requires an authenticated user through the login-required decorator; the deletion accessor compares the bookmark owner with request.user. (bookmarks/views/bookmarks.py:346-347, bookmarks/views/access.py:28-32)
+  Evidence: The deletion target is selected by primary key together with owner=request.user, so a non-owner cannot receive the existing bookmark from this write accessor. (bookmarks/views/access.py:28-32)
+  Evidence: The strongest visible authorization control on this path is the owner-constrained bookmark_write lookup, which raises Http404 when the caller is not the owner. (bookmarks/views/access.py:28-32)
+  Evidence: After the owner-bound lookup succeeds, remove invokes bookmark.delete(), which is the protected deletion effect. (bookmarks/views/bookmarks.py:255-258)
+  Evidence: The supplied source distinguishes shared-read access from write access: shared bookmarks can be read for an authenticated non-owner when sharing is enabled, while POST access for a non-owner is rejected; this does not authorize deletion. (bookmarks/views/access.py:13-23)
+  Evidence: Under the stated non-owner relation, the caller fails the owner=request.user resource condition even though the bookmark is shared; the relation therefore changes the result from the owner-eligible deletion path to denial before the delete effect. (bookmarks/views/access.py:28-32, bookmarks/views/bookmarks.py:255-258)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

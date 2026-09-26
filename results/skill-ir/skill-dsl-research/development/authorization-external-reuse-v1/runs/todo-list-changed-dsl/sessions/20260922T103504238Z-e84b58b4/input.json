@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "ab-todo-list-changed",
+  "request": "May an authenticated staff group member who is not a superuser, belongs to the same list group, and has is_staff=True delete an existing list via POST <list_id>/<list_slug>/delete/?",
+  "repository": "https://github.com/shacker/django-todo",
+  "sourceRef": "95e3a022d239ebaa8771376c838a4d36590ab9b1",
+  "sourceRoot": "project",
+  "sources": [
+    "todo/views/delete_task.py",
+    "todo/views/del_list.py",
+    "todo/views/__init__.py",
+    "todo/utils.py",
+    "todo/defaults.py",
+    "todo/models.py",
+    "todo/urls.py"
+  ],
+  "additionalConstraints": [
+    "Exposure is external-development.",
+    "Single fixed repository/ref and explicit source files only. No target execution, dependency installation, deployment access, patching or repository-wide discovery. Standard Django decorator/ORM behavior is assumed; requests reach the supplied view with the stated identity/settings, pass CSRF and unrelated infrastructure checks. Assess authorization reachability of the protected operation, not successful storage or deployment execution.",
+    "Django framework/authentication backend and application deployment middleware are not supplied; identity, stated settings and ordinary ORM behavior are task assumptions.",
+    "Unrelated imported view/services and rendering behavior are not analyzed. All selected project-owned authorization gates and protected operation calls are supplied."
+  ],
+  "additionalQuestions": [
+    "Determine whether the provided source enforces the supplied policy expectation for this state, separately state the actual allow/deny/unknown decision.",
+    "Trace route/entry, identity and resource binding, strongest visible control, and protected effect. Explain why the stated role and relation change matters.",
+    "Distinguish task assumptions from facts observed in source. Name any decisive missing external facts; do not invent deployment facts. Exact HTTP status is optional unless needed to explain the decision."
+  ],
+  "policies": {
+    "delete_list": {
+      "text": "List deletion requires both membership in the list group and staff status. TODO_STAFF_ONLY is explicitly False; this disables only the global staff-only restriction.",
+      "location": "brief.json#/operations/1/policy",
+      "revision": "authorization-external-reuse-v1",
+      "acceptance": "accepted",
+      "reason": "Task-author accepted list requirement, grounded in upstream README permission description (lines 34-40 and 137-139)."
+    }
+  },
+  "principals": {
+    "caller": {
+      "role": "authenticated staff group member",
+      "facts": [
+        "Not superuser",
+        "Member of the same list group",
+        "is_staff=True",
+        "POST request"
+      ],
+      "capabilities": [
+        "authenticated"
+      ]
+    }
+  },
+  "resources": {
+    "list": {
+      "type": "list",
+      "facts": [
+        "Existing list in a group the caller belongs to",
+        "Valid matching list id and slug",
+        "TODO_STAFF_ONLY is explicitly False"
+      ]
+    }
+  },
+  "entries": {
+    "target": {
+      "name": "del_list",
+      "locations": [
+        {
+          "path": "todo/views/del_list.py",
+          "startLine": 11,
+          "endLine": 41
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "assessment": {
+      "principal": "caller",
+      "resource": "list",
+      "policy": "delete_list",
+      "entries": [
+        "target"
+      ],
+      "relation": "same-group-member-with-staff-role",
+      "operation": "delete an existing list via POST <list_id>/<list_slug>/delete/",
+      "expectation": "allow"
+    }
+  }
+}

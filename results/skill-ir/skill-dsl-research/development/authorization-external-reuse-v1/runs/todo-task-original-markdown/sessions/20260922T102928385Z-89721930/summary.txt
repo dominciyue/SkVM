@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260922T102928385Z-89721930
+Status: completed
+Task: ab-todo-task-original
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/shacker/django-todo@95e3a022d239ebaa8771376c838a4d36590ab9b1
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The supplied source enforces the declared policy expectation for the stated caller and resource state. The route binds POST delete/<task_id> to delete_task, which is re-exported by the supplied view package. The entry requires authentication and applies staff_check; with TODO_STAFF_ONLY explicitly False, staff_check returns True for logged-in users, so the ordinary authenticated caller reaches the view. The task is then bound by the supplied task_id, and the view checks the task's creator, superuser status, assignee relation, and task-list group membership. Because the stated caller is none of those, the condition fails and PermissionDenied is raised before task.delete(). Therefore the actual authorization decision is deny, and the protected deletion effect is not reachable for this caller. The caller's non-staff status matters only to the outer staff_check under the explicitly false setting; the unrelated creator, superuser, assignee, and group relations are decisive at the entry's object-level check. Task assumptions supplied by the task include the existing task/list/group, authenticated ordinary non-staff non-superuser identity, absent creator/assignee/group relations, POST method, false setting, and passing CSRF/unrelated infrastructure checks. Observed source facts are the route mapping, decorators, object lookup, authorization predicate, denial branch, and deletion call. No deployment-wide or uninspected-entry completeness claim is made.
+  Evidence: The supplied URL configuration maps delete/<int:task_id>/ to the delete_task view, and the view package re-exports delete_task. (todo/urls.py:42-46, todo/views/__init__.py:1-4)
+  Evidence: The entry requires login and applies user_passes_test(staff_check) before executing the view body. (todo/views/delete_task.py:12-14)
+  Evidence: The Task model defines the creator, assignee, and task-list relationships used by the visible authorization predicate; TaskList has a group relationship. (todo/models.py:55-59, todo/models.py:71-89)
+  Evidence: On POST, the view resolves the existing Task identified by the route task_id and derives its task-list resource for the redirect. (todo/views/delete_task.py:19-24)
+  Evidence: The strongest visible object-level authorization control requires at least one of task creator, superuser, assignee, or membership in the task list group; otherwise it raises PermissionDenied. (todo/views/delete_task.py:27-35)
+  Evidence: Task deletion occurs only after the object-level authorization check, through task.delete(), followed by success messaging and redirect. (todo/views/delete_task.py:36-39)
+  Evidence: The deletion path is conditioned on request.method being POST; non-POST requests are denied. (todo/views/delete_task.py:19-20, todo/views/delete_task.py:40-42)
+  Evidence: staff_check consults TODO_STAFF_ONLY and returns True when that setting is false, allowing all logged-in users through this visible gate. (todo/utils.py:17-27)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

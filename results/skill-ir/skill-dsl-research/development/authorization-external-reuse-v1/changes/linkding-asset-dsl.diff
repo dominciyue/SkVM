@@ -1,0 +1,51 @@
+--- asset-original.json
++++ asset-changed.json
+@@ -1,7 +1,7 @@
+ {
+   "schemaVersion": "authorization-assessment-authoring/v2",
+-  "taskId": "ab-linkding-asset-original",
+-  "request": "Determine whether an authenticated ordinary reader who is not the bookmark owner may read an existing asset via GET assets/<asset_id>.",
++  "taskId": "ab-linkding-asset-changed",
++  "request": "Determine whether an anonymous reader who is not the bookmark owner may read the same existing asset via GET assets/<asset_id>.",
+   "repository": "https://github.com/sissbruecker/linkding",
+   "sourceRef": "27b7303baf41bb28babc610ac8eaa486e1ddfab5",
+   "sourceRoot": "project",
+@@ -15,7 +15,7 @@
+   "policies": {
+     "asset": {
+       "text": "The owner may read an asset; authenticated readers may read it when its bookmark is shared and owner sharing is enabled; anonymous readers require public sharing enabled.",
+-      "location": "asset-original.json#/policies/asset",
++      "location": "asset-changed.json#/policies/asset",
+       "revision": "authorization-external-reuse-v1",
+       "acceptance": "accepted",
+       "reason": "Bounded research task requirement accepted by task author; upstream asset access tests retained independently for evaluation."
+@@ -23,14 +23,12 @@
+   },
+   "principals": {
+     "target": {
+-      "role": "authenticated ordinary reader",
++      "role": "anonymous reader",
+       "facts": [
+-        "Caller is not the bookmark owner",
++        "Caller is not authenticated or the bookmark owner",
+         "GET request"
+       ],
+-      "capabilities": [
+-        "authenticated"
+-      ]
++      "capabilities": []
+     }
+   },
+   "resources": {
+@@ -65,9 +63,9 @@
+       "entries": [
+         "target"
+       ],
+-      "relation": "authenticated non-owner of a shared bookmark asset",
++      "relation": "anonymous non-owner of the same shared bookmark asset",
+       "operation": "read an existing bookmark asset via GET assets/<asset_id>",
+-      "expectation": "allow"
++      "expectation": "deny"
+     }
+   },
+   "additionalQuestions": [

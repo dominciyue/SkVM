@@ -1,0 +1,39 @@
+--- list-original.json
++++ list-changed.json
+@@ -1,7 +1,7 @@
+ {
+   "schemaVersion": "authorization-assessment-authoring/v2",
+-  "taskId": "ab-todo-list-original",
+-  "request": "May an authenticated non-staff group member who is not a superuser and has is_staff=False delete an existing list via POST <list_id>/<list_slug>/delete/?",
++  "taskId": "ab-todo-list-changed",
++  "request": "May an authenticated staff group member who is not a superuser, belongs to the same list group, and has is_staff=True delete an existing list via POST <list_id>/<list_slug>/delete/?",
+   "repository": "https://github.com/shacker/django-todo",
+   "sourceRef": "95e3a022d239ebaa8771376c838a4d36590ab9b1",
+   "sourceRoot": "project",
+@@ -36,11 +36,11 @@
+   },
+   "principals": {
+     "caller": {
+-      "role": "authenticated non-staff group member",
++      "role": "authenticated staff group member",
+       "facts": [
+         "Not superuser",
+-        "Member of the list group",
+-        "is_staff=False",
++        "Member of the same list group",
++        "is_staff=True",
+         "POST request"
+       ],
+       "capabilities": [
+@@ -78,9 +78,9 @@
+       "entries": [
+         "target"
+       ],
+-      "relation": "group-member-without-staff-role",
++      "relation": "same-group-member-with-staff-role",
+       "operation": "delete an existing list via POST <list_id>/<list_slug>/delete/",
+-      "expectation": "deny"
++      "expectation": "allow"
+     }
+   }
+ }

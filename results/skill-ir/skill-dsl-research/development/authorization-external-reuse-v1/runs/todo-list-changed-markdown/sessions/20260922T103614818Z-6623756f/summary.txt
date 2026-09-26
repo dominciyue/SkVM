@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260922T103614818Z-6623756f
+Status: completed
+Task: ab-todo-list-changed
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/shacker/django-todo@95e3a022d239ebaa8771376c838a4d36590ab9b1
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The fixed source enforces the stated policy expectation for the supplied state, and the actual authorization decision is allow. The route binds the delete-list entry to the supplied list ID and slug, and the package export resolves the entry to del_list. The view requires authentication, then applies two independent authorization checks: the list's group must be among the caller's groups, and the caller must have is_staff=True. With the task-stated authenticated staff caller who belongs to the list's group, both checks pass. On POST, the view deletes the existing TaskList and redirects, so the protected operation is reachable. TODO_STAFF_ONLY=False weakens only the decorator's configurable global gate: staff_check returns True for all logged-in users in that setting. It does not bypass the view's explicit group-membership and staff checks, which are the strongest visible control. The matching slug and existing-list facts are task assumptions; the route pattern and the view's ID lookup are source facts. The source does not itself establish README text, deployment configuration, authentication-backend behavior, middleware behavior, or database execution, but the task explicitly supplies or assumes those conditions, and none is decisive under the requested reachability assessment.
+  Evidence: The application routes an integer list ID and string list slug followed by delete/ to del_list, and the views package exports del_list for that route. (todo/urls.py:18-25, todo/views/__init__.py:1-3)
+  Evidence: The entry is protected by Django's login-required decorator, so the supplied authenticated caller satisfies the visible authentication gate. (todo/views/del_list.py:11-13)
+  Evidence: The view resolves the target TaskList by the route's list_id; the route also supplies list_slug, but the shown lookup does not independently compare the slug. (todo/views/del_list.py:13-16)
+  Evidence: A TaskList has a group foreign key, making the group relation used by the authorization check a property of the protected resource. (todo/models.py:55-59)
+  Evidence: The view denies access unless the target list's group is in the current user's groups. (todo/views/del_list.py:18-21)
+  Evidence: The view denies access unless the current user's is_staff attribute is true. (todo/views/del_list.py:18-23)
+  Evidence: For a POST request after the checks pass, the view deletes the resolved TaskList and redirects to the list index. (todo/views/del_list.py:25-28)
+  Evidence: The configurable staff_check returns user.is_staff when TODO_STAFF_ONLY is true, but returns true for all logged-in users when the setting is false. (todo/utils.py:17-27)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

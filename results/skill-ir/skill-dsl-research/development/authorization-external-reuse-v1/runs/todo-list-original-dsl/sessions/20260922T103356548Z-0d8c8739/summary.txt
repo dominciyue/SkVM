@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260922T103356548Z-0d8c8739
+Status: completed
+Task: ab-todo-list-original
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/shacker/django-todo@95e3a022d239ebaa8771376c838a4d36590ab9b1
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The declared policy expectation is deny for this non-staff group member, and the fixed source enforces that denial. The route maps the requested URL to del_list. The entry first requires an authenticated caller and applies staff_check; with TODO_STAFF_ONLY=False, that decorator permits logged-in users, but the view then binds the caller through request.user and independently requires membership in the list's group and request.user.is_staff. The supplied caller is a member but has is_staff=False, so the explicit staff check raises PermissionDenied before the POST deletion branch. The request-selected list is fetched by list_id; the supplied matching slug is accepted as a parameter but is not used to constrain the lookup. The distinct checked resource is the list's associated group, which is tested against the caller's groups. Because the caller fails the strongest applicable authorization control, the protected delete call is unreachable for the stated state. No source-external fact is needed to change this authorization result under the supplied assumptions; deployment, middleware, backend, and successful database execution remain outside scope and are not asserted as discovered facts. This covers all public questions: route/entry, identity binding, object and group binding, strongest control including the non-staff branch, protected effect reachability, and decisive missing-fact assessment.
+  Evidence: The declared POST path routes to the del_list entry, and the imported view exposes that entry. (todo/urls.py:18-25, todo/views/__init__.py:1-3)
+  Evidence: The runtime caller used for authorization is request.user; the entry is protected by login_required before its body is reached. (todo/views/del_list.py:11-16)
+  Evidence: The other checked resource is the selected list's associated group, and authorization compares that group with the groups of request.user. (todo/views/del_list.py:16-23)
+  Evidence: The requested list is bound by the URL list_id to a TaskList lookup; the supplied list_slug is not used in that lookup or in the subsequent authorization checks. (todo/views/del_list.py:13-16)
+  Evidence: For the stated relation, group membership satisfies the first explicit check, but is_staff=False fails the second; superuser status is not an alternative branch in this entry. (todo/views/del_list.py:18-23)
+  Evidence: The decorator-level staff_check permits every logged-in user when TODO_STAFF_ONLY evaluates false, so it is not the decisive denial for the supplied setting. (todo/views/del_list.py:11-13, todo/utils.py:17-27)
+  Evidence: Inside del_list, group membership is required and a separate explicit request.user.is_staff check raises PermissionDenied when the caller is not staff. (todo/views/del_list.py:18-23)
+  Evidence: Only after the authorization checks does the POST branch delete the selected TaskList and redirect; the non-staff branch cannot reach that call. (todo/views/del_list.py:25-28)
+  Evidence: The assessed operation is the POST branch, and the supplied task assumptions state that the request reaches this view with the stated identity and settings after unrelated checks. (todo/views/del_list.py:25-29)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

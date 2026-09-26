@@ -1,0 +1,198 @@
+{
+  "unit": {
+    "id": "linkding-remove-original-dsl",
+    "caseId": "linkding-remove-original",
+    "arm": "dsl"
+  },
+  "configSha256": "dfcf2e4dd233f52ac76de552d5b24e3eb778ae19fcc43cf2ae9611437988a864",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v4",
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260922T102224230Z-329ee7cc",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-external-reuse-v1\\runs\\linkding-remove-original-dsl\\sessions\\20260922T102224230Z-329ee7cc",
+    "createdAt": "2026-09-22T10:22:24.230Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-external-reuse-v1\\authors\\linkding-dsl\\remove-original.json",
+    "taskId": "ab-linkding-remove-original",
+    "repository": "https://github.com/sissbruecker/linkding",
+    "sourceRef": "27b7303baf41bb28babc610ac8eaa486e1ddfab5",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 396,
+        "declaration": 3704,
+        "publicAnalysis": 763,
+        "source": 42584,
+        "outputContract": 2255,
+        "total": 49807,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "ab-linkding-remove-original",
+      "repository": "https://github.com/sissbruecker/linkding",
+      "sourceRef": "27b7303baf41bb28babc610ac8eaa486e1ddfab5",
+      "results": [
+        {
+          "obligationId": "scenario%3Aassessment::entry%3Atarget",
+          "conclusion": "source_refuted",
+          "explanation": "The declared policy expectation is deny, and the supplied source enforces that expectation for the stated non-owner state. The route binds POST bookmarks/shared/action to shared_action, whose login gate requires authentication and whose action dispatcher sends a request containing only remove=<id> to remove. The selected bookmark is bound by the submitted identifier to a Bookmark lookup constrained by owner=request.user; therefore the request caller is also the required owner of the selected resource. For the declared non-owner, that lookup cannot return the shared bookmark, so the path raises the access failure before deletion. The strongest visible authorization control is this owner-constrained query, not the shared-bookmark read path: sharing is relevant to visibility, while deletion uses bookmark_write and requires ownership. The protected effect is bookmark.delete(), and it is reachable only on the owner branch. Thus the actual authorization decision for the supplied principal/resource/relation is deny, while the conclusion label source_refuted means the source refutes a policy failure. No decisive source-external fact is needed under the stated assumptions that the request reaches this view, passes unrelated infrastructure checks, and uses the supplied identity/settings. Framework authentication, deployment middleware, storage success, and repository-wide completeness remain outside this fixed-context assessment and were not used to infer a result.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The shared-action URL is mapped to the shared_action view.",
+                "citations": [
+                  {
+                    "path": "bookmarks/urls.py",
+                    "startLine": 35,
+                    "endLine": 40,
+                    "quote": "    path(\"bookmarks/shared\", bookmarks_views.shared, name=\"bookmarks.shared\"),\n    path(\n        \"bookmarks/shared/action\",\n        bookmarks_views.shared_action,\n        name=\"bookmarks.shared.action\",\n    ),"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The deletion access lookup uses the runtime request user as the bookmark owner constraint.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/access.py",
+                    "startLine": 28,
+                    "endLine": 32,
+                    "quote": "def bookmark_write(request: HttpRequest, bookmark_id: int | str):\n    try:\n        return Bookmark.objects.get(pk=bookmark_id, owner=request.user)\n    except Bookmark.DoesNotExist:\n        raise Http404(\"Bookmark does not exist\") from None"
+                  }
+                ]
+              },
+              {
+                "statement": "The submitted bookmark identifier is passed as the lookup key for the bookmark selected by the request.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/bookmarks.py",
+                    "startLine": 361,
+                    "endLine": 369,
+                    "quote": "def handle_action(request: HttpRequest, query: QuerySet[Bookmark] = None):\n    # Single bookmark actions\n    if \"archive\" in request.POST:\n        return archive(request, request.POST[\"archive\"])\n    if \"unarchive\" in request.POST:\n        return unarchive(request, request.POST[\"unarchive\"])\n    if \"remove\" in request.POST:\n        return remove(request, request.POST[\"remove\"])\n    if \"mark_as_read\" in request.POST:"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The declared entry is protected by a login-required decorator and rejects bulk actions before dispatching other actions.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/bookmarks.py",
+                    "startLine": 346,
+                    "endLine": 353,
+                    "quote": "@login_required\ndef shared_action(request: HttpRequest):\n    if \"bulk_execute\" in request.POST:\n        return HttpResponseBadRequest(\"View does not support bulk actions\")\n\n    response = handle_action(request)\n    if response:\n        return response"
+                  }
+                ]
+              },
+              {
+                "statement": "The deletion effect is source-reachable only after the owner-constrained lookup succeeds, so the non-owner relation cannot reach it.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/access.py",
+                    "startLine": 28,
+                    "endLine": 32,
+                    "quote": "def bookmark_write(request: HttpRequest, bookmark_id: int | str):\n    try:\n        return Bookmark.objects.get(pk=bookmark_id, owner=request.user)\n    except Bookmark.DoesNotExist:\n        raise Http404(\"Bookmark does not exist\") from None"
+                  }
+                ]
+              },
+              {
+                "statement": "The selected bookmark is returned only when its owner equals the runtime caller; otherwise the access helper raises a not-found failure.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/access.py",
+                    "startLine": 28,
+                    "endLine": 32,
+                    "quote": "def bookmark_write(request: HttpRequest, bookmark_id: int | str):\n    try:\n        return Bookmark.objects.get(pk=bookmark_id, owner=request.user)\n    except Bookmark.DoesNotExist:\n        raise Http404(\"Bookmark does not exist\") from None"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The protected deletion effect invokes delete on the bookmark returned by the owner-constrained access helper.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/bookmarks.py",
+                    "startLine": 255,
+                    "endLine": 258,
+                    "quote": "def remove(request: HttpRequest, bookmark_id: int | str):\n    bookmark = access.bookmark_write(request, bookmark_id)\n    bookmark.delete()\n"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "A remove field in the POST selects the single-bookmark removal branch; with only the stated remove field, no earlier listed single-action branch applies.",
+                "citations": [
+                  {
+                    "path": "bookmarks/views/bookmarks.py",
+                    "startLine": 361,
+                    "endLine": 369,
+                    "quote": "def handle_action(request: HttpRequest, query: QuerySet[Bookmark] = None):\n    # Single bookmark actions\n    if \"archive\" in request.POST:\n        return archive(request, request.POST[\"archive\"])\n    if \"unarchive\" in request.POST:\n        return unarchive(request, request.POST[\"unarchive\"])\n    if \"remove\" in request.POST:\n        return remove(request, request.POST[\"remove\"])\n    if \"mark_as_read\" in request.POST:"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "relationCoverage": [],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 11849,
+        "output": 1070,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

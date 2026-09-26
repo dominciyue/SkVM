@@ -1,0 +1,20 @@
+--- list-original.md
++++ list-changed.md
+@@ -2,14 +2,14 @@
+ 
+ Repository: https://github.com/shacker/django-todo
+ Source ref: 95e3a022d239ebaa8771376c838a4d36590ab9b1
+-Task ID: ab-todo-list-original
++Task ID: ab-todo-list-changed
+ Host output label: scenario%3Aassessment::entry%3Atarget
+ 
+ Assess authorization reachability for deleting an existing list through POST `<list_id>/<list_slug>/delete/` at `del_list` in `todo/views/del_list.py` (entry lines 11-41). The resource is an existing list in a group the caller belongs to, with a valid matching list ID and slug. `TODO_STAFF_ONLY` is explicitly False in project settings.
+ 
+-Caller state: authenticated non-staff group member; not superuser; member of the list group; `is_staff=False`; POST request. Relation: group member without staff role.
++Caller state: authenticated staff group member; not superuser; member of the same list group; `is_staff=True`; POST request. Relation: same group member with staff role.
+ 
+-Policy authority: task-author requirement grounded in the upstream README permission description (lines 34-40 and 137-139). Normative expectation: list deletion requires both membership in the list group and staff status. `TODO_STAFF_ONLY` explicitly False disables only the global staff-only restriction; it does not remove the stated list-deletion requirement. For this state, the policy expectation is deny. Treat this as the policy input and assess separately whether the supplied source permits the operation.
++Policy authority: task-author requirement grounded in the upstream README permission description (lines 34-40 and 137-139). Normative expectation: list deletion requires both membership in the list group and staff status. `TODO_STAFF_ONLY` explicitly False disables only the global staff-only restriction; it does not remove the stated list-deletion requirement. For this state, the policy expectation is allow. Treat this as the policy input and assess separately whether the supplied source permits the operation.
+ 
+ Assess the supplied source and report the result using the host's compact plain/v4 result protocol, including the required obligation ID, source IDs, and numbered files. Answer:
+ 

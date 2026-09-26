@@ -1,0 +1,42 @@
+--- remove-original.json
++++ remove-changed.json
+@@ -1,7 +1,7 @@
+ {
+   "schemaVersion": "authorization-assessment-authoring/v2",
+-  "taskId": "ab-linkding-remove-original",
+-  "request": "Determine whether an authenticated ordinary user who is not the bookmark owner may delete a selected shared bookmark through POST bookmarks/shared/action with only remove=<existing bookmark id>.",
++  "taskId": "ab-linkding-remove-changed",
++  "request": "Determine whether an authenticated ordinary user who is the bookmark owner may delete the same shared bookmark through POST bookmarks/shared/action with only remove=<existing bookmark id>.",
+   "repository": "https://github.com/sissbruecker/linkding",
+   "sourceRef": "27b7303baf41bb28babc610ac8eaa486e1ddfab5",
+   "sourceRoot": "project",
+@@ -15,7 +15,7 @@
+   "policies": {
+     "remove": {
+       "text": "Only the bookmark owner may delete a bookmark. Sharing grants reading, not deletion.",
+-      "location": "remove-original.json#/policies/remove",
++      "location": "remove-changed.json#/policies/remove",
+       "revision": "authorization-external-reuse-v1",
+       "acceptance": "accepted",
+       "reason": "Bounded research task requirement accepted by task author; upstream action tests independently retained for evaluation."
+@@ -25,7 +25,7 @@
+     "target": {
+       "role": "authenticated ordinary user",
+       "facts": [
+-        "Caller is not the bookmark owner",
++        "Caller is the bookmark owner",
+         "No superuser or special role",
+         "POST contains only remove=<bookmark id>"
+       ],
+@@ -63,9 +63,9 @@
+       "entries": [
+         "target"
+       ],
+-      "relation": "non-owner of a shared bookmark",
++      "relation": "owner of the same shared bookmark",
+       "operation": "delete a selected bookmark through POST bookmarks/shared/action with only remove=<existing bookmark id>",
+-      "expectation": "deny"
++      "expectation": "allow"
+     }
+   },
+   "additionalQuestions": [

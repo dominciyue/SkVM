@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260922T102409344Z-68247cf9
+Status: completed
+Task: ab-linkding-remove-changed
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/sissbruecker/linkding@27b7303baf41bb28babc610ac8eaa486e1ddfab5
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The fixed source supports enforcement of the stated policy expectation, so it refutes a policy failure. The route maps the shared-bookmark action endpoint to shared_action; that entry requires authentication, rejects bulk execution, and dispatches a POST containing remove to the single-bookmark remove operation. The remove operation obtains the bookmark through bookmark_write, whose query requires the target bookmark's owner to equal the authenticated request user, then calls the model delete effect. Thus the supplied caller, being the owner, is allowed to reach deletion; sharing does not weaken or replace the owner check. The changed state matters because shared status grants a read path to qualifying non-owners, but the source's write/delete binding remains owner-only. The stated owner relation therefore changes the result from denial for a non-owner reader to allow for this owner. Task assumptions include authentication, ownership, bookmark sharing/settings, POST contents, CSRF and unrelated infrastructure checks, and ordinary ORM behavior; those are not independently observed in the supplied source. Source observations establish the shown route, entry, dispatch, owner binding, and delete call only. No decisive external fact is missing for the bounded authorization reachability assessment; framework authentication/decorator behavior and ORM behavior are expressly supplied assumptions.
+  Evidence: A POST containing remove dispatches the supplied bookmark identifier to the remove operation. (bookmarks/views/bookmarks.py:361-369)
+  Evidence: The entry requires login, rejects bulk execution, invokes action handling, and otherwise returns the shared-bookmark response. (bookmarks/views/bookmarks.py:346-358)
+  Evidence: The shared-action URL is routed to the shared_action view. (bookmarks/urls.py:35-39)
+  Evidence: The write lookup binds the selected bookmark to the authenticated request user as its owner, and fails when that owner binding is absent. (bookmarks/views/access.py:28-32)
+  Evidence: The selected bookmark can be written only when its owner equals request.user; this is the decisive authorization control before deletion. (bookmarks/views/access.py:28-32)
+  Evidence: After the owner-bound lookup succeeds, the remove operation invokes deletion on the selected bookmark. (bookmarks/views/bookmarks.py:255-258)
+  Evidence: The read helper permits qualifying shared access, but POST access is rejected for non-owners, distinguishing shared reading from owner-only mutation. (bookmarks/views/access.py:13-23)
+  Evidence: The supplied owner, shared-state, profile-setting, and POST facts are task conditions used for this assessment rather than facts established by the supplied source. (bookmarks/views/bookmarks.py:346-369)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

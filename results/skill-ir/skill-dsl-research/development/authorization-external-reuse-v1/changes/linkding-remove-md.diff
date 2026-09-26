@@ -1,0 +1,28 @@
+--- remove-original.md
++++ remove-changed.md
+@@ -1,20 +1,20 @@
+-# Authorization task: remove bookmark (original state)
++# Authorization task: remove bookmark (changed state)
+ 
+ Repository: https://github.com/sissbruecker/linkding  
+ Ref: `27b7303baf41bb28babc610ac8eaa486e1ddfab5`  
+-Task ID: `ab-linkding-remove-original`
++Task ID: `ab-linkding-remove-changed`
+ 
+-Assess the supplied source for this bounded authorization task and answer using the host result contract, including the required result label/obligation ID when applicable. The policy authority is the task-author requirement: **Only the bookmark owner may delete a bookmark. Sharing grants reading, not deletion.** The expected policy result in this state is **deny**; independently determine the actual source decision as allow, deny, or unknown.
++Assess the supplied source for this bounded authorization task and answer using the host result contract, including the required result label/obligation ID when applicable. The policy authority is the task-author requirement: **Only the bookmark owner may delete a bookmark. Sharing grants reading, not deletion.** The expected policy result in this state is **allow**; independently determine the actual source decision as allow, deny, or unknown.
+ 
+ Caller and resource facts:
+ 
+ - Caller is an authenticated ordinary user.
+-- Caller is not the bookmark owner.
++- Caller is the bookmark owner.
+ - Caller has no superuser or special role.
+ - The existing bookmark is `shared=True`.
+ - The owner has `enable_sharing=True` and `enable_public_sharing=False`.
+ - The POST contains only `remove=<existing bookmark id>`.
+-- The caller is a non-owner of a shared bookmark.
++- The caller is the owner of the same shared bookmark.
+ 
+ Operation and entry scope: delete the selected bookmark through `POST bookmarks/shared/action` with only `remove=<existing bookmark id>`. Trace the route/entry, identity and resource binding, strongest visible control, and protected effect. Explain why the stated role and relation change matters. Use the supplied explicit source files only; the relevant entry location is `bookmarks/views/bookmarks.py` lines 346-358, with the action dispatch in lines 361-378 and any supplied access, asset, service, or URL code needed to trace this operation.
+ 

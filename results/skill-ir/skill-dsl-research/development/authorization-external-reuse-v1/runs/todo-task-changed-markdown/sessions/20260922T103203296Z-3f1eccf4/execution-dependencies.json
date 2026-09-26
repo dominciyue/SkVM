@@ -1,0 +1,294 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "ab-todo-task-changed",
+    "request": "Assess delete an existing task via POST delete/<task_id> for the supplied changed scenario.",
+    "repository": "https://github.com/shacker/django-todo",
+    "sourceRef": "95e3a022d239ebaa8771376c838a4d36590ab9b1",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:policy",
+        "kind": "explicit-task-requirement",
+        "text": "With TODO_STAFF_ONLY explicitly False, authenticated creators, superusers, assignees or members of the task list group may delete the task; unrelated ordinary users may not.",
+        "location": "brief.json#/operations/task",
+        "revision": "ab-brief-v1",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "Explicit bounded research requirement, not a claim that implementation establishes its own normative correctness."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:caller",
+        "role": "authenticated non-staff ordinary user",
+        "description": "Author facts: [\"Not superuser\",\"Not task creator\",\"Assigned to task\",\"Not member of task list group\",\"POST request\"]",
+        "startingCapabilities": []
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:target",
+        "type": "task",
+        "description": "Author facts: [\"Existing task in an existing task list and group. TODO_STAFF_ONLY is explicitly False in project settings.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:target",
+        "name": "delete_task",
+        "locations": [
+          {
+            "path": "todo/views/delete_task.py",
+            "startLine": 12,
+            "endLine": 42
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:assessment",
+        "principalId": "principal:caller",
+        "resourceId": "resource:target",
+        "relation": "task assignee outside list group",
+        "operation": "delete an existing task via POST delete/<task_id>",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:policy",
+        "entryIds": [
+          "entry:target"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+      "Determine whether the provided source enforces the supplied policy expectation for this state, separately state the actual allow/deny/unknown decision.",
+      "Trace route/entry, identity and resource binding, strongest visible control, and protected effect. Explain why the stated role and relation change matters.",
+      "Distinguish task assumptions from facts observed in source. Name any decisive missing external facts; do not invent deployment facts. Exact HTTP status is optional unless needed to explain the decision."
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+      "Single fixed repository/ref and explicit source files only. No target execution, dependency installation, deployment access, patching or repository-wide discovery. Standard Django decorator/ORM behavior is assumed; requests reach the supplied view with the stated identity/settings, pass CSRF and unrelated infrastructure checks. Assess authorization reachability of the protected operation, not successful storage or deployment execution.",
+      "Django framework/authentication backend and application deployment middleware are not supplied; identity, stated settings and ordinary ORM behavior are task assumptions.",
+      "Unrelated imported view/services and rendering behavior are not analyzed. All selected project-owned authorization gates and protected operation calls are supplied."
+    ]
+  },
+  "scenarios": {
+    "scenario:assessment": {
+      "name": "assessment",
+      "obligation": {
+        "id": "scenario:assessment",
+        "principalId": "principal:caller",
+        "resourceId": "resource:target",
+        "relation": "task assignee outside list group",
+        "operation": "delete an existing task via POST delete/<task_id>",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:policy",
+        "entryIds": [
+          "entry:target"
+        ]
+      },
+      "principal": {
+        "id": "principal:caller",
+        "role": "authenticated non-staff ordinary user",
+        "description": "Author facts: [\"Not superuser\",\"Not task creator\",\"Assigned to task\",\"Not member of task list group\",\"POST request\"]",
+        "startingCapabilities": []
+      },
+      "resource": {
+        "id": "resource:target",
+        "type": "task",
+        "description": "Author facts: [\"Existing task in an existing task list and group. TODO_STAFF_ONLY is explicitly False in project settings.\"]"
+      },
+      "policy": {
+        "id": "policy:policy",
+        "kind": "explicit-task-requirement",
+        "text": "With TODO_STAFF_ONLY explicitly False, authenticated creators, superusers, assignees or members of the task list group may delete the task; unrelated ordinary users may not.",
+        "location": "brief.json#/operations/task",
+        "revision": "ab-brief-v1",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "Explicit bounded research requirement, not a claim that implementation establishes its own normative correctness."
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:target",
+          "name": "delete_task",
+          "locations": [
+            {
+              "path": "todo/views/delete_task.py",
+              "startLine": 12,
+              "endLine": 42
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Aassessment::entry%3Atarget"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "todo/views/delete_task.py",
+      "sha256": "925d93cbebcf837a5705730b1cbc544d898487537636f30480f31df850804331",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 42
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "todo/views/del_list.py",
+      "sha256": "cd0618bbde2b437ab696a8288297f4c82101231203b7f01dfa3c180d3464669c",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 41
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "todo/views/__init__.py",
+      "sha256": "aa248c6220a83205f96fa93f2950fcc68ed67c089d80b01a76d327f0c5ee626e",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 12
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "todo/utils.py",
+      "sha256": "ed51393b0ae0b8ef2e09b70dc34bc3cb94fdfe6f0a71b3d0a7749986f7172480",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 176
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "todo/defaults.py",
+      "sha256": "eb0a561bd1a4863d28734f1835900835319efd9f0db1fc383ee175383e26f647",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 28
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "todo/models.py",
+      "sha256": "7e05ec53cd1e81eb2c97707942de2da673ca3c14a6f5d8d70cafde2bd1963f29",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 184
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "todo/urls.py",
+      "sha256": "e77f716e2adac73bdb45b6a8019fb8ed54a2bcc4578e4bb7c16a4d53d67521fc",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 49
+      },
+      "originalLocations": []
+    }
+  ],
+  "sourceRoot": "project",
+  "sources": [
+    "todo/views/delete_task.py",
+    "todo/views/del_list.py",
+    "todo/views/__init__.py",
+    "todo/utils.py",
+    "todo/defaults.py",
+    "todo/models.py",
+    "todo/urls.py"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:assessment"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:assessment"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:assessment"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:assessment"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:assessment"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:assessment"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": null,
+  "normalizerVersion": "authoring-v2-lowering/1",
+  "method": "plain",
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "arm": "B",
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "8468445c499294e12bff974d0b90ea3cd463e39f1ba458df2c60653977981355"
+}

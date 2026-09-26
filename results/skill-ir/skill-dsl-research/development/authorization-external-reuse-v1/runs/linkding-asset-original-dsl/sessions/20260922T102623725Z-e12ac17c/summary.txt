@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260922T102623725Z-e12ac17c
+Status: completed
+Task: ab-linkding-asset-original
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/sissbruecker/linkding@27b7303baf41bb28babc610ac8eaa486e1ddfab5
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The supplied source enforces the expected allow decision for the stated case. The declared route maps GET assets/<asset_id> to assets.view, which calls asset_read before streaming. asset_read binds the path ID to a BookmarkAsset and then checks the associated Bookmark through bookmark_read. bookmark_read permits the owner, or an authenticated caller when the bookmark is shared and the owner's sharing setting is enabled, or a publicly shared bookmark. For this non-owner authenticated reader, the owner branch is false but the authenticated shared branch is true under the supplied state; public sharing is not needed. The strongest visible authorization decision is therefore allow, and the protected file-streaming effect is reachable. The principal's stated role and relation matter because they select the non-owner branch rather than owner access, making the shared-plus-owner-sharing conditions decisive. The task supplies the identity, settings, existing valid asset, request method, and ordinary framework/ORM behavior needed for this bounded reachability assessment; deployment, middleware, and repository-wide completeness remain outside scope and are not inferred.
+  Evidence: The assets/<asset_id> route dispatches to the view entry being assessed. (bookmarks/urls.py:47-51)
+  Evidence: Authorization compares the bookmark owner with request.user and uses request.user.is_authenticated for the authenticated-reader branch. (bookmarks/views/access.py:7-20)
+  Evidence: The request asset_id selects a BookmarkAsset, and the selected asset is bound to its associated bookmark for the authorization check. (bookmarks/views/access.py:46-53)
+  Evidence: A non-owner is rejected only when neither authenticated shared access with owner sharing nor public sharing is available; otherwise bookmark_read returns the bookmark. (bookmarks/views/access.py:13-25)
+  Evidence: The streaming service opens the asset file and constructs a streaming HTTP response from it. (bookmarks/services/assets.py:231-263)
+  Evidence: After asset_read succeeds, the view streams the selected asset file and returns the response; a missing file is handled separately. (bookmarks/views/assets.py:8-22)
+  Evidence: The visible access condition distinguishes owner access, authenticated shared access requiring bookmark sharing and owner sharing, and public shared access. (bookmarks/views/access.py:13-20)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

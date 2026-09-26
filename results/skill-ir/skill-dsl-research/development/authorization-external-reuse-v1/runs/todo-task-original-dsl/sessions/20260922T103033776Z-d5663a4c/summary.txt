@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260922T103033776Z-d5663a4c
+Status: completed
+Task: ab-todo-task-original
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/shacker/django-todo@95e3a022d239ebaa8771376c838a4d36590ab9b1
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The declared policy expectation is deny for this unrelated ordinary user, and the supplied source enforces that expectation on the stated POST path. The route binds delete/<task_id> to the imported delete_task entry. The entry requires an authenticated caller and applies the staff_check decorator; with TODO_STAFF_ONLY explicitly False, that visible gate allows logged-in users through, so it is not the decisive denial for this state. On POST, the task_id is bound to a Task object by primary-key lookup, and the task's list is used for the redirect and group check. The strongest authorization decision is the explicit permission disjunction: creator, superuser, assignee, or member of the task list group. The supplied caller is none of those, so the negated condition raises PermissionDenied before task.delete(). Thus the actual source-visible decision is deny, and the protected deletion effect is unreachable for this principal/resource relation. The role and relation matter because the staff gate is permissive when the setting is false, but the later task-specific branches independently deny an unrelated non-creator, non-superuser, non-assignee, non-group-member. The existing-task, explicit-setting, authenticated identity, CSRF, infrastructure, framework, ORM, and deployment behaviors are task assumptions or scope assumptions rather than independently observed source facts. No decisive source-external fact remains unknown under the supplied fixed context; exact HTTP status and deployment behavior are not needed to decide authorization reachability. This conclusion is limited to the declared entry and supplied source crop; source discovery is not-tested, so no repository-wide completeness claim is made.
+  Evidence: The declared delete path routes the integer task identifier to the delete_task view, which is exported as the project view entry. (todo/urls.py:42-46, todo/views/__init__.py:1-4)
+  Evidence: The group branch checks membership in the group attached to the selected task's task list, which is distinct from the caller's creator and assignee relationships. (todo/models.py:71-89, todo/views/delete_task.py:27-33)
+  Evidence: The entry requires login and passes the runtime caller through the staff_check test before the view body proceeds. (todo/views/delete_task.py:12-14)
+  Evidence: For POST, the request task identifier is resolved to a Task by primary key, and that same task's list supplies the group relation used by the authorization check. (todo/views/delete_task.py:19-25, todo/views/delete_task.py:22-24, todo/views/delete_task.py:27-33)
+  Evidence: The staff_check control allows all logged-in users when TODO_STAFF_ONLY is false; otherwise it tests user.is_staff. (todo/utils.py:17-27)
+  Evidence: The strongest task-specific authorization control permits deletion only for the task creator, a superuser, an assignee, or a member of the task-list group; otherwise it raises PermissionDenied. (todo/views/delete_task.py:27-34)
+  Evidence: The task deletion effect occurs only after the task-specific authorization check and is implemented by task.delete(). (todo/views/delete_task.py:34-39)
+  Evidence: The supplied explicit false setting is consistent with the source behavior that disables the staff-only restriction while retaining the later task-specific authorization check. (todo/utils.py:17-27, todo/views/delete_task.py:12-14, todo/views/delete_task.py:27-36)
+  Evidence: The deletion branch is entered only for a POST request; a non-POST request is denied. (todo/views/delete_task.py:19-20, todo/views/delete_task.py:40-42)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

@@ -1,0 +1,210 @@
+{
+  "unit": {
+    "id": "todo-list-changed-markdown",
+    "caseId": "todo-list-changed",
+    "arm": "markdown"
+  },
+  "configSha256": "dfcf2e4dd233f52ac76de552d5b24e3eb778ae19fcc43cf2ae9611437988a864",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v4",
+    "researchIdentity": {
+      "arm": "markdown",
+      "instructionOrigin": "independent-author",
+      "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/authors/todo-md/list-changed.md",
+      "sha256": "dcfccddc7c61e30be4d19af0c14ed67441fcbd595aa1eec8bd3e05ef3a32f5ec",
+      "characters": 2730
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260922T103614818Z-6623756f",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-external-reuse-v1\\runs\\todo-list-changed-markdown\\sessions\\20260922T103614818Z-6623756f",
+    "createdAt": "2026-09-22T10:36:14.818Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-external-reuse-v1\\manifests\\todo\\list-changed.json",
+    "taskId": "ab-todo-list-changed",
+    "repository": "https://github.com/shacker/django-todo",
+    "sourceRef": "95e3a022d239ebaa8771376c838a4d36590ab9b1",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 138,
+        "declaration": 2730,
+        "source": 23558,
+        "outputContract": 2255,
+        "total": 28767,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "ab-todo-list-changed",
+      "repository": "https://github.com/shacker/django-todo",
+      "sourceRef": "95e3a022d239ebaa8771376c838a4d36590ab9b1",
+      "results": [
+        {
+          "obligationId": "scenario%3Aassessment::entry%3Atarget",
+          "conclusion": "source_refuted",
+          "explanation": "The fixed source enforces the stated policy expectation for the supplied state, and the actual authorization decision is allow. The route binds the delete-list entry to the supplied list ID and slug, and the package export resolves the entry to del_list. The view requires authentication, then applies two independent authorization checks: the list's group must be among the caller's groups, and the caller must have is_staff=True. With the task-stated authenticated staff caller who belongs to the list's group, both checks pass. On POST, the view deletes the existing TaskList and redirects, so the protected operation is reachable. TODO_STAFF_ONLY=False weakens only the decorator's configurable global gate: staff_check returns True for all logged-in users in that setting. It does not bypass the view's explicit group-membership and staff checks, which are the strongest visible control. The matching slug and existing-list facts are task assumptions; the route pattern and the view's ID lookup are source facts. The source does not itself establish README text, deployment configuration, authentication-backend behavior, middleware behavior, or database execution, but the task explicitly supplies or assumes those conditions, and none is decisive under the requested reachability assessment.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The application routes an integer list ID and string list slug followed by delete/ to del_list, and the views package exports del_list for that route.",
+                "citations": [
+                  {
+                    "path": "todo/urls.py",
+                    "startLine": 18,
+                    "endLine": 25,
+                    "quote": "        \"<int:list_id>/<str:list_slug>/completed/\",\n        views.list_detail,\n        {\"view_completed\": True},\n        name=\"list_detail_completed\",\n    ),\n    path(\"<int:list_id>/<str:list_slug>/\", views.list_detail, name=\"list_detail\"),\n    path(\"<int:list_id>/<str:list_slug>/delete/\", views.del_list, name=\"del_list\"),\n    path(\"add_list/\", views.add_list, name=\"add_list\"),"
+                  },
+                  {
+                    "path": "todo/views/__init__.py",
+                    "startLine": 1,
+                    "endLine": 3,
+                    "quote": "from todo.views.add_list import add_list  # noqa: F401\nfrom todo.views.del_list import del_list  # noqa: F401\nfrom todo.views.delete_task import delete_task  # noqa: F401"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The entry is protected by Django's login-required decorator, so the supplied authenticated caller satisfies the visible authentication gate.",
+                "citations": [
+                  {
+                    "path": "todo/views/del_list.py",
+                    "startLine": 11,
+                    "endLine": 13,
+                    "quote": "@login_required\n@user_passes_test(staff_check)\ndef del_list(request, list_id: int, list_slug: str) -> HttpResponse:"
+                  }
+                ]
+              },
+              {
+                "statement": "The view resolves the target TaskList by the route's list_id; the route also supplies list_slug, but the shown lookup does not independently compare the slug.",
+                "citations": [
+                  {
+                    "path": "todo/views/del_list.py",
+                    "startLine": 13,
+                    "endLine": 16,
+                    "quote": "def del_list(request, list_id: int, list_slug: str) -> HttpResponse:\n    \"\"\"Delete an entire list. Only staff members should be allowed to access this view.\n    \"\"\"\n    task_list = get_object_or_404(TaskList, id=list_id)"
+                  }
+                ]
+              },
+              {
+                "statement": "A TaskList has a group foreign key, making the group relation used by the authorization check a property of the protected resource.",
+                "citations": [
+                  {
+                    "path": "todo/models.py",
+                    "startLine": 55,
+                    "endLine": 59,
+                    "quote": "class TaskList(models.Model):\n    name = models.CharField(max_length=60)\n    slug = models.SlugField(default=\"\")\n    group = models.ForeignKey(Group, on_delete=models.CASCADE)\n"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The view denies access unless the target list's group is in the current user's groups.",
+                "citations": [
+                  {
+                    "path": "todo/views/del_list.py",
+                    "startLine": 18,
+                    "endLine": 21,
+                    "quote": "    # Ensure user has permission to delete list. Get the group this list belongs to,\n    # and check whether current user is a member of that group AND a staffer.\n    if task_list.group not in request.user.groups.all():\n        raise PermissionDenied    "
+                  }
+                ]
+              },
+              {
+                "statement": "The view denies access unless the current user's is_staff attribute is true.",
+                "citations": [
+                  {
+                    "path": "todo/views/del_list.py",
+                    "startLine": 18,
+                    "endLine": 23,
+                    "quote": "    # Ensure user has permission to delete list. Get the group this list belongs to,\n    # and check whether current user is a member of that group AND a staffer.\n    if task_list.group not in request.user.groups.all():\n        raise PermissionDenied    \n    if not request.user.is_staff:\n        raise PermissionDenied"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "For a POST request after the checks pass, the view deletes the resolved TaskList and redirects to the list index.",
+                "citations": [
+                  {
+                    "path": "todo/views/del_list.py",
+                    "startLine": 25,
+                    "endLine": 28,
+                    "quote": "    if request.method == \"POST\":\n        TaskList.objects.get(id=task_list.id).delete()\n        messages.success(request, \"{list_name} is gone.\".format(list_name=task_list.name))\n        return redirect(\"todo:lists\")"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The configurable staff_check returns user.is_staff when TODO_STAFF_ONLY is true, but returns true for all logged-in users when the setting is false.",
+                "citations": [
+                  {
+                    "path": "todo/utils.py",
+                    "startLine": 17,
+                    "endLine": 27,
+                    "quote": "def staff_check(user):\n    \"\"\"If TODO_STAFF_ONLY is set to True, limit view access to staff users only.\n        # FIXME: More granular access control needed - see\n        https://github.com/shacker/django-todo/issues/50\n    \"\"\"\n\n    if defaults(\"TODO_STAFF_ONLY\"):\n        return user.is_staff\n    else:\n        # If unset or False, allow all logged in users\n        return True"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "relationCoverage": [],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 7272,
+        "output": 1079,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

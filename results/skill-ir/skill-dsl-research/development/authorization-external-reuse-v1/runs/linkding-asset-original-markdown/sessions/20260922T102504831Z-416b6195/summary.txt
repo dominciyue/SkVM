@@ -1,0 +1,28 @@
+Authorization assessment
+Session: 20260922T102504831Z-416b6195
+Status: completed
+Task: ab-linkding-asset-original
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/sissbruecker/linkding@27b7303baf41bb28babc610ac8eaa486e1ddfab5
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The fixed source supports enforcement of the declared allow expectation for the stated state. The URL entry binds GET assets/<asset_id> to the asset view. That view obtains the asset through asset_read before invoking the file-streaming operation. asset_read loads the asset by ID and delegates authorization to bookmark_read for the asset's bookmark. For the supplied authenticated non-owner, bookmark_read's is_shared condition is true because the caller is authenticated, the bookmark is shared, and the owner's sharing setting is enabled; the denial condition therefore does not hold. Public sharing is not needed for this authenticated-reader branch, so enable_public_sharing=False does not change the result. The protected effect is streaming the existing asset file, with a missing file converted to a 404; the supplied file-exists assumption makes the protected read reachable. The caller's authenticated-reader role and non-owner relation matter because ownership is one independent allow branch, while this request instead relies on the shared-bookmark branch; a non-authenticated caller would not satisfy that branch and would need public sharing. Source-observed facts are the route, authorization predicates, delegation, and streaming call. The caller identity, bookmark flags, request method, valid existing file, and ordinary framework/ORM behavior are task assumptions rather than facts independently established by the source. No decisive external fact is missing under those stated assumptions; deployment and middleware behavior are outside the bounded assessment and are expressly held fixed.
+  Evidence: The asset view first obtains the asset through the asset-read access helper before streaming its file. (bookmarks/views/assets.py:8-13)
+  Evidence: The asset URL with an integer asset identifier routes to the asset view, and a separate read URL routes to the read view. (bookmarks/urls.py:46-55)
+  Evidence: The asset-read helper retrieves the asset by asset identifier, then authorizes the asset through its associated bookmark and returns that same asset. (bookmarks/views/access.py:46-53)
+  Evidence: The file-opening helper constructs the asset-file path from the configured asset folder and the asset's stored file name, and selects decompression based on the asset gzip flag. (bookmarks/services/assets.py:231-243)
+  Evidence: Bookmark read access raises not-found when the caller is neither the owner nor an authenticated shared reader nor a public shared reader. (bookmarks/views/access.py:19-23)
+  Evidence: Bookmark read access recognizes the bookmark owner as an allowed identity relation. (bookmarks/views/access.py:7-14)
+  Evidence: Bookmark read access recognizes an authenticated reader of a shared bookmark when the bookmark owner's sharing setting is enabled. (bookmarks/views/access.py:13-18)
+  Evidence: Public sharing is a separate bookmark-read branch based on the bookmark being shared and the owner's public-sharing setting. (bookmarks/views/access.py:19-20)
+  Evidence: After authorization, the asset view streams the asset file and returns it with the asset content type. (bookmarks/views/assets.py:8-15)
+  Evidence: The file-opening and streaming helpers raise FileNotFoundError when the stored asset file is absent; the view converts that failure to an HTTP not-found response. (bookmarks/services/assets.py:231-239)
+  Evidence: The streaming helper opens the asset file and creates a streaming response over its content. (bookmarks/services/assets.py:246-263)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

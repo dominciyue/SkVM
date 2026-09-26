@@ -1,0 +1,13 @@
+{
+  "agent": "/root/ab_review_runtime",
+  "return": "目标 diff 的相关测试全部通过：\n\n`bun test ./src/benchmarks/authorization-dsl/markdown-study.test.ts ./src/benchmarks/authorization-dsl/source-location.test.ts ./src/benchmarks/authorization-dsl/authoring-compose.test.ts`\n\n结果：10 pass，0 fail，65 assertions。\n\n未发现可复现重大问题。核验事实：\n\n- `render.ts` 中 MD 仅替换 declaration，设置 `declarationLabel`；`host.ts` repair 沿用同一 MD declaration。\n- `markdown-study.ts` resume 校验 model、input hash、MD 内容 hash、origin/path、source bundle；已有 dispatch 或终态不会重发。\n- `source-location.ts` 使用字面 `includes`；`inputs.ts:300-402` 执行 realpath、root 边界和 symlink escape 检查。\n- `authoring-compose.ts` 白名单整项 `structuredClone` 替换，并记录字段来源。\n- 未读取 results/evaluator/runs，未修改文件。",
+  "usage": {
+    "input_tokens": 524832,
+    "cached_input_tokens": 488960,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 2027,
+    "reasoning_output_tokens": 628,
+    "total_tokens": 526859
+  },
+  "actualUSD": null
+}

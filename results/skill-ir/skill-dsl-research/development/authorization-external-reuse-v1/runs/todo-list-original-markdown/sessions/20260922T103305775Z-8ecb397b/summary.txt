@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260922T103305775Z-8ecb397b
+Status: completed
+Task: ab-todo-list-original
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Source: https://github.com/shacker/django-todo@95e3a022d239ebaa8771376c838a4d36590ab9b1
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aassessment::entry%3Atarget: source_refuted — The supplied source enforces the declared policy expectation for the stated caller and resource, so it refutes a policy failure. The route binds the POST delete endpoint to del_list; the view is exported through the views package. Authentication is required, and the visible authorization path combines the staff_check gate with explicit resource-group membership and staff checks. With TODO_STAFF_ONLY set to False, staff_check returns true for logged-in users, but the view then independently denies a caller who is not a member of the list's group or who is not staff. The stated caller is a member of the list group but is non-staff, so the explicit staff check raises PermissionDenied before the POST deletion effect. The valid ID/slug and existing-list conditions are task assumptions; source shows lookup by ID, while the supplied excerpt does not validate that the slug matches the list. The protected effect is deletion of the TaskList and its related cascade effects, followed by success messaging and redirect, but that effect is unreachable for this caller. The source does not establish repository-wide completeness, deployment behavior, authentication-backend details, middleware behavior, or exact HTTP status beyond the stated framework assumptions. No decisive missing fact prevents this source-level conclusion under the supplied conditions.
+  Evidence: The URL pattern maps the list ID/slug delete path to del_list, and the view package exports del_list. (todo/urls.py:18-25)
+  Evidence: The entry requires login and applies the staff_check test before entering the view. (todo/views/del_list.py:11-13)
+  Evidence: The view resolves the target TaskList by the supplied list ID; the model associates each list with a group. (todo/views/del_list.py:16-16)
+  Evidence: A TaskList has a group foreign-key relationship, which supplies the resource's group relation used by the view. (todo/models.py:55-59)
+  Evidence: When TODO_STAFF_ONLY is false, staff_check returns true rather than requiring staff status; this global gate does not itself grant the later view-level operation. (todo/utils.py:17-27)
+  Evidence: After resolving the list, the view requires both membership in the list group and request-user staff status, raising PermissionDenied if either condition fails. (todo/views/del_list.py:18-23)
+  Evidence: If authorization succeeds on POST, the resolved TaskList is deleted and the view reports success before redirecting to the lists page. (todo/views/del_list.py:25-28)
+  Evidence: The task supplies group membership but is_staff=false; because the view independently requires both relations, the non-staff state is decisive for denial even though TODO_STAFF_ONLY is false. (todo/views/del_list.py:20-23)
+  Evidence: The destructive branch is conditional on a POST request; the task supplies that request condition. (todo/views/del_list.py:25-25)
+  Evidence: The task supplies a valid matching slug as an assumption, but the supplied view lookup visibly uses the ID and does not compare the slug in the shown code. (todo/views/del_list.py:16-16)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.
