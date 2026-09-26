@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**AA已完成发布至858e4778，AB0–AB13已获用户授权连续执行。** AA交付作者v2与完整变更比较；独立模型作者首稿1/2有效、修订后2/2完成原/变任务。五组plain/ledger质量持平、ledger更贵，header条件解释有局部增益。AB将稳定v2/plain-v4，在新外部项目验证同方法复用，并与独立编写的Markdown在共同执行底座比较准备、修改与运行效果。研究设计见§7.25，尚无AB结果。当前仍为单repo/ref、显式源码与政策的有界授权任务，历史数据及保护集保持。
+**AB0–AB8已完成，9月26日授权从AB9恢复。** 两个新项目的16个生成单元全部返回，逐项语义评价与方法收益判断待完成；两条标签与解释方向矛盾保留原文。已有v2作者、locate、Markdown共同宿主与组合helper继续使用。完整恢复任务使用Astra ultra，另行推进独立的编辑支持AC和实验目录维护AD；两个工程任务不影响本轮样本、模型、评分或效果结论。范围继续为单repo/ref、显式源码与政策的有界授权任务。
 
 已经站得住的判断：
 
@@ -792,6 +792,8 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 **AB0–AB7 实际准备。** 已按预先登记顺序选取linkding与django-todo的固定commit，分别提供5文件35,292字符及7文件18,549字符，均保留完整文件及许可证。两项目×两操作×原/变共8状态，固定16分析单元；只覆盖owner、认证读者、assignee、group/staff关系下的授权可达性，不执行目标。作者为四个独立Luna上下文，另四个干净接力完成一轮修订。DSL首稿8/8因未知字段不通过；MD首稿虽非空但8/8混入作者阶段不回答指令，不算语义就绪。共享阶段说明与v2字段说明修订后，由作者自行重写，主代理仅原文转存。两DSL作者均报告重复复制公共字段，增加可选白名单整项替换composer，测试先红后绿；不重写本轮作者输入、不虚构节省。最终8份DSL与8份中立manifest检查通过，16单元mock全部完成；193测试/1402断言通过。结果、首稿、修订原文与作者token分别保留于AB根。
 
 **AB8 真实生成结果（2026-09-22）。** 固定顺序的16个 fresh-context 单元全部 `completed`，16/16 provider calls 响应，0 completion-unknown，0目标执行；被测为`xty/gpt-5.6-sol`、temperature0、auto-probe off。已知 input/output/cache-read 为146,886/17,566/6,528 tokens，actualUSD unknown。原始canonical label为14个`source_refuted`与2个`source_supported_failure`；后一项的回答正文自述正确方向但标签相反，保留原始字节，等待AB9冻结评价。四组compare均标记变化任务 `needs-review`，未宣称语义复用或节省调用。机器摘要见[`experiment-catalog.json`](../../results/skill-ir/experiment-catalog.json)，逐单元回答见`authorization-external-reuse-v1/answer-reading.txt`；本轮仍属于development evidence，不证明生产安全、目标执行或跨项目泛化。
+
+**9月26日恢复决定。** 原执行因账户额度中断，已核对16条终态，采用AB revision 2接着评价而不重发生成。run/result原始字节保留，评价区分标签一致性、实际授权推理与解释完整性。部分本轮证据尚未提交，由恢复任务精确归档。新增独立AC编辑支持回应作者未知字段反复修改，AD目录工具回应跨轮结果检索/维护负担；它们各有独立任务书和文件所有权，AB统一发布共享文档。尚无这两个工程任务的使用收益数据。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

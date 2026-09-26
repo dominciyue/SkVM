@@ -1,6 +1,6 @@
 # 授权任务 DSL：外部复用、可用交付与普通说明对照任务书
 
-> **执行方式：** 使用 `superpowers:executing-plans` 连续执行 AB0–AB13，实现采用 `superpowers:test-driven-development`。用户已授权任务书写完即派发执行，常规检查点不等确认。开发任务使用 `gpt-6-astra / medium`，直接在 `skill-ir-aot` 工作，完成后只推送用户 origin。
+> **执行方式：** 使用 `superpowers:executing-plans` 连续执行，实现采用 `superpowers:test-driven-development`。2026-09-26 revision 2 从 AB9 恢复，AB0–AB13仍由同一个执行任务负责。恢复模型为 `gpt-6-astra / ultra`，使用用户请求的 Fast 速度配置，直接在 `skill-ir-aot` 工作，只推送用户 origin。原始 medium 开发和 Sol 被测结果保留其真实模型身份。
 
 **Goal:** 将现有授权 DSL 变成可复用的有界任务工具，在新项目上由独立作者完成原任务和需求变化，并与信息完整的 Markdown 说明在共同执行底座上比较准备、修改、质量和开销。
 
@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、SkVM CLI/provider、认证 GitHub CLI。不上新平台、UI、通用模板解释器或仓库自动漏洞发现系统。
 
-- 日期：2026-09-23；状态：`generation-complete`，AB0–AB8已完成，AB9评价待执行；机器状态见结果根`status.json`。
+- 日期：2026-09-26；revision 2；状态：`resume-authorized`。已有 AB0–AB8、16条真实结果保持；从 AB9 继续，不重跑生成。
 - 基线：`858e4778e3c84b19ee866d7cbd2d3556a1d6c334`；接手以任务书登记后的最新HEAD为准。
 - 结果根：`results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/`。
 - 研究正文：[§7.25](../../skill-ir/skill-dsl-research.md#725-ab-外部复用与普通说明对照)。所有本轮问题、设计修订和结论归回该节。
@@ -211,3 +211,54 @@ compare在DSL变化任务中真实运行；给MD组同一原始文件diff能力�
 用户授权在当前路线执行以上工程和新外部来源研究；网络、认证GitHub与有目的付费调用允许且无美元上限。原Q1/held-out/prospective/readiness及历史成绩保持；新来源从本轮development登记进入。不得因旧阶段写着“停止”而停止本新任务。
 
 每阶段更新同一status的nextAction，压缩后从未完成项恢复。常规路径、依赖、参数或schema错误自行修共享实现；独立工程与受阻研究分支分别推进，不等用户重复确认。主讨论任务交接后不并发改代码。用户未额外要求goal时不调用goal工具。
+
+## 八、2026-09-26 中断恢复与独立并行任务（revision 2）
+
+### 8.1 已核实现场
+
+- 恢复前分支为`skill-ir-aot`，HEAD/用户origin为`c51e9b8be0bfe10ec0ace5068c64105709a533e8`。`75e737fd`已提交AB工程，`c51e9b8b`提交文档治理；恢复时使用本修订提交后的最新HEAD。
+- 原执行任务记录的失败原因为账户usage limit，后续另做了用户要求的文档治理。它没有完成AB9评价。
+- `status.json`与16个`runs/*/unit.json`吻合：16 completed、16次响应、0 completion-unknown。首次生成不用重发。来源为linkding与django-todo，方法与初轮输入保持原身份。
+- 缺少`evaluator/review-decisions.json`、`panel-summary.json`与逐单元语义review；`evaluate-panel.ts`已存在，但要先逐criterion完成评价才能运行。
+- 两个值得重点核对的原始结果是`linkding-asset-changed-dsl`与`linkding-remove-changed-dsl`：正文说明政策得到执行，canonical label却为`source_supported_failure`。评价应分别记录标签、实际allow/deny推理与解释完整性；不改原回答，也不把解释正确自动算成完整交付。
+- 首稿、修订、prompt parity、compare、portable与工程review已有材料，先复用。工程review不替代语义review；fairness指控与既有裁决须点验公共prompt实际字节后裁决。
+- `status.json`、panel config等已tracked；16条运行及一批辅助文件仍untracked。不是整个AB目录未提交。先用精确路径盘点并保留本轮原始证据，禁止清理历史untracked。
+- 包内`examples/authorization-assessment/reusable-skill/authoring.json`有一行未提交修改：policy location从`authoring-v2.json#/policies/archive`改成实际`authoring.json#/policies/archive`。AB核实并收录，不覆盖回旧字节。另七项源码脏修改仍为保护项。
+
+### 8.2 恢复步骤
+
+- [ ] R0：读取本书、当前状态和研究§7.25，确认16条终态与源文件齐全。以本地实际文件为准，不依赖已失效的processSession 7020。只做本轮检查，不再复跑AB0–AB8。
+- [ ] R1：对本轮未提交原始runs与辅助产物做一次归属/敏感信息检查，精确stage并提交保存；不stage整个results或全仓。此提交仅归档，不提前填写语义成绩。核对`run-panel.ts --check`会写final-checks，若内容不变无需重复运行它。
+- [ ] R2：完成AB9的16条逐criterion评价，保留具体答案指针与源码理由。独立审查只覆盖争议、错误和收益决定项。生成`evaluator/review-decisions.json`后运行以下命令；首轮与共享修订分开。
+
+```powershell
+bun ./results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/evaluate-panel.ts
+bun ./results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/evaluate-panel.ts --replay
+```
+
+现有replay会重写派生review文件；它不修改原始run/result。若需要只读replay，先以测试说明差异再做窄修复，不能为“严格”另建一套回放平台。
+
+- [ ] R3：继续AB10–AB11，判断Markdown/DSL的作者负担、复用层次、质量和开销。普通用户包验证属于AB完整责任，不分给AC/AD。Markdown是研究入口，普通CLI无需新增任意prompt override。模型标签错误若没有可定位的共享实现缺陷，照实评价并交付，不硬凑追加运行；总预算仍是16初轮+至多4修订。
+- [ ] R4：AB12–AB13照原合同完成。保留9月23日文档治理结构，避免回填历史流水。相关测试/typecheck与一次文档扫描足够，不通过长时反复核验补时长。
+
+### 8.3 三个完整任务，独立目标与所有权
+
+用户明确要求“其它方面的新任务书并行”，不是拆分AB。AC与AD不承担任何AB验收项，AB的完成与效果结论独立成立。
+
+| 任务 | 独立目标 | 独占写范围 |
+|---|---|---|
+| AB（本书） | 完成现有研究评价、可复用包交付及发布 | 原AB结果根、既有授权运行/评价代码、reusable-skill；所有共享状态/研究/usage/spec/plan/catalog导航 |
+| [AC编辑支持](2026-09-26-authorization-authoring-editor-support.md) | 让新作者在编辑阶段获得字段提示、结构反馈和语义检查路线 | `src/benchmarks/authorization-dsl/editor-support/`、`schemas/authorization/`、`examples/authorization-assessment/editor-support/`、AC结果根与AC任务书 |
+| [AD结果工具](2026-09-26-experiment-catalog-maintenance.md) | 给项目已有实验目录增加可重复的查询、路径核验和可携带摘要导出 | `scripts/experiment-catalog/`、AD结果根与AD任务书 |
+
+**单一Git发布者是AB。** AC/AD只写各自范围并运行focused测试，不执行git add/commit/push/reset、安装依赖、改lock/package或全仓格式化。AB也不修改它们的在写文件。所有任务都知道有其他开发者，必须保留他人修改。AC/AD把共享文档建议保存在自己结果根，AB一次性同步到现有文档。根conversation_log同样由AB汇总，侧任务不并发append。
+
+AC/AD结束时最后原子写`ready.json`，包含`status=ready-for-integration`、`ownedFiles`、测试命令/结果、限制、共享文档建议路径，写好后停止修改。若部分受阻，写`partial-ready-for-integration`并列明仍缺项，不留一个永远等待的状态。中间用各自`status.json`记录。
+
+AB执行完自身研究后按已派发任务ID用`wait_threads`等完成/需关注事件，不忙轮询。先核ready清单仅涉及独占范围，集中跑一次覆盖改动的测试/typecheck，分别提交AC、AD归属，最后同步导航与push。子任务确有核心缺陷需越界时在自己结果根`integration-notes.md`留下复现，不擅改AB核心；AB决定修复或保留已知限制。AB本轮收口和并行集成分别记状态，不能以侧任务未完改写AB研究状态。
+
+### 8.4 模型、速度与恢复责任
+
+三个主执行任务均`gpt-6-astra / ultra`。用户请求1.5× speed；派发宿主已查到`service_tier="priority"`，保持现有Fast配置，不修改全局其他设置。task API仅能显式指定model/thinking，记录实际返回或会话上下文中的service tier；不能只在prompt写“1.5x”就声称已生效，也不保证精确墙钟倍速。原始被测Sol与作者成本不改。
+
+任务书与状态文档本次修订由规划任务提交；之后共享文档和Git索引只交给AB发布者。侧任务无模型业务实验或新来源样本，避免竞争provider额度。遇到真实配额中断，保留nextAction、未提交文件清单和终态，不误标completed；收到恢复指令后接着做。

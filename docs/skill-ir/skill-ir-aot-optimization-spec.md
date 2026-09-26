@@ -2527,3 +2527,5 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **AA交付核验（2026-09-22，14.34补充）。** authoring/v2直接check/run及只读compare完成；独立作者1/2首次valid、2/2最终valid，原/变两组均deny→allow。五组plain/ledger均full，ledger开销更高；header conditions解释完整、初轮一次修复。unknown effect须missingFacts，已知效果不因无关unknown assumption虚构决定性缺失事实，仍须同义务证据且semanticSupport=unreviewed。16单元/17调用、零追加付费单元，183测试/1337断言和typecheck通过。初轮与离线修订分列；legacy兼容默认保持。结果与裁决见研究§7.24及AA summary。
 
 **AB当前授权合同（2026-09-22）。** [AB0–AB13](../superpowers/plans/2026-09-22-authorization-external-reuse-and-baseline.md)固定现有v2与plain/v4，在预先登记规则后获取至多两个新外部项目，提供薄skill包/显式文件locate并验证独立作者原变任务。Markdown臂必须真实独立编写，共享身份/源码/引用/v4/模型/评价，不用DSL自然渲染冒充基线。比较准备、修改和运行整套流程，manifest不得暗中注入答案或DSL方法。正常至多16分析单元，一次共享修订至多4；失败/未知/源暴露分列，旧保护材料不读、历史结果不改。无需新模板语言，只有共同机械重复有实际证据才提取helper。用户origin主分支连续执行，七项原修改保留。
+
+**2026-09-26并行恢复合同。** AB revision 2从已有16条生成结果继续AB9–AB13；原输入/输出/模型/评分口径保持。独立[AC](../superpowers/plans/2026-09-26-authorization-authoring-editor-support.md)提供运行时语义合同之外的编辑辅助，[AD](../superpowers/plans/2026-09-26-experiment-catalog-maintenance.md)提供只读实验导航工具，均不承担或替换AB研究验收。三个任务Astra ultra，用户请求Fast；文件独占、共享文档和Git仅AB发布者写。编辑schema明确runtime-only约束，目录工具保留未知与不同指标含义；不得据此声称模型质量或真人效率提高。

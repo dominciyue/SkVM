@@ -1,6 +1,6 @@
 # Skill IR AOT 当前执行计划
 
-- 更新日期：2026-09-23
+- 更新日期：2026-09-26
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
 - 状态：AA已完成发布；AB0–AB8已完成，16/16真实生成单元已闭合，AB9评价待执行。
 - 唯一入口：[current-status.md](current-status.md)
@@ -27,7 +27,7 @@
 - 直接在skill-ir-aot，不建新分支/worktree，保留七项原修改与历史untracked，只推用户origin。
 - 新项目按任务书登记external development；旧Q1/held-out/prospective/readiness和历史结果不动。
 - 不做仓库主动发现、目标执行、部署验证或patch，不建设UI或通用模板引擎。
-- 开发gpt-6-astra / medium，被测xty/gpt-5.6-sol；认证网络和有目的付费已授权，美元unknown如实报告。
+- 恢复及并行开发gpt-6-astra / ultra，被测xty/gpt-5.6-sol；认证网络和有目的付费已授权，美元unknown如实报告。
 - 基线普通说明与DSL共享执行工具、公开事实和修复机会，作者材料真正独立；结论限同helper流程比较。
 - 任务完成后停止，不等待或重复调用凑时长；受阻研究分支与独立工程分开推进。
 
@@ -36,3 +36,14 @@
 AA复核183/183测试、1337断言及typecheck通过；独立模型作者1/2首稿有效，行号修订后2/2完成，四次普通运行均正确deny→allow。五组plain/ledger都full，ledger input+output多54.6%、累计调用耗时多23.3%；header conditions解释更全但有一次修复。初轮与离线规则修订、作者与分析成本分别保留。
 
 AB恢复读状态页、本任务书、研究§7.25及执行代理建立的`results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/status.json`。当前结果的紧凑导航见[`results/skill-ir/experiment-catalog.json`](../../results/skill-ir/experiment-catalog.json)；统一研究正文及时更新主题，原始证据由[索引](evidence-index.md)与[历史](history.md)承载。
+
+## 9月26日独立并行队列
+
+AB revision 2从AB9恢复，保留16条真实生成结果，完整研究和交付由一个任务连续负责。另有两个独立目标，均非AB拆分：
+
+| 队列 | 目标 | 任务书 |
+|---|---|---|
+| AC0–AC7 | DSL编辑schema、字段说明、结构差分检查和独立编辑示例 | [AC](../superpowers/plans/2026-09-26-authorization-authoring-editor-support.md) |
+| AD0–AD7 | 既有实验目录的只读核验、检索、摘要导出工具 | [AD](../superpowers/plans/2026-09-26-experiment-catalog-maintenance.md) |
+
+三任务Astra ultra、Fast配置；AC/AD仅写独占目录且不调用业务模型、不写Git索引。AB负责所有共享文档、精确归属提交和用户origin发布。工程间必要协作通过各自ready.json/integration-notes与任务消息，不并发覆盖文件。各自完成/partial独立记录，不把侧任务纳入AB实验分母。
