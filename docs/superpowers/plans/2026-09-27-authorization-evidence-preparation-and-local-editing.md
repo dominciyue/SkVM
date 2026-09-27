@@ -310,9 +310,9 @@ bunx tsc --noEmit --strict --target esnext --module esnext --moduleResolution bu
 
 ### AJ16 提交、推送和完整交付
 
-- [ ] 聚焦提交实现、示例、实际结果和文档；只暂存本任务归属修改，不上传凭据或历史本地排除材料。
-- [ ] 推送 `origin/skill-ir-aot` 并核对真实远端SHA、ahead/behind和工作区；不推upstream，不新建分支/worktree。
-- [ ] 最终给出普通可用命令、实际完成项、质量/复用各自结果、全部成本与剩余问题。不能把无可用输入/未执行/基础设施阻塞改写成已验证成功。
+- [x] 实现/示例、实际结果、研究文档分别提交为`3ba9a98d`、`2e112db5`、`096fb7cf`（加早先`40d7426b`工程提交）；只暂存本任务归属修改，凭据扫描零命中，旧本地排除材料未上传。
+- [x] 首次推送`origin/skill-ir-aot`后远端SHA与本地`096fb7cf2b2f0325f97f9bed6e83ebbfc0ac7b7d`一致、ahead/behind为0且工作区干净；收尾状态提交再推送并核对。不推upstream，不新建分支/worktree。
+- [x] 普通命令、质量/复用分账、实际调用/token与未知费用、人时、partial来源缺口及历史哈希限制已写入当前文档和最终交付；不把未执行的目标或准备提案写成已验证成功。
 
 ## 6. 完成与继续规则
 

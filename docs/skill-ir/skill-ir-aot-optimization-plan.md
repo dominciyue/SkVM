@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-28
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AI0–AI16已完成并复核；AJ0–AJ15已完成，仅AJ16提交、推送和远端核对待做，本轮进度见结果根status。
+- 状态：AI0–AI16已完成并复核；AJ0–AJ16已完成并发布用户origin，本轮完成记录见结果根status。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AJ0–AJ16](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)
@@ -24,7 +24,7 @@
 
 基线`47c08965`加规划提交。保持authoring/v2、analysisContract/v1和wire/v6；新增有界准备和局部编辑，复用现有CLI与workspace，不建v7或全仓发现。计划40质量session、8作者消费session，一次共享bug修订另最多8；有目的准备/作者调用分账。支付授权不变，实验预算用于控制重复与漂移。真实分母、失败处理、代码职责及命令由AJ任务书约束。
 
-**AJ0–AJ15实际结果：** 40/40质量单元完成，43次分析调用、26/40最终full；两表示在原材料各4/8、准备材料各7/8，增量属于共同证据字节，未形成稳定DSL表示收益。两包8作者首稿6份有效、两处各一次诊断修订后8份有效；8次真实消费/16个声明场景全部full，4个变更compare只提示复查。Paperless DSL作者把helper额外声明为入口，扩大输出义务至总计28。普通示例在临时目录通过partial/ready/edit/check，并复用真实session做inspect/compare；全部研究69次调用、实际USD及真人时间未知。AJ15新鲜验证376 pass/1 skip、主与研究typecheck、AJ零模型重放、文档/目录检查通过；旧AI面板runner受冻结实现哈希约束，旧评价重放仍通过。当前仅AJ16的归属提交和origin发布待做，来源与分账以[研究§7.29](skill-dsl-research.md#729-aj-证据准备与局部修改)和[AJ status](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/status.json)为准。
+**AJ0–AJ16实际结果：** 40/40质量单元完成，43次分析调用、26/40最终full；两表示在原材料各4/8、准备材料各7/8，增量属于共同证据字节，未形成稳定DSL表示收益。两包8作者首稿6份有效、两处各一次诊断修订后8份有效；8次真实消费/16个声明场景全部full，4个变更compare只提示复查。Paperless DSL作者把helper额外声明为入口，扩大输出义务至总计28。普通示例在临时目录通过partial/ready/edit/check，并复用真实session做inspect/compare；全部研究69次调用、实际USD及真人时间未知。AJ15新鲜验证376 pass/1 skip、主与研究typecheck、AJ零模型重放、文档/目录检查通过；旧AI面板runner受冻结实现哈希约束，旧评价重放仍通过。实现/示例、结果、文档发布头`096fb7cf`已与用户origin核对，状态收尾再同步；来源与分账以[研究§7.29](skill-dsl-research.md#729-aj-证据准备与局部修改)和[AJ status](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/status.json)为准。
 
 ## AI 已完成队列
 
