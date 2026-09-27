@@ -1,0 +1,34 @@
+[
+  {
+    "field": "policies",
+    "value": {
+      "archive": {
+        "text": "An authenticated record owner or an authenticated supervisor may archive a record.",
+        "location": "owner-or-supervisor-replacements.json#/0/value/archive",
+        "revision": "synthetic-policy-owner-or-supervisor-v2",
+        "acceptance": "accepted",
+        "reason": "The task author deliberately changes the accepted rule; source bytes are unchanged."
+      }
+    },
+    "origin": "Task author changed the accepted archive policy."
+  },
+  {
+    "field": "scenarios",
+    "value": {
+      "supervisor-foreign": {
+        "principal": "supervisor", "resource": "foreign-record", "policy": "archive", "entries": ["archive"],
+        "relation": "different-owner-and-supervisor", "operation": "archive existing record", "expectation": "allow",
+        "conditions": {"supervisor-role": {"basis": "archiveRecord tests principal.supervisor on the foreign-owner denial path."}}
+      },
+      "external-deployment": {
+        "principal": "external", "resource": "foreign-record", "policy": "archive", "entries": ["archive"],
+        "relation": "external-client-to-existing-foreign-record", "operation": "cause archive in actual deployment", "expectation": "deny",
+        "conditions": {
+          "external-reaches-handler": {"basis": "The source crop contains the handler body but no routing or deployment reachability."},
+          "external-binds-to-supervisor": {"basis": "The source crop does not show upstream identity binding for external requests."}
+        }
+      }
+    },
+    "origin": "Task author updates the handler-entry expectation under the new policy and retains the deployment question."
+  }
+]

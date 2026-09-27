@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "synthetic-task-semantics",
+  "request": "At archiveRecord entry, assess an authenticated supervisor archiving another owner's existing record. Separately assess whether an external client can cause that archive in an actual deployment when routing and identity binding are not supplied.",
+  "repository": "https://example.test/task-semantics/records",
+  "sourceRef": "synthetic-task-semantics-v1",
+  "sourceRoot": "project",
+  "sources": ["src/records.ts"],
+  "policies": {
+    "archive": {
+      "text": "Only the authenticated record owner may archive a record; supervisor status by itself is insufficient.",
+      "location": "base.json#/policies/archive",
+      "revision": "synthetic-policy-owner-only-v1",
+      "acceptance": "accepted",
+      "reason": "This is the task author's declared rule, independent of the supplied implementation."
+    }
+  },
+  "principals": {
+    "supervisor": {"role": "authenticated supervisor", "facts": ["At handler entry the actor is authenticated and is a supervisor.", "The actor is not the record owner."], "capabilities": ["authenticated"]},
+    "external": {"role": "external client", "facts": ["Whether this client can reach archiveRecord and what principal it becomes are not supplied."], "capabilities": ["can-submit-a-request-to-an-unspecified-deployment"]}
+  },
+  "resources": {
+    "foreign-record": {"type": "record", "facts": ["The record exists and its owner differs from the handler-entry supervisor.", "It has not been archived."]}
+  },
+  "entries": {
+    "archive": {"name": "archiveRecord", "locations": [{"path": "src/records.ts", "startLine": 6, "endLine": 12}]}
+  },
+  "scenarios": {
+    "supervisor-foreign": {
+      "principal": "supervisor", "resource": "foreign-record", "policy": "archive", "entries": ["archive"],
+      "relation": "different-owner-and-supervisor", "operation": "archive existing record", "expectation": "deny",
+      "conditions": {"supervisor-role": {"basis": "archiveRecord tests principal.supervisor on the foreign-owner denial path."}}
+    },
+    "external-deployment": {
+      "principal": "external", "resource": "foreign-record", "policy": "archive", "entries": ["archive"],
+      "relation": "external-client-to-existing-foreign-record", "operation": "cause archive in actual deployment", "expectation": "deny",
+      "conditions": {
+        "external-reaches-handler": {"basis": "The source crop contains the handler body but no routing or deployment reachability."},
+        "external-binds-to-supervisor": {"basis": "The source crop does not show upstream identity binding for external requests."}
+      }
+    }
+  },
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Answer each current question at its stated boundary. Treat stated entry premises as assumptions, not as proof of upstream binding. Trace the decisive source control and effect with locations. Answer each requested counterfactual separately. If an actual deployment fact is missing, identify it rather than guessing.",
+    "scenarios": {
+      "supervisor-foreign": {
+        "boundary": "declared-entry",
+        "premises": [{"id": "entry-supervisor", "statement": "At archiveRecord entry the actor is authenticated, is a supervisor, and is not the existing record's owner.", "atEntry": "archive", "provenance": "task-assumption"}],
+        "requestedBranches": [{"id": "counterfactual-no-supervisor", "kind": "counterfactual", "assumptions": [{"condition": "supervisor-role", "value": false}]}],
+        "requiredResponseDetails": ["Separate the handler-entry answer from any claim about upstream identity binding."]
+      },
+      "external-deployment": {
+        "boundary": "deployment",
+        "premises": [{"id": "external-question", "statement": "An external client asks about actual deployment reachability; no route or identity binding is supplied.", "atEntry": "archive", "provenance": "task-assumption"}],
+        "requestedBranches": [{"id": "counterfactual-unreachable", "kind": "counterfactual", "assumptions": [{"condition": "external-reaches-handler", "value": false}]}],
+        "requiredResponseDetails": ["State which deployment and identity facts remain unknown; do not turn an entry-level capability into a deployment claim."]
+      }
+    }
+  }
+}
