@@ -1,12 +1,16 @@
 # Skill IR 当前状态
 
-更新于 2026-09-27。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；历史任务书保存当时的执行记录。
+更新于 2026-09-28。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；历史任务书保存当时的执行记录。
 
 ## 当前方向与任务
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-**当前授权队列：** [AJ0–AJ16 证据准备与局部修改](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)已启动；[本轮status](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/status.json)记录恢复位置。直接在`skill-ir-aot`工作，质量约60%/复用约40%：围绕指定入口准备源码及依赖缺口，用局部patch修改政策/场景，接通现有普通运行；Markdown与DSL共用证据准备做公平对照。计划与方法见[研究§7.29](skill-dsl-research.md#729-aj-证据准备与局部修改)。AI旧状态不作恢复入口。一个任务负责代码、共享文档与Git，仅推用户origin，不新建分支。
+**当前授权队列：** [AJ0–AJ16 证据准备与局部修改](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)已完成AJ0–AJ15；仅AJ16的归属提交、推送与远端核对待完成。[本轮status](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/status.json)记录恢复位置。直接在`skill-ir-aot`工作；围绕指定入口准备源码及依赖缺口，用局部patch修改政策/场景，接通现有普通运行。Markdown与DSL共用证据准备做公平对照，质量和复用分开评价。计划与方法见[研究§7.29](skill-dsl-research.md#729-aj-证据准备与局部修改)。AI旧状态不作恢复入口。一个任务负责代码、共享文档与Git，仅推用户origin，不新建分支。
+
+**AJ实际进展：** 普通`authorization prepare/edit`及其报告、源码快照、变更依赖已接通；[可搬移示例](../../examples/authorization-assessment/evidence-editing/README.md)在临时目录得到具名`partial`→`ready`及编辑后`ready`，零provider。冻结40个质量单元全部完成，43次分析调用含3次诊断修复、最终26/40 full；初轮原材料Markdown/DSL各4/8 full，准备材料后各7/8，同材料表示未显示稳定额外质量收益。两包作者8首稿中6份语义有效，两次针对性修订后8份有效；8个原/变fresh消费session和16个预先声明场景经独立源码复核均full，4次旧结果compare均`needs-review`。Paperless DSL作者多声明helper入口，使义务展开总数从16增至28。全部研究69次模型调用，已知input 373,105/output 77,981/cache-read 37,120 tokens；实际USD与真人分钟未知，目标执行0。逐案与成本见[质量汇总](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/panel-summary.json)、[作者消费汇总](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/author-use-summary.json)。当前普通默认不改；有确切入口和可限定依赖时显式使用prepare，已声明政策/场景小改动时使用edit并重新运行。公开development与fixed-context结果不证明一般可靠性或部署安全。
+
+**AJ新鲜验证：** 授权相关376 pass/1平台skip、2597断言，主typecheck和研究脚本typecheck通过；四项AJ离线重放零provider，文档12测试、链接检查及实验目录检查通过。定向凭据扫描零命中，结果根1059 JSON和117 JSONL/361条记录均可解析。[验证记录](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/verification.json)保留旧AI面板runner因`local-run.ts`冻结实现哈希变化而拒绝重放的限制；旧AI面板/作者消费评价与作者消费runner重放通过，原始冻结身份未被改写。
 
 **AI已完成并复核：** [AI0–AI16 任务语义、答案合成与变化后复用](../superpowers/plans/2026-09-27-authorization-task-semantics-and-reuse.md)已发布`47c08965`，父任务新鲜复核359 pass/1平台skip、typecheck及两份零调用评价重放通过；本地和origin一致、工作区干净。历史执行状态为[AI status](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/status.json)。AI0–AI8已完成sidecar、义务局部程序、wire/v6行为/政策对照、普通运行与workspace/editor接线，以及8状态54单元冻结面板；共同公开要求在各prompt逐字出现一次。AI9–AI10已运行全部54单元并完成盲评：40 completed、9 timeout-unknown、5 transport-failed，55次provider调用、已知input 75,463/output 43,204/cache-read 48,256 tokens，实际USD未知；主口径39/54最终语义完整，固定crop争议敏感性为40/54。首轮配对未显示稳定质量增益，重复区块受网关失联限制；独立逐案核验与离线replay见[AI summary](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/panel-summary.json)。AI11两包独立作者原/变稿完成，作者有效交付7/8，另1份Gitea结构化变稿在唯一诊断修订后仍JSON无效，下游仅以记录的单字符机械恢复稿消费；12次外层请求中3次传输失败，真人时间未知。AI12已按冻结输入完成8个真实session、16个场景；独立源码复核16/16 full，9次分析provider调用，4份变化输入对原session均需复查。作者直接有效7/8，另1份仅机械恢复后消费；作者加分析已知input 42,111/output 24,404/cache-read 4,992 tokens，实际USD和真人分钟未知。AI13普通示例及临时目录搬移检查通过。AI15相关回归359 pass/1 skip、typecheck、离线replay及文档链接检查通过；AI16已将工程、证据、示例和结论发布到用户`origin/skill-ir-aot`；首次发布头`b45926f6`与远端核对一致，最终状态记录随本页再发布。旧默认兼容，AH历史结果保持。质量60%/复用40%分别验收，方法设计及逐步证据见[研究§7.28](skill-dsl-research.md#728-ai-任务语义答案合成与变化后复用)。
 

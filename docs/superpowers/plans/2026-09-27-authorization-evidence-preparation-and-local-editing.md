@@ -159,7 +159,7 @@ export interface AuthorizationEditRequest {
 
 - 先读取AI失败日志区分连接/服务错误、客户端deadline、响应结构错误；不凭超时就断定模型弱。只修有证据的共享缺陷，避免重做provider平台。
 - 所有生成派发默认串行；一次完整四臂区块正常结束后才考虑并发2。连续两次连接/服务失败时暂停后续研究派发，继续独立工程，避免批量耗尽分母。恢复前最多一次明确记录的连通性检查。
-- 分析预算初值每调用180s、每session600s、最多6000输出token，所有臂相同；沿用一次diagnostics-only repair与完整fallback计量。若日志证明deadline设置不合适，在首个新面板调用前统一修订，禁止只给失败臂加时。
+- 分析预算原拟每调用180s、每session600s；AI历史日志证实180秒客户端deadline产生9个完成未知，故在首个AJ分析调用前统一修订为每调用300s、每session900s、最多6000输出token，所有臂相同；沿用一次diagnostics-only repair与完整fallback计量，禁止只给失败臂加时。
 - 未知完成先记录、不盲重发；尚未派发单元可正常恢复。确需传输恢复观测时在单独recovery区块按完整配对登记，原失败仍计入原分母。
 - 计划40质量+8消费session；一个经确定性测试定位的共享实现bug允许另8个修订单元。连通性检查最多2次，纯材料准备/独立作者调用按真实步骤单列。该额度用于控制实验漂移，不是用户美元上限；用户网络/付费授权继续有效。
 - 当前路线不可用时先完成零调用工程和归档。可另起完整模型/endpoint区块，但必须统一整组配置、解释预算调整，不能混合路由拼成成功率；未恢复的实验标blocked/not-run，继续其他阶段，不伪报全部完成。
@@ -196,9 +196,9 @@ AJ1失败测试表：不同`sourceRef`/root的request拒绝；未纳入helper时
 
 ### AJ3 依赖定位与准备产物
 
-- [ ] 将显式依赖、现有locator和可选一次模型proposal接入同一个validator；未解析符号给具体路径/范围诊断。
+- [x] 将显式依赖、现有locator和可选一次模型proposal接入同一个validator；未解析符号给具体路径/范围诊断。一次可选提案只作位置建议，`proposal.json`记录真实usage/费用，越界仍由prepare拒绝。
 - [x] 生成普通输入和快照、准备报告、缺口说明；精确来源绑定用已有机制，不建立重复哈希层。
-- [ ] 测试无模型显式路径、proposal越界拒绝、动态调用gap、入口局部来源、同字节移动；核心逻辑不按仓库名分支。
+- [x] 测试无模型显式路径、proposal越界拒绝、动态调用gap、入口局部来源、同字节移动；AJ13将合成示例搬入临时目录后两份源码SHA仍相同，partial/ready/edit/普通check通过；核心逻辑不按仓库名分支。
 
 ### AJ4 普通prepare与分析接线
 
@@ -241,50 +241,50 @@ AJ6局部实现调整：现有`materializeAuthorizationWorkspace`只接收worksp
 
 ### AJ8 真实材料、范围和评价准备
 
-- [ ] 按4.1登记候选并获取固定ref公开源码；新任务标development及与真实skill职责关系，不访问旧保护集。
-- [ ] 组织8任务的政策、当前问题、源码候选范围、必要判断和独立oracle；保留不足/不适用候选。
-- [ ] 在模型生成前消除可解决的crop歧义；真正外部未知保留正确unknown标准，不逼出肯定结论。
+- [x] 按4.1登记候选并获取固定ref公开源码；新任务标development及与真实skill职责关系，不访问旧保护集。实际顺序为先获取/只读可行性核对，再在任何AJ模型答案之前冻结`case-selection.json`；此顺序偏离原先“先登记再获取”，已在登记中明记，生成后不换题。
+- [x] 组织8任务的政策、当前问题、源码候选范围、必要判断和独立oracle；不足的Paperless share-create保留64KiB具名gap，Memos GetShared保留token有效性外部未知。
+- [x] 在模型生成前消除可解决的crop歧义：OWUI换成无编辑性断言的原始完整handler，Memos读上下文locator去歧义，Paperless统一深度3；真正外部未知保留unknown标准。
 
 ### AJ9 四臂接线与冻结
 
-- [ ] 从普通prepare/check路径产生材料；独立Markdown作者不读DSL产物，公共事实及要求核对后逐字共享。
-- [ ] 固定40单元顺序、输入/实现版本、重复位置、预算和评价；未看到模型答案前完成。
-- [ ] 用mock验证各臂source/表示差异、无oracle读取、无重复派发、usage unknown和离线重放；薄研究脚本单独typecheck。
+- [x] 从普通prepare/check路径产生8组同任务基线/准备材料；独立Markdown作者仅见中立brief，8次首稿已逐份对照核验，公共要求在四臂逐字共享。
+- [x] 首次AJ分析调用前固定40单元顺序、输入/实现哈希、重复位置、统一300/900秒预算与评价；冻结配置SHA-256为`ed5fb8546282dca20aabacfa8cf9a0cc6a9bd7944ff599965eb2348bc7ff2821`。
+- [x] 普通check验证16份输入与公开要求；6个离线mock覆盖四臂、conditional及双场景，重复check全部preserve-no-resend；runner无oracle导入，研究脚本单独typecheck通过。实际usage未知须由AJ10记录，零模型replay待真实输出。
 
 ### AJ10 真实质量面板
 
-- [ ] 按区块串行运行，实时记录初答、fallback、repair、unknown与费用；异常按4.3处理，不因失败卡住所有开发。
-- [ ] 全部生成结束或外部阻塞正式关闭后，才交盲评；不根据中途答案临时改prompt或材料。
-- [ ] 已定位共享bug需要修订时保存初轮并按预先上限做同条件配对；不为低分反复抽答案。
+- [x] 按区块串行运行40单元：40 completed、43次provider调用（3次诊断修订）、0 fallback/unknown；费用未报告，保留null。
+- [x] 全部生成关闭后才物化40份匿名review packet并交独立盲评；冻结prompt/材料未按答案修改。
+- [x] 未定位需修订的共享生成bug，故不触发可选同条件修订；保留全部初答与修订，不为低分重抽。
 
 ### AJ11 分层评价与机制解释
 
-- [ ] 对实际回答逐项检查行为、控制对象、效果对象、决定性缺口及政策，争议独立复核。
-- [ ] 复算四臂初轮/重复/修訂/恢复，分别显示全分母交付与完整配对质量，以及准备+分析总成本。
-- [ ] 明确是否是材料增加、准备程序、局部语义支持或表示形式产生收益；禁止把同helper的改善独占归DSL。
+- [x] 对40份实际回答逐项检查行为、控制对象、效果对象、决定性缺口及政策；Memos GetShared标签争议另行复核。
+- [x] 离线复算四臂初轮和预定重复，完整交付40/40、最终full 26/40；无共享修订，零模型replay一致；准备、作者、分析成本分账。
+- [x] 两表示均从更多决定性source/helper字节中改善；同材料M/D初轮各4/8、准备后各7/8，未出现稳定额外表示收益。
 
 ### AJ12 独立作者局部修改与真实消费
 
-- [ ] 两包的4原/4变交付，DSL变稿为patch、Markdown可正常局部编辑；所有首稿与一次修订保留。
-- [ ] 8session真实运行、独立评价最多16场景；原/变/无关场景均核对，4组compare留实际记录。
-- [ ] 比较有效率、修改扩散、生成负担、分析效果；未获得真人记录就保持humanMinutes未知。
+- [x] 两包的4原/4变交付，DSL变稿为patch、Markdown可正常局部编辑；8首稿中6份语义有效，两处各一次诊断修订后8份有效，原稿与修订均保留。
+- [x] 8个真实fresh session全部completed，独立复核16/16声明场景full；4组compare均`needs-review`且各有独立新运行。
+- [x] 修改路径、修订次数、10次作者调用、8次消费调用和token分账；Paperless DSL多声明helper使28个expanded义务；humanMinutes与实际USD未知。
 
 ### AJ13 普通可用示例
 
-- [ ] 在 `examples/authorization-assessment/evidence-editing/` 放入可移动小例子，展示prepare partial/ready、局部修改、check/run/inspect/compare。
-- [ ] 用临时目录完成一次零provider工程演练，再复用AJ12真实session验证普通消费路径；不为展示重复调用。
-- [ ] 用例不依赖results里的私有study脚本或oracle；文档给完整参数及可预期诊断。
+- [x] 在 `examples/authorization-assessment/evidence-editing/` 放入可移动小例子，展示prepare partial/ready、局部修改、check/run/inspect/compare。
+- [x] 临时目录零provider演练得到`range-required` partial与两个ready，搬移后源码SHA不变；AJ12的8个真实session经普通CLI inspect、4个compare复核，未重复调用。
+- [x] 示例只依赖公开CLI和随例源码/输入，不依赖study脚本或oracle；README给完整参数、预期缺口和语义限制。
 
 ### AJ14 研究和当前文档归并
 
-- [ ] 更新研究§7.29及§11问题表、usage、developer-guide、current-status、plan/spec、必要实验目录条目。
-- [ ] 按问题→根因→实现→验证→取舍归纳，机器细节放results，不把原始流水复制进多份正文。
-- [ ] 给出能力选择：默认保持兼容；有确切证据才推荐新增prepare/edit场景。未完成工程项、模型无收益与外部阻塞分别列清。
+- [x] 更新研究§7.29及§11问题表、usage、developer-guide、current-status、plan/spec和实验目录AJ条目。
+- [x] 按问题→根因→实现→验证→取舍归纳；原始逐单元机器细节留在results，正文只链接汇总。
+- [x] 默认保持兼容；有明确入口/依赖时推荐显式prepare，小范围政策/场景变更时推荐edit及fresh run。无稳定表示收益、Paperless partial缺口、未知实际USD/人时各自列清。
 
 ### AJ15 一次必要验证
 
-- [ ] 运行相关完整回归和主typecheck，研究脚本typecheck、零模型replay、文档测试/链接检查、定向凭据检查。
-- [ ] 检查新增示例独立闭包、stage diff与实际来源；不重做历史全量冻结审计。失败修复后只补受影响检查。
+- [x] 相关回归376 pass/1平台skip、2597断言、主typecheck和AJ脚本typecheck通过；AJ四项零模型replay、文档12测试/链接检查、catalog与定向凭据检查通过。
+- [x] 新增示例已搬移并核对两份源码SHA、partial/ready/edit普通check；stage diff与公开来源独立复核无可行动问题。旧AI面板runner因冻结`local-run.ts`哈希随AJ共享实现变化而拒绝重放，保留历史身份；旧AI面板/作者消费评价及作者消费runner零模型重放通过。详见AJ `verification.json`。
 
 ```powershell
 bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts ./src/cli/authorization-compose.test.ts ./src/cli/authorization-prepare.test.ts ./src/cli/authorization-edit.test.ts ./src/providers/structured.test.ts ./src/measurement/token-accounting.test.ts ./scripts/token-accounting
@@ -294,7 +294,19 @@ python ./scripts/check_skill_ir_doc_links.py --root .
 git diff --check
 ```
 
-研究脚本的实际replay/typecheck命令在AJ9确定后立即写入本书和status；旧AI replay只在兼容代码变化确实需要时运行一次。
+研究脚本的零模型重放与类型检查：
+
+```powershell
+$aj = './results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1'
+bun "$aj/run-panel.ts" replay
+bun "$aj/evaluate-panel.ts" replay
+bun "$aj/run-author-use.ts" replay
+bun "$aj/evaluate-author-use.ts" replay
+$ajScripts = @(Get-ChildItem -LiteralPath $aj -Filter '*.ts' -File | ForEach-Object { $_.FullName })
+bunx tsc --noEmit --strict --target esnext --module esnext --moduleResolution bundler --allowImportingTsExtensions --types bun @ajScripts
+```
+
+旧AI replay只在兼容代码变化确实需要时运行一次。
 
 ### AJ16 提交、推送和完整交付
 

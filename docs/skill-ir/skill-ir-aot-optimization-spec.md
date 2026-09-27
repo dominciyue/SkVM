@@ -1,8 +1,8 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-09-27
+**最后更新：** 2026-09-28
 
-**当前已确认路线：** 第14.34节“按skill/task范围设计领域表达并验证实际价值”。AI已交付并复核；用户已授权AJ0–AJ16开发指定入口的有界证据准备和局部任务编辑，投入优先级约60%/40%。authoring/v2、analysisContract/v1、wire/v6和普通默认继续兼容；Markdown与DSL共用证据准备，分开检验材料支持、表示与修改复用的收益。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。14.32–14.33及更早合同保持历史，I1保留后备。
+**当前已确认路线：** 第14.34节“按skill/task范围设计领域表达并验证实际价值”。AI已交付并复核；AJ已完成有界证据准备、局部任务编辑、质量对照和原/变真实消费，交付验证与发布状态见[当前状态](current-status.md)。authoring/v2、analysisContract/v1、wire/v6和普通默认继续兼容；Markdown与DSL共用证据准备，分开检验材料支持、表示与修改复用的收益。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。14.32–14.33及更早合同保持历史，I1保留后备。
 
 本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；新工作以第 14.34 节为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
@@ -2543,3 +2543,5 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **AI实现与证据补充（2026-09-27）。** 上述合同已接入普通check/run/inspect/compare、workspace和编辑schema；synthetic例子验证入口前提、请求分支、部署未知及不改源码的政策替换。冻结development主面板54单元中40完成、9超时未知、5传输失败；主口径39/54 full、固定crop争议敏感性40/54，配对初轮不支持新机制稳定质量增益。独立作者两包8稿最终7稿有效，另1稿仅机械删去一个多余括号后用于下游且不计作者成功；真实消费8 session/16场景全部完成，独立源码复核16/16 full，4个变化输入对旧session均需复查。研究与作者/分析成本分账在[AI结果](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-use-summary.json)及研究§7.28；实际USD、失败请求usage和真人时间未知。此证据只支持有界development使用，不改变历史默认或证明未见任务的质量/人力收益。
 
 **AJ当前授权合同（2026-09-27）。** [AJ0–AJ16](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)复用现有v2/v6和普通宿主，在分析前按指定入口及允许文件准备源码、显式依赖和缺口，分析时仍为零执行工具的fixed-context。准备完整性只针对声明依赖，locator/model-proposal不自行证明控制有效或全仓覆盖；有效部分与决定性缺口分开，越界或来源无法绑定则拒绝。局部patch按已声明key修改政策、场景和前提，程序序列化并保留身份/无关字段；政策变化列出影响场景，未明确对照的场景不能静默ready。旧compare维持共享context全依赖失效，不自动复用旧答案。普通prepare/edit复用现有CLI、workspace和check/run，不另建运行平台或v7。四臂以表示×证据准备分离增益归因，计划40质量及8原/变消费session，一次共享bug修订最多8；传输缺失、作者首稿/修订、准备/分析费用及human time各自报告。新公开development材料按规则登记，旧保护集/历史不读不改；持续执行细节与方法变更统一见[研究§7.29](skill-dsl-research.md#729-aj-证据准备与局部修改)。
+
+**AJ结果与使用边界（2026-09-28）。** 实现已接普通prepare/check/run/inspect/compare与局部edit；40/40冻结质量单元完成，初轮M0/D0各4/8 full、准备后M1/D1各7/8，预定重复未改变“共同材料增益、无稳定表示增益”的判断。两包作者首稿6/8有效、各一次诊断修订后8/8；8次原/变fresh session独立复核16/16声明场景full，compare四组均提示复查，不复用旧答案。Paperless DSL作者多声明helper使义务展开由应有16项变成28项，这是使用负担而非额外任务成功。公开development、固定入口与源码、零目标执行、actualUSD和真人分钟未知限制了外推。普通默认保持兼容；仅对有明确入口及可限定源码/依赖的任务显式建议prepare，对声明政策或场景小改动建议edit并新建session。局部证据`ready`、结构校验和模型引用都不授予全仓完整或部署安全结论；逐项来源、成本和剩余问题见[研究§7.29](skill-dsl-research.md#729-aj-证据准备与局部修改)。

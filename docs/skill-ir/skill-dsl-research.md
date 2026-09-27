@@ -6,7 +6,7 @@
 
 **AH已完成44条四臂公开development评价，新增局部问题支架未建立稳定质量收益。** 同一11个任务出现次数下，Markdown标准/新支架均8/11 full，DSL标准5/11、新支架7/11；新支架修正了DSL若干标签错误，也新增一条superuser过度弃答，且同支架Markdown仍8/11、高于DSL的7/11。完整prompt+output为34,264/41,402/45,237/50,905 tokens（依次为Markdown标准/新支架、DSL标准/新支架），44次业务模型调用的实际美元费用均未知。独立模型辅助作者完成两包原/变任务，工作区继承显示公共政策变更，但有一处旧taskId来源说明未同步；真人时间与作者token未知，不能推算节省。可选策略和只读变更反馈保留为工程能力，普通默认不变。详细分母、错误和取舍见§7.27；AB两项目16条评价（Markdown 8/8、DSL 6/8）及AE四组各6/6的旧结论仍见§7.25–7.26，AC/AD和AF/AG工程工具不增加AH分母。
 
-**当前授权阶段：** AI0–AI16已完成并复核，工程和原/变真实消费见§7.28；用户要求新GPT-6 Sol max任务执行AJ0–AJ16，见§7.29。下一工作为指定入口的源码证据准备、按场景局部修改及公平质量/复用对照。AI尚未显示稳定质量增量，旧结果原样保留。
+**当前授权阶段：** AI0–AI16已完成并复核，工程和原/变真实消费见§7.28；AJ证据准备、局部修改、40单元质量对照和8次原/变消费已完成，交付验证与发布见§7.29及当前状态。共同增加的决定性源码改善两种表示，AJ未显示稳定的额外DSL质量增益；旧结果原样保留。
 
 已经站得住的判断：
 
@@ -908,7 +908,7 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 ### 7.29 AJ 证据准备与局部修改
 
-2026-09-27父任务复核：`47c08965`与用户origin同SHA，工作区干净；359 pass/1平台skip、2494 assertions、typecheck通过，AI面板和作者消费评价均零provider复现。用户批准继续并要求派发`gpt-6-sol / max`，按[AJ0–AJ16任务书](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)在主开发分支连续推进。2026-09-28 AJ0从规划提交`8fa7280a`的干净工作区启动；实时恢复位置见[AJ status](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/status.json)。
+2026-09-27父任务复核：`47c08965`与用户origin同SHA，工作区干净；359 pass/1平台skip、2494 assertions、typecheck通过，AI面板和作者消费评价均零provider复现。用户批准继续并要求开发任务配置`gpt-6-sol / max`（被测provider另为`xty/gpt-5.6-sol`），按[AJ0–AJ16任务书](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)在主开发分支连续推进。2026-09-28 AJ0从规划提交`8fa7280a`的干净工作区启动；实时恢复位置见[AJ status](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/status.json)。
 
 **根因与方法。** AI争议行的helper前缀没有进入固定裁剪，评分者对可达结论产生合理分歧。现有v6可以检查标签映射和请求分支，但源码材料是否足够仍取决于准备。作者变化稿先全量重写JSON、再求顶层diff生成workspace，出现taskId/场景名扩散和括号错误。AJ把改进放到这两个真实环节：运行前的有界证据准备，以及先产生局部patch再由程序物化。
 
@@ -922,9 +922,19 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 **AJ0–AJ1接口核对。** 2026-09-28从干净`8fa7280a`启动后，读旧AI生命周期可证实9个`timeout-unknown`含180秒客户端deadline、5个`transport-failed`含网关socket中断；旧结果不能证明共享provider代码缺陷，也不能把未知usage补零。`loadPortableSourceBundle`已经封闭文件与junction边界，catalog/sourceId和普通check/run共用；locator仅做literal命中，不会识别完整函数。因此准备请求的`from`可以引用entry或依赖ID以实际应用深度预算，`match`只验证显式行范围的唯一命中。输出的normalized普通input内嵌来源/范围/缺口报告，loader核对快照行数并让普通source renderer把同一报告送到check和真实run。入口缺失时无可运行输入，其他依赖缺口可partial。局部patch由程序按既有key物化v2，不传taskId或oracle真值。上述小接口调整已同步AJ任务书，红绿测试将固定跨入口串用、缺helper、范围/预算和无关字段不变等反例。
 
-**AJ2–AJ6工程接线。** 新`prepareAuthorizationEvidence`以portable reader读取请求白名单，先保留所有入口，再按声明依赖与预算读取；重叠范围合并，每个文件保留一段连续的原行号片段，剩余预算优先扩为整文件。缺失、歧义、深度和字节限制记具名gap，不由文件名推断guard。`authorization prepare`只在新目录发布normalized输入、source快照和report，check-only零写入/零provider。普通loader机械核对report身份、状态、文件列表及片段行数；render、run、session、inspect及compare共用同一准备上下文和完整依赖。新`applyAuthorizationLocalEdit`只接受声明key的policy/scenario/premise补丁；重复字段或未知目标报错，政策操作需每个引用场景显式给出expectation，包括不改变值的本次复查。`authorization edit`先做纯补丁、composer结构校验与相对源码根搬移，完整稿经普通loader验证才发布；缺复查时保存不可运行draft。现阶段聚焦测试34项/213断言通过，typecheck已在当前工程代码上通过；最终聚合门禁仍待AJ15。源码准备的模型proposal与真实研究仍未派发，不把确定性工程测试写成质量收益。
+**AJ2–AJ6工程接线。** 新`prepareAuthorizationEvidence`以portable reader读取请求白名单，先保留所有入口，再按声明依赖与预算读取；重叠范围合并，每个文件保留一段连续的原行号片段，剩余预算优先扩为整文件。缺失、歧义、深度和字节限制记具名gap，不由文件名推断guard。`authorization prepare`只在新目录发布normalized输入、source快照和report，check-only零写入/零provider。普通loader机械核对report身份、状态、文件列表及片段行数；render、run、session、inspect及compare共用同一准备上下文和完整依赖。新`applyAuthorizationLocalEdit`只接受声明key的policy/scenario/premise补丁；重复字段或未知目标报错，政策操作需每个引用场景显式给出expectation，包括不改变值的本次复查。`authorization edit`先做纯补丁、composer结构校验与相对源码根搬移，完整稿经普通loader验证才发布；缺复查时保存不可运行draft。先前聚焦测试34项/213断言与typecheck通过；最终聚合门禁仍待AJ15。不把确定性工程测试写成质量收益。
 
-**AJ8候选约束。** 现有公开development索引中的Linkding、Django Todo已进AB效果面板，Open WebUI、FastAPI、Gitea已进后续效果面板；登记的两份外部skill职责映射不自动提供新源码项目。因此既有目录没有可证明符合“六个新任务、至少一个新项目”的现成候选列表。AJ8须先按公开资格和固定ref另行登记新项目/任务，再冻结四臂与评价材料；不能拿旧案例换名满足新样本要求。
+**AJ8候选约束。** 现有公开development索引中的Linkding、Django Todo已进AB效果面板，Open WebUI、FastAPI、Gitea已进后续效果面板；登记的两份外部skill职责映射不自动提供新源码项目。因此既有目录没有可证明符合“六个新任务、至少一个新项目”的现成候选列表。不能拿旧案例换名满足新样本要求。
+
+**AJ3/AJ8–AJ9进度。** 可选`--proposal-model`现在发起至多一次位置建议调用，提议依赖仍通过原prepare validator；声明中的动态分派、外部中间件或缺符号可保留具体gap，费用/usage在有报告时单列。当前只有mock测试，没有真实提案调用。两个新公开项目Memos（MIT）与Paperless（GPL-3.0）以及AI回归项目固定ref的32个源码/许可文件已用Git blob身份核验；[case-selection.json](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/case-selection.json)在任何AJ分析答案前固定2回归+6新development任务及2个预定重复。实际先获取源码并只读核对可行性，后写正式候选登记，偏离原拟顺序；登记明记该偏差，生成后不按表现换题。新项目不因此自动成为外部skill成员。8组普通基线/prepare输入已通过材料审计；7份ready，Paperless share-create因同文件远距依赖超过64KiB为partial具名gap。OWUI基线改用无编辑性断言的原始完整handler，Memos GetShared修正为仅按token查询关联memo并保留token有效性外部未知。独立Markdown作者仅见中立brief，8次首稿均完成且逐份独立核验，实际费用未报告。独立evaluator-only oracle已在分析前封存。40单元四臂顺序、输入/实现哈希及重复位置冻结于[panel-config.json](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/panel-config.json)，SHA-256为`ed5fb8546282dca20aabacfa8cf9a0cc6a9bd7944ff599965eb2348bc7ff2821`；根据AI历史180秒客户端截止，在首个AJ分析调用前统一采用300秒/调用、900秒/session、6000输出token预算。普通check验证16份输入，6个零provider mock覆盖四臂及条件/双场景；重复check确认无自动重发，研究脚本单独typecheck通过。尚无AJ分析调用或目标执行。
+
+**AJ10–AJ11质量结果。** 冻结40单元串行全部`completed`，其中3份Markdown首答经预定的单次诊断修复，实际43次分析调用、0 fallback、0传输未知、0目标执行。全部生成关闭后才物化40份匿名包并独立盲评；Memos GetShared的叙述与结构标签矛盾另行裁定。全分母首次完整交付37/40、首次full 24/40、最终full 26/40、结论正确27/40；初轮M0/D0各4/8 full、M1/D1各7/8，预定重复M0/D0各0/2、M1/D1各2/2。同证据层M/D初轮打平；准备材料在两个表示中均改善了OWUI file、Memos create-share与Paperless download，D1在Paperless share-create多一项full，却在Memos GetShared从M1的有理unknown退化为错误canonical标签。故这里可支持“决定性helper/source字节进入输入改善这组任务”，不能把共同材料增量算成DSL语法收益，也不能把ready或引用存在视为语义证明。Paperless share-create仍有64KiB具名gap。逐单元、成对差异、首次/修复与[零模型重放](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/panel-summary.json)保留原结果，未因分数触发可选共享修订。
+
+**AJ12作者修改与消费。** 两个事先固定的Memos/Paperless包由互不看稿的Markdown与DSL作者各写原稿及变稿；DSL变化为局部patch、Markdown可直接局部编辑。8份首稿中6份语义有效：Memos DSL变稿漏更新政策location/revision，Paperless Markdown变稿包含答案式政策期待；两处各一次具体诊断修订后8份有效，首稿均保留。Paperless Markdown政策的等价改写曾被字面匹配误报；研究者构造的Markdown变更消费输入有一次未变政策revision误写，均在冻结消费前独立核对并记录。8个新鲜普通session全部完成，独立源码复核16/16预定场景full；四个变更输入的旧session compare均`needs-review`且本身零调用，随后各有独立变更run。Paperless DSL作者把三个helper也声明成入口，致其原/变两次各从2场景扩为8义务；8次消费合计28个expanded义务，额外12项均正确但明显增加输出工作量。消费[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/author-use-summary.json)把作者首稿有效率、最终有效率、场景质量和膨胀开销分开，不把16/16倒写成首稿8/8，也不把compare误称语义重算。
+
+**AJ13普通交付与成本。** [可搬移合成示例](../../examples/authorization-assessment/evidence-editing/README.md)在仓外临时目录用同字节源码演练partial（`range-required`具名gap）、ready、局部edit、变更后ready和三次普通check，均零provider/目标执行；AJ12的8个真实session又经公开CLI inspect、四组compare复核，记录在[ordinary-example.json](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/ordinary-example.json)。研究调用分账：中立Markdown材料作者8次，input 4,939/output 4,437；质量分析43次，input 254,997/output 46,462/cache-read 37,120；两包作者含修订10次，input 22,255/output 7,468；两包消费8次，input 90,914/output 19,614。合计69次、已知input 373,105/output 77,981/cache-read 37,120，实际USD未报告，真人分钟未知。准备工程零实际模型提案调用。质量改善伴随较大准备后输入，且Paperless DSL多入口扩大消费输出；尚无同材料表示的稳定质量、人工节省或成本回本证据。保持旧普通默认兼容，只在用户有明确入口、所需helper及有界预算时推荐显式`prepare`，在已声明政策/场景局部改变时用`edit`并重新运行；源码缺口、旧答案适用性和固定裁剪边界继续显式呈现。该建议限公开development任务与源码可见判断，不等于生产安全或部署结论。
+
+**AJ14–AJ15归并验证。** 工程、示例、使用说明、研究问题表、任务书、spec与实验目录已经按实际结果对齐；独立只读复核没有发现数字或新源码diff的可行动问题。新鲜授权相关回归376 pass/1平台skip、2597断言，主typecheck和全部AJ脚本typecheck通过；四项AJ离线replay均零模型，文档12测试、15782文件链接/治理扫描与实验目录检查无阻断。结果根1059 JSON及117 JSONL/361条记录可解析，定向凭据模式扫描零命中。旧AI面板runner的冻结实现哈希与AJ改动后的共享`local-run.ts`不同，按合同拒绝重新解释历史run；旧AI面板评价、作者消费评价及作者消费runner仍零调用复现。这个哈希拒绝不作为旧模型结果失败，也不改冻结身份。完整命令、摘要与限制见[AJ verification](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/verification.json)。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -990,11 +1000,11 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 |---|---|---|---|---|
 | Q1 | 哪类外部任务值得首先做领域方法？ | 影响选类 | 两个独立 skill 家族支持单 repo/ref、source-visible authorization/trust-boundary 切片 | 范围已定；原型不扩大到 full/diff/broad |
 | Q2 | 成员共享领域含义还是流程外壳？ | 影响选类 | principal/resource/operation/control/evidence 可迁移；成员完整职责不能迁移 | v0 只保留 authorization-boundary；其他变体路由 |
-| Q3 | 用户反复遇到什么问题？ | 影响方法 | AI已完成任务语义与16场景真实消费；仍有helper材料缺口、整包重写及作者编辑扩散 | AJ补有界证据准备和局部编辑 |
-| Q4 | 配置、好说明或现成语言是否足够？ | 影响方法价值 | AI同要求面板没有稳定新增质量增益；Markdown/DSL作者消费各8场景完整 | AJ区分证据准备、同材料表示与修改负担 |
-| Q5 | 领域声明应怎样被消费？ | 影响方法价值 | v2/v6已接普通运行、分支检查和政策对照；源码选择和改稿仍重作者 | 在现有host前准备材料，用patch复用workspace，不重建CLI |
+| Q3 | 用户反复遇到什么问题？ | 影响方法 | AI的helper缺口、整包重写与作者变化扩散已由AJ的有界prepare及局部edit分别处理；一份Paperless材料仍partial | 缺口继续具名暴露，不能从`ready`推出完整源码闭包 |
+| Q4 | 配置、好说明或现成语言是否足够？ | 影响方法价值 | AJ同材料M/D初轮各4/8→准备后各7/8；DSL有一条标签退化，Paperless多入口加大负担 | 默认保持兼容；仅在确有准备/局部改稿需求时显式使用，不宣称表示净收益 |
+| Q5 | 领域声明应怎样被消费？ | 影响方法价值 | v2/v6加prepare/edit通过普通check/run/inspect/compare；8次原/变session、16场景full，compare仅适用性 | 已交付有界开发能力；变化后fresh run，语义仍需独立复核 |
 | Q6 | 如何实现不损失结构？ | 仅影响未来实现 | 存在回填反例 | 只有本地化重新入选时才补编码与结构检查 |
-| Q7 | 如何评价且避免错误归因？ | 影响方法价值 | AI已共用公开要求，14传输缺失及1个crop争议影响比较 | AJ生成前复核材料范围，按任务交错配对，准备/分析与语义/传输分账 |
+| Q7 | 如何评价且避免错误归因？ | 影响方法价值 | AJ冻结40单元全交付、盲评与零模型replay；同证据表示对照打平，准备与分析/作者成本分账 | 保留初答、具名gap、未知USD和development边界；不按结果补题或重抽 |
 
 决策沿革：
 
