@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "authorization-ai-author-use-rubric/v1",
+  "preparedBeforeConsumption": true,
+  "boundary": "declared-entry; stated current_user/ctx.Doer, item/collaborator existence and relation are entry premises, not claims proved by the crop",
+  "criterion": "A full answer gives the observed allow/deny path, accepted policy expectation, derived policy conclusion, decisive control with accurate source locations, and requested scenario relation. An answer that changes policy to match code, treats an entry premise as a proved upstream fact, or omits the decisive control is not full. Unknown is warranted only for an actually unresolved fact needed under the stated boundary.",
+  "expected": {
+    "fastapi-policy-change": {
+      "original": {
+        "foreign-update": {"observed": "deny", "policy": "deny", "conclusion": "source_refuted", "control": "items.py:86-90 blocks a foreign item for a non-superuser before mutation at 91-96"},
+        "superuser-read": {"observed": "allow", "policy": "allow", "conclusion": "source_refuted", "control": "items.py:53-58 skips the foreign-owner denial for a superuser and returns the item"}
+      },
+      "changed": {
+        "foreign-update": {"observed": "deny", "policy": "deny", "conclusion": "source_refuted", "control": "items.py:86-90 still blocks a foreign item for a non-superuser"},
+        "superuser-read": {"observed": "allow", "policy": "deny", "conclusion": "source_supported_failure", "control": "items.py:53-58 still permits a superuser to read a foreign item despite changed owner-only policy"}
+      }
+    },
+    "gitea-relation-change": {
+      "original": {
+        "nonadmin-other": {"observed": "deny", "policy": "deny", "conclusion": "source_refuted", "control": "collaborators.go:35-39 returns HTTP 403 before collaborator lookup for a nonadmin querying another username"},
+        "repo-admin-other": {"observed": "allow", "policy": "allow", "conclusion": "source_refuted", "control": "collaborators.go:35-39 bypasses denial for a repo admin, then 41-57 loads the existing collaborator and responds OK"}
+      },
+      "changed": {
+        "nonadmin-other": {"observed": "allow", "policy": "allow", "conclusion": "source_refuted", "control": "collaborators.go:35-39 bypasses denial when the queried username is the caller's own, then 41-57 loads the existing collaborator and responds OK"},
+        "repo-admin-other": {"observed": "allow", "policy": "allow", "conclusion": "source_refuted", "control": "collaborators.go:35-39 bypasses denial for a repo admin, then 41-57 loads the existing collaborator and responds OK"}
+      }
+    }
+  },
+  "disclosure": "The changed Gitea scenario retains the stable key nonadmin-other for comparison, although its changed relation is self; do not infer relation from the key."
+}

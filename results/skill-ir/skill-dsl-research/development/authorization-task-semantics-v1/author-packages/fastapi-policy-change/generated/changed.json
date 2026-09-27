@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "fastapi-policy-change",
+  "request": "Assess the supplied item handlers against the accepted changed policy and request a source change that permits only an item's authenticated owner to read or modify it, with no active-superuser exception.",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "sourceRoot": "../../../../authorization-semantic-quality-v1/inputs/fastapi-superuser-read/source",
+  "sources": [
+    "items.py"
+  ],
+  "policies": {
+    "changed-policy": {
+      "text": "Only the authenticated owner may read or modify an existing item; active superuser status alone grants no exception for an item owned by someone else.",
+      "location": "author-neutral-briefs.json#/packages/0/changedPolicy",
+      "revision": "changed",
+      "acceptance": "accepted",
+      "reason": "This is the task author's fixed changed policy and must be assessed independently of the unchanged implementation behavior."
+    }
+  },
+  "principals": {
+    "active-non-superuser": {
+      "role": "authenticated active non-superuser",
+      "facts": [
+        "current_user is authenticated and active",
+        "current_user.is_superuser is false"
+      ],
+      "capabilities": [
+        "May read or modify only items owned by current_user under the accepted policy"
+      ]
+    },
+    "active-superuser": {
+      "role": "authenticated active superuser",
+      "facts": [
+        "current_user is authenticated and active",
+        "current_user.is_superuser is true"
+      ],
+      "capabilities": [
+        "May read or modify only items owned by current_user under the accepted policy"
+      ]
+    }
+  },
+  "resources": {
+    "existing-item": {
+      "type": "item",
+      "facts": [
+        "The item exists at handler entry",
+        "The item's owner_id differs from current_user.id in both scenarios"
+      ]
+    }
+  },
+  "entries": {
+    "read-item-handler": {
+      "name": "read_item handler entry",
+      "locations": [
+        {
+          "path": "items.py",
+          "startLine": 49,
+          "endLine": 58
+        }
+      ]
+    },
+    "update-item-handler": {
+      "name": "update_item handler entry",
+      "locations": [
+        {
+          "path": "items.py",
+          "startLine": 76,
+          "endLine": 96
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "foreign-update": {
+      "principal": "active-non-superuser",
+      "resource": "existing-item",
+      "policy": "changed-policy",
+      "entries": [
+        "update-item-handler"
+      ],
+      "relation": "item is owned by another user",
+      "operation": "modify existing item",
+      "expectation": "deny"
+    },
+    "superuser-read": {
+      "principal": "active-superuser",
+      "resource": "existing-item",
+      "policy": "changed-policy",
+      "entries": [
+        "read-item-handler"
+      ],
+      "relation": "item is owned by another user",
+      "operation": "read existing item",
+      "expectation": "deny"
+    }
+  },
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Use only the supplied items.py source crop. The analysis boundary is each declared handler entry, and the stated identity, activity, existence, and ownership facts are task premises at that entry rather than proof of upstream injection or deployment behavior. Assess only the two supplied scenarios against the accepted changed policy, do not pretend the source changed, and identify the required owner-only source change without consulting an evaluator.",
+    "scenarios": {
+      "foreign-update": {
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "foreign-owner",
+            "statement": "At update_item handler entry, current_user is the stated active non-superuser and the existing item's owner differs from current_user.id.",
+            "atEntry": "update-item-handler",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "State the changed-policy judgment for changing the foreign-owned existing item.",
+          "Explain whether the supplied update handler enforces that judgment.",
+          "Request any change needed to enforce owner-only modification without a superuser exception."
+        ]
+      },
+      "superuser-read": {
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "active-superuser-foreign-item",
+            "statement": "At read_item handler entry, current_user is the stated authenticated active superuser and the existing item's owner differs from current_user.id.",
+            "atEntry": "read-item-handler",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "State the changed-policy judgment for reading the foreign-owned existing item.",
+          "Explain whether the supplied read handler enforces that judgment.",
+          "Request removal of any active-superuser ownership bypass needed to enforce owner-only reading."
+        ]
+      }
+    }
+  }
+}

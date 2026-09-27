@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "authorization-ai-author-neutral-briefs/v1",
+  "preparedBeforeAuthorGeneration": true,
+  "sharedInstruction": "Author an original assessment and a requested change for the fixed supplied source. The current source crop is the only code evidence. Accepted policy is supplied by the task author and must not be rewritten to match implementation. State the analysis boundary and entry premises explicitly. Keep two scenarios in each version; do not supply answers or consult an evaluator. The Markdown and structured authors receive the same brief independently and must not see each other's drafts.",
+  "packages": [
+    {
+      "id": "fastapi-policy-change",
+      "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+      "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+      "sourcePath": "results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/inputs/fastapi-superuser-read/source/items.py",
+      "sourceRanges": ["48-58", "75-96"],
+      "originalPolicy": "An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.",
+      "changedPolicy": "Only the authenticated owner may read or modify an existing item; active superuser status alone grants no exception for an item owned by someone else.",
+      "originalScenarios": [
+        {"id": "foreign-update", "question": "At update_item handler entry, can an authenticated active non-superuser change an existing item owned by another user?", "premise": "At entry, current_user is the stated active non-superuser and the existing item's owner differs from current_user.id.", "boundary": "declared-entry"},
+        {"id": "superuser-read", "question": "At read_item handler entry, can an authenticated active superuser read an existing item owned by another user?", "premise": "At entry, current_user is the stated authenticated active superuser and the existing item's owner differs from current_user.id.", "boundary": "declared-entry"}
+      ],
+      "changeRequest": "Replace only the accepted policy with changedPolicy. Keep the same two questions, identities, source crop and handler-entry premises. Update policy references and any author explanation that depends on the policy; do not pretend the source changed."
+    },
+    {
+      "id": "gitea-relation-change",
+      "repository": "https://github.com/go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "sourcePath": "results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/inputs/gitea-collaborator/source/collaborators.go",
+      "sourceRanges": ["4-58"],
+      "originalPolicy": "A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. Otherwise the request is rejected with HTTP 403 before the target collaborator is loaded.",
+      "changedPolicy": null,
+      "originalScenarios": [
+        {"id": "nonadmin-other", "question": "At GetRepoPermissions, can an authenticated repository-read collaborator who is neither site nor repository administrator query another existing user's permission?", "premise": "At entry, caller and queried existing collaborator have different usernames; caller is neither site nor repository administrator.", "boundary": "declared-entry"},
+        {"id": "repo-admin-other", "question": "At GetRepoPermissions, can an authenticated repository administrator query another existing user's permission?", "premise": "At entry, caller is a repository administrator and the queried existing collaborator has a different username.", "boundary": "declared-entry"}
+      ],
+      "changeRequest": "Change only scenario nonadmin-other so the same authenticated nonadmin collaborator queries their own existing username. Keep repo-admin-other and the accepted policy unchanged. Update the changed question, principal/resource relation, premises, and any author explanation that depends on the relation; do not change source bytes."
+    }
+  ]
+}

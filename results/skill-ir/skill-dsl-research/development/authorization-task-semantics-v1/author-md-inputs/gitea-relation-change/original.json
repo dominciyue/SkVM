@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "gitea-relation-change-original-neutral-markdown-harness",
+  "request": "At GetRepoPermissions, can an authenticated repository-read collaborator who is neither site nor repository administrator query another existing user's permission? At GetRepoPermissions, can an authenticated repository administrator query another existing user's permission?",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceRoot": "../../../authorization-semantic-quality-v1/inputs/gitea-collaborator/source",
+  "sources": [
+    "collaborators.go"
+  ],
+  "policies": {
+    "accepted": {
+      "text": "A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. Otherwise the request is rejected with HTTP 403 before the target collaborator is loaded.",
+      "location": "author-neutral-briefs.json#/packages/1/originalPolicy",
+      "revision": "gitea-relation-change-original",
+      "acceptance": "accepted",
+      "reason": "Supplied by the independent neutral task author, not inferred from source behavior."
+    }
+  },
+  "principals": {
+    "nonadmin": {
+      "role": "authenticated repository-read collaborator, not administrator",
+      "facts": [
+        "At entry, caller and queried existing collaborator have different usernames; caller is neither site nor repository administrator."
+      ],
+      "capabilities": [
+        "authenticated",
+        "repository-read"
+      ]
+    },
+    "repoadmin": {
+      "role": "authenticated repository administrator",
+      "facts": [
+        "At entry, caller is a repository administrator and the queried existing collaborator has a different username."
+      ],
+      "capabilities": [
+        "authenticated",
+        "repository-admin"
+      ]
+    }
+  },
+  "resources": {
+    "collaborator": {
+      "type": "existing collaborator",
+      "facts": [
+        "The queried collaborator exists; username relation is specified separately per scenario."
+      ]
+    }
+  },
+  "entries": {
+    "permissions": {
+      "name": "GetRepoPermissions",
+      "locations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 4,
+          "endLine": 58
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "nonadmin-other": {
+      "principal": "nonadmin",
+      "resource": "collaborator",
+      "policy": "accepted",
+      "entries": [
+        "permissions"
+      ],
+      "relation": "different-username",
+      "operation": "At GetRepoPermissions, can an authenticated repository-read collaborator who is neither site nor repository administrator query another existing user's permission?",
+      "expectation": "deny"
+    },
+    "repo-admin-other": {
+      "principal": "repoadmin",
+      "resource": "collaborator",
+      "policy": "accepted",
+      "entries": [
+        "permissions"
+      ],
+      "relation": "different-username",
+      "operation": "At GetRepoPermissions, can an authenticated repository administrator query another existing user's permission?",
+      "expectation": "allow"
+    }
+  },
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Assess each current question at its stated handler-entry boundary using the fixed supplied source and accepted policy. Treat the entry premise as given, not as proof about upstream binding. Distinguish observed control flow from the accepted policy and cite decisive source lines. Do not execute the target or infer unsupplied deployment facts.",
+    "scenarios": {
+      "nonadmin-other": {
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "entry-premise",
+            "statement": "At entry, caller and queried existing collaborator have different usernames; caller is neither site nor repository administrator.",
+            "atEntry": "permissions",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Separate the accepted policy from observed source behavior and do not assert upstream principal binding from this handler crop."
+        ]
+      },
+      "repo-admin-other": {
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "entry-premise",
+            "statement": "At entry, caller is a repository administrator and the queried existing collaborator has a different username.",
+            "atEntry": "permissions",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Separate the accepted policy from observed source behavior and do not assert upstream principal binding from this handler crop."
+        ]
+      }
+    }
+  }
+}

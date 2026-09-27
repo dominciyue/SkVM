@@ -6,7 +6,7 @@
 
 **AH已完成44条四臂公开development评价，新增局部问题支架未建立稳定质量收益。** 同一11个任务出现次数下，Markdown标准/新支架均8/11 full，DSL标准5/11、新支架7/11；新支架修正了DSL若干标签错误，也新增一条superuser过度弃答，且同支架Markdown仍8/11、高于DSL的7/11。完整prompt+output为34,264/41,402/45,237/50,905 tokens（依次为Markdown标准/新支架、DSL标准/新支架），44次业务模型调用的实际美元费用均未知。独立模型辅助作者完成两包原/变任务，工作区继承显示公共政策变更，但有一处旧taskId来源说明未同步；真人时间与作者token未知，不能推算节省。可选策略和只读变更反馈保留为工程能力，普通默认不变。详细分母、错误和取舍见§7.27；AB两项目16条评价（Markdown 8/8、DSL 6/8）及AE四组各6/6的旧结论仍见§7.25–7.26，AC/AD和AF/AG工程工具不增加AH分母。
 
-**下一授权阶段：** 2026-09-27复核后，用户要求新GPT-6 Sol max任务执行AI0–AI16，见§7.28。重点是任务前提/证据边界、显式分支与政策对照的程序化支持、作者变化后的真实消费；本段为已授权设计，尚无AI阶段效果数据。
+**当前授权阶段：** 2026-09-27复核后，用户要求新GPT-6 Sol max任务执行AI0–AI16，见§7.28。任务前提/证据边界、显式分支与政策对照的程序化支持已实现；54单元公开development面板已评价，独立作者原/变稿已完成，变化后的真实消费正在执行准备。
 
 已经站得住的判断：
 
@@ -898,7 +898,9 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 初轮计划各8：M0/D0/M1/D1最终full分别8/6/7/8；D0两条timeout。双方均完成的配对里，M0→M1为8→7，D0→D1为6→6；OWUI file一条固定crop的helper前缀缺口可合理支持unknown，保守敏感性把M1改为8/8，因此不能据这条宣称新支持变差。重复各臂计划4，完成数依次0/1/2/3，网关超时与断连使该区块没有可解释的质量胜负。v6机械地从observed行为推出政策标签；两条label-direction机制观察均正确，但旧臂本轮已完成答案也正确，没有实测完整率增量。入口前提和显式请求分支在初轮已完成答案中均获独立语义支持；请求分支的两条单独机制观察均超时。结果是可靠工程支持与不确定/中性质量证据，不是自动授权安全决策的证明。
 
-评价用新公开rubric的薄study适配层，而非强行复用AH v3 evaluator的旧固定oracle条目；普通host的事实引用、条件和显式分支验证保持权威。41份匿名回答由8个fresh-context只读评价者逐案核验，Gitea self首评误读`source_refuted`经已测试真值表与独立复核修正，OWUI file争议保留主口径和敏感性。生成结束后才建评价包；全部packet原文/hash、映射、评分和裁定均在结果根。作者原/变真实消费仍待AI11–AI12完成。
+评价用新公开rubric的薄study适配层，而非强行复用AH v3 evaluator的旧固定oracle条目；普通host的事实引用、条件和显式分支验证保持权威。41份匿名回答由8个fresh-context只读评价者逐案核验，Gitea self首评误读`source_refuted`经已测试真值表与独立复核修正，OWUI file争议保留主口径和敏感性。生成结束后才建评价包；全部packet原文/hash、映射、评分和裁定均在结果根。
+
+**AI11 独立作者和消费冻结。** 两包中立brief分别交给Markdown和结构化作者；各作者的变稿只看自己的原稿。8份首次尝试中5份直接有效、2份在传输层无响应、1份JSON结构错误。传输重试后两份结构化原稿有效；结构化Gitea变稿的一次诊断修订仍多一个结尾`}`，因此作者最终有效交付为7/8。为完成下游消费，另存原始失败和[单字符机械恢复记录](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-packages/gitea-relation-change/dsl/recovery.json)，仅删除末尾多余括号，字段与字符串未改，绝不计作者成功。12个外层作者请求中9个收到响应、3个传输失败且usage未知；已知input 14,329/output 10,873/cache-read 1,792 tokens，实际USD和内部HTTP重试次数未知；真人分钟未测。[作者账户](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-use-account.json)保留逐次尝试。FastAPI变稿准确改为owner-only政策且源码不变；Gitea变稿准确变为self关系，但结构化作者还改了taskId、scenario key及若干说明字段，属于作者编辑扩散，不能把所有prompt变化归于关系变化。Markdown消费使用仅从中立brief组装的必要runner输入，不读取结构化作者产物。[8 session/16场景消费配置](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-use-config.json)在调用前冻结，SHA-256 `0f454556...9a2e9740c84`；AI12按实际交付运行并分开报告作者失败与分析失败。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

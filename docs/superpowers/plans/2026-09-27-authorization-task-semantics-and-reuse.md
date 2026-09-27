@@ -290,9 +290,9 @@ test("compares an observed effect with the authored expectation", () => {
 
 ### AI11 独立作者原稿与变化稿
 
-- [ ] 按§5.3准备两包中立任务和变化请求，安排独立MD/workspace作者；起草权限与输入范围明确，保存所有尝试和诊断。
-- [ ] 原/变稿用当前普通check/compose/compare；有可修诊断交回作者一次，主代理不代填语义。
-- [ ] 分别记录首次交付、修订交付、越界尝试、未更新说明、继承/override和实际编辑内容，不用文件数推算人工时间。
+- [x] 按§5.3准备两包中立任务和变化请求，安排独立MD/workspace作者；起草权限与输入范围明确，保存所有尝试和诊断。
+- [x] 原/变稿用当前普通check/compose；唯一JSON诊断交回作者一次仍无效，以单字符机械恢复稿供消费，作者有效率保持7/8；普通session compare在AI12运行后执行。
+- [x] 分别记录首次交付、修订交付、结构无效与恢复、继承/override和实际编辑内容；Gitea结构化变稿额外改taskId与场景key，真人时间未知。
 
 ### AI12 修改后的真实消费
 
