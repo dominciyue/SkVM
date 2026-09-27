@@ -2,15 +2,29 @@
 
 - 更新日期：2026-09-27
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AI0–AI16已完成工程、冻结质量面板、独立作者真实消费、普通示例、有限验证及用户origin发布；实时状态见结果根。
+- 状态：AI0–AI16已完成并复核；AJ0–AJ16已授权、待新开发任务启动。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
-- 当前任务书：[AI0–AI16](../superpowers/plans/2026-09-27-authorization-task-semantics-and-reuse.md)
-- 当前设计：[研究§7.28](skill-dsl-research.md#728-ai-任务语义答案合成与变化后复用)；AH证据保留在§7.27。
+- 当前任务书：[AJ0–AJ16](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)
+- 当前设计：[研究§7.29](skill-dsl-research.md#729-aj-证据准备与局部修改)；AI证据保留在§7.28。
 
 分类继续服务于范围，DSL价值包含编写、修改、质量与效率。AB同包/schema/核心可处理两项目八状态；Markdown 8/8 full、DSL 6/8 full，后者两项标签错误，必要控制与解释均正确。DSL整体收益未建立，准备/修改/运行负担及限制见研究§7.25。
 
-## AI 当前执行队列
+## AJ 当前执行队列
+
+用户确认AI复核后的方向并要求派发`gpt-6-sol / max`。单一任务在`skill-ir-aot`负责实现、共享文档和Git发布，质量60%/复用40%分别验收。
+
+| 阶段 | 工作 | 验收 |
+|---|---|---|
+| AJ0–AJ4 | 恢复、证据合同、来源/依赖准备、普通prepare | 已指名入口材料可追溯，关键缺口可见，旧宿主继续fixed-context |
+| AJ5–AJ7 | 局部编辑、workspace/CLI、基础设施诊断 | patch直接物化，不重写整份声明，无关字段保持 |
+| AJ8–AJ11 | 真实材料、四臂对照、运行与独立评价 | 同证据比较表示，分开准备收益/语义质量/传输缺失 |
+| AJ12–AJ13 | 两包原/变作者消费、普通示例 | 变化任务真实运行，修改负担与回答效果分账 |
+| AJ14–AJ16 | 研究归并、必要验证、提交推送 | 当前文档与真实结果一致，用户origin同步 |
+
+基线`47c08965`加规划提交。保持authoring/v2、analysisContract/v1和wire/v6；新增有界准备和局部编辑，复用现有CLI与workspace，不建v7或全仓发现。计划40质量session、8作者消费session，一次共享bug修订另最多8；有目的准备/作者调用分账。支付授权不变，实验预算用于控制重复与漂移。真实分母、失败处理、代码职责及命令由AJ任务书约束。
+
+## AI 已完成队列
 
 上一轮复核确认338 pass/1平台skip、typecheck和AH离线重算通过。主要缺口是前提与证据的边界、自由回答中的分支遗漏和标签矛盾，以及作者变化稿尚未真实消费；不再把更换标签或增加同义问题作为全部工作。
 

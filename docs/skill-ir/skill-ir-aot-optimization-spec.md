@@ -1,8 +1,8 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-09-22
+**最后更新：** 2026-09-27
 
-**当前已确认路线：** 第14.34节“按skill/task范围设计领域表达并验证实际价值”。AH已交付；用户已授权AI0–AI16补任务语义、确定性答案合成和作者变化后的真实复用，投入优先级约60%/40%。authoring/v2、现有wire/host和普通默认继续兼容；新sidecar及输出模式显式选择，配套公共要求一致、相同支持的Markdown对照。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。14.32–14.33及更早合同保持历史，I1保留后备。
+**当前已确认路线：** 第14.34节“按skill/task范围设计领域表达并验证实际价值”。AI已交付并复核；用户已授权AJ0–AJ16开发指定入口的有界证据准备和局部任务编辑，投入优先级约60%/40%。authoring/v2、analysisContract/v1、wire/v6和普通默认继续兼容；Markdown与DSL共用证据准备，分开检验材料支持、表示与修改复用的收益。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。14.32–14.33及更早合同保持历史，I1保留后备。
 
 本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；新工作以第 14.34 节为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
@@ -2541,3 +2541,5 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **AI当前授权合同（2026-09-27）。** [AI0–AI16](../superpowers/plans/2026-09-27-authorization-task-semantics-and-reuse.md)在同一任务类增加可选版本化analysisContract和有界assessment program，明确入口/路径/部署边界、作者场景假设及请求的反事实分支；作者假设不提升为源码或部署观测。程序只展开显式义务和分支、核对引用与覆盖，不猜源码答案。显式wire/v6让模型报告无条件任务的实际allow/deny/unknown，由宿主与已声明allow/deny expectation确定对照；conditional继续由模型做条件政策判断并显式记录，不用二值映射冒充条件推理。旧canonical、默认与历史wire保持兼容，新语义进入普通run、恢复身份和完整依赖compare。Markdown/DSL实际prompt共用逐字一致的公开要求，评价区分当前问题、必需证据、请求分支和附加细节。作者两包原/变稿必须经真实消费评价，首次不完整及协议越界尝试分别保留。主面板/机制观察/作者消费通常最多48/6/16单元，一次共享bug修订另最多8；所有调用和未知费用分账，工程完成与研究收益分别报告。设计和执行复盘统一见[研究§7.28](skill-dsl-research.md#728-ai-任务语义答案合成与变化后复用)，不扩大到主动发现或目标执行，不改受保护历史。
 
 **AI实现与证据补充（2026-09-27）。** 上述合同已接入普通check/run/inspect/compare、workspace和编辑schema；synthetic例子验证入口前提、请求分支、部署未知及不改源码的政策替换。冻结development主面板54单元中40完成、9超时未知、5传输失败；主口径39/54 full、固定crop争议敏感性40/54，配对初轮不支持新机制稳定质量增益。独立作者两包8稿最终7稿有效，另1稿仅机械删去一个多余括号后用于下游且不计作者成功；真实消费8 session/16场景全部完成，独立源码复核16/16 full，4个变化输入对旧session均需复查。研究与作者/分析成本分账在[AI结果](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-use-summary.json)及研究§7.28；实际USD、失败请求usage和真人时间未知。此证据只支持有界development使用，不改变历史默认或证明未见任务的质量/人力收益。
+
+**AJ当前授权合同（2026-09-27）。** [AJ0–AJ16](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)复用现有v2/v6和普通宿主，在分析前按指定入口及允许文件准备源码、显式依赖和缺口，分析时仍为零执行工具的fixed-context。准备完整性只针对声明依赖，locator/model-proposal不自行证明控制有效或全仓覆盖；有效部分与决定性缺口分开，越界或来源无法绑定则拒绝。局部patch按已声明key修改政策、场景和前提，程序序列化并保留身份/无关字段；政策变化列出影响场景，未明确对照的场景不能静默ready。旧compare维持共享context全依赖失效，不自动复用旧答案。普通prepare/edit复用现有CLI、workspace和check/run，不另建运行平台或v7。四臂以表示×证据准备分离增益归因，计划40质量及8原/变消费session，一次共享bug修订最多8；传输缺失、作者首稿/修订、准备/分析费用及human time各自报告。新公开development材料按规则登记，旧保护集/历史不读不改；持续执行细节与方法变更统一见[研究§7.29](skill-dsl-research.md#729-aj-证据准备与局部修改)。
