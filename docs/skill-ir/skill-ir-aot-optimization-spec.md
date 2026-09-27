@@ -2,7 +2,7 @@
 
 **最后更新：** 2026-09-22
 
-**当前已确认路线：** 第14.34节“按skill/task范围设计领域表达并验证实际价值”。AB至AE/AF/AG已交付；用户已授权AH0–AH14深化授权语义质量与编写复用，投入优先级约60%/40%。authoring/v2、现有wire/host和普通默认继续兼容；新分析策略显式选择，配套相同支持的Markdown对照。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。14.32–14.33及更早合同保持历史，I1保留后备。
+**当前已确认路线：** 第14.34节“按skill/task范围设计领域表达并验证实际价值”。AH已交付；用户已授权AI0–AI16补任务语义、确定性答案合成和作者变化后的真实复用，投入优先级约60%/40%。authoring/v2、现有wire/host和普通默认继续兼容；新sidecar及输出模式显式选择，配套公共要求一致、相同支持的Markdown对照。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。14.32–14.33及更早合同保持历史，I1保留后备。
 
 本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；新工作以第 14.34 节为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
@@ -2537,3 +2537,5 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 **2026-09-27交付观察（14.34补充）。** AE24个已暴露development单元全部终结，四组MD/DSL×v4/v5各6/6 full、实际决策和必要语义24/24正确；新v5未提供可观察质量增量，因此旧default不改，v5仅显式opt-in。26次provider dispatch含一次fallback和一次domain repair，零追加研究单元、零目标执行、实际USD未报告；分组完整prompt+output和逐项review在AE结果根保留。AF把单份common policy与显式场景整字段替换物化为三份普通v2输入，预览只读，Windows发布独占新目录；仍由作者负责政策与关系事实。AG纯模块明确不重复计入cache-read，AB旧+11.969%是fresh input+output，新完整prompt+output为+3.279%，旧原件不改。三项均不证明一般模型可靠性、真人时间节省或生产部署安全，方法取舍与复现见研究§7.26。
 
 **AH授权合同与实际交付（2026-09-27）。** [AH0–AH14](../superpowers/plans/2026-09-27-authorization-semantic-quality-and-reuse.md)在同一授权任务类深化控制对象/效果对象、上游控制、角色例外和外部事实分析，复用现有声明及固定源码宿主。可选`control-binding-v1`只从声明生成有范围的问题，不补源码真值或增加隐含答案；四臂MD/DSL×standard/新策略共享事实、输出、模型和预算，单独解释方法与表示作用。普通wire/standard默认保持；工作区只读变更说明区分共同字段继承、显式覆盖、有效源码字节与旧结果复查，不自动复用答案。预案最多56分析及8共享实现修订单元；冻结后的合格分母实际为8状态×4臂加3状态重复×4臂，即44分析、0修订，全部真实完成且无目标执行。Markdown标准/新策略各8/11 full，DSL标准5/11、新策略7/11；新策略在DSL有局部标签修正和一条过度弃答，Markdown没有完整性增量，并增加tokens，故不迁移默认或主张DSL表示质量优势。独立模型辅助作者的两包原/变任务证明工作区政策继承与关系变化可定位，也暴露一处未被结构检查发现的旧taskId说明；真人时间未知。来源、分层质量、逐条盲审、代价与限制统一维护在[研究§7.27](skill-dsl-research.md#727-ah-语义质量与真实编写复用)及[AH机器汇总](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/panel-summary.json)。旧保护输入、readiness及历史结果不动。
+
+**AI当前授权合同（2026-09-27）。** [AI0–AI16](../superpowers/plans/2026-09-27-authorization-task-semantics-and-reuse.md)在同一任务类增加可选版本化analysisContract和有界assessment program，明确入口/路径/部署边界、作者场景假设及请求的反事实分支；作者假设不提升为源码或部署观测。程序只展开显式义务和分支、核对引用与覆盖，不猜源码答案。显式wire/v6让模型报告无条件任务的实际allow/deny/unknown，由宿主与已声明allow/deny expectation确定对照；conditional继续由模型做条件政策判断并显式记录，不用二值映射冒充条件推理。旧canonical、默认与历史wire保持兼容，新语义进入普通run、恢复身份和完整依赖compare。Markdown/DSL实际prompt共用逐字一致的公开要求，评价区分当前问题、必需证据、请求分支和附加细节。作者两包原/变稿必须经真实消费评价，首次不完整及协议越界尝试分别保留。主面板/机制观察/作者消费通常最多48/6/16单元，一次共享bug修订另最多8；所有调用和未知费用分账，工程完成与研究收益分别报告。设计和执行复盘统一见[研究§7.28](skill-dsl-research.md#728-ai-任务语义答案合成与变化后复用)，不扩大到主动发现或目标执行，不改受保护历史。
