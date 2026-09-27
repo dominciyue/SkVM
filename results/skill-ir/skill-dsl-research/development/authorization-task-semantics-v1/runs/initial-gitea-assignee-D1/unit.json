@@ -1,0 +1,495 @@
+{
+  "unit": {
+    "id": "initial-gitea-assignee-D1",
+    "phase": "initial",
+    "caseId": "gitea-assignee",
+    "arm": "D1",
+    "assessmentMode": "explicit-v1",
+    "wire": "v6"
+  },
+  "configSha256": "a9adbb380923fa1e742f7975b497bd2dbb15c202f5f5482b29b8750bf01f63d8",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v6",
+    "assessmentMode": "explicit-v1",
+    "reasoningStrategy": "standard",
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260927T130009703Z-afc4ae8a",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\runs\\initial-gitea-assignee-D1\\sessions\\20260927T130009703Z-afc4ae8a",
+    "createdAt": "2026-09-27T13:00:09.703Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\inputs\\gitea-assignee\\authoring.json",
+    "taskId": "gitea-issue-assignee-nonwriter",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 396,
+        "declaration": 3901,
+        "publicAnalysis": 1400,
+        "assessmentProgram": 1341,
+        "source": 3396,
+        "outputContract": 3676,
+        "total": 14248,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "gitea-issue-assignee-nonwriter",
+      "repository": "https://github.com/go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "results": [
+        {
+          "obligationId": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees",
+          "conclusion": "source_refuted",
+          "explanation": "At the declared POST entry, the handler parses the request and invokes the update path. That path binds the issue by repository ID and issue index, then checks repository permission to write issues or pull requests before resolving assignees or invoking the mutation service. The supplied premise makes that permission false, so the handler returns forbidden at the authorization control and does not reach assignee resolution or mutation. The issue-write token scope is distinct from repository issue-write permission and does not satisfy this control. The requested existing issue and assignee, and the authenticated caller, are accepted task premises at the declared boundary rather than independently inferred deployment facts. The source-visible decision is therefore deny. The permission-granted/existing-assignee counterfactual reaches resolution and mutation; the permission-granted/missing-assignee counterfactual reaches resolution but stops on the missing-assignee error before mutation. Source discovery is not-tested, so this result makes no repository-wide or deployment claim.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The named POST route is implemented by the add-assignees handler, which parses the request and calls the update path in add mode.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 4,
+                    "endLine": 6,
+                    "quote": "// AddIssueAssignees add assignees to an issue\nfunc AddIssueAssignees(ctx *context.APIContext) {\n\t// swagger:operation POST /repos/{owner}/{repo}/issues/{index}/assignees issue issueAddAssignees"
+                  },
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 47,
+                    "endLine": 49,
+                    "quote": "\topts := web.GetForm[*api.IssueAssigneesOption](ctx)\n\tupdateIssueAssignees(ctx, *opts, true)\n}"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The eventual assignee operation is performed with the request's authenticated actor carried as the doer.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 80,
+                    "endLine": 83,
+                    "quote": "\tif isAdd {\n\t\terr = issue_service.AddAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t} else {\n\t\terr = issue_service.RemoveAssignees(ctx, issue, ctx.Doer, assigneeIDs)"
+                  }
+                ]
+              },
+              {
+                "statement": "The issue resource is looked up using the repository identity from the request context and the supplied issue index.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 53,
+                    "endLine": 58,
+                    "quote": "func updateIssueAssignees(ctx *context.APIContext, opts api.IssueAssigneesOption, isAdd bool) {\n\tissue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.PathParamInt64(\"index\"))\n\tif err != nil {\n\t\tctx.APIErrorAuto(err)\n\t\treturn\n\t}"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The strongest visible authorization control requires repository permission to write issues or pull requests and returns forbidden before later processing when absent.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 60,
+                    "endLine": 63,
+                    "quote": "\tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n\t\tctx.Status(http.StatusForbidden)\n\t\treturn\n\t}"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "When add mode is active and assignee resolution succeeds, the path invokes the service that adds assignees to the issue.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 80,
+                    "endLine": 83,
+                    "quote": "\tif isAdd {\n\t\terr = issue_service.AddAssignees(ctx, issue, ctx.Doer, assigneeIDs)\n\t} else {\n\t\terr = issue_service.RemoveAssignees(ctx, issue, ctx.Doer, assigneeIDs)"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "Only after the repository permission check does the path resolve requested assignee names to user IDs.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 65,
+                    "endLine": 70,
+                    "quote": "\tif err := issue.LoadAttributes(ctx); err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tassigneeIDs, err := user_model.GetUserIDsByNames(ctx, opts.Assignees, false)"
+                  }
+                ]
+              },
+              {
+                "statement": "A nonexistent requested assignee takes an error-return path before the mutation call.",
+                "citations": [
+                  {
+                    "path": "issue_assignee.go",
+                    "startLine": 70,
+                    "endLine": 77,
+                    "quote": "\tassigneeIDs, err := user_model.GetUserIDsByNames(ctx, opts.Assignees, false)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusUnprocessableEntity, err.Error())\n\t\t\treturn\n\t\t}\n\t\tctx.APIErrorAuto(err)\n\t\treturn"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees",
+          "explanation": "At the declared POST entry, the handler parses the request and invokes the update path. That path binds the issue by repository ID and issue index, then checks repository permission to write issues or pull requests before resolving assignees or invoking the mutation service. The supplied premise makes that permission false, so the handler returns forbidden at the authorization control and does not reach assignee resolution or mutation. The issue-write token scope is distinct from repository issue-write permission and does not satisfy this control. The requested existing issue and assignee, and the authenticated caller, are accepted task premises at the declared boundary rather than independently inferred deployment facts. The source-visible decision is therefore deny. The permission-granted/existing-assignee counterfactual reaches resolution and mutation; the permission-granted/missing-assignee counterfactual reaches resolution but stops on the missing-assignee error before mutation. Source discovery is not-tested, so this result makes no repository-wide or deployment claim.",
+          "facts": [
+            {
+              "id": "fact-entry",
+              "kind": "entry",
+              "statement": "The named POST route is implemented by the add-assignees handler, which parses the request and calls the update path in add mode.",
+              "citations": [
+                {
+                  "sourceId": "src-46786967a1fedfdd",
+                  "startLine": 4,
+                  "endLine": 6
+                },
+                {
+                  "sourceId": "src-46786967a1fedfdd",
+                  "startLine": 47,
+                  "endLine": 49
+                }
+              ]
+            },
+            {
+              "id": "fact-principal-binding",
+              "kind": "binding",
+              "statement": "The eventual assignee operation is performed with the request's authenticated actor carried as the doer.",
+              "citations": [
+                {
+                  "sourceId": "src-46786967a1fedfdd",
+                  "startLine": 80,
+                  "endLine": 83
+                }
+              ]
+            },
+            {
+              "id": "fact-resource-binding",
+              "kind": "binding",
+              "statement": "The issue resource is looked up using the repository identity from the request context and the supplied issue index.",
+              "citations": [
+                {
+                  "sourceId": "src-46786967a1fedfdd",
+                  "startLine": 53,
+                  "endLine": 58
+                }
+              ]
+            },
+            {
+              "id": "fact-authorization-control",
+              "kind": "control",
+              "statement": "The strongest visible authorization control requires repository permission to write issues or pull requests and returns forbidden before later processing when absent.",
+              "citations": [
+                {
+                  "sourceId": "src-46786967a1fedfdd",
+                  "startLine": 60,
+                  "endLine": 63
+                }
+              ]
+            },
+            {
+              "id": "fact-assignee-resolution",
+              "kind": "condition",
+              "statement": "Only after the repository permission check does the path resolve requested assignee names to user IDs.",
+              "citations": [
+                {
+                  "sourceId": "src-46786967a1fedfdd",
+                  "startLine": 65,
+                  "endLine": 70
+                }
+              ]
+            },
+            {
+              "id": "fact-resolution-failure",
+              "kind": "condition",
+              "statement": "A nonexistent requested assignee takes an error-return path before the mutation call.",
+              "citations": [
+                {
+                  "sourceId": "src-46786967a1fedfdd",
+                  "startLine": 70,
+                  "endLine": 77
+                }
+              ]
+            },
+            {
+              "id": "fact-add-effect",
+              "kind": "effect",
+              "statement": "When add mode is active and assignee resolution succeeds, the path invokes the service that adds assignees to the issue.",
+              "citations": [
+                {
+                  "sourceId": "src-46786967a1fedfdd",
+                  "startLine": 80,
+                  "endLine": 83
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "deny"
+          },
+          "branchResults": [
+            {
+              "id": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees::branch:permission-granted-assignee-exists",
+              "assumptions": [
+                {
+                  "conditionId": "condition:deny-nonwriter-assignee-add:assignee-exists",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "condition:deny-nonwriter-assignee-add:requester-has-repository-issue-write",
+                  "value": "true"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "Under this counterfactual, the repository issue-write check does not return forbidden. With an existing assignee, the path reaches assignee resolution and then the add-assignees service call, so the protected mutation is source-reachable. This does not change the current non-writer scenario.",
+              "missingFacts": [],
+              "factIds": [
+                "fact-entry",
+                "fact-resource-binding",
+                "fact-authorization-control",
+                "fact-assignee-resolution",
+                "fact-add-effect"
+              ]
+            },
+            {
+              "id": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees::branch:permission-granted-assignee-missing",
+              "assumptions": [
+                {
+                  "conditionId": "condition:deny-nonwriter-assignee-add:assignee-exists",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "condition:deny-nonwriter-assignee-add:requester-has-repository-issue-write",
+                  "value": "true"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "Under this counterfactual, the permission check is passed and the path reaches assignee resolution. A missing assignee causes the resolution error path to return before the add-assignees service call, so mutation is not reached.",
+              "missingFacts": [],
+              "factIds": [
+                "fact-entry",
+                "fact-resource-binding",
+                "fact-authorization-control",
+                "fact-assignee-resolution",
+                "fact-resolution-failure",
+                "fact-add-effect"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "normalizerVersion": "authorization-wire-normalizer/v6",
+    "relationCoverage": [],
+    "requestedBranchAnalysis": {
+      "schemaVersion": "authorization-condition-analysis-result/v1",
+      "analyses": [
+        {
+          "obligationId": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees",
+          "branches": [
+            {
+              "id": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees::branch:permission-granted-assignee-exists",
+              "assumptions": [
+                {
+                  "conditionId": "condition:deny-nonwriter-assignee-add:assignee-exists",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "condition:deny-nonwriter-assignee-add:requester-has-repository-issue-write",
+                  "value": "true"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "Under this counterfactual, the repository issue-write check does not return forbidden. With an existing assignee, the path reaches assignee resolution and then the add-assignees service call, so the protected mutation is source-reachable. This does not change the current non-writer scenario.",
+              "missingFacts": [],
+              "obligationId": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees",
+              "factPointers": [
+                "/results/0/facts/entry/0",
+                "/results/0/facts/binding/1",
+                "/results/0/facts/control/0",
+                "/results/0/facts/condition/0",
+                "/results/0/facts/effect/0"
+              ]
+            },
+            {
+              "id": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees::branch:permission-granted-assignee-missing",
+              "assumptions": [
+                {
+                  "conditionId": "condition:deny-nonwriter-assignee-add:assignee-exists",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "condition:deny-nonwriter-assignee-add:requester-has-repository-issue-write",
+                  "value": "true"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "Under this counterfactual, the permission check is passed and the path reaches assignee resolution. A missing assignee causes the resolution error path to return before the add-assignees service call, so mutation is not reached.",
+              "missingFacts": [],
+              "obligationId": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees",
+              "factPointers": [
+                "/results/0/facts/entry/0",
+                "/results/0/facts/binding/1",
+                "/results/0/facts/control/0",
+                "/results/0/facts/condition/0",
+                "/results/0/facts/condition/1",
+                "/results/0/facts/effect/0"
+              ]
+            }
+          ],
+          "unexaminedConditionIds": [],
+          "completeness": "bounded",
+          "limitations": []
+        }
+      ]
+    },
+    "requestedBranchValidation": {
+      "status": "valid",
+      "declared": 1,
+      "bounded": 1,
+      "incomplete": 0,
+      "missing": [],
+      "semanticSupport": "unreviewed",
+      "result": {
+        "schemaVersion": "authorization-condition-analysis-result/v1",
+        "analyses": [
+          {
+            "obligationId": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees",
+            "branches": [
+              {
+                "id": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees::branch:permission-granted-assignee-exists",
+                "obligationId": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees",
+                "assumptions": [
+                  {
+                    "conditionId": "condition:deny-nonwriter-assignee-add:assignee-exists",
+                    "value": "true"
+                  },
+                  {
+                    "conditionId": "condition:deny-nonwriter-assignee-add:requester-has-repository-issue-write",
+                    "value": "true"
+                  }
+                ],
+                "effect": "reachable",
+                "explanation": "Under this counterfactual, the repository issue-write check does not return forbidden. With an existing assignee, the path reaches assignee resolution and then the add-assignees service call, so the protected mutation is source-reachable. This does not change the current non-writer scenario.",
+                "factPointers": [
+                  "/results/0/facts/entry/0",
+                  "/results/0/facts/binding/1",
+                  "/results/0/facts/control/0",
+                  "/results/0/facts/condition/0",
+                  "/results/0/facts/effect/0"
+                ],
+                "missingFacts": []
+              },
+              {
+                "id": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees::branch:permission-granted-assignee-missing",
+                "obligationId": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees",
+                "assumptions": [
+                  {
+                    "conditionId": "condition:deny-nonwriter-assignee-add:assignee-exists",
+                    "value": "false"
+                  },
+                  {
+                    "conditionId": "condition:deny-nonwriter-assignee-add:requester-has-repository-issue-write",
+                    "value": "true"
+                  }
+                ],
+                "effect": "blocked",
+                "explanation": "Under this counterfactual, the permission check is passed and the path reaches assignee resolution. A missing assignee causes the resolution error path to return before the add-assignees service call, so mutation is not reached.",
+                "factPointers": [
+                  "/results/0/facts/entry/0",
+                  "/results/0/facts/binding/1",
+                  "/results/0/facts/control/0",
+                  "/results/0/facts/condition/0",
+                  "/results/0/facts/condition/1",
+                  "/results/0/facts/effect/0"
+                ],
+                "missingFacts": []
+              }
+            ],
+            "unexaminedConditionIds": [],
+            "completeness": "bounded",
+            "limitations": []
+          }
+        ]
+      },
+      "diagnostics": []
+    },
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees",
+        "expectation": "deny",
+        "observed": "deny",
+        "derivedConclusion": "source_refuted"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 472,
+        "output": 1414,
+        "cacheRead": 3456,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

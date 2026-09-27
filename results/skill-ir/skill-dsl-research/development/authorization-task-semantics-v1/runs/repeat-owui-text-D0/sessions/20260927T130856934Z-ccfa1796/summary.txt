@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260927T130856934Z-ccfa1796
+Status: completed
+Task: owui-process-text-controlled
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Assessment: legacy
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Anon-admin-without-kb-write-grant::entry%3Apost-process-text: source_refuted — At the declared entry, the verified user is bound from get_verified_user and the caller-supplied collection name is taken from form_data. Because a collection name is supplied, process_text calls _validate_collection_access with access_type='write' before constructing the document and before save_docs_to_vector_db. The shared control filters the requested name for a non-admin: it does not use the admin bypass, checks knowledge-base access with permission='write', and, when the name is an existing knowledge base without access, does not add it through the missing-KB fallback because get_knowledge_by_id(name) is truthy. The denied set is therefore nonempty and _validate_collection_access raises HTTP 403, so the attacker-selected text does not reach the vector-database write sink. The stated policy expectation of denial is therefore enforced by the supplied source for this assumed existing, inaccessible knowledge base. This result is limited to the declared entry and supplied source; source discovery and deployment behavior remain not-tested.
+  Evidence: POST /process/text dispatches to process_text, which receives the verified user dependency and the submitted form data. (inputs/owui-process-text-controlled/retrieval_process_text.py:7-13)
+  Evidence: The request principal is supplied through get_verified_user; under the task premise, that principal is a verified non-admin. (inputs/owui-process-text-controlled/retrieval_process_text.py:8-12)
+  Evidence: The target collection is taken from form_data.collection_name when the caller supplies a collection name. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-17)
+  Evidence: For non-admin collection names outside the special prefixes, the shared policy checks knowledge-base access with the requested permission and only allows the name through the fallback when no knowledge base exists. (inputs/owui-process-text-controlled/retrieval_access_policy.py:22-25, inputs/owui-process-text-controlled/retrieval_access_policy.py:43-51)
+  Evidence: The shared validator computes the allowed set with filter_accessible_collections, computes denied as requested minus allowed, and raises HTTP 403 when denied is nonempty. (inputs/owui-process-text-controlled/retrieval_process_text.py:31-44)
+  Evidence: For a supplied collection name, the entry invokes _validate_collection_access for that name with access_type='write' before proceeding. (inputs/owui-process-text-controlled/retrieval_process_text.py:13-17)
+  Evidence: The text document is constructed and save_docs_to_vector_db is invoked only after the collection access validation; the denied request therefore stops before this write effect. (inputs/owui-process-text-controlled/retrieval_process_text.py:19-28)
+  Evidence: Under the supplied task premise, the selected collection exists as a knowledge base and the principal has neither ownership nor an explicit write grant, so the write access check does not authorize it while the missing-knowledge-base fallback does not apply. (inputs/owui-process-text-controlled/retrieval_access_policy.py:43-51)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

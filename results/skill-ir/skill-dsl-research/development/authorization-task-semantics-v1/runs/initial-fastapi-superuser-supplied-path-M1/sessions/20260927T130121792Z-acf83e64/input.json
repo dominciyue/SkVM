@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "fastapi-items-claimed-superuser-supplied-path",
+  "request": "Does the supplied path prove that an external caller claiming active-superuser status can read another user's existing item, without assuming the cropped-out CurrentUser binding?",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "sourceRoot": "../../../authorization-semantic-quality-v1/inputs/fastapi-superuser-read/source",
+  "sources": [
+    "items.py"
+  ],
+  "policies": {
+    "modify-item": {
+      "text": "An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.",
+      "location": "second-project/model-input/task.json#/normativePolicy",
+      "revision": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+      "acceptance": "accepted",
+      "reason": "accepted by the study task author for this bounded assessment"
+    }
+  },
+  "principals": {
+    "caller": {
+      "role": "external caller claiming to be an active superuser",
+      "facts": [
+        "The caller claims active-superuser status; the supplied handler crop does not establish what CurrentUser injects.",
+        "The requested existing item belongs to another user."
+      ],
+      "capabilities": [
+        "can-request-read-item"
+      ]
+    }
+  },
+  "resources": {
+    "item": {
+      "type": "item",
+      "facts": [
+        "Existing item owned by another user"
+      ]
+    }
+  },
+  "entries": {
+    "read-item": {
+      "name": "read_item",
+      "locations": [
+        {
+          "path": "items.py",
+          "startLine": 48,
+          "endLine": 58
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "read-item": {
+      "principal": "caller",
+      "resource": "item",
+      "policy": "modify-item",
+      "entries": [
+        "read-item"
+      ],
+      "relation": "claimed-superuser-to-different-owner-with-binding-unproved",
+      "operation": "read item through GET /items/{id}",
+      "expectation": "conditional"
+    }
+  },
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Decide the current scenario at the stated boundary from the supplied fixed source and accepted policy. Treat listed premises as question assumptions at the named entry, not as source or deployment proof. Trace the decisive authorization control and protected effect with exact supplied-source locations. Answer every explicitly requested counterfactual branch separately, identifying its changed assumptions and any decisive unknown. Include only the response details requested below. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: Does the supplied path prove that an external caller claiming active-superuser status can read another user's existing item, without assuming the cropped-out CurrentUser binding?\nAnalysis boundary: supplied-path.\nTask premise: The external caller claims to be an authenticated active superuser and requests another user's existing item; the supplied handler crop alone does not assert what current_user the dependency injects.\nRequired response detail: Distinguish what the handler proves conditionally from what the supplied path proves about the actual caller-to-current_user binding.",
+    "scenarios": {
+      "read-item": {
+        "boundary": "supplied-path",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "The external caller claims to be an authenticated active superuser and requests another user's existing item; the supplied handler crop alone does not assert what current_user the dependency injects.",
+            "atEntry": "read-item",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Distinguish what the handler proves conditionally from what the supplied path proves about the actual caller-to-current_user binding."
+        ]
+      }
+    }
+  }
+}

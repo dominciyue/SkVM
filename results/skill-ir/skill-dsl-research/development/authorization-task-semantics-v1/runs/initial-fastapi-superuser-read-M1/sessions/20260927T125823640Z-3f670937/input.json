@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "fastapi-items-superuser-read",
+  "request": "Determine whether an authenticated active superuser can read an item owned by another user through GET /items/{id}.",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "sourceRoot": "../../../authorization-semantic-quality-v1/inputs/fastapi-superuser-read/source",
+  "sources": [
+    "items.py"
+  ],
+  "policies": {
+    "modify-item": {
+      "text": "An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.",
+      "location": "second-project/model-input/task.json#/normativePolicy",
+      "revision": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+      "acceptance": "accepted",
+      "reason": "accepted by the study task author for this bounded assessment"
+    }
+  },
+  "principals": {
+    "caller": {
+      "role": "authenticated active superuser",
+      "facts": [
+        "Authenticated",
+        "Active",
+        "Superuser",
+        "Caller id differs from item.owner_id"
+      ],
+      "capabilities": [
+        "authenticated",
+        "superuser"
+      ]
+    }
+  },
+  "resources": {
+    "item": {
+      "type": "item",
+      "facts": [
+        "Existing item owned by another user"
+      ]
+    }
+  },
+  "entries": {
+    "read-item": {
+      "name": "read_item",
+      "locations": [
+        {
+          "path": "items.py",
+          "startLine": 48,
+          "endLine": 58
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "read-item": {
+      "principal": "caller",
+      "resource": "item",
+      "policy": "modify-item",
+      "entries": [
+        "read-item"
+      ],
+      "relation": "different-owner-and-active-superuser",
+      "operation": "read item through GET /items/{id}",
+      "expectation": "allow"
+    }
+  },
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Decide the current scenario at the stated boundary from the supplied fixed source and accepted policy. Treat listed premises as question assumptions at the named entry, not as source or deployment proof. Trace the decisive authorization control and protected effect with exact supplied-source locations. Answer every explicitly requested counterfactual branch separately, identifying its changed assumptions and any decisive unknown. Include only the response details requested below. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: Can the stated authenticated active superuser read an existing item owned by another user through GET /items/{id}, assessed at the read_item handler entry?\nAnalysis boundary: declared-entry.\nTask premise: At entry to read_item, current_user is the authenticated active superuser described by this task, and the existing item's owner differs from that caller.\nRequired response detail: Separate this handler-entry conclusion from any claim that the supplied crop proves the upstream CurrentUser binding.",
+    "scenarios": {
+      "read-item": {
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At entry to read_item, current_user is the authenticated active superuser described by this task, and the existing item's owner differs from that caller.",
+            "atEntry": "read-item",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Separate this handler-entry conclusion from any claim that the supplied crop proves the upstream CurrentUser binding."
+        ]
+      }
+    }
+  }
+}

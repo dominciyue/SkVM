@@ -1,0 +1,24 @@
+Authorization assessment
+Session: 20260927T125817363Z-5a3f9b59
+Status: completed
+Task: fastapi-items-superuser-read
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Assessment: legacy
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aread-item::entry%3Aread-item: source_refuted — At the declared-entry boundary, the stated premise supplies the identity and ownership facts: current_user is an authenticated active superuser and the existing item's owner differs from the caller. The read_item entry accepts the session, current_user, and item id, then loads the item and rejects only when the caller is not a superuser and is not the owner. Because the caller is a superuser, the ownership-mismatch branch does not raise the authorization failure, and the handler returns the item. Thus the accepted policy expectation that this superuser may read regardless of owner is enforced by the supplied handler crop, refuting a policy failure. This is only a handler-entry conclusion; the crop shows the CurrentUser parameter but does not prove the upstream dependency's binding to the stated authenticated active superuser. That upstream binding is source-external and remains untested, but it is not decisive under the task premise at the declared entry. No other source-external fact is needed to decide this bounded question; repository-wide completeness and deployment behavior are not established.
+  Evidence: The declared read_item handler is the item-by-ID GET operation and receives the session, current_user, and path id at entry. (items.py:48-50)
+  Evidence: At the declared handler entry, the task premise identifies current_user as the authenticated active superuser; the supplied crop shows the parameter but does not independently prove its upstream binding. (items.py:48-50)
+  Evidence: The handler retrieves the item by the supplied id and, under the task premise, that retrieved item exists and is owned by someone other than the caller. (items.py:53-55)
+  Evidence: The visible authorization control raises the permission failure only if the caller is not a superuser and the item owner differs from the caller; therefore the stated superuser does not fail this check. (items.py:56-57)
+  Evidence: After the authorization check, the handler returns the retrieved item, which is the protected read effect. (items.py:53-58)
+  Evidence: No additional scenario conditions are declared beyond the stated handler-entry identity and existing-item premises. (items.py:48-58)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

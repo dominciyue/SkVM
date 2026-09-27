@@ -1,0 +1,32 @@
+Authorization assessment
+Session: 20260927T125700600Z-765dd36f
+Status: completed
+Task: owui-trusted-header-deployment
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Assessment: legacy
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email: unknown — At the deployment boundary, the result is unknown because the supplied source shows an application capability but does not establish whether the actual deployment exposes the application directly or places it behind a sole trusted proxy that removes and replaces client-supplied identity headers. The entry is POST /signin. When password authentication is enabled and the configured trusted-email header is present, the shown branch reads that request header, lowercases it, and uses it as the email identity; it creates the user if absent, authenticates by that email, and returns a session response for the resulting user. Thus, if an unauthenticated client-controlled header can reach this branch and email authentication yields a user, the source supports the declared policy failure. Conversely, a trusted ingress that alone is reachable and removes/replaces the client header would satisfy the accepted policy, but that deployment fact is not supplied. Configuration is environment-controlled: the trusted email header name may be unset or set to an arbitrary header name. The visible application gates are password-authentication enablement, presence of the configured header, and successful email authentication; none of the supplied lines establishes proxy trust or header sanitization. Status behavior shown by the source: password auth disabled yields HTTP 403; a configured header that is absent yields HTTP 400; if the final user value is false, the shown fallback yields HTTP 400; successful authentication yields a session response. Counterfactual password-disabled: with password-auth-signin-entry-enabled=false, the request is rejected with 403 before the trusted-header branch, so the source refutes a failure through this entry. Counterfactual header-unconfigured: with the header name unset, this trusted-header branch is not entered; the supplied crop omits other sign-in modes, so it does not decide the complete endpoint behavior, but it does refute this trusted-header path. Counterfactual authentication-no-user: with the branch enabled and no user produced by email authentication, the shown fallback is HTTP 400, so this path does not produce the protected session. Counterfactual trusted-ingress: assuming all listed application conditions and a deployment that enforces sole trusted ingress with client-header removal/replacement, the accepted policy is enforced and a policy failure is refuted. Counterfactual client-header-reaches-app: assuming the configured header reaches the application, email authentication yields a user, and deployment ingress does not enforce header trust, the source supports the policy failure because the client-controlled value selects the authenticated user and obtains a session. Source discovery is not-tested, so these conclusions are limited to the declared entry and supplied crops.
+  Evidence: The supplied source declares the POST /signin handler and receives the request, response, sign-in form, and database session. (inputs/owui-trusted-header-deployment/auths_signin.py:4-10)
+  Evidence: When the configured trusted-email header is present, the handler takes its value from request headers, lowercases it, and assigns it as the email identity. (inputs/owui-trusted-header-deployment/auths_signin.py:17-22)
+  Evidence: The selected email is used to look up or create the corresponding user and then to authenticate that user by email. (inputs/owui-trusted-header-deployment/auths_signin.py:31-41)
+  Evidence: The visible application controls are the ENABLE_PASSWORD_AUTH gate, the configured-header presence check, and the requirement that email authentication return a user; the source crop shows no trusted-proxy validation of the identity header. (inputs/owui-trusted-header-deployment/auths_signin.py:11-21, inputs/owui-trusted-header-deployment/auths_signin.py:40-41)
+  Evidence: When a user is available, the handler creates a session response and sets the session cookie; otherwise the shown fallback raises HTTP 400 with an invalid-credentials error. (inputs/owui-trusted-header-deployment/auths_signin.py:59-62)
+  Evidence: A session is returned only inside the branch where email authentication produced a user. (inputs/owui-trusted-header-deployment/auths_signin.py:40-41, inputs/owui-trusted-header-deployment/auths_signin.py:59-62)
+  Evidence: When a trusted-email header name is configured, absence of that header produces HTTP 400 before the email identity is selected. (inputs/owui-trusted-header-deployment/auths_signin.py:17-20)
+  Evidence: Password-authentication enablement controls whether the handler proceeds at all; when disabled, the source raises HTTP 403. (inputs/owui-trusted-header-deployment/auths_signin.py:11-15)
+  Evidence: The trusted-email header name is environment-controlled and may be unset; related trusted name, groups, and role header names are also environment-controlled. (inputs/owui-trusted-header-deployment/env_trusted_headers.py:10-13)
+  Unknown: Whether the actual deployment has a sole reachable trusted reverse-proxy ingress for this endpoint.
+  Unknown: Whether that ingress removes every client-supplied trusted-email identity header before forwarding.
+  Unknown: Whether that ingress injects the authenticated identity into the configured header itself.
+  Unknown: Whether an unauthenticated external client can reach the application or another ingress that forwards a client-controlled trusted-email header.
+  Unknown: The actual deployment values for ENABLE_PASSWORD_AUTH and WEBUI_AUTH_TRUSTED_EMAIL_HEADER, plus whether the selected header value maps to an existing user and reaches successful email authentication.
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

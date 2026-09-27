@@ -105,7 +105,7 @@ async function runUnit(unit: Unit, offlineMock: boolean): Promise<Record<string,
   return row
 }
 
-if (!["check", "run", "status"].includes(command ?? "")) throw Error("Usage: bun run-panel.ts check|run|status [--phase=initial|repeat|outcome-only] [--unit=<registered-id>]")
+if (!["check", "run", "status", "evaluate", "replay"].includes(command ?? "")) throw Error("Usage: bun run-panel.ts check|run|status|evaluate|replay [--phase=initial|repeat|outcome-only] [--unit=<registered-id>] [--parallel=1..4]")
 await verifyFrozenInputs()
 process.env.SKVM_AUTO_PROBE = "0"
 process.env.SKVM_CACHE = path.join(repo, ".skvm")
@@ -127,6 +127,9 @@ if (command === "check") {
 } else if (command === "run") {
   const only = process.argv.find(argument => argument.startsWith("--unit="))?.slice("--unit=".length)
   const phase = process.argv.find(argument => argument.startsWith("--phase="))?.slice("--phase=".length)
+  const parallelText = process.argv.find(argument => argument.startsWith("--parallel="))?.slice("--parallel=".length)
+  const parallel = parallelText === undefined ? config.executionOptions.maxProviderDispatches : Number(parallelText)
+  if (!Number.isInteger(parallel) || parallel < 1 || parallel > config.executionOptions.maxProviderDispatches) throw Error(`Parallel dispatch must be an integer from 1 to ${config.executionOptions.maxProviderDispatches}`)
   if (phase && !["initial", "repeat", "outcome-only"].includes(phase)) throw Error(`Unknown phase ${phase}`)
   const selected = config.units.filter(unit => (!only || unit.id === only) && (!phase || unit.phase === phase))
   if (!selected.length) throw Error(`Unknown selection ${only ?? phase}`)
@@ -144,8 +147,8 @@ if (command === "check") {
       }
     }
   }
-  await Promise.all(Array.from({ length: Math.min(config.executionOptions.maxProviderDispatches, selected.length) }, worker))
-} else {
+  await Promise.all(Array.from({ length: Math.min(parallel, selected.length) }, worker))
+} else if (command === "status") {
   const rows = []
   for (const unit of config.units) {
     const dir = path.join(root, "runs", unit.id)
@@ -155,4 +158,6 @@ if (command === "check") {
     rows.push({ unit: unit.id, phase: unit.phase, status })
   }
   console.log(JSON.stringify({ planned: rows.length, claimed: rows.filter(row => row.status !== "not-dispatched").length, terminal: rows.filter(row => !["not-dispatched", "completion-unknown"].includes(row.status)).length, byPhase: { initial: 32, repeat: 16, "outcome-only": 6 }, rows }, null, 2))
+} else {
+  await import("./evaluate-panel.ts")
 }

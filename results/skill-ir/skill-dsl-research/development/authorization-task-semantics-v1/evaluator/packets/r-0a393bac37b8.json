@@ -1,0 +1,223 @@
+{
+  "schemaVersion": "authorization-ai-blind-review-packet/v1",
+  "anonymousId": "r-0a393bac37b8",
+  "caseId": "fastapi-superuser-supplied-path",
+  "publicTask": {
+    "commonInstruction": "Decide the current scenario at the stated boundary from the supplied fixed source and accepted policy. Treat listed premises as question assumptions at the named entry, not as source or deployment proof. Trace the decisive authorization control and protected effect with exact supplied-source locations. Answer every explicitly requested counterfactual branch separately, identifying its changed assumptions and any decisive unknown. Include only the response details requested below. Do not execute the target, infer missing deployment facts, or consult later versions.",
+    "requirement": {
+      "id": "fastapi-superuser-supplied-path",
+      "currentQuestion": "Does the supplied path prove that an external caller claiming active-superuser status can read another user's existing item, without assuming the cropped-out CurrentUser binding?",
+      "sourceCase": "fastapi-superuser-read",
+      "selection": "declared-scenario-variation: same source, supplied-path rather than handler-entry binding",
+      "boundary": "supplied-path",
+      "premises": [
+        "The external caller claims to be an authenticated active superuser and requests another user's existing item; the supplied handler crop alone does not assert what current_user the dependency injects."
+      ],
+      "requestedBranches": [],
+      "requiredResponseDetails": [
+        "Distinguish what the handler proves conditionally from what the supplied path proves about the actual caller-to-current_user binding."
+      ]
+    },
+    "acceptedPolicies": {
+      "modify-item": {
+        "text": "An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.",
+        "location": "second-project/model-input/task.json#/normativePolicy",
+        "revision": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+        "acceptance": "accepted",
+        "reason": "accepted by the study task author for this bounded assessment"
+      }
+    }
+  },
+  "source": {
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "files": [
+      {
+        "path": "items.py",
+        "content": "import uuid\nfrom typing import Any\n\nfrom fastapi import APIRouter, HTTPException\nfrom sqlmodel import col, func, select\n\nfrom app.api.deps import CurrentUser, SessionDep\nfrom app.models import Item, ItemCreate, ItemPublic, ItemsPublic, ItemUpdate, Message\n\nrouter = APIRouter(prefix=\"/items\", tags=[\"items\"])\n\n\n@router.get(\"/\", response_model=ItemsPublic)\ndef read_items(\n    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100\n) -> Any:\n    \"\"\"\n    Retrieve items.\n    \"\"\"\n\n    if current_user.is_superuser:\n        count_statement = select(func.count()).select_from(Item)\n        count = session.exec(count_statement).one()\n        statement = (\n            select(Item).order_by(col(Item.created_at).desc()).offset(skip).limit(limit)\n        )\n        items = session.exec(statement).all()\n    else:\n        count_statement = (\n            select(func.count())\n            .select_from(Item)\n            .where(Item.owner_id == current_user.id)\n        )\n        count = session.exec(count_statement).one()\n        statement = (\n            select(Item)\n            .where(Item.owner_id == current_user.id)\n            .order_by(col(Item.created_at).desc())\n            .offset(skip)\n            .limit(limit)\n        )\n        items = session.exec(statement).all()\n\n    items_public = [ItemPublic.model_validate(item) for item in items]\n    return ItemsPublic(data=items_public, count=count)\n\n\n@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:\n    \"\"\"\n    Get item by ID.\n    \"\"\"\n    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    return item\n\n\n@router.post(\"/\", response_model=ItemPublic)\ndef create_item(\n    *, session: SessionDep, current_user: CurrentUser, item_in: ItemCreate\n) -> Any:\n    \"\"\"\n    Create new item.\n    \"\"\"\n    item = Item.model_validate(item_in, update={\"owner_id\": current_user.id})\n    session.add(item)\n    session.commit()\n    session.refresh(item)\n    return item\n\n\n@router.put(\"/{id}\", response_model=ItemPublic)\ndef update_item(\n    *,\n    session: SessionDep,\n    current_user: CurrentUser,\n    id: uuid.UUID,\n    item_in: ItemUpdate,\n) -> Any:\n    \"\"\"\n    Update an item.\n    \"\"\"\n    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    update_dict = item_in.model_dump(exclude_unset=True)\n    item.sqlmodel_update(update_dict)\n    session.add(item)\n    session.commit()\n    session.refresh(item)\n    return item\n\n\n@router.delete(\"/{id}\")\ndef delete_item(\n    session: SessionDep, current_user: CurrentUser, id: uuid.UUID\n) -> Message:\n    \"\"\"\n    Delete an item.\n    \"\"\"\n    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    session.delete(item)\n    session.commit()\n    return Message(message=\"Item deleted successfully\")\n"
+      }
+    ]
+  },
+  "answer": {
+    "rawResponse": "{\"results\":[{\"obligationId\":\"scenario%3Aread-item::entry%3Aread-item\",\"decision\":{\"kind\":\"observed\",\"observed\":\"unknown\"},\"branchResults\":[],\"explanation\":\"At the supplied read-item entry, the handler retrieves the requested item and, if it exists, denies access only when the injected current_user is not a superuser and does not own the item. Therefore, conditionally, a current_user with the relevant superuser status can read an existing item regardless of owner. However, the supplied path does not establish that the external caller is bound to that injected current_user, because the CurrentUser dependency implementation and binding behavior are cropped out. The caller's claim is a task premise, not source or deployment proof. Thus the supplied path does not prove that the actual external caller can read another user's item; the observed result is unknown at this boundary.\",\"facts\":[{\"id\":\"entry-read-item\",\"kind\":\"entry\",\"statement\":\"The read-item operation is entered through the item-by-ID GET handler with session, injected current_user, and item id inputs.\",\"citations\":[{\"sourceId\":\"src-dcbab1685696c702\",\"startLine\":48,\"endLine\":53}]},{\"id\":\"binding-current-user-unresolved\",\"kind\":\"binding\",\"statement\":\"The handler receives current_user through the imported CurrentUser dependency, but the supplied crop does not show that dependency's implementation or caller-to-current_user binding.\",\"citations\":[{\"sourceId\":\"src-dcbab1685696c702\",\"startLine\":7,\"endLine\":8}]},{\"id\":\"resource-existing-item\",\"kind\":\"condition\",\"statement\":\"The requested item is loaded by ID and the protected read path continues only if an item exists; otherwise the handler raises a not-found error.\",\"citations\":[{\"sourceId\":\"src-dcbab1685696c702\",\"startLine\":53,\"endLine\":55}]},{\"id\":\"superuser-bypass-control\",\"kind\":\"control\",\"statement\":\"For an existing item, the authorization check blocks only a non-superuser who does not own the item; a current_user marked superuser bypasses the ownership denial.\",\"citations\":[{\"sourceId\":\"src-dcbab1685696c702\",\"startLine\":56,\"endLine\":57}]},{\"id\":\"read-item-effect\",\"kind\":\"effect\",\"statement\":\"If the item exists and the authorization check does not raise, the handler returns the item.\",\"citations\":[{\"sourceId\":\"src-dcbab1685696c702\",\"startLine\":56,\"endLine\":58}]},{\"id\":\"superuser-condition\",\"kind\":\"condition\",\"statement\":\"The conditional cross-owner read depends on the injected current_user having is_superuser status.\",\"citations\":[{\"sourceId\":\"src-dcbab1685696c702\",\"startLine\":56,\"endLine\":56}]}],\"decisiveMissingFacts\":[\"missing-current-user-binding\"],\"suggestedObservations\":[\"Observe the implementation/runtime binding of CurrentUser for this external request and verify that it injects the authenticated caller as a current_user whose is_superuser value is true.\"]}]}",
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+          "explanation": "At the supplied read-item entry, the handler retrieves the requested item and, if it exists, denies access only when the injected current_user is not a superuser and does not own the item. Therefore, conditionally, a current_user with the relevant superuser status can read an existing item regardless of owner. However, the supplied path does not establish that the external caller is bound to that injected current_user, because the CurrentUser dependency implementation and binding behavior are cropped out. The caller's claim is a task premise, not source or deployment proof. Thus the supplied path does not prove that the actual external caller can read another user's item; the observed result is unknown at this boundary.",
+          "facts": [
+            {
+              "id": "entry-read-item",
+              "kind": "entry",
+              "statement": "The read-item operation is entered through the item-by-ID GET handler with session, injected current_user, and item id inputs.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 48,
+                  "endLine": 53
+                }
+              ]
+            },
+            {
+              "id": "binding-current-user-unresolved",
+              "kind": "binding",
+              "statement": "The handler receives current_user through the imported CurrentUser dependency, but the supplied crop does not show that dependency's implementation or caller-to-current_user binding.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 7,
+                  "endLine": 8
+                }
+              ]
+            },
+            {
+              "id": "resource-existing-item",
+              "kind": "condition",
+              "statement": "The requested item is loaded by ID and the protected read path continues only if an item exists; otherwise the handler raises a not-found error.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 53,
+                  "endLine": 55
+                }
+              ]
+            },
+            {
+              "id": "superuser-bypass-control",
+              "kind": "control",
+              "statement": "For an existing item, the authorization check blocks only a non-superuser who does not own the item; a current_user marked superuser bypasses the ownership denial.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 56,
+                  "endLine": 57
+                }
+              ]
+            },
+            {
+              "id": "read-item-effect",
+              "kind": "effect",
+              "statement": "If the item exists and the authorization check does not raise, the handler returns the item.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 56,
+                  "endLine": 58
+                }
+              ]
+            },
+            {
+              "id": "superuser-condition",
+              "kind": "condition",
+              "statement": "The conditional cross-owner read depends on the injected current_user having is_superuser status.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 56,
+                  "endLine": 56
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [
+            "missing-current-user-binding"
+          ],
+          "suggestedObservations": [
+            "Observe the implementation/runtime binding of CurrentUser for this external request and verify that it injects the authenticated caller as a current_user whose is_superuser value is true."
+          ],
+          "decision": {
+            "kind": "observed",
+            "observed": "unknown"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "canonicalResult": null,
+    "validation": null
+  },
+  "rubric": {
+    "primaryFullRule": "A full answer correctly decides the current scenario at its declared boundary, supports the decisive control and protected effect with supplied source, answers every explicitly requested counterfactual with a source-supported or justified unknown effect, and includes the publicly required response details. Logically equivalent wording counts.",
+    "dimensions": [
+      {
+        "id": "current-decision",
+        "values": [
+          "correct",
+          "incorrect",
+          "justified-unknown",
+          "over-abstention",
+          "unscorable"
+        ],
+        "basis": "Current scenario only, including declared-entry versus supplied-path versus deployment boundary."
+      },
+      {
+        "id": "necessary-control-evidence",
+        "values": [
+          "supported",
+          "partial",
+          "unsupported",
+          "missing"
+        ],
+        "basis": "Decisive authorization control, route order, protected effect, and exact supplied-source locations; citations alone do not establish semantics."
+      },
+      {
+        "id": "requested-branches",
+        "values": [
+          "complete-correct",
+          "complete-with-error",
+          "partial",
+          "missing",
+          "not-requested"
+        ],
+        "basis": "Only the branches listed in public requirements; a branch may reasonably be unknown when its decisive fact is unavailable."
+      },
+      {
+        "id": "required-response-details",
+        "values": [
+          "complete",
+          "partial",
+          "missing",
+          "none-requested"
+        ],
+        "basis": "Only details publicly requested for that case."
+      },
+      {
+        "id": "policy-label-consistency",
+        "values": [
+          "consistent",
+          "inconsistent",
+          "unknown-appropriate",
+          "unscorable"
+        ],
+        "basis": "Compare observed implementation behavior against authored policy; do not accept a schema label without source-supported behavior."
+      },
+      {
+        "id": "extra-unrequested-detail",
+        "values": [
+          "none",
+          "accurate",
+          "inaccurate"
+        ],
+        "basis": "Reported separately; missing unrequested details cannot lower primaryFullRule."
+      },
+      {
+        "id": "completion",
+        "values": [
+          "first-answer",
+          "one-repair",
+          "dispatch-unknown",
+          "protocol-invalid",
+          "failed"
+        ],
+        "basis": "Keep first delivery and every actual attempt, fallback, and repair in accounting."
+      }
+    ],
+    "specialChecks": [
+      "For owui-text and gitea-lock, a correct observed denial paired with source_supported_failure is a label inconsistency.",
+      "For fastapi-superuser-read, a stated current_user handler-entry premise must not be turned into a demand to prove cropped-out dependency wiring; the supplied-path variant separately tests that wiring limit.",
+      "For owui-header, a deployment conclusion needs deployment facts; source-visible application branches and any requested denial/status behavior still need explicit answers.",
+      "For gitea-assignee, token scope and repository permission are distinct; assess both requested permission-true branches."
+    ]
+  },
+  "instruction": "Judge the actual semantic answer from the fixed source and public task. Accept equivalent wording. Check source locations against this crop. Separate observed behavior from policy label, demanded branches from unrequested detail, justified unknown from over-abstention. The packet hides representation and support arm. Return one record keyed only by anonymousId; do not infer arm identity."
+}

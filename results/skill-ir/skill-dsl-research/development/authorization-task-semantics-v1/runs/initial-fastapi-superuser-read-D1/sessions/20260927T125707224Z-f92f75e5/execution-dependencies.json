@@ -1,0 +1,282 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "fastapi-items-superuser-read",
+    "request": "Determine whether an authenticated active superuser can read an item owned by another user through GET /items/{id}.",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:modify-item",
+        "kind": "explicit-task-requirement",
+        "text": "An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.",
+        "location": "second-project/model-input/task.json#/normativePolicy",
+        "revision": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "accepted by the study task author for this bounded assessment"
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:caller",
+        "role": "authenticated active superuser",
+        "description": "Author facts: [\"Authenticated\",\"Active\",\"Superuser\",\"Caller id differs from item.owner_id\"]",
+        "startingCapabilities": [
+          "authenticated",
+          "superuser"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:item",
+        "type": "item",
+        "description": "Author facts: [\"Existing item owned by another user\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:read-item",
+        "name": "read_item",
+        "locations": [
+          {
+            "path": "items.py",
+            "startLine": 48,
+            "endLine": 58
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:read-item",
+        "principalId": "principal:caller",
+        "resourceId": "resource:item",
+        "relation": "different-owner-and-active-superuser",
+        "operation": "read item through GET /items/{id}",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:modify-item",
+        "entryIds": [
+          "entry:read-item"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+    ]
+  },
+  "scenarios": {
+    "scenario:read-item": {
+      "name": "read-item",
+      "obligation": {
+        "id": "scenario:read-item",
+        "principalId": "principal:caller",
+        "resourceId": "resource:item",
+        "relation": "different-owner-and-active-superuser",
+        "operation": "read item through GET /items/{id}",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:modify-item",
+        "entryIds": [
+          "entry:read-item"
+        ]
+      },
+      "principal": {
+        "id": "principal:caller",
+        "role": "authenticated active superuser",
+        "description": "Author facts: [\"Authenticated\",\"Active\",\"Superuser\",\"Caller id differs from item.owner_id\"]",
+        "startingCapabilities": [
+          "authenticated",
+          "superuser"
+        ]
+      },
+      "resource": {
+        "id": "resource:item",
+        "type": "item",
+        "description": "Author facts: [\"Existing item owned by another user\"]"
+      },
+      "policy": {
+        "id": "policy:modify-item",
+        "kind": "explicit-task-requirement",
+        "text": "An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.",
+        "location": "second-project/model-input/task.json#/normativePolicy",
+        "revision": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "accepted by the study task author for this bounded assessment"
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:read-item",
+          "name": "read_item",
+          "locations": [
+            {
+              "path": "items.py",
+              "startLine": 48,
+              "endLine": 58
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Aread-item::entry%3Aread-item"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "items.py",
+      "sha256": "ea06523387dfe99071cf97250c55c63aab512a9ae89c2b41a1ae14d3d9caa83b",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 113
+      },
+      "originalLocations": []
+    }
+  ],
+  "sourceRoot": "../../../authorization-semantic-quality-v1/inputs/fastapi-superuser-read/source",
+  "sources": [
+    "items.py"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:read-item"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:read-item"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:read-item"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:read-item"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:read-item"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:read-item"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": null,
+  "assessmentContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Decide the current scenario at the stated boundary from the supplied fixed source and accepted policy. Treat listed premises as question assumptions at the named entry, not as source or deployment proof. Trace the decisive authorization control and protected effect with exact supplied-source locations. Answer every explicitly requested counterfactual branch separately, identifying its changed assumptions and any decisive unknown. Include only the response details requested below. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: Can the stated authenticated active superuser read an existing item owned by another user through GET /items/{id}, assessed at the read_item handler entry?\nAnalysis boundary: declared-entry.\nTask premise: At entry to read_item, current_user is the authenticated active superuser described by this task, and the existing item's owner differs from that caller.\nRequired response detail: Separate this handler-entry conclusion from any claim that the supplied crop proves the upstream CurrentUser binding.",
+    "scenarios": [
+      {
+        "obligationId": "scenario:read-item",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At entry to read_item, current_user is the authenticated active superuser described by this task, and the existing item's owner differs from that caller.",
+            "atEntryId": "entry:read-item",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Separate this handler-entry conclusion from any claim that the supplied crop proves the upstream CurrentUser binding."
+        ]
+      }
+    ]
+  },
+  "assessmentProgram": {
+    "schemaVersion": "authorization-assessment-program/v1",
+    "entries": [
+      {
+        "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+        "authorObligationId": "scenario:read-item",
+        "entryId": "entry:read-item",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At entry to read_item, current_user is the authenticated active superuser described by this task, and the existing item's owner differs from that caller.",
+            "atEntryId": "entry:read-item",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Separate this handler-entry conclusion from any claim that the supplied crop proves the upstream CurrentUser binding."
+        ]
+      }
+    ]
+  },
+  "assessmentMode": "explicit-v1",
+  "normalizerVersion": "authoring-v2-lowering/1",
+  "method": "plain",
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "arm": "B",
+  "reasoningStrategy": "standard",
+  "reasoningPlan": null,
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "9ebb418adcdf53041e4eb89d1db06c5da7284aee903974a173c972a7aaf263ee"
+}

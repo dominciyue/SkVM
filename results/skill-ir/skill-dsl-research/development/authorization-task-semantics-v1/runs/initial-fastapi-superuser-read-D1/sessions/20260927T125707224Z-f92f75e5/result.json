@@ -1,0 +1,269 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "assessmentMode": "explicit-v1",
+  "reasoningStrategy": "standard",
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260927T125707224Z-f92f75e5",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\runs\\initial-fastapi-superuser-read-D1\\sessions\\20260927T125707224Z-f92f75e5",
+  "createdAt": "2026-09-27T12:57:07.224Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\inputs\\fastapi-superuser-read\\authoring.json",
+  "taskId": "fastapi-items-superuser-read",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 2257,
+      "publicAnalysis": 1091,
+      "assessmentProgram": 616,
+      "source": 4317,
+      "outputContract": 2892,
+      "total": 11707,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "fastapi-items-superuser-read",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "results": [
+      {
+        "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+        "conclusion": "source_refuted",
+        "explanation": "At the declared read_item handler entry, the supplied task premise provides the authenticated active superuser identity and the different-owner relationship. The handler retrieves the item by ID, then applies its strongest visible authorization control: the ownership denial is conditional on the caller not being a superuser, so the stated superuser does not take that denial path. The handler therefore returns the existing item. This is a handler-entry conclusion only; the supplied crop shows CurrentUser as a parameter and its use, but does not prove the upstream dependency binding or the complete GET route/deployment behavior. No repository-wide completeness claim is made, and source discovery is not-tested.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The declared GET item entry is the read_item handler.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 48,
+                  "endLine": 49,
+                  "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The handler receives current_user as a CurrentUser parameter; the task premise, rather than the crop, establishes that it is the authenticated active superuser at this boundary.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 48,
+                  "endLine": 49,
+                  "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:"
+                }
+              ]
+            },
+            {
+              "statement": "The handler binds the requested resource by loading Item with the supplied id.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 53,
+                  "endLine": 53,
+                  "quote": "    item = session.get(Item, id)"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "The visible authorization denial applies only when the caller is not a superuser and the item owner differs from the caller.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 56,
+                  "endLine": 57,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "After the authorization check, the handler returns the loaded item.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 58,
+                  "endLine": 58,
+                  "quote": "    return item"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The not-found denial precedes authorization; under the task premise that the item exists, that denial is not taken.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 53,
+                  "endLine": 55,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": []
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "wireResult": {
+    "results": [
+      {
+        "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+        "explanation": "At the declared read_item handler entry, the supplied task premise provides the authenticated active superuser identity and the different-owner relationship. The handler retrieves the item by ID, then applies its strongest visible authorization control: the ownership denial is conditional on the caller not being a superuser, so the stated superuser does not take that denial path. The handler therefore returns the existing item. This is a handler-entry conclusion only; the supplied crop shows CurrentUser as a parameter and its use, but does not prove the upstream dependency binding or the complete GET route/deployment behavior. No repository-wide completeness claim is made, and source discovery is not-tested.",
+        "facts": [
+          {
+            "id": "f-entry-read-item",
+            "kind": "entry",
+            "statement": "The declared GET item entry is the read_item handler.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 48,
+                "endLine": 49
+              }
+            ]
+          },
+          {
+            "id": "f-binding-current-user",
+            "kind": "binding",
+            "statement": "The handler receives current_user as a CurrentUser parameter; the task premise, rather than the crop, establishes that it is the authenticated active superuser at this boundary.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 48,
+                "endLine": 49
+              }
+            ]
+          },
+          {
+            "id": "f-binding-item",
+            "kind": "binding",
+            "statement": "The handler binds the requested resource by loading Item with the supplied id.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 53,
+                "endLine": 53
+              }
+            ]
+          },
+          {
+            "id": "f-control-superuser-bypass",
+            "kind": "control",
+            "statement": "The visible authorization denial applies only when the caller is not a superuser and the item owner differs from the caller.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 56,
+                "endLine": 57
+              }
+            ]
+          },
+          {
+            "id": "f-effect-return-item",
+            "kind": "effect",
+            "statement": "After the authorization check, the handler returns the loaded item.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 58,
+                "endLine": 58
+              }
+            ]
+          },
+          {
+            "id": "f-condition-existing-item",
+            "kind": "condition",
+            "statement": "The not-found denial precedes authorization; under the task premise that the item exists, that denial is not taken.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 53,
+                "endLine": 55
+              }
+            ]
+          }
+        ],
+        "decisiveMissingFacts": [],
+        "suggestedObservations": [],
+        "decision": {
+          "kind": "observed",
+          "observed": "allow"
+        },
+        "branchResults": []
+      }
+    ]
+  },
+  "normalizerVersion": "authorization-wire-normalizer/v6",
+  "relationCoverage": [],
+  "observedDecisions": [
+    {
+      "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+      "expectation": "allow",
+      "observed": "allow",
+      "derivedConclusion": "source_refuted"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 642,
+      "output": 566,
+      "cacheRead": 2432,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

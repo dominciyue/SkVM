@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260927T125823640Z-3f670937
+Status: completed
+Task: fastapi-items-superuser-read
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v6
+Assessment: explicit-v1
+Normalizer: authorization-wire-normalizer/v6
+Model policy result: {"results":[{"obligationId":"scenario%3Aread-item::entry%3Aread-item","explanation":"At the declared read_item handler entry, the task premise supplies that current_user is an authenticated active superuser and that the existing item has a different owner. The handler retrieves the item at lines 53-55, then applies the authorization control at lines 56-57: denial occurs only when the caller is not a superuser and the owner IDs differ. Because the supplied premise makes current_user.is_superuser true, that denial condition is false, and execution reaches the return at line 58, so the caller can read the item. This is a handler-entry conclusion only. The supplied crop shows the CurrentUser parameter at the entry (lines 48-49) but does not prove the upstream binding or establish the authenticated, active-superuser identity; those are accepted task premises at this boundary, not source-backed deployment facts. The crop also does not establish repository-wide source or deployment completeness.","facts":[{"id":"f-entry","kind":"entry","statement":"The GET item route is declared on read_item, whose handler entry receives session, current_user, and id.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":48,"endLine":50}]},{"id":"f-binding","kind":"binding","statement":"The handler entry declares current_user using the CurrentUser dependency type; the task premise, rather than this crop, supplies the authenticated active-superuser identity.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":48,"endLine":49}]},{"id":"f-resource","kind":"binding","statement":"The requested resource is fetched from the item store by the supplied id, and a missing item causes a not-found exception.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":53,"endLine":55}]},{"id":"f-control","kind":"control","statement":"The authorization denial control is conjunctive: it denies only if the caller is not a superuser and the item owner differs from the caller.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":56,"endLine":57}]},{"id":"f-condition","kind":"condition","statement":"Under the task premise that the caller is an active superuser and the item exists but has a different owner, the superuser exception makes the denial condition false.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":56,"endLine":57}]},{"id":"f-effect","kind":"effect","statement":"After the authorization check, the handler returns the fetched item, producing the read effect.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":58,"endLine":58}]}],"decisiveMissingFacts":[],"suggestedObservations":[],"decision":{"kind":"observed","observed":"allow"},"branchResults":[]}]}
+Observed decisions: [{"obligationId":"scenario%3Aread-item::entry%3Aread-item","expectation":"allow","observed":"allow","derivedConclusion":"source_refuted"}]
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aread-item::entry%3Aread-item: source_refuted — At the declared read_item handler entry, the task premise supplies that current_user is an authenticated active superuser and that the existing item has a different owner. The handler retrieves the item at lines 53-55, then applies the authorization control at lines 56-57: denial occurs only when the caller is not a superuser and the owner IDs differ. Because the supplied premise makes current_user.is_superuser true, that denial condition is false, and execution reaches the return at line 58, so the caller can read the item. This is a handler-entry conclusion only. The supplied crop shows the CurrentUser parameter at the entry (lines 48-49) but does not prove the upstream binding or establish the authenticated, active-superuser identity; those are accepted task premises at this boundary, not source-backed deployment facts. The crop also does not establish repository-wide source or deployment completeness.
+  Evidence: The GET item route is declared on read_item, whose handler entry receives session, current_user, and id. (items.py:48-50)
+  Evidence: The handler entry declares current_user using the CurrentUser dependency type; the task premise, rather than this crop, supplies the authenticated active-superuser identity. (items.py:48-49)
+  Evidence: The requested resource is fetched from the item store by the supplied id, and a missing item causes a not-found exception. (items.py:53-55)
+  Evidence: The authorization denial control is conjunctive: it denies only if the caller is not a superuser and the item owner differs from the caller. (items.py:56-57)
+  Evidence: After the authorization check, the handler returns the fetched item, producing the read effect. (items.py:58-58)
+  Evidence: Under the task premise that the caller is an active superuser and the item exists but has a different owner, the superuser exception makes the denial condition false. (items.py:56-57)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

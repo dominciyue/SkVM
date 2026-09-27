@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260927T125729396Z-92a34464
+Status: completed
+Task: fastapi-items-superuser-read
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Assessment: legacy
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aread-item::entry%3Aread-item: source_refuted — At the declared handler-entry boundary, the task premise supplies that current_user is an authenticated active superuser and that the existing item's owner differs from the caller. The handler retrieves the item by the requested ID, then applies the strongest visible control: it raises 403 only when the caller is not a superuser and the owner differs. Because the stated caller is a superuser, that denial branch is false, so the handler returns the item. Thus the supplied source refutes a policy failure for this scenario. The crop shows the handler's CurrentUser parameter and its use of current_user.id/is_superuser, but it does not prove the upstream binding or establish authentication/active-superuser construction outside the handler; those remain task premises at this boundary. No upstream-binding fact is needed to decide the handler-entry result, but any claim that the crop itself proves that binding would be unsupported.
+  Evidence: The declared entry is the GET item handler, with the route and handler declaration shown at the supplied entry location. (items.py:48-50)
+  Evidence: The handler receives current_user through the declared CurrentUser parameter and evaluates that principal's superuser flag and ID. (items.py:49-49, items.py:56-56)
+  Evidence: The supplied crop does not show how CurrentUser is constructed or bound upstream; authenticated active-superuser status is therefore a task premise at the declared entry, not a fact proven by this crop. (items.py:7-7, items.py:49-49)
+  Evidence: The resource is loaded from the session using the requested id. (items.py:53-53)
+  Evidence: The handler denies access only when the caller is not a superuser and the item's owner ID differs from the caller ID. (items.py:56-57)
+  Evidence: After the denial checks, the handler returns the loaded item, which is the protected read effect. (items.py:58-58)
+  Evidence: If no item is loaded, the handler raises 404; the stated existing-item premise therefore takes the non-404 path. (items.py:53-55)
+  Evidence: Given the task premise that the caller is a superuser, the non-superuser conjunct in the denial condition is false even though the owner differs. (items.py:56-56)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

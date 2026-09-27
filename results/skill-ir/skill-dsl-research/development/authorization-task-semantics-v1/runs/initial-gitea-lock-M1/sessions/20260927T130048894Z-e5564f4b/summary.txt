@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260927T130048894Z-e5564f4b
+Status: completed
+Task: gitea-issue-lock-writer-nonadmin
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v6
+Assessment: explicit-v1
+Normalizer: authorization-wire-normalizer/v6
+Model policy result: {"results":[{"obligationId":"scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock","explanation":"At the declared PUT lock entry, the route applies token validation and then reqAdmin before dispatching the lock operation. reqAdmin denies when the caller is neither a repository administrator nor a site administrator, so the stated non-admin issue writer is stopped at the route guard. The handler's issue-write permission check and the lock mutation are therefore not reached in this scenario. If the admin gate were satisfied, the handler would load the indexed issue, require issue or pull-request write permission, and, for an unlocked issue, invoke the lock operation before returning success; those later conditions do not overcome the earlier route denial.","facts":[{"id":"f-entry","kind":"entry","statement":"The lock route binds PUT on the lock group to the issue-lock handler and applies reqToken and reqAdmin middleware.","citations":[{"sourceId":"src-abc290f763b410ea","startLine":16,"endLine":20}]},{"id":"f-principal","kind":"binding","statement":"The route's administrative identity gate accepts a repository administrator or site administrator and otherwise returns forbidden.","citations":[{"sourceId":"src-abc290f763b410ea","startLine":4,"endLine":11}]},{"id":"f-resource","kind":"binding","statement":"The handler resolves the target issue from the repository and the route's issue index, returning on lookup error.","citations":[{"sourceId":"src-ed35041e326128c5","startLine":42,"endLine":47}]},{"id":"f-admin-control","kind":"control","statement":"The reqAdmin route guard blocks a caller who is neither a repository administrator nor a site administrator.","citations":[{"sourceId":"src-abc290f763b410ea","startLine":5,"endLine":10}]},{"id":"f-write-condition","kind":"condition","statement":"After issue lookup, the handler requires issue or pull-request write permission and returns forbidden when that permission is absent.","citations":[{"sourceId":"src-ed35041e326128c5","startLine":49,"endLine":52}]},{"id":"f-lock-effect","kind":"effect","statement":"For an unlocked issue, the handler constructs lock options and invokes the issue lock operation; successful processing then returns no content.","citations":[{"sourceId":"src-ed35041e326128c5","startLine":54,"endLine":69}]}],"decisiveMissingFacts":[],"suggestedObservations":[],"decision":{"kind":"observed","observed":"deny"},"branchResults":[]}]}
+Observed decisions: [{"obligationId":"scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock","expectation":"deny","observed":"deny","derivedConclusion":"source_refuted"}]
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock: source_refuted — At the declared PUT lock entry, the route applies token validation and then reqAdmin before dispatching the lock operation. reqAdmin denies when the caller is neither a repository administrator nor a site administrator, so the stated non-admin issue writer is stopped at the route guard. The handler's issue-write permission check and the lock mutation are therefore not reached in this scenario. If the admin gate were satisfied, the handler would load the indexed issue, require issue or pull-request write permission, and, for an unlocked issue, invoke the lock operation before returning success; those later conditions do not overcome the earlier route denial.
+  Evidence: The lock route binds PUT on the lock group to the issue-lock handler and applies reqToken and reqAdmin middleware. (route_guard.go:16-20)
+  Evidence: The route's administrative identity gate accepts a repository administrator or site administrator and otherwise returns forbidden. (route_guard.go:4-11)
+  Evidence: The handler resolves the target issue from the repository and the route's issue index, returning on lookup error. (issue_lock.go:42-47)
+  Evidence: The reqAdmin route guard blocks a caller who is neither a repository administrator nor a site administrator. (route_guard.go:5-10)
+  Evidence: For an unlocked issue, the handler constructs lock options and invokes the issue lock operation; successful processing then returns no content. (issue_lock.go:54-69)
+  Evidence: After issue lookup, the handler requires issue or pull-request write permission and returns forbidden when that permission is absent. (issue_lock.go:49-52)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260927T125902547Z-ed463e17
+Status: completed
+Task: gitea-issue-assignee-nonwriter
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Assessment: legacy
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees: source_refuted — At the declared-entry boundary, the named POST handler delegates to updateIssueAssignees. The supplied source binds the issue from the repository context and requested issue index, then checks repository permission to write issues or pulls before assignee lookup or the add operation. Under the stated premise that the caller lacks that repository permission, the handler returns forbidden at that control. Thus issue-write token scope does not substitute for repository issue-write permission, and the existing-assignee condition does not make the protected effect reachable. The current policy expectation is denial, and the fixed source supports enforcement of that expectation, so the expectation does not fail. Counterfactual permission-granted-assignee-exists: changing repository issue-write permission to true while retaining an existing assignee permits execution past the permission control; the source then resolves assignees and reaches the add call, subject to the shown error paths. Counterfactual permission-granted-assignee-missing: with permission true but the requested assignee absent, execution still reaches assignee resolution, which returns a validation error and does not reach the add call. No decisive source-external fact is needed for these bounded conclusions; authentication, token scope, issue existence, assignee existence, and absent or present repository permission are declared premises rather than deployment findings. Source discovery remains not-tested, so this does not claim repository-wide completeness.
+  Evidence: The declared POST route is implemented by AddIssueAssignees, which obtains the request options and invokes updateIssueAssignees in add mode. (issue_assignee.go:4-49)
+  Evidence: The supplied handler uses the repository context and ctx.Doer for the operation; the caller's authentication and token-scope facts are bounded task premises, while the source-visible permission decision is made from the repository permission in ctx.Repo. (issue_assignee.go:53-63)
+  Evidence: The issue resource is bound by looking it up from the repository ID and the path index before authorization proceeds. (issue_assignee.go:53-58)
+  Evidence: The strongest visible authorization control requires repository permission to write issues or pulls and returns forbidden before later processing when that permission is absent. (issue_assignee.go:60-63)
+  Evidence: The protected add effect is the issue-service call that adds the resolved assignee IDs; it occurs only after the repository permission check and assignee resolution. (issue_assignee.go:70-83)
+  Evidence: The current scenario assumes the requested assignee exists; if repository permission is granted, the source resolves assignee names before invoking the add operation. (issue_assignee.go:70-81)
+  Evidence: In the current bounded scenario, repository issue-write permission is false; issue-write token scope is separately present and does not establish the repository permission checked by the handler. (issue_assignee.go:60-63)
+  Evidence: With repository permission granted but the assignee absent, assignee resolution returns an unprocessable-entity error and returns before the add operation. (issue_assignee.go:70-77)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

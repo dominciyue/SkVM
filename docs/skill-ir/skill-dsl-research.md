@@ -890,9 +890,15 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 **完整使用。** 新语义贯穿check/run/inspect/compare和workspace。作者两包原/变输入实际运行并独立评价，弥补AH只检查变化文件的缺口。旧taskId可保持稳定身份，当前摘要与历史来源说明分开；结构诊断不冒充语义审查。首稿失败、越界尝试、修订和真实消费费用单独记录，没有真人记录时不推算真人收益。
 
-**研究安排。** 最多8状态四臂及4预定重复共48主单元，三机制的outcome-only观察最多6单元，作者真实原/变消费最多16单元；共享实现bug修订另最多8。M0/D0与M1/D1分别比较旧/新支持，同支持再比较表示。全部公共事实与要求相同，程序不读oracle；来源和新场景变化明确记为development。当前只完成设计，效果由后续实际数据决定。小设计调整写入本节和任务书后继续，不增加日常确认。
+**研究安排。** 8状态四臂及4预定重复共48主单元，三机制的outcome-only观察6单元，作者真实原/变消费最多16单元；共享实现bug修订另最多8。M0/D0与M1/D1分别比较旧/新支持，同支持再比较表示。全部公共事实与要求相同，程序不读oracle；来源和新场景变化明确记为development。小设计调整写入本节和任务书后继续，不增加日常确认。
 
 **AI1–AI3 落地。** 本轮结果根已在模型生成前冻结8题公开要求、显式请求分支和分层rubric；两个新增状态是原源码上的`declared-scenario-variation`。作者`analysisContract.scenarios`仍按作者名称索引；lowering产出的normalized sidecar改为按`obligationId`列举场景，`atEntryId`和`conditionId`均为稳定canonical引用。布尔赋值在normalized侧写成`true/false/unknown`字符串，以便沿用已有condition值域。程序只展开可运行的已声明入口，入口前提不跨入口传播，反事实不含预期effect。v6预定采用互斥`decision`对象（unconditional的`observed`或conditional的`policyStatus`）及独立薄`branchResults`；普通plain不被迫输出relation coverage。旧输入无sidecar时保持旧结果结构和默认选择。AI3聚焦测试已红绿通过；这一段仅说明接口和离线工程，不宣称答案质量改善。
+
+**AI8–AI10 真实质量证据。** [冻结配置](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/panel-config.json)SHA-256为`a9adbb38...01f63d8`；8状态、54单元在首个分析模型调用前确定。全部单元只占用一次：40 completed、9 timeout-unknown、5 transport-failed；55次provider调用含1次诊断修复，41次收到响应，14次usage未知。已知input 75,463、output 43,204、cache-read 48,256 tokens分列，实际USD未报告，不作零成本推断。完整分母、逐单元结论与离线重放见[AI summary](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/panel-summary.json)，评价只读模型和代码证据而非schema字段存在。
+
+初轮计划各8：M0/D0/M1/D1最终full分别8/6/7/8；D0两条timeout。双方均完成的配对里，M0→M1为8→7，D0→D1为6→6；OWUI file一条固定crop的helper前缀缺口可合理支持unknown，保守敏感性把M1改为8/8，因此不能据这条宣称新支持变差。重复各臂计划4，完成数依次0/1/2/3，网关超时与断连使该区块没有可解释的质量胜负。v6机械地从observed行为推出政策标签；两条label-direction机制观察均正确，但旧臂本轮已完成答案也正确，没有实测完整率增量。入口前提和显式请求分支在初轮已完成答案中均获独立语义支持；请求分支的两条单独机制观察均超时。结果是可靠工程支持与不确定/中性质量证据，不是自动授权安全决策的证明。
+
+评价用新公开rubric的薄study适配层，而非强行复用AH v3 evaluator的旧固定oracle条目；普通host的事实引用、条件和显式分支验证保持权威。41份匿名回答由8个fresh-context只读评价者逐案核验，Gitea self首评误读`source_refuted`经已测试真值表与独立复核修正，OWUI file争议保留主口径和敏感性。生成结束后才建评价包；全部packet原文/hash、映射、评分和裁定均在结果根。作者原/变真实消费仍待AI11–AI12完成。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

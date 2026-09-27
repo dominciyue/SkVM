@@ -1,0 +1,715 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "assessmentMode": "explicit-v1",
+  "reasoningStrategy": "standard",
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260927T125630200Z-2251dd08",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\runs\\initial-owui-header-D1\\sessions\\20260927T125630200Z-2251dd08",
+  "createdAt": "2026-09-27T12:56:30.200Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\inputs\\owui-header\\authoring.json",
+  "taskId": "owui-trusted-header-deployment",
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 4181,
+      "publicAnalysis": 1951,
+      "assessmentProgram": 2965,
+      "source": 4501,
+      "outputContract": 5635,
+      "total": 19767,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "owui-trusted-header-deployment",
+    "repository": "https://github.com/open-webui/open-webui",
+    "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+    "results": [
+      {
+        "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+        "conclusion": "unknown",
+        "explanation": "At the declared POST /signin entry, the source configures the trusted-email header name from an environment variable. If configured and password authentication is enabled, the handler requires that header, lowercases its value, uses it as the email identity, creates a user if none exists, authenticates by email, and returns a session when authentication yields a user; otherwise it returns HTTP 400 INVALID_CRED. Password authentication disabled produces HTTP 403 before this path. The source therefore supports the application-source capability for header-selected identity and session creation, but the current deployment-bound question is unknown because the supplied context does not establish whether the actual deployment has sole trusted-proxy ingress, strips/replaces client identity headers, or is directly reachable by the unauthenticated client. The accepted policy requires those deployment controls for denial. Minimum missing deployment facts are: (1) the actual value/enabled state of WEBUI_AUTH_TRUSTED_EMAIL_HEADER, (2) whether password authentication is enabled, (3) whether the client can reach the application through any ingress, and (4) whether every reachable ingress is a sole trusted proxy that removes client-supplied trusted identity headers and injects the authenticated identity. Source discovery is not-tested; no repository-wide or deployment completeness claim is made. Result: unknown, not source_supported_failure or source_refuted, at the deployment boundary.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The supplied source declares POST /signin and enters the signin handler.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                  "startLine": 4,
+                  "endLine": 10,
+                  "quote": "@router.post('/signin', response_model=SessionUserResponse)\nasync def signin(\n    request: Request,\n    response: Response,\n    form_data: SigninForm,\n    db: AsyncSession = Depends(get_async_session),\n):"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The header-selected email is used to look up an existing user and then to authenticate the user by email.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                  "startLine": 31,
+                  "endLine": 41,
+                  "quote": "        if not await Users.get_user_by_email(email.lower(), db=db):\n            await signup_handler(\n                request,\n                email,\n                str(uuid.uuid4()),\n                name,\n                db=db,\n            )\n\n        user = await Auths.authenticate_user_by_email(email, db=db)\n        if user:"
+                }
+              ]
+            },
+            {
+              "statement": "When configured, the handler requires the named request header, lowercases its value, and assigns that value as the email identity.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                  "startLine": 17,
+                  "endLine": 22,
+                  "quote": "    if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n        if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n            raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)\n\n        email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()\n        name = email"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "The handler checks password-auth enablement first and returns HTTP 403 ACTION_PROHIBITED when disabled.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                  "startLine": 11,
+                  "endLine": 15,
+                  "quote": "    if not ENABLE_PASSWORD_AUTH:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=ERROR_MESSAGES.ACTION_PROHIBITED,\n        )"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "When no user is present, the handler raises HTTP 400 INVALID_CRED.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                  "startLine": 61,
+                  "endLine": 62,
+                  "quote": "    else:\n        raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)"
+                }
+              ]
+            },
+            {
+              "statement": "The protected session effect occurs only on the branch where a user is present.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                  "startLine": 59,
+                  "endLine": 60,
+                  "quote": "    if user:\n        return await create_session_response(request, user, db, response, set_cookie=True)"
+                }
+              ]
+            },
+            {
+              "statement": "When a user exists after authentication, the handler creates and returns a session response.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+                  "startLine": 59,
+                  "endLine": 60,
+                  "quote": "    if user:\n        return await create_session_response(request, user, db, response, set_cookie=True)"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The trusted email header name is environment-controlled and may be unset.",
+              "citations": [
+                {
+                  "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+                  "startLine": 10,
+                  "endLine": 10,
+                  "quote": "WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [
+          "Actual deployment value and enablement of WEBUI_AUTH_TRUSTED_EMAIL_HEADER.",
+          "Actual deployment value of ENABLE_PASSWORD_AUTH.",
+          "Whether the unauthenticated external client can reach the application through any ingress that delivers the request to POST /signin.",
+          "For every reachable ingress, whether it is the sole trusted reverse-proxy ingress and removes/replaces client-supplied trusted identity headers while injecting the authenticated identity."
+        ],
+        "suggestedObservations": [
+          "Inspect the actual deployment configuration for WEBUI_AUTH_TRUSTED_EMAIL_HEADER and ENABLE_PASSWORD_AUTH.",
+          "Observe or verify the reachable ingress/network path from the unauthenticated external client to POST /signin.",
+          "Verify at every reachable ingress whether client-supplied trusted-email identity headers are removed or replaced and whether the proxy injects the authenticated identity."
+        ]
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "wireResult": {
+    "results": [
+      {
+        "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+        "explanation": "At the declared POST /signin entry, the source configures the trusted-email header name from an environment variable. If configured and password authentication is enabled, the handler requires that header, lowercases its value, uses it as the email identity, creates a user if none exists, authenticates by email, and returns a session when authentication yields a user; otherwise it returns HTTP 400 INVALID_CRED. Password authentication disabled produces HTTP 403 before this path. The source therefore supports the application-source capability for header-selected identity and session creation, but the current deployment-bound question is unknown because the supplied context does not establish whether the actual deployment has sole trusted-proxy ingress, strips/replaces client identity headers, or is directly reachable by the unauthenticated client. The accepted policy requires those deployment controls for denial. Minimum missing deployment facts are: (1) the actual value/enabled state of WEBUI_AUTH_TRUSTED_EMAIL_HEADER, (2) whether password authentication is enabled, (3) whether the client can reach the application through any ingress, and (4) whether every reachable ingress is a sole trusted proxy that removes client-supplied trusted identity headers and injects the authenticated identity. Source discovery is not-tested; no repository-wide or deployment completeness claim is made. Result: unknown, not source_supported_failure or source_refuted, at the deployment boundary.",
+        "facts": [
+          {
+            "id": "fact-entry-signin",
+            "kind": "entry",
+            "statement": "The supplied source declares POST /signin and enters the signin handler.",
+            "citations": [
+              {
+                "sourceId": "src-8d5759765262cf30",
+                "startLine": 4,
+                "endLine": 10
+              }
+            ]
+          },
+          {
+            "id": "fact-header-config",
+            "kind": "condition",
+            "statement": "The trusted email header name is environment-controlled and may be unset.",
+            "citations": [
+              {
+                "sourceId": "src-5f54873929978798",
+                "startLine": 10,
+                "endLine": 10
+              }
+            ]
+          },
+          {
+            "id": "fact-password-control",
+            "kind": "control",
+            "statement": "The handler checks password-auth enablement first and returns HTTP 403 ACTION_PROHIBITED when disabled.",
+            "citations": [
+              {
+                "sourceId": "src-8d5759765262cf30",
+                "startLine": 11,
+                "endLine": 15
+              }
+            ]
+          },
+          {
+            "id": "fact-header-identity",
+            "kind": "binding",
+            "statement": "When configured, the handler requires the named request header, lowercases its value, and assigns that value as the email identity.",
+            "citations": [
+              {
+                "sourceId": "src-8d5759765262cf30",
+                "startLine": 17,
+                "endLine": 22
+              }
+            ]
+          },
+          {
+            "id": "fact-existing-user-binding",
+            "kind": "binding",
+            "statement": "The header-selected email is used to look up an existing user and then to authenticate the user by email.",
+            "citations": [
+              {
+                "sourceId": "src-8d5759765262cf30",
+                "startLine": 31,
+                "endLine": 41
+              }
+            ]
+          },
+          {
+            "id": "fact-session-effect",
+            "kind": "effect",
+            "statement": "When a user exists after authentication, the handler creates and returns a session response.",
+            "citations": [
+              {
+                "sourceId": "src-8d5759765262cf30",
+                "startLine": 59,
+                "endLine": 60
+              }
+            ]
+          },
+          {
+            "id": "fact-effect-session-response",
+            "kind": "effect",
+            "statement": "The protected session effect occurs only on the branch where a user is present.",
+            "citations": [
+              {
+                "sourceId": "src-8d5759765262cf30",
+                "startLine": 59,
+                "endLine": 60
+              }
+            ]
+          },
+          {
+            "id": "fact-effect-no-user",
+            "kind": "effect",
+            "statement": "When no user is present, the handler raises HTTP 400 INVALID_CRED.",
+            "citations": [
+              {
+                "sourceId": "src-8d5759765262cf30",
+                "startLine": 61,
+                "endLine": 62
+              }
+            ]
+          }
+        ],
+        "decisiveMissingFacts": [
+          "Actual deployment value and enablement of WEBUI_AUTH_TRUSTED_EMAIL_HEADER.",
+          "Actual deployment value of ENABLE_PASSWORD_AUTH.",
+          "Whether the unauthenticated external client can reach the application through any ingress that delivers the request to POST /signin.",
+          "For every reachable ingress, whether it is the sole trusted reverse-proxy ingress and removes/replaces client-supplied trusted identity headers while injecting the authenticated identity."
+        ],
+        "suggestedObservations": [
+          "Inspect the actual deployment configuration for WEBUI_AUTH_TRUSTED_EMAIL_HEADER and ENABLE_PASSWORD_AUTH.",
+          "Observe or verify the reachable ingress/network path from the unauthenticated external client to POST /signin.",
+          "Verify at every reachable ingress whether client-supplied trusted-email identity headers are removed or replaced and whether the proxy injects the authenticated identity."
+        ],
+        "decision": {
+          "kind": "observed",
+          "observed": "unknown"
+        },
+        "branchResults": [
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:authentication-no-user",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:email-authentication-produces-user",
+                "value": "false"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                "value": "true"
+              }
+            ],
+            "effect": "blocked",
+            "explanation": "With the trusted-header branch entered but email authentication producing no user, the source-visible protected session effect is not reached; the final fallback raises HTTP 400 INVALID_CRED.",
+            "missingFacts": [],
+            "factIds": [
+              "fact-effect-session-response",
+              "fact-effect-no-user"
+            ]
+          },
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:client-header-reaches-app",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:deployment-ingress-enforces-header-trust",
+                "value": "false"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:email-authentication-produces-user",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                "value": "true"
+              }
+            ],
+            "effect": "reachable",
+            "explanation": "Under these hypotheses, the client-controlled trusted-email header reaches the application, is lowercased and used as the email identity, an existing matching user is authenticated, and the application creates a session response. This is the source-visible impersonation path; the deployment premise that the caller can actually reach the application is supplied only as this counterfactual assumption.",
+            "missingFacts": [],
+            "factIds": [
+              "fact-entry-signin",
+              "fact-header-identity",
+              "fact-existing-user-binding",
+              "fact-session-effect"
+            ]
+          },
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:header-unconfigured",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                "value": "false"
+              }
+            ],
+            "effect": "blocked",
+            "explanation": "When the trusted-email header name is unconfigured, the trusted-header branch condition is false, so this declared header-selected identity path is not entered. The supplied crop omits the other sign-in-mode implementation, so no broader POST /signin status is claimed.",
+            "missingFacts": [],
+            "factIds": [
+              "fact-header-config"
+            ]
+          },
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:password-disabled",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "false"
+              }
+            ],
+            "effect": "blocked",
+            "explanation": "The strongest visible application control is the password-authentication gate: when disabled, the handler raises HTTP 403 ACTION_PROHIBITED before evaluating the trusted-email header.",
+            "missingFacts": [],
+            "factIds": [
+              "fact-password-control"
+            ]
+          },
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:trusted-ingress",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:deployment-ingress-enforces-header-trust",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                "value": "true"
+              }
+            ],
+            "effect": "blocked",
+            "explanation": "Under the accepted policy, sole trusted-proxy ingress that removes client-supplied identity headers and injects the authenticated identity prevents this unauthenticated external caller from selecting an arbitrary user by supplying the header. The application path remains capable of using whichever header reaches it, but the policy control blocks the caller's arbitrary header from becoming the identity.",
+            "missingFacts": [],
+            "factIds": [
+              "fact-header-identity",
+              "fact-session-effect"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "normalizerVersion": "authorization-wire-normalizer/v6",
+  "relationCoverage": [],
+  "requestedBranchAnalysis": {
+    "schemaVersion": "authorization-condition-analysis-result/v1",
+    "analyses": [
+      {
+        "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+        "branches": [
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:authentication-no-user",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:email-authentication-produces-user",
+                "value": "false"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                "value": "true"
+              }
+            ],
+            "effect": "blocked",
+            "explanation": "With the trusted-header branch entered but email authentication producing no user, the source-visible protected session effect is not reached; the final fallback raises HTTP 400 INVALID_CRED.",
+            "missingFacts": [],
+            "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+            "factPointers": [
+              "/results/0/facts/effect/1",
+              "/results/0/facts/effect/0"
+            ]
+          },
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:client-header-reaches-app",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:deployment-ingress-enforces-header-trust",
+                "value": "false"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:email-authentication-produces-user",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                "value": "true"
+              }
+            ],
+            "effect": "reachable",
+            "explanation": "Under these hypotheses, the client-controlled trusted-email header reaches the application, is lowercased and used as the email identity, an existing matching user is authenticated, and the application creates a session response. This is the source-visible impersonation path; the deployment premise that the caller can actually reach the application is supplied only as this counterfactual assumption.",
+            "missingFacts": [],
+            "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+            "factPointers": [
+              "/results/0/facts/entry/0",
+              "/results/0/facts/binding/1",
+              "/results/0/facts/binding/0",
+              "/results/0/facts/effect/2"
+            ]
+          },
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:header-unconfigured",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                "value": "false"
+              }
+            ],
+            "effect": "blocked",
+            "explanation": "When the trusted-email header name is unconfigured, the trusted-header branch condition is false, so this declared header-selected identity path is not entered. The supplied crop omits the other sign-in-mode implementation, so no broader POST /signin status is claimed.",
+            "missingFacts": [],
+            "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+            "factPointers": [
+              "/results/0/facts/condition/0"
+            ]
+          },
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:password-disabled",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "false"
+              }
+            ],
+            "effect": "blocked",
+            "explanation": "The strongest visible application control is the password-authentication gate: when disabled, the handler raises HTTP 403 ACTION_PROHIBITED before evaluating the trusted-email header.",
+            "missingFacts": [],
+            "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+            "factPointers": [
+              "/results/0/facts/control/0"
+            ]
+          },
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:trusted-ingress",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:deployment-ingress-enforces-header-trust",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                "value": "true"
+              }
+            ],
+            "effect": "blocked",
+            "explanation": "Under the accepted policy, sole trusted-proxy ingress that removes client-supplied identity headers and injects the authenticated identity prevents this unauthenticated external caller from selecting an arbitrary user by supplying the header. The application path remains capable of using whichever header reaches it, but the policy control blocks the caller's arbitrary header from becoming the identity.",
+            "missingFacts": [],
+            "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+            "factPointers": [
+              "/results/0/facts/binding/1",
+              "/results/0/facts/effect/2"
+            ]
+          }
+        ],
+        "unexaminedConditionIds": [],
+        "completeness": "bounded",
+        "limitations": []
+      }
+    ]
+  },
+  "requestedBranchValidation": {
+    "status": "valid",
+    "declared": 1,
+    "bounded": 1,
+    "incomplete": 0,
+    "missing": [],
+    "semanticSupport": "unreviewed",
+    "result": {
+      "schemaVersion": "authorization-condition-analysis-result/v1",
+      "analyses": [
+        {
+          "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+          "branches": [
+            {
+              "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:authentication-no-user",
+              "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+              "assumptions": [
+                {
+                  "conditionId": "condition:external-client-trusted-header-impersonation:email-authentication-produces-user",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                  "value": "true"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "With the trusted-header branch entered but email authentication producing no user, the source-visible protected session effect is not reached; the final fallback raises HTTP 400 INVALID_CRED.",
+              "factPointers": [
+                "/results/0/facts/effect/1",
+                "/results/0/facts/effect/0"
+              ],
+              "missingFacts": []
+            },
+            {
+              "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:client-header-reaches-app",
+              "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+              "assumptions": [
+                {
+                  "conditionId": "condition:external-client-trusted-header-impersonation:deployment-ingress-enforces-header-trust",
+                  "value": "false"
+                },
+                {
+                  "conditionId": "condition:external-client-trusted-header-impersonation:email-authentication-produces-user",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                  "value": "true"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "Under these hypotheses, the client-controlled trusted-email header reaches the application, is lowercased and used as the email identity, an existing matching user is authenticated, and the application creates a session response. This is the source-visible impersonation path; the deployment premise that the caller can actually reach the application is supplied only as this counterfactual assumption.",
+              "factPointers": [
+                "/results/0/facts/entry/0",
+                "/results/0/facts/binding/1",
+                "/results/0/facts/binding/0",
+                "/results/0/facts/effect/2"
+              ],
+              "missingFacts": []
+            },
+            {
+              "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:header-unconfigured",
+              "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+              "assumptions": [
+                {
+                  "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                  "value": "false"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "When the trusted-email header name is unconfigured, the trusted-header branch condition is false, so this declared header-selected identity path is not entered. The supplied crop omits the other sign-in-mode implementation, so no broader POST /signin status is claimed.",
+              "factPointers": [
+                "/results/0/facts/condition/0"
+              ],
+              "missingFacts": []
+            },
+            {
+              "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:password-disabled",
+              "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+              "assumptions": [
+                {
+                  "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                  "value": "false"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "The strongest visible application control is the password-authentication gate: when disabled, the handler raises HTTP 403 ACTION_PROHIBITED before evaluating the trusted-email header.",
+              "factPointers": [
+                "/results/0/facts/control/0"
+              ],
+              "missingFacts": []
+            },
+            {
+              "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:trusted-ingress",
+              "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+              "assumptions": [
+                {
+                  "conditionId": "condition:external-client-trusted-header-impersonation:deployment-ingress-enforces-header-trust",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                  "value": "true"
+                },
+                {
+                  "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                  "value": "true"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "Under the accepted policy, sole trusted-proxy ingress that removes client-supplied identity headers and injects the authenticated identity prevents this unauthenticated external caller from selecting an arbitrary user by supplying the header. The application path remains capable of using whichever header reaches it, but the policy control blocks the caller's arbitrary header from becoming the identity.",
+              "factPointers": [
+                "/results/0/facts/binding/1",
+                "/results/0/facts/effect/2"
+              ],
+              "missingFacts": []
+            }
+          ],
+          "unexaminedConditionIds": [],
+          "completeness": "bounded",
+          "limitations": []
+        }
+      ]
+    },
+    "diagnostics": []
+  },
+  "observedDecisions": [
+    {
+      "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+      "expectation": "deny",
+      "observed": "unknown",
+      "derivedConclusion": "unknown"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 289,
+      "output": 2203,
+      "cacheRead": 4480,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

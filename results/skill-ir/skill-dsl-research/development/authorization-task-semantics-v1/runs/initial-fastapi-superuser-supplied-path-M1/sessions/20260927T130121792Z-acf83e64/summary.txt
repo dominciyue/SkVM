@@ -1,0 +1,28 @@
+Authorization assessment
+Session: 20260927T130121792Z-acf83e64
+Status: completed
+Task: fastapi-items-claimed-superuser-supplied-path
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v6
+Assessment: explicit-v1
+Normalizer: authorization-wire-normalizer/v6
+Model policy result: {"results":[{"obligationId":"scenario%3Aread-item::entry%3Aread-item","explanation":"At the supplied read-item entry, the handler loads the requested item and, if it exists, denies only when the injected current_user is not a superuser and does not own the item. Thus, conditionally, if the injected current_user has active-superuser status, the handler permits returning an existing item regardless of owner. The supplied path does not establish that the external caller is bound to that injected current_user: the CurrentUser implementation and caller-to-current_user binding are cropped out. The caller's claimed status is a task premise, not source or deployment proof. Therefore the policy assessment at the supplied-path boundary is undetermined; the handler's conditional behavior must not be treated as proof that the actual external caller can read the other user's item.","facts":[{"id":"entry-read-item","kind":"entry","statement":"The read-item operation is entered through the item-by-ID GET handler with session, injected current_user, and item id inputs.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":48,"endLine":53}]},{"id":"binding-current-user-unresolved","kind":"binding","statement":"The handler receives current_user through the imported CurrentUser dependency, but the supplied crop does not show that dependency's implementation or caller-to-current_user binding.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":7,"endLine":8}]},{"id":"resource-existing-item","kind":"condition","statement":"The requested item is loaded by ID and the protected read path continues only if an item exists; otherwise the handler raises a not-found error.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":53,"endLine":55}]},{"id":"superuser-bypass-control","kind":"control","statement":"For an existing item, the authorization check blocks only a non-superuser who does not own the item; a current_user marked superuser bypasses the ownership denial.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":56,"endLine":57}]},{"id":"read-item-effect","kind":"effect","statement":"If the item exists and the authorization check does not raise, the handler returns the item.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":56,"endLine":58}]},{"id":"superuser-condition","kind":"condition","statement":"The conditional cross-owner read depends on the injected current_user having is_superuser status.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":56,"endLine":56}]}],"decisiveMissingFacts":["missing-current-user-binding"],"suggestedObservations":["Observe the implementation or runtime binding of CurrentUser for this external request and verify whether it injects the authenticated caller as current_user with is_superuser equal to true."],"decision":{"kind":"conditional-policy","policyStatus":"undetermined"},"branchResults":[]}]}
+Observed decisions: []
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aread-item::entry%3Aread-item: unknown — At the supplied read-item entry, the handler loads the requested item and, if it exists, denies only when the injected current_user is not a superuser and does not own the item. Thus, conditionally, if the injected current_user has active-superuser status, the handler permits returning an existing item regardless of owner. The supplied path does not establish that the external caller is bound to that injected current_user: the CurrentUser implementation and caller-to-current_user binding are cropped out. The caller's claimed status is a task premise, not source or deployment proof. Therefore the policy assessment at the supplied-path boundary is undetermined; the handler's conditional behavior must not be treated as proof that the actual external caller can read the other user's item.
+  Evidence: The read-item operation is entered through the item-by-ID GET handler with session, injected current_user, and item id inputs. (items.py:48-53)
+  Evidence: The handler receives current_user through the imported CurrentUser dependency, but the supplied crop does not show that dependency's implementation or caller-to-current_user binding. (items.py:7-8)
+  Evidence: For an existing item, the authorization check blocks only a non-superuser who does not own the item; a current_user marked superuser bypasses the ownership denial. (items.py:56-57)
+  Evidence: If the item exists and the authorization check does not raise, the handler returns the item. (items.py:56-58)
+  Evidence: The requested item is loaded by ID and the protected read path continues only if an item exists; otherwise the handler raises a not-found error. (items.py:53-55)
+  Evidence: The conditional cross-owner read depends on the injected current_user having is_superuser status. (items.py:56-56)
+  Unknown: missing-current-user-binding
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

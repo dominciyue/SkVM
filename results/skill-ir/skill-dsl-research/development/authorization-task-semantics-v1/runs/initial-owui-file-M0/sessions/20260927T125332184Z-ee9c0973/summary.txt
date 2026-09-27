@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260927T125332184Z-ee9c0973
+Status: completed
+Task: owui-process-file-write
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Assessment: legacy
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file: source_supported_failure — At the declared entry, the source binds a verified user and, for a non-admin, checks only that the supplied file belongs to that user. The caller-controlled collection name is then selected directly, with a file-derived fallback only when it is absent. The visible path passes that name to the vector-database save function, whose sink inserts items into collection_name. The crop states that the omitted processing and commit region contains no authorization call for collection_name. Thus, under the stated premise that the destination collection exists and the principal lacks destination ownership or a write grant, the fixed source supports a failure of the policy expectation: source-file ownership authorizes file retrieval, not writing the unrelated destination collection. No separate counterfactual branch was supplied; the file-ownership branch and destination-permission branch are distinguished here.
+  Evidence: The declared HTTP entry is the process-file route. (inputs/owui-process-file-write/retrieval_process_file.py:27-33)
+  Evidence: The destination collection is taken from the caller-supplied collection_name, or otherwise derived from the file identifier when that field is absent. (inputs/owui-process-file-write/retrieval_process_file.py:21-25, inputs/owui-process-file-write/retrieval_process_file.py:45-50)
+  Evidence: The route obtains its principal through the verified-user dependency. (inputs/owui-process-file-write/retrieval_process_file.py:28-32)
+  Evidence: The selected collection name is passed to save_docs_to_vector_db in the worker-thread call. (inputs/owui-process-file-write/retrieval_process_file.py:62-74)
+  Evidence: For a non-admin principal, file retrieval is constrained by the supplied file identifier and the principal's user identifier; the visible branch does not establish destination-collection permission. (inputs/owui-process-file-write/retrieval_process_file.py:40-45)
+  Evidence: The save function inserts the constructed items into the collection named by collection_name. (inputs/owui-process-file-write/retrieval_process_file.py:4-18)
+  Evidence: The fixed crop explicitly says the intervening content-loading and file-update region contains no call authorizing collection_name. (inputs/owui-process-file-write/retrieval_process_file.py:52-53)
+  Evidence: The scenario assumes a verified non-admin owns the supplied file, while the existing caller-selected destination collection has neither ownership nor an explicit write grant for that principal. (inputs/owui-process-file-write/retrieval_process_file.py:40-50)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

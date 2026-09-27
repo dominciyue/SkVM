@@ -1,0 +1,1016 @@
+{
+  "status": "timeout-unknown",
+  "arm": "B",
+  "compiled": {
+    "task": {
+      "schemaVersion": "source-authorization-assessment/v0",
+      "taskId": "owui-trusted-header-deployment",
+      "request": "Determine whether an unauthenticated external client can impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin.",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "sourceMode": "fixed-context",
+      "policySources": [
+        {
+          "id": "policy:trusted-proxy-identity-policy",
+          "kind": "explicit-task-requirement",
+          "text": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.",
+          "location": "inputs/owui-trusted-header-deployment/task.json#/sourceOfRequirement",
+          "revision": "open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366",
+          "acceptance": {
+            "status": "accepted",
+            "actorRole": "task-author",
+            "reason": "The task input attributes this bounded paraphrase to pinned project hardening guidance; no source-external deployment fact is accepted."
+          }
+        }
+      ],
+      "principals": [
+        {
+          "id": "principal:unauthenticated-external-client",
+          "role": "unauthenticated external client",
+          "description": "Author facts: [\"A client not authenticated by the trusted identity proxy that may control headers on any ingress it can actually reach.\"]",
+          "startingCapabilities": [
+            "can-send-client-controlled-request-headers-to-a-reachable-ingress"
+          ]
+        }
+      ],
+      "resources": [
+        {
+          "id": "resource:existing-user-session",
+          "type": "authenticated-user-identity-and-session",
+          "description": "Author facts: [\"The identity and session of an arbitrary existing user named by a trusted-email header.\"]"
+        }
+      ],
+      "entries": [
+        {
+          "id": "entry:post-signin-trusted-email",
+          "name": "POST /signin -> trusted-email-header branch",
+          "locations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+              "startLine": 1,
+              "endLine": 13
+            },
+            {
+              "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+              "startLine": 1,
+              "endLine": 62
+            }
+          ]
+        }
+      ],
+      "obligations": [
+        {
+          "id": "scenario:external-client-trusted-header-impersonation",
+          "principalId": "principal:unauthenticated-external-client",
+          "resourceId": "resource:existing-user-session",
+          "relation": "external-client-to-arbitrary-existing-user-identity",
+          "operation": "obtain-session-as-header-selected-user",
+          "expectation": "deny",
+          "conditions": [
+            {
+              "name": "deployment-ingress-enforces-header-trust",
+              "basis": "The accepted policy requires sole trusted-proxy ingress and removal/replacement of client-supplied identity headers; actual deployment facts are not supplied."
+            },
+            {
+              "name": "email-authentication-produces-user",
+              "basis": "auths_signin.py returns a session only after authenticate_user_by_email yields a user."
+            },
+            {
+              "name": "password-auth-signin-entry-enabled",
+              "basis": "auths_signin.py checks ENABLE_PASSWORD_AUTH before entering the trusted-header branch."
+            },
+            {
+              "name": "trusted-email-header-name-configured",
+              "basis": "env_trusted_headers.py makes the header name environment-controlled and auths_signin.py enters the branch only when configured."
+            }
+          ],
+          "policySourceId": "policy:trusted-proxy-identity-policy",
+          "entryIds": [
+            "entry:post-signin-trusted-email"
+          ]
+        }
+      ],
+      "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+      "requiredAnalysis": [
+        "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+        "identify the configuration condition and how the header becomes a principal identity",
+        "separate application-source capability from actual deployment reachability and proxy behavior",
+        "name the minimum missing facts needed to decide the real deployment question",
+        "return source_supported_failure, source_refuted, or unknown with exact input locations"
+      ],
+      "constraints": [
+        "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+        "Use only the allowed case inputs.",
+        "Do not infer environment values, proxy configuration, network topology, or direct reachability.",
+        "Do not contact or execute the target deployment."
+      ]
+    },
+    "status": "ready",
+    "runnableObligations": [
+      {
+        "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+        "authorObligationId": "scenario:external-client-trusted-header-impersonation",
+        "entryId": "entry:post-signin-trusted-email",
+        "obligation": {
+          "id": "scenario:external-client-trusted-header-impersonation",
+          "principalId": "principal:unauthenticated-external-client",
+          "resourceId": "resource:existing-user-session",
+          "relation": "external-client-to-arbitrary-existing-user-identity",
+          "operation": "obtain-session-as-header-selected-user",
+          "expectation": "deny",
+          "conditions": [
+            {
+              "name": "deployment-ingress-enforces-header-trust",
+              "basis": "The accepted policy requires sole trusted-proxy ingress and removal/replacement of client-supplied identity headers; actual deployment facts are not supplied."
+            },
+            {
+              "name": "email-authentication-produces-user",
+              "basis": "auths_signin.py returns a session only after authenticate_user_by_email yields a user."
+            },
+            {
+              "name": "password-auth-signin-entry-enabled",
+              "basis": "auths_signin.py checks ENABLE_PASSWORD_AUTH before entering the trusted-header branch."
+            },
+            {
+              "name": "trusted-email-header-name-configured",
+              "basis": "env_trusted_headers.py makes the header name environment-controlled and auths_signin.py enters the branch only when configured."
+            }
+          ],
+          "policySourceId": "policy:trusted-proxy-identity-policy",
+          "entryIds": [
+            "entry:post-signin-trusted-email"
+          ]
+        },
+        "principal": {
+          "id": "principal:unauthenticated-external-client",
+          "role": "unauthenticated external client",
+          "description": "Author facts: [\"A client not authenticated by the trusted identity proxy that may control headers on any ingress it can actually reach.\"]",
+          "startingCapabilities": [
+            "can-send-client-controlled-request-headers-to-a-reachable-ingress"
+          ]
+        },
+        "resource": {
+          "id": "resource:existing-user-session",
+          "type": "authenticated-user-identity-and-session",
+          "description": "Author facts: [\"The identity and session of an arbitrary existing user named by a trusted-email header.\"]"
+        },
+        "entry": {
+          "id": "entry:post-signin-trusted-email",
+          "name": "POST /signin -> trusted-email-header branch",
+          "locations": [
+            {
+              "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+              "startLine": 1,
+              "endLine": 13
+            },
+            {
+              "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+              "startLine": 1,
+              "endLine": 62
+            }
+          ]
+        },
+        "policySource": {
+          "id": "policy:trusted-proxy-identity-policy",
+          "kind": "explicit-task-requirement",
+          "text": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.",
+          "location": "inputs/owui-trusted-header-deployment/task.json#/sourceOfRequirement",
+          "revision": "open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366",
+          "acceptance": {
+            "status": "accepted",
+            "actorRole": "task-author",
+            "reason": "The task input attributes this bounded paraphrase to pinned project hardening guidance; no source-external deployment fact is accepted."
+          }
+        }
+      }
+    ],
+    "blockedObligations": [],
+    "diagnostics": [],
+    "dependencies": {
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "sourceMode": "fixed-context",
+      "policies": [
+        {
+          "id": "policy:trusted-proxy-identity-policy",
+          "revision": "open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366",
+          "acceptanceStatus": "accepted"
+        }
+      ]
+    }
+  },
+  "renderedPrompt": "# Organized authorization assessment instruction (B)\n\nAnalyze each runnable obligation in the canonical declaration. Follow the declared required analysis, constraints, policy authority, and scope assurance. Explain the source-visible decision without assuming repository discovery or deployment facts. Address every supplied analysis question and report its coverage without inventing an answer.\n\n## Canonical declaration\nThis is task owui-trusted-header-deployment, expressed with source-authorization-assessment/v0. Determine whether an unauthenticated external client can impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin.\nAssess repository https://github.com/open-webui/open-webui at source ref 841c9045d789005145274955e7ef60b1b11a9be9 in fixed-context mode. Source discovery status is not-tested.\n\nThe accepted policy material is:\n- policy:trusted-proxy-identity-policy is a explicit-task-requirement at inputs/owui-trusted-header-deployment/task.json#/sourceOfRequirement, revision open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366.\n  Policy text: Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.\n  Acceptance is accepted; accepting actor role: task-author; reason: The task input attributes this bounded paraphrase to pinned project hardening guidance; no source-external deployment fact is accepted.\n\nThe principals are:\n- principal:unauthenticated-external-client has role unauthenticated external client. Author facts: [\"A client not authenticated by the trusted identity proxy that may control headers on any ingress it can actually reach.\"]\n  Starting capabilities: can-send-client-controlled-request-headers-to-a-reachable-ingress.\n\nThe resources are:\n- resource:existing-user-session is a authenticated-user-identity-and-session. Author facts: [\"The identity and session of an arbitrary existing user named by a trusted-email header.\"]\n\nThe declared source entries are:\n- entry:post-signin-trusted-email names POST /signin -> trusted-email-header branch.\n  Source location: inputs/owui-trusted-header-deployment/env_trusted_headers.py, startLine 1, endLine 13.\n  Source location: inputs/owui-trusted-header-deployment/auths_signin.py, startLine 1, endLine 62.\n\nThe authorization obligations are:\n- scenario:external-client-trusted-header-impersonation: principal principal:unauthenticated-external-client, resource resource:existing-user-session, relation external-client-to-arbitrary-existing-user-identity, operation obtain-session-as-header-selected-user, expected policy disposition deny.\n  Policy source: policy:trusted-proxy-identity-policy. Declared entries: entry:post-signin-trusted-email.\n  Condition deployment-ingress-enforces-header-trust: The accepted policy requires sole trusted-proxy ingress and removal/replacement of client-supplied identity headers; actual deployment facts are not supplied.\n  Condition email-authentication-produces-user: auths_signin.py returns a session only after authenticate_user_by_email yields a user.\n  Condition password-auth-signin-entry-enabled: auths_signin.py checks ENABLE_PASSWORD_AUTH before entering the trusted-header branch.\n  Condition trusted-email-header-name-configured: env_trusted_headers.py makes the header name environment-controlled and auths_signin.py enters the branch only when configured.\n\nScope assurance: Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.\nRequired analysis:\n- Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.\n- identify the configuration condition and how the header becomes a principal identity\n- separate application-source capability from actual deployment reachability and proxy behavior\n- name the minimum missing facts needed to decide the real deployment question\n- return source_supported_failure, source_refuted, or unknown with exact input locations\nConstraints:\n- Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.\n- Use only the allowed case inputs.\n- Do not infer environment values, proxy configuration, network topology, or direct reachability.\n- Do not contact or execute the target deployment.\nAllowed decision kinds: observed for allow/deny expectations; conditional-policy for conditional expectations.\n\n## Public analysis questions\nDecide the current scenario at the stated boundary from the supplied fixed source and accepted policy. Treat listed premises as question assumptions at the named entry, not as source or deployment proof. Trace the decisive authorization control and protected effect with exact supplied-source locations. Answer every explicitly requested counterfactual branch separately, identifying its changed assumptions and any decisive unknown. Include only the response details requested below. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: Can an unauthenticated external client impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin?\nAnalysis boundary: deployment.\nTask premise: The caller is unauthenticated outside the trusted identity proxy and asks whether an actual reachable deployment permits impersonation via a client-supplied trusted-email header.\nRequested counterfactual password-disabled: password-auth-signin-entry-enabled=false.\nRequested counterfactual header-unconfigured: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=false.\nRequested counterfactual authentication-no-user: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=true, email-authentication-produces-user=false.\nRequested counterfactual trusted-ingress: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=true, deployment-ingress-enforces-header-trust=true.\nRequested counterfactual client-header-reaches-app: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=true, email-authentication-produces-user=true, deployment-ingress-enforces-header-trust=false.\nRequired response detail: Identify the configuration and header-to-identity path, applicable denial/status behavior when source shows it, and the minimum missing facts for the actual deployment.\n\n## Result contract\nUse compact wire/v6: top-level results only. Each item has obligationId, decision and branchResults, explanation, facts as an array of {id, kind, statement, citations}, decisiveMissingFacts and suggestedObservations. Fact IDs must be unique within each obligation. kind is entry/binding/control/effect/condition. The host fills all version/identity/scope metadata and groups facts; never output those fields. Include item-local coverage only when an analysis ledger is supplied, and item-local condition only when a condition request is supplied. Branches do not repeat obligationId.\nReturn exactly one result for every runnable expanded obligation. Do not output conclusion or policyStatus at the item level. For an authored allow/deny expectation, return decision {kind:\"observed\",observed:\"allow\"|\"deny\"|\"unknown\"} describing the source-visible behavior, independently of the normative expectation. The host compares that observed behavior with the authored expectation. For an authored conditional expectation, return decision {kind:\"conditional-policy\",policyStatus:\"satisfied\"|\"violated\"|\"undetermined\"}; the host uses this policy judgment without a binary observed comparison. Unknown requires decisiveMissingFacts and suggestedObservations. Do not infer observed behavior from the expectation or prose.\nEvery result includes branchResults, an empty array if no branch is requested. For each explicitly requested branch below, return its exact id and assumptions, a reachable/blocked/unknown effect, a causal explanation, same-obligation factIds for known effects, and decisive missingFacts for unknown effects. Counterfactual assumptions are hypotheses; they do not alter the current scenario or establish source/deployment facts. Extra or missing branches are invalid.\nExact runnable obligation IDs (closed list):\n- scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email\nUse each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.\nSupport the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.\nAddress every public analysis question in the explanation and source-backed facts. No separate coverage ledger is required for this plain-method answer.\n\n## Fixed source context\n===== BEGIN ALLOWED INPUT: inputs/owui-trusted-header-deployment/auths_signin.py =====\nSource ID: src-8d5759765262cf30\nLocation note: crop lines 1-62; original locations: not separately supplied\nCitation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.\n1 | # Cropped from backend/open_webui/routers/auths.py at\n2 | # https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9\n3 | # Original lines 570-623 and 672-675.\n4 | @router.post('/signin', response_model=SessionUserResponse)\n5 | async def signin(\n6 |     request: Request,\n7 |     response: Response,\n8 |     form_data: SigninForm,\n9 |     db: AsyncSession = Depends(get_async_session),\n10 | ):\n11 |     if not ENABLE_PASSWORD_AUTH:\n12 |         raise HTTPException(\n13 |             status_code=status.HTTP_403_FORBIDDEN,\n14 |             detail=ERROR_MESSAGES.ACTION_PROHIBITED,\n15 |         )\n16 | \n17 |     if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n18 |         if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n19 |             raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)\n20 | \n21 |         email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()\n22 |         name = email\n23 | \n24 |         if WEBUI_AUTH_TRUSTED_NAME_HEADER:\n25 |             name = request.headers.get(WEBUI_AUTH_TRUSTED_NAME_HEADER, email)\n26 |             try:\n27 |                 name = urllib.parse.unquote(name, encoding='utf-8')\n28 |             except Exception as e:\n29 |                 pass\n30 | \n31 |         if not await Users.get_user_by_email(email.lower(), db=db):\n32 |             await signup_handler(\n33 |                 request,\n34 |                 email,\n35 |                 str(uuid.uuid4()),\n36 |                 name,\n37 |                 db=db,\n38 |             )\n39 | \n40 |         user = await Auths.authenticate_user_by_email(email, db=db)\n41 |         if user:\n42 |             if WEBUI_AUTH_TRUSTED_GROUPS_HEADER:\n43 |                 group_names = request.headers.get(WEBUI_AUTH_TRUSTED_GROUPS_HEADER, '').split(',')\n44 |                 group_names = [name.strip() for name in group_names if name.strip()]\n45 | \n46 |                 if group_names:\n47 |                     await Groups.sync_groups_by_group_names(user.id, group_names, db=db)\n48 | \n49 |             if WEBUI_AUTH_TRUSTED_ROLE_HEADER:\n50 |                 trusted_role = request.headers.get(WEBUI_AUTH_TRUSTED_ROLE_HEADER, '').lower().strip()\n51 |                 if trusted_role in {'admin', 'user', 'pending'}:\n52 |                     if user.role != trusted_role:\n53 |                         await Users.update_user_role_by_id(user.id, trusted_role, db=db)\n54 |                 elif trusted_role:\n55 |                     log.warning(f'Ignoring invalid trusted role header value: {trusted_role}')\n56 | \n57 | # Original lines 623-671 handle other sign-in modes and are omitted.\n58 | \n59 |     if user:\n60 |         return await create_session_response(request, user, db, response, set_cookie=True)\n61 |     else:\n62 |         raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)\n===== END ALLOWED INPUT: inputs/owui-trusted-header-deployment/auths_signin.py =====\n\n===== BEGIN ALLOWED INPUT: inputs/owui-trusted-header-deployment/env_trusted_headers.py =====\nSource ID: src-5f54873929978798\nLocation note: crop lines 1-13; original locations: not separately supplied\nCitation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.\n1 | # Cropped from backend/open_webui/env.py at\n2 | # https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9\n3 | # Original lines 529-538.\n4 | # Optional env vars for creating an admin account on startup\n5 | # Useful for headless/automated deployments\n6 | WEBUI_ADMIN_EMAIL = os.environ.get('WEBUI_ADMIN_EMAIL', '')\n7 | WEBUI_ADMIN_PASSWORD = os.environ.get('WEBUI_ADMIN_PASSWORD', '')\n8 | WEBUI_ADMIN_NAME = os.environ.get('WEBUI_ADMIN_NAME', 'Admin')\n9 | \n10 | WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)\n11 | WEBUI_AUTH_TRUSTED_NAME_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_NAME_HEADER', None)\n12 | WEBUI_AUTH_TRUSTED_GROUPS_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_GROUPS_HEADER', None)\n13 | WEBUI_AUTH_TRUSTED_ROLE_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_ROLE_HEADER', None)\n===== END ALLOWED INPUT: inputs/owui-trusted-header-deployment/env_trusted_headers.py =====",
+  "error": {
+    "name": "AuthorizationCallTimeoutError",
+    "message": "Authorization provider call did not settle within 180000ms (per-call deadline); request completion is unknown."
+  },
+  "promptSections": {
+    "instructions": "# Organized authorization assessment instruction (B)\n\nAnalyze each runnable obligation in the canonical declaration. Follow the declared required analysis, constraints, policy authority, and scope assurance. Explain the source-visible decision without assuming repository discovery or deployment facts. Address every supplied analysis question and report its coverage without inventing an answer.",
+    "declaration": "This is task owui-trusted-header-deployment, expressed with source-authorization-assessment/v0. Determine whether an unauthenticated external client can impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin.\nAssess repository https://github.com/open-webui/open-webui at source ref 841c9045d789005145274955e7ef60b1b11a9be9 in fixed-context mode. Source discovery status is not-tested.\n\nThe accepted policy material is:\n- policy:trusted-proxy-identity-policy is a explicit-task-requirement at inputs/owui-trusted-header-deployment/task.json#/sourceOfRequirement, revision open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366.\n  Policy text: Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.\n  Acceptance is accepted; accepting actor role: task-author; reason: The task input attributes this bounded paraphrase to pinned project hardening guidance; no source-external deployment fact is accepted.\n\nThe principals are:\n- principal:unauthenticated-external-client has role unauthenticated external client. Author facts: [\"A client not authenticated by the trusted identity proxy that may control headers on any ingress it can actually reach.\"]\n  Starting capabilities: can-send-client-controlled-request-headers-to-a-reachable-ingress.\n\nThe resources are:\n- resource:existing-user-session is a authenticated-user-identity-and-session. Author facts: [\"The identity and session of an arbitrary existing user named by a trusted-email header.\"]\n\nThe declared source entries are:\n- entry:post-signin-trusted-email names POST /signin -> trusted-email-header branch.\n  Source location: inputs/owui-trusted-header-deployment/env_trusted_headers.py, startLine 1, endLine 13.\n  Source location: inputs/owui-trusted-header-deployment/auths_signin.py, startLine 1, endLine 62.\n\nThe authorization obligations are:\n- scenario:external-client-trusted-header-impersonation: principal principal:unauthenticated-external-client, resource resource:existing-user-session, relation external-client-to-arbitrary-existing-user-identity, operation obtain-session-as-header-selected-user, expected policy disposition deny.\n  Policy source: policy:trusted-proxy-identity-policy. Declared entries: entry:post-signin-trusted-email.\n  Condition deployment-ingress-enforces-header-trust: The accepted policy requires sole trusted-proxy ingress and removal/replacement of client-supplied identity headers; actual deployment facts are not supplied.\n  Condition email-authentication-produces-user: auths_signin.py returns a session only after authenticate_user_by_email yields a user.\n  Condition password-auth-signin-entry-enabled: auths_signin.py checks ENABLE_PASSWORD_AUTH before entering the trusted-header branch.\n  Condition trusted-email-header-name-configured: env_trusted_headers.py makes the header name environment-controlled and auths_signin.py enters the branch only when configured.\n\nScope assurance: Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.\nRequired analysis:\n- Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.\n- identify the configuration condition and how the header becomes a principal identity\n- separate application-source capability from actual deployment reachability and proxy behavior\n- name the minimum missing facts needed to decide the real deployment question\n- return source_supported_failure, source_refuted, or unknown with exact input locations\nConstraints:\n- Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.\n- Use only the allowed case inputs.\n- Do not infer environment values, proxy configuration, network topology, or direct reachability.\n- Do not contact or execute the target deployment.\nAllowed decision kinds: observed for allow/deny expectations; conditional-policy for conditional expectations.",
+    "publicAnalysis": "Decide the current scenario at the stated boundary from the supplied fixed source and accepted policy. Treat listed premises as question assumptions at the named entry, not as source or deployment proof. Trace the decisive authorization control and protected effect with exact supplied-source locations. Answer every explicitly requested counterfactual branch separately, identifying its changed assumptions and any decisive unknown. Include only the response details requested below. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: Can an unauthenticated external client impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin?\nAnalysis boundary: deployment.\nTask premise: The caller is unauthenticated outside the trusted identity proxy and asks whether an actual reachable deployment permits impersonation via a client-supplied trusted-email header.\nRequested counterfactual password-disabled: password-auth-signin-entry-enabled=false.\nRequested counterfactual header-unconfigured: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=false.\nRequested counterfactual authentication-no-user: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=true, email-authentication-produces-user=false.\nRequested counterfactual trusted-ingress: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=true, deployment-ingress-enforces-header-trust=true.\nRequested counterfactual client-header-reaches-app: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=true, email-authentication-produces-user=true, deployment-ingress-enforces-header-trust=false.\nRequired response detail: Identify the configuration and header-to-identity path, applicable denial/status behavior when source shows it, and the minimum missing facts for the actual deployment.",
+    "outputContract": "Use compact wire/v6: top-level results only. Each item has obligationId, decision and branchResults, explanation, facts as an array of {id, kind, statement, citations}, decisiveMissingFacts and suggestedObservations. Fact IDs must be unique within each obligation. kind is entry/binding/control/effect/condition. The host fills all version/identity/scope metadata and groups facts; never output those fields. Include item-local coverage only when an analysis ledger is supplied, and item-local condition only when a condition request is supplied. Branches do not repeat obligationId.\nReturn exactly one result for every runnable expanded obligation. Do not output conclusion or policyStatus at the item level. For an authored allow/deny expectation, return decision {kind:\"observed\",observed:\"allow\"|\"deny\"|\"unknown\"} describing the source-visible behavior, independently of the normative expectation. The host compares that observed behavior with the authored expectation. For an authored conditional expectation, return decision {kind:\"conditional-policy\",policyStatus:\"satisfied\"|\"violated\"|\"undetermined\"}; the host uses this policy judgment without a binary observed comparison. Unknown requires decisiveMissingFacts and suggestedObservations. Do not infer observed behavior from the expectation or prose.\nEvery result includes branchResults, an empty array if no branch is requested. For each explicitly requested branch below, return its exact id and assumptions, a reachable/blocked/unknown effect, a causal explanation, same-obligation factIds for known effects, and decisive missingFacts for unknown effects. Counterfactual assumptions are hypotheses; they do not alter the current scenario or establish source/deployment facts. Extra or missing branches are invalid.\nExact runnable obligation IDs (closed list):\n- scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email\nUse each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.\nSupport the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.\nAddress every public analysis question in the explanation and source-backed facts. No separate coverage ledger is required for this plain-method answer.",
+    "sourceMarker": "<SOURCE_CONTEXT_INSERTED_BY_HOST>"
+  },
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "firstResponse": {
+    "schemaValid": false,
+    "deliveryComplete": false
+  },
+  "protocolMetrics": {
+    "fallbackCalls": 0,
+    "repairCalls": 0,
+    "modelOutputCharacters": 0,
+    "hostMetadataFields": [
+      "schemaVersion",
+      "taskId",
+      "repository",
+      "sourceRef",
+      "scopeClaim",
+      "fact grouping",
+      "fact pointers",
+      "nested obligationId"
+    ]
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 4181,
+      "publicAnalysis": 1951,
+      "source": 4501,
+      "outputContract": 2876,
+      "total": 14010,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "status": "timeout",
+      "startedAt": "2026-09-27T13:24:24.850Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 14010,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false,
+        "toolSchemas": [
+          {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "obligationId": {
+                      "type": "string"
+                    },
+                    "explanation": {
+                      "type": "string"
+                    },
+                    "facts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "entry",
+                              "binding",
+                              "control",
+                              "effect",
+                              "condition"
+                            ]
+                          },
+                          "statement": {
+                            "type": "string"
+                          },
+                          "citations": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "sourceId": {
+                                  "type": "string"
+                                },
+                                "startLine": {
+                                  "type": "number"
+                                },
+                                "endLine": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "sourceId",
+                                "startLine",
+                                "endLine"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "statement",
+                          "citations"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "decisiveMissingFacts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestedObservations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "decision": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "observed"
+                            },
+                            "observed": {
+                              "type": "string",
+                              "enum": [
+                                "allow",
+                                "deny",
+                                "unknown"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "observed"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "conditional-policy"
+                            },
+                            "policyStatus": {
+                              "type": "string",
+                              "enum": [
+                                "satisfied",
+                                "violated",
+                                "undetermined"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "policyStatus"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "branchResults": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "assumptions": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "conditionId": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "enum": [
+                                    "true",
+                                    "false",
+                                    "unknown"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "conditionId",
+                                "value"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "effect": {
+                            "type": "string",
+                            "enum": [
+                              "reachable",
+                              "blocked",
+                              "unknown"
+                            ]
+                          },
+                          "explanation": {
+                            "type": "string"
+                          },
+                          "missingFacts": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "factIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "assumptions",
+                          "effect",
+                          "explanation",
+                          "missingFacts",
+                          "factIds"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "obligationId",
+                    "explanation",
+                    "facts",
+                    "decisiveMissingFacts",
+                    "suggestedObservations",
+                    "decision",
+                    "branchResults"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "results"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "usage": null,
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "endedAt": "2026-09-27T13:27:24.865Z",
+      "error": {
+        "name": "AuthorizationCallTimeoutError",
+        "message": "Authorization provider call did not settle within 180000ms (per-call deadline); request completion is unknown."
+      }
+    }
+  ],
+  "events": [
+    {
+      "sequence": 1,
+      "at": "2026-09-27T13:24:24.850Z",
+      "kind": "dispatch",
+      "attemptId": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "attempt": {
+        "id": "provider-attempt-1",
+        "phase": "initial",
+        "transport": "schema-tool",
+        "status": "pending",
+        "startedAt": "2026-09-27T13:24:24.850Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 14010,
+          "toolNames": [
+            "submit_authorization_result"
+          ],
+          "toolChoice": {
+            "name": "submit_authorization_result"
+          },
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false,
+          "toolSchemas": [
+            {
+              "type": "object",
+              "properties": {
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "obligationId": {
+                        "type": "string"
+                      },
+                      "explanation": {
+                        "type": "string"
+                      },
+                      "facts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "entry",
+                                "binding",
+                                "control",
+                                "effect",
+                                "condition"
+                              ]
+                            },
+                            "statement": {
+                              "type": "string"
+                            },
+                            "citations": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "sourceId": {
+                                    "type": "string"
+                                  },
+                                  "startLine": {
+                                    "type": "number"
+                                  },
+                                  "endLine": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "sourceId",
+                                  "startLine",
+                                  "endLine"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "kind",
+                            "statement",
+                            "citations"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "decisiveMissingFacts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "suggestedObservations": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "decision": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "observed"
+                              },
+                              "observed": {
+                                "type": "string",
+                                "enum": [
+                                  "allow",
+                                  "deny",
+                                  "unknown"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "observed"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "conditional-policy"
+                              },
+                              "policyStatus": {
+                                "type": "string",
+                                "enum": [
+                                  "satisfied",
+                                  "violated",
+                                  "undetermined"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "policyStatus"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "branchResults": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "assumptions": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "conditionId": {
+                                    "type": "string"
+                                  },
+                                  "value": {
+                                    "type": "string",
+                                    "enum": [
+                                      "true",
+                                      "false",
+                                      "unknown"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "conditionId",
+                                  "value"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "effect": {
+                              "type": "string",
+                              "enum": [
+                                "reachable",
+                                "blocked",
+                                "unknown"
+                              ]
+                            },
+                            "explanation": {
+                              "type": "string"
+                            },
+                            "missingFacts": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "factIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "assumptions",
+                            "effect",
+                            "explanation",
+                            "missingFacts",
+                            "factIds"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "obligationId",
+                      "explanation",
+                      "facts",
+                      "decisiveMissingFacts",
+                      "suggestedObservations",
+                      "decision",
+                      "branchResults"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "results"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "usage": null,
+        "costUsd": null,
+        "transportAttempts": "unknown"
+      }
+    },
+    {
+      "sequence": 2,
+      "at": "2026-09-27T13:27:24.866Z",
+      "kind": "timeout",
+      "attemptId": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "reason": "Authorization provider call did not settle within 180000ms (per-call deadline); request completion is unknown.",
+      "attempt": {
+        "id": "provider-attempt-1",
+        "phase": "initial",
+        "transport": "schema-tool",
+        "status": "timeout",
+        "startedAt": "2026-09-27T13:24:24.850Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 14010,
+          "toolNames": [
+            "submit_authorization_result"
+          ],
+          "toolChoice": {
+            "name": "submit_authorization_result"
+          },
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false,
+          "toolSchemas": [
+            {
+              "type": "object",
+              "properties": {
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "obligationId": {
+                        "type": "string"
+                      },
+                      "explanation": {
+                        "type": "string"
+                      },
+                      "facts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "entry",
+                                "binding",
+                                "control",
+                                "effect",
+                                "condition"
+                              ]
+                            },
+                            "statement": {
+                              "type": "string"
+                            },
+                            "citations": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "sourceId": {
+                                    "type": "string"
+                                  },
+                                  "startLine": {
+                                    "type": "number"
+                                  },
+                                  "endLine": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "sourceId",
+                                  "startLine",
+                                  "endLine"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "kind",
+                            "statement",
+                            "citations"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "decisiveMissingFacts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "suggestedObservations": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "decision": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "observed"
+                              },
+                              "observed": {
+                                "type": "string",
+                                "enum": [
+                                  "allow",
+                                  "deny",
+                                  "unknown"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "observed"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "conditional-policy"
+                              },
+                              "policyStatus": {
+                                "type": "string",
+                                "enum": [
+                                  "satisfied",
+                                  "violated",
+                                  "undetermined"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "policyStatus"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "branchResults": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "assumptions": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "conditionId": {
+                                    "type": "string"
+                                  },
+                                  "value": {
+                                    "type": "string",
+                                    "enum": [
+                                      "true",
+                                      "false",
+                                      "unknown"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "conditionId",
+                                  "value"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "effect": {
+                              "type": "string",
+                              "enum": [
+                                "reachable",
+                                "blocked",
+                                "unknown"
+                              ]
+                            },
+                            "explanation": {
+                              "type": "string"
+                            },
+                            "missingFacts": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "factIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "assumptions",
+                            "effect",
+                            "explanation",
+                            "missingFacts",
+                            "factIds"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "obligationId",
+                      "explanation",
+                      "facts",
+                      "decisiveMissingFacts",
+                      "suggestedObservations",
+                      "decision",
+                      "branchResults"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "results"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "usage": null,
+        "costUsd": null,
+        "transportAttempts": "unknown",
+        "endedAt": "2026-09-27T13:27:24.865Z",
+        "error": {
+          "name": "AuthorizationCallTimeoutError",
+          "message": "Authorization provider call did not settle within 180000ms (per-call deadline); request completion is unknown."
+        }
+      }
+    },
+    {
+      "sequence": 3,
+      "at": "2026-09-27T13:27:24.868Z",
+      "kind": "closed",
+      "reason": "per-call-timeout:provider-attempt-1"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 0,
+    "unknownUsageCalls": 1,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "unknown",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

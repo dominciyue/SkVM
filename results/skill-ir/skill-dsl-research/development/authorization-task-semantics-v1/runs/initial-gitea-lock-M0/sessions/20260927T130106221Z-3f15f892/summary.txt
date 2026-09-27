@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260927T130106221Z-3f15f892
+Status: completed
+Task: gitea-issue-lock-writer-nonadmin
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Assessment: legacy
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock: source_refuted — At the declared PUT lock entry, the route applies reqToken() and then reqAdmin(). reqAdmin requires repository-admin or site-admin status and returns forbidden when both are absent, so the stated authenticated issue writer is rejected before LockIssue runs. The handler's later issue/pull-request write check is therefore not reached in this scenario, and the unlocked-issue lock mutation is not reached. Thus the supplied source enforces the accepted deny-nonadmin policy; full token scope and issue-write permission do not bypass the earlier administrator gate. The route/handler source does not establish any repository-wide or deployment-wide completeness claim.
+  Evidence: The declared lock route binds PUT to the issue-lock handler and applies token authentication followed by the administrator guard. (route_guard.go:16-20)
+  Evidence: The route's administrator guard evaluates the authenticated context for repository-administrator or site-administrator status. (route_guard.go:4-8)
+  Evidence: The handler resolves the addressed issue using the repository context and the integer path index before authorization of the lock operation. (issue_lock.go:42-47)
+  Evidence: When neither repository-admin nor site-admin status is present, reqAdmin emits HTTP 403 and returns, making this the decisive first authorization gate. (route_guard.go:4-11)
+  Evidence: If execution reaches the handler, it separately requires permission to write issues or pull requests and otherwise emits HTTP 403. (issue_lock.go:49-52)
+  Evidence: The protected effect constructs lock options with the current user and issue, then invokes the issue lock operation; this effect occurs only after the preceding gates return successfully. (issue_lock.go:54-67)
+  Evidence: The lock effect is conditional on the issue not already being locked. (issue_lock.go:54-57)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

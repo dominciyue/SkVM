@@ -1,0 +1,216 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "assessmentMode": "legacy",
+  "reasoningStrategy": "standard",
+  "researchIdentity": {
+    "arm": "markdown",
+    "instructionOrigin": "independent-author",
+    "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/inputs/owui-text/independent.md",
+    "sha256": "25681319d384dd537ea6dd914033bb2ef905d5cfc97ad3f6d152d70d86be94e9",
+    "characters": 796
+  },
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260927T125530046Z-9ccfb323",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\runs\\initial-owui-text-M0\\sessions\\20260927T125530046Z-9ccfb323",
+  "createdAt": "2026-09-27T12:55:30.046Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\inputs\\owui-text\\authoring.json",
+  "taskId": "owui-process-text-controlled",
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 138,
+      "declaration": 796,
+      "publicAnalysis": 1040,
+      "source": 5404,
+      "outputContract": 2288,
+      "total": 9783,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "owui-process-text-controlled",
+    "repository": "https://github.com/open-webui/open-webui",
+    "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+    "results": [
+      {
+        "obligationId": "scenario%3Anon-admin-without-kb-write-grant::entry%3Apost-process-text",
+        "conclusion": "source_refuted",
+        "explanation": "At the declared entry, the caller is bound to the verified-user dependency, and the caller-selected collection name is passed to the shared validator with access_type='write' before the document is constructed and sent to the vector-database write sink. The shared policy excludes a non-admin from the allowed set when the name is an existing knowledge base and the caller lacks the requested write access: it adds the name only when check_access_by_user_id succeeds, and otherwise adds it only when no knowledge base exists. The stated task premise supplies that the collection is existing, the caller is non-admin, and there is no ownership or write grant; therefore the policy expectation is enforced and the proposed policy failure is refuted. The protected effect is reached only after validation, while denial raises HTTP 403. This conclusion is limited to the declared entry and supplied source; it does not establish repository-wide completeness or deployment behavior.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "POST /process/text declares process_text as the handler and obtains the caller through get_verified_user.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 7,
+                  "endLine": 12,
+                  "quote": "@router.post('/process/text')\nasync def process_text(\n    request: Request,\n    form_data: ProcessTextForm,\n    user=Depends(get_verified_user),\n):"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The principal used by the handler is the user value supplied by the verified-user dependency.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 8,
+                  "endLine": 12,
+                  "quote": "async def process_text(\n    request: Request,\n    form_data: ProcessTextForm,\n    user=Depends(get_verified_user),\n):"
+                }
+              ]
+            },
+            {
+              "statement": "The target collection is taken from form_data.collection_name when supplied by the caller.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 13,
+                  "endLine": 17,
+                  "quote": "    collection_name = form_data.collection_name\n    if collection_name is None:\n        collection_name = calculate_sha256_string(form_data.content)\n    else:\n        await _validate_collection_access([collection_name], user, access_type='write')"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "For a supplied collection name, the handler invokes _validate_collection_access with that name, the caller, and access_type='write' before constructing the document or invoking the write operation.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 13,
+                  "endLine": 18,
+                  "quote": "    collection_name = form_data.collection_name\n    if collection_name is None:\n        collection_name = calculate_sha256_string(form_data.content)\n    else:\n        await _validate_collection_access([collection_name], user, access_type='write')\n"
+                }
+              ]
+            },
+            {
+              "statement": "For non-admin users, an ordinary collection name is added only when Knowledges.check_access_by_user_id succeeds for the requested access type; if that check fails, it is allowed only when no knowledge base exists with that ID.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+                  "startLine": 22,
+                  "endLine": 25,
+                  "quote": "    if user.role == 'admin':\n        return collection_names\n\n    validated = set()"
+                },
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+                  "startLine": 43,
+                  "endLine": 51,
+                  "quote": "            # May be a knowledge-base ID or a legacy/ephemeral collection.\n            # If it IS a KB, enforce access control.  If no such KB\n            # exists, treat it as a non-sensitive collection (e.g. legacy\n            # model knowledge, process_text SHA256 collections) and allow.\n            if await Knowledges.check_access_by_user_id(name, user.id, permission=access_type):\n                validated.add(name)\n            elif not await Knowledges.get_knowledge_by_id(name):\n                # Not a KB at all — legacy/ephemeral collection, allow\n                validated.add(name)"
+                }
+              ]
+            },
+            {
+              "statement": "The shared validator converts requested names to a set, calls filter_accessible_collections with the requested access type, and computes denied names.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 31,
+                  "endLine": 40,
+                  "quote": "async def _validate_collection_access(collection_names: list[str], user, access_type: str = 'read') -> None:\n    \"\"\"\n    Raise 403 if the user lacks access to any of the requested collections.\n    Delegates to the shared filter_accessible_collections utility so the\n    access rules stay in one place.\n    \"\"\"\n    requested = set(collection_names)\n    allowed = await filter_accessible_collections(requested, user, access_type=access_type)\n    denied = requested - allowed\n    if denied:"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "Any requested name not in the allowed set causes the shared validator to raise HTTP 403 Forbidden.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 37,
+                  "endLine": 44,
+                  "quote": "    requested = set(collection_names)\n    allowed = await filter_accessible_collections(requested, user, access_type=access_type)\n    denied = requested - allowed\n    if denied:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=ERROR_MESSAGES.ACCESS_PROHIBITED,\n        )"
+                }
+              ]
+            },
+            {
+              "statement": "After validation, the handler creates a document containing the caller-selected text and passes it with the collection name to save_docs_to_vector_db through run_in_threadpool.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 19,
+                  "endLine": 28,
+                  "quote": "    docs = [\n        Document(\n            page_content=form_data.content,\n            metadata={'name': form_data.name, 'created_by': user.id},\n        )\n    ]\n    text_content = form_data.content\n    log.debug(f'text_content: {text_content}')\n\n    result = await run_in_threadpool(save_docs_to_vector_db, request, docs, collection_name, user=user)"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The stated scenario assumes a verified non-admin selects an existing collection without ownership or an explicit write grant and supplies the text.",
+              "citations": [
+                {
+                  "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+                  "startLine": 11,
+                  "endLine": 17,
+                  "quote": "    user=Depends(get_verified_user),\n):\n    collection_name = form_data.collection_name\n    if collection_name is None:\n        collection_name = calculate_sha256_string(form_data.content)\n    else:\n        await _validate_collection_access([collection_name], user, access_type='write')"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": []
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "relationCoverage": [],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 156,
+      "output": 909,
+      "cacheRead": 2432,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

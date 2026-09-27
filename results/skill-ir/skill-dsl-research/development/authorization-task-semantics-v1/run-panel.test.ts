@@ -8,6 +8,12 @@ test("panel runner reports all frozen units without dispatch", () => {
   expect(result.exitCode).toBe(0)
   const status = JSON.parse(new TextDecoder().decode(result.stdout))
   expect(status.planned).toBe(54)
-  expect(status.claimed).toBe(0)
+  expect(status.claimed).toBe(54)
   expect(status.byPhase).toEqual({ initial: 32, repeat: 16, "outcome-only": 6 })
+})
+
+test("panel runner replays the blind evaluation without a provider", () => {
+  const result = Bun.spawnSync(["bun", script, "replay"], { cwd: path.resolve(import.meta.dir, "../../../../..") })
+  expect(result.exitCode).toBe(0)
+  expect(JSON.parse(new TextDecoder().decode(result.stdout)).status).toBe("reproduced")
 })

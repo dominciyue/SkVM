@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260927T125901559Z-25746ee6
+Status: completed
+Task: gitea-issue-assignee-nonwriter
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Assessment: legacy
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonwriter-assignee-add::entry%3Apost-issue-assignees: source_refuted — At the named POST entry, the handler invokes updateIssueAssignees with isAdd=true. The supplied source checks repository issue/pull-request write permission and returns HTTP 403 before assignee resolution; therefore, under the stated premise that repository issue-write permission is absent, the caller cannot add the assignee and the path does not reach either assignee resolution or mutation. The authenticated issue-write token scope is a distinct premise and is not the repository permission checked by this crop; the visible decisive control is ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull). The existing issue is loaded before that control, but the requested user is not resolved before it. Counterfactual permission-granted-assignee-exists: with repository issue-write permission true and the assignee existing, the path passes the control, reaches assignee resolution, and reaches the add mutation, assuming no other runtime error. Counterfactual permission-granted-assignee-missing: with repository issue-write permission true but the assignee missing, the path reaches assignee resolution, returns the shown 422 user-not-exist response, and does not reach mutation. The fixed crop does not establish token-scope enforcement or deployment-wide route facts; those are supplied task premises at the declared entry.
+  Evidence: The named operation is the POST issue-assignees handler, which calls updateIssueAssignees with addition enabled. (issue_assignee.go:4-6, issue_assignee.go:47-49)
+  Evidence: The mutation is invoked with ctx.Doer as the acting principal. (issue_assignee.go:80-83)
+  Evidence: The handler binds the operation to the repository identified by ctx.Repo.Repository.ID and the issue index from the request path. (issue_assignee.go:53-55)
+  Evidence: The handler requires repository permission to write issues or pull requests and returns forbidden when that permission is absent. (issue_assignee.go:60-63)
+  Evidence: When addition is enabled, the handler calls issue_service.AddAssignees with the issue, acting principal, and resolved assignee IDs. (issue_assignee.go:80-83)
+  Evidence: Assignee names are resolved to user IDs only after the repository permission check. (issue_assignee.go:60-70)
+  Evidence: A missing user during assignee resolution produces a 422 response and returns before the mutation call. (issue_assignee.go:70-78)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

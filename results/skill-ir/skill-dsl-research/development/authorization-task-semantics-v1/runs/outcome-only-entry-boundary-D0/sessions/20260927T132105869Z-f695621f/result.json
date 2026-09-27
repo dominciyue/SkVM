@@ -1,0 +1,268 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "assessmentMode": "legacy",
+  "reasoningStrategy": "standard",
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260927T132105869Z-f695621f",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\runs\\outcome-only-entry-boundary-D0\\sessions\\20260927T132105869Z-f695621f",
+  "createdAt": "2026-09-27T13:21:05.869Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\inputs\\fastapi-superuser-read\\authoring.json",
+  "taskId": "fastapi-items-superuser-read",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 2257,
+      "publicAnalysis": 1091,
+      "source": 4317,
+      "outputContract": 2825,
+      "total": 10991,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "fastapi-items-superuser-read",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "results": [
+      {
+        "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+        "conclusion": "source_refuted",
+        "explanation": "At the declared read_item handler-entry boundary, the task premise supplies that current_user is the authenticated active superuser and that the existing item is owned by another user. The handler loads the item by id, returns 404 only if it is absent, and denies a different-owner read only when the caller is not a superuser. With is_superuser true, that denial condition is false despite the owner mismatch, so execution reaches the return of the item. This source-visible behavior allows the read and agrees with the accepted policy. The conclusion is limited to the stated handler-entry assumptions. The supplied crop shows a CurrentUser-typed parameter but does not prove how the upstream dependency authenticates the caller, enforces active status, or binds that principal to current_user; those deployment/upstream facts are not decisive under the declared-entry premise and are not inferred here. No repository-wide or deployment completeness claim is made.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The declared GET item-by-id route enters the read_item handler with session, current_user, and id parameters.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 48,
+                  "endLine": 49,
+                  "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "At the handler boundary, the principal-bearing value is the current_user parameter typed as CurrentUser; this crop does not establish its upstream authentication or active-user construction.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 49,
+                  "endLine": 49,
+                  "quote": "def read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:"
+                }
+              ]
+            },
+            {
+              "statement": "The handler binds the requested resource by loading an Item using the supplied id and stops with 404 if no item exists.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 53,
+                  "endLine": 55,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "The strongest visible authorization control raises 403 only when the caller is not a superuser and the loaded item's owner differs from the caller.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 56,
+                  "endLine": 57,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "If neither the not-found branch nor the authorization-denial branch terminates execution, the protected effect is returning the loaded item.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 53,
+                  "endLine": 58,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    return item"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "Under the task assumption that current_user is a superuser, the first conjunct of the denial condition is false, so a different owner does not trigger the 403 branch.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 56,
+                  "endLine": 57,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": []
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "wireResult": {
+    "results": [
+      {
+        "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+        "explanation": "At the declared read_item handler-entry boundary, the task premise supplies that current_user is the authenticated active superuser and that the existing item is owned by another user. The handler loads the item by id, returns 404 only if it is absent, and denies a different-owner read only when the caller is not a superuser. With is_superuser true, that denial condition is false despite the owner mismatch, so execution reaches the return of the item. This source-visible behavior allows the read and agrees with the accepted policy. The conclusion is limited to the stated handler-entry assumptions. The supplied crop shows a CurrentUser-typed parameter but does not prove how the upstream dependency authenticates the caller, enforces active status, or binds that principal to current_user; those deployment/upstream facts are not decisive under the declared-entry premise and are not inferred here. No repository-wide or deployment completeness claim is made.",
+        "facts": [
+          {
+            "id": "f-entry-read-item",
+            "kind": "entry",
+            "statement": "The declared GET item-by-id route enters the read_item handler with session, current_user, and id parameters.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 48,
+                "endLine": 49
+              }
+            ]
+          },
+          {
+            "id": "f-principal-binding",
+            "kind": "binding",
+            "statement": "At the handler boundary, the principal-bearing value is the current_user parameter typed as CurrentUser; this crop does not establish its upstream authentication or active-user construction.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 49,
+                "endLine": 49
+              }
+            ]
+          },
+          {
+            "id": "f-resource-binding",
+            "kind": "binding",
+            "statement": "The handler binds the requested resource by loading an Item using the supplied id and stops with 404 if no item exists.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 53,
+                "endLine": 55
+              }
+            ]
+          },
+          {
+            "id": "f-authorization-control",
+            "kind": "control",
+            "statement": "The strongest visible authorization control raises 403 only when the caller is not a superuser and the loaded item's owner differs from the caller.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 56,
+                "endLine": 57
+              }
+            ]
+          },
+          {
+            "id": "f-superuser-condition",
+            "kind": "condition",
+            "statement": "Under the task assumption that current_user is a superuser, the first conjunct of the denial condition is false, so a different owner does not trigger the 403 branch.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 56,
+                "endLine": 57
+              }
+            ]
+          },
+          {
+            "id": "f-protected-effect",
+            "kind": "effect",
+            "statement": "If neither the not-found branch nor the authorization-denial branch terminates execution, the protected effect is returning the loaded item.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 53,
+                "endLine": 58
+              }
+            ]
+          }
+        ],
+        "decisiveMissingFacts": [],
+        "suggestedObservations": [],
+        "decision": {
+          "kind": "observed",
+          "observed": "allow"
+        },
+        "branchResults": []
+      }
+    ]
+  },
+  "normalizerVersion": "authorization-wire-normalizer/v6",
+  "relationCoverage": [],
+  "observedDecisions": [
+    {
+      "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+      "expectation": "allow",
+      "observed": "allow",
+      "derivedConclusion": "source_refuted"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 2935,
+      "output": 910,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "authorization-local-check/v1",
+  "status": "valid",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\inputs\\owui-header\\authoring.json",
+  "taskId": "owui-trusted-header-deployment",
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "sourceRoot": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-semantic-quality-v1\\inputs\\owui-header\\source",
+  "sourceFiles": [
+    "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+    "inputs/owui-trusted-header-deployment/auths_signin.py"
+  ],
+  "arm": "B",
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "assessmentMode": "explicit-v1",
+  "assessmentProgram": {
+    "schemaVersion": "authorization-assessment-program/v1",
+    "entries": [
+      {
+        "obligationId": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email",
+        "authorObligationId": "scenario:external-client-trusted-header-impersonation",
+        "entryId": "entry:post-signin-trusted-email",
+        "boundary": "deployment",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "The caller is unauthenticated outside the trusted identity proxy and asks whether an actual reachable deployment permits impersonation via a client-supplied trusted-email header.",
+            "atEntryId": "entry:post-signin-trusted-email",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:authentication-no-user",
+            "authorBranchId": "authentication-no-user",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:email-authentication-produces-user",
+                "value": "false"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                "value": "true"
+              }
+            ]
+          },
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:client-header-reaches-app",
+            "authorBranchId": "client-header-reaches-app",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:deployment-ingress-enforces-header-trust",
+                "value": "false"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:email-authentication-produces-user",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                "value": "true"
+              }
+            ]
+          },
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:header-unconfigured",
+            "authorBranchId": "header-unconfigured",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                "value": "false"
+              }
+            ]
+          },
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:password-disabled",
+            "authorBranchId": "password-disabled",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "false"
+              }
+            ]
+          },
+          {
+            "id": "scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:trusted-ingress",
+            "authorBranchId": "trusted-ingress",
+            "assumptions": [
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:deployment-ingress-enforces-header-trust",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled",
+                "value": "true"
+              },
+              {
+                "conditionId": "condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured",
+                "value": "true"
+              }
+            ]
+          }
+        ],
+        "requiredResponseDetails": [
+          "Identify the configuration and header-to-identity path, applicable denial/status behavior when source shows it, and the minimum missing facts for the actual deployment."
+        ]
+      }
+    ]
+  },
+  "reasoningStrategy": "standard",
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirementCount": 6,
+  "ledgerEntryCount": 0,
+  "preview": "<!-- analysis-profile: authorization-core-v1; origin: derived; study-arm: none; condition-analysis: disabled; assessment: explicit-v1 -->\n\n# Source-visible authorization assessment\n\nAssess the authored task below using only the supplied fixed source and common result contract.\n\n## Independent Markdown instructions\nAt `https://github.com/open-webui/open-webui` ref `841c9045d789005145274955e7ef60b1b11a9be9`, assess whether an unauthenticated external client can impersonate an arbitrary existing user by sending a trusted-email header to `POST /signin`. Apply the policy that trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes client-supplied identity headers, and injects the authenticated identity. Identify the configuration condition, how the header becomes the principal identity, and the boundary between application-source capability and deployment reachability; state the minimum deployment facts required for assessment. Use only the allowed case inputs, cite exact input locations, do not infer environment, proxy, topology, or reachability facts, and do not contact, execute, or deploy against the target.\n\n\n## Public analysis questions\nDecide the current scenario at the stated boundary from the supplied fixed source and accepted policy. Treat listed premises as question assumptions at the named entry, not as source or deployment proof. Trace the decisive authorization control and protected effect with exact supplied-source locations. Answer every explicitly requested counterfactual branch separately, identifying its changed assumptions and any decisive unknown. Include only the response details requested below. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: Can an unauthenticated external client impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin?\nAnalysis boundary: deployment.\nTask premise: The caller is unauthenticated outside the trusted identity proxy and asks whether an actual reachable deployment permits impersonation via a client-supplied trusted-email header.\nRequested counterfactual password-disabled: password-auth-signin-entry-enabled=false.\nRequested counterfactual header-unconfigured: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=false.\nRequested counterfactual authentication-no-user: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=true, email-authentication-produces-user=false.\nRequested counterfactual trusted-ingress: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=true, deployment-ingress-enforces-header-trust=true.\nRequested counterfactual client-header-reaches-app: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=true, email-authentication-produces-user=true, deployment-ingress-enforces-header-trust=false.\nRequired response detail: Identify the configuration and header-to-identity path, applicable denial/status behavior when source shows it, and the minimum missing facts for the actual deployment.\n\n## Explicit assessment program\n- Current question scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email at entry:post-signin-trusted-email; boundary: deployment.\n  Accepted task premises at this entry (not source citations): premise-1: The caller is unauthenticated outside the trusted identity proxy and asks whether an actual reachable deployment permits impersonation via a client-supplied trusted-email header..\n  Prove the decisive source path within the requested boundary; report a decisive missing binding only when that boundary requires it.\n  Explicit counterfactual scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:authentication-no-user: condition:external-client-trusted-header-impersonation:email-authentication-produces-user=false, condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled=true, condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured=true. Answer separately from the current case.\n  Explicit counterfactual scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:client-header-reaches-app: condition:external-client-trusted-header-impersonation:deployment-ingress-enforces-header-trust=false, condition:external-client-trusted-header-impersonation:email-authentication-produces-user=true, condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled=true, condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured=true. Answer separately from the current case.\n  Explicit counterfactual scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:header-unconfigured: condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled=true, condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured=false. Answer separately from the current case.\n  Explicit counterfactual scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:password-disabled: condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled=false. Answer separately from the current case.\n  Explicit counterfactual scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:trusted-ingress: condition:external-client-trusted-header-impersonation:deployment-ingress-enforces-header-trust=true, condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled=true, condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured=true. Answer separately from the current case.\n  Required response details: Identify the configuration and header-to-identity path, applicable denial/status behavior when source shows it, and the minimum missing facts for the actual deployment..\n\n## Result contract\nUse compact wire/v6: top-level results only. Each item has obligationId, decision and branchResults, explanation, facts as an array of {id, kind, statement, citations}, decisiveMissingFacts and suggestedObservations. Fact IDs must be unique within each obligation. kind is entry/binding/control/effect/condition. The host fills all version/identity/scope metadata and groups facts; never output those fields. Include item-local coverage only when an analysis ledger is supplied, and item-local condition only when a condition request is supplied. Branches do not repeat obligationId.\nReturn exactly one result for every runnable expanded obligation. Do not output conclusion or policyStatus at the item level. For an authored allow/deny expectation, return decision {kind:\"observed\",observed:\"allow\"|\"deny\"|\"unknown\"} describing the source-visible behavior, independently of the normative expectation. The host compares that observed behavior with the authored expectation. For an authored conditional expectation, return decision {kind:\"conditional-policy\",policyStatus:\"satisfied\"|\"violated\"|\"undetermined\"}; the host uses this policy judgment without a binary observed comparison. Unknown requires decisiveMissingFacts and suggestedObservations. Do not infer observed behavior from the expectation or prose.\nEvery result includes branchResults, an empty array if no branch is requested. For each explicitly requested branch below, return its exact id and assumptions, a reachable/blocked/unknown effect, a causal explanation, same-obligation factIds for known effects, and decisive missingFacts for unknown effects. Counterfactual assumptions are hypotheses; they do not alter the current scenario or establish source/deployment facts. Extra or missing branches are invalid.\nExact requested branch IDs and assumptions (closed list):\n- scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email: scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:authentication-no-user [{\"conditionId\":\"condition:external-client-trusted-header-impersonation:email-authentication-produces-user\",\"value\":\"false\"},{\"conditionId\":\"condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled\",\"value\":\"true\"},{\"conditionId\":\"condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured\",\"value\":\"true\"}]\n- scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email: scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:client-header-reaches-app [{\"conditionId\":\"condition:external-client-trusted-header-impersonation:deployment-ingress-enforces-header-trust\",\"value\":\"false\"},{\"conditionId\":\"condition:external-client-trusted-header-impersonation:email-authentication-produces-user\",\"value\":\"true\"},{\"conditionId\":\"condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled\",\"value\":\"true\"},{\"conditionId\":\"condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured\",\"value\":\"true\"}]\n- scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email: scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:header-unconfigured [{\"conditionId\":\"condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled\",\"value\":\"true\"},{\"conditionId\":\"condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured\",\"value\":\"false\"}]\n- scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email: scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:password-disabled [{\"conditionId\":\"condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled\",\"value\":\"false\"}]\n- scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email: scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email::branch:trusted-ingress [{\"conditionId\":\"condition:external-client-trusted-header-impersonation:deployment-ingress-enforces-header-trust\",\"value\":\"true\"},{\"conditionId\":\"condition:external-client-trusted-header-impersonation:password-auth-signin-entry-enabled\",\"value\":\"true\"},{\"conditionId\":\"condition:external-client-trusted-header-impersonation:trusted-email-header-name-configured\",\"value\":\"true\"}]\nExact runnable obligation IDs (closed list):\n- scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email\nUse each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.\nSupport the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.\nAddress every public analysis question in the explanation and source-backed facts. No separate coverage ledger is required for this plain-method answer.\n\n## Fixed source context\n===== BEGIN ALLOWED INPUT: inputs/owui-trusted-header-deployment/auths_signin.py =====\nSource ID: src-8d5759765262cf30\nLocation note: crop lines 1-62; original locations: not separately supplied\nCitation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.\n1 | # Cropped from backend/open_webui/routers/auths.py at\n2 | # https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9\n3 | # Original lines 570-623 and 672-675.\n4 | @router.post('/signin', response_model=SessionUserResponse)\n5 | async def signin(\n6 |     request: Request,\n7 |     response: Response,\n8 |     form_data: SigninForm,\n9 |     db: AsyncSession = Depends(get_async_session),\n10 | ):\n11 |     if not ENABLE_PASSWORD_AUTH:\n12 |         raise HTTPException(\n13 |             status_code=status.HTTP_403_FORBIDDEN,\n14 |             detail=ERROR_MESSAGES.ACTION_PROHIBITED,\n15 |         )\n16 | \n17 |     if WEBUI_AUTH_TRUSTED_EMAIL_HEADER:\n18 |         if WEBUI_AUTH_TRUSTED_EMAIL_HEADER not in request.headers:\n19 |             raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_TRUSTED_HEADER)\n20 | \n21 |         email = request.headers[WEBUI_AUTH_TRUSTED_EMAIL_HEADER].lower()\n22 |         name = email\n23 | \n24 |         if WEBUI_AUTH_TRUSTED_NAME_HEADER:\n25 |             name = request.headers.get(WEBUI_AUTH_TRUSTED_NAME_HEADER, email)\n26 |             try:\n27 |                 name = urllib.parse.unquote(name, encoding='utf-8')\n28 |             except Exception as e:\n29 |                 pass\n30 | \n31 |         if not await Users.get_user_by_email(email.lower(), db=db):\n32 |             await signup_handler(\n33 |                 request,\n34 |                 email,\n35 |                 str(uuid.uuid4()),\n36 |                 name,\n37 |                 db=db,\n38 |             )\n39 | \n40 |         user = await Auths.authenticate_user_by_email(email, db=db)\n41 |         if user:\n42 |             if WEBUI_AUTH_TRUSTED_GROUPS_HEADER:\n43 |                 group_names = request.headers.get(WEBUI_AUTH_TRUSTED_GROUPS_HEADER, '').split(',')\n44 |                 group_names = [name.strip() for name in group_names if name.strip()]\n45 | \n46 |                 if group_names:\n47 |                     await Groups.sync_groups_by_group_names(user.id, group_names, db=db)\n48 | \n49 |             if WEBUI_AUTH_TRUSTED_ROLE_HEADER:\n50 |                 trusted_role = request.headers.get(WEBUI_AUTH_TRUSTED_ROLE_HEADER, '').lower().strip()\n51 |                 if trusted_role in {'admin', 'user', 'pending'}:\n52 |                     if user.role != trusted_role:\n53 |                         await Users.update_user_role_by_id(user.id, trusted_role, db=db)\n54 |                 elif trusted_role:\n55 |                     log.warning(f'Ignoring invalid trusted role header value: {trusted_role}')\n56 | \n57 | # Original lines 623-671 handle other sign-in modes and are omitted.\n58 | \n59 |     if user:\n60 |         return await create_session_response(request, user, db, response, set_cookie=True)\n61 |     else:\n62 |         raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)\n===== END ALLOWED INPUT: inputs/owui-trusted-header-deployment/auths_signin.py =====\n\n===== BEGIN ALLOWED INPUT: inputs/owui-trusted-header-deployment/env_trusted_headers.py =====\nSource ID: src-5f54873929978798\nLocation note: crop lines 1-13; original locations: not separately supplied\nCitation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.\n1 | # Cropped from backend/open_webui/env.py at\n2 | # https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9\n3 | # Original lines 529-538.\n4 | # Optional env vars for creating an admin account on startup\n5 | # Useful for headless/automated deployments\n6 | WEBUI_ADMIN_EMAIL = os.environ.get('WEBUI_ADMIN_EMAIL', '')\n7 | WEBUI_ADMIN_PASSWORD = os.environ.get('WEBUI_ADMIN_PASSWORD', '')\n8 | WEBUI_ADMIN_NAME = os.environ.get('WEBUI_ADMIN_NAME', 'Admin')\n9 | \n10 | WEBUI_AUTH_TRUSTED_EMAIL_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_EMAIL_HEADER', None)\n11 | WEBUI_AUTH_TRUSTED_NAME_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_NAME_HEADER', None)\n12 | WEBUI_AUTH_TRUSTED_GROUPS_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_GROUPS_HEADER', None)\n13 | WEBUI_AUTH_TRUSTED_ROLE_HEADER = os.environ.get('WEBUI_AUTH_TRUSTED_ROLE_HEADER', None)\n===== END ALLOWED INPUT: inputs/owui-trusted-header-deployment/env_trusted_headers.py =====",
+  "promptCharacters": {
+    "instructions": 138,
+    "declaration": 863,
+    "publicAnalysis": 1951,
+    "assessmentProgram": 2965,
+    "source": 4501,
+    "outputContract": 5635,
+    "total": 16203,
+    "tokenMeasurement": "provider-reported-only"
+  },
+  "diagnostics": []
+}

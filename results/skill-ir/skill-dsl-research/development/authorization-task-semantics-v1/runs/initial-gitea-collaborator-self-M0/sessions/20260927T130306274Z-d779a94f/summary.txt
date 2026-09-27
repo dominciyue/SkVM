@@ -1,0 +1,25 @@
+Authorization assessment
+Session: 20260927T130306274Z-d779a94f
+Status: completed
+Task: gitea-collaborator-self-permission
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Assessment: legacy
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adifferent-user-query::entry%3Aget-repo-permissions: source_refuted — At the declared entry, the self-query branch is authorized for the stated caller because the caller's lower-cased name equals the requested collaborator username, making the second operand of the denial condition false; the caller therefore reaches the permission lookup and success response. In the separately requested other-user counterfactual, change only the queried username so it differs from the caller's name while retaining the premises that the caller is neither a site administrator nor a repository administrator. Then all three denial-condition operands are true, so the handler returns HTTP 403 before resolving the user or retrieving permissions. Thus the source enforces the policy expectation that this non-admin, non-repository-admin collaborator cannot query another user's permissions; the expected authorization failure is refuted as a source-policy failure.
+  Evidence: The assessed declared entry is the GetRepoPermissions handler. (collaborators.go:4-6)
+  Evidence: The handler evaluates the authenticated caller through ctx.Doer.IsAdmin, ctx.Doer.LowerName, and ctx.IsUserRepoAdmin(). (collaborators.go:35-37)
+  Evidence: After authorization, the permission lookup is bound to ctx.Repo.Repository and the resolved collaborator. (collaborators.go:41-52)
+  Evidence: For a different username, a caller who is neither a site administrator nor a repository administrator satisfies the combined denial condition and is rejected. (collaborators.go:35-39)
+  Evidence: When the self-query condition permits entry, the handler can retrieve the individual repository permission and return HTTP 200 JSON. (collaborators.go:51-58)
+  Evidence: The denial branch returns HTTP 403 and exits before the user lookup and permission retrieval. (collaborators.go:36-41)
+  Evidence: A self-query is recognized by strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername); for the stated own-username query this equality makes the denial condition's middle operand false. (collaborators.go:35-36)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

@@ -1,0 +1,679 @@
+{
+  "status": "timeout-unknown",
+  "arm": "B",
+  "compiled": {
+    "task": {
+      "schemaVersion": "source-authorization-assessment/v0",
+      "taskId": "owui-process-text-controlled",
+      "request": "At this fixed source ref, determine whether a verified non-admin user can write attacker-selected text to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/text.",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "sourceMode": "fixed-context",
+      "policySources": [
+        {
+          "id": "policy:knowledge-write-policy",
+          "kind": "explicit-task-requirement",
+          "text": "A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+          "location": "inputs/owui-process-text-controlled/task.json#/normativeRequirement",
+          "revision": "authorization-case-input/v1@841c9045",
+          "acceptance": {
+            "status": "accepted",
+            "actorRole": "task-author",
+            "reason": "The study task author supplied this bounded normative requirement for the comparison."
+          }
+        }
+      ],
+      "principals": [
+        {
+          "id": "principal:verified-non-admin",
+          "role": "verified non-administrator",
+          "description": "Author facts: [\"A signed-in non-admin without ownership or an explicit write grant on the selected knowledge base.\"]",
+          "startingCapabilities": [
+            "authenticated-as-verified-user",
+            "can-submit-process-text-form"
+          ]
+        }
+      ],
+      "resources": [
+        {
+          "id": "resource:existing-target-knowledge-base",
+          "type": "knowledge-base-vector-collection",
+          "description": "Author facts: [\"An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal.\"]"
+        }
+      ],
+      "entries": [
+        {
+          "id": "entry:post-process-text",
+          "name": "POST /process/text -> process_text",
+          "locations": [
+            {
+              "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+              "startLine": 1,
+              "endLine": 44
+            },
+            {
+              "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+              "startLine": 1,
+              "endLine": 52
+            }
+          ]
+        }
+      ],
+      "obligations": [
+        {
+          "id": "scenario:non-admin-without-kb-write-grant",
+          "principalId": "principal:verified-non-admin",
+          "resourceId": "resource:existing-target-knowledge-base",
+          "relation": "no-ownership-or-explicit-write-grant",
+          "operation": "write-attacker-selected-text-to-existing-knowledge-base",
+          "expectation": "deny",
+          "conditions": [
+            {
+              "name": "caller-supplies-existing-collection-name",
+              "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+            },
+            {
+              "name": "principal-is-not-admin",
+              "basis": "The task asks about a verified non-admin and the shared policy exposes a separate admin branch."
+            }
+          ],
+          "policySourceId": "policy:knowledge-write-policy",
+          "entryIds": [
+            "entry:post-process-text"
+          ]
+        }
+      ],
+      "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+      "requiredAnalysis": [
+        "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+        "identify the principal, operation, target resource relation, entry, and write sink",
+        "trace the supplied collection name through caller-side and shared controls",
+        "state what happens for a non-admin targeting an existing knowledge-base ID without write access",
+        "return source_supported_failure, source_refuted, or unknown with exact input locations"
+      ],
+      "constraints": [
+        "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+        "Use only the allowed case inputs.",
+        "Do not search for advisories, fixes, later versions, or deployment behavior.",
+        "Do not execute the project or propose a patch."
+      ]
+    },
+    "status": "ready",
+    "runnableObligations": [
+      {
+        "id": "scenario%3Anon-admin-without-kb-write-grant::entry%3Apost-process-text",
+        "authorObligationId": "scenario:non-admin-without-kb-write-grant",
+        "entryId": "entry:post-process-text",
+        "obligation": {
+          "id": "scenario:non-admin-without-kb-write-grant",
+          "principalId": "principal:verified-non-admin",
+          "resourceId": "resource:existing-target-knowledge-base",
+          "relation": "no-ownership-or-explicit-write-grant",
+          "operation": "write-attacker-selected-text-to-existing-knowledge-base",
+          "expectation": "deny",
+          "conditions": [
+            {
+              "name": "caller-supplies-existing-collection-name",
+              "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+            },
+            {
+              "name": "principal-is-not-admin",
+              "basis": "The task asks about a verified non-admin and the shared policy exposes a separate admin branch."
+            }
+          ],
+          "policySourceId": "policy:knowledge-write-policy",
+          "entryIds": [
+            "entry:post-process-text"
+          ]
+        },
+        "principal": {
+          "id": "principal:verified-non-admin",
+          "role": "verified non-administrator",
+          "description": "Author facts: [\"A signed-in non-admin without ownership or an explicit write grant on the selected knowledge base.\"]",
+          "startingCapabilities": [
+            "authenticated-as-verified-user",
+            "can-submit-process-text-form"
+          ]
+        },
+        "resource": {
+          "id": "resource:existing-target-knowledge-base",
+          "type": "knowledge-base-vector-collection",
+          "description": "Author facts: [\"An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal.\"]"
+        },
+        "entry": {
+          "id": "entry:post-process-text",
+          "name": "POST /process/text -> process_text",
+          "locations": [
+            {
+              "path": "inputs/owui-process-text-controlled/retrieval_process_text.py",
+              "startLine": 1,
+              "endLine": 44
+            },
+            {
+              "path": "inputs/owui-process-text-controlled/retrieval_access_policy.py",
+              "startLine": 1,
+              "endLine": 52
+            }
+          ]
+        },
+        "policySource": {
+          "id": "policy:knowledge-write-policy",
+          "kind": "explicit-task-requirement",
+          "text": "A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+          "location": "inputs/owui-process-text-controlled/task.json#/normativeRequirement",
+          "revision": "authorization-case-input/v1@841c9045",
+          "acceptance": {
+            "status": "accepted",
+            "actorRole": "task-author",
+            "reason": "The study task author supplied this bounded normative requirement for the comparison."
+          }
+        }
+      }
+    ],
+    "blockedObligations": [],
+    "diagnostics": [],
+    "dependencies": {
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "sourceMode": "fixed-context",
+      "policies": [
+        {
+          "id": "policy:knowledge-write-policy",
+          "revision": "authorization-case-input/v1@841c9045",
+          "acceptanceStatus": "accepted"
+        }
+      ]
+    }
+  },
+  "renderedPrompt": "# Source-visible authorization assessment\n\nAssess the authored task below using only the supplied fixed source and common result contract.\n\n## Independent Markdown instructions\nAt `https://github.com/open-webui/open-webui` ref `841c9045d789005145274955e7ef60b1b11a9be9`, assess whether a verified non-admin principal can write attacker-selected text to an existing knowledge-base collection named in `POST /process/text` when the principal lacks permission to write that collection. Apply the policy that an existing collection may be written only by its owner or a principal with an explicit write grant. Trace the declared caller, validator, shared policy path, supplied collection name, and vector-database write sink; identify principal, operation, target relation, entry, and sink. Use only the allowed case inputs, cite exact input locations, and perform source-only analysis without executing, deploying, searching beyond the supplied sources, or proposing a patch.\n\n\n## Public analysis questions\nDecide the current scenario at the stated boundary from the supplied fixed source and accepted policy. Treat listed premises as question assumptions at the named entry, not as source or deployment proof. Trace the decisive authorization control and protected effect with exact supplied-source locations. Answer every explicitly requested counterfactual branch separately, identifying its changed assumptions and any decisive unknown. Include only the response details requested below. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: Can a verified non-admin write caller-selected text to an existing caller-selected knowledge-base collection without a write grant through POST /process/text?\nAnalysis boundary: declared-entry.\nTask premise: At POST /process/text the verified non-admin selects an existing collection without ownership or a write grant and supplies the text.\nRequired response detail: Trace the caller-side and shared authorization controls before the text write sink.\n\n## Result contract\nUse compact wire/v4: top-level results only. Each item has obligationId, conclusion, explanation, facts as an array of {id, kind, statement, citations}, decisiveMissingFacts and suggestedObservations. Fact IDs must be unique within each obligation. kind is entry/binding/control/effect/condition. The host fills all version/identity/scope metadata and groups facts; never output those fields. Include item-local coverage only when an analysis ledger is supplied, and item-local condition only when a condition request is supplied. Branches do not repeat obligationId.\nReturn exactly one result for every runnable expanded obligation, with one of: source_supported_failure, source_refuted, unknown.\nInterpret conclusion labels relative to the declared policy expectation, not as direct synonyms for allow or deny:\n- source_supported_failure: the fixed source supports that the declared policy expectation fails under the stated conditions.\n- source_refuted: the fixed source supports that the declared policy expectation is enforced under the stated conditions, refuting a policy failure.\n- unknown: the fixed source and declared context are insufficient to decide whether the expectation fails or is enforced.\nExact runnable obligation IDs (closed list):\n- scenario%3Anon-admin-without-kb-write-grant::entry%3Apost-process-text\nUse each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.\nSupport the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.\nAddress every public analysis question in the explanation and source-backed facts. No separate coverage ledger is required for this plain-method answer.\n\n## Fixed source context\n===== BEGIN ALLOWED INPUT: inputs/owui-process-text-controlled/retrieval_access_policy.py =====\nSource ID: src-bc2fc3bd01b481d9\nLocation note: crop lines 1-52; original locations: not separately supplied\nCitation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.\n1 | # Cropped from backend/open_webui/retrieval/utils.py at\n2 | # https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9\n3 | # Original lines 1061-1109.\n4 | async def filter_accessible_collections(\n5 |     collection_names: set[str],\n6 |     user: UserModel,\n7 |     access_type: str = 'read',\n8 | ) -> set[str]:\n9 |     \"\"\"\n10 |     Return only the collection names the user is allowed to access.\n11 |     Admins bypass all checks.  For non-admins the policy is:\n12 | \n13 |       - file-*          → validated via has_access_to_file\n14 |       - user-memory-*   → must match user's own memory collection\n15 |       - web-search-*    → ephemeral per-query collections, always allowed\n16 |       - knowledge-bases → always denied (system meta-collection)\n17 |       - everything else → if the name matches a knowledge base, validated\n18 |                           via Knowledges.check_access_by_user_id; if no\n19 |                           such KB exists, the name is treated as an\n20 |                           ephemeral/legacy collection and allowed\n21 |     \"\"\"\n22 |     if user.role == 'admin':\n23 |         return collection_names\n24 | \n25 |     validated = set()\n26 |     for name in collection_names:\n27 |         if name == 'knowledge-bases':\n28 |             # System meta-collection — never exposed to non-admins.\n29 |             continue\n30 |         elif name.startswith('file-'):\n31 |             file_id = name[len('file-') :]\n32 |             if await has_access_to_file(file_id=file_id, access_type=access_type, user=user):\n33 |                 validated.add(name)\n34 |         elif name.startswith('user-memory-'):\n35 |             if name == f'user-memory-{user.id}':\n36 |                 validated.add(name)\n37 |         elif name.startswith('web-search-'):\n38 |             # Ephemeral collections created by process_web_search — safe\n39 |             # to allow because they contain only transient web-search\n40 |             # results scoped to the requesting user's session.\n41 |             validated.add(name)\n42 |         else:\n43 |             # May be a knowledge-base ID or a legacy/ephemeral collection.\n44 |             # If it IS a KB, enforce access control.  If no such KB\n45 |             # exists, treat it as a non-sensitive collection (e.g. legacy\n46 |             # model knowledge, process_text SHA256 collections) and allow.\n47 |             if await Knowledges.check_access_by_user_id(name, user.id, permission=access_type):\n48 |                 validated.add(name)\n49 |             elif not await Knowledges.get_knowledge_by_id(name):\n50 |                 # Not a KB at all — legacy/ephemeral collection, allow\n51 |                 validated.add(name)\n52 |     return validated\n===== END ALLOWED INPUT: inputs/owui-process-text-controlled/retrieval_access_policy.py =====\n\n===== BEGIN ALLOWED INPUT: inputs/owui-process-text-controlled/retrieval_process_text.py =====\nSource ID: src-2d29ccb8dfb4019e\nLocation note: crop lines 1-44; original locations: not separately supplied\nCitation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.\n1 | # Cropped from backend/open_webui/routers/retrieval.py at\n2 | # https://github.com/open-webui/open-webui/tree/841c9045d789005145274955e7ef60b1b11a9be9\n3 | # Original lines 1768-1792.\n4 | collection_name: Optional[str] = None\n5 | \n6 | \n7 | @router.post('/process/text')\n8 | async def process_text(\n9 |     request: Request,\n10 |     form_data: ProcessTextForm,\n11 |     user=Depends(get_verified_user),\n12 | ):\n13 |     collection_name = form_data.collection_name\n14 |     if collection_name is None:\n15 |         collection_name = calculate_sha256_string(form_data.content)\n16 |     else:\n17 |         await _validate_collection_access([collection_name], user, access_type='write')\n18 | \n19 |     docs = [\n20 |         Document(\n21 |             page_content=form_data.content,\n22 |             metadata={'name': form_data.name, 'created_by': user.id},\n23 |         )\n24 |     ]\n25 |     text_content = form_data.content\n26 |     log.debug(f'text_content: {text_content}')\n27 | \n28 |     result = await run_in_threadpool(save_docs_to_vector_db, request, docs, collection_name, user=user)\n29 | \n30 | # Original lines 2339-2352.\n31 | async def _validate_collection_access(collection_names: list[str], user, access_type: str = 'read') -> None:\n32 |     \"\"\"\n33 |     Raise 403 if the user lacks access to any of the requested collections.\n34 |     Delegates to the shared filter_accessible_collections utility so the\n35 |     access rules stay in one place.\n36 |     \"\"\"\n37 |     requested = set(collection_names)\n38 |     allowed = await filter_accessible_collections(requested, user, access_type=access_type)\n39 |     denied = requested - allowed\n40 |     if denied:\n41 |         raise HTTPException(\n42 |             status_code=status.HTTP_403_FORBIDDEN,\n43 |             detail=ERROR_MESSAGES.ACCESS_PROHIBITED,\n44 |         )\n===== END ALLOWED INPUT: inputs/owui-process-text-controlled/retrieval_process_text.py =====",
+  "error": {
+    "name": "AuthorizationCallTimeoutError",
+    "message": "Authorization provider call did not settle within 180000ms (per-call deadline); request completion is unknown."
+  },
+  "promptSections": {
+    "instructions": "# Source-visible authorization assessment\n\nAssess the authored task below using only the supplied fixed source and common result contract.",
+    "declaration": "At `https://github.com/open-webui/open-webui` ref `841c9045d789005145274955e7ef60b1b11a9be9`, assess whether a verified non-admin principal can write attacker-selected text to an existing knowledge-base collection named in `POST /process/text` when the principal lacks permission to write that collection. Apply the policy that an existing collection may be written only by its owner or a principal with an explicit write grant. Trace the declared caller, validator, shared policy path, supplied collection name, and vector-database write sink; identify principal, operation, target relation, entry, and sink. Use only the allowed case inputs, cite exact input locations, and perform source-only analysis without executing, deploying, searching beyond the supplied sources, or proposing a patch.\n",
+    "publicAnalysis": "Decide the current scenario at the stated boundary from the supplied fixed source and accepted policy. Treat listed premises as question assumptions at the named entry, not as source or deployment proof. Trace the decisive authorization control and protected effect with exact supplied-source locations. Answer every explicitly requested counterfactual branch separately, identifying its changed assumptions and any decisive unknown. Include only the response details requested below. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: Can a verified non-admin write caller-selected text to an existing caller-selected knowledge-base collection without a write grant through POST /process/text?\nAnalysis boundary: declared-entry.\nTask premise: At POST /process/text the verified non-admin selects an existing collection without ownership or a write grant and supplies the text.\nRequired response detail: Trace the caller-side and shared authorization controls before the text write sink.",
+    "outputContract": "Use compact wire/v4: top-level results only. Each item has obligationId, conclusion, explanation, facts as an array of {id, kind, statement, citations}, decisiveMissingFacts and suggestedObservations. Fact IDs must be unique within each obligation. kind is entry/binding/control/effect/condition. The host fills all version/identity/scope metadata and groups facts; never output those fields. Include item-local coverage only when an analysis ledger is supplied, and item-local condition only when a condition request is supplied. Branches do not repeat obligationId.\nReturn exactly one result for every runnable expanded obligation, with one of: source_supported_failure, source_refuted, unknown.\nInterpret conclusion labels relative to the declared policy expectation, not as direct synonyms for allow or deny:\n- source_supported_failure: the fixed source supports that the declared policy expectation fails under the stated conditions.\n- source_refuted: the fixed source supports that the declared policy expectation is enforced under the stated conditions, refuting a policy failure.\n- unknown: the fixed source and declared context are insufficient to decide whether the expectation fails or is enforced.\nExact runnable obligation IDs (closed list):\n- scenario%3Anon-admin-without-kb-write-grant::entry%3Apost-process-text\nUse each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.\nSupport the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.\nAddress every public analysis question in the explanation and source-backed facts. No separate coverage ledger is required for this plain-method answer.",
+    "sourceMarker": "<SOURCE_CONTEXT_INSERTED_BY_HOST>",
+    "declarationLabel": "Independent Markdown instructions"
+  },
+  "wireVersion": "source-authorization-assessment-wire/v4",
+  "firstResponse": {
+    "schemaValid": false,
+    "deliveryComplete": false
+  },
+  "protocolMetrics": {
+    "fallbackCalls": 0,
+    "repairCalls": 0,
+    "modelOutputCharacters": 0,
+    "hostMetadataFields": [
+      "schemaVersion",
+      "taskId",
+      "repository",
+      "sourceRef",
+      "scopeClaim",
+      "fact grouping",
+      "fact pointers",
+      "nested obligationId"
+    ]
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 138,
+      "declaration": 796,
+      "publicAnalysis": 1040,
+      "source": 5404,
+      "outputContract": 2288,
+      "total": 9783,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "status": "timeout",
+      "startedAt": "2026-09-27T13:08:56.961Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 9783,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false,
+        "toolSchemas": [
+          {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "obligationId": {
+                      "type": "string"
+                    },
+                    "conclusion": {
+                      "type": "string",
+                      "enum": [
+                        "source_supported_failure",
+                        "source_refuted",
+                        "unknown"
+                      ]
+                    },
+                    "explanation": {
+                      "type": "string"
+                    },
+                    "facts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "entry",
+                              "binding",
+                              "control",
+                              "effect",
+                              "condition"
+                            ]
+                          },
+                          "statement": {
+                            "type": "string"
+                          },
+                          "citations": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "sourceId": {
+                                  "type": "string"
+                                },
+                                "startLine": {
+                                  "type": "number"
+                                },
+                                "endLine": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "sourceId",
+                                "startLine",
+                                "endLine"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "statement",
+                          "citations"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "decisiveMissingFacts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestedObservations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "obligationId",
+                    "conclusion",
+                    "explanation",
+                    "facts",
+                    "decisiveMissingFacts",
+                    "suggestedObservations"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "results"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "usage": null,
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "endedAt": "2026-09-27T13:11:56.979Z",
+      "error": {
+        "name": "AuthorizationCallTimeoutError",
+        "message": "Authorization provider call did not settle within 180000ms (per-call deadline); request completion is unknown."
+      }
+    }
+  ],
+  "events": [
+    {
+      "sequence": 1,
+      "at": "2026-09-27T13:08:56.961Z",
+      "kind": "dispatch",
+      "attemptId": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "attempt": {
+        "id": "provider-attempt-1",
+        "phase": "initial",
+        "transport": "schema-tool",
+        "status": "pending",
+        "startedAt": "2026-09-27T13:08:56.961Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 9783,
+          "toolNames": [
+            "submit_authorization_result"
+          ],
+          "toolChoice": {
+            "name": "submit_authorization_result"
+          },
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false,
+          "toolSchemas": [
+            {
+              "type": "object",
+              "properties": {
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "obligationId": {
+                        "type": "string"
+                      },
+                      "conclusion": {
+                        "type": "string",
+                        "enum": [
+                          "source_supported_failure",
+                          "source_refuted",
+                          "unknown"
+                        ]
+                      },
+                      "explanation": {
+                        "type": "string"
+                      },
+                      "facts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "entry",
+                                "binding",
+                                "control",
+                                "effect",
+                                "condition"
+                              ]
+                            },
+                            "statement": {
+                              "type": "string"
+                            },
+                            "citations": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "sourceId": {
+                                    "type": "string"
+                                  },
+                                  "startLine": {
+                                    "type": "number"
+                                  },
+                                  "endLine": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "sourceId",
+                                  "startLine",
+                                  "endLine"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "kind",
+                            "statement",
+                            "citations"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "decisiveMissingFacts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "suggestedObservations": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "obligationId",
+                      "conclusion",
+                      "explanation",
+                      "facts",
+                      "decisiveMissingFacts",
+                      "suggestedObservations"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "results"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "usage": null,
+        "costUsd": null,
+        "transportAttempts": "unknown"
+      }
+    },
+    {
+      "sequence": 2,
+      "at": "2026-09-27T13:11:56.979Z",
+      "kind": "timeout",
+      "attemptId": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "reason": "Authorization provider call did not settle within 180000ms (per-call deadline); request completion is unknown.",
+      "attempt": {
+        "id": "provider-attempt-1",
+        "phase": "initial",
+        "transport": "schema-tool",
+        "status": "timeout",
+        "startedAt": "2026-09-27T13:08:56.961Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 9783,
+          "toolNames": [
+            "submit_authorization_result"
+          ],
+          "toolChoice": {
+            "name": "submit_authorization_result"
+          },
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false,
+          "toolSchemas": [
+            {
+              "type": "object",
+              "properties": {
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "obligationId": {
+                        "type": "string"
+                      },
+                      "conclusion": {
+                        "type": "string",
+                        "enum": [
+                          "source_supported_failure",
+                          "source_refuted",
+                          "unknown"
+                        ]
+                      },
+                      "explanation": {
+                        "type": "string"
+                      },
+                      "facts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "entry",
+                                "binding",
+                                "control",
+                                "effect",
+                                "condition"
+                              ]
+                            },
+                            "statement": {
+                              "type": "string"
+                            },
+                            "citations": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "sourceId": {
+                                    "type": "string"
+                                  },
+                                  "startLine": {
+                                    "type": "number"
+                                  },
+                                  "endLine": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "sourceId",
+                                  "startLine",
+                                  "endLine"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "kind",
+                            "statement",
+                            "citations"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "decisiveMissingFacts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "suggestedObservations": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "obligationId",
+                      "conclusion",
+                      "explanation",
+                      "facts",
+                      "decisiveMissingFacts",
+                      "suggestedObservations"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "results"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "usage": null,
+        "costUsd": null,
+        "transportAttempts": "unknown",
+        "endedAt": "2026-09-27T13:11:56.979Z",
+        "error": {
+          "name": "AuthorizationCallTimeoutError",
+          "message": "Authorization provider call did not settle within 180000ms (per-call deadline); request completion is unknown."
+        }
+      }
+    },
+    {
+      "sequence": 3,
+      "at": "2026-09-27T13:11:56.979Z",
+      "kind": "closed",
+      "reason": "per-call-timeout:provider-attempt-1"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 0,
+    "unknownUsageCalls": 1,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "unknown",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

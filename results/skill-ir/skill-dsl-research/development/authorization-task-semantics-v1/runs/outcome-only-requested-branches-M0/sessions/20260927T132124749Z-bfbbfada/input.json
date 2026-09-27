@@ -1,0 +1,199 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "owui-trusted-header-deployment",
+  "request": "Determine whether an unauthenticated external client can impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin.",
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "sourceRoot": "../../../authorization-semantic-quality-v1/inputs/owui-header/source",
+  "sources": [
+    "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+    "inputs/owui-trusted-header-deployment/auths_signin.py"
+  ],
+  "policies": {
+    "trusted-proxy-identity-policy": {
+      "text": "Trusted-header authentication is safe only when a trusted reverse proxy is the sole reachable ingress, removes any client-supplied identity header, and injects the authenticated identity itself.",
+      "location": "inputs/owui-trusted-header-deployment/task.json#/sourceOfRequirement",
+      "revision": "open-webui-docs@d9f637d050e1689e6a4103eafc2b8005a74c9366",
+      "acceptance": "accepted",
+      "reason": "The task input attributes this bounded paraphrase to pinned project hardening guidance; no source-external deployment fact is accepted."
+    }
+  },
+  "principals": {
+    "unauthenticated-external-client": {
+      "role": "unauthenticated external client",
+      "facts": [
+        "A client not authenticated by the trusted identity proxy that may control headers on any ingress it can actually reach."
+      ],
+      "capabilities": [
+        "can-send-client-controlled-request-headers-to-a-reachable-ingress"
+      ]
+    }
+  },
+  "resources": {
+    "existing-user-session": {
+      "type": "authenticated-user-identity-and-session",
+      "facts": [
+        "The identity and session of an arbitrary existing user named by a trusted-email header."
+      ]
+    }
+  },
+  "entries": {
+    "post-signin-trusted-email": {
+      "name": "POST /signin -> trusted-email-header branch",
+      "locations": [
+        {
+          "path": "inputs/owui-trusted-header-deployment/env_trusted_headers.py",
+          "startLine": 1,
+          "endLine": 13
+        },
+        {
+          "path": "inputs/owui-trusted-header-deployment/auths_signin.py",
+          "startLine": 1,
+          "endLine": 62
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "external-client-trusted-header-impersonation": {
+      "principal": "unauthenticated-external-client",
+      "resource": "existing-user-session",
+      "policy": "trusted-proxy-identity-policy",
+      "entries": [
+        "post-signin-trusted-email"
+      ],
+      "relation": "external-client-to-arbitrary-existing-user-identity",
+      "operation": "obtain-session-as-header-selected-user",
+      "expectation": "deny",
+      "conditions": {
+        "password-auth-signin-entry-enabled": {
+          "basis": "auths_signin.py checks ENABLE_PASSWORD_AUTH before entering the trusted-header branch."
+        },
+        "trusted-email-header-name-configured": {
+          "basis": "env_trusted_headers.py makes the header name environment-controlled and auths_signin.py enters the branch only when configured."
+        },
+        "email-authentication-produces-user": {
+          "basis": "auths_signin.py returns a session only after authenticate_user_by_email yields a user."
+        },
+        "deployment-ingress-enforces-header-trust": {
+          "basis": "The accepted policy requires sole trusted-proxy ingress and removal/replacement of client-supplied identity headers; actual deployment facts are not supplied."
+        }
+      }
+    }
+  },
+  "additionalQuestions": [
+    "identify the configuration condition and how the header becomes a principal identity",
+    "separate application-source capability from actual deployment reachability and proxy behavior",
+    "name the minimum missing facts needed to decide the real deployment question",
+    "return source_supported_failure, source_refuted, or unknown with exact input locations"
+  ],
+  "additionalConstraints": [
+    "Use only the allowed case inputs.",
+    "Do not infer environment values, proxy configuration, network topology, or direct reachability.",
+    "Do not contact or execute the target deployment."
+  ],
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Decide the current scenario at the stated boundary from the supplied fixed source and accepted policy. Treat listed premises as question assumptions at the named entry, not as source or deployment proof. Trace the decisive authorization control and protected effect with exact supplied-source locations. Answer every explicitly requested counterfactual branch separately, identifying its changed assumptions and any decisive unknown. Include only the response details requested below. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: Can an unauthenticated external client impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin?\nAnalysis boundary: deployment.\nTask premise: The caller is unauthenticated outside the trusted identity proxy and asks whether an actual reachable deployment permits impersonation via a client-supplied trusted-email header.\nRequested counterfactual password-disabled: password-auth-signin-entry-enabled=false.\nRequested counterfactual header-unconfigured: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=false.\nRequested counterfactual authentication-no-user: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=true, email-authentication-produces-user=false.\nRequested counterfactual trusted-ingress: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=true, deployment-ingress-enforces-header-trust=true.\nRequested counterfactual client-header-reaches-app: password-auth-signin-entry-enabled=true, trusted-email-header-name-configured=true, email-authentication-produces-user=true, deployment-ingress-enforces-header-trust=false.\nRequired response detail: Identify the configuration and header-to-identity path, applicable denial/status behavior when source shows it, and the minimum missing facts for the actual deployment.",
+    "scenarios": {
+      "external-client-trusted-header-impersonation": {
+        "boundary": "deployment",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "The caller is unauthenticated outside the trusted identity proxy and asks whether an actual reachable deployment permits impersonation via a client-supplied trusted-email header.",
+            "atEntry": "post-signin-trusted-email",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [
+          {
+            "id": "password-disabled",
+            "kind": "counterfactual",
+            "assumptions": [
+              {
+                "condition": "password-auth-signin-entry-enabled",
+                "value": false
+              }
+            ]
+          },
+          {
+            "id": "header-unconfigured",
+            "kind": "counterfactual",
+            "assumptions": [
+              {
+                "condition": "password-auth-signin-entry-enabled",
+                "value": true
+              },
+              {
+                "condition": "trusted-email-header-name-configured",
+                "value": false
+              }
+            ]
+          },
+          {
+            "id": "authentication-no-user",
+            "kind": "counterfactual",
+            "assumptions": [
+              {
+                "condition": "password-auth-signin-entry-enabled",
+                "value": true
+              },
+              {
+                "condition": "trusted-email-header-name-configured",
+                "value": true
+              },
+              {
+                "condition": "email-authentication-produces-user",
+                "value": false
+              }
+            ]
+          },
+          {
+            "id": "trusted-ingress",
+            "kind": "counterfactual",
+            "assumptions": [
+              {
+                "condition": "password-auth-signin-entry-enabled",
+                "value": true
+              },
+              {
+                "condition": "trusted-email-header-name-configured",
+                "value": true
+              },
+              {
+                "condition": "deployment-ingress-enforces-header-trust",
+                "value": true
+              }
+            ]
+          },
+          {
+            "id": "client-header-reaches-app",
+            "kind": "counterfactual",
+            "assumptions": [
+              {
+                "condition": "password-auth-signin-entry-enabled",
+                "value": true
+              },
+              {
+                "condition": "trusted-email-header-name-configured",
+                "value": true
+              },
+              {
+                "condition": "email-authentication-produces-user",
+                "value": true
+              },
+              {
+                "condition": "deployment-ingress-enforces-header-trust",
+                "value": false
+              }
+            ]
+          }
+        ],
+        "requiredResponseDetails": [
+          "Identify the configuration and header-to-identity path, applicable denial/status behavior when source shows it, and the minimum missing facts for the actual deployment."
+        ]
+      }
+    }
+  }
+}

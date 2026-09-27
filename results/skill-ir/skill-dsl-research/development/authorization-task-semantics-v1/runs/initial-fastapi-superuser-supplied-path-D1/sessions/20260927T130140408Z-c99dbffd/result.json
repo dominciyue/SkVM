@@ -1,0 +1,285 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "assessmentMode": "explicit-v1",
+  "reasoningStrategy": "standard",
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260927T130140408Z-c99dbffd",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\runs\\initial-fastapi-superuser-supplied-path-D1\\sessions\\20260927T130140408Z-c99dbffd",
+  "createdAt": "2026-09-27T13:01:40.408Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\inputs\\fastapi-superuser-supplied-path\\authoring.json",
+  "taskId": "fastapi-items-claimed-superuser-supplied-path",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 2477,
+      "publicAnalysis": 1175,
+      "assessmentProgram": 677,
+      "source": 4317,
+      "outputContract": 2892,
+      "total": 12072,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "fastapi-items-claimed-superuser-supplied-path",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "results": [
+      {
+        "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+        "conclusion": "unknown",
+        "explanation": "At the supplied entry, the handler retrieves the requested item by ID and returns 404 if it does not exist. Its decisive authorization control permits the read when the injected current_user is a superuser; otherwise it requires the item owner_id to equal current_user.id and returns 403 when that ownership check fails. Therefore, the handler proves conditionally that an item belonging to another user can be read if CurrentUser supplies an active superuser. The supplied path does not prove that the external caller is the current_user injected by that dependency, nor that the injected identity has active-superuser status. Without that caller-to-current_user binding, it does not prove that the actual caller can read the item. Source discovery is not-tested, so no repository-wide or deployment conclusion is made.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The GET item entry declares read_item with session, current_user, and item ID inputs.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 48,
+                  "endLine": 50,
+                  "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:\n    \"\"\""
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The handler receives current_user through the CurrentUser dependency, but the supplied source does not establish what identity that dependency injects or bind it to the external caller.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 7,
+                  "endLine": 8,
+                  "quote": "from app.api.deps import CurrentUser, SessionDep\nfrom app.models import Item, ItemCreate, ItemPublic, ItemsPublic, ItemUpdate, Message"
+                },
+                {
+                  "path": "items.py",
+                  "startLine": 48,
+                  "endLine": 50,
+                  "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:\n    \"\"\""
+                }
+              ]
+            },
+            {
+              "statement": "The handler obtains the requested item by the supplied ID and uses the item's owner_id in the authorization comparison.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 53,
+                  "endLine": 57,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "The strongest visible authorization control bypasses the ownership requirement when current_user.is_superuser is true; otherwise it rejects an item whose owner_id differs from current_user.id.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 56,
+                  "endLine": 57,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "After the authorization check, the handler returns the retrieved item.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 53,
+                  "endLine": 58,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    return item"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The cross-owner read is conditionally reachable when the injected current_user has is_superuser true.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 56,
+                  "endLine": 58,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    return item"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [
+          "binding_current_user_to_external_caller",
+          "binding_current_user_active_superuser"
+        ],
+        "suggestedObservations": [
+          "Observe the resolved CurrentUser dependency for this request and establish whether it returns the external caller's identity.",
+          "Observe the resolved injected current_user's authorization state and establish whether is_superuser is true for this request."
+        ]
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "wireResult": {
+    "results": [
+      {
+        "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+        "explanation": "At the supplied entry, the handler retrieves the requested item by ID and returns 404 if it does not exist. Its decisive authorization control permits the read when the injected current_user is a superuser; otherwise it requires the item owner_id to equal current_user.id and returns 403 when that ownership check fails. Therefore, the handler proves conditionally that an item belonging to another user can be read if CurrentUser supplies an active superuser. The supplied path does not prove that the external caller is the current_user injected by that dependency, nor that the injected identity has active-superuser status. Without that caller-to-current_user binding, it does not prove that the actual caller can read the item. Source discovery is not-tested, so no repository-wide or deployment conclusion is made.",
+        "facts": [
+          {
+            "id": "entry_read_item",
+            "kind": "entry",
+            "statement": "The GET item entry declares read_item with session, current_user, and item ID inputs.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 48,
+                "endLine": 50
+              }
+            ]
+          },
+          {
+            "id": "binding_current_user_unresolved",
+            "kind": "binding",
+            "statement": "The handler receives current_user through the CurrentUser dependency, but the supplied source does not establish what identity that dependency injects or bind it to the external caller.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 7,
+                "endLine": 8
+              },
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 48,
+                "endLine": 50
+              }
+            ]
+          },
+          {
+            "id": "binding_item_owner",
+            "kind": "binding",
+            "statement": "The handler obtains the requested item by the supplied ID and uses the item's owner_id in the authorization comparison.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 53,
+                "endLine": 57
+              }
+            ]
+          },
+          {
+            "id": "control_superuser_bypass",
+            "kind": "control",
+            "statement": "The strongest visible authorization control bypasses the ownership requirement when current_user.is_superuser is true; otherwise it rejects an item whose owner_id differs from current_user.id.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 56,
+                "endLine": 57
+              }
+            ]
+          },
+          {
+            "id": "effect_return_item",
+            "kind": "effect",
+            "statement": "After the authorization check, the handler returns the retrieved item.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 53,
+                "endLine": 58
+              }
+            ]
+          },
+          {
+            "id": "condition_active_superuser",
+            "kind": "condition",
+            "statement": "The cross-owner read is conditionally reachable when the injected current_user has is_superuser true.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 56,
+                "endLine": 58
+              }
+            ]
+          }
+        ],
+        "decisiveMissingFacts": [
+          "binding_current_user_to_external_caller",
+          "binding_current_user_active_superuser"
+        ],
+        "suggestedObservations": [
+          "Observe the resolved CurrentUser dependency for this request and establish whether it returns the external caller's identity.",
+          "Observe the resolved injected current_user's authorization state and establish whether is_superuser is true for this request."
+        ],
+        "decision": {
+          "kind": "conditional-policy",
+          "policyStatus": "undetermined"
+        },
+        "branchResults": []
+      }
+    ]
+  },
+  "normalizerVersion": "authorization-wire-normalizer/v6",
+  "relationCoverage": [],
+  "observedDecisions": [],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 700,
+      "output": 849,
+      "cacheRead": 2432,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

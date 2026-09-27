@@ -1,0 +1,34 @@
+Authorization assessment
+Session: 20260927T125652666Z-e92923fd
+Status: completed
+Task: owui-trusted-header-deployment
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Assessment: legacy
+Source: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aexternal-client-trusted-header-impersonation::entry%3Apost-signin-trusted-email: unknown — At the deployment boundary, the actual result is unknown. The fixed source exposes POST /signin and first denies it with 403 when password authentication is disabled. When the trusted-email-header configuration is nonempty, the handler requires that named request header (otherwise 400), lowercases its value, uses that value as the email identity, creates an account if none exists, authenticates by email, and on success creates the session response; if authentication still yields no user, the visible fallback is 400 INVALID_CRED. Thus the application source demonstrates a trusted-header impersonation capability when a client-controlled header reaches the app and resolves to a user, but it does not establish whether the actual deployment has a sole trusted reverse-proxy ingress, strips client identity headers, injects the authenticated identity, or allows the unauthenticated external client to reach the app/header path. Minimum deployment facts required are: password-auth-signin-entry-enabled; trusted-email-header-name-configured; whether the external client can reach this deployment and POST /signin; whether a trusted proxy is the sole reachable ingress; whether it removes client-supplied trusted-email (and related identity) headers; whether it injects the authenticated identity into that header; and whether the supplied identity resolves to an existing user. Counterfactuals: password-disabled=true means the visible entry control returns 403, so this path is blocked. Header-unconfigured=false means the trusted-header branch is not entered; because other sign-in-mode code is omitted from the supplied crop, the overall endpoint outcome is not determined by this source alone. Authentication-no-user=false means the visible source reaches the 400 INVALID_CRED fallback, so no session is created on that path. Trusted-ingress=true refutes the policy failure only if that condition includes the required sole-ingress, stripping, and authenticated-injection properties; the source itself cannot verify those deployment properties. Client-header-reaches-app=true (with the stated header configured and user-producing assumptions) supports the policy failure: the source accepts the arriving header value as the email principal and creates a session for the resulting user, absent another deployment control.
+  Evidence: The supplied source defines POST /signin as the sign-in entry point. (inputs/owui-trusted-header-deployment/auths_signin.py:4-10)
+  Evidence: The value of the configured request header is lowercased and assigned as the email identity used by the trusted-email flow. (inputs/owui-trusted-header-deployment/auths_signin.py:21-22)
+  Evidence: The email identity is used to look up an existing user; if absent, the source invokes signup, then authenticates the user by email. (inputs/owui-trusted-header-deployment/auths_signin.py:31-40)
+  Evidence: If no user is available after the trusted-email processing, the visible fallback returns HTTP 400 INVALID_CRED. (inputs/owui-trusted-header-deployment/auths_signin.py:59-62)
+  Evidence: The entry is denied with HTTP 403 and ACTION_PROHIBITED when password authentication is disabled. (inputs/owui-trusted-header-deployment/auths_signin.py:11-15)
+  Evidence: When the trusted-email flow is selected, absence of the configured header produces HTTP 400 INVALID_TRUSTED_HEADER. (inputs/owui-trusted-header-deployment/auths_signin.py:17-20)
+  Evidence: When a user is available, the handler creates the session response and sets the session cookie. (inputs/owui-trusted-header-deployment/auths_signin.py:59-60)
+  Evidence: The protected authenticated session is associated with the user resolved from the email identity, including an existing user found by that email. (inputs/owui-trusted-header-deployment/auths_signin.py:31-40, inputs/owui-trusted-header-deployment/auths_signin.py:59-60)
+  Evidence: The trusted-email flow is selected when the trusted email header configuration value is set; the configuration is sourced from WEBUI_AUTH_TRUSTED_EMAIL_HEADER and otherwise defaults to None. (inputs/owui-trusted-header-deployment/auths_signin.py:17-19, inputs/owui-trusted-header-deployment/env_trusted_headers.py:10-10)
+  Unknown: Whether password authentication is enabled in the actual deployment.
+  Unknown: Whether WEBUI_AUTH_TRUSTED_EMAIL_HEADER is configured in the actual deployment and what header name it selects.
+  Unknown: Whether the unauthenticated external client can reach the actual deployment and POST /signin.
+  Unknown: Whether a trusted reverse proxy is the sole reachable ingress.
+  Unknown: Whether that proxy removes client-supplied trusted-email and other identity headers before forwarding.
+  Unknown: Whether that proxy injects the authenticated identity into the configured header.
+  Unknown: Whether the supplied email identity resolves to an existing user in the actual deployment.
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

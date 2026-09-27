@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260927T130146313Z-945cc527
+Status: completed
+Task: fastapi-items-claimed-superuser-supplied-path
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Assessment: legacy
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aread-item::entry%3Aread-item: unknown — The supplied path does not prove that the external caller is bound to a `current_user` whose `is_superuser` value is true. Conditionally, the `read_item` handler establishes that an existing item is returned when the injected `current_user` is a superuser: the non-owner rejection applies only when `not current_user.is_superuser`, and the handler then returns the item. But the crop shows only the `CurrentUser` parameter annotation and does not show the dependency's implementation or binding behavior. Therefore the caller's claim of active-superuser status is a stated premise, not source proof of the injected principal, and the path cannot decide whether that caller can read the other user's item.
+  Evidence: The supplied path enters the item-by-ID GET handler, which receives a session, a CurrentUser dependency parameter, and an item ID. (items.py:48-53)
+  Evidence: The handler declares a CurrentUser parameter, but the supplied crop does not establish which principal or identity the dependency binds to for an external request. (items.py:49-49)
+  Evidence: The visible authorization control rejects the request only when the injected user is not a superuser and does not own the item; a superuser value bypasses that owner-mismatch rejection. (items.py:56-57)
+  Evidence: If the item exists and the authorization check does not reject, the handler returns the item. (items.py:53-58)
+  Evidence: Under the policy and the condition that the injected current_user is an authenticated active superuser, the visible handler permits reading an item regardless of its owner. (items.py:56-58)
+  Evidence: The handler retrieves the item by the requested ID and raises a not-found error if no item is retrieved; the stated existing-item premise is therefore not independently proved by the crop. (items.py:53-55)
+  Unknown: The implementation and runtime binding of CurrentUser for the external request, including whether it injects the caller's authenticated active-superuser identity into current_user.
+  Unknown: Confirmation that the requested item exists in the session-backed data at the supplied ID, rather than relying only on the caller's stated premise.
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

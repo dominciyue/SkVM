@@ -268,19 +268,25 @@ test("compares an observed effect with the authored expectation", () => {
 - [x] 独立Markdown作者从中立brief准备材料，保存原稿与有理由的机械修正；新旧公共要求固定，不从oracle派生输入。
 - [x] 逐项对齐双方的前提、政策、请求分支和响应要求；校验实际prompt公共段相同。新旧支持的差异记录成一张表。
 - [x] 在生成前记录8状态、四臂/重复/6机制观察、顺序、代码revision、模型、预算、rubric和停止规则；真实变化与synthetic分别计数。
-- [ ] 复用AH薄driver模式调用现有runner；新driver提供check/run/status/evaluate/replay，纳入脚本typecheck。一次离线生命周期验证即可。check/run/status、脚本typecheck及离线模拟已通过，evaluate/replay待AI10评价接线。
+- [x] 复用AH薄driver模式调用现有runner；新driver提供check/run/status/evaluate/replay，纳入脚本typecheck。一次离线生命周期验证即可。
 
 ### AI9 真实质量运行
 
-- [ ] 执行已登记首轮、预定重复和机制观察，逐dispatch保存回答/状态/usage；超时和未知完成保留。
-- [ ] 各臂保持相同预算；有限并发可用，但不要新建调度平台或因资源争抢改变配对预算。
-- [ ] 全部本区块生成关闭后才开始评价。不因某臂效果差换题，不为零token或成功率好看删除fallback/repair。
+2026-09-27 执行记录：54/54预登记单元均只占用一次；初轮30/32、重复6/16、机制4/6 completed，合计40 completed、9 timeout-unknown、5 transport-failed。55次provider调用（含一次诊断修复），41次有响应，14次usage未知；已知input 75,463、output 43,204、cache-read 48,256，实际USD未知。重复区块的HTTPS网关断连未补发；机制区块单路并发低于预注册并发上限4，模型及单元预算不变。全部生成关闭后才制作盲评包。
+
+- [x] 执行已登记首轮、预定重复和机制观察，逐dispatch保存回答/状态/usage；超时和未知完成保留。
+- [x] 各臂保持相同预算；有限并发可用，但不要新建调度平台或因资源争抢改变配对预算。
+- [x] 全部本区块生成关闭后才开始评价。不因某臂效果差换题，不为零token或成功率好看删除fallback/repair。
 
 ### AI10 分层语义评价
 
-- [ ] 用已有v3 evaluator建立适配，独立记录模型observed decision、宿主派生政策标签、必要证据、请求分支、附加细节、首答/最终和成本。
-- [ ] 评分实际语义而非字段存在；所有改变方法结论的胜负和代表性unknown做一次匿名独立点验，保留分歧与裁定。
-- [ ] 若有共享实现bug，按§5一次修订并分列；无bug则0修订。至少回答：标签问题是否由宿主消除、边界是否减少过度弃答、分支是否真实补齐、相同机制下DSL与MD各有何取舍。
+2026-09-27 方法细节修订：既有v3 evaluator绑定AH固定oracle/criteria和旧响应细节，本轮公开请求分支及两变化状态不同；强行复用会把旧未请求项计入新主分数。本轮用薄study evaluator复用普通host的引用/条件/分支验证及既有telemetry口径，对41份匿名回答由8个fresh-context只读评价者按冻结新rubric逐案判语义，再对两个争议独立点验；生成端未读评价材料。原/最终、observed decision、宿主标签、分支、额外细节和所有失败均进入hash-bound摘要。脚本replay与typecheck通过，评价provider调用0。
+
+结果：39/54主口径full，固定crop一条争议的保守口径40/54。初轮M0/D0/M1/D1分别8/6/7/8 full（各8计划；D0有2个timeout），配对双方都完成时M0→M1为8→7，D0→D1为6→6；争议行若按合理unknown，前者为8→8。重复M0/D0/M1/D1分别0/1/2/3 completed（各4），传输缺失使该区块不支持质量胜负。v6确定映射阻止同一observed行为的标签方向自由漂移，但已完成的旧臂也正确，未观察到该机制的质量增益；入口边界与请求分支初轮各臂均答对，机制分支小观察2/2超时。未发现需改共享实现的bug，修订单元0。
+
+- [x] 在现有v3分层原则上适配本轮公开rubric，独立记录模型observed decision、宿主派生政策标签、必要证据、请求分支、附加细节、首答/最终和成本。
+- [x] 评分实际语义而非字段存在；所有改变方法结论的胜负和代表性unknown做一次匿名独立点验，保留分歧与裁定。
+- [x] 若有共享实现bug，按§5一次修订并分列；无bug则0修订。至少回答：标签问题是否由宿主消除、边界是否减少过度弃答、分支是否真实补齐、相同机制下DSL与MD各有何取舍。
 
 ### AI11 独立作者原稿与变化稿
 

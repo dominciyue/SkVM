@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "authorization-local-check/v1",
+  "status": "valid",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\inputs\\gitea-lock\\authoring.json",
+  "taskId": "gitea-issue-lock-writer-nonadmin",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceRoot": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-semantic-quality-v1\\inputs\\gitea-lock\\source",
+  "sourceFiles": [
+    "route_guard.go",
+    "issue_lock.go"
+  ],
+  "arm": "B",
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "assessmentMode": "explicit-v1",
+  "assessmentProgram": {
+    "schemaVersion": "authorization-assessment-program/v1",
+    "entries": [
+      {
+        "obligationId": "scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock",
+        "authorObligationId": "scenario:deny-nonadmin-issue-lock",
+        "entryId": "entry:put-issue-lock",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At the named PUT route the authenticated caller has full token scope and issue-write permission but neither repository-admin nor site-admin status; the issue exists and is unlocked.",
+            "atEntryId": "entry:put-issue-lock",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the route and handler gates in order and identify whether the lock mutation is reached."
+        ]
+      }
+    ]
+  },
+  "reasoningStrategy": "standard",
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirementCount": 6,
+  "ledgerEntryCount": 0,
+  "preview": "<!-- analysis-profile: authorization-core-v1; origin: derived; study-arm: none; condition-analysis: disabled; assessment: explicit-v1 -->\n\n# Source-visible authorization assessment\n\nAssess the authored task below using only the supplied fixed source and common result contract.\n\n## Independent Markdown instructions\nAt `https://github.com/go-gitea/gitea` ref `fc28937a8d772fe9e4025c9b5f24d5db4d86610b`, assess the issue-lock API route using the supplied `route_guard.go` and `issue_lock.go` crops. The principal is authenticated with full token scope and repository issue-write permission, is neither a repository administrator nor site administrator, and targets an existing readable unlocked issue. Apply the policy that the route first requires repository- or site-administrator status, then requires issue or pull-request write permission before locking. Trace both authorization gates to the lock effect, identifying principal, operation, resource, route entries, and permissions. Cite exact supplied-source locations, remain within the fixed scenario, and do not infer deployment state or execute or deploy the project.\n\n\n## Public analysis questions\nDecide the current scenario at the stated boundary from the supplied fixed source and accepted policy. Treat listed premises as question assumptions at the named entry, not as source or deployment proof. Trace the decisive authorization control and protected effect with exact supplied-source locations. Answer every explicitly requested counterfactual branch separately, identifying its changed assumptions and any decisive unknown. Include only the response details requested below. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: Can an authenticated issue writer with full token scope but neither repository-admin nor site-admin status lock an existing unlocked issue through the named PUT route?\nAnalysis boundary: declared-entry.\nTask premise: At the named PUT route the authenticated caller has full token scope and issue-write permission but neither repository-admin nor site-admin status; the issue exists and is unlocked.\nRequired response detail: Trace the route and handler gates in order and identify whether the lock mutation is reached.\n\n## Explicit assessment program\n- Current question scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock at entry:put-issue-lock; boundary: declared-entry.\n  Accepted task premises at this entry (not source citations): premise-1: At the named PUT route the authenticated caller has full token scope and issue-write permission but neither repository-admin nor site-admin status; the issue exists and is unlocked..\n  Prove the decisive source path within the requested boundary; report a decisive missing binding only when that boundary requires it.\n  Required response details: Trace the route and handler gates in order and identify whether the lock mutation is reached..\n\n## Result contract\nUse compact wire/v6: top-level results only. Each item has obligationId, decision and branchResults, explanation, facts as an array of {id, kind, statement, citations}, decisiveMissingFacts and suggestedObservations. Fact IDs must be unique within each obligation. kind is entry/binding/control/effect/condition. The host fills all version/identity/scope metadata and groups facts; never output those fields. Include item-local coverage only when an analysis ledger is supplied, and item-local condition only when a condition request is supplied. Branches do not repeat obligationId.\nReturn exactly one result for every runnable expanded obligation. Do not output conclusion or policyStatus at the item level. For an authored allow/deny expectation, return decision {kind:\"observed\",observed:\"allow\"|\"deny\"|\"unknown\"} describing the source-visible behavior, independently of the normative expectation. The host compares that observed behavior with the authored expectation. For an authored conditional expectation, return decision {kind:\"conditional-policy\",policyStatus:\"satisfied\"|\"violated\"|\"undetermined\"}; the host uses this policy judgment without a binary observed comparison. Unknown requires decisiveMissingFacts and suggestedObservations. Do not infer observed behavior from the expectation or prose.\nEvery result includes branchResults, an empty array if no branch is requested. For each explicitly requested branch below, return its exact id and assumptions, a reachable/blocked/unknown effect, a causal explanation, same-obligation factIds for known effects, and decisive missingFacts for unknown effects. Counterfactual assumptions are hypotheses; they do not alter the current scenario or establish source/deployment facts. Extra or missing branches are invalid.\nExact requested branch IDs and assumptions (closed list):\n- (none)\nExact runnable obligation IDs (closed list):\n- scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock\nUse each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.\nSupport the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.\nAddress every public analysis question in the explanation and source-backed facts. No separate coverage ledger is required for this plain-method answer.\n\n## Fixed source context\n===== BEGIN ALLOWED INPUT: issue_lock.go =====\nSource ID: src-ed35041e326128c5\nLocation note: crop lines 1-70; original locations: not separately supplied\nCitation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.\n1 | // Fixed excerpt from go-gitea/gitea at fc28937a8d772fe9e4025c9b5f24d5db4d86610b.\n2 | // Original path and range: routers/api/v1/repo/issue_lock.go:15-81.\n3 | \n4 | // LockIssue lock an issue\n5 | func LockIssue(ctx *context.APIContext) {\n6 | \t// swagger:operation PUT /repos/{owner}/{repo}/issues/{index}/lock issue issueLockIssue\n7 | \t// ---\n8 | \t// summary: Lock an issue\n9 | \t// consumes:\n10 | \t// - application/json\n11 | \t// produces:\n12 | \t// - application/json\n13 | \t// parameters:\n14 | \t// - name: owner\n15 | \t//   in: path\n16 | \t//   description: owner of the repo\n17 | \t//   type: string\n18 | \t//   required: true\n19 | \t// - name: repo\n20 | \t//   in: path\n21 | \t//   description: name of the repo\n22 | \t//   type: string\n23 | \t//   required: true\n24 | \t// - name: index\n25 | \t//   in: path\n26 | \t//   description: index of the issue\n27 | \t//   type: integer\n28 | \t//   format: int64\n29 | \t//   required: true\n30 | \t// - name: body\n31 | \t//   in: body\n32 | \t//   schema:\n33 | \t//     \"$ref\": \"#/definitions/LockIssueOption\"\n34 | \t// responses:\n35 | \t//   \"204\":\n36 | \t//     \"$ref\": \"#/responses/empty\"\n37 | \t//   \"403\":\n38 | \t//     \"$ref\": \"#/responses/forbidden\"\n39 | \t//   \"404\":\n40 | \t//     \"$ref\": \"#/responses/notFound\"\n41 | \n42 | \treason := web.GetForm[*api.LockIssueOption](ctx).Reason\n43 | \tissue, err := issues_model.GetIssueByIndex(ctx, ctx.Repo.Repository.ID, ctx.PathParamInt64(\"index\"))\n44 | \tif err != nil {\n45 | \t\tctx.APIErrorAuto(err)\n46 | \t\treturn\n47 | \t}\n48 | \n49 | \tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n50 | \t\tctx.APIError(http.StatusForbidden, \"no permission to lock this issue\")\n51 | \t\treturn\n52 | \t}\n53 | \n54 | \tif !issue.IsLocked {\n55 | \t\topt := &issues_model.IssueLockOptions{\n56 | \t\t\tDoer:   ctx.ContextUser,\n57 | \t\t\tIssue:  issue,\n58 | \t\t\tReason: reason,\n59 | \t\t}\n60 | \n61 | \t\tissue.Repo = ctx.Repo.Repository\n62 | \t\terr = issues_model.LockIssue(ctx, opt)\n63 | \t\tif err != nil {\n64 | \t\t\tctx.APIErrorInternal(err)\n65 | \t\t\treturn\n66 | \t\t}\n67 | \t}\n68 | \n69 | \tctx.Status(http.StatusNoContent)\n70 | }\n===== END ALLOWED INPUT: issue_lock.go =====\n\n===== BEGIN ALLOWED INPUT: route_guard.go =====\nSource ID: src-abc290f763b410ea\nLocation note: crop lines 1-20; original locations: not separately supplied\nCitation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.\n1 | // Fixed excerpts from go-gitea/gitea at fc28937a8d772fe9e4025c9b5f24d5db4d86610b.\n2 | // Original path and ranges: routers/api/v1/api.go:451-459,1741-1745.\n3 | \n4 | // reqAdmin user should be an owner or a collaborator with admin write of a repository, or site admin\n5 | func reqAdmin() func(ctx *context.APIContext) {\n6 | \treturn func(ctx *context.APIContext) {\n7 | \t\tif !ctx.IsUserRepoAdmin() && !ctx.IsUserSiteAdmin() {\n8 | \t\t\tctx.APIError(http.StatusForbidden, \"user should be an owner or a collaborator with admin write of a repository\")\n9 | \t\t\treturn\n10 | \t\t}\n11 | \t}\n12 | }\n13 | \n14 | // Upstream route tree outside the declared lock group is omitted.\n15 | \n16 | m.Group(\"/lock\", func() {\n17 | \tm.Combo(\"\").\n18 | \t\tPut(bind(api.LockIssueOption{}), repo.LockIssue).\n19 | \t\tDelete(repo.UnlockIssue)\n20 | }, reqToken(), reqAdmin())\n===== END ALLOWED INPUT: route_guard.go =====",
+  "promptCharacters": {
+    "instructions": 138,
+    "declaration": 810,
+    "publicAnalysis": 1107,
+    "assessmentProgram": 645,
+    "source": 3527,
+    "outputContract": 2912,
+    "total": 9289,
+    "tokenMeasurement": "provider-reported-only"
+  },
+  "diagnostics": []
+}

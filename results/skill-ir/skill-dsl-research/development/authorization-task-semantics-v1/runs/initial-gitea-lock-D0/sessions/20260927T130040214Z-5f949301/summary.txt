@@ -1,0 +1,26 @@
+Authorization assessment
+Session: 20260927T130040214Z-5f949301
+Status: completed
+Task: gitea-issue-lock-writer-nonadmin
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v4
+Assessment: legacy
+Source: https://github.com/go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Adeny-nonadmin-issue-lock::entry%3Aput-issue-lock: source_refuted — At the declared PUT route, the route group applies token authentication and then reqAdmin. That guard rejects the caller unless the caller is a repository administrator or site administrator, returning forbidden before the handler is entered. The supplied handler would next load the issue and require issue-write permission, but that later gate is satisfied by the scenario and does not overcome the stronger route-level administrator gate. Because the issue is declared existing and unlocked, the protected LockIssue mutation would be relevant only if the route guard were passed; under the stated non-admin conditions it is not reached. Thus the accepted policy expectation that non-admin issue writers are denied is enforced, and the policy-failure concern is refuted. No source-external fact is decisive for this bounded conclusion; source discovery remains not-tested and no repository-wide or deployment claim is made. Counterfactual: if repository-admin or site-admin status changed to true, the route-level blocker would be removed, but the supplied source alone does not establish every surrounding runtime precondition; with the declared authenticated, readable, existing, unlocked issue and issue-write permission, the shown handler gates lead toward the mutation. If issue-write permission changed to false after the admin gate passed, the handler would return forbidden before mutation. If the issue were already locked, the mutation branch would be skipped and the handler would return no content.
+  Evidence: The declared lock route binds PUT to the issue-lock handler within the lock route group. (route_guard.go:16-19)
+  Evidence: The route group requires token authentication before applying the administrator guard; the scenario supplies an authenticated caller. (route_guard.go:16-20)
+  Evidence: The handler binds the route issue index to an issue lookup in the repository and returns on lookup error; the bounded scenario supplies an existing readable issue. (issue_lock.go:42-47)
+  Evidence: After issue lookup, the handler requires issue-write permission and returns forbidden when it is absent; the scenario fixes that permission as present. (issue_lock.go:49-52)
+  Evidence: The route-level reqAdmin guard requires repository-administrator or site-administrator status and returns forbidden when both are absent. (route_guard.go:4-11)
+  Evidence: If the preceding gates pass and the issue is unlocked, the handler constructs lock options and invokes the issue-lock operation; the current non-admin scenario cannot reach this effect because reqAdmin rejects first. (issue_lock.go:54-67)
+  Evidence: The handler reports no content after the lock branch, but that success path is unreachable here because the route-level administrator guard fails first. (issue_lock.go:67-70)
+  Evidence: The lock mutation branch is conditional on the issue not already being locked; the scenario fixes the issue as unlocked. (issue_lock.go:54-67)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

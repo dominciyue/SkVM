@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "authorization-ai-independent-review/v1",
+  "basis": "Eight read-only, fresh-context case reviewers scored anonymized packets from public task, accepted policy and fixed source; none read the arm map or edited files. One separate read-only reviewer checked two disputed flags.",
+  "dimensions": ["currentDecision", "controlEvidence", "branches", "details", "labelConsistency", "extra", "full"],
+  "cases": {
+    "owui-file": {
+      "anonymousIds": ["r-a5f2dc5aee32", "r-88ec5a0a51d8", "r-a387661853b3", "r-7a2f0cc4a3c7"],
+      "score": {"currentDecision":"correct","controlEvidence":"supported","branches":"not-requested","details":"complete","labelConsistency":"consistent","extra":"accurate","full":true},
+      "evidence": ["retrieval_process_file.py:40-53", "retrieval_process_file.py:62-74", "retrieval_process_file.py:14-18"],
+      "reviewer": "review_owui_file"
+    },
+    "owui-text": {
+      "anonymousIds": ["r-4a39eb0059c2", "r-90c02a81ad83", "r-f69a12c25ed8", "r-97c7cb3fe317", "r-ed7171f103fb", "r-b8e8fa91aebd", "r-2e54cd92752c", "r-0d9ecf3a3970", "r-95c528fdc322"],
+      "score": {"currentDecision":"correct","controlEvidence":"supported","branches":"not-requested","details":"complete","labelConsistency":"consistent","extra":"accurate","full":true},
+      "evidence": ["retrieval_process_text.py:13-44", "retrieval_access_policy.py:22-25", "retrieval_access_policy.py:43-51"],
+      "reviewer": "review_owui_text"
+    },
+    "owui-header": {
+      "anonymousIds": ["r-8ed3ccffde6e", "r-bff719784422", "r-ea138c871590", "r-679240ef48bd"],
+      "score": {"currentDecision":"justified-unknown","controlEvidence":"supported","branches":"complete-correct","details":"complete","labelConsistency":"unknown-appropriate","extra":"accurate","full":true},
+      "evidence": ["auths_signin.py:4-22", "auths_signin.py:31-41", "auths_signin.py:59-62", "env_trusted_headers.py:10-13"],
+      "reviewer": "review_owui_header"
+    },
+    "fastapi-superuser-read": {
+      "anonymousIds": ["r-4dcec1c354b3", "r-09436d423dd9", "r-b0eafc475fce", "r-fa432314e06c", "r-61869ecf1ea9", "r-c9c6cfcf254d", "r-4efb07a63131", "r-2408bc7d66b8"],
+      "score": {"currentDecision":"correct","controlEvidence":"supported","branches":"not-requested","details":"complete","labelConsistency":"consistent","extra":"none","full":true},
+      "evidence": ["items.py:48-58", "items.py:7"],
+      "reviewer": "review_fastapi_superuser"
+    },
+    "gitea-assignee": {
+      "anonymousIds": ["r-31d0379e6747", "r-9d6916988635", "r-2e6905857aed", "r-d2389822271a", "r-22e5c976436d"],
+      "score": {"currentDecision":"correct","controlEvidence":"supported","branches":"complete-correct","details":"complete","labelConsistency":"consistent","extra":"none","full":true},
+      "evidence": ["issue_assignee.go:60-83"],
+      "reviewer": "review_gitea_assignee"
+    },
+    "gitea-lock": {
+      "anonymousIds": ["r-afbbcf52e7f7", "r-500a07977ecc", "r-dccb4b570c17", "r-2de9f7299916"],
+      "score": {"currentDecision":"correct","controlEvidence":"supported","branches":"not-requested","details":"complete","labelConsistency":"consistent","extra":"none","full":true},
+      "evidence": ["route_guard.go:4-20", "issue_lock.go:42-69"],
+      "reviewer": "review_gitea_lock"
+    },
+    "fastapi-superuser-supplied-path": {
+      "anonymousIds": ["r-15fc4bfd70e8", "r-5d71449931cd", "r-7d8b2dd506a5", "r-0a393bac37b8"],
+      "score": {"currentDecision":"justified-unknown","controlEvidence":"supported","branches":"not-requested","details":"complete","labelConsistency":"unknown-appropriate","extra":"accurate","full":true},
+      "evidence": ["items.py:7-8", "items.py:48-58"],
+      "reviewer": "review_fastapi_supplied"
+    },
+    "gitea-collaborator-self": {
+      "anonymousIds": ["r-cd51e86d36ba", "r-bc3c95d95d9c", "r-8abacc1680bf"],
+      "score": {"currentDecision":"correct","controlEvidence":"supported","branches":"not-requested","details":"complete","labelConsistency":"consistent","extra":"accurate","full":true},
+      "evidence": ["collaborators.go:35-39", "collaborators.go:41-58"],
+      "reviewer": "review_gitea_self"
+    }
+  },
+  "overrides": {
+    "r-a387661853b3": {"currentDecision":"over-abstention","controlEvidence":"partial","labelConsistency":"unknown-appropriate","full":false,"reason":"Primary fixed-crop/AH disposition treats source-file ownership as distinct from destination write permission and the selected collection as reaching the insert sink; the model withheld the current decision."},
+    "r-afbbcf52e7f7": {"extra":"accurate","reason":"Accurate unrequested admin and already-locked paths were added."}
+  },
+  "adjudications": [
+    {"ids":["r-cd51e86d36ba","r-bc3c95d95d9c","r-8abacc1680bf"],"decision":"label consistent","reason":"First blind reviewer read source_refuted backwards. The tested v6 truth table maps authored allow plus observed allow to source_refuted: source refutes an authorization failure claim; code and tests at outcome-result.ts:25-27 and outcome-result.test.ts:10-16. A separate read-only reviewer independently confirmed all three packets."},
+    {"ids":["r-a387661853b3"],"decision":"primary over-abstention, sensitivity justified unknown","reason":"First blind reviewer follows the frozen bounded task's expected source-supported destination write failure; second reviewer points out the omitted helper prefix could contain a destination guard. This is a genuine fixed-crop ambiguity. Report both primary and conservative sensitivity; do not claim a robust semantic difference from this row."}
+  ],
+  "sensitivity": {"r-a387661853b3":{"currentDecision":"justified-unknown","controlEvidence":"supported","labelConsistency":"unknown-appropriate","full":true}},
+  "protocolNote": "r-0a393bac37b8 is the first transport delivery of a unit whose firstResponse.deliveryComplete=false; its semantic score does not make the first delivery complete. The repair has its own blind packet."
+}
