@@ -26,6 +26,7 @@ import {
   type RunAuthorizationTaskOptions,
 } from "./host.ts"
 import { renderSourceBundle } from "./inputs.ts"
+import { AuthorizationEvidenceReportSchema, type AuthorizationEvidenceReport } from "./evidence-preparation/schema.ts"
 import {
   loadLocalAuthorizationInput,
   type LocalAnalysisProfile,
@@ -60,6 +61,7 @@ export interface LocalAuthorizationCheckReport {
   conditionRequestCount?: number
   conditionPlanEntryCount?: number
   preview?: string
+  evidencePreparation?: AuthorizationEvidenceReport
   promptCharacters?: AuthorizationPromptCharacterBreakdown
   diagnostics: AnalysisDiagnostic[]
   diagnosticGroups?: Record<string, Array<AnalysisDiagnostic & { fix: string }>>
@@ -104,6 +106,7 @@ const PersistedLocalSessionSchema = z.object({
   analysisProfile: z.unknown().optional(),
   reasoningStrategy: z.enum(["standard", "control-binding-v1"]).optional(),
   assessmentMode: z.enum(["legacy", "explicit-v1"]).optional(),
+  evidencePreparation: AuthorizationEvidenceReportSchema.optional(),
   noAutomaticResend: z.literal(true).optional(),
 }).passthrough()
 const PersistedLocalSessionReportSchema = z.object({
@@ -119,6 +122,7 @@ const PersistedLocalSessionReportSchema = z.object({
   studyArm: AuthorizationStudyArmSchema.optional(),
   reasoningStrategy: z.enum(["standard", "control-binding-v1"]).optional(),
   assessmentMode: z.enum(["legacy", "explicit-v1"]).optional(),
+  evidencePreparation: AuthorizationEvidenceReportSchema.optional(),
   finalKind: z.enum(["initial", "repair"]).optional(),
 }).passthrough()
 const PersistedLocalDispatchSchema = z.object({
@@ -129,6 +133,7 @@ const PersistedLocalDispatchSchema = z.object({
   studyArm: AuthorizationStudyArmSchema.optional(),
   reasoningStrategy: z.enum(["standard", "control-binding-v1"]).optional(),
   assessmentMode: z.enum(["legacy", "explicit-v1"]).optional(),
+  evidencePreparation: AuthorizationEvidenceReportSchema.optional(),
 }).passthrough()
 const PersistedAuthorizationRunSchema = z.object({
   status: AuthorizationTaskRunStatusSchema,
@@ -164,6 +169,7 @@ export interface LocalAuthorizationSessionReport {
   assessmentMode?: AuthorizationAssessmentMode
   analysisProfile?: LocalAnalysisProfile
   reasoningStrategy?: AuthorizationReasoningStrategy
+  evidencePreparation?: AuthorizationEvidenceReport
   finalKind?: "initial" | "repair"
   canonicalResult?: AuthorizationResultV0
   wireResult?: unknown
@@ -188,6 +194,7 @@ export interface LocalAuthorizationSessionReport {
     normalizedInput?: string
     fieldProvenance?: string
     executionDependencies?: string
+    evidencePreparation?: string
     dispatch?: string
     events?: string
     run?: string
@@ -420,6 +427,7 @@ function checkReport(
     sourceRef: loaded.task.sourceRef,
     sourceRoot: loaded.sourceRoot,
     sourceFiles: loaded.sourceBundle.files.map(file => file.relativePath),
+    ...(loaded.normalizedInput.evidencePreparation ? { evidencePreparation: loaded.normalizedInput.evidencePreparation } : {}),
     arm,
     ...(studyArm ? { studyArm } : {}),
     methodSelection: resolved.selection,
@@ -636,6 +644,7 @@ export async function executeLocalAuthorizationRun(input: {
     characters: input.researchInstructions.instructions.length,
   } : undefined
   const selectionMetadata = { methodSelection: checked.methodSelection, wireVersion: checked.wireVersion, assessmentMode: checked.assessmentMode, reasoningStrategy,
+    ...(checked.evidencePreparation ? { evidencePreparation: checked.evidencePreparation } : {}),
     ...(researchIdentity ? {researchIdentity} : {}) }
 
   const session = await createSession(input.outRoot)
@@ -647,6 +656,7 @@ export async function executeLocalAuthorizationRun(input: {
     normalizedInput: "normalized-input.json",
     fieldProvenance: "field-provenance.json",
     executionDependencies: "execution-dependencies.json",
+    ...(checked.evidencePreparation ? { evidencePreparation: "evidence-preparation.json" } : {}),
     task: "task.json",
     sourceBundle: "source-bundle.json",
     analysisRequirements: "analysis-requirements.json",
@@ -676,6 +686,7 @@ export async function executeLocalAuthorizationRun(input: {
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.normalizedInput!), loaded.normalizedInput)
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.fieldProvenance!), loaded.provenance)
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.executionDependencies!), createExecutionDependencies(loaded, checked))
+  if (checked.evidencePreparation) await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.evidencePreparation!), checked.evidencePreparation)
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.task), loaded.task)
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.sourceBundle), loaded.sourceBundle)
   await writeJsonExclusive(path.join(session.sessionPath, baseArtifacts.analysisRequirements), effectiveStudyArm === "P"
@@ -884,6 +895,7 @@ async function validateDispatchIdentity(
     || !samePersistedValue(session.wireVersion, dispatch.wireVersion)
     || (session.assessmentMode ?? "legacy") !== (dispatch.assessmentMode ?? "legacy")
     || (session.reasoningStrategy ?? "standard") !== (dispatch.reasoningStrategy ?? "standard")
+    || !samePersistedValue(session.evidencePreparation, dispatch.evidencePreparation)
   ) {
     throw new LocalAuthorizationRunnerError(`Dispatch artifact identity does not match session ${sessionId}.`)
   }
@@ -909,13 +921,14 @@ async function validateTerminalSession(input: {
     || !samePersistedValue(session.wireVersion, report.wireVersion)
     || (session.assessmentMode ?? "legacy") !== (report.assessmentMode ?? "legacy")
     || (session.reasoningStrategy ?? "standard") !== (report.reasoningStrategy ?? "standard")
+    || !samePersistedValue(session.evidencePreparation, report.evidencePreparation)
   ) {
     throw new LocalAuthorizationRunnerError(`Persisted session identity does not match directory ${sessionId}.`)
   }
 
   const checkPath = path.join(sessionPath, "check.json")
   if (await pathKind(checkPath) === "file") {
-    const check = JSON.parse(await readFile(checkPath, "utf8")) as { inputPath?: string; taskId?: string; methodSelection?: unknown; wireVersion?: unknown; assessmentMode?: AuthorizationAssessmentMode; assessmentProgram?: AuthorizationAssessmentProgram; reasoningStrategy?: AuthorizationReasoningStrategy; reasoningPlan?: AuthorizationReasoningPlan }
+    const check = JSON.parse(await readFile(checkPath, "utf8")) as { inputPath?: string; taskId?: string; methodSelection?: unknown; wireVersion?: unknown; assessmentMode?: AuthorizationAssessmentMode; assessmentProgram?: AuthorizationAssessmentProgram; reasoningStrategy?: AuthorizationReasoningStrategy; reasoningPlan?: AuthorizationReasoningPlan; evidencePreparation?: AuthorizationEvidenceReport }
     if (
       (check.inputPath !== undefined && path.resolve(report.inputPath ?? "") !== path.resolve(check.inputPath))
       || (check.taskId !== undefined && report.taskId !== check.taskId)
@@ -923,9 +936,15 @@ async function validateTerminalSession(input: {
       || !samePersistedValue(check.wireVersion, report.wireVersion)
       || (check.assessmentMode ?? "legacy") !== (report.assessmentMode ?? "legacy")
       || (check.reasoningStrategy ?? "standard") !== (report.reasoningStrategy ?? "standard")
+      || !samePersistedValue(check.evidencePreparation, report.evidencePreparation)
     ) {
       throw new LocalAuthorizationRunnerError(`Persisted session identity does not match check artifact for ${sessionId}.`)
     }
+  }
+  if (report.evidencePreparation) {
+    const preparation = parsePersistedArtifact(AuthorizationEvidenceReportSchema,
+      await readFile(path.join(sessionPath, "evidence-preparation.json"), "utf8"), `Evidence preparation for ${sessionId}`)
+    if (!samePersistedValue(preparation, report.evidencePreparation)) throw new LocalAuthorizationRunnerError(`Evidence preparation identity does not match session ${sessionId}.`)
   }
 
   const dispatchPath = path.join(sessionPath, "dispatch.json")
@@ -1004,6 +1023,7 @@ async function inspectSession(sessionPath: string, sessionId: string): Promise<L
     ...(session.methodSelection ? { methodSelection: session.methodSelection as AuthorizationMethodSelection } : {}),
     ...(typeof session.wireVersion === "string" ? { wireVersion: session.wireVersion } : {}),
     ...(session.analysisProfile ? { analysisProfile: session.analysisProfile as LocalAnalysisProfile } : {}),
+    ...(session.evidencePreparation ? { evidencePreparation: session.evidencePreparation } : {}),
   }
 }
 

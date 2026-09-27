@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-27
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AI0–AI16已完成并复核；AJ0–AJ16已授权、待新开发任务启动。
+- 状态：AI0–AI16已完成并复核；AJ0–AJ16已启动，本轮进度见结果根status。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AJ0–AJ16](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)

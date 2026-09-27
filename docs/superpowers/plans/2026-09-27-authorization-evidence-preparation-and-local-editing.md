@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、既有源码目录/引用校验、普通 SkVM CLI、Git 只读源码获取、Python 文档检查。
 
-- 日期：2026-09-27；状态：已授权，planned-not-started。
+- 日期：2026-09-27；状态：2026-09-28 AJ0已启动，恢复状态在本轮结果根。
 - 开发基线：`47c08965eab4d750d950d827291384e3b04e7564` 加本规划提交；直接在 `D:/skill优化/SkVM` 的 `skill-ir-aot` 工作，仅推用户 `origin`。
 - 开发模型：`gpt-6-sol / max`。被测分析模型默认沿用 `xty/gpt-5.6-sol`；开发代理、作者生成、材料准备、分析、评价分别记账。
 - 结果根：`results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/`；AJ0 开始后才建立 status/journal。
@@ -62,8 +62,8 @@ export interface AuthorizationEvidenceRequest {
   allowedFiles: string[]
   entries: Array<{ entryKey: string; path: string; startLine: number; endLine: number }>
   dependencies: Array<{
-    id: string; fromEntry: string; path: string
-    startLine?: number; endLine?: number
+    id: string; from: string; path: string
+    startLine?: number; endLine?: number; match?: string
     reason: "identity" | "resource-binding" | "control" | "effect" | "other"
     basis: "author" | "locator" | "model-proposal"
   }>
@@ -71,7 +71,7 @@ export interface AuthorizationEvidenceRequest {
 }
 export interface AuthorizationEvidenceReport {
   status: "ready" | "partial" | "invalid"
-  included: Array<{ path: string; startLine: number; endLine: number; origin: string }>
+  included: Array<{ path: string; originalPath: string; startLine: number; endLine: number; origins: string[] }>
   gaps: Array<{ id: string; entryKey: string; reason: string; attemptedPath?: string }>
   closureClaim: "declared-dependencies-only"
 }
@@ -83,6 +83,7 @@ export interface AuthorizationEvidenceReport {
 - `ready`只表示声明的材料准备完成。`partial`不能自动改政策expectation，也不替模型填写unknown。将来源范围及缺口作为相同公共上下文给两种表示，最终答案由源码和任务决定。
 - 可用范围扩充必须从该固定ref的权威源码生成新输入身份，不覆盖AI裁剪或旧报告。原始行号、文件身份和引用映射全程可复核。
 - 新输出为普通可消费输入、源码快照和紧凑准备报告；必要sidecar通过现有loader显式接线并进入session/compare依赖。不得只在研究driver里拼特殊prompt，或要求普通用户提供evaluator。
+- AJ1接口核对：`dependencies.from`引用已声明entry key或另一依赖id，因而`maxDepth`实际约束依赖链；`match`只用现有literal locator验证唯一命中且处在显式闭区间，不能从命中自行推函数边界。准备器输出normalized普通input，内含可选`evidencePreparation`报告；每个快照文件最多一段连续原行范围，完整文件在预算内优先。loader用报告范围标注source catalog，并机械核对行数、来源文件与缺口状态；同一source bundle的渲染把报告作为公共上下文供plain/DSL及真实run共享。作者v2原件与源码根保持只读。若入口本身无法纳入快照，拒绝产生可运行input；非入口依赖缺口可partial并运行。
 
 ### 3.3 局部编辑
 
@@ -175,39 +176,41 @@ export interface AuthorizationEditRequest {
 
 ### AJ0 恢复、基线和执行状态
 
-- [ ] 核对分支/HEAD/工作区，读必需上下文；不要再全量审计旧档案。
-- [ ] 建立本轮status/journal、唯一写者和结果目录，记录当前阶段与下一命令；修正当前文档的AI已完成措辞。
+- [x] 核对分支/HEAD/工作区，读必需上下文；不要再全量审计旧档案。
+- [x] 建立本轮status/journal、唯一写者和结果目录，记录当前阶段与下一命令；修正当前文档的AI已完成措辞。
 - [ ] 原始工作区若出现其他任务修改，记录归属并保留，不执行清理。
 
 ### AJ1 共享根因、接口和失败测试表
 
-- [ ] 核对AI crop争议原始源码和作者重写链；提出可复现的小反例，禁止凭结论重写旧数据。
-- [ ] 确认上面两个模块接口、sidecar接线和普通命令；把必要调整写入本书及研究§7.29后继续。
-- [ ] 明确新增字段只有来源/请求/变化，不含oracle truth；为跨入口串用、丢helper、无关字段改写建立失败测试。
+- [x] 核对AI crop争议原始源码和作者重写链；提出可复现的小反例，禁止凭结论重写旧数据。
+- [x] 确认上面两个模块接口、sidecar接线和普通命令；把必要调整写入本书及研究§7.29后继续。
+- [x] 明确新增字段只有来源/请求/变化，不含oracle truth；为跨入口串用、丢helper、无关字段改写建立失败测试。
+
+AJ1失败测试表：不同`sourceRef`/root的request拒绝；未纳入helper时partial保留明确gap且预览显示gap；超预算不可用半截字符串冒充完整文件；prepare快照搬移后保持原行号和引用；patch仅改所列路径，政策修改未列全部引用场景expectation不可ready；check/run使用相同准备上下文而compare复查整个共享上下文。AI14个无响应的证据是180秒客户端截止及网关socket断开，尚未证实provider代码缺陷；本轮不因旧失败修改共享provider。
 
 ### AJ2 证据准备schema和范围读取
 
-- [ ] 新增schema/prepare模块测试：重叠范围合并、原始行号不偏移、整文件优先、重复依赖、循环去重、预算不足partial、缺文件partial、路径逃逸invalid。
-- [ ] 运行 `bun test ./src/benchmarks/authorization-dsl/evidence-preparation` 确认因缺实现失败，再实现并转绿。
-- [ ] 复用 `loadExactSourceBundle`/source catalog，保持CRLF及Unicode可追踪；不能用标为完整的半截函数蒙混过关。
+- [x] 新增schema/prepare模块测试：重叠范围合并、原始行号不偏移、整文件优先、重复依赖、循环去重、预算不足partial、缺文件partial、路径逃逸invalid。
+- [x] 运行 `bun test ./src/benchmarks/authorization-dsl/evidence-preparation` 确认因缺实现失败，再实现并转绿。
+- [x] 复用portable source bundle/source catalog，保持CRLF及Unicode可追踪；不能用标为完整的半截函数蒙混过关。
 
 ### AJ3 依赖定位与准备产物
 
 - [ ] 将显式依赖、现有locator和可选一次模型proposal接入同一个validator；未解析符号给具体路径/范围诊断。
-- [ ] 生成普通输入和快照、准备报告、缺口说明；精确来源绑定用已有机制，不建立重复哈希层。
+- [x] 生成普通输入和快照、准备报告、缺口说明；精确来源绑定用已有机制，不建立重复哈希层。
 - [ ] 测试无模型显式路径、proposal越界拒绝、动态调用gap、入口局部来源、同字节移动；核心逻辑不按仓库名分支。
 
 ### AJ4 普通prepare与分析接线
 
-- [ ] 新增薄 `authorization prepare --input=... --request=... --out=...`；旧check/run继续正常。
-- [ ] check-only零provider、partial能带缺口进入分析、invalid不产出可运行输入；命令不修改源文件。
-- [ ] 将实际准备身份和公共缺口接入render/session/inspect/compare；两种表示同源码/同缺口，analysis host继续零执行工具。
+- [x] 新增薄 `authorization prepare --input=... --request=... --out=...`；旧check/run继续正常。
+- [x] check-only零provider、partial能带缺口进入分析、invalid不产出可运行输入；命令不修改源文件。
+- [x] 将实际准备身份和公共缺口接入render/session/inspect/compare；两种表示同源码/同缺口，analysis host继续零执行工具。
 
 ### AJ5 局部编辑纯函数
 
-- [ ] 新增 `applyAuthorizationLocalEdit`，输入现有v2和edit请求；输出value/changedPaths/affectedScenarios/diagnostics，输入不变。
-- [ ] 先写并运行失败测试，再实现：关系变更保留taskId和另一场景；修改policy列出引用场景；遗漏必要政策对照确认不可ready；重复写同属性/未知key/非法字段拒绝。
-- [ ] 对用户明确提供的变更自动应用确定步骤，不增加日常审批。
+- [x] 新增 `applyAuthorizationLocalEdit`，输入现有v2和edit请求；输出value/changedPaths/affectedScenarios/diagnostics，输入不变。
+- [x] 先写并运行失败测试，再实现：关系变更保留taskId和另一场景；修改policy列出引用场景；遗漏必要政策对照确认不可ready；重复写同属性/未知key/非法字段拒绝。
+- [x] 对用户明确提供的变更自动应用确定步骤，不增加日常审批。
 
 ```ts
 // local-edit.test.ts 的最小语义示例；base从现有完整v2测试fixture构造。
@@ -224,9 +227,11 @@ expect(base).toEqual(before)
 
 ### AJ6 workspace与普通edit
 
-- [ ] 复用composer/materialize，新增薄 `authorization edit --input=... --edit=... --out=...`，schema/help/错误定位同步。
-- [ ] 原/变文件可独立check/run；搬移不破坏sourceRoot，写输出前完成校验，不覆盖原件。
-- [ ] 测试patch直接物化，而非先生成完整变稿后diff；compare标出变化且保留共享context全体影响，旧答案不自动升格。
+- [x] 复用composer的声明校验和materialize的同级暂存发布模式，新增薄 `authorization edit --input=... --edit=... --out=...`，schema/help/错误定位同步。
+- [x] 原/变文件可独立check/run；搬移不破坏sourceRoot，发布输出前完成校验，不覆盖原件。
+- [x] 测试patch直接物化，而非先生成完整变稿后diff；compare标出变化且保留共享context全体影响，旧答案不自动升格。
+
+AJ6局部实现调整：现有`materializeAuthorizationWorkspace`只接收workspace文件和整字段replacements，无法直接发表单一局部patch的`draft`诊断。edit复用其同级暂存加拒绝覆盖的发布模式，而非调用该函数；先以纯patch结果调用composer核对顶层结构，再在暂存坐标做普通loader检查。无新审批或模型调用。
 
 ### AJ7 基础设施诊断与有限修复
 

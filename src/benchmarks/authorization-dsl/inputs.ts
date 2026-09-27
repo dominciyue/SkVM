@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto"
 import { readFile, realpath, stat } from "node:fs/promises"
 import path from "node:path"
+import type { AuthorizationEvidenceReport } from "./evidence-preparation/schema.ts"
 
 export interface SourceBundleFile {
   relativePath: string
@@ -19,6 +20,7 @@ export interface SourceBundle {
   sourceMode: "fixed-context"
   isolation: "exact-allowlist"
   files: SourceBundleFile[]
+  evidencePreparation?: AuthorizationEvidenceReport
 }
 
 export interface AuthorizationSourceCatalogEntry {
@@ -498,7 +500,7 @@ export function renderSourceBundle(bundle: SourceBundle): string {
   if (!built.success) {
     throw new Error(`Invalid authorization source bundle: ${built.diagnostics.map(item => `${item.code}: ${item.message}`).join("; ")}`)
   }
-  return built.catalog.sources.map(source => {
+  const sourceText = built.catalog.sources.map(source => {
     const provenance = source.originalLocations.length > 0
       ? source.originalLocations.join(", ")
       : "not separately supplied"
@@ -511,4 +513,14 @@ export function renderSourceBundle(bundle: SourceBundle): string {
       `===== END ALLOWED INPUT: ${source.relativePath} =====`,
     ].join("\n")
   }).join("\n\n")
+  if (!bundle.evidencePreparation) return sourceText
+  const report = bundle.evidencePreparation
+  return [
+    `Preparation status: ${report.status}`,
+    `Closure claim: ${report.closureClaim}`,
+    `Prepared from: ${report.sourceIdentity.repository}@${report.sourceIdentity.sourceRef}; root ${report.sourceRoot}`,
+    `Included original ranges: ${report.included.map(item => `${item.originalPath}:${item.startLine}-${item.endLine} [${item.origins.join(", ")}]`).join("; ")}`,
+    `Unresolved gaps: ${report.gaps.length === 0 ? "none" : report.gaps.map(gap => `${gap.id}: ${gap.reason}${gap.attemptedPath ? ` (${gap.attemptedPath})` : ""}`).join("; ")}`,
+    sourceText,
+  ].join("\n\n")
 }

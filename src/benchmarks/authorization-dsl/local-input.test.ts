@@ -4,6 +4,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import type { AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
 import * as localInput from "./local-input.ts"
+import { renderSourceBundle } from "./inputs.ts"
 const { loadLocalAuthorizationInput } = localInput
 
 const cleanupRoots: string[] = []
@@ -244,5 +245,50 @@ describe("loadLocalAuthorizationInput", () => {
         path: "sourceRoot",
       }))
     }
+  })
+
+  it("loads prepared excerpts with original line coordinates and exposes preparation gaps in source context", async () => {
+    const f = await makeFixture()
+    const preparedRoot = path.join(f.root, "prepared")
+    await mkdir(path.join(preparedRoot, "source", "src"), { recursive: true })
+    await writeFile(path.join(preparedRoot, "source", "src", "record.ts"), "  const principal = request.user\n  if (request.record.ownerId !== principal.id) throw new Error('denied')\n", "utf8")
+    const report = {
+      schemaVersion: "authorization-evidence-report/v1", status: "partial",
+      sourceIdentity: { repository: f.task.repository, sourceRef: f.task.sourceRef }, sourceRoot: "project",
+      included: [{ path: "src/record.ts", originalPath: "src/record.ts", startLine: 2, endLine: 3, origins: ["entry:update-record"] }],
+      gaps: [{ id: "missing-helper", entryKey: "update-record", reason: "missing-file", attemptedPath: "src/helper.ts" }],
+      closureClaim: "declared-dependencies-only",
+    }
+    const inputPath = path.join(preparedRoot, "assessment.json")
+    const task = makeTask({ entries: [{ id: "update-record", name: "updateRecord", locations: [{ path: "src/record.ts", startLine: 2, endLine: 3 }] }] })
+    await writeFile(inputPath, JSON.stringify({ ...f.input, task, sourceRoot: "source", evidencePreparation: report }), "utf8")
+    const loaded = await loadLocalAuthorizationInput(inputPath)
+    expect(loaded.status).toBe("valid")
+    if (loaded.status !== "valid") return
+    expect(loaded.sourceBundle.files[0]?.cropRange).toEqual({ startLine: 2, endLine: 3 })
+    const rendered = renderSourceBundle(loaded.sourceBundle)
+    expect(rendered).toContain("2 |   const principal")
+    expect(rendered).toContain("Preparation status: partial")
+    expect(rendered).toContain("missing-helper: missing-file (src/helper.ts)")
+    expect(rendered).not.toContain("1 | export async")
+  })
+
+  it("rejects prepared report identity and crop mismatches before dispatch", async () => {
+    const f = await makeFixture()
+    const report = {
+      schemaVersion: "authorization-evidence-report/v1", status: "ready",
+      sourceIdentity: { repository: f.task.repository, sourceRef: "different-ref" }, sourceRoot: "project",
+      included: [{ path: "src/record.ts", originalPath: "src/record.ts", startLine: 2, endLine: 3, origins: ["entry:update-record"] }],
+      gaps: [], closureClaim: "declared-dependencies-only",
+    }
+    await writeFile(f.inputPath, JSON.stringify({ ...f.input, evidencePreparation: report }), "utf8")
+    const identity = await loadLocalAuthorizationInput(f.inputPath)
+    expect(identity.status).toBe("invalid")
+    if (identity.status === "invalid") expect(identity.diagnostics).toContainEqual(expect.objectContaining({ code: "evidence-preparation-invalid" }))
+    report.sourceIdentity.sourceRef = f.task.sourceRef
+    await writeFile(f.inputPath, JSON.stringify({ ...f.input, evidencePreparation: report }), "utf8")
+    const crop = await loadLocalAuthorizationInput(f.inputPath)
+    expect(crop.status).toBe("invalid")
+    if (crop.status === "invalid") expect(crop.diagnostics).toContainEqual(expect.objectContaining({ code: "evidence-preparation-invalid" }))
   })
 })

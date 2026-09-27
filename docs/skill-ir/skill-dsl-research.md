@@ -908,7 +908,7 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 ### 7.29 AJ 证据准备与局部修改
 
-2026-09-27父任务复核：`47c08965`与用户origin同SHA，工作区干净；359 pass/1平台skip、2494 assertions、typecheck通过，AI面板和作者消费评价均零provider复现。用户批准继续并要求派发`gpt-6-sol / max`，按[AJ0–AJ16任务书](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)在主开发分支连续推进；当前为planned-not-started。
+2026-09-27父任务复核：`47c08965`与用户origin同SHA，工作区干净；359 pass/1平台skip、2494 assertions、typecheck通过，AI面板和作者消费评价均零provider复现。用户批准继续并要求派发`gpt-6-sol / max`，按[AJ0–AJ16任务书](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)在主开发分支连续推进。2026-09-28 AJ0从规划提交`8fa7280a`的干净工作区启动；实时恢复位置见[AJ status](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/status.json)。
 
 **根因与方法。** AI争议行的helper前缀没有进入固定裁剪，评分者对可达结论产生合理分歧。现有v6可以检查标签映射和请求分支，但源码材料是否足够仍取决于准备。作者变化稿先全量重写JSON、再求顶层diff生成workspace，出现taskId/场景名扩散和括号错误。AJ把改进放到这两个真实环节：运行前的有界证据准备，以及先产生局部patch再由程序物化。
 
@@ -919,6 +919,12 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 **研究设计。** 8个公开development任务中的2个为AI回归，6个为此前未进入效果面板的同类任务；至少3个源码项目，至少1个新项目。材料按来源/结构资格选定，不按方法成绩选题。四臂为Markdown/DSL×原材料/新prepare材料，同证据层内共享原字节及公共任务。32初轮加8预定重复，另两包8session原/变消费；共享bug修订单列。分别判断共同证据准备、领域表示、局部编辑的收益，并报告首次失败、未知请求usage、准备与分析成本。用户质量60%/复用40%的投入取向保持，当前不承诺positive。
 
 **执行约束。** AI14个传输缺失先诊断；新生成按任务交错四臂、默认串行，连续基础设施失败时先完成其他工程并保存未派发队列。旧失败不会被重发覆盖。研究与开发问题持续追加本节，完成后给普通示例、真实证据和当前建议，不扩增平行研究正文。
+
+**AJ0–AJ1接口核对。** 2026-09-28从干净`8fa7280a`启动后，读旧AI生命周期可证实9个`timeout-unknown`含180秒客户端deadline、5个`transport-failed`含网关socket中断；旧结果不能证明共享provider代码缺陷，也不能把未知usage补零。`loadPortableSourceBundle`已经封闭文件与junction边界，catalog/sourceId和普通check/run共用；locator仅做literal命中，不会识别完整函数。因此准备请求的`from`可以引用entry或依赖ID以实际应用深度预算，`match`只验证显式行范围的唯一命中。输出的normalized普通input内嵌来源/范围/缺口报告，loader核对快照行数并让普通source renderer把同一报告送到check和真实run。入口缺失时无可运行输入，其他依赖缺口可partial。局部patch由程序按既有key物化v2，不传taskId或oracle真值。上述小接口调整已同步AJ任务书，红绿测试将固定跨入口串用、缺helper、范围/预算和无关字段不变等反例。
+
+**AJ2–AJ6工程接线。** 新`prepareAuthorizationEvidence`以portable reader读取请求白名单，先保留所有入口，再按声明依赖与预算读取；重叠范围合并，每个文件保留一段连续的原行号片段，剩余预算优先扩为整文件。缺失、歧义、深度和字节限制记具名gap，不由文件名推断guard。`authorization prepare`只在新目录发布normalized输入、source快照和report，check-only零写入/零provider。普通loader机械核对report身份、状态、文件列表及片段行数；render、run、session、inspect及compare共用同一准备上下文和完整依赖。新`applyAuthorizationLocalEdit`只接受声明key的policy/scenario/premise补丁；重复字段或未知目标报错，政策操作需每个引用场景显式给出expectation，包括不改变值的本次复查。`authorization edit`先做纯补丁、composer结构校验与相对源码根搬移，完整稿经普通loader验证才发布；缺复查时保存不可运行draft。现阶段聚焦测试34项/213断言通过，typecheck已在当前工程代码上通过；最终聚合门禁仍待AJ15。源码准备的模型proposal与真实研究仍未派发，不把确定性工程测试写成质量收益。
+
+**AJ8候选约束。** 现有公开development索引中的Linkding、Django Todo已进AB效果面板，Open WebUI、FastAPI、Gitea已进后续效果面板；登记的两份外部skill职责映射不自动提供新源码项目。因此既有目录没有可证明符合“六个新任务、至少一个新项目”的现成候选列表。AJ8须先按公开资格和固定ref另行登记新项目/任务，再冻结四臂与评价材料；不能拿旧案例换名满足新样本要求。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

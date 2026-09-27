@@ -21,6 +21,7 @@ export function createExecutionDependencies(loaded:ValidInput, checked:LocalAuth
   return {schemaVersion:"authorization-execution-dependencies/v1" as const,
     task:structuredClone(task), scenarios,
     sourceBundle:loaded.sourceBundle.files.map(f=>({path:f.relativePath,sha256:hash(f.content),cropRange:f.cropRange,originalLocations:f.originalLocations})),
+    evidencePreparation:loaded.normalizedInput.evidencePreparation??null,
     sourceRoot:loaded.normalizedInput.sourceRoot, sources:loaded.normalizedInput.sources,
     profile:loaded.analysisProfile,requirements:loaded.analysisRequirements,conditionRequest:loaded.conditionAnalysisRequest??null,
     assessmentContract:loaded.analysisContract??null,assessmentProgram:checked.assessmentProgram??null,assessmentMode:checked.assessmentMode??"legacy",
@@ -40,7 +41,7 @@ export async function compareAuthorizationInput(previousSessionPath:string,input
   if(loaded.status!=="valid")return {...base,status:"input-invalid",affectedScenarioIds:[],missingDependencies:[],diagnostics:loaded.diagnostics,reasons:["current-input-invalid"]}
   let old:Snapshot|undefined
   try {old=JSON.parse(await readFile(path.join(previous.sessionPath,"execution-dependencies.json"),"utf8"))} catch { /* Historical sessions are never backfilled. */ }
-  const required=["task","scenarios","sourceBundle","sourceRoot","sources","profile","requirements","conditionRequest","normalizerVersion","method","wireVersion","arm","resultContract","promptSha256"] as const
+  const required=["task","scenarios","sourceBundle","evidencePreparation","sourceRoot","sources","profile","requirements","conditionRequest","normalizerVersion","method","wireVersion","arm","resultContract","promptSha256"] as const
   const missingDependencies=old?.schemaVersion!=="authorization-execution-dependencies/v1" ? ["execution-dependencies/v1"] : required.filter(k=>!Object.hasOwn(old!,k))
   const method=options.method??old?.method??previous.methodSelection?.effective
   const previousWire=old?.wireVersion??previous.wireVersion

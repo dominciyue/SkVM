@@ -114,6 +114,8 @@ export function authorizationCliHelp(): string {
     "  locate --root=<project> --file=<relative-path> --match=<literal-text> [--limit=20]",
     "  init --out=<assessment.json> [--from=<authoring.json> | --format=authoring-v2]",
     "  compose --workspace=<workspace.json> --out=<new-directory> [--check-only]",
+    "  prepare --input=<assessment.json> --request=<request.json> --out=<new-directory> [--check-only=true]",
+    "  edit --input=<authoring-v2.json> --edit=<patch.json> --out=<new-directory> [--check-only=true]",
     "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--arm=N|B|D] [--wire=legacy|v4|v5|v6] [--assessment=legacy|explicit-v1] [--reasoning=standard|control-binding-v1]",
     "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--arm=N|B|D] [--wire=legacy|v4|v5|v6] [--assessment=legacy|explicit-v1] [--reasoning=standard|control-binding-v1]",
     "  inspect --out=<output-root-or-session>",
@@ -152,6 +154,14 @@ export async function runAuthorizationCli(
     if (argv[0] === "compose") {
       const { runAuthorizationComposeCli } = await import("./authorization-compose.ts")
       return runAuthorizationComposeCli(argv.slice(1), dependencies)
+    }
+    if (argv[0] === "prepare") {
+      const { runAuthorizationPrepareCli } = await import("./authorization-prepare.ts")
+      return runAuthorizationPrepareCli(argv.slice(1), dependencies)
+    }
+    if (argv[0] === "edit") {
+      const { runAuthorizationEditCli } = await import("./authorization-edit.ts")
+      return runAuthorizationEditCli(argv.slice(1), dependencies)
     }
     return await runLocalAuthorizationCli(argv, dependencies)
   } catch (error) {

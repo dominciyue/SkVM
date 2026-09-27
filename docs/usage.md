@@ -91,6 +91,26 @@ skvm authorization check --input=./scenario-workspace/generated/owner.json --met
 
 The optional workspace comparison reads both verified declarations without publishing. It lists common fields that changed, each variant's inherited or explicitly replaced fields, effective input changes, added/removed variants, and review reasons. A common policy change hidden by an explicit replacement is a prompt to check applicability; it is not automatically an author error. Output-directory relocation alone does not count as changed source bytes. A previous model answer still needs ordinary `authorization compare`, which includes all source files seen by that run.
 
+To prepare a bounded source snapshot before analysis, write an `authorization-evidence-request/v1` JSON file that names the original input's `sourceRoot`, allowed files, every entry key and exact source range, named dependencies, and file/byte/depth limits. Dependencies use `from` to refer to an entry or another dependency; each one needs an explicit line range to include bytes. A literal `match` may confirm one hit within that range. The report records original lines, included files and unresolved gaps. `ready` means the declared source request was prepared; it does not prove that every runtime path or external middleware is visible. A missing optional dependency produces a runnable `partial` snapshot; a missing required entry prevents publication.
+
+```powershell
+skvm authorization prepare --input=./assessment.json --request=./evidence-request.json --out=./prepared --check-only=true
+skvm authorization prepare --input=./assessment.json --request=./evidence-request.json --out=./prepared
+skvm authorization check --input=./prepared/assessment.json --method=plain --wire=v6
+```
+
+The new directory contains `assessment.json`, `source/` snapshots, and `report.json`. Check and run expose the same preparation report and gaps; inspect retains it with the session, and compare treats changes to it or the source as a reason to review the old answer. The original task and source files are read only. Check-only uses no provider and writes no output.
+
+For a small change to an existing authoring/v2 input, write an `authorization-local-edit/v1` JSON file with `reason` and `operations`. A policy operation names a declared policy and may set `text`, `location`, `revision`, or `reason`; a scenario operation may set `relation`, `operation`, or `expectation`; a premise operation names an existing scenario and premise id and replaces its statement. When a policy is edited, explicitly supply an expectation for every scenario that cites it, even if the value stays the same. The program does not infer the policy decision from the source.
+
+```powershell
+skvm authorization edit --input=./authoring.json --edit=./change.json --out=./edited --check-only=true
+skvm authorization edit --input=./authoring.json --edit=./change.json --out=./edited
+skvm authorization check --input=./edited/assessment.json --method=plain --wire=v6
+```
+
+The published `assessment.json` is a complete v2 input with sourceRoot relocated to the new directory; `edit-report.json` lists supplied and changed fields. An incomplete policy review yields diagnostics and a non-runnable `draft.json`. Both commands reject an existing output directory. Run a fresh session for the changed input, and use `authorization compare` against the old session to identify affected shared context.
+
 The retained AA FastAPI trial demonstrates ordinary v2 use. From the repository root, these commands inspect an actual completed session and compare its original non-superuser declaration with the independently authored superuser change, without a provider call:
 
 ```powershell

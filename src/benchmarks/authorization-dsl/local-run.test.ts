@@ -8,6 +8,7 @@ import { buildAuthorizationSourceCatalog } from "./inputs.ts"
 import { loadLocalAuthorizationInput } from "./local-input.ts"
 import { assessmentConditionId } from "../../task-dsl/authorization/assessment-contract.ts"
 import { compareAuthorizationInput } from "./change-report.ts"
+import type { AuthorizationEvidenceReport } from "./evidence-preparation/schema.ts"
 import {
   checkLocalAuthorizationInput,
   executeLocalAuthorizationRun,
@@ -183,6 +184,44 @@ it("sidecar selects explicit v6 by default while an explicit legacy selection ke
   const mismatched = await checkLocalAuthorizationInput(fixture.inputPath, "B", "plain", "v4", "standard", "explicit-v1")
   expect(mismatched.status).toBe("invalid")
   expect(mismatched.diagnostics[0]?.path).toBe("wireVersion")
+})
+
+it("carries the same preparation report through preview, provider prompt, session, and inspect", async () => {
+  const f = await makeFixture()
+  const input: any = JSON.parse(await readFile(f.inputPath, "utf8"))
+  const report: AuthorizationEvidenceReport = {
+    schemaVersion: "authorization-evidence-report/v1", status: "partial",
+    sourceIdentity: input.sourceIdentity, sourceRoot: "project",
+    included: [{ path: "src/record.ts", originalPath: "src/record.ts", startLine: 1, endLine: 5, origins: ["entry:update"] }],
+    gaps: [{ id: "missing-helper", entryKey: "update", reason: "missing-file", attemptedPath: "src/helper.ts" }],
+    closureClaim: "declared-dependencies-only",
+  }
+  input.evidencePreparation = report
+  await writeFile(f.inputPath, JSON.stringify(input), "utf8")
+  const checked = await checkLocalAuthorizationInput(f.inputPath, "B")
+  expect(checked.status).toBe("valid")
+  expect(checked.evidencePreparation).toEqual(report)
+  expect(checked.preview).toContain("missing-helper: missing-file (src/helper.ts)")
+  const calls = { factory: 0, provider: 0 }
+  const provider = await providerFor(f.inputPath, calls)
+  let sent = ""
+  const result = await executeLocalAuthorizationRun({ inputFile: f.inputPath, outRoot: f.outRoot, model: "mock/model", arm: "B", providerFactory: async () => ({
+    ...provider,
+    async complete(params) { sent = JSON.stringify(params); return provider.complete(params) },
+  }) })
+  expect(result.status).toBe("completed")
+  if (!("sessionPath" in result)) return
+  expect(sent).toContain("missing-helper: missing-file (src/helper.ts)")
+  expect(result.evidencePreparation).toEqual(report)
+  expect(await readFile(path.join(result.sessionPath, "evidence-preparation.json"), "utf8")).toContain("missing-helper")
+  const inspected = await inspectLocalAuthorizationOutput(result.sessionPath)
+  expect(inspected.evidencePreparation).toEqual(report)
+  input.evidencePreparation = { ...report, status: "ready", gaps: [] }
+  await writeFile(f.inputPath, JSON.stringify(input), "utf8")
+  const comparison = await compareAuthorizationInput(result.sessionPath, f.inputPath)
+  expect(comparison.status).toBe("needs-review")
+  expect(comparison.reasons).toContain("evidencePreparation-changed")
+  expect(comparison.affectedScenarioIds).toEqual(["deny-update"])
 })
 
 it("explicit v6 survives run and inspect; changing a premise requires review", async () => {

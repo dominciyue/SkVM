@@ -21,6 +21,7 @@ import { compileAuthorizationTask } from "../../task-dsl/authorization/semantics
 import { AuthorizationAnalysisContractV1Schema, type AuthorizationAnalysisContractV1 } from "../../task-dsl/authorization/assessment-contract.ts"
 import { compileAuthorizationAssessmentProgram, type AuthorizationAssessmentProgram } from "../../task-dsl/authorization/assessment-program.ts"
 import { loadPortableSourceBundle, type SourceBundle } from "./inputs.ts"
+import { AuthorizationEvidenceReportSchema } from "./evidence-preparation/schema.ts"
 import type { AuthorizationAuthoringProvenance } from "./authoring.ts"
 
 const NonEmptyString = z.string().trim().min(1)
@@ -49,6 +50,7 @@ export const LocalAuthorizationInputSchema = z.object({
   analysisRequirements: AnalysisRequirementsSchema.optional(),
   conditionAnalysisRequest: AuthorizationConditionAnalysisRequestV1Schema.optional(),
   analysisContract: AuthorizationAnalysisContractV1Schema.optional(),
+  evidencePreparation: AuthorizationEvidenceReportSchema.optional(),
 }).strict()
 
 export type LocalAuthorizationInput = z.infer<typeof LocalAuthorizationInputSchema>
@@ -227,6 +229,40 @@ export async function loadLocalAuthorizationInputValue(
   if (!loadedBundle.success) {
     diagnostics.push(...loadedBundle.diagnostics.map(item => localDiagnostic(item.code, item.message, item.path)))
   }
+  let sourceBundle: SourceBundle | undefined = loadedBundle.success ? loadedBundle.bundle : undefined
+  if (sourceBundle && input.evidencePreparation) {
+    const report = input.evidencePreparation
+    const included = new Map(report.included.map(item => [item.path, item]))
+    const reportPaths = report.included.map(item => item.path)
+    const invalid = report.status === "invalid"
+      || (report.status === "ready" && report.gaps.length > 0)
+      || (report.status === "partial" && report.gaps.length === 0)
+      || report.sourceIdentity.repository !== input.sourceIdentity.repository
+      || report.sourceIdentity.sourceRef !== input.sourceIdentity.sourceRef
+      || included.size !== sourceBundle.files.length
+      || reportPaths.length !== sourceBundle.files.length
+      || sourceBundle.files.some(file => !included.has(file.relativePath))
+      || sourceBundle.files.some(file => {
+        const item = included.get(file.relativePath)
+        const lineCount = file.content.length === 0 ? 0 : file.content.replace(/\r?\n$/, "").split(/\r?\n/).length
+        return !item || item.originalPath !== file.relativePath
+          || item.endLine - item.startLine + 1 !== lineCount
+      })
+    if (invalid) diagnostics.push(localDiagnostic(
+      "evidence-preparation-invalid",
+      "Prepared report identity, included paths, ranges, or status do not match the exact snapshot bytes.",
+      "evidencePreparation",
+    ))
+    else sourceBundle = {
+      ...sourceBundle,
+      evidencePreparation: report,
+      files: sourceBundle.files.map(file => {
+        const item = included.get(file.relativePath)!
+        return { ...file, cropRange: { startLine: item.startLine, endLine: item.endLine },
+          originalLocations: [`${item.originalPath}:${item.startLine}-${item.endLine}`] }
+      }),
+    }
+  }
 
   const compiledTask = compileAuthorizationTask(input.task)
   if (compiledTask.status !== "ready" || compiledTask.diagnostics.length > 0) {
@@ -244,8 +280,8 @@ export async function loadLocalAuthorizationInputValue(
     }
   }
 
-  if (loadedBundle.success) {
-    diagnostics.push(...declarationLocationDiagnostics(input.task, loadedBundle.bundle, version === "authorization-assessment-authoring/v2"))
+  if (sourceBundle) {
+    diagnostics.push(...declarationLocationDiagnostics(input.task, sourceBundle, version === "authorization-assessment-authoring/v2"))
   }
 
   const analysisProfile: LocalAnalysisProfile = input.analysisProfile ?? (input.analysisRequirements
@@ -306,7 +342,7 @@ export async function loadLocalAuthorizationInputValue(
   const assessment = input.analysisContract ? compileAuthorizationAssessmentProgram(input.task, input.analysisContract) : undefined
   if (assessment && assessment.status !== "ready") diagnostics.push(...assessment.diagnostics.map(item => localDiagnostic(item.code, item.message, item.path)))
 
-  if (diagnostics.length > 0 || !loadedBundle.success) {
+  if (diagnostics.length > 0 || !sourceBundle) {
     return { status: "invalid", inputPath, diagnostics }
   }
   return {
@@ -317,7 +353,7 @@ export async function loadLocalAuthorizationInputValue(
     provenance,
     sourceRoot,
     task: input.task,
-    sourceBundle: loadedBundle.bundle,
+    sourceBundle,
     analysisProfile,
     analysisRequirements,
     analysisPlan,
