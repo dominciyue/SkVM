@@ -1,0 +1,321 @@
+{
+  "unit": {
+    "id": "repeat-paperless-download-M1",
+    "phase": "repeat",
+    "caseId": "paperless-download",
+    "arm": "M1",
+    "input": "prepared"
+  },
+  "configSha256": "ed5fb8546282dca20aabacfa8cf9a0cc6a9bd7944ff599965eb2348bc7ff2821",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v6",
+    "assessmentMode": "explicit-v1",
+    "reasoningStrategy": "standard",
+    "evidencePreparation": {
+      "schemaVersion": "authorization-evidence-report/v1",
+      "status": "ready",
+      "sourceIdentity": {
+        "repository": "https://github.com/paperless-ngx/paperless-ngx",
+        "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+      },
+      "sourceRoot": "../../../public-source/paperless",
+      "included": [
+        {
+          "path": "src/documents/views.py",
+          "originalPath": "src/documents/views.py",
+          "startLine": 1388,
+          "endLine": 1839,
+          "origins": [
+            "entry:download",
+            "locator:file-response",
+            "locator:root-resolution",
+            "locator:version-selection"
+          ]
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "originalPath": "src/documents/permissions.py",
+          "startLine": 1,
+          "endLine": 717,
+          "origins": [
+            "locator:owner-aware"
+          ]
+        }
+      ],
+      "gaps": [],
+      "closureClaim": "declared-dependencies-only"
+    },
+    "researchIdentity": {
+      "arm": "markdown",
+      "instructionOrigin": "independent-author",
+      "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/inputs/paperless-download/independent.md",
+      "sha256": "3f80232aa1c140bf49f5a892244c224013ef05c5821c47b95b5457f6efd57fb8",
+      "characters": 2008
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260927T193903042Z-c673083a",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\runs\\repeat-paperless-download-M1\\sessions\\20260927T193903042Z-c673083a",
+    "createdAt": "2026-09-27T19:39:03.042Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\inputs\\paperless-download\\prepared-final\\assessment.json",
+    "taskId": "paperless-version-download-root",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 138,
+        "declaration": 2008,
+        "publicAnalysis": 1185,
+        "assessmentProgram": 709,
+        "source": 51766,
+        "outputContract": 2908,
+        "total": 58864,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "evidencePreparation": "evidence-preparation.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "paperless-version-download-root",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "results": [
+        {
+          "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+          "conclusion": "source_refuted",
+          "explanation": "At the declared download entry, the handler delegates to file_response, which first resolves the requested document and its root, then applies the owner-aware view_document check to the root document before selecting and serving a file. Under the stated premises, the caller neither owns nor has an object view grant on that root, so the check returns forbidden and the file-serving path is not reached. The requested version's ownership is not the checked authorization basis. If authorization passed, the selected file object would be the effective file document returned by _get_effective_file_doc: an explicit version request resolves through _resolve_file_doc(root_doc, request), while the root-resolution and selection logic shown establishes that selection occurs only after the root check. This assessment is limited to the supplied declared-entry source and does not claim repository-wide behavior.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "DocumentViewSet.download delegates the request to file_response with attachment disposition.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1834,
+                    "endLine": 1838,
+                    "quote": "    @action(methods=[\"get\"], detail=True)\n    def download(self, request, pk=None):\n        try:\n            return self.file_response(pk, request, \"attachment\")\n        except (FileNotFoundError, Document.DoesNotExist):"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The request document is resolved from the requested primary key and the root document is then resolved from that request document.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1401,
+                    "endLine": 1420,
+                    "quote": "    def _resolve_request_and_root_doc(\n        self,\n        pk,\n        request: Request,\n        *,\n        include_deleted: bool = False,\n    ) -> ResolvedRequestDocs | HttpResponseForbidden:\n        manager = Document.global_objects if include_deleted else Document.objects\n        try:\n            request_doc = manager.select_related(\n                \"owner\",\n                \"root_document\",\n            ).get(id=pk)\n        except Document.DoesNotExist:\n            raise Http404\n\n        root_doc = get_root_document(\n            request_doc,\n            include_deleted=include_deleted,\n        )"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The owner-aware view_document authorization check is applied to root_doc, and failure returns HttpResponseForbidden.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1421,
+                    "endLine": 1427,
+                    "quote": "        if request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        ):\n            return HttpResponseForbidden(\"Insufficient permissions\")\n        return ResolvedRequestDocs(request_doc=request_doc, root_doc=root_doc)"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "If the root check succeeds, file_response selects an effective file document and passes it to serve_file; with an explicit version request, selection resolves from the root document and request.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1429,
+                    "endLine": 1448,
+                    "quote": "    def file_response(self, pk, request, disposition):\n        resolved = self._resolve_request_and_root_doc(\n            pk,\n            request,\n            include_deleted=True,\n        )\n        if isinstance(resolved, HttpResponseForbidden):\n            return resolved\n        file_doc = self._get_effective_file_doc(\n            resolved.request_doc,\n            resolved.root_doc,\n            request,\n        )\n        return serve_file(\n            doc=file_doc,\n            use_archive=not self.original_requested(request)\n            and file_doc.has_archive_version,\n            disposition=disposition,\n            follow_formatting=request.query_params.get(\"follow_formatting\", False),\n        )"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The owner-aware check grants access for an unowned object, the owner, or a caller with the requested object permission; version ownership alone is not stated as a substitute for root ownership or root permission.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  }
+                ]
+              },
+              {
+                "statement": "The supplied premises state that the caller lacks ownership and an object view grant on the existing root, so the root authorization check fails despite global document view permission and ownership of the requested version.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+          "explanation": "At the declared download entry, the handler delegates to file_response, which first resolves the requested document and its root, then applies the owner-aware view_document check to the root document before selecting and serving a file. Under the stated premises, the caller neither owns nor has an object view grant on that root, so the check returns forbidden and the file-serving path is not reached. The requested version's ownership is not the checked authorization basis. If authorization passed, the selected file object would be the effective file document returned by _get_effective_file_doc: an explicit version request resolves through _resolve_file_doc(root_doc, request), while the root-resolution and selection logic shown establishes that selection occurs only after the root check. This assessment is limited to the supplied declared-entry source and does not claim repository-wide behavior.",
+          "facts": [
+            {
+              "id": "f-entry",
+              "kind": "entry",
+              "statement": "DocumentViewSet.download delegates the request to file_response with attachment disposition.",
+              "citations": [
+                {
+                  "sourceId": "src-7178cab55a635a65",
+                  "startLine": 1834,
+                  "endLine": 1838
+                }
+              ]
+            },
+            {
+              "id": "f-binding",
+              "kind": "binding",
+              "statement": "The request document is resolved from the requested primary key and the root document is then resolved from that request document.",
+              "citations": [
+                {
+                  "sourceId": "src-7178cab55a635a65",
+                  "startLine": 1401,
+                  "endLine": 1420
+                }
+              ]
+            },
+            {
+              "id": "f-control",
+              "kind": "control",
+              "statement": "The owner-aware view_document authorization check is applied to root_doc, and failure returns HttpResponseForbidden.",
+              "citations": [
+                {
+                  "sourceId": "src-7178cab55a635a65",
+                  "startLine": 1421,
+                  "endLine": 1427
+                }
+              ]
+            },
+            {
+              "id": "f-policy",
+              "kind": "condition",
+              "statement": "The supplied premises state that the caller lacks ownership and an object view grant on the existing root, so the root authorization check fails despite global document view permission and ownership of the requested version.",
+              "citations": [
+                {
+                  "sourceId": "src-81f6400744c9c9e9",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "f-effect",
+              "kind": "effect",
+              "statement": "If the root check succeeds, file_response selects an effective file document and passes it to serve_file; with an explicit version request, selection resolves from the root document and request.",
+              "citations": [
+                {
+                  "sourceId": "src-7178cab55a635a65",
+                  "startLine": 1429,
+                  "endLine": 1448
+                }
+              ]
+            },
+            {
+              "id": "f-condition",
+              "kind": "condition",
+              "statement": "The owner-aware check grants access for an unowned object, the owner, or a caller with the requested object permission; version ownership alone is not stated as a substitute for root ownership or root permission.",
+              "citations": [
+                {
+                  "sourceId": "src-81f6400744c9c9e9",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "deny"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "normalizerVersion": "authorization-wire-normalizer/v6",
+    "relationCoverage": [],
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+        "expectation": "deny",
+        "observed": "deny",
+        "derivedConclusion": "source_refuted"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 263,
+        "output": 660,
+        "cacheRead": 13696,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

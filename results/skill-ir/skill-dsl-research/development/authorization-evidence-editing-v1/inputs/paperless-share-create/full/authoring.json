@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "paperless-share-create-document-view",
+  "request": "At ShareLinkViewSet.create handler entry, can an authenticated caller with global add_sharelink and global view_document permission create a share link for a document owned by someone else when the caller lacks object view_document permission on that document?",
+  "repository": "https://github.com/paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceRoot": "../../../public-source/paperless",
+  "sources": [
+    "src/documents/views.py"
+  ],
+  "policies": {
+    "share-target-document-view": {
+      "text": "Share-link creation requires the share-link creation permission and view access to the referenced document; a global view_document grant alone does not substitute for the owner-aware object check.",
+      "location": "src/documents/permissions.py:30-53; src/documents/serialisers.py:2851-2886",
+      "revision": "126ec414a8b65158368653a2604ae58415e43103",
+      "acceptance": "accepted",
+      "reason": "Public fixed-ref source and task-author bounded requirement."
+    }
+  },
+  "principals": {
+    "global-permissions-only": {
+      "role": "authenticated user with global add_sharelink and view_document permissions",
+      "facts": [
+        "The caller has the global permissions named in the question.",
+        "The caller has no object view_document grant on the target document."
+      ]
+    }
+  },
+  "resources": {
+    "other-document-share": {
+      "type": "document and new share link",
+      "facts": [
+        "The referenced document exists and is owned by another user.",
+        "No object view grant is held by the caller."
+      ]
+    }
+  },
+  "entries": {
+    "share-create": {
+      "name": "ShareLinkViewSet.create",
+      "locations": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 4696,
+          "endLine": 4717
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "global-only-no-document-view": {
+      "principal": "global-permissions-only",
+      "resource": "other-document-share",
+      "policy": "share-target-document-view",
+      "entries": [
+        "share-create"
+      ],
+      "relation": "global-view-without-object-view",
+      "operation": "create share link referencing document",
+      "expectation": "deny"
+    }
+  },
+  "additionalQuestions": [
+    "identify the principal, operation, protected resource, decisive control, and effect",
+    "return source_supported_failure, source_refuted, or unknown with exact supplied-source locations"
+  ],
+  "additionalConstraints": [
+    "Use only the supplied fixed-ref case inputs.",
+    "Do not execute the target project or infer deployment facts."
+  ],
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Decide the current scenario at the stated declared-entry boundary from the supplied fixed source and accepted policy. Treat premises as question assumptions, not source or deployment proof. Trace the decisive authorization control, protected object and effect with exact supplied-source locations. State any decisive missing runtime fact rather than assuming it. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: At ShareLinkViewSet.create handler entry, can an authenticated caller with global add_sharelink and global view_document permission create a share link for a document owned by someone else when the caller lacks object view_document permission on that document?\nAnalysis boundary: declared-entry.\nTask premise: At ShareLinkViewSet.create entry, the authenticated caller has global add_sharelink and view_document, but the referenced document exists, belongs to another user, and has no caller object view grant.\nRequired response detail: Trace the viewset's permissions and serializer validation of the referenced document; distinguish the share-link object from its target document.",
+    "scenarios": {
+      "global-only-no-document-view": {
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At ShareLinkViewSet.create entry, the authenticated caller has global add_sharelink and view_document, but the referenced document exists, belongs to another user, and has no caller object view grant.",
+            "atEntry": "share-create",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the viewset's permissions and serializer validation of the referenced document; distinguish the share-link object from its target document."
+        ]
+      }
+    }
+  }
+}

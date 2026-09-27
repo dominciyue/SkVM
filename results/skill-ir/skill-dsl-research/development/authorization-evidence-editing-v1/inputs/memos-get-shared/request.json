@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "authorization-evidence-request/v1",
+  "sourceRoot": "../../../public-source/memos",
+  "allowedFiles": [
+    "server/api/v1/memo_share_service.go",
+    "server/api/v1/memo_access.go",
+    "core/access/memo.go",
+    "core/access/memo_resolve.go",
+    "store/memo_share.go"
+  ],
+  "entries": [
+    {
+      "entryKey": "get-shared",
+      "path": "server/api/v1/memo_share_service.go",
+      "startLine": 170,
+      "endLine": 213
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "active-token",
+      "from": "get-shared",
+      "path": "server/api/v1/memo_share_service.go",
+      "startLine": 216,
+      "endLine": 229,
+      "match": "func (s *APIV1Service) getActiveMemoShare",
+      "reason": "identity",
+      "basis": "locator"
+    },
+    {
+      "id": "read-context",
+      "from": "get-shared",
+      "path": "server/api/v1/memo_access.go",
+      "startLine": 15,
+      "endLine": 40,
+      "match": "func (s *APIV1Service) buildMemoReadContext(ctx",
+      "reason": "resource-binding",
+      "basis": "locator"
+    },
+    {
+      "id": "read-decision",
+      "from": "read-context",
+      "path": "core/access/memo.go",
+      "startLine": 87,
+      "endLine": 156,
+      "match": "func CheckMemoReadContext",
+      "reason": "control",
+      "basis": "locator"
+    },
+    {
+      "id": "read-resolve",
+      "from": "read-context",
+      "path": "core/access/memo_resolve.go",
+      "startLine": 26,
+      "endLine": 90,
+      "match": "func ResolveMemoReadFacts",
+      "reason": "resource-binding",
+      "basis": "locator"
+    }
+  ],
+  "limits": {
+    "maxFiles": 12,
+    "maxBytes": 65536,
+    "maxDepth": 3
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "authorization-aj-author-use-oracle/v1",
+  "visibility": "evaluator-only; never supplied to either author or consumer",
+  "frozenBeforeAuthorGeneration": true,
+  "packages": {
+    "memos-space-policy": {
+      "original": { "self-leave": { "expectation": "allow", "observed": "allow", "conclusion": "source_refuted" }, "other-member": { "expectation": "deny", "observed": "deny", "conclusion": "source_refuted" } },
+      "changed": { "self-leave": { "expectation": "allow", "observed": "allow", "conclusion": "source_refuted" }, "other-member": { "expectation": "allow", "observed": "deny", "conclusion": "source_supported_failure" } },
+      "decisiveEvidence": ["space_service.go:750-755 permits self deletion but invokes the administrator check for another member", "space_service.go:756-763 performs Store.DeleteSpaceMember only after the applicable guard"],
+      "unchangedScenario": "self-leave"
+    },
+    "paperless-note-relation": {
+      "original": { "view-only": { "expectation": "deny", "observed": "deny", "conclusion": "source_refuted" }, "change-granted": { "expectation": "allow", "observed": "allow", "conclusion": "source_refuted" } },
+      "changed": { "view-only": { "expectation": "allow", "observed": "allow", "conclusion": "source_refuted" }, "change-granted": { "expectation": "allow", "observed": "allow", "conclusion": "source_refuted" } },
+      "decisiveEvidence": ["views.py crop:39-52 checks object change_document before Note.objects.create", "permissions.py:624-635 permits owner or object grant", "permissions.py:673-699 imposes global method-level permissions"],
+      "unchangedScenario": "change-granted"
+    }
+  }
+}

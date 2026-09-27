@@ -1,0 +1,279 @@
+{
+  "unit": {
+    "id": "repeat-paperless-download-M0",
+    "phase": "repeat",
+    "caseId": "paperless-download",
+    "arm": "M0",
+    "input": "baseline"
+  },
+  "configSha256": "ed5fb8546282dca20aabacfa8cf9a0cc6a9bd7944ff599965eb2348bc7ff2821",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v6",
+    "assessmentMode": "explicit-v1",
+    "reasoningStrategy": "standard",
+    "researchIdentity": {
+      "arm": "markdown",
+      "instructionOrigin": "independent-author",
+      "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/inputs/paperless-download/independent.md",
+      "sha256": "3f80232aa1c140bf49f5a892244c224013ef05c5821c47b95b5457f6efd57fb8",
+      "characters": 2008
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260927T193748026Z-5955e9f7",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\runs\\repeat-paperless-download-M0\\sessions\\20260927T193748026Z-5955e9f7",
+    "createdAt": "2026-09-27T19:37:48.026Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\inputs\\paperless-download\\baseline\\authoring.json",
+    "taskId": "paperless-version-download-root",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 138,
+        "declaration": 2008,
+        "publicAnalysis": 1185,
+        "assessmentProgram": 709,
+        "source": 598,
+        "outputContract": 2908,
+        "total": 7696,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "paperless-version-download-root",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "results": [
+        {
+          "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+          "conclusion": "unknown",
+          "explanation": "At the declared-entry boundary, the handler visibly delegates to file_response(pk, request, \"attachment\") and catches only specified errors. The supplied entry does not show which object the authorization check examines, whether the requested version or its root is bound to that check, or which file object file_response serves. Therefore the stated premises distinguish version ownership from root authorization, but they do not establish an observed allow or deny at this boundary. The accepted policy requires an owner-aware view_document check on the root before serving any selected version; compliance with that policy cannot be determined from this entry alone.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The download action receives the request and requested primary-key value at handler entry.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1,
+                    "endLine": 2,
+                    "quote": "    @action(methods=[\"get\"], detail=True)\n    def download(self, request, pk=None):"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The visible handler passes the requested primary-key value to file_response, but the supplied source does not expose the object binding performed inside that call.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 2,
+                    "endLine": 4,
+                    "quote": "    def download(self, request, pk=None):\n        try:\n            return self.file_response(pk, request, \"attachment\")"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "No authorization predicate or owner-aware view_document check is visible in the supplied handler body; authorization behavior inside file_response is not shown.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 2,
+                    "endLine": 4,
+                    "quote": "    def download(self, request, pk=None):\n        try:\n            return self.file_response(pk, request, \"attachment\")"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "If file_response proceeds, the handler returns its response with the attachment disposition, but the supplied entry does not identify the selected file object or establish that it is served.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 2,
+                    "endLine": 4,
+                    "quote": "    def download(self, request, pk=None):\n        try:\n            return self.file_response(pk, request, \"attachment\")"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The visible failure handling only converts FileNotFoundError or Document.DoesNotExist into Http404; it does not expose the authorization outcome for the stated root-owner and version-owner premises.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 3,
+                    "endLine": 6,
+                    "quote": "        try:\n            return self.file_response(pk, request, \"attachment\")\n        except (FileNotFoundError, Document.DoesNotExist):\n            raise Http404"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [
+            "The implementation of file_response, including which document object is authorization-checked and whether that check is the root document.",
+            "The implementation's selected-file binding, including which file object would be served for the requested version.",
+            "Whether the delegated path performs the accepted owner-aware view_document check on the root before serving the selected version."
+          ],
+          "suggestedObservations": [
+            "Inspect the fixed-ref implementation reached by file_response to identify the authorization target and predicate.",
+            "Observe the fixed-ref file-selection path for the requested pk/version and identify the returned file object.",
+            "Verify whether the delegated path enforces the root-document owner-aware view_document check before producing the attachment response."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+          "explanation": "At the declared-entry boundary, the handler visibly delegates to file_response(pk, request, \"attachment\") and catches only specified errors. The supplied entry does not show which object the authorization check examines, whether the requested version or its root is bound to that check, or which file object file_response serves. Therefore the stated premises distinguish version ownership from root authorization, but they do not establish an observed allow or deny at this boundary. The accepted policy requires an owner-aware view_document check on the root before serving any selected version; compliance with that policy cannot be determined from this entry alone.",
+          "facts": [
+            {
+              "id": "f_entry",
+              "kind": "entry",
+              "statement": "The download action receives the request and requested primary-key value at handler entry.",
+              "citations": [
+                {
+                  "sourceId": "src-eace79a5fd9a7662",
+                  "startLine": 1,
+                  "endLine": 2
+                }
+              ]
+            },
+            {
+              "id": "f_binding",
+              "kind": "binding",
+              "statement": "The visible handler passes the requested primary-key value to file_response, but the supplied source does not expose the object binding performed inside that call.",
+              "citations": [
+                {
+                  "sourceId": "src-eace79a5fd9a7662",
+                  "startLine": 2,
+                  "endLine": 4
+                }
+              ]
+            },
+            {
+              "id": "f_control",
+              "kind": "control",
+              "statement": "No authorization predicate or owner-aware view_document check is visible in the supplied handler body; authorization behavior inside file_response is not shown.",
+              "citations": [
+                {
+                  "sourceId": "src-eace79a5fd9a7662",
+                  "startLine": 2,
+                  "endLine": 4
+                }
+              ]
+            },
+            {
+              "id": "f_effect",
+              "kind": "effect",
+              "statement": "If file_response proceeds, the handler returns its response with the attachment disposition, but the supplied entry does not identify the selected file object or establish that it is served.",
+              "citations": [
+                {
+                  "sourceId": "src-eace79a5fd9a7662",
+                  "startLine": 2,
+                  "endLine": 4
+                }
+              ]
+            },
+            {
+              "id": "f_condition",
+              "kind": "condition",
+              "statement": "The visible failure handling only converts FileNotFoundError or Document.DoesNotExist into Http404; it does not expose the authorization outcome for the stated root-owner and version-owner premises.",
+              "citations": [
+                {
+                  "sourceId": "src-eace79a5fd9a7662",
+                  "startLine": 3,
+                  "endLine": 6
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [
+            "The implementation of file_response, including which document object is authorization-checked and whether that check is the root document.",
+            "The implementation's selected-file binding, including which file object would be served for the requested version.",
+            "Whether the delegated path performs the accepted owner-aware view_document check on the root before serving the selected version."
+          ],
+          "suggestedObservations": [
+            "Inspect the fixed-ref implementation reached by file_response to identify the authorization target and predicate.",
+            "Observe the fixed-ref file-selection path for the requested pk/version and identify the returned file object.",
+            "Verify whether the delegated path enforces the root-document owner-aware view_document check before producing the attachment response."
+          ],
+          "decision": {
+            "kind": "observed",
+            "observed": "unknown"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "normalizerVersion": "authorization-wire-normalizer/v6",
+    "relationCoverage": [],
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+        "expectation": "deny",
+        "observed": "unknown",
+        "derivedConclusion": "unknown"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 643,
+        "output": 745,
+        "cacheRead": 1408,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

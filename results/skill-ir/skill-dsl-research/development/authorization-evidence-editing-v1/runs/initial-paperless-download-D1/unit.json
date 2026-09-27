@@ -1,0 +1,337 @@
+{
+  "unit": {
+    "id": "initial-paperless-download-D1",
+    "phase": "initial",
+    "caseId": "paperless-download",
+    "arm": "D1",
+    "input": "prepared"
+  },
+  "configSha256": "ed5fb8546282dca20aabacfa8cf9a0cc6a9bd7944ff599965eb2348bc7ff2821",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v6",
+    "assessmentMode": "explicit-v1",
+    "reasoningStrategy": "standard",
+    "evidencePreparation": {
+      "schemaVersion": "authorization-evidence-report/v1",
+      "status": "ready",
+      "sourceIdentity": {
+        "repository": "https://github.com/paperless-ngx/paperless-ngx",
+        "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+      },
+      "sourceRoot": "../../../public-source/paperless",
+      "included": [
+        {
+          "path": "src/documents/views.py",
+          "originalPath": "src/documents/views.py",
+          "startLine": 1388,
+          "endLine": 1839,
+          "origins": [
+            "entry:download",
+            "locator:file-response",
+            "locator:root-resolution",
+            "locator:version-selection"
+          ]
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "originalPath": "src/documents/permissions.py",
+          "startLine": 1,
+          "endLine": 717,
+          "origins": [
+            "locator:owner-aware"
+          ]
+        }
+      ],
+      "gaps": [],
+      "closureClaim": "declared-dependencies-only"
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260927T192407633Z-fe99d760",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\runs\\initial-paperless-download-D1\\sessions\\20260927T192407633Z-fe99d760",
+    "createdAt": "2026-09-27T19:24:07.633Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\inputs\\paperless-download\\prepared-final\\assessment.json",
+    "taskId": "paperless-version-download-root",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 396,
+        "declaration": 2984,
+        "publicAnalysis": 1185,
+        "assessmentProgram": 709,
+        "source": 51766,
+        "outputContract": 2908,
+        "total": 60086,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "evidencePreparation": "evidence-preparation.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "paperless-version-download-root",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "results": [
+        {
+          "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+          "conclusion": "source_refuted",
+          "explanation": "Source-visible behavior at the declared entry is deny. DocumentViewSet.download delegates to file_response, which resolves the requested document and its root, then applies the decisive owner-aware view_document check to root_doc—not to the caller-owned version. The check permits the root owner or an object permission; under the supplied premise the caller is neither the root owner nor granted object view access, so file_response returns HttpResponseForbidden before serving a file. The caller's global view permission and ownership of the selected version do not replace this root-object check in the supplied path. If authorization had passed, the protected effect would serve file_doc: _get_effective_file_doc selects the requested version itself when it is a version and no explicit version parameter is present; otherwise it resolves the selected file document from the root and request. In either case, the file is served only after the root check. This is source-supported for the supplied scenario and fixed source crop only; source discovery remains not-tested, so no repository-wide completeness claim is made.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "DocumentViewSet.download delegates the download request to file_response with attachment disposition.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1834,
+                    "endLine": 1837,
+                    "quote": "    @action(methods=[\"get\"], detail=True)\n    def download(self, request, pk=None):\n        try:\n            return self.file_response(pk, request, \"attachment\")"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The handler loads request_doc by the requested primary key and derives root_doc from that request document before authorization.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1409,
+                    "endLine": 1420,
+                    "quote": "        try:\n            request_doc = manager.select_related(\n                \"owner\",\n                \"root_document\",\n            ).get(id=pk)\n        except Document.DoesNotExist:\n            raise Http404\n\n        root_doc = get_root_document(\n            request_doc,\n            include_deleted=include_deleted,\n        )"
+                  }
+                ]
+              },
+              {
+                "statement": "After authorization, effective file selection returns the requested version when it is a version without an explicit version parameter; otherwise it resolves a file document from the root and request.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1388,
+                    "endLine": 1399,
+                    "quote": "    def _get_effective_file_doc(\n        self,\n        request_doc: Document,\n        root_doc: Document,\n        request: Request,\n    ) -> Document:\n        if (\n            request_doc.root_document_id is not None\n            and get_request_version_param(request) is None\n        ):\n            return request_doc\n        return self._resolve_file_doc(root_doc, request)"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The decisive authorization control invokes has_perms_owner_aware for view_document on root_doc and returns HttpResponseForbidden when that check fails.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1421,
+                    "endLine": 1427,
+                    "quote": "        if request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        ):\n            return HttpResponseForbidden(\"Insufficient permissions\")\n        return ResolvedRequestDocs(request_doc=request_doc, root_doc=root_doc)"
+                  }
+                ]
+              },
+              {
+                "statement": "The owner-aware check allows an unowned object, its owner, or a user for whom the object-permission checker reports the requested permission.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The selected file_doc is passed to serve_file with attachment disposition, which is the protected download effect.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1437,
+                    "endLine": 1448,
+                    "quote": "        file_doc = self._get_effective_file_doc(\n            resolved.request_doc,\n            resolved.root_doc,\n            request,\n        )\n        return serve_file(\n            doc=file_doc,\n            use_archive=not self.original_requested(request)\n            and file_doc.has_archive_version,\n            disposition=disposition,\n            follow_formatting=request.query_params.get(\"follow_formatting\", False),\n        )"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "Authorization is evaluated on the resolved root document before effective file-document selection and file serving.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1421,
+                    "endLine": 1442,
+                    "quote": "        if request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        ):\n            return HttpResponseForbidden(\"Insufficient permissions\")\n        return ResolvedRequestDocs(request_doc=request_doc, root_doc=root_doc)\n\n    def file_response(self, pk, request, disposition):\n        resolved = self._resolve_request_and_root_doc(\n            pk,\n            request,\n            include_deleted=True,\n        )\n        if isinstance(resolved, HttpResponseForbidden):\n            return resolved\n        file_doc = self._get_effective_file_doc(\n            resolved.request_doc,\n            resolved.root_doc,\n            request,\n        )\n        return serve_file("
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+          "explanation": "Source-visible behavior at the declared entry is deny. DocumentViewSet.download delegates to file_response, which resolves the requested document and its root, then applies the decisive owner-aware view_document check to root_doc—not to the caller-owned version. The check permits the root owner or an object permission; under the supplied premise the caller is neither the root owner nor granted object view access, so file_response returns HttpResponseForbidden before serving a file. The caller's global view permission and ownership of the selected version do not replace this root-object check in the supplied path. If authorization had passed, the protected effect would serve file_doc: _get_effective_file_doc selects the requested version itself when it is a version and no explicit version parameter is present; otherwise it resolves the selected file document from the root and request. In either case, the file is served only after the root check. This is source-supported for the supplied scenario and fixed source crop only; source discovery remains not-tested, so no repository-wide completeness claim is made.",
+          "facts": [
+            {
+              "id": "f-entry",
+              "kind": "entry",
+              "statement": "DocumentViewSet.download delegates the download request to file_response with attachment disposition.",
+              "citations": [
+                {
+                  "sourceId": "src-7178cab55a635a65",
+                  "startLine": 1834,
+                  "endLine": 1837
+                }
+              ]
+            },
+            {
+              "id": "f-binding",
+              "kind": "binding",
+              "statement": "The handler loads request_doc by the requested primary key and derives root_doc from that request document before authorization.",
+              "citations": [
+                {
+                  "sourceId": "src-7178cab55a635a65",
+                  "startLine": 1409,
+                  "endLine": 1420
+                }
+              ]
+            },
+            {
+              "id": "f-control-path",
+              "kind": "control",
+              "statement": "The decisive authorization control invokes has_perms_owner_aware for view_document on root_doc and returns HttpResponseForbidden when that check fails.",
+              "citations": [
+                {
+                  "sourceId": "src-7178cab55a635a65",
+                  "startLine": 1421,
+                  "endLine": 1427
+                }
+              ]
+            },
+            {
+              "id": "f-owner-aware",
+              "kind": "control",
+              "statement": "The owner-aware check allows an unowned object, its owner, or a user for whom the object-permission checker reports the requested permission.",
+              "citations": [
+                {
+                  "sourceId": "src-81f6400744c9c9e9",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "f-condition",
+              "kind": "condition",
+              "statement": "Authorization is evaluated on the resolved root document before effective file-document selection and file serving.",
+              "citations": [
+                {
+                  "sourceId": "src-7178cab55a635a65",
+                  "startLine": 1421,
+                  "endLine": 1442
+                }
+              ]
+            },
+            {
+              "id": "f-selection",
+              "kind": "binding",
+              "statement": "After authorization, effective file selection returns the requested version when it is a version without an explicit version parameter; otherwise it resolves a file document from the root and request.",
+              "citations": [
+                {
+                  "sourceId": "src-7178cab55a635a65",
+                  "startLine": 1388,
+                  "endLine": 1399
+                }
+              ]
+            },
+            {
+              "id": "f-effect",
+              "kind": "effect",
+              "statement": "The selected file_doc is passed to serve_file with attachment disposition, which is the protected download effect.",
+              "citations": [
+                {
+                  "sourceId": "src-7178cab55a635a65",
+                  "startLine": 1437,
+                  "endLine": 1448
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "deny"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "normalizerVersion": "authorization-wire-normalizer/v6",
+    "relationCoverage": [],
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+        "expectation": "deny",
+        "observed": "deny",
+        "derivedConclusion": "source_refuted"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 14191,
+        "output": 1355,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

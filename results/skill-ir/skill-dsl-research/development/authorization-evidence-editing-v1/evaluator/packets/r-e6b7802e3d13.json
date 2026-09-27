@@ -1,0 +1,253 @@
+{
+  "schemaVersion": "authorization-aj-review-packet/v1",
+  "anonymousId": "r-e6b7802e3d13",
+  "caseId": "paperless-download",
+  "evidenceLayer": "baseline",
+  "publicInstruction": "Decide the stated authorization scenario at the declared entry from supplied fixed source and accepted policy. Treat premises as assumptions, cite exact supplied-source locations for the control and effect, preserve decisive unknowns, and do not execute the target or infer deployment facts.",
+  "publicBrief": {
+    "id": "paperless-download",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "entry": "src/documents/views.py:1834-1839",
+    "acceptedPolicy": "A download must pass the owner-aware view_document check on the root document before serving any selected file version.",
+    "currentQuestion": "At DocumentViewSet.download handler entry, can an authenticated user download a requested version document they own when its root document is owned by someone else and they lack an object view grant on that root? Assume the user has the required global view permission and the documents exist.",
+    "boundary": "declared-entry",
+    "premises": [
+      "At download entry, the authenticated caller has global document view permission and owns the requested version, but a different user owns the existing root document and the caller has no object view grant on that root."
+    ],
+    "requiredResponseDetails": [
+      "Identify which object is checked and which file object would be served; do not collapse version ownership into root authorization."
+    ]
+  },
+  "sourceBundle": {
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "sourceMode": "fixed-context",
+    "isolation": "exact-allowlist",
+    "files": [
+      {
+        "relativePath": "src/documents/views.py",
+        "content": "    @action(methods=[\"get\"], detail=True)\n    def download(self, request, pk=None):\n        try:\n            return self.file_response(pk, request, \"attachment\")\n        except (FileNotFoundError, Document.DoesNotExist):\n            raise Http404\n",
+        "sha256": "8703d7e50029dd9f35acb8a8bc885ef200772aaa996c4e2d25aacea99847907a",
+        "cropRange": {
+          "startLine": 1,
+          "endLine": 6
+        },
+        "originalLocations": []
+      }
+    ]
+  },
+  "answer": {
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "paperless-version-download-root",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "results": [
+        {
+          "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+          "conclusion": "unknown",
+          "explanation": "At the declared-entry boundary, the handler is shown only delegating to self.file_response(pk, request, \"attachment\") and translating FileNotFoundError or Document.DoesNotExist into Http404. The supplied crop does not show which object file_response authorizes, whether it performs the owner-aware view_document check on the root document, or which file object it serves for a requested version. Therefore the source-visible behavior at this boundary is unknown. The accepted policy requires authorization on the root document before serving any selected version, but policy cannot substitute for the missing implementation evidence. The stated premises establish the scenario assumptions, including version ownership and lack of root access; they do not establish the delegated authorization result. Version ownership must therefore remain distinct from root-document authorization.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "DocumentViewSet.download is the examined handler entry and accepts a requested key through pk.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1,
+                    "endLine": 2,
+                    "quote": "    @action(methods=[\"get\"], detail=True)\n    def download(self, request, pk=None):"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The supplied source passes the request object into the delegated file-serving call; caller identity and permission state are not resolved in the shown crop.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 2,
+                    "endLine": 4,
+                    "quote": "    def download(self, request, pk=None):\n        try:\n            return self.file_response(pk, request, \"attachment\")"
+                  }
+                ]
+              },
+              {
+                "statement": "The shown entry does not bind authorization to either the requested version document or its root document; it passes pk to file_response without exposing the delegated lookup.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 2,
+                    "endLine": 4,
+                    "quote": "    def download(self, request, pk=None):\n        try:\n            return self.file_response(pk, request, \"attachment\")"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "No owner-aware view_document check or other object-level authorization control is visible in the supplied handler crop; the visible control is delegation to file_response.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 2,
+                    "endLine": 4,
+                    "quote": "    def download(self, request, pk=None):\n        try:\n            return self.file_response(pk, request, \"attachment\")"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "If the delegated call proceeds, the handler returns the result of file_response with attachment disposition; the supplied crop does not identify the selected file object.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 3,
+                    "endLine": 4,
+                    "quote": "        try:\n            return self.file_response(pk, request, \"attachment\")"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The handler catches FileNotFoundError and Document.DoesNotExist and raises Http404; this visible condition does not establish authorization success or failure.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 3,
+                    "endLine": 6,
+                    "quote": "        try:\n            return self.file_response(pk, request, \"attachment\")\n        except (FileNotFoundError, Document.DoesNotExist):\n            raise Http404"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [
+            "The implementation of file_response, including whether it performs the owner-aware view_document check on the existing root document before serving a selected version.",
+            "The resource binding inside file_response: which document is looked up from pk and which file object is returned for a requested version.",
+            "The runtime authorization outcome of that delegated check for the assumed caller and root document."
+          ],
+          "suggestedObservations": [
+            "Inspect the fixed-source implementation of file_response and its directly required authorization binding, if that lies within the permitted assessment boundary.",
+            "Observe whether file_response invokes the owner-aware view_document check on the existing root document for this request.",
+            "Observe which selected version/file object file_response returns after authorization passes."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+          "explanation": "At the declared-entry boundary, the handler is shown only delegating to self.file_response(pk, request, \"attachment\") and translating FileNotFoundError or Document.DoesNotExist into Http404. The supplied crop does not show which object file_response authorizes, whether it performs the owner-aware view_document check on the root document, or which file object it serves for a requested version. Therefore the source-visible behavior at this boundary is unknown. The accepted policy requires authorization on the root document before serving any selected version, but policy cannot substitute for the missing implementation evidence. The stated premises establish the scenario assumptions, including version ownership and lack of root access; they do not establish the delegated authorization result. Version ownership must therefore remain distinct from root-document authorization.",
+          "facts": [
+            {
+              "id": "f-entry",
+              "kind": "entry",
+              "statement": "DocumentViewSet.download is the examined handler entry and accepts a requested key through pk.",
+              "citations": [
+                {
+                  "sourceId": "src-eace79a5fd9a7662",
+                  "startLine": 1,
+                  "endLine": 2
+                }
+              ]
+            },
+            {
+              "id": "f-principal",
+              "kind": "binding",
+              "statement": "The supplied source passes the request object into the delegated file-serving call; caller identity and permission state are not resolved in the shown crop.",
+              "citations": [
+                {
+                  "sourceId": "src-eace79a5fd9a7662",
+                  "startLine": 2,
+                  "endLine": 4
+                }
+              ]
+            },
+            {
+              "id": "f-resource",
+              "kind": "binding",
+              "statement": "The shown entry does not bind authorization to either the requested version document or its root document; it passes pk to file_response without exposing the delegated lookup.",
+              "citations": [
+                {
+                  "sourceId": "src-eace79a5fd9a7662",
+                  "startLine": 2,
+                  "endLine": 4
+                }
+              ]
+            },
+            {
+              "id": "f-control",
+              "kind": "control",
+              "statement": "No owner-aware view_document check or other object-level authorization control is visible in the supplied handler crop; the visible control is delegation to file_response.",
+              "citations": [
+                {
+                  "sourceId": "src-eace79a5fd9a7662",
+                  "startLine": 2,
+                  "endLine": 4
+                }
+              ]
+            },
+            {
+              "id": "f-effect",
+              "kind": "effect",
+              "statement": "If the delegated call proceeds, the handler returns the result of file_response with attachment disposition; the supplied crop does not identify the selected file object.",
+              "citations": [
+                {
+                  "sourceId": "src-eace79a5fd9a7662",
+                  "startLine": 3,
+                  "endLine": 4
+                }
+              ]
+            },
+            {
+              "id": "f-condition",
+              "kind": "condition",
+              "statement": "The handler catches FileNotFoundError and Document.DoesNotExist and raises Http404; this visible condition does not establish authorization success or failure.",
+              "citations": [
+                {
+                  "sourceId": "src-eace79a5fd9a7662",
+                  "startLine": 3,
+                  "endLine": 6
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [
+            "The implementation of file_response, including whether it performs the owner-aware view_document check on the existing root document before serving a selected version.",
+            "The resource binding inside file_response: which document is looked up from pk and which file object is returned for a requested version.",
+            "The runtime authorization outcome of that delegated check for the assumed caller and root document."
+          ],
+          "suggestedObservations": [
+            "Inspect the fixed-source implementation of file_response and its directly required authorization binding, if that lies within the permitted assessment boundary.",
+            "Observe whether file_response invokes the owner-aware view_document check on the existing root document for this request.",
+            "Observe which selected version/file object file_response returns after authorization passes."
+          ],
+          "decision": {
+            "kind": "observed",
+            "observed": "unknown"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+        "expectation": "deny",
+        "observed": "unknown",
+        "derivedConclusion": "unknown"
+      }
+    ]
+  },
+  "sourceScope": "supplied fixed-context only; no target execution"
+}

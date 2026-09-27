@@ -1,0 +1,617 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "aj-use-paperless-note-create",
+    "request": "Assess the two declared authorization scenarios at the notes POST handler and determine whether Note.objects.create is reached under the accepted policy, using the declared entry premises and supplied source locations without executing the target or assuming deployment facts.",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:original-policy",
+        "kind": "explicit-task-requirement",
+        "text": "Creating a note requires the stated global permissions and object-level change_document authorization; a view grant alone is insufficient, while document ownership or an object change grant can satisfy the object control.",
+        "location": "author-use-briefs.json#/paperless-note-relation/originalPolicy",
+        "revision": "original",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "This is the task author's accepted policy and governs both scenario expectations independently of current implementation behavior."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:authenticated-caller",
+        "role": "authenticated caller",
+        "description": "Author facts: [\"The caller is authenticated.\",\"The caller has global add_note, view_document, and change_document permissions.\",\"The caller can view the document.\"]",
+        "startingCapabilities": [
+          "May satisfy the stated global permission requirements.",
+          "May have either only object view authorization or object change authorization, as specified per scenario."
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:existing-document",
+        "type": "existing document",
+        "description": "Author facts: [\"The document exists at handler entry.\",\"The caller's object-level relation to the document is specified separately for each scenario.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:global-permission-enforcement",
+        "name": "global permission enforcement",
+        "locations": [
+          {
+            "path": "src/documents/permissions.py",
+            "startLine": 693,
+            "endLine": 699
+          }
+        ]
+      },
+      {
+        "id": "entry:notes-post-handler",
+        "name": "notes POST handler",
+        "locations": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 37,
+            "endLine": 52
+          }
+        ]
+      },
+      {
+        "id": "entry:owner-aware-object-check",
+        "name": "owner-aware object-level permission check",
+        "locations": [
+          {
+            "path": "src/documents/permissions.py",
+            "startLine": 624,
+            "endLine": 636
+          }
+        ]
+      },
+      {
+        "id": "entry:post-global-permission-map",
+        "name": "POST global permission requirements",
+        "locations": [
+          {
+            "path": "src/documents/permissions.py",
+            "startLine": 678,
+            "endLine": 685
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:change-granted",
+        "principalId": "principal:authenticated-caller",
+        "resourceId": "resource:existing-document",
+        "relation": "object-change-granted-not-owner",
+        "operation": "create a note on the document",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:original-policy",
+        "entryIds": [
+          "entry:notes-post-handler",
+          "entry:owner-aware-object-check",
+          "entry:post-global-permission-map",
+          "entry:global-permission-enforcement"
+        ]
+      },
+      {
+        "id": "scenario:view-only",
+        "principalId": "principal:authenticated-caller",
+        "resourceId": "resource:existing-document",
+        "relation": "caller-owns-document",
+        "operation": "create a note on the document",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:original-policy",
+        "entryIds": [
+          "entry:notes-post-handler",
+          "entry:owner-aware-object-check",
+          "entry:post-global-permission-map",
+          "entry:global-permission-enforcement"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+    ]
+  },
+  "scenarios": {
+    "scenario:change-granted": {
+      "name": "change-granted",
+      "obligation": {
+        "id": "scenario:change-granted",
+        "principalId": "principal:authenticated-caller",
+        "resourceId": "resource:existing-document",
+        "relation": "object-change-granted-not-owner",
+        "operation": "create a note on the document",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:original-policy",
+        "entryIds": [
+          "entry:notes-post-handler",
+          "entry:owner-aware-object-check",
+          "entry:post-global-permission-map",
+          "entry:global-permission-enforcement"
+        ]
+      },
+      "principal": {
+        "id": "principal:authenticated-caller",
+        "role": "authenticated caller",
+        "description": "Author facts: [\"The caller is authenticated.\",\"The caller has global add_note, view_document, and change_document permissions.\",\"The caller can view the document.\"]",
+        "startingCapabilities": [
+          "May satisfy the stated global permission requirements.",
+          "May have either only object view authorization or object change authorization, as specified per scenario."
+        ]
+      },
+      "resource": {
+        "id": "resource:existing-document",
+        "type": "existing document",
+        "description": "Author facts: [\"The document exists at handler entry.\",\"The caller's object-level relation to the document is specified separately for each scenario.\"]"
+      },
+      "policy": {
+        "id": "policy:original-policy",
+        "kind": "explicit-task-requirement",
+        "text": "Creating a note requires the stated global permissions and object-level change_document authorization; a view grant alone is insufficient, while document ownership or an object change grant can satisfy the object control.",
+        "location": "author-use-briefs.json#/paperless-note-relation/originalPolicy",
+        "revision": "original",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "This is the task author's accepted policy and governs both scenario expectations independently of current implementation behavior."
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:notes-post-handler",
+          "name": "notes POST handler",
+          "locations": [
+            {
+              "path": "src/documents/views.py",
+              "startLine": 37,
+              "endLine": 52
+            }
+          ]
+        },
+        {
+          "id": "entry:owner-aware-object-check",
+          "name": "owner-aware object-level permission check",
+          "locations": [
+            {
+              "path": "src/documents/permissions.py",
+              "startLine": 624,
+              "endLine": 636
+            }
+          ]
+        },
+        {
+          "id": "entry:post-global-permission-map",
+          "name": "POST global permission requirements",
+          "locations": [
+            {
+              "path": "src/documents/permissions.py",
+              "startLine": 678,
+              "endLine": 685
+            }
+          ]
+        },
+        {
+          "id": "entry:global-permission-enforcement",
+          "name": "global permission enforcement",
+          "locations": [
+            {
+              "path": "src/documents/permissions.py",
+              "startLine": 693,
+              "endLine": 699
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Achange-granted::entry%3Anotes-post-handler",
+        "scenario%3Achange-granted::entry%3Aowner-aware-object-check",
+        "scenario%3Achange-granted::entry%3Apost-global-permission-map",
+        "scenario%3Achange-granted::entry%3Aglobal-permission-enforcement"
+      ]
+    },
+    "scenario:view-only": {
+      "name": "view-only",
+      "obligation": {
+        "id": "scenario:view-only",
+        "principalId": "principal:authenticated-caller",
+        "resourceId": "resource:existing-document",
+        "relation": "caller-owns-document",
+        "operation": "create a note on the document",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:original-policy",
+        "entryIds": [
+          "entry:notes-post-handler",
+          "entry:owner-aware-object-check",
+          "entry:post-global-permission-map",
+          "entry:global-permission-enforcement"
+        ]
+      },
+      "principal": {
+        "id": "principal:authenticated-caller",
+        "role": "authenticated caller",
+        "description": "Author facts: [\"The caller is authenticated.\",\"The caller has global add_note, view_document, and change_document permissions.\",\"The caller can view the document.\"]",
+        "startingCapabilities": [
+          "May satisfy the stated global permission requirements.",
+          "May have either only object view authorization or object change authorization, as specified per scenario."
+        ]
+      },
+      "resource": {
+        "id": "resource:existing-document",
+        "type": "existing document",
+        "description": "Author facts: [\"The document exists at handler entry.\",\"The caller's object-level relation to the document is specified separately for each scenario.\"]"
+      },
+      "policy": {
+        "id": "policy:original-policy",
+        "kind": "explicit-task-requirement",
+        "text": "Creating a note requires the stated global permissions and object-level change_document authorization; a view grant alone is insufficient, while document ownership or an object change grant can satisfy the object control.",
+        "location": "author-use-briefs.json#/paperless-note-relation/originalPolicy",
+        "revision": "original",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "This is the task author's accepted policy and governs both scenario expectations independently of current implementation behavior."
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:notes-post-handler",
+          "name": "notes POST handler",
+          "locations": [
+            {
+              "path": "src/documents/views.py",
+              "startLine": 37,
+              "endLine": 52
+            }
+          ]
+        },
+        {
+          "id": "entry:owner-aware-object-check",
+          "name": "owner-aware object-level permission check",
+          "locations": [
+            {
+              "path": "src/documents/permissions.py",
+              "startLine": 624,
+              "endLine": 636
+            }
+          ]
+        },
+        {
+          "id": "entry:post-global-permission-map",
+          "name": "POST global permission requirements",
+          "locations": [
+            {
+              "path": "src/documents/permissions.py",
+              "startLine": 678,
+              "endLine": 685
+            }
+          ]
+        },
+        {
+          "id": "entry:global-permission-enforcement",
+          "name": "global permission enforcement",
+          "locations": [
+            {
+              "path": "src/documents/permissions.py",
+              "startLine": 693,
+              "endLine": 699
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Aview-only::entry%3Anotes-post-handler",
+        "scenario%3Aview-only::entry%3Aowner-aware-object-check",
+        "scenario%3Aview-only::entry%3Apost-global-permission-map",
+        "scenario%3Aview-only::entry%3Aglobal-permission-enforcement"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "src/documents/views.py",
+      "sha256": "a5c56ac41cf6f9829eb5e10f2d46a36a43caf0d0f2aaa3f4d19d6fe17cd1e036",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 73
+      },
+      "originalLocations": []
+    },
+    {
+      "path": "src/documents/permissions.py",
+      "sha256": "9e1e3bb40b5c45edb143b7daa9d0a18f728a4e3b015600b4e2a8c6510bd1942f",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 717
+      },
+      "originalLocations": []
+    }
+  ],
+  "evidencePreparation": null,
+  "sourceRoot": "../../../../inputs/paperless-note-post/prepared-final/source",
+  "sources": [
+    "src/documents/views.py",
+    "src/documents/permissions.py"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": null,
+  "assessmentContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "For each scenario, assess the declared relation at the handler-entry boundary against the accepted policy and determine whether the requested note-creation operation is authorized and whether Note.objects.create is reached. Cite the supplied source locations, distinguish task assumptions from source evidence, and do not execute the target or assume deployment facts.",
+    "scenarios": [
+      {
+        "obligationId": "scenario:change-granted",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "object-relation",
+            "statement": "At handler entry, the caller has the stated global permissions and object view and change_document grants, but is not the document owner.",
+            "atEntryId": "entry:notes-post-handler",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "State that the object change_document grant satisfies the required object control despite the caller not owning the document.",
+          "State whether the accepted policy authorizes note creation.",
+          "State whether Note.objects.create is reached under the policy assessment.",
+          "Cite the relevant handler and permission-check source locations."
+        ]
+      },
+      {
+        "obligationId": "scenario:view-only",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "object-relation",
+            "statement": "At handler entry, the caller has the stated global permissions and owns the existing document.",
+            "atEntryId": "entry:notes-post-handler",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "State that the global permissions and view grant do not replace the required object-level change_document authorization.",
+          "State whether the accepted policy authorizes note creation.",
+          "State whether Note.objects.create is reached under the policy assessment.",
+          "Cite the relevant handler and permission-check source locations."
+        ]
+      }
+    ]
+  },
+  "assessmentProgram": {
+    "schemaVersion": "authorization-assessment-program/v1",
+    "entries": [
+      {
+        "obligationId": "scenario%3Achange-granted::entry%3Aglobal-permission-enforcement",
+        "authorObligationId": "scenario:change-granted",
+        "entryId": "entry:global-permission-enforcement",
+        "boundary": "declared-entry",
+        "premises": [],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "State that the object change_document grant satisfies the required object control despite the caller not owning the document.",
+          "State whether the accepted policy authorizes note creation.",
+          "State whether Note.objects.create is reached under the policy assessment.",
+          "Cite the relevant handler and permission-check source locations."
+        ]
+      },
+      {
+        "obligationId": "scenario%3Achange-granted::entry%3Anotes-post-handler",
+        "authorObligationId": "scenario:change-granted",
+        "entryId": "entry:notes-post-handler",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "object-relation",
+            "statement": "At handler entry, the caller has the stated global permissions and object view and change_document grants, but is not the document owner.",
+            "atEntryId": "entry:notes-post-handler",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "State that the object change_document grant satisfies the required object control despite the caller not owning the document.",
+          "State whether the accepted policy authorizes note creation.",
+          "State whether Note.objects.create is reached under the policy assessment.",
+          "Cite the relevant handler and permission-check source locations."
+        ]
+      },
+      {
+        "obligationId": "scenario%3Achange-granted::entry%3Aowner-aware-object-check",
+        "authorObligationId": "scenario:change-granted",
+        "entryId": "entry:owner-aware-object-check",
+        "boundary": "declared-entry",
+        "premises": [],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "State that the object change_document grant satisfies the required object control despite the caller not owning the document.",
+          "State whether the accepted policy authorizes note creation.",
+          "State whether Note.objects.create is reached under the policy assessment.",
+          "Cite the relevant handler and permission-check source locations."
+        ]
+      },
+      {
+        "obligationId": "scenario%3Achange-granted::entry%3Apost-global-permission-map",
+        "authorObligationId": "scenario:change-granted",
+        "entryId": "entry:post-global-permission-map",
+        "boundary": "declared-entry",
+        "premises": [],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "State that the object change_document grant satisfies the required object control despite the caller not owning the document.",
+          "State whether the accepted policy authorizes note creation.",
+          "State whether Note.objects.create is reached under the policy assessment.",
+          "Cite the relevant handler and permission-check source locations."
+        ]
+      },
+      {
+        "obligationId": "scenario%3Aview-only::entry%3Aglobal-permission-enforcement",
+        "authorObligationId": "scenario:view-only",
+        "entryId": "entry:global-permission-enforcement",
+        "boundary": "declared-entry",
+        "premises": [],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "State that the global permissions and view grant do not replace the required object-level change_document authorization.",
+          "State whether the accepted policy authorizes note creation.",
+          "State whether Note.objects.create is reached under the policy assessment.",
+          "Cite the relevant handler and permission-check source locations."
+        ]
+      },
+      {
+        "obligationId": "scenario%3Aview-only::entry%3Anotes-post-handler",
+        "authorObligationId": "scenario:view-only",
+        "entryId": "entry:notes-post-handler",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "object-relation",
+            "statement": "At handler entry, the caller has the stated global permissions and owns the existing document.",
+            "atEntryId": "entry:notes-post-handler",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "State that the global permissions and view grant do not replace the required object-level change_document authorization.",
+          "State whether the accepted policy authorizes note creation.",
+          "State whether Note.objects.create is reached under the policy assessment.",
+          "Cite the relevant handler and permission-check source locations."
+        ]
+      },
+      {
+        "obligationId": "scenario%3Aview-only::entry%3Aowner-aware-object-check",
+        "authorObligationId": "scenario:view-only",
+        "entryId": "entry:owner-aware-object-check",
+        "boundary": "declared-entry",
+        "premises": [],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "State that the global permissions and view grant do not replace the required object-level change_document authorization.",
+          "State whether the accepted policy authorizes note creation.",
+          "State whether Note.objects.create is reached under the policy assessment.",
+          "Cite the relevant handler and permission-check source locations."
+        ]
+      },
+      {
+        "obligationId": "scenario%3Aview-only::entry%3Apost-global-permission-map",
+        "authorObligationId": "scenario:view-only",
+        "entryId": "entry:post-global-permission-map",
+        "boundary": "declared-entry",
+        "premises": [],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "State that the global permissions and view grant do not replace the required object-level change_document authorization.",
+          "State whether the accepted policy authorizes note creation.",
+          "State whether Note.objects.create is reached under the policy assessment.",
+          "Cite the relevant handler and permission-check source locations."
+        ]
+      }
+    ]
+  },
+  "assessmentMode": "explicit-v1",
+  "normalizerVersion": "authoring-v2-lowering/1",
+  "method": "plain",
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "arm": "B",
+  "reasoningStrategy": "standard",
+  "reasoningPlan": null,
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "ea58f9b763db8d96f30414f0b018b931bc232c8ebdcec7b65cedba0da9340a89"
+}

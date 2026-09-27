@@ -1,0 +1,342 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "assessmentMode": "explicit-v1",
+  "reasoningStrategy": "standard",
+  "evidencePreparation": {
+    "schemaVersion": "authorization-evidence-report/v1",
+    "status": "ready",
+    "sourceIdentity": {
+      "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+      "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7"
+    },
+    "sourceRoot": "../../../public-source/fastapi",
+    "included": [
+      {
+        "path": "backend/app/api/routes/items.py",
+        "originalPath": "backend/app/api/routes/items.py",
+        "startLine": 1,
+        "endLine": 113,
+        "origins": [
+          "entry:read-item"
+        ]
+      },
+      {
+        "path": "backend/app/api/deps.py",
+        "originalPath": "backend/app/api/deps.py",
+        "startLine": 1,
+        "endLine": 57,
+        "origins": [
+          "locator:current-user-binding"
+        ]
+      }
+    ],
+    "gaps": [],
+    "closureClaim": "declared-dependencies-only"
+  },
+  "researchIdentity": {
+    "arm": "markdown",
+    "instructionOrigin": "independent-author",
+    "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/inputs/fastapi-superuser-read/independent.md",
+    "sha256": "31408efeda29f95d124200630fecfb93146dae1aa3872f1300b2a5c5e529046e",
+    "characters": 2244
+  },
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260927T191251782Z-4bf48f9b",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\runs\\initial-fastapi-superuser-read-M1\\sessions\\20260927T191251782Z-4bf48f9b",
+  "createdAt": "2026-09-27T19:12:51.782Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\inputs\\fastapi-superuser-read\\prepared-final\\assessment.json",
+  "taskId": "fastapi-items-superuser-read",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 138,
+      "declaration": 2244,
+      "publicAnalysis": 1091,
+      "assessmentProgram": 616,
+      "source": 7087,
+      "outputContract": 2892,
+      "total": 14218,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "evidencePreparation": "evidence-preparation.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "fastapi-items-superuser-read",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "results": [
+      {
+        "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+        "conclusion": "source_refuted",
+        "explanation": "At the declared read_item handler entry, under the stated premise that current_user is an authenticated active superuser and the existing item's owner differs, the handler loads the item, then applies the ownership check only when current_user.is_superuser is false. Because the stated superuser premise makes that condition false, the 403 path is not taken and the handler returns the item. This permits the cross-owner read and conforms to the accepted policy, which allows an authenticated active superuser to read an item regardless of owner. The conclusion is specifically about behavior from read_item entry and assumes the stated current_user premise. The supplied crop shows that the handler parameter is typed through CurrentUser and shows the CurrentUser alias and its underlying dependency declarations, but this conclusion does not require the crop to prove upstream dependency injection or authentication wiring; no claim is made that the crop independently establishes that binding beyond the task premise.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "read_item is the declared GET item handler and accepts current_user at handler entry.",
+              "citations": [
+                {
+                  "path": "backend/app/api/routes/items.py",
+                  "startLine": 48,
+                  "endLine": 51,
+                  "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:\n    \"\"\"\n    Get item by ID."
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The handler declares current_user using the CurrentUser dependency type; the task separately supplies the premise that this value is the authenticated active superuser.",
+              "citations": [
+                {
+                  "path": "backend/app/api/routes/items.py",
+                  "startLine": 48,
+                  "endLine": 49,
+                  "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:"
+                }
+              ]
+            },
+            {
+              "statement": "The handler retrieves the existing item by the requested id before the authorization check.",
+              "citations": [
+                {
+                  "path": "backend/app/api/routes/items.py",
+                  "startLine": 53,
+                  "endLine": 55,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "The handler raises 403 only for a non-superuser whose id differs from the item's owner; a superuser therefore bypasses this ownership denial.",
+              "citations": [
+                {
+                  "path": "backend/app/api/routes/items.py",
+                  "startLine": 56,
+                  "endLine": 57,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "When the denial condition is not met, the handler returns the loaded item.",
+              "citations": [
+                {
+                  "path": "backend/app/api/routes/items.py",
+                  "startLine": 56,
+                  "endLine": 58,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    return item"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The directly relevant dependency helper requires is_superuser, while active-user validation occurs in get_current_user; these source details are separate from and not needed to replace the task's handler-entry premise.",
+              "citations": [
+                {
+                  "path": "backend/app/api/deps.py",
+                  "startLine": 30,
+                  "endLine": 49,
+                  "quote": "def get_current_user(session: SessionDep, token: TokenDep) -> User:\n    try:\n        payload = jwt.decode(\n            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]\n        )\n        token_data = TokenPayload(**payload)\n    except InvalidTokenError, ValidationError:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=\"Could not validate credentials\",\n        )\n    user = session.get(User, token_data.sub)\n    if not user:\n        raise HTTPException(status_code=404, detail=\"User not found\")\n    if not user.is_active:\n        raise HTTPException(status_code=400, detail=\"Inactive user\")\n    return user\n\n\nCurrentUser = Annotated[User, Depends(get_current_user)]"
+                },
+                {
+                  "path": "backend/app/api/deps.py",
+                  "startLine": 52,
+                  "endLine": 57,
+                  "quote": "def get_current_active_superuser(current_user: CurrentUser) -> User:\n    if not current_user.is_superuser:\n        raise HTTPException(\n            status_code=403, detail=\"The user doesn't have enough privileges\"\n        )\n    return current_user"
+                }
+              ]
+            },
+            {
+              "statement": "The ownership-denial condition requires current_user.is_superuser to be false and the item owner to differ from current_user.id.",
+              "citations": [
+                {
+                  "path": "backend/app/api/routes/items.py",
+                  "startLine": 56,
+                  "endLine": 57,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": []
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "wireResult": {
+    "results": [
+      {
+        "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+        "explanation": "At the declared read_item handler entry, under the stated premise that current_user is an authenticated active superuser and the existing item's owner differs, the handler loads the item, then applies the ownership check only when current_user.is_superuser is false. Because the stated superuser premise makes that condition false, the 403 path is not taken and the handler returns the item. This permits the cross-owner read and conforms to the accepted policy, which allows an authenticated active superuser to read an item regardless of owner. The conclusion is specifically about behavior from read_item entry and assumes the stated current_user premise. The supplied crop shows that the handler parameter is typed through CurrentUser and shows the CurrentUser alias and its underlying dependency declarations, but this conclusion does not require the crop to prove upstream dependency injection or authentication wiring; no claim is made that the crop independently establishes that binding beyond the task premise.",
+        "facts": [
+          {
+            "id": "entry-read-item",
+            "kind": "entry",
+            "statement": "read_item is the declared GET item handler and accepts current_user at handler entry.",
+            "citations": [
+              {
+                "sourceId": "src-3df5de8f43bc9c54",
+                "startLine": 48,
+                "endLine": 51
+              }
+            ]
+          },
+          {
+            "id": "principal-current-user",
+            "kind": "binding",
+            "statement": "The handler declares current_user using the CurrentUser dependency type; the task separately supplies the premise that this value is the authenticated active superuser.",
+            "citations": [
+              {
+                "sourceId": "src-3df5de8f43bc9c54",
+                "startLine": 48,
+                "endLine": 49
+              }
+            ]
+          },
+          {
+            "id": "resource-item-load",
+            "kind": "binding",
+            "statement": "The handler retrieves the existing item by the requested id before the authorization check.",
+            "citations": [
+              {
+                "sourceId": "src-3df5de8f43bc9c54",
+                "startLine": 53,
+                "endLine": 55
+              }
+            ]
+          },
+          {
+            "id": "superuser-bypass-condition",
+            "kind": "condition",
+            "statement": "The ownership-denial condition requires current_user.is_superuser to be false and the item owner to differ from current_user.id.",
+            "citations": [
+              {
+                "sourceId": "src-3df5de8f43bc9c54",
+                "startLine": 56,
+                "endLine": 57
+              }
+            ]
+          },
+          {
+            "id": "cross-owner-authorization-control",
+            "kind": "control",
+            "statement": "The handler raises 403 only for a non-superuser whose id differs from the item's owner; a superuser therefore bypasses this ownership denial.",
+            "citations": [
+              {
+                "sourceId": "src-3df5de8f43bc9c54",
+                "startLine": 56,
+                "endLine": 57
+              }
+            ]
+          },
+          {
+            "id": "read-item-effect",
+            "kind": "effect",
+            "statement": "When the denial condition is not met, the handler returns the loaded item.",
+            "citations": [
+              {
+                "sourceId": "src-3df5de8f43bc9c54",
+                "startLine": 56,
+                "endLine": 58
+              }
+            ]
+          },
+          {
+            "id": "active-superuser-source-context",
+            "kind": "condition",
+            "statement": "The directly relevant dependency helper requires is_superuser, while active-user validation occurs in get_current_user; these source details are separate from and not needed to replace the task's handler-entry premise.",
+            "citations": [
+              {
+                "sourceId": "src-ec26811e863df154",
+                "startLine": 30,
+                "endLine": 49
+              },
+              {
+                "sourceId": "src-ec26811e863df154",
+                "startLine": 52,
+                "endLine": 57
+              }
+            ]
+          }
+        ],
+        "decisiveMissingFacts": [],
+        "suggestedObservations": [],
+        "decision": {
+          "kind": "observed",
+          "observed": "allow"
+        },
+        "branchResults": []
+      }
+    ]
+  },
+  "normalizerVersion": "authorization-wire-normalizer/v6",
+  "relationCoverage": [],
+  "observedDecisions": [
+    {
+      "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+      "expectation": "allow",
+      "observed": "allow",
+      "derivedConclusion": "source_refuted"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 3719,
+      "output": 865,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

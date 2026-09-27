@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "authorization-local-check/v1",
+  "status": "valid",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\inputs\\memos-create-share\\baseline\\authoring.json",
+  "taskId": "memos-create-share-admin",
+  "repository": "https://github.com/usememos/memos",
+  "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+  "sourceRoot": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\inputs\\memos-create-share\\baseline\\source",
+  "sourceFiles": [
+    "server/api/v1/memo_share_service.go"
+  ],
+  "arm": "B",
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "assessmentMode": "explicit-v1",
+  "assessmentProgram": {
+    "schemaVersion": "authorization-assessment-program/v1",
+    "entries": [
+      {
+        "obligationId": "scenario%3Aadmin-other-memo::entry%3Acreate-share",
+        "authorObligationId": "scenario:admin-other-memo",
+        "entryId": "entry:create-share",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At CreateMemoShare entry, the caller is an authenticated active instance ADMIN; the selected memo exists, is active, non-SPACE, and authored by another user. The requested expiry, if any, is valid.",
+            "atEntryId": "entry:create-share",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the author-or-admin helper and the protected CreateMemoShare store effect; keep store failure and concurrent state changes outside the authorization conclusion."
+        ]
+      }
+    ]
+  },
+  "reasoningStrategy": "standard",
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirementCount": 6,
+  "ledgerEntryCount": 0,
+  "preview": "<!-- analysis-profile: authorization-core-v1; origin: derived; study-arm: none; condition-analysis: disabled; assessment: explicit-v1 -->\n\n# Source-visible authorization assessment\n\nAssess the authored task below using only the supplied fixed source and common result contract.\n\n## Independent Markdown instructions\n# Fixed-Source Authorization Assessment\n\nAssess the authorization question below using only the specified source snapshot and entry boundary. Do not infer facts from other revisions, documentation, tests, runtime behavior, or unstated code.\n\n- **Repository:** https://github.com/usememos/memos\n- **Fixed source ref:** `cb42e326ba9cc266a6a9570c53e0fe04c62793f4`\n- **Source entry:** `server/api/v1/memo_share_service.go:23-80`\n- **Accepted policy:** A memo share may be created by the memo creator or an instance administrator; `SPACE` audience memos are not shareable.\n- **Boundary:** `declared-entry`\n\n## Question\n\nAt `CreateMemoShare` handler entry, does an authenticated active instance administrator pass the source-visible authorization controls to create a share for an existing active non-`SPACE` memo authored by someone else?\n\nAssess authorization only. Do not decide whether an external store call succeeds under every runtime condition.\n\n## Premises\n\nAt `CreateMemoShare` entry:\n\n- The caller is an authenticated active instance `ADMIN`.\n- The selected memo exists and is active.\n- The memo is non-`SPACE`.\n- The memo was authored by another user.\n- The requested expiry, if any, is valid.\n\n## Required analysis\n\n1. Trace the author-or-administrator authorization helper used by the relevant handler path.\n2. Trace the protected `CreateMemoShare` store effect and identify the source-visible authorization controls guarding that effect.\n3. Evaluate those controls against the stated premises and the accepted policy.\n4. Keep store-operation failure, downstream behavior, and concurrent state changes outside the authorization conclusion.\n5. Distinguish clearly between authorization passing at the declared entry boundary and any later operational outcome.\n\nDo not invent source facts, fill gaps with assumptions, or rely on an answer key. Do not quote the separately supplied common public requirements paragraph verbatim. Provide a concise conclusion supported only by the cited source path and the traced control flow.\n\n\n## Public analysis questions\nDecide the current scenario at the stated declared-entry boundary from the supplied fixed source and accepted policy. Treat premises as question assumptions, not source or deployment proof. Trace the decisive authorization control, protected object and effect with exact supplied-source locations. State any decisive missing runtime fact rather than assuming it. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: At CreateMemoShare handler entry, does an authenticated active instance administrator pass the source-visible authorization controls to create a share for an existing active non-SPACE memo authored by someone else? Assess authorization, not whether an external store call succeeds under every runtime condition.\nAnalysis boundary: declared-entry.\nTask premise: At CreateMemoShare entry, the caller is an authenticated active instance ADMIN; the selected memo exists, is active, non-SPACE, and authored by another user. The requested expiry, if any, is valid.\nRequired response detail: Trace the author-or-admin helper and the protected CreateMemoShare store effect; keep store failure and concurrent state changes outside the authorization conclusion.\n\n## Explicit assessment program\n- Current question scenario%3Aadmin-other-memo::entry%3Acreate-share at entry:create-share; boundary: declared-entry.\n  Accepted task premises at this entry (not source citations): premise-1: At CreateMemoShare entry, the caller is an authenticated active instance ADMIN; the selected memo exists, is active, non-SPACE, and authored by another user. The requested expiry, if any, is valid..\n  Prove the decisive source path within the requested boundary; report a decisive missing binding only when that boundary requires it.\n  Required response details: Trace the author-or-admin helper and the protected CreateMemoShare store effect; keep store failure and concurrent state changes outside the authorization conclusion..\n\n## Result contract\nUse compact wire/v6: top-level results only. Each item has obligationId, decision and branchResults, explanation, facts as an array of {id, kind, statement, citations}, decisiveMissingFacts and suggestedObservations. Fact IDs must be unique within each obligation. kind is entry/binding/control/effect/condition. The host fills all version/identity/scope metadata and groups facts; never output those fields. Include item-local coverage only when an analysis ledger is supplied, and item-local condition only when a condition request is supplied. Branches do not repeat obligationId.\nReturn exactly one result for every runnable expanded obligation. Do not output conclusion or policyStatus at the item level. For an authored allow/deny expectation, return decision {kind:\"observed\",observed:\"allow\"|\"deny\"|\"unknown\"} describing the source-visible behavior, independently of the normative expectation. The host compares that observed behavior with the authored expectation. For an authored conditional expectation, return decision {kind:\"conditional-policy\",policyStatus:\"satisfied\"|\"violated\"|\"undetermined\"}; the host uses this policy judgment without a binary observed comparison. Unknown requires decisiveMissingFacts and suggestedObservations. Do not infer observed behavior from the expectation or prose.\nEvery result includes branchResults, an empty array if no branch is requested. For each explicitly requested branch below, return its exact id and assumptions, a reachable/blocked/unknown effect, a causal explanation, same-obligation factIds for known effects, and decisive missingFacts for unknown effects. Counterfactual assumptions are hypotheses; they do not alter the current scenario or establish source/deployment facts. Extra or missing branches are invalid.\nExact requested branch IDs and assumptions (closed list):\n- (none)\nExact runnable obligation IDs (closed list):\n- scenario%3Aadmin-other-memo::entry%3Acreate-share\nUse each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.\nSupport the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.\nAddress every public analysis question in the explanation and source-backed facts. No separate coverage ledger is required for this plain-method answer.\n\n## Fixed source context\n===== BEGIN ALLOWED INPUT: server/api/v1/memo_share_service.go =====\nSource ID: src-847ba480ee071118\nLocation note: crop lines 1-58; original locations: not separately supplied\nCitation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.\n1 | // CreateMemoShare creates an opaque share link for a memo.\n2 | // Only the memo's creator may call this.\n3 | func (s *APIV1Service) CreateMemoShare(ctx context.Context, request *v1pb.CreateMemoShareRequest) (*v1pb.MemoShare, error) {\n4 | \tuser, err := s.fetchCurrentUser(ctx)\n5 | \tif err != nil {\n6 | \t\treturn nil, status.Errorf(codes.Internal, \"failed to get user\")\n7 | \t}\n8 | \tif user == nil {\n9 | \t\treturn nil, status.Errorf(codes.Unauthenticated, \"user not authenticated\")\n10 | \t}\n11 | \tif err := s.throttleAndCharge(ratelimit.ScopeWriteUser, userKey(user.ID), 1); err != nil {\n12 | \t\treturn nil, err\n13 | \t}\n14 | \n15 | \tmemoUID, err := ExtractMemoUIDFromName(request.Parent)\n16 | \tif err != nil {\n17 | \t\treturn nil, status.Errorf(codes.InvalidArgument, \"invalid memo name: %v\", err)\n18 | \t}\n19 | \tmemo, err := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})\n20 | \tif err != nil {\n21 | \t\treturn nil, status.Errorf(codes.Internal, \"failed to get memo\")\n22 | \t}\n23 | \tif memo == nil {\n24 | \t\treturn nil, status.Errorf(codes.NotFound, \"memo not found\")\n25 | \t}\n26 | \tif memo.RowStatus != store.Normal {\n27 | \t\treturn nil, status.Errorf(codes.FailedPrecondition, \"only active memos can be shared\")\n28 | \t}\n29 | \tif !access.CanManageMemo(user, memo) {\n30 | \t\treturn nil, status.Errorf(codes.PermissionDenied, \"permission denied\")\n31 | \t}\n32 | \tif memo.Visibility == store.SpaceAudience {\n33 | \t\treturn nil, status.Errorf(codes.FailedPrecondition, \"SPACE audience memos cannot be shared\")\n34 | \t}\n35 | \tvar expiresTs *int64\n36 | \tif request.MemoShare != nil && request.MemoShare.ExpireTime != nil {\n37 | \t\tts := request.MemoShare.ExpireTime.AsTime().Unix()\n38 | \t\tif ts <= time.Now().Unix() {\n39 | \t\t\treturn nil, status.Errorf(codes.InvalidArgument, \"expire_time must be in the future\")\n40 | \t\t}\n41 | \t\texpiresTs = &ts\n42 | \t}\n43 | \n44 | \t// Generate a URL-safe token using shortuuid (base57-encoded UUID v4, 22 chars, 122-bit entropy).\n45 | \tpolicy := memoWritePolicy(user.ID, false)\n46 | \tpolicy.CreatingShare = true\n47 | \tms, err := s.Store.CreateMemoShare(ctx, &store.MemoShare{\n48 | \t\tUID:       shortuuid.New(),\n49 | \t\tMemoID:    memo.ID,\n50 | \t\tCreatorID: user.ID,\n51 | \t\tExpiresTs: expiresTs,\n52 | \t\tPolicy:    policy,\n53 | \t})\n54 | \tif err != nil {\n55 | \t\treturn nil, mapMemoWriteError(err, \"failed to create memo share\")\n56 | \t}\n57 | \n58 | \treturn convertMemoShareFromStore(ms, memo.UID), nil\n===== END ALLOWED INPUT: server/api/v1/memo_share_service.go =====",
+  "promptCharacters": {
+    "instructions": 138,
+    "declaration": 2032,
+    "publicAnalysis": 1218,
+    "assessmentProgram": 722,
+    "source": 2765,
+    "outputContract": 2902,
+    "total": 9927,
+    "tokenMeasurement": "provider-reported-only"
+  },
+  "diagnostics": []
+}

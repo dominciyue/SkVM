@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "authorization-aj-author-attempt/v1",
+  "caseId": "fastapi-superuser-read",
+  "model": "xty/gpt-5.6-sol",
+  "prompt": "You are an independent author of a Markdown instruction for a fixed-source authorization assessment. Write what another model should receive, not the answer. Return only the Markdown instruction, without a code fence or commentary.\nUse only this neutral public brief. You have no DSL draft, answer key, or evaluator. Preserve the question, accepted policy, source entry, boundary, premises and response details. Do not invent source facts or decide the outcome. A common public requirements paragraph is separately supplied to all methods; do not quote it verbatim.\nRepository: https://github.com/fastapi/full-stack-fastapi-template\nFixed source ref: cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7\nEntry: read_item\nAccepted policy: An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.\nCurrent question: Determine whether an authenticated active superuser can read an item owned by another user through GET /items/{id}.\nBoundary: declared-entry\nPremises: At entry to read_item, current_user is the authenticated active superuser described by this task, and the existing item's owner differs from that caller.\nRequired response details: Separate this handler-entry conclusion from any claim that the supplied crop proves the upstream CurrentUser binding.",
+  "response": {
+    "text": "# Fixed-Source Authorization Assessment\n\nAssess the authorization behavior in the following repository at the exact fixed source revision:\n\n- **Repository:** https://github.com/fastapi/full-stack-fastapi-template\n- **Fixed source ref:** `cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7`\n- **Declared entry:** `read_item`\n- **Accepted policy:**\n  - An authenticated non-superuser may read or modify only items they own.\n  - An authenticated active superuser may read or modify an item regardless of owner.\n\n## Question\n\nDetermine whether an authenticated active superuser can read an item owned by another user through `GET /items/{id}`.\n\n## Assessment Boundary\n\nUse the **declared-entry** boundary. Begin the authorization analysis at entry to `read_item`; do not require the supplied source crop to establish how execution reached that handler.\n\nApply these premises:\n\n- At entry to `read_item`, `current_user` is the authenticated active superuser described by this task.\n- The existing item’s owner differs from that caller.\n\n## Instructions\n\n1. Base the assessment only on relevant source code at the fixed source ref.\n2. Trace the behavior of `read_item` and any directly relevant authorization logic it invokes or relies upon within the available fixed source.\n3. Do not invent source facts, assumptions, framework behavior, or missing evidence.\n4. Compare the handler-entry behavior under the stated premises with the accepted policy.\n5. Clearly state whether the handler permits or denies the cross-owner read and whether that behavior conforms to the accepted policy.\n6. Cite the decisive source locations and explain the relevant conditions or control flow.\n7. Keep the handler-entry conclusion separate from any statement about upstream dependency injection or authentication wiring.\n8. Explicitly clarify that the conclusion assumes the stated `current_user` premise and that the supplied crop does not, by itself, need to prove the upstream `CurrentUser` binding. Do not claim that such binding is proven unless the fixed-source evidence actually establishes it.\n9. If the available fixed-source evidence is insufficient for any narrower claim, identify that limitation without changing the stated premises or deciding unsupported facts.",
+    "toolCalls": [],
+    "tokens": {
+      "input": 576,
+      "output": 513,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "durationMs": 12039.5822,
+    "stopReason": "end_turn"
+  },
+  "promptSha256": "a05e62daf648c856efb60d1308f2e0d195af18b92e908f13dab34b438ef9c91b",
+  "actualCostUsd": null,
+  "createdAt": "2026-09-27T18:41:27.649Z"
+}

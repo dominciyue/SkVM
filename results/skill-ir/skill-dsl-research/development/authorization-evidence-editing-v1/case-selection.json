@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "authorization-aj-case-selection/v1",
+  "frozenBeforeModelAnswers": true,
+  "selectionDate": "2026-09-28",
+  "provenanceNote": "Fixed-ref source acquisition and read-only feasibility inspection preceded this register; no AJ model answer or score existed at selection. This corrects the taskbook's intended register-before-fetch order transparently.",
+  "baselineCorrectionBeforeAnalysis": "Independent review found that the retained AI OWUI crop contained an editorial assertion that omitted code had no collection-name authorization call. The AJ baseline uses the exact complete fixed-ref handler entry instead; the prepared material adds the helper. The historical crop remains unchanged in the AI archive.",
+  "selectionRule": "Retain the two named AI regressions, then take three source-visible authorization tasks from each of two new public projects in the order listed. Require a public policy anchor, an identifiable entry and effect, and an independent source-grounded oracle. Do not substitute cases after seeing generation answers.",
+  "sourceUniverse": [
+    { "project": "open-webui/open-webui", "ref": "841c9045d789005145274955e7ef60b1b11a9be9", "license": "Open WebUI License", "exposure": "AI regression; previously studied", "sourceDir": "public-source/owui" },
+    { "project": "fastapi/full-stack-fastapi-template", "ref": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7", "license": "MIT", "exposure": "AI regression; previously studied", "sourceDir": "public-source/fastapi" },
+    { "project": "usememos/memos", "ref": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4", "license": "MIT", "exposure": "new public development source project; not a registered skill member", "sourceDir": "public-source/memos" },
+    { "project": "paperless-ngx/paperless-ngx", "ref": "126ec414a8b65158368653a2604ae58415e43103", "license": "GPL-3.0", "exposure": "new public development source project; not a registered skill member", "sourceDir": "public-source/paperless" }
+  ],
+  "cases": [
+    { "id": "owui-file", "kind": "ai-regression", "project": "open-webui/open-webui", "entry": "backend/open_webui/routers/retrieval.py:1546-1762", "policyAnchor": "authorization-task-semantics-v1/inputs/owui-file/authoring.json:12-18", "mechanism": "source-file ownership versus destination-collection write; omitted helper prefix in old crop" },
+    { "id": "fastapi-superuser-read", "kind": "ai-regression", "project": "fastapi/full-stack-fastapi-template", "entry": "backend/app/api/routes/items.py:48-58", "policyAnchor": "authorization-task-semantics-v1/inputs/fastapi-superuser-read/authoring.json:11-18", "mechanism": "explicit active-superuser handler-entry premise" },
+    { "id": "memos-create-share", "kind": "new-development", "project": "usememos/memos", "entry": "server/api/v1/memo_share_service.go:23-80", "policyAnchor": "proto/api/v1/memo_service.proto:116-123", "mechanism": "author-or-instance-admin guard delegated to core/access; share creation effect" },
+    { "id": "memos-get-shared", "kind": "new-development", "project": "usememos/memos", "entry": "server/api/v1/memo_share_service.go:170-213", "policyAnchor": "proto/api/v1/memo_service.proto:134-138", "mechanism": "anonymous exact-memo token access through active-token and read-context helpers" },
+    { "id": "memos-member-leave", "kind": "new-development", "project": "usememos/memos", "entry": "server/api/v1/space_service.go:740-763", "policyAnchor": "proto/api/v1/space_service.proto:126-130", "mechanism": "self-leave exception versus administrator removal of another member" },
+    { "id": "paperless-download", "kind": "new-development", "project": "paperless-ngx/paperless-ngx", "entry": "src/documents/views.py:1834-1839", "policyAnchor": "src/documents/permissions.py:624-635", "mechanism": "root document is the control object, selected file version the effect object" },
+    { "id": "paperless-note-post", "kind": "new-development", "project": "paperless-ngx/paperless-ngx", "entry": "src/documents/views.py:1841-1913", "policyAnchor": "src/documents/permissions.py:673-699", "mechanism": "global note/document permissions and object-level document change guard" },
+    { "id": "paperless-share-create", "kind": "new-development", "project": "paperless-ngx/paperless-ngx", "entry": "src/documents/views.py:4696-4717", "policyAnchor": "src/documents/permissions.py:30-53", "mechanism": "share-link global add versus referenced document view in serializer" }
+  ],
+  "excludedBeforeGeneration": [
+    { "candidate": "Linkding and Django Todo tasks", "reason": "already exposed in AB development effects; not six new tasks" },
+    { "candidate": "Open WebUI and FastAPI as new tasks", "reason": "already AI regression projects, retained only for named regression slots" },
+    { "candidate": "paperless document share_links GET", "reason": "overlaps selected share-create resource and provides less distinct effect coverage" }
+  ],
+  "repeatCaseIds": ["owui-file", "paperless-download"],
+  "targetExecution": "forbidden; source-visible only",
+  "protectedMaterial": "not read"
+}

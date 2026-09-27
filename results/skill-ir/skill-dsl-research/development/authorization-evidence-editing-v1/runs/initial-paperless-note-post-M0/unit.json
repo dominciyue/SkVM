@@ -1,0 +1,332 @@
+{
+  "unit": {
+    "id": "initial-paperless-note-post-M0",
+    "phase": "initial",
+    "caseId": "paperless-note-post",
+    "arm": "M0",
+    "input": "baseline"
+  },
+  "configSha256": "ed5fb8546282dca20aabacfa8cf9a0cc6a9bd7944ff599965eb2348bc7ff2821",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v6",
+    "assessmentMode": "explicit-v1",
+    "reasoningStrategy": "standard",
+    "researchIdentity": {
+      "arm": "markdown",
+      "instructionOrigin": "independent-author",
+      "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/inputs/paperless-note-post/independent.md",
+      "sha256": "3a35c3105dc2550a501f2e0a005f7210fe6b127750d1a5eed30801d63f7ce52f",
+      "characters": 2170
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260927T192742540Z-805a85c5",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\runs\\initial-paperless-note-post-M0\\sessions\\20260927T192742540Z-805a85c5",
+    "createdAt": "2026-09-27T19:27:42.540Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\inputs\\paperless-note-post\\baseline\\authoring.json",
+    "taskId": "paperless-note-post-object-change",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 138,
+        "declaration": 2170,
+        "publicAnalysis": 1110,
+        "assessmentProgram": 669,
+        "source": 3273,
+        "outputContract": 2906,
+        "total": 10416,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "paperless-note-post-object-change",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "results": [
+        {
+          "obligationId": "scenario%3Aviewer-cannot-add-note::entry%3Anotes-post",
+          "conclusion": "source_refuted",
+          "explanation": "At the declared notes entry, the action is configured with PaperlessNotePermissions, and the supplied premise says the caller has the required global POST permissions; the crop does not expose that class's implementation, so this is a premise-based satisfaction rather than an independently proven internal check. The target document is loaded and the object view check is also satisfied by the premise, so the view-forbidden return is not taken. In the POST branch, however, the owner-aware change_document check is evaluated against the target document. The premise says the caller is not the owner and lacks that object grant, so the condition is true and the handler returns HttpResponseForbidden before Note.objects.create. Therefore the source-visible result at this entry is deny: the note-creation effect is unreachable. The crop does not establish behavior outside this declared entry or provide the implementation/details of PaperlessNotePermissions or has_perms_owner_aware; those are limitations, but no missing runtime fact is decisive because the stated premises directly specify the relevant permission outcomes.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The notes action accepts POST and declares PaperlessNotePermissions as its permission class.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1,
+                    "endLine": 8,
+                    "quote": "    @action(\n        methods=[\"get\", \"post\", \"delete\"],\n        detail=True,\n        permission_classes=[PaperlessNotePermissions],\n        pagination_class=None,\n        filter_backends=[],\n    )\n    def notes(self, request, pk=None):"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The handler binds the authenticated request principal as currentUser.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 8,
+                    "endLine": 9,
+                    "quote": "    def notes(self, request, pk=None):\n        currentUser = request.user"
+                  }
+                ]
+              },
+              {
+                "statement": "The handler resolves the target document from pk, selecting its owner identity and notes.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 11,
+                    "endLine": 15,
+                    "quote": "            doc = (\n                Document.objects.select_related(\"owner\")\n                .prefetch_related(\"notes\")\n                .only(\"pk\", \"owner__id\")\n                .get(pk=pk)"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The action-level PaperlessNotePermissions gate is the visible global permission control; the supplied premise states that its required global POST permissions are held.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1,
+                    "endLine": 5,
+                    "quote": "    @action(\n        methods=[\"get\", \"post\", \"delete\"],\n        detail=True,\n        permission_classes=[PaperlessNotePermissions],\n        pagination_class=None,"
+                  }
+                ]
+              },
+              {
+                "statement": "In the POST branch, the handler checks owner-aware change_document permission on the target document and returns HTTP 403 when the check fails.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 37,
+                    "endLine": 46,
+                    "quote": "        elif request.method == \"POST\":\n            try:\n                if currentUser is not None and not has_perms_owner_aware(\n                    currentUser,\n                    \"change_document\",\n                    doc,\n                ):\n                    return HttpResponseForbidden(\n                        \"Insufficient permissions to create notes\",\n                    )"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "Note.objects.create would create the note for the target document, with the submitted note content and current user, but execution cannot reach it after the failed change check.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 48,
+                    "endLine": 52,
+                    "quote": "                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],\n                    user=currentUser,\n                )"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "Under the supplied premise, the caller is not the document owner and lacks the target document's object change_document grant, so the owner-aware change check fails.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 39,
+                    "endLine": 46,
+                    "quote": "                if currentUser is not None and not has_perms_owner_aware(\n                    currentUser,\n                    \"change_document\",\n                    doc,\n                ):\n                    return HttpResponseForbidden(\n                        \"Insufficient permissions to create notes\",\n                    )"
+                  }
+                ]
+              },
+              {
+                "statement": "The handler forbids access to notes when the current user lacks an owner-aware view_document permission on the target document; the supplied premise states that the caller has this object view grant.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 17,
+                    "endLine": 22,
+                    "quote": "            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,\n                \"view_document\",\n                doc,\n            ):\n                return HttpResponseForbidden(\"Insufficient permissions to view notes\")"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aviewer-cannot-add-note::entry%3Anotes-post",
+          "explanation": "At the declared notes entry, the action is configured with PaperlessNotePermissions, and the supplied premise says the caller has the required global POST permissions; the crop does not expose that class's implementation, so this is a premise-based satisfaction rather than an independently proven internal check. The target document is loaded and the object view check is also satisfied by the premise, so the view-forbidden return is not taken. In the POST branch, however, the owner-aware change_document check is evaluated against the target document. The premise says the caller is not the owner and lacks that object grant, so the condition is true and the handler returns HttpResponseForbidden before Note.objects.create. Therefore the source-visible result at this entry is deny: the note-creation effect is unreachable. The crop does not establish behavior outside this declared entry or provide the implementation/details of PaperlessNotePermissions or has_perms_owner_aware; those are limitations, but no missing runtime fact is decisive because the stated premises directly specify the relevant permission outcomes.",
+          "facts": [
+            {
+              "id": "entry-notes-action",
+              "kind": "entry",
+              "statement": "The notes action accepts POST and declares PaperlessNotePermissions as its permission class.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 1,
+                  "endLine": 8
+                }
+              ]
+            },
+            {
+              "id": "binding-current-user",
+              "kind": "binding",
+              "statement": "The handler binds the authenticated request principal as currentUser.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 8,
+                  "endLine": 9
+                }
+              ]
+            },
+            {
+              "id": "binding-target-document",
+              "kind": "binding",
+              "statement": "The handler resolves the target document from pk, selecting its owner identity and notes.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 11,
+                  "endLine": 15
+                }
+              ]
+            },
+            {
+              "id": "control-global-post-permission",
+              "kind": "control",
+              "statement": "The action-level PaperlessNotePermissions gate is the visible global permission control; the supplied premise states that its required global POST permissions are held.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 1,
+                  "endLine": 5
+                }
+              ]
+            },
+            {
+              "id": "condition-object-view",
+              "kind": "condition",
+              "statement": "The handler forbids access to notes when the current user lacks an owner-aware view_document permission on the target document; the supplied premise states that the caller has this object view grant.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 17,
+                  "endLine": 22
+                }
+              ]
+            },
+            {
+              "id": "control-owner-aware-change",
+              "kind": "control",
+              "statement": "In the POST branch, the handler checks owner-aware change_document permission on the target document and returns HTTP 403 when the check fails.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 37,
+                  "endLine": 46
+                }
+              ]
+            },
+            {
+              "id": "condition-change-denied",
+              "kind": "condition",
+              "statement": "Under the supplied premise, the caller is not the document owner and lacks the target document's object change_document grant, so the owner-aware change check fails.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 39,
+                  "endLine": 46
+                }
+              ]
+            },
+            {
+              "id": "effect-note-create",
+              "kind": "effect",
+              "statement": "Note.objects.create would create the note for the target document, with the submitted note content and current user, but execution cannot reach it after the failed change check.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 48,
+                  "endLine": 52
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "deny"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "normalizerVersion": "authorization-wire-normalizer/v6",
+    "relationCoverage": [],
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Aviewer-cannot-add-note::entry%3Anotes-post",
+        "expectation": "deny",
+        "observed": "deny",
+        "derivedConclusion": "source_refuted"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 2609,
+        "output": 1019,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

@@ -1,0 +1,214 @@
+{
+  "schemaVersion": "authorization-assessment-input/v1",
+  "sourceIdentity": {
+    "repository": "https://github.com/usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4"
+  },
+  "sourceRoot": "../../../inputs/memos-member-leave/prepared-final/source",
+  "sources": [
+    "server/api/v1/space_service.go"
+  ],
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "aj-use-memos-member-removal",
+    "request": "At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.",
+    "repository": "https://github.com/usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:accepted-policy",
+        "kind": "explicit-task-requirement",
+        "text": "An active space member may delete their own membership and may remove a different active member of the same space without space administrator authority.",
+        "location": "author-use-briefs.json#/memos-space-policy/changedPolicy",
+        "revision": "changed",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "Task author supplied this bounded accepted policy for source comparison."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:caller",
+        "role": "authenticated caller described by the scenario premises",
+        "description": "Author facts: [\"Entry identity and object relation are scenario premises.\"]",
+        "startingCapabilities": []
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:target",
+        "type": "active space membership",
+        "description": "Author facts: [\"The target exists and its relation to the caller is fixed separately in each scenario.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:declared-entry",
+        "name": "DeleteSpaceMember",
+        "locations": [
+          {
+            "path": "server/api/v1/space_service.go",
+            "startLine": 740,
+            "endLine": 763
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:other-member",
+        "principalId": "principal:caller",
+        "resourceId": "resource:target",
+        "relation": "caller-is-not-target-member-and-not-admin",
+        "operation": "delete another active membership",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:accepted-policy",
+        "entryIds": [
+          "entry:declared-entry"
+        ]
+      },
+      {
+        "id": "scenario:self-leave",
+        "principalId": "principal:caller",
+        "resourceId": "resource:target",
+        "relation": "caller-is-target-member",
+        "operation": "delete own membership",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:accepted-policy",
+        "entryIds": [
+          "entry:declared-entry"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+    ]
+  },
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "analysisRequirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:other-member",
+        "scenario:self-leave"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:other-member",
+        "scenario:self-leave"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:other-member",
+        "scenario:self-leave"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:other-member",
+        "scenario:self-leave"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:other-member",
+        "scenario:self-leave"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:other-member",
+        "scenario:self-leave"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Assess both declared scenarios at handler entry from supplied fixed-ref source and the accepted policy. Treat each scenario premise as an assumption, not source or deployment proof. Trace identity, protected object, decisive control, and effect with exact supplied-source citations. Separate policy expectation from observed authorization. Do not execute the target. Current question: At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.",
+    "scenarios": [
+      {
+        "obligationId": "scenario:other-member",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "target-relation",
+            "statement": "At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds.",
+            "atEntryId": "entry:declared-entry",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the decisive source-visible control and protected effect; compare them with the accepted policy without treating premises as source proof."
+        ]
+      },
+      {
+        "obligationId": "scenario:self-leave",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "target-relation",
+            "statement": "At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds.",
+            "atEntryId": "entry:declared-entry",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the decisive source-visible control and protected effect; compare them with the accepted policy without treating premises as source proof."
+        ]
+      }
+    ]
+  }
+}

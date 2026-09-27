@@ -1,0 +1,18 @@
+{
+  "repository": "https://github.com/usememos/memos",
+  "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+  "sourceMode": "fixed-context",
+  "isolation": "exact-allowlist",
+  "files": [
+    {
+      "relativePath": "server/api/v1/memo_share_service.go",
+      "content": "// CreateMemoShare creates an opaque share link for a memo.\n// Only the memo's creator may call this.\nfunc (s *APIV1Service) CreateMemoShare(ctx context.Context, request *v1pb.CreateMemoShareRequest) (*v1pb.MemoShare, error) {\n\tuser, err := s.fetchCurrentUser(ctx)\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to get user\")\n\t}\n\tif user == nil {\n\t\treturn nil, status.Errorf(codes.Unauthenticated, \"user not authenticated\")\n\t}\n\tif err := s.throttleAndCharge(ratelimit.ScopeWriteUser, userKey(user.ID), 1); err != nil {\n\t\treturn nil, err\n\t}\n\n\tmemoUID, err := ExtractMemoUIDFromName(request.Parent)\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.InvalidArgument, \"invalid memo name: %v\", err)\n\t}\n\tmemo, err := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to get memo\")\n\t}\n\tif memo == nil {\n\t\treturn nil, status.Errorf(codes.NotFound, \"memo not found\")\n\t}\n\tif memo.RowStatus != store.Normal {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"only active memos can be shared\")\n\t}\n\tif !access.CanManageMemo(user, memo) {\n\t\treturn nil, status.Errorf(codes.PermissionDenied, \"permission denied\")\n\t}\n\tif memo.Visibility == store.SpaceAudience {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"SPACE audience memos cannot be shared\")\n\t}\n\tvar expiresTs *int64\n\tif request.MemoShare != nil && request.MemoShare.ExpireTime != nil {\n\t\tts := request.MemoShare.ExpireTime.AsTime().Unix()\n\t\tif ts <= time.Now().Unix() {\n\t\t\treturn nil, status.Errorf(codes.InvalidArgument, \"expire_time must be in the future\")\n\t\t}\n\t\texpiresTs = &ts\n\t}\n\n\t// Generate a URL-safe token using shortuuid (base57-encoded UUID v4, 22 chars, 122-bit entropy).\n\tpolicy := memoWritePolicy(user.ID, false)\n\tpolicy.CreatingShare = true\n\tms, err := s.Store.CreateMemoShare(ctx, &store.MemoShare{\n\t\tUID:       shortuuid.New(),\n\t\tMemoID:    memo.ID,\n\t\tCreatorID: user.ID,\n\t\tExpiresTs: expiresTs,\n\t\tPolicy:    policy,\n\t})\n\tif err != nil {\n\t\treturn nil, mapMemoWriteError(err, \"failed to create memo share\")\n\t}\n\n\treturn convertMemoShareFromStore(ms, memo.UID), nil\n",
+      "sha256": "4296c1dbca362d9db1059847c90f20941c95044ee8a7c555c5dae01060b9aafc",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 58
+      },
+      "originalLocations": []
+    }
+  ]
+}

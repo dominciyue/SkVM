@@ -1,0 +1,306 @@
+{
+  "schemaVersion": "authorization-aj-review-packet/v1",
+  "anonymousId": "r-1aed544830c0",
+  "caseId": "paperless-note-post",
+  "evidenceLayer": "prepared",
+  "publicInstruction": "Decide the stated authorization scenario at the declared entry from supplied fixed source and accepted policy. Treat premises as assumptions, cite exact supplied-source locations for the control and effect, preserve decisive unknowns, and do not execute the target or infer deployment facts.",
+  "publicBrief": {
+    "id": "paperless-note-post",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "entry": "src/documents/views.py:1841-1913",
+    "acceptedPolicy": "Creating a note requires the POST global note/document permissions and an owner-aware change_document check on the target document; viewing the document alone is insufficient.",
+    "currentQuestion": "At DocumentViewSet.notes POST handler entry, can an authenticated user who has all listed global POST permissions and an object view grant on a document create a note when a different user owns the document and the caller has no object change_document grant?",
+    "boundary": "declared-entry",
+    "premises": [
+      "At notes POST entry, the authenticated caller has the global POST permissions and an object view grant, but is not the document owner and lacks its object change_document grant."
+    ],
+    "requiredResponseDetails": [
+      "Separate the global PaperlessNotePermissions check, the object view check, the object change check, and Note.objects.create effect."
+    ]
+  },
+  "sourceBundle": {
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "sourceMode": "fixed-context",
+    "isolation": "exact-allowlist",
+    "files": [
+      {
+        "relativePath": "src/documents/views.py",
+        "content": "    @action(\n        methods=[\"get\", \"post\", \"delete\"],\n        detail=True,\n        permission_classes=[PaperlessNotePermissions],\n        pagination_class=None,\n        filter_backends=[],\n    )\n    def notes(self, request, pk=None):\n        currentUser = request.user\n        try:\n            doc = (\n                Document.objects.select_related(\"owner\")\n                .prefetch_related(\"notes\")\n                .only(\"pk\", \"owner__id\")\n                .get(pk=pk)\n            )\n            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,\n                \"view_document\",\n                doc,\n            ):\n                return HttpResponseForbidden(\"Insufficient permissions to view notes\")\n        except Document.DoesNotExist:\n            raise Http404\n\n        serializer = self.get_serializer(doc)\n\n        if request.method == \"GET\":\n            try:\n                notes = serializer.to_representation(doc).get(\"notes\")\n                return Response(notes)\n            except Exception as e:\n                logger.warning(f\"An error occurred retrieving notes: {e!s}\")\n                return Response(\n                    {\"error\": \"Error retrieving notes, check logs for more detail.\"},\n                )\n        elif request.method == \"POST\":\n            try:\n                if currentUser is not None and not has_perms_owner_aware(\n                    currentUser,\n                    \"change_document\",\n                    doc,\n                ):\n                    return HttpResponseForbidden(\n                        \"Insufficient permissions to create notes\",\n                    )\n\n                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],\n                    user=currentUser,\n                )\n                # If audit log is enabled make an entry in the log\n                # about this note change\n                if settings.AUDIT_LOG_ENABLED:\n                    LogEntry.objects.log_create(\n                        instance=doc,\n                        changes={\n                            \"Note Added\": [\"None\", c.id],\n                        },\n                        action=LogEntry.Action.UPDATE,\n                    )\n\n                doc.modified = timezone.now()\n                doc.save(update_fields=[\"modified\"])\n\n                from documents.search import get_backend\n\n                get_backend().add_or_update(doc)\n\n                notes = serializer.to_representation(doc).get(\"notes\")\n\n                return Response(notes)\n",
+        "sha256": "2bd89a6c28797ddcc331a0b77594b0a4b1c7c3196eb000f5e0370460cd5492ee",
+        "cropRange": {
+          "startLine": 1841,
+          "endLine": 1913
+        },
+        "originalLocations": [
+          "src/documents/views.py:1841-1913"
+        ]
+      },
+      {
+        "relativePath": "src/documents/permissions.py",
+        "content": "from typing import Any\nfrom typing import TypeVar\n\nfrom django.contrib.auth.models import Group\nfrom django.contrib.auth.models import Permission\nfrom django.contrib.auth.models import User\nfrom django.contrib.contenttypes.models import ContentType\nfrom django.db.models import Case\nfrom django.db.models import Count\nfrom django.db.models import IntegerField\nfrom django.db.models import Model\nfrom django.db.models import Q\nfrom django.db.models import QuerySet\nfrom django.db.models import Value\nfrom django.db.models import When\nfrom django.db.models.functions import Cast\nfrom guardian.core import ObjectPermissionChecker\nfrom guardian.models import GroupObjectPermission\nfrom guardian.models import UserObjectPermission\nfrom guardian.shortcuts import assign_perm\nfrom guardian.shortcuts import get_objects_for_user\nfrom guardian.shortcuts import get_users_with_perms\nfrom guardian.shortcuts import remove_perm\nfrom rest_framework.permissions import BasePermission\nfrom rest_framework.permissions import DjangoObjectPermissions\n\nfrom documents.models import Document\n\n\nclass PaperlessObjectPermissions(DjangoObjectPermissions):\n    \"\"\"\n    A permissions backend that checks for object-level permissions\n    or for ownership.\n    \"\"\"\n\n    perms_map = {\n        \"GET\": [\"%(app_label)s.view_%(model_name)s\"],\n        \"OPTIONS\": [\"%(app_label)s.view_%(model_name)s\"],\n        \"HEAD\": [\"%(app_label)s.view_%(model_name)s\"],\n        \"POST\": [\"%(app_label)s.add_%(model_name)s\"],\n        \"PUT\": [\"%(app_label)s.change_%(model_name)s\"],\n        \"PATCH\": [\"%(app_label)s.change_%(model_name)s\"],\n        \"DELETE\": [\"%(app_label)s.delete_%(model_name)s\"],\n    }\n\n    def has_object_permission(self, request, view, obj):\n        if hasattr(obj, \"owner\") and obj.owner is not None:\n            if request.user == obj.owner:\n                return True\n            else:\n                return super().has_object_permission(request, view, obj)\n        else:\n            return True  # no owner\n\n\nclass PaperlessAdminPermissions(BasePermission):\n    def has_permission(self, request, view):\n        return request.user.is_active and request.user.is_staff\n\n\ndef has_global_statistics_permission(user: User | None) -> bool:\n    if (\n        user is None\n        or not getattr(user, \"is_active\", False)\n        or not getattr(user, \"is_authenticated\", False)\n    ):\n        return False\n\n    return getattr(user, \"is_superuser\", False) or user.has_perm(\n        \"paperless.view_global_statistics\",\n    )\n\n\ndef has_system_status_permission(user: User | None) -> bool:\n    if (\n        user is None\n        or not getattr(user, \"is_active\", False)\n        or not getattr(user, \"is_authenticated\", False)\n    ):\n        return False\n\n    return (\n        getattr(user, \"is_superuser\", False)\n        or getattr(user, \"is_staff\", False)\n        or user.has_perm(\"paperless.view_system_monitoring\")\n    )\n\n\ndef get_groups_with_only_permission(obj, codename):\n    ctype = ContentType.objects.get_for_model(obj)\n    permission = Permission.objects.get(content_type=ctype, codename=codename)\n    group_object_perm_group_ids = (\n        GroupObjectPermission.objects.filter(\n            object_pk=obj.pk,\n            content_type=ctype,\n        )\n        .filter(permission=permission)\n        .values_list(\"group_id\")\n    )\n    return Group.objects.filter(id__in=group_object_perm_group_ids).distinct()\n\n\ndef set_permissions_for_object(\n    permissions: dict,\n    object,\n    *,\n    merge: bool = False,\n) -> None:\n    \"\"\"\n    Set permissions for an object. The permissions are given as a mapping of actions\n    to a dict of user / group id lists, e.g.\n    {\"view\": {\"users\": [1], \"groups\": [2]}, \"change\": {\"users\": [], \"groups\": []}}.\n\n    If merge is True, the permissions are merged with the existing permissions and\n    no users or groups are removed. If False, the permissions are set to exactly\n    the given list of users and groups.\n    \"\"\"\n\n    for action, entry in permissions.items():\n        permission = f\"{action}_{object.__class__.__name__.lower()}\"\n        if \"users\" in entry:\n            # users\n            users_to_add = User.objects.filter(id__in=entry[\"users\"])\n            users_to_remove = (\n                get_users_with_perms(\n                    object,\n                    only_with_perms_in=[permission],\n                    with_group_users=False,\n                )\n                if not merge\n                else User.objects.none()\n            )\n            if users_to_add.exists() and users_to_remove.exists():\n                users_to_remove = users_to_remove.exclude(id__in=users_to_add)\n            if users_to_remove.exists():\n                for user in users_to_remove:\n                    remove_perm(permission, user, object)\n            if users_to_add.exists():\n                for user in users_to_add:\n                    assign_perm(permission, user, object)\n                    if action == \"change\":\n                        # change gives view too\n                        assign_perm(\n                            f\"view_{object.__class__.__name__.lower()}\",\n                            user,\n                            object,\n                        )\n        if \"groups\" in entry:\n            # groups\n            groups_to_add = Group.objects.filter(id__in=entry[\"groups\"])\n            groups_to_remove = (\n                get_groups_with_only_permission(\n                    object,\n                    permission,\n                )\n                if not merge\n                else Group.objects.none()\n            )\n            if groups_to_add.exists() and groups_to_remove.exists():\n                groups_to_remove = groups_to_remove.exclude(id__in=groups_to_add)\n            if groups_to_remove.exists():\n                for group in groups_to_remove:\n                    remove_perm(permission, group, object)\n            if groups_to_add.exists():\n                for group in groups_to_add:\n                    assign_perm(permission, group, object)\n                    if action == \"change\":\n                        # change gives view too\n                        assign_perm(\n                            f\"view_{object.__class__.__name__.lower()}\",\n                            group,\n                            object,\n                        )\n\n\ndef _resolve_permissions(codenames: set[str], ctype: ContentType) -> list[Permission]:\n    \"\"\"\n    Resolves `codenames` to Permission rows, raising like the single-object\n    assign_perm() this bulk path replaces does (via a `.get()` internally)\n    if any codename doesn't exist. SetPermissionsSerializer rejects unknown\n    action names at the API, but a caller passing one directly would\n    otherwise get a plain `.filter()` that silently builds zero rows and\n    no-ops instead of reporting the bad input.\n    \"\"\"\n    permission_objs = list(\n        Permission.objects.filter(content_type=ctype, codename__in=codenames),\n    )\n    missing = codenames - {p.codename for p in permission_objs}\n    if missing:\n        raise Permission.DoesNotExist(\n            f\"Permission matching query does not exist for codename(s): \"\n            f\"{', '.join(sorted(missing))}\",\n        )\n    return permission_objs\n\n\ndef _apply_bulk_permission_entry(\n    *,\n    perm_model: type[UserObjectPermission] | type[GroupObjectPermission],\n    identity_model: type[User] | type[Group],\n    identity_field: str,\n    ids: list[int],\n    codename: str,\n    permission_objs: list[Permission],\n    ctype: ContentType,\n    object_pks: list[str],\n    merge: bool,\n) -> None:\n    # Only the ids are needed to build permission rows (via `<field>_id=`),\n    # so avoid fetching full User/Group rows for identities that may not\n    # even end up being granted anything new.\n    add_ids = set(\n        identity_model.objects.filter(id__in=ids).values_list(\"id\", flat=True),\n    )\n\n    if not merge:\n        existing_ids = set(\n            perm_model.objects.filter(\n                content_type=ctype,\n                object_pk__in=object_pks,\n                permission__codename=codename,\n            )\n            .values_list(f\"{identity_field}_id\", flat=True)\n            .distinct(),\n        )\n        remove_ids = existing_ids - add_ids\n        if remove_ids:\n            perm_model.objects.filter(\n                content_type=ctype,\n                object_pk__in=object_pks,\n                permission__codename=codename,\n                **{f\"{identity_field}_id__in\": remove_ids},\n            ).delete()\n\n    if not add_ids:\n        return\n\n    rows = [\n        perm_model(\n            content_type=ctype,\n            object_pk=pk,\n            permission=permission_obj,\n            **{f\"{identity_field}_id\": identity_id},\n        )\n        for permission_obj in permission_objs\n        for pk in object_pks\n        for identity_id in add_ids\n    ]\n    # ignore_conflicts skips only rows that already exist as an exact\n    # (identity, permission, object) match -- the same de-dup the\n    # underlying (user|group, permission, object_pk) unique constraint\n    # already enforces for the single-object assign_perm() this replaces,\n    # so it doesn't change what counts as \"already granted\". batch_size\n    # caps how many rows go into a single INSERT statement.\n    perm_model.objects.bulk_create(rows, ignore_conflicts=True, batch_size=1000)\n\n\ndef set_permissions_for_objects(\n    permissions: dict,\n    model: type[Model],\n    pks: QuerySet | list,\n    *,\n    merge: bool = False,\n) -> None:\n    \"\"\"\n    Bulk equivalent of set_permissions_for_object: applies the same\n    permission changes to every object identified by `pks` at once.\n\n    Takes a model + pks (rather than model instances) deliberately -- the\n    permission rows built below only ever need `pk`, `content_type`, and\n    identity ids, so callers shouldn't have to fetch full rows (with every\n    other field) just to hand them to this function.\n\n    Deliberately does not use guardian's queryset/list-aware assign_perm:\n    passing a list as the object routes to bulk_assign_perm, which skips\n    creating a direct permission row for anyone who already has the\n    permission via ANY group membership (it checks\n    ObjectPermissionChecker.has_perm, which is group-inheritance-aware) --\n    unlike the single-object assign_perm this replaces, which always\n    ensures a direct row via get_or_create regardless of group-derived\n    access. Losing that guarantee would mean a later revocation of the\n    group's grant silently strips access an admin explicitly asked to be\n    direct. Bulk-creating rows straight against the permission models\n    instead (see _apply_bulk_permission_entry) preserves the original\n    always-create-a-direct-row semantics while still batching every object\n    and every identity into one query per action, rather than one query per\n    (object, user) pair.\n    \"\"\"\n    object_pks = [str(pk) for pk in pks]\n    if not object_pks:  # pragma: no cover\n        return\n\n    model_name = model.__name__.lower()\n    ctype = ContentType.objects.get_for_model(model)\n\n    # Every action is resolved up front, before anything is written, so an\n    # unrecognized action name (see _resolve_permissions) aborts the whole\n    # call instead of leaving the actions ahead of it already applied.\n    # SetPermissionsSerializer rejects unknown actions at the API, so this\n    # guards any other caller.\n    permissions_by_action: dict[str, list[Permission]] = {}\n    for action, entry in permissions.items():\n        if \"users\" not in entry and \"groups\" not in entry:\n            continue\n        implied_codenames = {f\"{action}_{model_name}\"}\n        if action == \"change\":\n            # change gives view too\n            implied_codenames.add(f\"view_{model_name}\")\n        permissions_by_action[action] = _resolve_permissions(\n            implied_codenames,\n            ctype,\n        )\n\n    for action, entry in permissions.items():\n        codename = f\"{action}_{model_name}\"\n        permission_objs = permissions_by_action.get(action, [])\n\n        if \"users\" in entry:\n            _apply_bulk_permission_entry(\n                perm_model=UserObjectPermission,\n                identity_model=User,\n                identity_field=\"user\",\n                ids=entry[\"users\"],\n                codename=codename,\n                permission_objs=permission_objs,\n                ctype=ctype,\n                object_pks=object_pks,\n                merge=merge,\n            )\n\n        if \"groups\" in entry:\n            _apply_bulk_permission_entry(\n                perm_model=GroupObjectPermission,\n                identity_model=Group,\n                identity_field=\"group\",\n                ids=entry[\"groups\"],\n                codename=codename,\n                permission_objs=permission_objs,\n                ctype=ctype,\n                object_pks=object_pks,\n                merge=merge,\n            )\n\n\ndef permitted_object_ids(\n    user: User | None,\n    model: type[Model],\n    perm: str,\n    *,\n    include_deleted: bool = False,\n) -> QuerySet[int]:\n    \"\"\"\n    Generic version of ``permitted_document_ids`` for any model with an\n    ``owner`` field and guardian object-level permissions. ``include_deleted``\n    only has an effect for models exposing a ``global_objects``/``deleted_at``\n    soft-delete pattern (currently only ``Document``); for every other model\n    it is accepted but has no effect, since those models have no soft-delete\n    concept.\n    \"\"\"\n    has_soft_delete = hasattr(model, \"global_objects\")\n    manager = (\n        model.global_objects if include_deleted and has_soft_delete else model.objects\n    )\n    base_qs = manager.all().only(\"id\", \"owner\")\n\n    if user is None or not getattr(user, \"is_authenticated\", False):\n        return base_qs.filter(owner__isnull=True).values_list(\"id\", flat=True)\n\n    # Deactivated users get nothing, deactivated superusers included, so this\n    # has to come before the superuser shortcut. guardian's\n    # ObjectPermissionChecker denies inactive users, but get_objects_for_user\n    # (the pattern this replaces) does not, so it would not be inherited.\n    if not getattr(user, \"is_active\", False):\n        return base_qs.none().values_list(\"id\", flat=True)\n\n    if getattr(user, \"is_superuser\", False):\n        return base_qs.values_list(\"id\", flat=True)\n\n    # Guardian's UserObjectPermission/GroupObjectPermission always store a bare\n    # codename, but has_perm()-style callers commonly pass the qualified\n    # \"app_label.codename\" form. content_type already disambiguates the\n    # codename, so just drop any prefix rather than silently under-permitting.\n    perm = perm.rsplit(\".\", 1)[-1]\n\n    content_type = ContentType.objects.get_for_model(model)\n    perm_filter = {\n        \"permission__codename\": perm,\n        \"permission__content_type\": content_type,\n    }\n\n    user_perm_ids = (\n        UserObjectPermission.objects.filter(user=user, **perm_filter)\n        .annotate(object_pk_int=Cast(\"object_pk\", IntegerField()))\n        .values_list(\"object_pk_int\", flat=True)\n    )\n    group_perm_ids = (\n        GroupObjectPermission.objects.filter(group__user=user, **perm_filter)\n        .annotate(object_pk_int=Cast(\"object_pk\", IntegerField()))\n        .values_list(\"object_pk_int\", flat=True)\n    )\n    permitted_ids = user_perm_ids.union(group_perm_ids)\n\n    return base_qs.filter(\n        Q(owner=user) | Q(owner__isnull=True) | Q(id__in=permitted_ids),\n    ).values_list(\"id\", flat=True)\n\n\nModelT = TypeVar(\"ModelT\", bound=Model)\n\n\ndef user_is_unrestricted(user: User | None) -> bool:\n    \"\"\"\n    True when ``user`` means \"no restriction at all\" (an absent user, or an\n    *active* superuser) without needing a database check to know it.\n\n    ``permitted_object_ids(None, ...)`` itself means the much narrower \"only\n    unowned rows\", which is NOT the same thing as \"no user filtering\n    requested\", so callers must special-case this before ever calling it.\n    A deactivated superuser is deliberately NOT unrestricted here, matching\n    permitted_object_ids's own is_active-before-is_superuser ordering.\n\n    Callers that can avoid a database round trip entirely when this is true\n    (e.g. checking a single already-loaded object's visibility rather than\n    filtering a queryset) should do so via this function directly, rather\n    than through restrict_queryset_to_visible() below.\n    \"\"\"\n    if user is None:\n        return True\n    return (\n        getattr(user, \"is_authenticated\", False)\n        and getattr(user, \"is_active\", False)\n        and getattr(user, \"is_superuser\", False)\n    )\n\n\ndef restrict_queryset_to_visible(\n    queryset: QuerySet[ModelT],\n    user: User | None,\n    perm: str,\n) -> QuerySet[ModelT]:\n    \"\"\"\n    Restrict ``queryset`` to the rows ``user`` may see with ``perm``.\n\n    Delegates the visibility check to the database as a\n    ``WHERE id IN (subquery)`` rather than materializing the full\n    permitted-id set into a Python collection first: a caller that only\n    needs to check a small handful of rows (a resolved-id list, a few\n    RAG-neighbour candidate ids) never pays for scanning or holding the\n    installation's entire taxonomy in memory to do it.\n\n    Returns ``queryset`` unchanged for user_is_unrestricted(user); every\n    other case is delegated to ``permitted_object_ids`` rather than\n    re-deciding the ordering here.\n    \"\"\"\n    if user_is_unrestricted(user):\n        return queryset\n    return queryset.filter(pk__in=permitted_object_ids(user, queryset.model, perm))\n\n\ndef permitted_document_ids(\n    user: User | None,\n    *,\n    perm: str = \"view_document\",\n    include_deleted: bool = False,\n) -> QuerySet[int]:\n    \"\"\"\n    Document-specific convenience wrapper around ``permitted_object_ids``.\n    Return a queryset of document IDs the user has ``perm`` on (default\n    ``\"view_document\"``). By default limited to non-deleted documents; pass\n    ``include_deleted=True`` for callers that need to check permission on\n    soft-deleted documents (e.g. trash restore). This intentionally avoids\n    ``get_objects_for_user`` to keep the subquery small and index-friendly.\n    \"\"\"\n    return permitted_object_ids(user, Document, perm, include_deleted=include_deleted)\n\n\ndef get_document_count_filter_for_user(user, related_name: str = \"documents\"):\n    \"\"\"\n    Return the Q object used to filter document counts for the given user.\n\n    The filter is expressed as an ``id__in`` against a small subquery of permitted\n    document IDs to keep the generated SQL simple and avoid large OR clauses.\n\n    ``related_name`` is the ORM path from the annotated model to Document (e.g.\n    ``\"documents\"`` for Tag's direct M2M, or ``\"fields__document\"`` for CustomField,\n    which only reaches Document via the CustomFieldInstance through-model).\n    \"\"\"\n\n    if getattr(user, \"is_superuser\", False):\n        # Superuser: no permission filtering needed\n        return Q(**{f\"{related_name}__deleted_at__isnull\": True})\n\n    permitted_ids = permitted_document_ids(user)\n    return Q(**{f\"{related_name}__id__in\": permitted_ids})\n\n\ndef annotate_document_count_by_ids(\n    queryset: QuerySet[Any],\n    through_model: Any,\n    related_object_field: str,\n    document_ids: Any,\n    target_field: str = \"document_id\",\n) -> QuerySet[Any]:\n    \"\"\"\n    Annotate a queryset with a document count for a relation to Document that\n    goes through an M2M/through-model table (e.g. Tag via\n    ``Document.tags.through``, or CustomField via ``CustomFieldInstance``),\n    for an explicit, already-resolved set of document ids.\n\n    Counts are computed via a single, independent GROUP BY over the relation\n    table -- with the id filter expressed as a plain ``WHERE`` rather than an\n    aggregate ``FILTER`` -- then injected via ``Case``/``When``. This\n    deliberately avoids two slower alternatives found while building this:\n\n    - A per-outer-row correlated subquery (one execution per row of the\n      annotated queryset): fine at a handful of rows, catastrophic once the\n      queryset has hundreds/thousands of rows.\n    - ``Count(..., filter=Q(id__in=document_ids), distinct=True)`` applied\n      directly to the M2M relation: Postgres can fail to plan the ``id__in``\n      check as a semi-join and instead re-checks subquery membership once per\n      row of the (much larger) M2M join -- worse than the correlated subquery.\n\n    Aggregation is restricted to rows whose ``related_object_field`` is one of\n    ``queryset``'s pks, so passing a subset (e.g. a handful of tag descendants)\n    doesn't pay the cost of counting for every row matching ``document_ids``.\n\n    Args:\n        queryset: base queryset to annotate (must contain pk)\n        through_model: model representing the relation (e.g., Document.tags.through\n                       or CustomFieldInstance)\n        related_object_field: field on the relation pointing back to queryset pk\n        document_ids: the document ids to count against -- a concrete list/set,\n                       or a simple (already resolved) queryset of ids. Callers\n                       that need this filtered by a complex condition (e.g. a\n                       permission check) should resolve it to a concrete list\n                       first if the same ids will be reused across multiple\n                       calls, rather than passing the complex queryset itself\n                       into each -- see ``_get_selection_data_for_queryset``.\n        target_field: field on the relation pointing to Document id\n    \"\"\"\n\n    counts = (\n        through_model.objects.filter(\n            **{\n                f\"{related_object_field}__in\": queryset.values(\"pk\"),\n                f\"{target_field}__in\": document_ids,\n            },\n        )\n        .values(related_object_field)\n        .annotate(c=Count(target_field, distinct=True))\n    )\n    counts_by_pk = {row[related_object_field]: row[\"c\"] for row in counts}\n\n    if not counts_by_pk:\n        return queryset.annotate(\n            document_count=Value(0, output_field=IntegerField()),\n        )\n\n    return queryset.annotate(\n        document_count=Case(\n            *(When(pk=pk, then=Value(count)) for pk, count in counts_by_pk.items()),\n            default=Value(0),\n            output_field=IntegerField(),\n        ),\n    )\n\n\ndef annotate_document_count_for_related_queryset(\n    queryset: QuerySet[Any],\n    through_model: Any,\n    related_object_field: str,\n    target_field: str = \"document_id\",\n    user: User | None = None,\n) -> QuerySet[Any]:\n    \"\"\"\n    Same as ``annotate_document_count_by_ids``, but resolves the document ids\n    from the given user's view permissions rather than taking them directly.\n    \"\"\"\n\n    return annotate_document_count_by_ids(\n        queryset,\n        through_model=through_model,\n        related_object_field=related_object_field,\n        document_ids=permitted_document_ids(user),\n        target_field=target_field,\n    )\n\n\ndef get_objects_for_user_owner_aware(\n    user: User | None,\n    perms: str | list[str],\n    Model: Any,\n    *,\n    include_deleted: bool = False,\n) -> QuerySet[Any]:\n    \"\"\"\n    Returns objects the user owns, are unowned, or has explicit perms.\n    When include_deleted is True, soft-deleted items are also included.\n\n    Legacy slow path (guardian-backed, O(n) style permission resolution).\n    Most queryset-filtering call sites have migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this function\n    is kept because production callers still remain. Several callers remain\n    across ``documents/``, ``paperless_mail/``, and ``paperless_ai/`` --\n    grep for this function name before removing it.\n    \"\"\"\n    manager = (\n        Model.global_objects\n        if include_deleted and hasattr(Model, \"global_objects\")\n        else Model.objects\n    )\n\n    objects_owned = manager.filter(owner=user)\n    objects_unowned = manager.filter(owner__isnull=True)\n    objects_with_perms = get_objects_for_user(\n        user=user,\n        perms=perms,\n        klass=manager.all(),\n        accept_global_perms=False,\n    )\n    return objects_owned | objects_unowned | objects_with_perms\n\n\ndef has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)\n\n\nclass ViewDocumentsPermissions(BasePermission):\n    \"\"\"\n    Permissions class that checks for model permissions for only viewing Documents.\n    \"\"\"\n\n    perms_map = {\n        \"OPTIONS\": [\"documents.view_document\"],\n        \"GET\": [\"documents.view_document\"],\n        \"POST\": [\"documents.view_document\"],\n    }\n\n    def has_permission(self, request, view):\n        if not request.user or (not request.user.is_authenticated):  # pragma: no cover\n            return False\n\n        return request.user.has_perms(self.perms_map.get(request.method, []))\n\n\nclass TrashPermissions(BasePermission):\n    \"\"\"Check the global document permission for each trash operation.\"\"\"\n\n    perms_map = {\n        \"OPTIONS\": [\"documents.view_document\"],\n        \"HEAD\": [\"documents.view_document\"],\n        \"GET\": [\"documents.view_document\"],\n        \"POST\": [\"documents.delete_document\"],\n    }\n\n    def has_permission(self, request, view):\n        if not request.user or not request.user.is_authenticated:  # pragma: no cover\n            return False\n\n        return request.user.has_perms(self.perms_map.get(request.method, []))\n\n\nclass PaperlessNotePermissions(BasePermission):\n    \"\"\"\n    Permissions class that checks for model permissions for Notes.\n    \"\"\"\n\n    perms_map = {\n        \"OPTIONS\": [\"documents.view_note\", \"documents.view_document\"],\n        \"GET\": [\"documents.view_note\", \"documents.view_document\"],\n        \"POST\": [\n            \"documents.add_note\",\n            \"documents.view_document\",\n            \"documents.change_document\",\n        ],\n        \"DELETE\": [\n            \"documents.delete_note\",\n            \"documents.view_document\",\n            \"documents.change_document\",\n        ],\n    }\n\n    def has_permission(self, request, view):\n        if not request.user or (not request.user.is_authenticated):  # pragma: no cover\n            return False\n\n        perms = self.perms_map[request.method]\n\n        return request.user.has_perms(perms)\n\n\nclass AcknowledgeTasksPermissions(BasePermission):\n    \"\"\"\n    Permissions class that checks for model permissions for acknowledging tasks.\n    \"\"\"\n\n    perms_map = {\n        \"POST\": [\"documents.change_paperlesstask\"],\n    }\n\n    def has_permission(self, request: Any, view: Any) -> bool:\n        if not request.user or not request.user.is_authenticated:  # pragma: no cover\n            return False\n\n        perms = self.perms_map.get(request.method, [])\n\n        return request.user.has_perms(perms)\n",
+        "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+        "cropRange": {
+          "startLine": 1,
+          "endLine": 717
+        },
+        "originalLocations": [
+          "src/documents/permissions.py:1-717"
+        ]
+      }
+    ],
+    "evidencePreparation": {
+      "schemaVersion": "authorization-evidence-report/v1",
+      "status": "ready",
+      "sourceIdentity": {
+        "repository": "https://github.com/paperless-ngx/paperless-ngx",
+        "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+      },
+      "sourceRoot": "../../../public-source/paperless",
+      "included": [
+        {
+          "path": "src/documents/views.py",
+          "originalPath": "src/documents/views.py",
+          "startLine": 1841,
+          "endLine": 1913,
+          "origins": [
+            "entry:notes-post"
+          ]
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "originalPath": "src/documents/permissions.py",
+          "startLine": 1,
+          "endLine": 717,
+          "origins": [
+            "locator:note-global",
+            "locator:owner-aware"
+          ]
+        }
+      ],
+      "gaps": [],
+      "closureClaim": "declared-dependencies-only"
+    }
+  },
+  "answer": {
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "paperless-note-post-object-change",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "results": [
+        {
+          "obligationId": "scenario%3Aviewer-cannot-add-note::entry%3Anotes-post",
+          "conclusion": "source_refuted",
+          "explanation": "At the declared notes POST entry, PaperlessNotePermissions is the configured permission class. Its POST global check requires add_note, view_document, and change_document, and the premises state that all are present, so that global check is satisfied. The handler then performs a separate owner-aware view_document check on the target document; the premises state that the caller has object view access, so this check is satisfied. In the POST branch, before any creation, the handler performs a separate owner-aware change_document check on the same document. Because the caller is not the owner and lacks the object change_document grant, the supplied owner-aware implementation does not authorize that check, and the handler returns HTTP 403. Note.objects.create is therefore a protected side effect that is not reached in this scenario; it would create the note only after the change check passes. The fixed source supports a deny at this declared-entry boundary. No repository-wide or deployment-level completeness claim is made.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The notes action is a detail action accepting POST and is configured with PaperlessNotePermissions.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1841,
+                    "endLine": 1848,
+                    "quote": "    @action(\n        methods=[\"get\", \"post\", \"delete\"],\n        detail=True,\n        permission_classes=[PaperlessNotePermissions],\n        pagination_class=None,\n        filter_backends=[],\n    )\n    def notes(self, request, pk=None):"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The owner-aware permission helper permits an owner or an unowned object, otherwise requiring the supplied object permission through the permission checker.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The POST branch separately applies the owner-aware change_document check to the target document and returns forbidden when it fails.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1877,
+                    "endLine": 1887,
+                    "quote": "        elif request.method == \"POST\":\n            try:\n                if currentUser is not None and not has_perms_owner_aware(\n                    currentUser,\n                    \"change_document\",\n                    doc,\n                ):\n                    return HttpResponseForbidden(\n                        \"Insufficient permissions to create notes\",\n                    )\n"
+                  }
+                ]
+              },
+              {
+                "statement": "For POST, PaperlessNotePermissions checks the global add_note, view_document, and change_document permissions, and calls request.user.has_perms for them.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 673,
+                    "endLine": 699,
+                    "quote": "class PaperlessNotePermissions(BasePermission):\n    \"\"\"\n    Permissions class that checks for model permissions for Notes.\n    \"\"\"\n\n    perms_map = {\n        \"OPTIONS\": [\"documents.view_note\", \"documents.view_document\"],\n        \"GET\": [\"documents.view_note\", \"documents.view_document\"],\n        \"POST\": [\n            \"documents.add_note\",\n            \"documents.view_document\",\n            \"documents.change_document\",\n        ],\n        \"DELETE\": [\n            \"documents.delete_note\",\n            \"documents.view_document\",\n            \"documents.change_document\",\n        ],\n    }\n\n    def has_permission(self, request, view):\n        if not request.user or (not request.user.is_authenticated):  # pragma: no cover\n            return False\n\n        perms = self.perms_map[request.method]\n\n        return request.user.has_perms(perms)"
+                  }
+                ]
+              },
+              {
+                "statement": "The handler checks owner-aware view_document access on the loaded target document and returns forbidden if that check fails.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1851,
+                    "endLine": 1862,
+                    "quote": "            doc = (\n                Document.objects.select_related(\"owner\")\n                .prefetch_related(\"notes\")\n                .only(\"pk\", \"owner__id\")\n                .get(pk=pk)\n            )\n            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,\n                \"view_document\",\n                doc,\n            ):\n                return HttpResponseForbidden(\"Insufficient permissions to view notes\")"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "Note.objects.create is the note-creation side effect, using the target document, request note data, and current user, but it occurs only after the preceding change check.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1888,
+                    "endLine": 1892,
+                    "quote": "                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],\n                    user=currentUser,\n                )"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "Under the premises, the caller is a different user from the document owner and has no object change_document grant, so the owner-aware change_document check is unsatisfied.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aviewer-cannot-add-note::entry%3Anotes-post",
+          "explanation": "At the declared notes POST entry, PaperlessNotePermissions is the configured permission class. Its POST global check requires add_note, view_document, and change_document, and the premises state that all are present, so that global check is satisfied. The handler then performs a separate owner-aware view_document check on the target document; the premises state that the caller has object view access, so this check is satisfied. In the POST branch, before any creation, the handler performs a separate owner-aware change_document check on the same document. Because the caller is not the owner and lacks the object change_document grant, the supplied owner-aware implementation does not authorize that check, and the handler returns HTTP 403. Note.objects.create is therefore a protected side effect that is not reached in this scenario; it would create the note only after the change check passes. The fixed source supports a deny at this declared-entry boundary. No repository-wide or deployment-level completeness claim is made.",
+          "facts": [
+            {
+              "id": "f-entry",
+              "kind": "entry",
+              "statement": "The notes action is a detail action accepting POST and is configured with PaperlessNotePermissions.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 1841,
+                  "endLine": 1848
+                }
+              ]
+            },
+            {
+              "id": "f-global",
+              "kind": "control",
+              "statement": "For POST, PaperlessNotePermissions checks the global add_note, view_document, and change_document permissions, and calls request.user.has_perms for them.",
+              "citations": [
+                {
+                  "sourceId": "src-81f6400744c9c9e9",
+                  "startLine": 673,
+                  "endLine": 699
+                }
+              ]
+            },
+            {
+              "id": "f-view-control",
+              "kind": "control",
+              "statement": "The handler checks owner-aware view_document access on the loaded target document and returns forbidden if that check fails.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 1851,
+                  "endLine": 1862
+                }
+              ]
+            },
+            {
+              "id": "f-owner-aware",
+              "kind": "binding",
+              "statement": "The owner-aware permission helper permits an owner or an unowned object, otherwise requiring the supplied object permission through the permission checker.",
+              "citations": [
+                {
+                  "sourceId": "src-81f6400744c9c9e9",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "f-change-control",
+              "kind": "control",
+              "statement": "The POST branch separately applies the owner-aware change_document check to the target document and returns forbidden when it fails.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 1877,
+                  "endLine": 1887
+                }
+              ]
+            },
+            {
+              "id": "f-condition",
+              "kind": "condition",
+              "statement": "Under the premises, the caller is a different user from the document owner and has no object change_document grant, so the owner-aware change_document check is unsatisfied.",
+              "citations": [
+                {
+                  "sourceId": "src-81f6400744c9c9e9",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "f-effect",
+              "kind": "effect",
+              "statement": "Note.objects.create is the note-creation side effect, using the target document, request note data, and current user, but it occurs only after the preceding change check.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 1888,
+                  "endLine": 1892
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "deny"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Aviewer-cannot-add-note::entry%3Anotes-post",
+        "expectation": "deny",
+        "observed": "deny",
+        "derivedConclusion": "source_refuted"
+      }
+    ]
+  },
+  "sourceScope": "supplied fixed-context only; no target execution"
+}

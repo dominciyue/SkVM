@@ -1,0 +1,215 @@
+{
+  "schemaVersion": "authorization-assessment-input/v1",
+  "sourceIdentity": {
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+  },
+  "sourceRoot": "../../../inputs/paperless-note-post/prepared-final/source",
+  "sources": [
+    "src/documents/views.py",
+    "src/documents/permissions.py"
+  ],
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "aj-use-paperless-note-create",
+    "request": "At the notes POST handler, assess two declared relations between an authenticated caller and an existing document. Both callers hold global add_note, view_document and change_document permissions and can view the document. Use each scenario's object relation to determine whether Note.objects.create is reached.",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:accepted-policy",
+        "kind": "explicit-task-requirement",
+        "text": "Creating a note requires the stated global permissions and object-level change_document authorization; a view grant alone is insufficient, while document ownership or an object change grant can satisfy the object control.",
+        "location": "author-use-briefs.json#/paperless-note-relation/originalPolicy",
+        "revision": "original",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "Task author supplied this bounded accepted policy for source comparison."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:caller",
+        "role": "authenticated caller described by the scenario premises",
+        "description": "Author facts: [\"Entry identity and object relation are scenario premises.\"]",
+        "startingCapabilities": []
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:target",
+        "type": "existing document",
+        "description": "Author facts: [\"The target exists and its relation to the caller is fixed separately in each scenario.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:declared-entry",
+        "name": "notes POST",
+        "locations": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 37,
+            "endLine": 52
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:change-granted",
+        "principalId": "principal:caller",
+        "resourceId": "resource:target",
+        "relation": "object-change-granted-not-owner",
+        "operation": "create a note on the document",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:accepted-policy",
+        "entryIds": [
+          "entry:declared-entry"
+        ]
+      },
+      {
+        "id": "scenario:view-only",
+        "principalId": "principal:caller",
+        "resourceId": "resource:target",
+        "relation": "caller-owns-document",
+        "operation": "create a note on the document",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:accepted-policy",
+        "entryIds": [
+          "entry:declared-entry"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+    ]
+  },
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "analysisRequirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Assess both declared scenarios at handler entry from supplied fixed-ref source and the accepted policy. Treat each scenario premise as an assumption, not source or deployment proof. Trace identity, protected object, decisive control, and effect with exact supplied-source citations. Separate policy expectation from observed authorization. Do not execute the target. Current question: At the notes POST handler, assess two declared relations between an authenticated caller and an existing document. Both callers hold global add_note, view_document and change_document permissions and can view the document. Use each scenario's object relation to determine whether Note.objects.create is reached.",
+    "scenarios": [
+      {
+        "obligationId": "scenario:change-granted",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "object-relation",
+            "statement": "At handler entry, the caller has the stated global permissions and object view and change_document grants, but is not the document owner.",
+            "atEntryId": "entry:declared-entry",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the decisive source-visible control and protected effect; compare them with the accepted policy without treating premises as source proof."
+        ]
+      },
+      {
+        "obligationId": "scenario:view-only",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "object-relation",
+            "statement": "At handler entry, the caller has the stated global permissions and owns the existing document.",
+            "atEntryId": "entry:declared-entry",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the decisive source-visible control and protected effect; compare them with the accepted policy without treating premises as source proof."
+        ]
+      }
+    ]
+  }
+}

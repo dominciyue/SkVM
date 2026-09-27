@@ -1,0 +1,1205 @@
+<!-- analysis-profile: authorization-core-v1; origin: derived; study-arm: none; condition-analysis: disabled; assessment: explicit-v1 -->
+
+# Organized authorization assessment instruction (B)
+
+Analyze each runnable obligation in the canonical declaration. Follow the declared required analysis, constraints, policy authority, and scope assurance. Explain the source-visible decision without assuming repository discovery or deployment facts. Address every supplied analysis question and report its coverage without inventing an answer.
+
+## Canonical declaration
+This is task memos-create-share-admin, expressed with source-authorization-assessment/v0. At CreateMemoShare handler entry, does an authenticated active instance administrator pass the source-visible authorization controls to create a share for an existing active non-SPACE memo authored by someone else? Assess authorization, not whether an external store call succeeds under every runtime condition.
+Assess repository https://github.com/usememos/memos at source ref cb42e326ba9cc266a6a9570c53e0fe04c62793f4 in fixed-context mode. Source discovery status is not-tested.
+
+The accepted policy material is:
+- policy:memo-share-creator-or-admin is a explicit-task-requirement at proto/api/v1/memo_service.proto:116-123; server/api/v1/memo_share_service.go:54-56, revision cb42e326ba9cc266a6a9570c53e0fe04c62793f4.
+  Policy text: A memo share may be created by the memo creator or an instance administrator; SPACE audience memos are not shareable.
+  Acceptance is accepted; accepting actor role: task-author; reason: Public fixed-ref source and task-author bounded requirement.
+
+The principals are:
+- principal:instance-admin has role authenticated active instance administrator, not the memo creator. Author facts: ["The caller is active and has the instance ADMIN role.","The caller is not the memo's creator."]
+  Starting capabilities: none declared.
+
+The resources are:
+- resource:other-normal-memo is a memo. Author facts: ["The memo exists, is active, and has a non-SPACE audience.","The memo was created by another user."]
+
+The declared source entries are:
+- entry:create-share names CreateMemoShare.
+  Source location: server/api/v1/memo_share_service.go, startLine 23, endLine 80.
+
+The authorization obligations are:
+- scenario:admin-other-memo: principal principal:instance-admin, resource resource:other-normal-memo, relation active-instance-admin-not-creator, operation create memo share, expected policy disposition allow.
+  Policy source: policy:memo-share-creator-or-admin. Declared entries: entry:create-share.
+  Conditions: none declared.
+
+Scope assurance: Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.
+Required analysis:
+- Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.
+- identify the principal, operation, protected resource, decisive control, and effect
+- return source_supported_failure, source_refuted, or unknown with exact supplied-source locations
+Constraints:
+- Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.
+- Use only the supplied fixed-ref case inputs.
+- Do not execute the target project or infer deployment facts.
+Allowed decision kinds: observed for allow/deny expectations; conditional-policy for conditional expectations.
+
+## Public analysis questions
+Decide the current scenario at the stated declared-entry boundary from the supplied fixed source and accepted policy. Treat premises as question assumptions, not source or deployment proof. Trace the decisive authorization control, protected object and effect with exact supplied-source locations. State any decisive missing runtime fact rather than assuming it. Do not execute the target, infer missing deployment facts, or consult later versions.
+Current question: At CreateMemoShare handler entry, does an authenticated active instance administrator pass the source-visible authorization controls to create a share for an existing active non-SPACE memo authored by someone else? Assess authorization, not whether an external store call succeeds under every runtime condition.
+Analysis boundary: declared-entry.
+Task premise: At CreateMemoShare entry, the caller is an authenticated active instance ADMIN; the selected memo exists, is active, non-SPACE, and authored by another user. The requested expiry, if any, is valid.
+Required response detail: Trace the author-or-admin helper and the protected CreateMemoShare store effect; keep store failure and concurrent state changes outside the authorization conclusion.
+
+## Explicit assessment program
+- Current question scenario%3Aadmin-other-memo::entry%3Acreate-share at entry:create-share; boundary: declared-entry.
+  Accepted task premises at this entry (not source citations): premise-1: At CreateMemoShare entry, the caller is an authenticated active instance ADMIN; the selected memo exists, is active, non-SPACE, and authored by another user. The requested expiry, if any, is valid..
+  Prove the decisive source path within the requested boundary; report a decisive missing binding only when that boundary requires it.
+  Required response details: Trace the author-or-admin helper and the protected CreateMemoShare store effect; keep store failure and concurrent state changes outside the authorization conclusion..
+
+## Result contract
+Use compact wire/v6: top-level results only. Each item has obligationId, decision and branchResults, explanation, facts as an array of {id, kind, statement, citations}, decisiveMissingFacts and suggestedObservations. Fact IDs must be unique within each obligation. kind is entry/binding/control/effect/condition. The host fills all version/identity/scope metadata and groups facts; never output those fields. Include item-local coverage only when an analysis ledger is supplied, and item-local condition only when a condition request is supplied. Branches do not repeat obligationId.
+Return exactly one result for every runnable expanded obligation. Do not output conclusion or policyStatus at the item level. For an authored allow/deny expectation, return decision {kind:"observed",observed:"allow"|"deny"|"unknown"} describing the source-visible behavior, independently of the normative expectation. The host compares that observed behavior with the authored expectation. For an authored conditional expectation, return decision {kind:"conditional-policy",policyStatus:"satisfied"|"violated"|"undetermined"}; the host uses this policy judgment without a binary observed comparison. Unknown requires decisiveMissingFacts and suggestedObservations. Do not infer observed behavior from the expectation or prose.
+Every result includes branchResults, an empty array if no branch is requested. For each explicitly requested branch below, return its exact id and assumptions, a reachable/blocked/unknown effect, a causal explanation, same-obligation factIds for known effects, and decisive missingFacts for unknown effects. Counterfactual assumptions are hypotheses; they do not alter the current scenario or establish source/deployment facts. Extra or missing branches are invalid.
+Exact requested branch IDs and assumptions (closed list):
+- (none)
+Exact runnable obligation IDs (closed list):
+- scenario%3Aadmin-other-memo::entry%3Acreate-share
+Use each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.
+Support the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.
+Address every public analysis question in the explanation and source-backed facts. No separate coverage ledger is required for this plain-method answer.
+
+## Fixed source context
+Preparation status: ready
+
+Closure claim: declared-dependencies-only
+
+Prepared from: https://github.com/usememos/memos@cb42e326ba9cc266a6a9570c53e0fe04c62793f4; root ../../../public-source/memos
+
+Included original ranges: server/api/v1/memo_share_service.go:1-244 [entry:create-share]; core/access/memo.go:1-157 [locator:manage]; server/api/v1/memo_access.go:1-210 [locator:write-policy]; store/memo.go:1-408 [locator:write-snapshot]; store/memo_share.go:1-79 [locator:share-store]
+
+Unresolved gaps: none
+
+===== BEGIN ALLOWED INPUT: core/access/memo.go =====
+Source ID: src-da9fb2a209342c1f
+Location note: crop lines 1-157; original locations: core/access/memo.go:1-157
+Citation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.
+1 | // Package access defines transport-independent resource authorization policies
+2 | // shared by the server's API and HTTP adapters.
+3 | package access
+4 | 
+5 | import "github.com/usememos/memos/store"
+6 | 
+7 | // MemoReadDenial describes why a memo read was rejected.
+8 | type MemoReadDenial int
+9 | 
+10 | const (
+11 | 	// MemoReadDenialNone means the read is allowed.
+12 | 	MemoReadDenialNone MemoReadDenial = iota
+13 | 	// MemoReadDenialNotFound hides missing, archived, and invalid memo state.
+14 | 	MemoReadDenialNotFound
+15 | 	// MemoReadDenialUnauthenticated means the resource requires a signed-in user.
+16 | 	MemoReadDenialUnauthenticated
+17 | 	// MemoReadDenialPermission means the signed-in user cannot read the resource.
+18 | 	MemoReadDenialPermission
+19 | )
+20 | 
+21 | // MemoReadClass describes whether the resource is anonymously readable.
+22 | type MemoReadClass int
+23 | 
+24 | const (
+25 | 	// MemoReadClassPrivate is for author, authenticated, member, or share-token reads.
+26 | 	MemoReadClassPrivate MemoReadClass = iota
+27 | 	// MemoReadClassPublic is for resources currently readable without credentials.
+28 | 	MemoReadClassPublic
+29 | )
+30 | 
+31 | // MemoReadDecision is the outcome of evaluating memo read access.
+32 | type MemoReadDecision struct {
+33 | 	Denial MemoReadDenial
+34 | 	Class  MemoReadClass
+35 | }
+36 | 
+37 | // MemoReadContext contains the fully resolved authorization context for one
+38 | // memo. Relations never contribute authorization; callers evaluate each
+39 | // relation endpoint independently.
+40 | type MemoReadContext struct {
+41 | 	Memo              *store.Memo
+42 | 	Viewer            *store.User
+43 | 	AllowAnonymous    bool
+44 | 	SharedMemoID      *int32
+45 | 	CreatorValid      bool
+46 | 	SpaceValid        bool
+47 | 	ViewerSpaceMember bool
+48 | }
+49 | 
+50 | // Allowed reports whether the read is permitted.
+51 | func (d MemoReadDecision) Allowed() bool {
+52 | 	return d.Denial == MemoReadDenialNone
+53 | }
+54 | 
+55 | // IsActiveUser reports whether the user exists and is in the normal lifecycle
+56 | // state, which every authenticated authorization decision requires.
+57 | func IsActiveUser(user *store.User) bool {
+58 | 	return user != nil && user.RowStatus == store.Normal
+59 | }
+60 | 
+61 | // IsInstanceAdmin reports whether the user is an active application ADMIN.
+62 | // An instance administrator is the superuser for named memo operations: every
+63 | // memo-local authorization check (authorship, audience, Space membership and
+64 | // participation, attachment and reaction ownership) passes. Structural
+65 | // validity still applies, and collection listings keep the audience predicate
+66 | // so feeds never surface other users' private memos.
+67 | func IsInstanceAdmin(user *store.User) bool {
+68 | 	return IsActiveUser(user) && user.Role == store.RoleAdmin
+69 | }
+70 | 
+71 | // CanManageMemo reports whether the actor may perform author-level operations
+72 | // on the memo: the active author, or an instance administrator.
+73 | func CanManageMemo(actor *store.User, memo *store.Memo) bool {
+74 | 	return memo != nil && ownsOrAdministers(actor, memo.CreatorID)
+75 | }
+76 | 
+77 | // CanManageAttachment reports whether the actor may mutate an attachment row
+78 | // directly: the active owner, or an instance administrator.
+79 | func CanManageAttachment(actor *store.User, attachment *store.Attachment) bool {
+80 | 	return attachment != nil && ownsOrAdministers(actor, attachment.CreatorID)
+81 | }
+82 | 
+83 | func ownsOrAdministers(actor *store.User, creatorID int32) bool {
+84 | 	return IsActiveUser(actor) && (actor.ID == creatorID || actor.Role == store.RoleAdmin)
+85 | }
+86 | 
+87 | // CheckMemoReadContext evaluates access to exactly one memo. Unknown audience,
+88 | // invalid lifecycle state, and a missing or invalid creator fail closed. A
+89 | // dangling placement only invalidates SPACE reads; other audiences
+90 | // remain memo-local. A share applies only to the exact memo and never to either
+91 | // endpoint of a relation.
+92 | func CheckMemoReadContext(ctx MemoReadContext) MemoReadDecision {
+93 | 	memo := ctx.Memo
+94 | 	if memo == nil || !ctx.CreatorValid {
+95 | 		return MemoReadDecision{Denial: MemoReadDenialNotFound}
+96 | 	}
+97 | 	if memo.Visibility != store.Public && memo.Visibility != store.Protected && memo.Visibility != store.Private && memo.Visibility != store.SpaceAudience {
+98 | 		return MemoReadDecision{Denial: MemoReadDenialNotFound}
+99 | 	}
+100 | 	if memo.Visibility == store.SpaceAudience && (memo.SpaceID == nil || !ctx.SpaceValid) {
+101 | 		return MemoReadDecision{Denial: MemoReadDenialNotFound}
+102 | 	}
+103 | 
+104 | 	if memo.RowStatus != store.Normal && memo.RowStatus != store.Archived {
+105 | 		return MemoReadDecision{Denial: MemoReadDenialNotFound}
+106 | 	}
+107 | 	// A structurally valid memo is readable by name to an instance
+108 | 	// administrator regardless of audience, placement, or lifecycle state.
+109 | 	if IsInstanceAdmin(ctx.Viewer) {
+110 | 		return MemoReadDecision{Class: MemoReadClassPrivate}
+111 | 	}
+112 | 
+113 | 	viewerActive := IsActiveUser(ctx.Viewer)
+114 | 	viewerIsAuthor := viewerActive && ctx.Viewer.ID == memo.CreatorID
+115 | 	if memo.RowStatus == store.Archived && !viewerIsAuthor {
+116 | 		return MemoReadDecision{Denial: MemoReadDenialNotFound}
+117 | 	}
+118 | 
+119 | 	shareApplies := ctx.SharedMemoID != nil && memo.ID == *ctx.SharedMemoID && memo.Visibility != store.SpaceAudience
+120 | 	if shareApplies {
+121 | 		return MemoReadDecision{Class: MemoReadClassPrivate}
+122 | 	}
+123 | 
+124 | 	switch memo.Visibility {
+125 | 	case store.Public:
+126 | 		if ctx.AllowAnonymous {
+127 | 			return MemoReadDecision{Class: MemoReadClassPublic}
+128 | 		}
+129 | 		if viewerActive {
+130 | 			return MemoReadDecision{Class: MemoReadClassPrivate}
+131 | 		}
+132 | 		return MemoReadDecision{Denial: MemoReadDenialUnauthenticated}
+133 | 	case store.Protected:
+134 | 		if viewerActive {
+135 | 			return MemoReadDecision{Class: MemoReadClassPrivate}
+136 | 		}
+137 | 		return MemoReadDecision{Denial: MemoReadDenialUnauthenticated}
+138 | 	case store.Private:
+139 | 		if !viewerActive {
+140 | 			return MemoReadDecision{Denial: MemoReadDenialUnauthenticated}
+141 | 		}
+142 | 		if !viewerIsAuthor {
+143 | 			return MemoReadDecision{Denial: MemoReadDenialPermission}
+144 | 		}
+145 | 		return MemoReadDecision{Class: MemoReadClassPrivate}
+146 | 	case store.SpaceAudience:
+147 | 		if !viewerActive {
+148 | 			return MemoReadDecision{Denial: MemoReadDenialUnauthenticated}
+149 | 		}
+150 | 		if ctx.ViewerSpaceMember {
+151 | 			return MemoReadDecision{Class: MemoReadClassPrivate}
+152 | 		}
+153 | 		return MemoReadDecision{Denial: MemoReadDenialPermission}
+154 | 	default:
+155 | 		return MemoReadDecision{Denial: MemoReadDenialNotFound}
+156 | 	}
+157 | }
+===== END ALLOWED INPUT: core/access/memo.go =====
+
+===== BEGIN ALLOWED INPUT: server/api/v1/memo_access.go =====
+Source ID: src-69d26d731760c05a
+Location note: crop lines 1-210; original locations: server/api/v1/memo_access.go:1-210
+Citation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.
+1 | package v1
+2 | 
+3 | import (
+4 | 	"context"
+5 | 	stderrors "errors"
+6 | 
+7 | 	"github.com/pkg/errors"
+8 | 	"google.golang.org/grpc/codes"
+9 | 	"google.golang.org/grpc/status"
+10 | 
+11 | 	"github.com/usememos/memos/core/access"
+12 | 	"github.com/usememos/memos/store"
+13 | )
+14 | 
+15 | // buildMemoReadContext resolves authorization inputs for exactly one memo.
+16 | // Relations never contribute access to either endpoint.
+17 | func (s *APIV1Service) buildMemoReadContext(ctx context.Context, memo *store.Memo, sharedMemoID *int32) (access.MemoReadContext, error) {
+18 | 	viewer, err := s.fetchCurrentUser(ctx)
+19 | 	if err != nil {
+20 | 		return access.MemoReadContext{}, status.Errorf(codes.Internal, "failed to get user")
+21 | 	}
+22 | 	allowAnonymous := false
+23 | 	if viewer == nil {
+24 | 		allowAnonymous, err = s.Store.AllowsAnonymousAccess(ctx)
+25 | 		if err != nil {
+26 | 			return access.MemoReadContext{}, status.Errorf(codes.Internal, "failed to resolve instance access policy")
+27 | 		}
+28 | 	}
+29 | 	return s.buildMemoReadContextForViewer(ctx, memo, viewer, allowAnonymous, sharedMemoID)
+30 | }
+31 | 
+32 | func (s *APIV1Service) buildMemoReadContextForViewer(ctx context.Context, memo *store.Memo, viewer *store.User, allowAnonymous bool, sharedMemoID *int32) (access.MemoReadContext, error) {
+33 | 	if memo == nil {
+34 | 		return access.MemoReadContext{}, status.Error(codes.NotFound, "memo not found")
+35 | 	}
+36 | 	readContext, err := access.ResolveMemoReadContext(ctx, s.Store, memo, viewer, allowAnonymous, sharedMemoID)
+37 | 	if err != nil {
+38 | 		return access.MemoReadContext{}, status.Errorf(codes.Internal, "failed to resolve memo access")
+39 | 	}
+40 | 	return readContext, nil
+41 | }
+42 | 
+43 | func (s *APIV1Service) checkMemoReadAccess(ctx context.Context, memo *store.Memo) error {
+44 | 	readContext, err := s.buildMemoReadContext(ctx, memo, nil)
+45 | 	if err != nil {
+46 | 		return err
+47 | 	}
+48 | 	return memoAccessDecisionError(access.CheckMemoReadContext(readContext))
+49 | }
+50 | 
+51 | func memoAccessDecisionError(decision access.MemoReadDecision) error {
+52 | 	switch decision.Denial {
+53 | 	case access.MemoReadDenialNone:
+54 | 		return nil
+55 | 	case access.MemoReadDenialNotFound:
+56 | 		return status.Error(codes.NotFound, "memo not found")
+57 | 	case access.MemoReadDenialUnauthenticated:
+58 | 		return status.Error(codes.Unauthenticated, "user not authenticated")
+59 | 	default:
+60 | 		return status.Error(codes.PermissionDenied, "permission denied")
+61 | 	}
+62 | }
+63 | 
+64 | // newMemoAccessScope returns the memo-local authorization predicate for a
+65 | // caller. Drivers apply it as a database predicate before LIMIT/OFFSET so
+66 | // inaccessible rows can neither leak nor skew counts and pagination.
+67 | func newMemoAccessScope(currentUser *store.User, allowPublic bool) *store.MemoAccessScope {
+68 | 	accessScope := &store.MemoAccessScope{AllowPublic: allowPublic, AllowProtected: currentUser != nil}
+69 | 	if currentUser != nil {
+70 | 		accessScope.UserID = &currentUser.ID
+71 | 	}
+72 | 	return accessScope
+73 | }
+74 | 
+75 | // resolveMemoAccessScope resolves the caller and builds their memo access
+76 | // scope. For an anonymous caller the instance access policy decides whether
+77 | // PUBLIC memos are readable at all. Callers map the returned error to their own
+78 | // transport representation.
+79 | func (s *APIV1Service) resolveMemoAccessScope(ctx context.Context) (*store.MemoAccessScope, *store.User, error) {
+80 | 	currentUser, err := s.fetchCurrentUser(ctx)
+81 | 	if err != nil {
+82 | 		return nil, nil, errors.Wrap(err, "failed to get current user")
+83 | 	}
+84 | 	allowPublic := currentUser != nil
+85 | 	if currentUser == nil {
+86 | 		allowPublic, err = s.Store.AllowsAnonymousAccess(ctx)
+87 | 		if err != nil {
+88 | 			return nil, nil, errors.Wrap(err, "failed to resolve instance access policy")
+89 | 		}
+90 | 	}
+91 | 	return newMemoAccessScope(currentUser, allowPublic), currentUser, nil
+92 | }
+93 | 
+94 | // resolveSpaceByName resolves a space resource name to an existing Space
+95 | // without any membership check.
+96 | func (s *APIV1Service) resolveSpaceByName(ctx context.Context, name string) (*store.Space, error) {
+97 | 	spaceUID, err := ExtractSpaceUIDFromName(name)
+98 | 	if err != nil {
+99 | 		return nil, status.Errorf(codes.InvalidArgument, "invalid space name: %v", err)
+100 | 	}
+101 | 	space, err := s.Store.GetSpace(ctx, &store.FindSpace{UID: &spaceUID})
+102 | 	if err != nil {
+103 | 		return nil, status.Error(codes.Internal, "failed to get space")
+104 | 	}
+105 | 	if space == nil {
+106 | 		return nil, status.Error(codes.NotFound, "space not found")
+107 | 	}
+108 | 	return space, nil
+109 | }
+110 | 
+111 | // resolveWritableSpaceByName resolves a space resource name and requires the
+112 | // caller to be an active member of it. A non-member receives NotFound so that
+113 | // an existing collaboration boundary stays indistinguishable from a missing
+114 | // resource.
+115 | func (s *APIV1Service) resolveWritableSpaceByName(ctx context.Context, name string, userID int32) (*store.Space, error) {
+116 | 	space, err := s.resolveSpaceByName(ctx, name)
+117 | 	if err != nil {
+118 | 		return nil, err
+119 | 	}
+120 | 	active, err := s.isActiveSpaceMember(ctx, space.ID, userID)
+121 | 	if err != nil {
+122 | 		return nil, status.Error(codes.Internal, "failed to resolve space membership")
+123 | 	}
+124 | 	if !active {
+125 | 		return nil, status.Error(codes.NotFound, "space not found")
+126 | 	}
+127 | 	return space, nil
+128 | }
+129 | 
+130 | // resolveSpaceForMemoPlacement resolves the Space a memo is being placed in.
+131 | // An instance administrator may place memos in any existing Space; every
+132 | // other caller must be an active member. Collection scopes such as the space
+133 | // filter keep using resolveWritableSpaceByName, so feeds stay membership-only.
+134 | func (s *APIV1Service) resolveSpaceForMemoPlacement(ctx context.Context, name string, user *store.User) (*store.Space, error) {
+135 | 	if access.IsInstanceAdmin(user) {
+136 | 		return s.resolveSpaceByName(ctx, name)
+137 | 	}
+138 | 	return s.resolveWritableSpaceByName(ctx, name, user.ID)
+139 | }
+140 | 
+141 | func (s *APIV1Service) isActiveSpaceMember(ctx context.Context, spaceID, userID int32) (bool, error) {
+142 | 	user, err := s.Store.GetUser(ctx, &store.FindUser{ID: &userID})
+143 | 	if err != nil {
+144 | 		return false, err
+145 | 	}
+146 | 	if user == nil || user.RowStatus != store.Normal {
+147 | 		return false, nil
+148 | 	}
+149 | 	membership, err := s.Store.GetSpaceMember(ctx, &store.FindSpaceMember{SpaceID: &spaceID, UserID: &userID})
+150 | 	if err != nil {
+151 | 		return false, err
+152 | 	}
+153 | 	return membership != nil && membership.Role.IsActiveMember(), nil
+154 | }
+155 | 
+156 | func sameOptionalInt32(left, right *int32) bool {
+157 | 	if left == nil || right == nil {
+158 | 		return left == nil && right == nil
+159 | 	}
+160 | 	return *left == *right
+161 | }
+162 | 
+163 | func memoWritePolicy(actorUserID int32, lifecycleOnly bool) *store.MemoWritePolicy {
+164 | 	return &store.MemoWritePolicy{
+165 | 		ActorUserID:   actorUserID,
+166 | 		LifecycleOnly: lifecycleOnly,
+167 | 	}
+168 | }
+169 | 
+170 | func mapMemoWriteError(err error, operation string) error {
+171 | 	switch {
+172 | 	case stderrors.Is(err, store.ErrMemoMutationConflict):
+173 | 		return status.Errorf(codes.FailedPrecondition, "memo state changed: %v", err)
+174 | 	case stderrors.Is(err, store.ErrMemoSpaceNotWritable):
+175 | 		return status.Error(codes.FailedPrecondition, "memo space is no longer writable")
+176 | 	case stderrors.Is(err, store.ErrMemoSpaceMembershipRequired), stderrors.Is(err, store.ErrMemoPermissionDenied):
+177 | 		return status.Error(codes.PermissionDenied, "permission denied")
+178 | 	case stderrors.Is(err, store.ErrMemoShareConflict):
+179 | 		return status.Error(codes.FailedPrecondition, "revoke active shares before using the SPACE audience")
+180 | 	default:
+181 | 		return status.Errorf(codes.Internal, "%s: %v", operation, err)
+182 | 	}
+183 | }
+184 | 
+185 | // requireAssignedMemoWritable requires the placement of an assigned memo to be
+186 | // valid and the actor to be an active member of it. An instance administrator
+187 | // is exempt from membership but not from placement validity.
+188 | func (s *APIV1Service) requireAssignedMemoWritable(ctx context.Context, memo *store.Memo, user *store.User) error {
+189 | 	if memo.SpaceID == nil {
+190 | 		return nil
+191 | 	}
+192 | 	space, err := s.Store.GetSpace(ctx, &store.FindSpace{ID: memo.SpaceID})
+193 | 	if err != nil {
+194 | 		return status.Errorf(codes.Internal, "failed to get memo space")
+195 | 	}
+196 | 	if space == nil {
+197 | 		return status.Errorf(codes.FailedPrecondition, "memo has invalid space placement")
+198 | 	}
+199 | 	if access.IsInstanceAdmin(user) {
+200 | 		return nil
+201 | 	}
+202 | 	active, err := s.isActiveSpaceMember(ctx, space.ID, user.ID)
+203 | 	if err != nil {
+204 | 		return status.Errorf(codes.Internal, "failed to resolve space membership")
+205 | 	}
+206 | 	if !active {
+207 | 		return status.Errorf(codes.PermissionDenied, "active space membership is required")
+208 | 	}
+209 | 	return nil
+210 | }
+===== END ALLOWED INPUT: server/api/v1/memo_access.go =====
+
+===== BEGIN ALLOWED INPUT: server/api/v1/memo_share_service.go =====
+Source ID: src-ba5b8420bf39f2db
+Location note: crop lines 1-244; original locations: server/api/v1/memo_share_service.go:1-244
+Citation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.
+1 | package v1
+2 | 
+3 | import (
+4 | 	"context"
+5 | 	stderrors "errors"
+6 | 	"fmt"
+7 | 	"time"
+8 | 
+9 | 	"google.golang.org/grpc/codes"
+10 | 	"google.golang.org/grpc/status"
+11 | 	"google.golang.org/protobuf/types/known/emptypb"
+12 | 	"google.golang.org/protobuf/types/known/timestamppb"
+13 | 
+14 | 	"github.com/lithammer/shortuuid/v4"
+15 | 	"github.com/pkg/errors"
+16 | 
+17 | 	"github.com/usememos/memos/core/access"
+18 | 	"github.com/usememos/memos/internal/ratelimit"
+19 | 	v1pb "github.com/usememos/memos/proto/gen/api/v1"
+20 | 	"github.com/usememos/memos/store"
+21 | )
+22 | 
+23 | // CreateMemoShare creates an opaque share link for a memo.
+24 | // Only the memo's creator may call this.
+25 | func (s *APIV1Service) CreateMemoShare(ctx context.Context, request *v1pb.CreateMemoShareRequest) (*v1pb.MemoShare, error) {
+26 | 	user, err := s.fetchCurrentUser(ctx)
+27 | 	if err != nil {
+28 | 		return nil, status.Errorf(codes.Internal, "failed to get user")
+29 | 	}
+30 | 	if user == nil {
+31 | 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+32 | 	}
+33 | 	if err := s.throttleAndCharge(ratelimit.ScopeWriteUser, userKey(user.ID), 1); err != nil {
+34 | 		return nil, err
+35 | 	}
+36 | 
+37 | 	memoUID, err := ExtractMemoUIDFromName(request.Parent)
+38 | 	if err != nil {
+39 | 		return nil, status.Errorf(codes.InvalidArgument, "invalid memo name: %v", err)
+40 | 	}
+41 | 	memo, err := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})
+42 | 	if err != nil {
+43 | 		return nil, status.Errorf(codes.Internal, "failed to get memo")
+44 | 	}
+45 | 	if memo == nil {
+46 | 		return nil, status.Errorf(codes.NotFound, "memo not found")
+47 | 	}
+48 | 	if memo.RowStatus != store.Normal {
+49 | 		return nil, status.Errorf(codes.FailedPrecondition, "only active memos can be shared")
+50 | 	}
+51 | 	if !access.CanManageMemo(user, memo) {
+52 | 		return nil, status.Errorf(codes.PermissionDenied, "permission denied")
+53 | 	}
+54 | 	if memo.Visibility == store.SpaceAudience {
+55 | 		return nil, status.Errorf(codes.FailedPrecondition, "SPACE audience memos cannot be shared")
+56 | 	}
+57 | 	var expiresTs *int64
+58 | 	if request.MemoShare != nil && request.MemoShare.ExpireTime != nil {
+59 | 		ts := request.MemoShare.ExpireTime.AsTime().Unix()
+60 | 		if ts <= time.Now().Unix() {
+61 | 			return nil, status.Errorf(codes.InvalidArgument, "expire_time must be in the future")
+62 | 		}
+63 | 		expiresTs = &ts
+64 | 	}
+65 | 
+66 | 	// Generate a URL-safe token using shortuuid (base57-encoded UUID v4, 22 chars, 122-bit entropy).
+67 | 	policy := memoWritePolicy(user.ID, false)
+68 | 	policy.CreatingShare = true
+69 | 	ms, err := s.Store.CreateMemoShare(ctx, &store.MemoShare{
+70 | 		UID:       shortuuid.New(),
+71 | 		MemoID:    memo.ID,
+72 | 		CreatorID: user.ID,
+73 | 		ExpiresTs: expiresTs,
+74 | 		Policy:    policy,
+75 | 	})
+76 | 	if err != nil {
+77 | 		return nil, mapMemoWriteError(err, "failed to create memo share")
+78 | 	}
+79 | 
+80 | 	return convertMemoShareFromStore(ms, memo.UID), nil
+81 | }
+82 | 
+83 | // ListMemoShares lists all share links for a memo.
+84 | // Only the memo's creator may call this.
+85 | func (s *APIV1Service) ListMemoShares(ctx context.Context, request *v1pb.ListMemoSharesRequest) (*v1pb.ListMemoSharesResponse, error) {
+86 | 	user, err := s.fetchCurrentUser(ctx)
+87 | 	if err != nil {
+88 | 		return nil, status.Errorf(codes.Internal, "failed to get user")
+89 | 	}
+90 | 	if user == nil {
+91 | 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+92 | 	}
+93 | 
+94 | 	memoUID, err := ExtractMemoUIDFromName(request.Parent)
+95 | 	if err != nil {
+96 | 		return nil, status.Errorf(codes.InvalidArgument, "invalid memo name: %v", err)
+97 | 	}
+98 | 	memo, err := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})
+99 | 	if err != nil {
+100 | 		return nil, status.Errorf(codes.Internal, "failed to get memo")
+101 | 	}
+102 | 	if memo == nil {
+103 | 		return nil, status.Errorf(codes.NotFound, "memo not found")
+104 | 	}
+105 | 	if !access.CanManageMemo(user, memo) {
+106 | 		return nil, status.Errorf(codes.PermissionDenied, "permission denied")
+107 | 	}
+108 | 	if err := s.requireAssignedMemoWritable(ctx, memo, user); err != nil {
+109 | 		return nil, err
+110 | 	}
+111 | 
+112 | 	shares, err := s.Store.ListMemoShares(ctx, &store.FindMemoShare{MemoID: &memo.ID})
+113 | 	if err != nil {
+114 | 		return nil, status.Errorf(codes.Internal, "failed to list memo shares")
+115 | 	}
+116 | 
+117 | 	response := &v1pb.ListMemoSharesResponse{}
+118 | 	for _, ms := range shares {
+119 | 		response.MemoShares = append(response.MemoShares, convertMemoShareFromStore(ms, memo.UID))
+120 | 	}
+121 | 	return response, nil
+122 | }
+123 | 
+124 | // DeleteMemoShare revokes a share link.
+125 | // Only the memo's creator may call this.
+126 | func (s *APIV1Service) DeleteMemoShare(ctx context.Context, request *v1pb.DeleteMemoShareRequest) (*emptypb.Empty, error) {
+127 | 	user, err := s.fetchCurrentUser(ctx)
+128 | 	if err != nil {
+129 | 		return nil, status.Errorf(codes.Internal, "failed to get user")
+130 | 	}
+131 | 	if user == nil {
+132 | 		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+133 | 	}
+134 | 
+135 | 	// name format: memos/{memoUID}/shares/{shareToken}
+136 | 	tokens, err := GetNameParentTokens(request.Name, MemoNamePrefix, MemoShareNamePrefix)
+137 | 	if err != nil {
+138 | 		return nil, status.Errorf(codes.InvalidArgument, "invalid share name: %v", err)
+139 | 	}
+140 | 	memoUID, shareToken := tokens[0], tokens[1]
+141 | 
+142 | 	memo, err := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})
+143 | 	if err != nil {
+144 | 		return nil, status.Errorf(codes.Internal, "failed to get memo")
+145 | 	}
+146 | 	if memo == nil {
+147 | 		return nil, status.Errorf(codes.NotFound, "memo not found")
+148 | 	}
+149 | 	if !access.CanManageMemo(user, memo) {
+150 | 		return nil, status.Errorf(codes.PermissionDenied, "permission denied")
+151 | 	}
+152 | 	ms, err := s.Store.GetMemoShare(ctx, &store.FindMemoShare{UID: &shareToken})
+153 | 	if err != nil {
+154 | 		return nil, status.Errorf(codes.Internal, "failed to get memo share")
+155 | 	}
+156 | 	if ms == nil || ms.MemoID != memo.ID {
+157 | 		return nil, status.Errorf(codes.NotFound, "memo share not found")
+158 | 	}
+159 | 
+160 | 	if err := s.Store.DeleteMemoShare(ctx, &store.DeleteMemoShare{
+161 | 		UID:    &shareToken,
+162 | 		MemoID: &memo.ID,
+163 | 		Policy: memoWritePolicy(user.ID, false),
+164 | 	}); err != nil {
+165 | 		return nil, mapMemoWriteError(err, "failed to delete memo share")
+166 | 	}
+167 | 	return &emptypb.Empty{}, nil
+168 | }
+169 | 
+170 | // GetSharedMemo resolves a share token to its memo. No authentication required.
+171 | // Returns NOT_FOUND for invalid or expired tokens (no information leakage).
+172 | func (s *APIV1Service) GetSharedMemo(ctx context.Context, request *v1pb.GetSharedMemoRequest) (*v1pb.Memo, error) {
+173 | 	ms, err := s.getActiveMemoShare(ctx, request.ShareToken)
+174 | 	if err != nil {
+175 | 		return nil, err
+176 | 	}
+177 | 
+178 | 	memo, err := s.Store.GetMemo(ctx, &store.FindMemo{ID: &ms.MemoID})
+179 | 	if err != nil {
+180 | 		return nil, status.Errorf(codes.Internal, "failed to get memo")
+181 | 	}
+182 | 	// Treat archived or missing memos the same as an invalid token — no information leakage.
+183 | 	if memo == nil || memo.RowStatus != store.Normal || memo.Visibility == store.SpaceAudience {
+184 | 		return nil, status.Errorf(codes.NotFound, "not found")
+185 | 	}
+186 | 	readContext, err := s.buildMemoReadContext(ctx, memo, &ms.MemoID)
+187 | 	if err != nil || !access.CheckMemoReadContext(readContext).Allowed() {
+188 | 		return nil, status.Error(codes.NotFound, "not found")
+189 | 	}
+190 | 
+191 | 	reactions, err := s.Store.ListReactions(ctx, &store.FindReaction{
+192 | 		MemoID: &memo.ID,
+193 | 	})
+194 | 	if err != nil {
+195 | 		return nil, status.Errorf(codes.Internal, "failed to list reactions")
+196 | 	}
+197 | 
+198 | 	attachments, err := s.Store.ListAttachments(ctx, &store.FindAttachment{MemoID: &memo.ID})
+199 | 	if err != nil {
+200 | 		return nil, status.Errorf(codes.Internal, "failed to list attachments")
+201 | 	}
+202 | 
+203 | 	memoMessage, err := s.convertMemoFromStore(ctx, memo, reactions, attachments, nil)
+204 | 	if err != nil {
+205 | 		if stderrors.Is(err, errMemoCreatorNotFound) {
+206 | 			return nil, status.Errorf(codes.NotFound, "not found")
+207 | 		}
+208 | 		return nil, errors.Wrap(err, "failed to convert memo")
+209 | 	}
+210 | 	// A share token grants access to this memo only, not to its surrounding
+211 | 	// conversation or relation graph.
+212 | 	memoMessage.Parent = nil
+213 | 	return memoMessage, nil
+214 | }
+215 | 
+216 | // isMemoShareExpired returns true if the share has a defined expiry that has already passed.
+217 | func isMemoShareExpired(ms *store.MemoShare) bool {
+218 | 	return ms.ExpiresTs != nil && time.Now().Unix() > *ms.ExpiresTs
+219 | }
+220 | 
+221 | func (s *APIV1Service) getActiveMemoShare(ctx context.Context, shareID string) (*store.MemoShare, error) {
+222 | 	ms, err := s.Store.GetMemoShare(ctx, &store.FindMemoShare{UID: &shareID})
+223 | 	if err != nil {
+224 | 		return nil, status.Errorf(codes.Internal, "failed to get memo share")
+225 | 	}
+226 | 	if ms == nil || isMemoShareExpired(ms) {
+227 | 		return nil, status.Errorf(codes.NotFound, "not found")
+228 | 	}
+229 | 	return ms, nil
+230 | }
+231 | 
+232 | // convertMemoShareFromStore converts a store MemoShare to the proto MemoShare message.
+233 | // name format: memos/{memoUID}/shares/{shareToken}.
+234 | func convertMemoShareFromStore(ms *store.MemoShare, memoUID string) *v1pb.MemoShare {
+235 | 	name := fmt.Sprintf("%s%s/%s%s", MemoNamePrefix, memoUID, MemoShareNamePrefix, ms.UID)
+236 | 	pb := &v1pb.MemoShare{
+237 | 		Name:       name,
+238 | 		CreateTime: timestamppb.New(time.Unix(ms.CreatedTs, 0)),
+239 | 	}
+240 | 	if ms.ExpiresTs != nil {
+241 | 		pb.ExpireTime = timestamppb.New(time.Unix(*ms.ExpiresTs, 0))
+242 | 	}
+243 | 	return pb
+244 | }
+===== END ALLOWED INPUT: server/api/v1/memo_share_service.go =====
+
+===== BEGIN ALLOWED INPUT: store/memo_share.go =====
+Source ID: src-94b067169ac3605d
+Location note: crop lines 1-79; original locations: store/memo_share.go:1-79
+Citation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.
+1 | package store
+2 | 
+3 | import (
+4 | 	"context"
+5 | 	"errors"
+6 | )
+7 | 
+8 | // MemoShare is an access grant that permits read-only access to a memo via a bearer token.
+9 | type MemoShare struct {
+10 | 	ID        int32
+11 | 	UID       string
+12 | 	MemoID    int32
+13 | 	CreatorID int32
+14 | 	CreatedTs int64
+15 | 	ExpiresTs *int64 // nil means the share never expires
+16 | 	Policy    *MemoWritePolicy
+17 | }
+18 | 
+19 | // FindMemoShare is used to filter memo shares in list/get queries.
+20 | type FindMemoShare struct {
+21 | 	ID        *int32
+22 | 	UID       *string
+23 | 	MemoID    *int32
+24 | 	CreatorID *int32
+25 | }
+26 | 
+27 | // DeleteMemoShare identifies a share grant to remove.
+28 | type DeleteMemoShare struct {
+29 | 	ID     *int32
+30 | 	UID    *string
+31 | 	MemoID *int32
+32 | 	// Policy is required for transport-facing revocation and is revalidated in
+33 | 	// the same transaction as the delete.
+34 | 	Policy *MemoWritePolicy
+35 | }
+36 | 
+37 | // CreateMemoShare creates a new share grant.
+38 | func (s *Store) CreateMemoShare(ctx context.Context, create *MemoShare) (*MemoShare, error) {
+39 | 	if create == nil {
+40 | 		return nil, errors.New("memo share is required")
+41 | 	}
+42 | 	if err := validateMemoWritePolicy(create.Policy); err != nil {
+43 | 		return nil, err
+44 | 	}
+45 | 	if create.Policy == nil {
+46 | 		return s.driver.CreateMemoShare(ctx, create)
+47 | 	}
+48 | 	return s.driver.CreateMemoShare(ctx, create)
+49 | }
+50 | 
+51 | // ListMemoShares returns all share grants matching the filter.
+52 | func (s *Store) ListMemoShares(ctx context.Context, find *FindMemoShare) ([]*MemoShare, error) {
+53 | 	return s.driver.ListMemoShares(ctx, find)
+54 | }
+55 | 
+56 | // GetMemoShare returns the first share grant matching the filter, or nil if none found.
+57 | func (s *Store) GetMemoShare(ctx context.Context, find *FindMemoShare) (*MemoShare, error) {
+58 | 	return s.driver.GetMemoShare(ctx, find)
+59 | }
+60 | 
+61 | // DeleteMemoShare removes a share grant.
+62 | func (s *Store) DeleteMemoShare(ctx context.Context, delete *DeleteMemoShare) error {
+63 | 	if delete == nil {
+64 | 		return errors.New("memo share deletion is required")
+65 | 	}
+66 | 	if delete.ID == nil && delete.UID == nil {
+67 | 		return errors.New("memo share deletion requires id or uid")
+68 | 	}
+69 | 	if err := validateMemoWritePolicy(delete.Policy); err != nil {
+70 | 		return err
+71 | 	}
+72 | 	if delete.Policy == nil {
+73 | 		return s.driver.DeleteMemoShare(ctx, delete)
+74 | 	}
+75 | 	if delete.MemoID == nil || *delete.MemoID <= 0 {
+76 | 		return errors.New("authorized memo share deletion requires memo")
+77 | 	}
+78 | 	return s.driver.DeleteMemoShare(ctx, delete)
+79 | }
+===== END ALLOWED INPUT: store/memo_share.go =====
+
+===== BEGIN ALLOWED INPUT: store/memo.go =====
+Source ID: src-9bc01fffab4188fc
+Location note: crop lines 1-408; original locations: store/memo.go:1-408
+Citation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.
+1 | package store
+2 | 
+3 | import (
+4 | 	"context"
+5 | 	"database/sql"
+6 | 	"errors"
+7 | 
+8 | 	"github.com/usememos/memos/internal/identifier"
+9 | 
+10 | 	storepb "github.com/usememos/memos/proto/gen/store"
+11 | )
+12 | 
+13 | // ErrMemoSpaceNotWritable indicates that a memo targets a missing or otherwise
+14 | // invalid Space.
+15 | var ErrMemoSpaceNotWritable = errors.New("memo space is not writable")
+16 | 
+17 | // ErrMemoSpaceMembershipRequired indicates that the memo creator is not an
+18 | // active member of its assigned space.
+19 | var ErrMemoSpaceMembershipRequired = errors.New("active space membership required")
+20 | 
+21 | // ErrMemoPermissionDenied indicates that the actor no longer owns the memo
+22 | // being mutated.
+23 | var ErrMemoPermissionDenied = errors.New("memo mutation permission denied")
+24 | 
+25 | // ErrMemoShareConflict indicates that an active share conflicts with a
+26 | // SPACE audience transition.
+27 | var ErrMemoShareConflict = errors.New("active memo share conflicts with audience")
+28 | 
+29 | // Visibility is the type of a visibility.
+30 | type Visibility string
+31 | 
+32 | const (
+33 | 	// Public is the PUBLIC visibility.
+34 | 	Public Visibility = "PUBLIC"
+35 | 	// Protected is the PROTECTED visibility.
+36 | 	Protected Visibility = "PROTECTED"
+37 | 	// Private is the PRIVATE visibility.
+38 | 	Private Visibility = "PRIVATE"
+39 | 	// SpaceAudience is visible only to active members of its space.
+40 | 	SpaceAudience Visibility = "SPACE"
+41 | )
+42 | 
+43 | func (v Visibility) String() string {
+44 | 	return string(v)
+45 | }
+46 | 
+47 | type Memo struct {
+48 | 	// ID is the system generated unique identifier for the memo.
+49 | 	ID int32
+50 | 	// UID is the user defined unique identifier for the memo.
+51 | 	UID string
+52 | 
+53 | 	// Standard fields
+54 | 	RowStatus RowStatus
+55 | 	CreatorID int32
+56 | 	CreatedTs int64
+57 | 	UpdatedTs int64
+58 | 
+59 | 	// Domain specific fields
+60 | 	Content    string
+61 | 	Visibility Visibility
+62 | 	Pinned     bool
+63 | 	Payload    *storepb.MemoPayload
+64 | 	SpaceID    *int32
+65 | 
+66 | 	// Composed fields
+67 | 	ParentUID *string
+68 | }
+69 | 
+70 | type FindMemo struct {
+71 | 	ID  *int32
+72 | 	UID *string
+73 | 
+74 | 	IDList  []int32
+75 | 	UIDList []string
+76 | 
+77 | 	// Standard fields
+78 | 	RowStatus *RowStatus
+79 | 	CreatorID *int32
+80 | 
+81 | 	// Domain specific fields
+82 | 	VisibilityList       []Visibility
+83 | 	CommentContextMemoID *int32
+84 | 	Access               *MemoAccessScope
+85 | 	ExcludeContent       bool
+86 | 	ExcludeComments      bool
+87 | 	Filters              []string
+88 | 
+89 | 	// Pagination
+90 | 	Limit  *int
+91 | 	Offset *int
+92 | 
+93 | 	// Ordering
+94 | 	OrderByPinned    bool
+95 | 	OrderByUpdatedTs bool
+96 | 	OrderByTimeAsc   bool
+97 | }
+98 | 
+99 | type FindMemoPayload struct {
+100 | 	Raw                *string
+101 | 	TagSearch          []string
+102 | 	HasLink            bool
+103 | 	HasTaskList        bool
+104 | 	HasCode            bool
+105 | 	HasIncompleteTasks bool
+106 | }
+107 | 
+108 | type UpdateMemo struct {
+109 | 	ID         int32
+110 | 	UID        *string
+111 | 	CreatedTs  *int64
+112 | 	UpdatedTs  *int64
+113 | 	RowStatus  *RowStatus
+114 | 	Content    *string
+115 | 	Visibility *Visibility
+116 | 	Pinned     *bool
+117 | 	Payload    *storepb.MemoPayload
+118 | 	SpaceID    *int32
+119 | 	ClearSpace bool
+120 | 	// Policy is set by transport-facing author mutations. Drivers revalidate it
+121 | 	// in the same transaction as the update; nil preserves trusted internal and
+122 | 	// migration callers.
+123 | 	Policy *MemoWritePolicy
+124 | }
+125 | 
+126 | // MemoWritePolicy identifies the actor and the intended kind of
+127 | // transport-facing mutation. Drivers discover and authorize the current memo,
+128 | // Space, membership, and share state in the write transaction.
+129 | type MemoWritePolicy struct {
+130 | 	ActorUserID int32
+131 | 	// LifecycleOnly permits an author who is no longer a member of the source
+132 | 	// Space to move or withdraw the memo. It never permits content, metadata,
+133 | 	// attachment, relation, or share mutations.
+134 | 	LifecycleOnly bool
+135 | 	// CreatingShare rejects a share if the memo's current audience is
+136 | 	// SPACE. Share revocation deliberately leaves this false.
+137 | 	CreatingShare bool
+138 | }
+139 | 
+140 | // MemoActorState is the actor's user row state as read inside a mutation
+141 | // transaction. Admin marks an active instance administrator; see
+142 | // access.IsInstanceAdmin for what that grants. A missing user is the zero
+143 | // value.
+144 | type MemoActorState struct {
+145 | 	Active bool
+146 | 	Admin  bool
+147 | }
+148 | 
+149 | // NewMemoActorState derives the actor state from a user row. An archived
+150 | // administrator is neither active nor privileged.
+151 | func NewMemoActorState(rowStatus RowStatus, role Role) MemoActorState {
+152 | 	active := rowStatus == Normal
+153 | 	return MemoActorState{Active: active, Admin: active && role == RoleAdmin}
+154 | }
+155 | 
+156 | // MemoWriteSnapshot is the current database state used to validate a
+157 | // MemoWritePolicy. Driver packages populate it in the mutation transaction.
+158 | type MemoWriteSnapshot struct {
+159 | 	// ActorIsAdmin is true when the policy actor is an active instance
+160 | 	// administrator. It bypasses authorship and membership checks only.
+161 | 	ActorIsAdmin       bool
+162 | 	CreatorID          int32
+163 | 	RowStatus          RowStatus
+164 | 	SpaceID            *int32
+165 | 	Visibility         Visibility
+166 | 	SourceSpaceExists  bool
+167 | 	SourceMemberActive bool
+168 | 	TargetSpaceExists  bool
+169 | 	TargetMemberActive bool
+170 | 	HasActiveShare     bool
+171 | }
+172 | 
+173 | // MemoAccessScope is a typed, fail-closed read authorization predicate. When
+174 | // present on FindMemo, drivers apply it in SQL before pagination.
+175 | type MemoAccessScope struct {
+176 | 	UserID         *int32
+177 | 	AllowPublic    bool
+178 | 	AllowProtected bool
+179 | }
+180 | 
+181 | type DeleteMemo struct {
+182 | 	ID int32
+183 | }
+184 | 
+185 | func (s *Store) CreateMemo(ctx context.Context, create *Memo) (*Memo, error) {
+186 | 	if err := validateMemoCreate(create); err != nil {
+187 | 		return nil, err
+188 | 	}
+189 | 	return s.driver.CreateMemo(ctx, create)
+190 | }
+191 | 
+192 | // CreateMemoComment atomically creates one independent memo and its immutable
+193 | // COMMENT relation to a context memo.
+194 | func (s *Store) CreateMemoComment(ctx context.Context, create *Memo, contextMemoID, actorUserID int32) (*Memo, error) {
+195 | 	if create == nil || contextMemoID <= 0 || actorUserID <= 0 || create.CreatorID != actorUserID {
+196 | 		return nil, errors.New("comment creation requires memo, context, and matching actor")
+197 | 	}
+198 | 	if create.Visibility == "" {
+199 | 		create.Visibility = Private
+200 | 	}
+201 | 	if err := s.ApplyMemoMutation(ctx, &MemoMutation{
+202 | 		MemoCreate:           create,
+203 | 		CommentContextMemoID: &contextMemoID,
+204 | 		MemoCreatorID:        actorUserID,
+205 | 		ExpectedMemoContent:  create.Content,
+206 | 	}); err != nil {
+207 | 		return nil, err
+208 | 	}
+209 | 	return create, nil
+210 | }
+211 | 
+212 | func validateMemoCreate(create *Memo) error {
+213 | 	if create == nil {
+214 | 		return errors.New("memo is required")
+215 | 	}
+216 | 	if !identifier.UIDMatcher.MatchString(create.UID) {
+217 | 		return errors.New("invalid uid")
+218 | 	}
+219 | 	if !isValidVisibility(create.Visibility) {
+220 | 		return errors.New("invalid visibility")
+221 | 	}
+222 | 	if create.Visibility == SpaceAudience && create.SpaceID == nil {
+223 | 		return errors.New("SPACE visibility requires a space")
+224 | 	}
+225 | 	return nil
+226 | }
+227 | 
+228 | func (s *Store) ListMemos(ctx context.Context, find *FindMemo) ([]*Memo, error) {
+229 | 	return s.driver.ListMemos(ctx, find)
+230 | }
+231 | 
+232 | func (s *Store) GetMemo(ctx context.Context, find *FindMemo) (*Memo, error) {
+233 | 	list, err := s.ListMemos(ctx, find)
+234 | 	if err != nil {
+235 | 		return nil, err
+236 | 	}
+237 | 	if len(list) == 0 {
+238 | 		return nil, nil
+239 | 	}
+240 | 
+241 | 	memo := list[0]
+242 | 	return memo, nil
+243 | }
+244 | 
+245 | func (s *Store) UpdateMemo(ctx context.Context, update *UpdateMemo) error {
+246 | 	if update.UID != nil && !identifier.UIDMatcher.MatchString(*update.UID) {
+247 | 		return errors.New("invalid uid")
+248 | 	}
+249 | 	if update.Visibility != nil && !isValidVisibility(*update.Visibility) {
+250 | 		return errors.New("invalid visibility")
+251 | 	}
+252 | 	if update.ClearSpace && update.Visibility != nil && *update.Visibility == SpaceAudience {
+253 | 		return errors.New("SPACE visibility requires a space")
+254 | 	}
+255 | 	if err := validateMemoWritePolicy(update.Policy); err != nil {
+256 | 		return err
+257 | 	}
+258 | 	if update.Policy == nil {
+259 | 		return s.driver.UpdateMemo(ctx, update)
+260 | 	}
+261 | 	return s.driver.UpdateMemo(ctx, update)
+262 | }
+263 | 
+264 | func validateMemoWritePolicy(policy *MemoWritePolicy) error {
+265 | 	if policy == nil {
+266 | 		return nil
+267 | 	}
+268 | 	if policy.ActorUserID <= 0 {
+269 | 		return errors.New("memo write policy requires actor")
+270 | 	}
+271 | 	if policy.LifecycleOnly && policy.CreatingShare {
+272 | 		return errors.New("memo write policy has conflicting actions")
+273 | 	}
+274 | 	return nil
+275 | }
+276 | 
+277 | // ValidateMemoWriteSnapshot applies the transport-independent write
+278 | // invariants to current database state.
+279 | func ValidateMemoWriteSnapshot(policy *MemoWritePolicy, update *UpdateMemo, snapshot *MemoWriteSnapshot) error {
+280 | 	if err := validateMemoWritePolicy(policy); err != nil {
+281 | 		return err
+282 | 	}
+283 | 	if policy == nil || snapshot == nil {
+284 | 		return errors.New("memo write policy snapshot is required")
+285 | 	}
+286 | 	// An instance administrator is the superuser for named memo operations and
+287 | 	// is not held to authorship or Space membership. Structural validity below
+288 | 	// still applies to every actor.
+289 | 	if !snapshot.ActorIsAdmin && snapshot.CreatorID != policy.ActorUserID {
+290 | 		return ErrMemoPermissionDenied
+291 | 	}
+292 | 	if snapshot.RowStatus != Normal && snapshot.RowStatus != Archived {
+293 | 		return ErrMemoMutationConflict
+294 | 	}
+295 | 	if policy.CreatingShare && snapshot.RowStatus != Normal {
+296 | 		return ErrMemoMutationConflict
+297 | 	}
+298 | 	if !isValidVisibility(snapshot.Visibility) {
+299 | 		return ErrMemoMutationConflict
+300 | 	}
+301 | 	if policy.LifecycleOnly && !isLifecycleOnlyMemoUpdate(update) {
+302 | 		// The source-writability exception exists only for an author's explicit
+303 | 		// move or withdrawal after membership removal. It must never authorize a
+304 | 		// content or metadata mutation in the same transaction.
+305 | 		return ErrMemoSpaceMembershipRequired
+306 | 	}
+307 | 	if snapshot.SpaceID != nil {
+308 | 		if !snapshot.SourceSpaceExists {
+309 | 			return ErrMemoSpaceNotWritable
+310 | 		}
+311 | 		if !policy.LifecycleOnly && !snapshot.ActorIsAdmin && !snapshot.SourceMemberActive {
+312 | 			return ErrMemoSpaceMembershipRequired
+313 | 		}
+314 | 	}
+315 | 
+316 | 	resultSpaceID := snapshot.SpaceID
+317 | 	resultVisibility := snapshot.Visibility
+318 | 	if update != nil {
+319 | 		if update.SpaceID != nil {
+320 | 			if !snapshot.TargetSpaceExists {
+321 | 				return ErrMemoSpaceNotWritable
+322 | 			}
+323 | 			if !snapshot.ActorIsAdmin && !snapshot.TargetMemberActive {
+324 | 				return ErrMemoSpaceMembershipRequired
+325 | 			}
+326 | 			resultSpaceID = update.SpaceID
+327 | 		} else if update.ClearSpace {
+328 | 			resultSpaceID = nil
+329 | 		}
+330 | 		if update.Visibility != nil {
+331 | 			resultVisibility = *update.Visibility
+332 | 		}
+333 | 	}
+334 | 	if !isValidVisibility(resultVisibility) {
+335 | 		return ErrMemoMutationConflict
+336 | 	}
+337 | 	placementChanged := !sameMemoSpace(resultSpaceID, snapshot.SpaceID)
+338 | 	if placementChanged && snapshot.Visibility == SpaceAudience && (update == nil || update.Visibility == nil) {
+339 | 		// Moving a current SPACE memo changes which membership grants
+340 | 		// access. Require the audience to be explicitly confirmed in the same
+341 | 		// mutation, even if a caller read an older audience before the transaction.
+342 | 		return ErrMemoMutationConflict
+343 | 	}
+344 | 	if policy.LifecycleOnly && !placementChanged {
+345 | 		return ErrMemoSpaceMembershipRequired
+346 | 	}
+347 | 	if resultVisibility == SpaceAudience && resultSpaceID == nil {
+348 | 		return ErrMemoSpaceNotWritable
+349 | 	}
+350 | 	if policy.CreatingShare && resultVisibility == SpaceAudience {
+351 | 		return ErrMemoShareConflict
+352 | 	}
+353 | 	if update != nil && update.Visibility != nil && *update.Visibility == SpaceAudience && snapshot.HasActiveShare {
+354 | 		return ErrMemoShareConflict
+355 | 	}
+356 | 	return nil
+357 | }
+358 | 
+359 | func isLifecycleOnlyMemoUpdate(update *UpdateMemo) bool {
+360 | 	if update == nil || (!update.ClearSpace && update.SpaceID == nil) || (update.ClearSpace && update.SpaceID != nil) {
+361 | 		return false
+362 | 	}
+363 | 	return update.UID == nil &&
+364 | 		update.CreatedTs == nil &&
+365 | 		update.UpdatedTs == nil &&
+366 | 		update.RowStatus == nil &&
+367 | 		update.Content == nil &&
+368 | 		update.Pinned == nil &&
+369 | 		update.Payload == nil
+370 | }
+371 | 
+372 | // NullInt32Pointer converts a nullable SQL integer to an optional int32.
+373 | func NullInt32Pointer(value sql.NullInt64) *int32 {
+374 | 	if !value.Valid {
+375 | 		return nil
+376 | 	}
+377 | 	result := int32(value.Int64)
+378 | 	return &result
+379 | }
+380 | 
+381 | func sameMemoSpace(left, right *int32) bool {
+382 | 	if left == nil || right == nil {
+383 | 		return left == nil && right == nil
+384 | 	}
+385 | 	return *left == *right
+386 | }
+387 | 
+388 | func isValidVisibility(visibility Visibility) bool {
+389 | 	return visibility == Public || visibility == Protected || visibility == Private || visibility == SpaceAudience
+390 | }
+391 | 
+392 | func (s *Store) DeleteMemo(ctx context.Context, delete *DeleteMemo) error {
+393 | 	if delete == nil || delete.ID <= 0 {
+394 | 		return errors.New("memo deletion requires a memo")
+395 | 	}
+396 | 	memo, err := s.GetMemo(ctx, &FindMemo{ID: &delete.ID})
+397 | 	if err != nil {
+398 | 		return err
+399 | 	}
+400 | 	if memo == nil {
+401 | 		return nil
+402 | 	}
+403 | 	result, err := s.DeleteMemoWithPolicy(ctx, &DeleteMemoWithPolicy{MemoID: memo.ID, ActorUserID: memo.CreatorID})
+404 | 	if err != nil {
+405 | 		return err
+406 | 	}
+407 | 	return s.deleteAttachmentStorageSnapshots(ctx, result.Attachments)
+408 | }
+===== END ALLOWED INPUT: store/memo.go =====

@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260927T191214713Z-0268f766
+Status: completed
+Task: fastapi-items-superuser-read
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v6
+Assessment: explicit-v1
+Normalizer: authorization-wire-normalizer/v6
+Model policy result: {"results":[{"obligationId":"scenario%3Aread-item::entry%3Aread-item","explanation":"At the declared-entry boundary, the stated premise supplies current_user as the authenticated active superuser and supplies an existing item owned by another user. The read_item entry is the GET /{id} handler. It loads the item by the requested id, rejects only a missing item, and applies the ownership denial only when the caller is not a superuser; therefore the stated superuser proceeds to return the item. This is a handler-entry conclusion, not a claim that the supplied crop proves the upstream CurrentUser dependency binding or deployment routing. No decisive source-external fact is missing within the declared-entry boundary; upstream identity binding and deployment behavior remain untested outside that boundary.","facts":[{"id":"f-entry","kind":"entry","statement":"The declared read_item handler is the item GET endpoint and receives session, current_user, and id at entry.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":48,"endLine":50}]},{"id":"f-principal-binding","kind":"binding","statement":"Within the handler, current_user is the principal value used by the authorization check; the task premise supplies its authenticated active superuser identity at entry, while this crop does not establish the upstream CurrentUser dependency binding.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":49,"endLine":49}]},{"id":"f-resource-binding","kind":"binding","statement":"The handler binds the requested id to an item by retrieving Item with session.get.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":53,"endLine":53}]},{"id":"f-control","kind":"control","statement":"The strongest visible authorization control denies access only when the caller is not a superuser and the item owner differs from the caller; a superuser therefore bypasses this denial.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":56,"endLine":57}]},{"id":"f-effect","kind":"effect","statement":"After the authorization check, the handler returns the retrieved item.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":56,"endLine":58}]},{"id":"f-condition","kind":"condition","statement":"The source-visible allow condition is that the caller is a superuser, which makes the negated superuser term false even when ownership differs.","citations":[{"sourceId":"src-dcbab1685696c702","startLine":56,"endLine":57}]}],"decisiveMissingFacts":[],"suggestedObservations":[],"decision":{"kind":"observed","observed":"allow"},"branchResults":[]}]}
+Observed decisions: [{"obligationId":"scenario%3Aread-item::entry%3Aread-item","expectation":"allow","observed":"allow","derivedConclusion":"source_refuted"}]
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aread-item::entry%3Aread-item: source_refuted — At the declared-entry boundary, the stated premise supplies current_user as the authenticated active superuser and supplies an existing item owned by another user. The read_item entry is the GET /{id} handler. It loads the item by the requested id, rejects only a missing item, and applies the ownership denial only when the caller is not a superuser; therefore the stated superuser proceeds to return the item. This is a handler-entry conclusion, not a claim that the supplied crop proves the upstream CurrentUser dependency binding or deployment routing. No decisive source-external fact is missing within the declared-entry boundary; upstream identity binding and deployment behavior remain untested outside that boundary.
+  Evidence: The declared read_item handler is the item GET endpoint and receives session, current_user, and id at entry. (items.py:48-50)
+  Evidence: Within the handler, current_user is the principal value used by the authorization check; the task premise supplies its authenticated active superuser identity at entry, while this crop does not establish the upstream CurrentUser dependency binding. (items.py:49-49)
+  Evidence: The handler binds the requested id to an item by retrieving Item with session.get. (items.py:53-53)
+  Evidence: The strongest visible authorization control denies access only when the caller is not a superuser and the item owner differs from the caller; a superuser therefore bypasses this denial. (items.py:56-57)
+  Evidence: After the authorization check, the handler returns the retrieved item. (items.py:56-58)
+  Evidence: The source-visible allow condition is that the caller is a superuser, which makes the negated superuser term false even when ownership differs. (items.py:56-57)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

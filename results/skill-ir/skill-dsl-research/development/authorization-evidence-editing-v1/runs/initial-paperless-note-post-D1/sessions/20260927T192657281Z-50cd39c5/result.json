@@ -1,0 +1,348 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "assessmentMode": "explicit-v1",
+  "reasoningStrategy": "standard",
+  "evidencePreparation": {
+    "schemaVersion": "authorization-evidence-report/v1",
+    "status": "ready",
+    "sourceIdentity": {
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+    },
+    "sourceRoot": "../../../public-source/paperless",
+    "included": [
+      {
+        "path": "src/documents/views.py",
+        "originalPath": "src/documents/views.py",
+        "startLine": 1841,
+        "endLine": 1913,
+        "origins": [
+          "entry:notes-post"
+        ]
+      },
+      {
+        "path": "src/documents/permissions.py",
+        "originalPath": "src/documents/permissions.py",
+        "startLine": 1,
+        "endLine": 717,
+        "origins": [
+          "locator:note-global",
+          "locator:owner-aware"
+        ]
+      }
+    ],
+    "gaps": [],
+    "closureClaim": "declared-dependencies-only"
+  },
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260927T192657281Z-50cd39c5",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\runs\\initial-paperless-note-post-D1\\sessions\\20260927T192657281Z-50cd39c5",
+  "createdAt": "2026-09-27T19:26:57.281Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\inputs\\paperless-note-post\\prepared-final\\assessment.json",
+  "taskId": "paperless-note-post-object-change",
+  "repository": "https://github.com/paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 3059,
+      "publicAnalysis": 1110,
+      "assessmentProgram": 669,
+      "source": 35489,
+      "outputContract": 2906,
+      "total": 43767,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "evidencePreparation": "evidence-preparation.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "paperless-note-post-object-change",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "results": [
+      {
+        "obligationId": "scenario%3Aviewer-cannot-add-note::entry%3Anotes-post",
+        "conclusion": "source_refuted",
+        "explanation": "At the declared-entry boundary, the source-visible behavior is deny. The notes action is a POST-capable detail action protected by PaperlessNotePermissions. Its POST global check requires documents.add_note, documents.view_document, and documents.change_document, but the supplied task premise treats the caller's listed global permissions as satisfied; this check is therefore not the decisive failure. After the document is bound by pk, the handler performs an owner-aware view_document check, which the premise also treats as satisfied. In the POST branch, the decisive control is the separate owner-aware change_document check: with a different owner and no object change_document grant, the source path returns HttpResponseForbidden before Note.objects.create is reached. Therefore the protected effect—creating the note—is blocked. This answers the public question: an authenticated caller with the stated global permissions and object view access cannot create the note under the stated absence of an owner-aware object change grant. No decisive runtime fact is missing within the declared boundary because the task supplies the relevant premises and the fixed source shows the controlling branch. This is not a repository-wide or deployment-completeness claim; source discovery is not-tested.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The declared notes endpoint is a detail action accepting POST and using PaperlessNotePermissions.",
+              "citations": [
+                {
+                  "path": "src/documents/views.py",
+                  "startLine": 1841,
+                  "endLine": 1848,
+                  "quote": "    @action(\n        methods=[\"get\", \"post\", \"delete\"],\n        detail=True,\n        permission_classes=[PaperlessNotePermissions],\n        pagination_class=None,\n        filter_backends=[],\n    )\n    def notes(self, request, pk=None):"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The handler binds the authenticated request user to currentUser and passes that identity into the authorization checks and eventual note creation.",
+              "citations": [
+                {
+                  "path": "src/documents/views.py",
+                  "startLine": 1848,
+                  "endLine": 1849,
+                  "quote": "    def notes(self, request, pk=None):\n        currentUser = request.user"
+                }
+              ]
+            },
+            {
+              "statement": "The target document is loaded from the request pk, including its owner relation, and a missing document produces Http404.",
+              "citations": [
+                {
+                  "path": "src/documents/views.py",
+                  "startLine": 1850,
+                  "endLine": 1864,
+                  "quote": "        try:\n            doc = (\n                Document.objects.select_related(\"owner\")\n                .prefetch_related(\"notes\")\n                .only(\"pk\", \"owner__id\")\n                .get(pk=pk)\n            )\n            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,\n                \"view_document\",\n                doc,\n            ):\n                return HttpResponseForbidden(\"Insufficient permissions to view notes\")\n        except Document.DoesNotExist:\n            raise Http404"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "In the POST branch, the handler applies an owner-aware change_document check and returns HttpResponseForbidden when it fails.",
+              "citations": [
+                {
+                  "path": "src/documents/views.py",
+                  "startLine": 1877,
+                  "endLine": 1886,
+                  "quote": "        elif request.method == \"POST\":\n            try:\n                if currentUser is not None and not has_perms_owner_aware(\n                    currentUser,\n                    \"change_document\",\n                    doc,\n                ):\n                    return HttpResponseForbidden(\n                        \"Insufficient permissions to create notes\",\n                    )"
+                }
+              ]
+            },
+            {
+              "statement": "PaperlessNotePermissions requires the three listed global permissions for POST and evaluates them through request-user has_perms.",
+              "citations": [
+                {
+                  "path": "src/documents/permissions.py",
+                  "startLine": 673,
+                  "endLine": 699,
+                  "quote": "class PaperlessNotePermissions(BasePermission):\n    \"\"\"\n    Permissions class that checks for model permissions for Notes.\n    \"\"\"\n\n    perms_map = {\n        \"OPTIONS\": [\"documents.view_note\", \"documents.view_document\"],\n        \"GET\": [\"documents.view_note\", \"documents.view_document\"],\n        \"POST\": [\n            \"documents.add_note\",\n            \"documents.view_document\",\n            \"documents.change_document\",\n        ],\n        \"DELETE\": [\n            \"documents.delete_note\",\n            \"documents.view_document\",\n            \"documents.change_document\",\n        ],\n    }\n\n    def has_permission(self, request, view):\n        if not request.user or (not request.user.is_authenticated):  # pragma: no cover\n            return False\n\n        perms = self.perms_map[request.method]\n\n        return request.user.has_perms(perms)"
+                }
+              ]
+            },
+            {
+              "statement": "Before method dispatch, the handler applies an owner-aware view_document check and forbids access when it fails.",
+              "citations": [
+                {
+                  "path": "src/documents/views.py",
+                  "startLine": 1857,
+                  "endLine": 1862,
+                  "quote": "            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,\n                \"view_document\",\n                doc,\n            ):\n                return HttpResponseForbidden(\"Insufficient permissions to view notes\")"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "Note.objects.create is the protected note-creation effect and is reached only after the POST change_document check.",
+              "citations": [
+                {
+                  "path": "src/documents/views.py",
+                  "startLine": 1877,
+                  "endLine": 1892,
+                  "quote": "        elif request.method == \"POST\":\n            try:\n                if currentUser is not None and not has_perms_owner_aware(\n                    currentUser,\n                    \"change_document\",\n                    doc,\n                ):\n                    return HttpResponseForbidden(\n                        \"Insufficient permissions to create notes\",\n                    )\n\n                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],\n                    user=currentUser,\n                )"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The supplied owner-aware permission helper allows an owner or an unowned object, otherwise requiring the requested object permission.",
+              "citations": [
+                {
+                  "path": "src/documents/permissions.py",
+                  "startLine": 624,
+                  "endLine": 635,
+                  "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": []
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "wireResult": {
+    "results": [
+      {
+        "obligationId": "scenario%3Aviewer-cannot-add-note::entry%3Anotes-post",
+        "explanation": "At the declared-entry boundary, the source-visible behavior is deny. The notes action is a POST-capable detail action protected by PaperlessNotePermissions. Its POST global check requires documents.add_note, documents.view_document, and documents.change_document, but the supplied task premise treats the caller's listed global permissions as satisfied; this check is therefore not the decisive failure. After the document is bound by pk, the handler performs an owner-aware view_document check, which the premise also treats as satisfied. In the POST branch, the decisive control is the separate owner-aware change_document check: with a different owner and no object change_document grant, the source path returns HttpResponseForbidden before Note.objects.create is reached. Therefore the protected effect—creating the note—is blocked. This answers the public question: an authenticated caller with the stated global permissions and object view access cannot create the note under the stated absence of an owner-aware object change grant. No decisive runtime fact is missing within the declared boundary because the task supplies the relevant premises and the fixed source shows the controlling branch. This is not a repository-wide or deployment-completeness claim; source discovery is not-tested.",
+        "facts": [
+          {
+            "id": "f-entry",
+            "kind": "entry",
+            "statement": "The declared notes endpoint is a detail action accepting POST and using PaperlessNotePermissions.",
+            "citations": [
+              {
+                "sourceId": "src-dbf91e921bfbd270",
+                "startLine": 1841,
+                "endLine": 1848
+              }
+            ]
+          },
+          {
+            "id": "f-identity-binding",
+            "kind": "binding",
+            "statement": "The handler binds the authenticated request user to currentUser and passes that identity into the authorization checks and eventual note creation.",
+            "citations": [
+              {
+                "sourceId": "src-dbf91e921bfbd270",
+                "startLine": 1848,
+                "endLine": 1849
+              }
+            ]
+          },
+          {
+            "id": "f-resource-binding",
+            "kind": "binding",
+            "statement": "The target document is loaded from the request pk, including its owner relation, and a missing document produces Http404.",
+            "citations": [
+              {
+                "sourceId": "src-dbf91e921bfbd270",
+                "startLine": 1850,
+                "endLine": 1864
+              }
+            ]
+          },
+          {
+            "id": "f-global-control",
+            "kind": "control",
+            "statement": "PaperlessNotePermissions requires the three listed global permissions for POST and evaluates them through request-user has_perms.",
+            "citations": [
+              {
+                "sourceId": "src-81f6400744c9c9e9",
+                "startLine": 673,
+                "endLine": 699
+              }
+            ]
+          },
+          {
+            "id": "f-view-control",
+            "kind": "control",
+            "statement": "Before method dispatch, the handler applies an owner-aware view_document check and forbids access when it fails.",
+            "citations": [
+              {
+                "sourceId": "src-dbf91e921bfbd270",
+                "startLine": 1857,
+                "endLine": 1862
+              }
+            ]
+          },
+          {
+            "id": "f-change-control",
+            "kind": "control",
+            "statement": "In the POST branch, the handler applies an owner-aware change_document check and returns HttpResponseForbidden when it fails.",
+            "citations": [
+              {
+                "sourceId": "src-dbf91e921bfbd270",
+                "startLine": 1877,
+                "endLine": 1886
+              }
+            ]
+          },
+          {
+            "id": "f-owner-aware-semantics",
+            "kind": "condition",
+            "statement": "The supplied owner-aware permission helper allows an owner or an unowned object, otherwise requiring the requested object permission.",
+            "citations": [
+              {
+                "sourceId": "src-81f6400744c9c9e9",
+                "startLine": 624,
+                "endLine": 635
+              }
+            ]
+          },
+          {
+            "id": "f-effect",
+            "kind": "effect",
+            "statement": "Note.objects.create is the protected note-creation effect and is reached only after the POST change_document check.",
+            "citations": [
+              {
+                "sourceId": "src-dbf91e921bfbd270",
+                "startLine": 1877,
+                "endLine": 1892
+              }
+            ]
+          }
+        ],
+        "decisiveMissingFacts": [],
+        "suggestedObservations": [],
+        "decision": {
+          "kind": "observed",
+          "observed": "deny"
+        },
+        "branchResults": []
+      }
+    ]
+  },
+  "normalizerVersion": "authorization-wire-normalizer/v6",
+  "relationCoverage": [],
+  "observedDecisions": [
+    {
+      "obligationId": "scenario%3Aviewer-cannot-add-note::entry%3Anotes-post",
+      "expectation": "deny",
+      "observed": "deny",
+      "derivedConclusion": "source_refuted"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 10433,
+      "output": 1005,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "authorization-aj-author-use-briefs/v1",
+  "frozenBeforeAuthorGeneration": true,
+  "model": "xty/gpt-5.6-sol",
+  "sharedInstruction": "Author the two stated authorization scenarios from the accepted policy and supplied fixed-ref source. The policy is supplied by the task author; do not rewrite it to match implementation. Use the declared handler-entry premises and cite source locations in eventual analysis, without executing the target or assuming deployment facts. Markdown and structured authors work independently; neither sees the other's draft or any evaluator answer.",
+  "packages": [
+    {
+      "id": "memos-space-policy",
+      "kind": "policy-change",
+      "repository": "https://github.com/usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceDirectory": "inputs/memos-member-leave/prepared-final/source",
+      "sourceFiles": ["server/api/v1/space_service.go"],
+      "excerptRanges": { "server/api/v1/space_service.go": ["54-58", "632-662", "740-763"] },
+      "entry": "DeleteSpaceMember at server/api/v1/space_service.go:740-763",
+      "taskId": "aj-use-memos-member-removal",
+      "question": "At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.",
+      "originalPolicy": "An active space member may delete their own membership to leave. Removing a different active member requires space administrator authority.",
+      "changedPolicy": "An active space member may delete their own membership and may remove a different active member of the same space without space administrator authority.",
+      "scenarios": [
+        { "key": "self-leave", "principal": "authenticated active ordinary non-administrator member", "relation": "caller-is-target-member", "operation": "delete own membership", "premiseId": "target-relation", "premise": "At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds." },
+        { "key": "other-member", "principal": "authenticated active ordinary non-administrator member", "relation": "caller-is-not-target-member-and-not-admin", "operation": "delete another active membership", "premiseId": "target-relation", "premise": "At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds." }
+      ],
+      "changeRequest": "Change only the accepted space-member removal policy to changedPolicy. Review both policy-linked scenario expectations explicitly, including the unchanged self-leave expectation. Keep the same identities, relations, premise text, source bytes and task ID. The source implementation is unchanged."
+    },
+    {
+      "id": "paperless-note-relation",
+      "kind": "relation-change",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "sourceDirectory": "inputs/paperless-note-post/prepared-final/source",
+      "sourceFiles": ["src/documents/views.py", "src/documents/permissions.py"],
+      "excerptRanges": { "src/documents/views.py": ["17-24", "37-52"], "src/documents/permissions.py": ["624-635", "673-699"] },
+      "entry": "notes POST at src/documents/views.py:17-52 in the supplied crop",
+      "taskId": "aj-use-paperless-note-create",
+      "question": "At the notes POST handler, assess two declared relations between an authenticated caller and an existing document. Both callers hold global add_note, view_document and change_document permissions and can view the document. Use each scenario's object relation to determine whether Note.objects.create is reached.",
+      "originalPolicy": "Creating a note requires the stated global permissions and object-level change_document authorization; a view grant alone is insufficient, while document ownership or an object change grant can satisfy the object control.",
+      "changedPolicy": null,
+      "scenarios": [
+        { "key": "view-only", "principal": "authenticated user with the stated global permissions", "relation": "object-view-granted-not-owner-no-change-grant", "operation": "create a note on the document", "premiseId": "object-relation", "premise": "At handler entry, the caller has the stated global permissions and object view grant, but is not the document owner and has no object change_document grant." },
+        { "key": "change-granted", "principal": "authenticated user with the stated global permissions", "relation": "object-change-granted-not-owner", "operation": "create a note on the document", "premiseId": "object-relation", "premise": "At handler entry, the caller has the stated global permissions and object view and change_document grants, but is not the document owner." }
+      ],
+      "changeRequest": "Change only the view-only scenario so this same authenticated caller now owns the existing document, retaining the stated global permissions. Its new relation is caller-owns-document and its new premise is: At handler entry, the caller has the stated global permissions and owns the existing document. Update that scenario's policy expectation to allow. Keep the change-granted scenario, policy, task ID and source bytes unchanged."
+    }
+  ]
+}

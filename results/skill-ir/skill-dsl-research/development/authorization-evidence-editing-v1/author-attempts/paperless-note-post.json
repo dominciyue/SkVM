@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "authorization-aj-author-attempt/v1",
+  "caseId": "paperless-note-post",
+  "model": "xty/gpt-5.6-sol",
+  "prompt": "You are an independent author of a Markdown instruction for a fixed-source authorization assessment. Write what another model should receive, not the answer. Return only the Markdown instruction, without a code fence or commentary.\nUse only this neutral public brief. You have no DSL draft, answer key, or evaluator. Preserve the question, accepted policy, source entry, boundary, premises and response details. Do not invent source facts or decide the outcome. A common public requirements paragraph is separately supplied to all methods; do not quote it verbatim.\nRepository: https://github.com/paperless-ngx/paperless-ngx\nFixed source ref: 126ec414a8b65158368653a2604ae58415e43103\nEntry: src/documents/views.py:1841-1913\nAccepted policy: Creating a note requires the POST global note/document permissions and an owner-aware change_document check on the target document; viewing the document alone is insufficient.\nCurrent question: At DocumentViewSet.notes POST handler entry, can an authenticated user who has all listed global POST permissions and an object view grant on a document create a note when a different user owns the document and the caller has no object change_document grant?\nBoundary: declared-entry\nPremises: At notes POST entry, the authenticated caller has the global POST permissions and an object view grant, but is not the document owner and lacks its object change_document grant.\nRequired response details: Separate the global PaperlessNotePermissions check, the object view check, the object change check, and Note.objects.create effect.",
+  "response": {
+    "text": "# Fixed-Source Authorization Assessment\n\nAssess the authorization behavior of the specified source entry using only the fixed repository revision and the neutral brief below. Do not use other revisions, external documentation, inferred framework behavior, or unstated source facts. Do not decide the outcome in advance.\n\n## Source\n\n- Repository: https://github.com/paperless-ngx/paperless-ngx\n- Fixed source ref: `126ec414a8b65158368653a2604ae58415e43103`\n- Entry: `src/documents/views.py:1841-1913`\n- Scope boundary: `declared-entry`\n\n## Accepted policy\n\nCreating a note requires both:\n\n1. The POST global note/document permissions; and\n2. An owner-aware `change_document` check on the target document.\n\nViewing the document alone is insufficient.\n\n## Current question\n\nAt the `DocumentViewSet.notes` POST handler entry, can an authenticated user who has all listed global POST permissions and an object view grant on a document create a note when a different user owns the document and the caller has no object `change_document` grant?\n\n## Premises\n\nAt the `notes` POST entry:\n\n- The authenticated caller has the global POST permissions.\n- The caller has an object view grant on the target document.\n- The caller is not the document owner.\n- The caller lacks the target document’s object `change_document` grant.\n\n## Required analysis\n\nInspect only the declared source entry at the fixed ref and explain the authorization path without adding facts not established by that source. Keep the following points separate:\n\n1. The `PaperlessNotePermissions` global POST-permission check.\n2. The object view check.\n3. The owner-aware object `change_document` check.\n4. The effect of `Note.objects.create`.\n\nState whether the premises satisfy each relevant check, distinguish permission checks from the note-creation side effect, and answer the current question only to the extent supported by the fixed source. Identify any limitation caused by the declared-entry boundary rather than filling it with assumptions.\n\nDo not quote the separately supplied common public requirements paragraph verbatim. Do not provide a DSL draft, answer key, evaluator, or invented source facts.",
+    "toolCalls": [],
+    "tokens": {
+      "input": 616,
+      "output": 587,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "durationMs": 43036.1604,
+    "stopReason": "end_turn"
+  },
+  "promptSha256": "1f0832cdc01611d3bd645c71a4ffd2eaca8ea71108a2c2b4a0318284ad1fc909",
+  "actualCostUsd": null,
+  "createdAt": "2026-09-27T18:46:32.862Z"
+}

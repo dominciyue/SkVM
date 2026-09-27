@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260927T192342414Z-30f8a07e
+Status: completed
+Task: paperless-version-download-root
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v6
+Assessment: explicit-v1
+Normalizer: authorization-wire-normalizer/v6
+Model policy result: {"results":[{"obligationId":"scenario%3Aversion-owner-no-root-view::entry%3Adownload","explanation":"At the declared download entry, the handler delegates to file_response. Before selecting or serving a file, file_response resolves the requested document and its root, then applies has_perms_owner_aware to the root_doc with view_document. Under the stated premises, the caller is neither the root owner nor granted view_document on that root, so the source-visible authorization path returns HttpResponseForbidden and download does not serve the requested version. The caller's ownership of the requested version is a separate fact and does not replace the root-document check. If authorization succeeded, the file object passed to serve_file would be file_doc from _get_effective_file_doc; with an explicit version parameter and a versioned request document, that path calls _resolve_file_doc(root_doc, request). This assessment is limited to the supplied declared-entry source and does not claim facts beyond it.","facts":[{"id":"f-entry","kind":"entry","statement":"DocumentViewSet.download delegates the request to file_response with attachment disposition.","citations":[{"sourceId":"src-7178cab55a635a65","startLine":1834,"endLine":1838}]},{"id":"f-identity","kind":"binding","statement":"The authorization helper is evaluated for request.user against the resolved root document.","citations":[{"sourceId":"src-7178cab55a635a65","startLine":1417,"endLine":1426}]},{"id":"f-resource","kind":"binding","statement":"The protected authorization resource is root_doc, not the requested version document.","citations":[{"sourceId":"src-7178cab55a635a65","startLine":1417,"endLine":1427}]},{"id":"f-control","kind":"control","statement":"The owner-aware view_document check permits the owner or an object-permission grant; failure produces HttpResponseForbidden.","citations":[{"sourceId":"src-81f6400744c9c9e9","startLine":624,"endLine":635},{"sourceId":"src-7178cab55a635a65","startLine":1421,"endLine":1427}]},{"id":"f-effect","kind":"effect","statement":"If authorization proceeds, file_doc is passed to serve_file, so that selected file document is the served object.","citations":[{"sourceId":"src-7178cab55a635a65","startLine":1437,"endLine":1448}]},{"id":"f-condition","kind":"condition","statement":"For a versioned request with an explicit version parameter, effective-file selection resolves from root_doc and the request; otherwise a versioned request without that parameter can use request_doc.","citations":[{"sourceId":"src-7178cab55a635a65","startLine":1388,"endLine":1399}]}],"decisiveMissingFacts":[],"suggestedObservations":[],"decision":{"kind":"observed","observed":"deny"},"branchResults":[]}]}
+Observed decisions: [{"obligationId":"scenario%3Aversion-owner-no-root-view::entry%3Adownload","expectation":"deny","observed":"deny","derivedConclusion":"source_refuted"}]
+Source: https://github.com/paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aversion-owner-no-root-view::entry%3Adownload: source_refuted — At the declared download entry, the handler delegates to file_response. Before selecting or serving a file, file_response resolves the requested document and its root, then applies has_perms_owner_aware to the root_doc with view_document. Under the stated premises, the caller is neither the root owner nor granted view_document on that root, so the source-visible authorization path returns HttpResponseForbidden and download does not serve the requested version. The caller's ownership of the requested version is a separate fact and does not replace the root-document check. If authorization succeeded, the file object passed to serve_file would be file_doc from _get_effective_file_doc; with an explicit version parameter and a versioned request document, that path calls _resolve_file_doc(root_doc, request). This assessment is limited to the supplied declared-entry source and does not claim facts beyond it.
+  Evidence: DocumentViewSet.download delegates the request to file_response with attachment disposition. (src/documents/views.py:1834-1838)
+  Evidence: The authorization helper is evaluated for request.user against the resolved root document. (src/documents/views.py:1417-1426)
+  Evidence: The protected authorization resource is root_doc, not the requested version document. (src/documents/views.py:1417-1427)
+  Evidence: The owner-aware view_document check permits the owner or an object-permission grant; failure produces HttpResponseForbidden. (src/documents/permissions.py:624-635, src/documents/views.py:1421-1427)
+  Evidence: If authorization proceeds, file_doc is passed to serve_file, so that selected file document is the served object. (src/documents/views.py:1437-1448)
+  Evidence: For a versioned request with an explicit version parameter, effective-file selection resolves from root_doc and the request; otherwise a versioned request without that parameter can use request_doc. (src/documents/views.py:1388-1399)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

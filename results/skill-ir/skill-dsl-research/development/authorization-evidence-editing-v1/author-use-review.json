@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "authorization-aj-author-use-review/v1",
+  "reviewAfterAllEightSessionsClosed": true,
+  "basis": "Independent read-only source review of all eight completed consumer sessions against the frozen author-use oracle; no target execution.",
+  "authorDeliveries": {
+    "planned": 8,
+    "firstAttemptSemanticallyValid": 6,
+    "finalSemanticallyValid": 8,
+    "diagnosticRevisions": 2,
+    "mechanicalRecovery": 0,
+    "firstAttemptIssues": [
+      { "id": "memos-space-policy-dsl-changed", "issue": "Policy text and expectations changed, but first patch retained originalPolicy location/revision; one targeted revision added both provenance fields." },
+      { "id": "paperless-note-relation-markdown-changed", "issue": "First changed Markdown explicitly stated a scenario expectation; one targeted revision removed that answer-like instruction while preserving the owner premise." }
+    ],
+    "adjudications": [
+      "Paperless Markdown original and final changed policy wording is equivalent to the neutral brief, with Markdown code formatting; a literal substring validator reported a false positive, so these were accepted by semantic review.",
+      "Researcher-authored Markdown consumer input initially marked an unchanged Paperless policy revision as changed; corrected to original before consumer freeze."
+    ]
+  },
+  "sessions": [
+    { "id": "memos-space-policy-markdown-original", "rating": "full", "declaredScenarios": 2, "expandedObligations": 2, "scenarios": { "self-leave": "full", "other-member": "full" }, "evidence": "space_service.go:54-58,750-763", "note": "Self deletion bypasses the administrator guard; another-member deletion is denied." },
+    { "id": "memos-space-policy-dsl-original", "rating": "full", "declaredScenarios": 2, "expandedObligations": 2, "scenarios": { "self-leave": "full", "other-member": "full" }, "evidence": "space_service.go:54-58,750-763", "note": "Both decisions and canonical conclusions match the original policy and source." },
+    { "id": "memos-space-policy-markdown-changed", "rating": "full", "declaredScenarios": 2, "expandedObligations": 2, "scenarios": { "self-leave": "full", "other-member": "full" }, "evidence": "space_service.go:54-58,750-763", "note": "The unchanged self scenario remains allow; source denies another-member removal under the new allow policy. Some policy claims cite source lines instead of task policy provenance, a citation caveat." },
+    { "id": "memos-space-policy-dsl-changed", "rating": "full", "declaredScenarios": 2, "expandedObligations": 2, "scenarios": { "self-leave": "full", "other-member": "full" }, "evidence": "space_service.go:54-58,750-763", "note": "Revised local patch updates policy provenance and both expectations; source behavior remains unchanged." },
+    { "id": "paperless-note-relation-markdown-original", "rating": "full", "declaredScenarios": 2, "expandedObligations": 2, "scenarios": { "view-only": "full", "change-granted": "full" }, "evidence": "views.py crop:17-22,37-52; permissions.py:624-635,673-699", "note": "View-only is denied before note creation; object change grant permits the other scenario." },
+    { "id": "paperless-note-relation-dsl-original", "rating": "full", "declaredScenarios": 2, "expandedObligations": 8, "scenarios": { "view-only": "full", "change-granted": "full" }, "evidence": "views.py crop:17-22,37-52; permissions.py:624-635,673-699", "note": "All eight expanded obligations are semantically correct, but the author declared three helpers as additional entries, multiplying work fourfold." },
+    { "id": "paperless-note-relation-markdown-changed", "rating": "full", "declaredScenarios": 2, "expandedObligations": 2, "scenarios": { "view-only": "full", "change-granted": "full" }, "evidence": "views.py crop:17-22,37-52; permissions.py:624-635,673-699", "note": "Final Markdown revision asks the assessor to derive the owner result; unchanged granted scenario remains correct." },
+    { "id": "paperless-note-relation-dsl-changed", "rating": "full", "declaredScenarios": 2, "expandedObligations": 8, "scenarios": { "view-only": "full", "change-granted": "full" }, "evidence": "views.py crop:17-22,37-52; permissions.py:624-635,673-699", "note": "All eight expanded obligations are correct; extra helper entries remain and increase output workload." }
+  ],
+  "comparison": "All four changed-input comparisons are applicability-only needs-review with zero provider calls in compare. Each changed input was separately consumed in a fresh completed session; compare does not assert semantic revalidation.",
+  "humanMinutes": null
+}

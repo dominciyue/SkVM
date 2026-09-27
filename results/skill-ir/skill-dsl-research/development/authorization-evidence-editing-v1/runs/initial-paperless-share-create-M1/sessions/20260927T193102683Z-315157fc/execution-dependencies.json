@@ -1,0 +1,354 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "paperless-share-create-document-view",
+    "request": "At ShareLinkViewSet.create handler entry, can an authenticated caller with global add_sharelink and global view_document permission create a share link for a document owned by someone else when the caller lacks object view_document permission on that document?",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:share-target-document-view",
+        "kind": "explicit-task-requirement",
+        "text": "Share-link creation requires the share-link creation permission and view access to the referenced document; a global view_document grant alone does not substitute for the owner-aware object check.",
+        "location": "src/documents/permissions.py:30-53; src/documents/serialisers.py:2851-2886",
+        "revision": "126ec414a8b65158368653a2604ae58415e43103",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "Public fixed-ref source and task-author bounded requirement."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:global-permissions-only",
+        "role": "authenticated user with global add_sharelink and view_document permissions",
+        "description": "Author facts: [\"The caller has the global permissions named in the question.\",\"The caller has no object view_document grant on the target document.\"]",
+        "startingCapabilities": []
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:other-document-share",
+        "type": "document and new share link",
+        "description": "Author facts: [\"The referenced document exists and is owned by another user.\",\"No object view grant is held by the caller.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:share-create",
+        "name": "ShareLinkViewSet.create",
+        "locations": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4696,
+            "endLine": 4717
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:global-only-no-document-view",
+        "principalId": "principal:global-permissions-only",
+        "resourceId": "resource:other-document-share",
+        "relation": "global-view-without-object-view",
+        "operation": "create share link referencing document",
+        "expectation": "deny",
+        "conditions": [],
+        "policySourceId": "policy:share-target-document-view",
+        "entryIds": [
+          "entry:share-create"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+      "identify the principal, operation, protected resource, decisive control, and effect",
+      "return source_supported_failure, source_refuted, or unknown with exact supplied-source locations"
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+      "Use only the supplied fixed-ref case inputs.",
+      "Do not execute the target project or infer deployment facts."
+    ]
+  },
+  "scenarios": {
+    "scenario:global-only-no-document-view": {
+      "name": "global-only-no-document-view",
+      "obligation": {
+        "id": "scenario:global-only-no-document-view",
+        "principalId": "principal:global-permissions-only",
+        "resourceId": "resource:other-document-share",
+        "relation": "global-view-without-object-view",
+        "operation": "create share link referencing document",
+        "expectation": "deny",
+        "conditions": [],
+        "policySourceId": "policy:share-target-document-view",
+        "entryIds": [
+          "entry:share-create"
+        ]
+      },
+      "principal": {
+        "id": "principal:global-permissions-only",
+        "role": "authenticated user with global add_sharelink and view_document permissions",
+        "description": "Author facts: [\"The caller has the global permissions named in the question.\",\"The caller has no object view_document grant on the target document.\"]",
+        "startingCapabilities": []
+      },
+      "resource": {
+        "id": "resource:other-document-share",
+        "type": "document and new share link",
+        "description": "Author facts: [\"The referenced document exists and is owned by another user.\",\"No object view grant is held by the caller.\"]"
+      },
+      "policy": {
+        "id": "policy:share-target-document-view",
+        "kind": "explicit-task-requirement",
+        "text": "Share-link creation requires the share-link creation permission and view access to the referenced document; a global view_document grant alone does not substitute for the owner-aware object check.",
+        "location": "src/documents/permissions.py:30-53; src/documents/serialisers.py:2851-2886",
+        "revision": "126ec414a8b65158368653a2604ae58415e43103",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "Public fixed-ref source and task-author bounded requirement."
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:share-create",
+          "name": "ShareLinkViewSet.create",
+          "locations": [
+            {
+              "path": "src/documents/views.py",
+              "startLine": 4696,
+              "endLine": 4717
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "src/documents/views.py",
+      "sha256": "6bb908651b3f1bff4b0c7671f19bbca135633a5d2b96c590bcc748bce5b583c6",
+      "cropRange": {
+        "startLine": 4696,
+        "endLine": 4717
+      },
+      "originalLocations": [
+        "src/documents/views.py:4696-4717"
+      ]
+    },
+    {
+      "path": "src/documents/permissions.py",
+      "sha256": "9e1e3bb40b5c45edb143b7daa9d0a18f728a4e3b015600b4e2a8c6510bd1942f",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 717
+      },
+      "originalLocations": [
+        "src/documents/permissions.py:1-717"
+      ]
+    },
+    {
+      "path": "src/documents/serialisers.py",
+      "sha256": "ac169e87b7e4d96859bc58d36b52eb07e916844e123098dc44f3e495c5030f43",
+      "cropRange": {
+        "startLine": 2851,
+        "endLine": 2886
+      },
+      "originalLocations": [
+        "src/documents/serialisers.py:2851-2886"
+      ]
+    }
+  ],
+  "evidencePreparation": {
+    "schemaVersion": "authorization-evidence-report/v1",
+    "status": "partial",
+    "sourceIdentity": {
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+    },
+    "sourceRoot": "../../../public-source/paperless",
+    "included": [
+      {
+        "path": "src/documents/views.py",
+        "originalPath": "src/documents/views.py",
+        "startLine": 4696,
+        "endLine": 4717,
+        "origins": [
+          "entry:share-create"
+        ]
+      },
+      {
+        "path": "src/documents/permissions.py",
+        "originalPath": "src/documents/permissions.py",
+        "startLine": 1,
+        "endLine": 717,
+        "origins": [
+          "locator:global-share-permission",
+          "locator:owner-aware"
+        ]
+      },
+      {
+        "path": "src/documents/serialisers.py",
+        "originalPath": "src/documents/serialisers.py",
+        "startLine": 2851,
+        "endLine": 2886,
+        "origins": [
+          "locator:document-validation"
+        ]
+      }
+    ],
+    "gaps": [
+      {
+        "id": "serializer-user",
+        "entryKey": "share-create",
+        "reason": "byte-budget",
+        "attemptedPath": "src/documents/views.py"
+      }
+    ],
+    "closureClaim": "declared-dependencies-only"
+  },
+  "sourceRoot": "source",
+  "sources": [
+    "src/documents/views.py",
+    "src/documents/permissions.py",
+    "src/documents/serialisers.py"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:global-only-no-document-view"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:global-only-no-document-view"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:global-only-no-document-view"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:global-only-no-document-view"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:global-only-no-document-view"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:global-only-no-document-view"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": null,
+  "assessmentContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Decide the current scenario at the stated declared-entry boundary from the supplied fixed source and accepted policy. Treat premises as question assumptions, not source or deployment proof. Trace the decisive authorization control, protected object and effect with exact supplied-source locations. State any decisive missing runtime fact rather than assuming it. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: At ShareLinkViewSet.create handler entry, can an authenticated caller with global add_sharelink and global view_document permission create a share link for a document owned by someone else when the caller lacks object view_document permission on that document?\nAnalysis boundary: declared-entry.\nTask premise: At ShareLinkViewSet.create entry, the authenticated caller has global add_sharelink and view_document, but the referenced document exists, belongs to another user, and has no caller object view grant.\nRequired response detail: Trace the viewset's permissions and serializer validation of the referenced document; distinguish the share-link object from its target document.",
+    "scenarios": [
+      {
+        "obligationId": "scenario:global-only-no-document-view",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At ShareLinkViewSet.create entry, the authenticated caller has global add_sharelink and view_document, but the referenced document exists, belongs to another user, and has no caller object view grant.",
+            "atEntryId": "entry:share-create",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the viewset's permissions and serializer validation of the referenced document; distinguish the share-link object from its target document."
+        ]
+      }
+    ]
+  },
+  "assessmentProgram": {
+    "schemaVersion": "authorization-assessment-program/v1",
+    "entries": [
+      {
+        "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+        "authorObligationId": "scenario:global-only-no-document-view",
+        "entryId": "entry:share-create",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At ShareLinkViewSet.create entry, the authenticated caller has global add_sharelink and view_document, but the referenced document exists, belongs to another user, and has no caller object view grant.",
+            "atEntryId": "entry:share-create",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the viewset's permissions and serializer validation of the referenced document; distinguish the share-link object from its target document."
+        ]
+      }
+    ]
+  },
+  "assessmentMode": "explicit-v1",
+  "normalizerVersion": "normalized-input/v1",
+  "method": "plain",
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "arm": "B",
+  "reasoningStrategy": "standard",
+  "reasoningPlan": null,
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "fc712ff355312e6c79a69b36012bab67c501c0fa52632ebb2670e3c55505dec1"
+}

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "authorization-aj-author-attempt/v1",
+  "caseId": "memos-get-shared",
+  "model": "xty/gpt-5.6-sol",
+  "prompt": "You are an independent author of a Markdown instruction for a fixed-source authorization assessment. Write what another model should receive, not the answer. Return only the Markdown instruction, without a code fence or commentary.\nUse only this neutral public brief. You have no DSL draft, answer key, or evaluator. Preserve the question, accepted policy, source entry, boundary, premises and response details. Do not invent source facts or decide the outcome. A common public requirements paragraph is separately supplied to all methods; do not quote it verbatim.\nRepository: https://github.com/usememos/memos\nFixed source ref: cb42e326ba9cc266a6a9570c53e0fe04c62793f4\nEntry: server/api/v1/memo_share_service.go:170-213\nAccepted policy: GetSharedMemo needs no authentication; a current share token grants access to its exact memo only. Invalid or expired tokens and inaccessible memos yield NOT_FOUND.\nCurrent question: At GetSharedMemo handler entry, can an anonymous caller retrieve the private, active, non-SPACE memo associated with a supplied share token when this task does not say whether the token exists or is unexpired? Assume the associated memo has a valid creator if the token resolves. State the source-visible branches and missing runtime facts.\nBoundary: declared-entry\nPremises: At GetSharedMemo entry, the caller is anonymous. If the token resolves, its associated memo is active, private, non-SPACE, and has a valid creator. Token existence and expiry are unspecified.\nRequired response details: Explain the valid token-associated memo and invalid/expired branches; do not invent token state, a separate requested memo identity, or deployment success.",
+  "response": {
+    "text": "# Fixed-Source Authorization Assessment\n\nUse only the neutral public brief below and the separately supplied common public requirements paragraph. Do not quote that common paragraph verbatim. Do not rely on an answer key, evaluator, or any unstated facts.\n\n## Source\n\n- Repository: https://github.com/usememos/memos\n- Fixed source ref: `cb42e326ba9cc266a6a9570c53e0fe04c62793f4`\n- Entry: `server/api/v1/memo_share_service.go:170-213`\n- Boundary: `declared-entry`\n\nInspect only the specified source entry at the fixed ref and report what is visible there. Do not infer source facts that are not visible in the permitted source.\n\n## Accepted policy\n\n- `GetSharedMemo` needs no authentication.\n- A current share token grants access only to its exact memo.\n- Invalid or expired tokens, and inaccessible memos, yield `NOT_FOUND`.\n\n## Premises\n\nAt `GetSharedMemo` handler entry:\n\n- The caller is anonymous.\n- If the token resolves, its associated memo is active, private, non-`SPACE`, and has a valid creator.\n- Token existence and expiry are unspecified.\n\n## Question\n\nAt `GetSharedMemo` handler entry, can an anonymous caller retrieve the private, active, non-`SPACE` memo associated with a supplied share token when this task does not say whether the token exists or is unexpired?\n\n## Required response\n\nAnswer the question using the fixed source and the stated premises. Explain:\n\n1. The source-visible branch for a valid token associated with the described memo.\n2. The source-visible branches for an invalid or expired token.\n3. Any branch for an inaccessible memo that is visible within the specified entry.\n4. Which runtime facts are missing and prevent choosing a single concrete outcome, especially token existence and expiry.\n\nDo not invent token state, a separate requested memo identity, deployment success, or any other runtime or source fact. Distinguish conditional conclusions from facts established by the premises.",
+    "toolCalls": [],
+    "tokens": {
+      "input": 647,
+      "output": 624,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "durationMs": 35490.9242,
+    "stopReason": "end_turn"
+  },
+  "promptSha256": "11d4d7cc005611b3a67abd0415235674fc30ed11413f28ed5e042d5b2155d828",
+  "actualCostUsd": null,
+  "createdAt": "2026-09-27T18:44:00.679Z"
+}

@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "owui-process-file-write",
+  "request": "At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.",
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "sourceRoot": "source",
+  "sources": [
+    "backend/open_webui/routers/retrieval.py"
+  ],
+  "policies": {
+    "destination-knowledge-write-policy": {
+      "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+      "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+      "revision": "authorization-case-input/v1@841c9045",
+      "acceptance": "accepted",
+      "reason": "The study task author supplied this bounded normative requirement for the comparison."
+    }
+  },
+  "principals": {
+    "verified-non-admin-file-owner": {
+      "role": "verified non-administrator who owns the supplied source file",
+      "facts": [
+        "A signed-in non-admin whose file ownership is distinct from authorization on the destination knowledge base."
+      ],
+      "capabilities": [
+        "authenticated-as-verified-user",
+        "owns-supplied-source-file",
+        "can-submit-process-file-form"
+      ]
+    }
+  },
+  "resources": {
+    "existing-destination-knowledge-base": {
+      "type": "knowledge-base-vector-collection",
+      "facts": [
+        "An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal."
+      ]
+    }
+  },
+  "entries": {
+    "post-process-file": {
+      "name": "POST /process/file -> process_file",
+      "locations": [
+        {
+          "path": "backend/open_webui/routers/retrieval.py",
+          "startLine": 1,
+          "endLine": 217
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "file-owner-without-destination-write-grant": {
+      "principal": "verified-non-admin-file-owner",
+      "resource": "existing-destination-knowledge-base",
+      "policy": "destination-knowledge-write-policy",
+      "entries": [
+        "post-process-file"
+      ],
+      "relation": "owns-source-file-but-no-destination-write-grant",
+      "operation": "write-file-content-to-existing-knowledge-base",
+      "expectation": "deny",
+      "conditions": {
+        "caller-supplies-existing-collection-name": {
+          "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+        },
+        "principal-is-not-admin": {
+          "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+        }
+      }
+    }
+  },
+  "additionalQuestions": [
+    "identify the principal, operation, target resource relation, entry, and write sink",
+    "trace the user-controlled collection name through any target-specific authorization control",
+    "distinguish file ownership from destination knowledge-base write permission",
+    "return source_supported_failure, source_refuted, or unknown with exact input locations"
+  ],
+  "additionalConstraints": [
+    "Use only the allowed case inputs.",
+    "Do not search for advisories, fixes, later versions, or deployment behavior.",
+    "Do not execute the project or propose a patch."
+  ],
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Decide the current scenario at the stated boundary from the supplied fixed source and accepted policy. Treat listed premises as question assumptions at the named entry, not as source or deployment proof. Trace the decisive authorization control and protected effect with exact supplied-source locations. Answer every explicitly requested counterfactual branch separately, identifying its changed assumptions and any decisive unknown. Include only the response details requested below. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: Can a verified non-admin who owns the supplied file write its content to an existing caller-selected knowledge-base collection without a write grant through POST /process/file?\nAnalysis boundary: declared-entry.\nTask premise: At POST /process/file the verified non-admin owns the supplied file but has no ownership or write grant on the existing caller-selected destination collection.\nRequired response detail: Identify the destination write sink and distinguish source-file ownership from destination write permission.",
+    "scenarios": {
+      "file-owner-without-destination-write-grant": {
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At POST /process/file the verified non-admin owns the supplied file but has no ownership or write grant on the existing caller-selected destination collection.",
+            "atEntry": "post-process-file",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Identify the destination write sink and distinguish source-file ownership from destination write permission."
+        ]
+      }
+    }
+  }
+}

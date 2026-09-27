@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "memos-create-share-admin",
+  "request": "At CreateMemoShare handler entry, does an authenticated active instance administrator pass the source-visible authorization controls to create a share for an existing active non-SPACE memo authored by someone else? Assess authorization, not whether an external store call succeeds under every runtime condition.",
+  "repository": "https://github.com/usememos/memos",
+  "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+  "sourceRoot": "../../../public-source/memos",
+  "sources": [
+    "server/api/v1/memo_share_service.go"
+  ],
+  "policies": {
+    "memo-share-creator-or-admin": {
+      "text": "A memo share may be created by the memo creator or an instance administrator; SPACE audience memos are not shareable.",
+      "location": "proto/api/v1/memo_service.proto:116-123; server/api/v1/memo_share_service.go:54-56",
+      "revision": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "acceptance": "accepted",
+      "reason": "Public fixed-ref source and task-author bounded requirement."
+    }
+  },
+  "principals": {
+    "instance-admin": {
+      "role": "authenticated active instance administrator, not the memo creator",
+      "facts": [
+        "The caller is active and has the instance ADMIN role.",
+        "The caller is not the memo's creator."
+      ]
+    }
+  },
+  "resources": {
+    "other-normal-memo": {
+      "type": "memo",
+      "facts": [
+        "The memo exists, is active, and has a non-SPACE audience.",
+        "The memo was created by another user."
+      ]
+    }
+  },
+  "entries": {
+    "create-share": {
+      "name": "CreateMemoShare",
+      "locations": [
+        {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 23,
+          "endLine": 80
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "admin-other-memo": {
+      "principal": "instance-admin",
+      "resource": "other-normal-memo",
+      "policy": "memo-share-creator-or-admin",
+      "entries": [
+        "create-share"
+      ],
+      "relation": "active-instance-admin-not-creator",
+      "operation": "create memo share",
+      "expectation": "allow"
+    }
+  },
+  "additionalQuestions": [
+    "identify the principal, operation, protected resource, decisive control, and effect",
+    "return source_supported_failure, source_refuted, or unknown with exact supplied-source locations"
+  ],
+  "additionalConstraints": [
+    "Use only the supplied fixed-ref case inputs.",
+    "Do not execute the target project or infer deployment facts."
+  ],
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Decide the current scenario at the stated declared-entry boundary from the supplied fixed source and accepted policy. Treat premises as question assumptions, not source or deployment proof. Trace the decisive authorization control, protected object and effect with exact supplied-source locations. State any decisive missing runtime fact rather than assuming it. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: At CreateMemoShare handler entry, does an authenticated active instance administrator pass the source-visible authorization controls to create a share for an existing active non-SPACE memo authored by someone else? Assess authorization, not whether an external store call succeeds under every runtime condition.\nAnalysis boundary: declared-entry.\nTask premise: At CreateMemoShare entry, the caller is an authenticated active instance ADMIN; the selected memo exists, is active, non-SPACE, and authored by another user. The requested expiry, if any, is valid.\nRequired response detail: Trace the author-or-admin helper and the protected CreateMemoShare store effect; keep store failure and concurrent state changes outside the authorization conclusion.",
+    "scenarios": {
+      "admin-other-memo": {
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At CreateMemoShare entry, the caller is an authenticated active instance ADMIN; the selected memo exists, is active, non-SPACE, and authored by another user. The requested expiry, if any, is valid.",
+            "atEntry": "create-share",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the author-or-admin helper and the protected CreateMemoShare store effect; keep store failure and concurrent state changes outside the authorization conclusion."
+        ]
+      }
+    }
+  }
+}

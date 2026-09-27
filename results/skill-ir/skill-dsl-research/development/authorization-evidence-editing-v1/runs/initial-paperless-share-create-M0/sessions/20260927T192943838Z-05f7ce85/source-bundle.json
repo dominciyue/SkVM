@@ -1,0 +1,18 @@
+{
+  "repository": "https://github.com/paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceMode": "fixed-context",
+  "isolation": "exact-allowlist",
+  "files": [
+    {
+      "relativePath": "src/documents/views.py",
+      "content": "class ShareLinkViewSet(\n    PassUserMixin,\n    CreateModelMixin,\n    RetrieveModelMixin,\n    DestroyModelMixin,\n    ListModelMixin,\n    GenericViewSet,\n):\n    model = ShareLink\n\n    queryset = ShareLink.objects.select_related(\"document\")\n\n    serializer_class = ShareLinkSerializer\n    pagination_class = StandardPagination\n    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n    filter_backends = (\n        DjangoFilterBackend,\n        OrderingFilter,\n        PermittedObjectsFilter,\n    )\n    filterset_class = ShareLinkFilterSet\n    ordering_fields = (\"created\", \"expiration\", \"document__title\")\n",
+      "sha256": "31596bbb1853952c19137582283ddc5c70585fea550f171de3a23bedf3776af3",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 22
+      },
+      "originalLocations": []
+    }
+  ]
+}

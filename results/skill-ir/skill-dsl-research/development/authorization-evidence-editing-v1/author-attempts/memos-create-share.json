@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "authorization-aj-author-attempt/v1",
+  "caseId": "memos-create-share",
+  "model": "xty/gpt-5.6-sol",
+  "prompt": "You are an independent author of a Markdown instruction for a fixed-source authorization assessment. Write what another model should receive, not the answer. Return only the Markdown instruction, without a code fence or commentary.\nUse only this neutral public brief. You have no DSL draft, answer key, or evaluator. Preserve the question, accepted policy, source entry, boundary, premises and response details. Do not invent source facts or decide the outcome. A common public requirements paragraph is separately supplied to all methods; do not quote it verbatim.\nRepository: https://github.com/usememos/memos\nFixed source ref: cb42e326ba9cc266a6a9570c53e0fe04c62793f4\nEntry: server/api/v1/memo_share_service.go:23-80\nAccepted policy: A memo share may be created by the memo creator or an instance administrator; SPACE audience memos are not shareable.\nCurrent question: At CreateMemoShare handler entry, does an authenticated active instance administrator pass the source-visible authorization controls to create a share for an existing active non-SPACE memo authored by someone else? Assess authorization, not whether an external store call succeeds under every runtime condition.\nBoundary: declared-entry\nPremises: At CreateMemoShare entry, the caller is an authenticated active instance ADMIN; the selected memo exists, is active, non-SPACE, and authored by another user. The requested expiry, if any, is valid.\nRequired response details: Trace the author-or-admin helper and the protected CreateMemoShare store effect; keep store failure and concurrent state changes outside the authorization conclusion.",
+  "response": {
+    "text": "# Fixed-Source Authorization Assessment\n\nAssess the authorization question below using only the specified source snapshot and entry boundary. Do not infer facts from other revisions, documentation, tests, runtime behavior, or unstated code.\n\n- **Repository:** https://github.com/usememos/memos\n- **Fixed source ref:** `cb42e326ba9cc266a6a9570c53e0fe04c62793f4`\n- **Source entry:** `server/api/v1/memo_share_service.go:23-80`\n- **Accepted policy:** A memo share may be created by the memo creator or an instance administrator; `SPACE` audience memos are not shareable.\n- **Boundary:** `declared-entry`\n\n## Question\n\nAt `CreateMemoShare` handler entry, does an authenticated active instance administrator pass the source-visible authorization controls to create a share for an existing active non-`SPACE` memo authored by someone else?\n\nAssess authorization only. Do not decide whether an external store call succeeds under every runtime condition.\n\n## Premises\n\nAt `CreateMemoShare` entry:\n\n- The caller is an authenticated active instance `ADMIN`.\n- The selected memo exists and is active.\n- The memo is non-`SPACE`.\n- The memo was authored by another user.\n- The requested expiry, if any, is valid.\n\n## Required analysis\n\n1. Trace the author-or-administrator authorization helper used by the relevant handler path.\n2. Trace the protected `CreateMemoShare` store effect and identify the source-visible authorization controls guarding that effect.\n3. Evaluate those controls against the stated premises and the accepted policy.\n4. Keep store-operation failure, downstream behavior, and concurrent state changes outside the authorization conclusion.\n5. Distinguish clearly between authorization passing at the declared entry boundary and any later operational outcome.\n\nDo not invent source facts, fill gaps with assumptions, or rely on an answer key. Do not quote the separately supplied common public requirements paragraph verbatim. Provide a concise conclusion supported only by the cited source path and the traced control flow.",
+    "toolCalls": [],
+    "tokens": {
+      "input": 627,
+      "output": 492,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "durationMs": 30149.996099999997,
+    "stopReason": "end_turn"
+  },
+  "promptSha256": "99a52e894d0dae1b80052d8d7a3cd86f44fd08ea98f302ad8892b331cbdf3df9",
+  "actualCostUsd": null,
+  "createdAt": "2026-09-27T18:42:08.184Z"
+}

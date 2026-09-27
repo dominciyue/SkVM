@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "authorization-aj-markdown-consumer-plan/v1",
+  "purpose": "Researcher-declared runner task for independently authored Markdown; never based on the DSL author's draft or supplied to either author.",
+  "packages": {
+    "memos-space-policy": {
+      "entryName": "DeleteSpaceMember",
+      "entryPath": "server/api/v1/space_service.go",
+      "entryStartLine": 740,
+      "entryEndLine": 763,
+      "resourceType": "active space membership",
+      "originalExpectations": { "self-leave": "allow", "other-member": "deny" },
+      "changedExpectations": { "self-leave": "allow", "other-member": "allow" }
+    },
+    "paperless-note-relation": {
+      "entryName": "notes POST",
+      "entryPath": "src/documents/views.py",
+      "entryStartLine": 37,
+      "entryEndLine": 52,
+      "resourceType": "existing document",
+      "originalExpectations": { "view-only": "deny", "change-granted": "allow" },
+      "changedExpectations": { "view-only": "allow", "change-granted": "allow" },
+      "changedScenario": "view-only",
+      "changedRelation": "caller-owns-document",
+      "changedPremise": "At handler entry, the caller has the stated global permissions and owns the existing document."
+    }
+  }
+}

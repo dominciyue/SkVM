@@ -1,0 +1,18 @@
+{
+  "repository": "https://github.com/paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceMode": "fixed-context",
+  "isolation": "exact-allowlist",
+  "files": [
+    {
+      "relativePath": "src/documents/views.py",
+      "content": "    @action(\n        methods=[\"get\", \"post\", \"delete\"],\n        detail=True,\n        permission_classes=[PaperlessNotePermissions],\n        pagination_class=None,\n        filter_backends=[],\n    )\n    def notes(self, request, pk=None):\n        currentUser = request.user\n        try:\n            doc = (\n                Document.objects.select_related(\"owner\")\n                .prefetch_related(\"notes\")\n                .only(\"pk\", \"owner__id\")\n                .get(pk=pk)\n            )\n            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,\n                \"view_document\",\n                doc,\n            ):\n                return HttpResponseForbidden(\"Insufficient permissions to view notes\")\n        except Document.DoesNotExist:\n            raise Http404\n\n        serializer = self.get_serializer(doc)\n\n        if request.method == \"GET\":\n            try:\n                notes = serializer.to_representation(doc).get(\"notes\")\n                return Response(notes)\n            except Exception as e:\n                logger.warning(f\"An error occurred retrieving notes: {e!s}\")\n                return Response(\n                    {\"error\": \"Error retrieving notes, check logs for more detail.\"},\n                )\n        elif request.method == \"POST\":\n            try:\n                if currentUser is not None and not has_perms_owner_aware(\n                    currentUser,\n                    \"change_document\",\n                    doc,\n                ):\n                    return HttpResponseForbidden(\n                        \"Insufficient permissions to create notes\",\n                    )\n\n                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],\n                    user=currentUser,\n                )\n                # If audit log is enabled make an entry in the log\n                # about this note change\n                if settings.AUDIT_LOG_ENABLED:\n                    LogEntry.objects.log_create(\n                        instance=doc,\n                        changes={\n                            \"Note Added\": [\"None\", c.id],\n                        },\n                        action=LogEntry.Action.UPDATE,\n                    )\n\n                doc.modified = timezone.now()\n                doc.save(update_fields=[\"modified\"])\n\n                from documents.search import get_backend\n\n                get_backend().add_or_update(doc)\n\n                notes = serializer.to_representation(doc).get(\"notes\")\n\n                return Response(notes)\n",
+      "sha256": "2bd89a6c28797ddcc331a0b77594b0a4b1c7c3196eb000f5e0370460cd5492ee",
+      "cropRange": {
+        "startLine": 1,
+        "endLine": 73
+      },
+      "originalLocations": []
+    }
+  ]
+}

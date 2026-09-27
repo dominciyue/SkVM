@@ -1,0 +1,324 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "assessmentMode": "explicit-v1",
+  "reasoningStrategy": "standard",
+  "evidencePreparation": {
+    "schemaVersion": "authorization-evidence-report/v1",
+    "status": "ready",
+    "sourceIdentity": {
+      "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+      "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7"
+    },
+    "sourceRoot": "../../../public-source/fastapi",
+    "included": [
+      {
+        "path": "backend/app/api/routes/items.py",
+        "originalPath": "backend/app/api/routes/items.py",
+        "startLine": 1,
+        "endLine": 113,
+        "origins": [
+          "entry:read-item"
+        ]
+      },
+      {
+        "path": "backend/app/api/deps.py",
+        "originalPath": "backend/app/api/deps.py",
+        "startLine": 1,
+        "endLine": 57,
+        "origins": [
+          "locator:current-user-binding"
+        ]
+      }
+    ],
+    "gaps": [],
+    "closureClaim": "declared-dependencies-only"
+  },
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260927T191328313Z-b925a27e",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\runs\\initial-fastapi-superuser-read-D1\\sessions\\20260927T191328313Z-b925a27e",
+  "createdAt": "2026-09-27T19:13:28.313Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\inputs\\fastapi-superuser-read\\prepared-final\\assessment.json",
+  "taskId": "fastapi-items-superuser-read",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 2280,
+      "publicAnalysis": 1091,
+      "assessmentProgram": 616,
+      "source": 7087,
+      "outputContract": 2892,
+      "total": 14500,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "evidencePreparation": "evidence-preparation.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "fastapi-items-superuser-read",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "results": [
+      {
+        "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+        "conclusion": "source_refuted",
+        "explanation": "At the declared-entry boundary, the stated authenticated active superuser can read the existing item owned by another user. The handler retrieves the item, then applies the strongest visible authorization control: denial occurs only when the caller is not a superuser and does not own the item; under the supplied entry premise, that condition is false. The handler therefore returns the item. This is a handler-entry conclusion based on the task premise that current_user is already the stated active superuser. The supplied crop shows that read_item declares CurrentUser and that CurrentUser is connected to get_current_active_superuser, which checks the superuser flag, but the crop is not deployment or upstream-execution proof of the actual CurrentUser binding; no such binding fact is needed to decide this scenario at the declared-entry boundary. Source discovery is not-tested, so this conclusion is limited to the declared entry and supplied source.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "GET /items/{id} is handled by read_item, which accepts current_user: CurrentUser and an item id.",
+              "citations": [
+                {
+                  "path": "backend/app/api/routes/items.py",
+                  "startLine": 48,
+                  "endLine": 53,
+                  "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:\n    \"\"\"\n    Get item by ID.\n    \"\"\"\n    item = session.get(Item, id)"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "The handler's current_user parameter is declared with the CurrentUser dependency type; the supplied task premise establishes the principal's identity at entry for this assessment.",
+              "citations": [
+                {
+                  "path": "backend/app/api/routes/items.py",
+                  "startLine": 48,
+                  "endLine": 50,
+                  "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:\n    \"\"\""
+                }
+              ]
+            },
+            {
+              "statement": "The handler binds the requested id to an Item through session.get and treats a found result as the item being read.",
+              "citations": [
+                {
+                  "path": "backend/app/api/routes/items.py",
+                  "startLine": 49,
+                  "endLine": 55,
+                  "quote": "def read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:\n    \"\"\"\n    Get item by ID.\n    \"\"\"\n    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")"
+                }
+              ]
+            },
+            {
+              "statement": "The crop declares CurrentUser through get_current_user and shows get_current_active_superuser checking is_superuser, but this does not by itself prove that an upstream request actually supplied the stated principal.",
+              "citations": [
+                {
+                  "path": "backend/app/api/deps.py",
+                  "startLine": 30,
+                  "endLine": 57,
+                  "quote": "def get_current_user(session: SessionDep, token: TokenDep) -> User:\n    try:\n        payload = jwt.decode(\n            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]\n        )\n        token_data = TokenPayload(**payload)\n    except InvalidTokenError, ValidationError:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=\"Could not validate credentials\",\n        )\n    user = session.get(User, token_data.sub)\n    if not user:\n        raise HTTPException(status_code=404, detail=\"User not found\")\n    if not user.is_active:\n        raise HTTPException(status_code=400, detail=\"Inactive user\")\n    return user\n\n\nCurrentUser = Annotated[User, Depends(get_current_user)]\n\n\ndef get_current_active_superuser(current_user: CurrentUser) -> User:\n    if not current_user.is_superuser:\n        raise HTTPException(\n            status_code=403, detail=\"The user doesn't have enough privileges\"\n        )\n    return current_user"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "The authorization check denies only a caller who is not a superuser and whose id differs from the item's owner_id; a superuser bypasses the owner comparison.",
+              "citations": [
+                {
+                  "path": "backend/app/api/routes/items.py",
+                  "startLine": 53,
+                  "endLine": 57,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "After the item lookup and authorization check, the handler returns the item.",
+              "citations": [
+                {
+                  "path": "backend/app/api/routes/items.py",
+                  "startLine": 53,
+                  "endLine": 58,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    return item"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The supplied entry premise makes the denial condition false because the caller is a superuser, despite differing ownership.",
+              "citations": [
+                {
+                  "path": "backend/app/api/routes/items.py",
+                  "startLine": 56,
+                  "endLine": 57,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": []
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "wireResult": {
+    "results": [
+      {
+        "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+        "explanation": "At the declared-entry boundary, the stated authenticated active superuser can read the existing item owned by another user. The handler retrieves the item, then applies the strongest visible authorization control: denial occurs only when the caller is not a superuser and does not own the item; under the supplied entry premise, that condition is false. The handler therefore returns the item. This is a handler-entry conclusion based on the task premise that current_user is already the stated active superuser. The supplied crop shows that read_item declares CurrentUser and that CurrentUser is connected to get_current_active_superuser, which checks the superuser flag, but the crop is not deployment or upstream-execution proof of the actual CurrentUser binding; no such binding fact is needed to decide this scenario at the declared-entry boundary. Source discovery is not-tested, so this conclusion is limited to the declared entry and supplied source.",
+        "facts": [
+          {
+            "id": "f-entry",
+            "kind": "entry",
+            "statement": "GET /items/{id} is handled by read_item, which accepts current_user: CurrentUser and an item id.",
+            "citations": [
+              {
+                "sourceId": "src-3df5de8f43bc9c54",
+                "startLine": 48,
+                "endLine": 53
+              }
+            ]
+          },
+          {
+            "id": "f-principal-binding",
+            "kind": "binding",
+            "statement": "The handler's current_user parameter is declared with the CurrentUser dependency type; the supplied task premise establishes the principal's identity at entry for this assessment.",
+            "citations": [
+              {
+                "sourceId": "src-3df5de8f43bc9c54",
+                "startLine": 48,
+                "endLine": 50
+              }
+            ]
+          },
+          {
+            "id": "f-resource-binding",
+            "kind": "binding",
+            "statement": "The handler binds the requested id to an Item through session.get and treats a found result as the item being read.",
+            "citations": [
+              {
+                "sourceId": "src-3df5de8f43bc9c54",
+                "startLine": 49,
+                "endLine": 55
+              }
+            ]
+          },
+          {
+            "id": "f-control",
+            "kind": "control",
+            "statement": "The authorization check denies only a caller who is not a superuser and whose id differs from the item's owner_id; a superuser bypasses the owner comparison.",
+            "citations": [
+              {
+                "sourceId": "src-3df5de8f43bc9c54",
+                "startLine": 53,
+                "endLine": 57
+              }
+            ]
+          },
+          {
+            "id": "f-effect",
+            "kind": "effect",
+            "statement": "After the item lookup and authorization check, the handler returns the item.",
+            "citations": [
+              {
+                "sourceId": "src-3df5de8f43bc9c54",
+                "startLine": 53,
+                "endLine": 58
+              }
+            ]
+          },
+          {
+            "id": "f-condition",
+            "kind": "condition",
+            "statement": "The supplied entry premise makes the denial condition false because the caller is a superuser, despite differing ownership.",
+            "citations": [
+              {
+                "sourceId": "src-3df5de8f43bc9c54",
+                "startLine": 56,
+                "endLine": 57
+              }
+            ]
+          },
+          {
+            "id": "f-upstream-chain",
+            "kind": "binding",
+            "statement": "The crop declares CurrentUser through get_current_user and shows get_current_active_superuser checking is_superuser, but this does not by itself prove that an upstream request actually supplied the stated principal.",
+            "citations": [
+              {
+                "sourceId": "src-ec26811e863df154",
+                "startLine": 30,
+                "endLine": 57
+              }
+            ]
+          }
+        ],
+        "decisiveMissingFacts": [],
+        "suggestedObservations": [],
+        "decision": {
+          "kind": "observed",
+          "observed": "allow"
+        },
+        "branchResults": []
+      }
+    ]
+  },
+  "normalizerVersion": "authorization-wire-normalizer/v6",
+  "relationCoverage": [],
+  "observedDecisions": [
+    {
+      "obligationId": "scenario%3Aread-item::entry%3Aread-item",
+      "expectation": "allow",
+      "observed": "allow",
+      "derivedConclusion": "source_refuted"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 3788,
+      "output": 978,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

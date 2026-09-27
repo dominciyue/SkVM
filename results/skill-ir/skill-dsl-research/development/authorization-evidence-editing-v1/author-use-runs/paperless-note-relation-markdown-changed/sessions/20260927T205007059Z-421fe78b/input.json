@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "aj-use-paperless-note-create",
+  "request": "At the notes POST handler, assess two declared relations between an authenticated caller and an existing document. Both callers hold global add_note, view_document and change_document permissions and can view the document. Use each scenario's object relation to determine whether Note.objects.create is reached.",
+  "repository": "https://github.com/paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceRoot": "../../../inputs/paperless-note-post/prepared-final/source",
+  "sources": [
+    "src/documents/views.py",
+    "src/documents/permissions.py"
+  ],
+  "policies": {
+    "accepted-policy": {
+      "text": "Creating a note requires the stated global permissions and object-level change_document authorization; a view grant alone is insufficient, while document ownership or an object change grant can satisfy the object control.",
+      "location": "author-use-briefs.json#/paperless-note-relation/originalPolicy",
+      "revision": "original",
+      "acceptance": "accepted",
+      "reason": "Task author supplied this bounded accepted policy for source comparison."
+    }
+  },
+  "principals": {
+    "caller": {
+      "role": "authenticated caller described by the scenario premises",
+      "facts": [
+        "Entry identity and object relation are scenario premises."
+      ],
+      "capabilities": []
+    }
+  },
+  "resources": {
+    "target": {
+      "type": "existing document",
+      "facts": [
+        "The target exists and its relation to the caller is fixed separately in each scenario."
+      ]
+    }
+  },
+  "entries": {
+    "declared-entry": {
+      "name": "notes POST",
+      "locations": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 37,
+          "endLine": 52
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "view-only": {
+      "principal": "caller",
+      "resource": "target",
+      "policy": "accepted-policy",
+      "entries": [
+        "declared-entry"
+      ],
+      "relation": "caller-owns-document",
+      "operation": "create a note on the document",
+      "expectation": "allow"
+    },
+    "change-granted": {
+      "principal": "caller",
+      "resource": "target",
+      "policy": "accepted-policy",
+      "entries": [
+        "declared-entry"
+      ],
+      "relation": "object-change-granted-not-owner",
+      "operation": "create a note on the document",
+      "expectation": "allow"
+    }
+  },
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Assess both declared scenarios at handler entry from supplied fixed-ref source and the accepted policy. Treat each scenario premise as an assumption, not source or deployment proof. Trace identity, protected object, decisive control, and effect with exact supplied-source citations. Separate policy expectation from observed authorization. Do not execute the target. Current question: At the notes POST handler, assess two declared relations between an authenticated caller and an existing document. Both callers hold global add_note, view_document and change_document permissions and can view the document. Use each scenario's object relation to determine whether Note.objects.create is reached.",
+    "scenarios": {
+      "view-only": {
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "object-relation",
+            "statement": "At handler entry, the caller has the stated global permissions and owns the existing document.",
+            "atEntry": "declared-entry",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the decisive source-visible control and protected effect; compare them with the accepted policy without treating premises as source proof."
+        ]
+      },
+      "change-granted": {
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "object-relation",
+            "statement": "At handler entry, the caller has the stated global permissions and object view and change_document grants, but is not the document owner.",
+            "atEntry": "declared-entry",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the decisive source-visible control and protected effect; compare them with the accepted policy without treating premises as source proof."
+        ]
+      }
+    }
+  }
+}

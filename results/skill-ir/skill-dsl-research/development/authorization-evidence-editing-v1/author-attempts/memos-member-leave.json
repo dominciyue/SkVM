@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "authorization-aj-author-attempt/v1",
+  "caseId": "memos-member-leave",
+  "model": "xty/gpt-5.6-sol",
+  "prompt": "You are an independent author of a Markdown instruction for a fixed-source authorization assessment. Write what another model should receive, not the answer. Return only the Markdown instruction, without a code fence or commentary.\nUse only this neutral public brief. You have no DSL draft, answer key, or evaluator. Preserve the question, accepted policy, source entry, boundary, premises and response details. Do not invent source facts or decide the outcome. A common public requirements paragraph is separately supplied to all methods; do not quote it verbatim.\nRepository: https://github.com/usememos/memos\nFixed source ref: cb42e326ba9cc266a6a9570c53e0fe04c62793f4\nEntry: server/api/v1/space_service.go:740-763\nAccepted policy: A space member may delete their own membership to leave. Removing a different member requires space administrator authority.\nCurrent question: At DeleteSpaceMember handler entry, may an authenticated active ordinary member delete their own active membership, and may the same non-administrator delete a different active member's membership in that space? Assume resource resolution succeeds and compare the two requested targets.\nBoundary: declared-entry\nPremises: At DeleteSpaceMember entry, the active ordinary member targets their own active membership, and resolveSpaceMemberResource succeeds. | For the second scenario, the same active ordinary non-administrator targets a different active member in the same space, and resource resolution succeeds.\nRequired response details: Explain the self exception and the separate administrator check for a different target; do not assume the caller is an administrator.",
+  "response": {
+    "text": "# Fixed-Source Authorization Assessment\n\nAssess the authorization behavior of the specified handler using only the repository source at the fixed reference below and the separately supplied common public requirements paragraph. Do not rely on later or earlier revisions, undocumented assumptions, an answer key, or any DSL draft.\n\n- **Repository:** https://github.com/usememos/memos\n- **Fixed source ref:** `cb42e326ba9cc266a6a9570c53e0fe04c62793f4`\n- **Source entry:** `server/api/v1/space_service.go:740-763`\n- **Boundary:** `declared-entry`\n\n## Accepted policy\n\nA space member may delete their own membership to leave. Removing a different member requires space administrator authority.\n\n## Question\n\nAt `DeleteSpaceMember` handler entry, may an authenticated active ordinary member delete their own active membership, and may the same non-administrator delete a different active member's membership in that space? Assume resource resolution succeeds and compare the two requested targets.\n\n## Premises\n\n1. At `DeleteSpaceMember` entry, the active ordinary member targets their own active membership, and `resolveSpaceMemberResource` succeeds.\n2. For the second scenario, the same active ordinary non-administrator targets a different active member in the same space, and resource resolution succeeds.\n\n## Required analysis and response\n\n- Inspect and cite only the relevant behavior available from the fixed source entry and its directly necessary surrounding source at the fixed ref.\n- Apply the separately supplied common public requirements paragraph without quoting it verbatim.\n- Analyze the two target cases separately and compare them.\n- Explain the self-membership exception and the separate administrator check required when the target is a different member.\n- Do not assume that the caller is an administrator.\n- State the resulting authorization determination for each scenario, identifying the source condition or branch that supports it.\n- Do not invent source facts, unstated premises, or behavior outside the declared-entry boundary.",
+    "toolCalls": [],
+    "tokens": {
+      "input": 623,
+      "output": 637,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "durationMs": 44441.8096,
+    "stopReason": "end_turn"
+  },
+  "promptSha256": "9dce1ca6f716c2674593a4cea70edd6f12c3c445c77a446f32f783f4eb8ee34a",
+  "actualCostUsd": null,
+  "createdAt": "2026-09-27T18:45:02.050Z"
+}

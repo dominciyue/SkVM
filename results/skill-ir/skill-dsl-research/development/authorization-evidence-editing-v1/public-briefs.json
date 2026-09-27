@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "authorization-aj-public-briefs/v1",
+  "commonInstruction": "Decide the stated authorization scenario at the declared entry from supplied fixed source and accepted policy. Treat premises as assumptions, cite exact supplied-source locations for the control and effect, preserve decisive unknowns, and do not execute the target or infer deployment facts.",
+  "cases": [
+    {
+      "id": "memos-create-share",
+      "repository": "https://github.com/usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "entry": "server/api/v1/memo_share_service.go:23-80",
+      "acceptedPolicy": "A memo share may be created by the memo creator or an instance administrator; SPACE audience memos are not shareable.",
+      "currentQuestion": "At CreateMemoShare handler entry, does an authenticated active instance administrator pass the source-visible authorization controls to create a share for an existing active non-SPACE memo authored by someone else? Assess authorization, not whether an external store call succeeds under every runtime condition.",
+      "boundary": "declared-entry",
+      "premises": [
+        "At CreateMemoShare entry, the caller is an authenticated active instance ADMIN; the selected memo exists, is active, non-SPACE, and authored by another user. The requested expiry, if any, is valid."
+      ],
+      "requiredResponseDetails": [
+        "Trace the author-or-admin helper and the protected CreateMemoShare store effect; keep store failure and concurrent state changes outside the authorization conclusion."
+      ]
+    },
+    {
+      "id": "memos-get-shared",
+      "repository": "https://github.com/usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "entry": "server/api/v1/memo_share_service.go:170-213",
+      "acceptedPolicy": "GetSharedMemo needs no authentication; a current share token grants access to its exact memo only. Invalid or expired tokens and inaccessible memos yield NOT_FOUND.",
+      "currentQuestion": "At GetSharedMemo handler entry, can an anonymous caller retrieve the private, active, non-SPACE memo associated with a supplied share token when this task does not say whether the token exists or is unexpired? Assume the associated memo has a valid creator if the token resolves. State the source-visible branches and missing runtime facts.",
+      "boundary": "declared-entry",
+      "premises": [
+        "At GetSharedMemo entry, the caller is anonymous. If the token resolves, its associated memo is active, private, non-SPACE, and has a valid creator. Token existence and expiry are unspecified."
+      ],
+      "requiredResponseDetails": [
+        "Explain the valid token-associated memo and invalid/expired branches; do not invent token state, a separate requested memo identity, or deployment success."
+      ]
+    },
+    {
+      "id": "memos-member-leave",
+      "repository": "https://github.com/usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "entry": "server/api/v1/space_service.go:740-763",
+      "acceptedPolicy": "A space member may delete their own membership to leave. Removing a different member requires space administrator authority.",
+      "currentQuestion": "At DeleteSpaceMember handler entry, may an authenticated active ordinary member delete their own active membership, and may the same non-administrator delete a different active member's membership in that space? Assume resource resolution succeeds and compare the two requested targets.",
+      "boundary": "declared-entry",
+      "premises": [
+        "At DeleteSpaceMember entry, the active ordinary member targets their own active membership, and resolveSpaceMemberResource succeeds.",
+        "For the second scenario, the same active ordinary non-administrator targets a different active member in the same space, and resource resolution succeeds."
+      ],
+      "requiredResponseDetails": [
+        "Explain the self exception and the separate administrator check for a different target; do not assume the caller is an administrator."
+      ]
+    },
+    {
+      "id": "paperless-download",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "entry": "src/documents/views.py:1834-1839",
+      "acceptedPolicy": "A download must pass the owner-aware view_document check on the root document before serving any selected file version.",
+      "currentQuestion": "At DocumentViewSet.download handler entry, can an authenticated user download a requested version document they own when its root document is owned by someone else and they lack an object view grant on that root? Assume the user has the required global view permission and the documents exist.",
+      "boundary": "declared-entry",
+      "premises": [
+        "At download entry, the authenticated caller has global document view permission and owns the requested version, but a different user owns the existing root document and the caller has no object view grant on that root."
+      ],
+      "requiredResponseDetails": [
+        "Identify which object is checked and which file object would be served; do not collapse version ownership into root authorization."
+      ]
+    },
+    {
+      "id": "paperless-note-post",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "entry": "src/documents/views.py:1841-1913",
+      "acceptedPolicy": "Creating a note requires the POST global note/document permissions and an owner-aware change_document check on the target document; viewing the document alone is insufficient.",
+      "currentQuestion": "At DocumentViewSet.notes POST handler entry, can an authenticated user who has all listed global POST permissions and an object view grant on a document create a note when a different user owns the document and the caller has no object change_document grant?",
+      "boundary": "declared-entry",
+      "premises": [
+        "At notes POST entry, the authenticated caller has the global POST permissions and an object view grant, but is not the document owner and lacks its object change_document grant."
+      ],
+      "requiredResponseDetails": [
+        "Separate the global PaperlessNotePermissions check, the object view check, the object change check, and Note.objects.create effect."
+      ]
+    },
+    {
+      "id": "paperless-share-create",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "entry": "src/documents/views.py:4696-4717",
+      "acceptedPolicy": "Share-link creation requires the share-link creation permission and view access to the referenced document; a global view_document grant alone does not substitute for the owner-aware object check.",
+      "currentQuestion": "At ShareLinkViewSet.create handler entry, can an authenticated caller with global add_sharelink and global view_document permission create a share link for a document owned by someone else when the caller lacks object view_document permission on that document?",
+      "boundary": "declared-entry",
+      "premises": [
+        "At ShareLinkViewSet.create entry, the authenticated caller has global add_sharelink and view_document, but the referenced document exists, belongs to another user, and has no caller object view grant."
+      ],
+      "requiredResponseDetails": [
+        "Trace the viewset's permissions and serializer validation of the referenced document; distinguish the share-link object from its target document."
+      ]
+    },
+    {
+      "id": "owui-file",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "entry": "POST /process/file -> process_file",
+      "acceptedPolicy": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+      "currentQuestion": "At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.",
+      "boundary": "declared-entry",
+      "premises": [
+        "At POST /process/file the verified non-admin owns the supplied file but has no ownership or write grant on the existing caller-selected destination collection."
+      ],
+      "requiredResponseDetails": [
+        "Identify the destination write sink and distinguish source-file ownership from destination write permission."
+      ]
+    },
+    {
+      "id": "fastapi-superuser-read",
+      "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+      "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+      "entry": "read_item",
+      "acceptedPolicy": "An authenticated non-superuser may read or modify only items they own. An authenticated active superuser may read or modify an item regardless of owner.",
+      "currentQuestion": "Determine whether an authenticated active superuser can read an item owned by another user through GET /items/{id}.",
+      "boundary": "declared-entry",
+      "premises": [
+        "At entry to read_item, current_user is the authenticated active superuser described by this task, and the existing item's owner differs from that caller."
+      ],
+      "requiredResponseDetails": [
+        "Separate this handler-entry conclusion from any claim that the supplied crop proves the upstream CurrentUser binding."
+      ]
+    }
+  ]
+}

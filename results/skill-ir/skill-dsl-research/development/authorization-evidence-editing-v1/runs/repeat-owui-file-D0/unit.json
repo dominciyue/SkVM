@@ -1,0 +1,298 @@
+{
+  "unit": {
+    "id": "repeat-owui-file-D0",
+    "phase": "repeat",
+    "caseId": "owui-file",
+    "arm": "D0",
+    "input": "baseline"
+  },
+  "configSha256": "ed5fb8546282dca20aabacfa8cf9a0cc6a9bd7944ff599965eb2348bc7ff2821",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v6",
+    "assessmentMode": "explicit-v1",
+    "reasoningStrategy": "standard",
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260927T193614471Z-47294df4",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\runs\\repeat-owui-file-D0\\sessions\\20260927T193614471Z-47294df4",
+    "createdAt": "2026-09-27T19:36:14.471Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\inputs\\owui-file\\baseline\\authoring.json",
+    "taskId": "owui-process-file-write",
+    "repository": "https://github.com/open-webui/open-webui",
+    "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 396,
+        "declaration": 3744,
+        "publicAnalysis": 1109,
+        "assessmentProgram": 662,
+        "source": 10820,
+        "outputContract": 2933,
+        "total": 19802,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "owui-process-file-write",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "results": [
+        {
+          "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+          "conclusion": "unknown",
+          "explanation": "At the declared entry, a verified user is obtained and the non-admin branch restricts retrieval of the source file by both file ID and user ID, which supports source-file ownership but is not a destination knowledge-base permission check (lines 1-19). The caller-controlled collection name is assigned from form_data.collection_name, with a default only when it is absent (lines 21-24), and the visible path performs no ownership or explicit-write-grant check for that collection. The strongest visible authorization control is therefore the source-file lookup, not authorization on the destination collection. The protected destination-write path passes the constructed docs, the caller-supplied collection_name, add=True when a collection name was supplied, and user to save_docs_to_vector_db (lines 149-161). This identifies the destination write sink invocation, but the supplied crop does not show whether that sink actually writes the existing collection or enforces destination authorization. Consequently the source supports absence of a visible target-specific authorization control and distinguishes file ownership from destination write permission, but it cannot establish the final allow or deny behavior at the sink. The decisive source-external fact is the implementation/runtime behavior of save_docs_to_vector_db, including whether it writes the supplied existing collection and checks the principal's ownership or explicit write grant. Minimum observation: inspect or otherwise observe that sink's authorization and write behavior for the supplied collection. Under the accepted policy, file ownership alone does not satisfy the destination-write requirement; the source-visible path does not demonstrate such a grant.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "POST /process/file is implemented by process_file.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1,
+                    "endLine": 6,
+                    "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The handler obtains the authenticated user, and its non-admin source-file lookup requires the supplied file ID and that user's ID.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 14,
+                    "endLine": 19,
+                    "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:"
+                  }
+                ]
+              },
+              {
+                "statement": "The destination collection name is taken from the submitted form and is used as the collection_name value, with a file-specific default only when no name is supplied.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 20,
+                    "endLine": 24,
+                    "quote": "        try:\n            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "Within the supplied entry, no target-specific ownership or explicit write-grant check is visible between collection-name selection and the destination-save call.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 120,
+                    "endLine": 161,
+                    "quote": "            log.debug(f'text_content: {text_content}')\n            await Files.update_file_data_by_id(\n                file.id,\n                {'content': text_content},\n                db=db,\n            )\n            hash = calculate_sha256_string(text_content)\n\n            if request.app.state.config.BYPASS_EMBEDDING_AND_RETRIEVAL:\n                await Files.update_file_data_by_id(file.id, {'status': 'completed'}, db=db)\n                await Files.update_file_hash_by_id(file.id, hash, db=db)\n                return {\n                    'status': True,\n                    'collection_name': None,\n                    'filename': file.filename,\n                    'content': text_content,\n                }\n            else:\n                try:\n                    # Commit any pending changes before the slow embedding step.\n                    # Note: file is already a Pydantic model (not ORM), so no expunge needed.\n                    await db.commit()\n\n                    # External embedding API takes time (5-60s+).\n                    # Subsequent updates use fresh async sessions.\n                    # NOTE: save_docs_to_vector_db is a sync function that\n                    # calls asyncio.run_coroutine_threadsafe(..., main_loop).result()\n                    # which blocks the calling thread.  We MUST run it in a\n                    # worker thread to avoid deadlocking the event loop.\n                    result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,\n                    )"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The protected effect is the call to save_docs_to_vector_db with the prepared document content, caller-selected collection_name, add=True for a supplied collection name, and the user.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 149,
+                    "endLine": 161,
+                    "quote": "                    result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,\n                    )"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The source-file ownership check and destination-collection authorization are separate concerns: the former constrains file retrieval, while the visible destination path forwards the collection and user without showing a destination permission decision.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 14,
+                    "endLine": 24,
+                    "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:\n        try:\n            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                  },
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 149,
+                    "endLine": 161,
+                    "quote": "                    result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,\n                    )"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [
+            "Implementation and runtime behavior of save_docs_to_vector_db: whether it writes the supplied existing collection and whether it enforces ownership or an explicit write grant for the principal."
+          ],
+          "suggestedObservations": [
+            "Observe or inspect save_docs_to_vector_db for the supplied collection-name path, recording whether the collection write occurs and whether destination ownership/write-grant authorization is enforced."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+          "explanation": "At the declared entry, a verified user is obtained and the non-admin branch restricts retrieval of the source file by both file ID and user ID, which supports source-file ownership but is not a destination knowledge-base permission check (lines 1-19). The caller-controlled collection name is assigned from form_data.collection_name, with a default only when it is absent (lines 21-24), and the visible path performs no ownership or explicit-write-grant check for that collection. The strongest visible authorization control is therefore the source-file lookup, not authorization on the destination collection. The protected destination-write path passes the constructed docs, the caller-supplied collection_name, add=True when a collection name was supplied, and user to save_docs_to_vector_db (lines 149-161). This identifies the destination write sink invocation, but the supplied crop does not show whether that sink actually writes the existing collection or enforces destination authorization. Consequently the source supports absence of a visible target-specific authorization control and distinguishes file ownership from destination write permission, but it cannot establish the final allow or deny behavior at the sink. The decisive source-external fact is the implementation/runtime behavior of save_docs_to_vector_db, including whether it writes the supplied existing collection and checks the principal's ownership or explicit write grant. Minimum observation: inspect or otherwise observe that sink's authorization and write behavior for the supplied collection. Under the accepted policy, file ownership alone does not satisfy the destination-write requirement; the source-visible path does not demonstrate such a grant.",
+          "facts": [
+            {
+              "id": "f-entry",
+              "kind": "entry",
+              "statement": "POST /process/file is implemented by process_file.",
+              "citations": [
+                {
+                  "sourceId": "src-36004c253fb01743",
+                  "startLine": 1,
+                  "endLine": 6
+                }
+              ]
+            },
+            {
+              "id": "f-principal",
+              "kind": "binding",
+              "statement": "The handler obtains the authenticated user, and its non-admin source-file lookup requires the supplied file ID and that user's ID.",
+              "citations": [
+                {
+                  "sourceId": "src-36004c253fb01743",
+                  "startLine": 14,
+                  "endLine": 19
+                }
+              ]
+            },
+            {
+              "id": "f-resource",
+              "kind": "binding",
+              "statement": "The destination collection name is taken from the submitted form and is used as the collection_name value, with a file-specific default only when no name is supplied.",
+              "citations": [
+                {
+                  "sourceId": "src-36004c253fb01743",
+                  "startLine": 20,
+                  "endLine": 24
+                }
+              ]
+            },
+            {
+              "id": "f-control",
+              "kind": "control",
+              "statement": "Within the supplied entry, no target-specific ownership or explicit write-grant check is visible between collection-name selection and the destination-save call.",
+              "citations": [
+                {
+                  "sourceId": "src-36004c253fb01743",
+                  "startLine": 120,
+                  "endLine": 161
+                }
+              ]
+            },
+            {
+              "id": "f-effect",
+              "kind": "effect",
+              "statement": "The protected effect is the call to save_docs_to_vector_db with the prepared document content, caller-selected collection_name, add=True for a supplied collection name, and the user.",
+              "citations": [
+                {
+                  "sourceId": "src-36004c253fb01743",
+                  "startLine": 149,
+                  "endLine": 161
+                }
+              ]
+            },
+            {
+              "id": "f-condition",
+              "kind": "condition",
+              "statement": "The source-file ownership check and destination-collection authorization are separate concerns: the former constrains file retrieval, while the visible destination path forwards the collection and user without showing a destination permission decision.",
+              "citations": [
+                {
+                  "sourceId": "src-36004c253fb01743",
+                  "startLine": 14,
+                  "endLine": 24
+                },
+                {
+                  "sourceId": "src-36004c253fb01743",
+                  "startLine": 149,
+                  "endLine": 161
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [
+            "Implementation and runtime behavior of save_docs_to_vector_db: whether it writes the supplied existing collection and whether it enforces ownership or an explicit write grant for the principal."
+          ],
+          "suggestedObservations": [
+            "Observe or inspect save_docs_to_vector_db for the supplied collection-name path, recording whether the collection write occurs and whether destination ownership/write-grant authorization is enforced."
+          ],
+          "decision": {
+            "kind": "observed",
+            "observed": "unknown"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "normalizerVersion": "authorization-wire-normalizer/v6",
+    "relationCoverage": [],
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+        "expectation": "deny",
+        "observed": "unknown",
+        "derivedConclusion": "unknown"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 4261,
+        "output": 1082,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

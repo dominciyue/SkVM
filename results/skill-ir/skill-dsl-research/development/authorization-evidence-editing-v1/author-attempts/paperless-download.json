@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "authorization-aj-author-attempt/v1",
+  "caseId": "paperless-download",
+  "model": "xty/gpt-5.6-sol",
+  "prompt": "You are an independent author of a Markdown instruction for a fixed-source authorization assessment. Write what another model should receive, not the answer. Return only the Markdown instruction, without a code fence or commentary.\nUse only this neutral public brief. You have no DSL draft, answer key, or evaluator. Preserve the question, accepted policy, source entry, boundary, premises and response details. Do not invent source facts or decide the outcome. A common public requirements paragraph is separately supplied to all methods; do not quote it verbatim.\nRepository: https://github.com/paperless-ngx/paperless-ngx\nFixed source ref: 126ec414a8b65158368653a2604ae58415e43103\nEntry: src/documents/views.py:1834-1839\nAccepted policy: A download must pass the owner-aware view_document check on the root document before serving any selected file version.\nCurrent question: At DocumentViewSet.download handler entry, can an authenticated user download a requested version document they own when its root document is owned by someone else and they lack an object view grant on that root? Assume the user has the required global view permission and the documents exist.\nBoundary: declared-entry\nPremises: At download entry, the authenticated caller has global document view permission and owns the requested version, but a different user owns the existing root document and the caller has no object view grant on that root.\nRequired response details: Identify which object is checked and which file object would be served; do not collapse version ownership into root authorization.",
+  "response": {
+    "text": "# Fixed-Source Authorization Assessment\n\nAssess the authorization behavior of the specified handler using only the fixed source entry and the neutral brief below. Do not rely on other repository revisions, inferred implementation details, external documentation, or unstated assumptions. A common public requirements paragraph is supplied separately to all methods; do not quote it verbatim.\n\n## Source\n\n- **Repository:** https://github.com/paperless-ngx/paperless-ngx\n- **Fixed source ref:** `126ec414a8b65158368653a2604ae58415e43103`\n- **Entry:** `src/documents/views.py:1834-1839`\n- **Inspection boundary:** `declared-entry`\n\nUse the source at the fixed ref and entry as the controlling evidence. Do not invent source facts or decide the result from policy alone.\n\n## Accepted policy\n\nA download must pass the owner-aware `view_document` check on the root document before serving any selected file version.\n\n## Question\n\nAt `DocumentViewSet.download` handler entry, can an authenticated user download a requested version document they own when its root document is owned by someone else and they lack an object view grant on that root?\n\n## Premises\n\nAssume all of the following at handler entry:\n\n- The authenticated caller has the required global document view permission.\n- The caller owns the requested version.\n- A different user owns the existing root document.\n- The caller has no object view grant on that root.\n- The documents exist.\n\n## Required response\n\nGive a source-grounded authorization assessment at the declared-entry boundary. Explicitly:\n\n1. Identify which object is checked by the relevant authorization logic.\n2. Identify which file object would be served if the request proceeds.\n3. Keep version ownership distinct from authorization on the root document.\n4. Explain how the fixed source relates to the accepted policy and the stated premises.\n5. State the conclusion only from the evidence available at the specified source entry; do not add facts from elsewhere in the repository.",
+    "toolCalls": [],
+    "tokens": {
+      "input": 616,
+      "output": 484,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "durationMs": 19779.207899999998,
+    "stopReason": "end_turn"
+  },
+  "promptSha256": "364b7254965eab74933f0a7db2ff7f8084cda213d5340ebbd79a1fe87b94a10b",
+  "actualCostUsd": null,
+  "createdAt": "2026-09-27T18:45:33.892Z"
+}

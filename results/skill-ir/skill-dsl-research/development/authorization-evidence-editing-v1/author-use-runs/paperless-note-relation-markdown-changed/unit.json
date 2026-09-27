@@ -1,0 +1,565 @@
+{
+  "unit": {
+    "id": "paperless-note-relation-markdown-changed",
+    "packageId": "paperless-note-relation",
+    "phase": "changed",
+    "representation": "markdown",
+    "input": {
+      "path": "results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/author-packages/paperless-note-relation/markdown/assessment-changed.json",
+      "sha256": "bfe21ff1fc8f0eefbeb72c9c83ce0d7d70f7c33f9e7e80db91cb6f5e2e82bbf0"
+    },
+    "markdown": {
+      "path": "results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/author-packages/paperless-note-relation/markdown/changed-final.md",
+      "sha256": "bcdf6834af6209d409ed7e1e0afa08d7bce440cf11eda17c81e3ff8c7861e0b1"
+    },
+    "scenarios": [
+      "change-granted",
+      "view-only"
+    ]
+  },
+  "configSha256": "cc7293be82ec419e2f35d8accdb4569eb8f2803346c683605f3090679ad82e78",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v6",
+    "assessmentMode": "explicit-v1",
+    "reasoningStrategy": "standard",
+    "researchIdentity": {
+      "arm": "markdown",
+      "instructionOrigin": "independent-author",
+      "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/author-packages/paperless-note-relation/markdown/changed-final.md",
+      "sha256": "bcdf6834af6209d409ed7e1e0afa08d7bce440cf11eda17c81e3ff8c7861e0b1",
+      "characters": 3767
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260927T205007059Z-421fe78b",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\author-use-runs\\paperless-note-relation-markdown-changed\\sessions\\20260927T205007059Z-421fe78b",
+    "createdAt": "2026-09-27T20:50:07.059Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-evidence-editing-v1\\author-packages\\paperless-note-relation\\markdown\\assessment-changed.json",
+    "taskId": "aj-use-paperless-note-create",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 138,
+        "declaration": 3767,
+        "publicAnalysis": 696,
+        "assessmentProgram": 1249,
+        "source": 34915,
+        "outputContract": 2949,
+        "total": 43864,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "aj-use-paperless-note-create",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "results": [
+        {
+          "obligationId": "scenario%3Achange-granted::entry%3Adeclared-entry",
+          "conclusion": "source_refuted",
+          "explanation": "Accepted policy: note creation requires all three stated global permissions plus object-level change_document authorization; object view alone would not suffice, while an object-level change grant does. The declared handler-entry premise (an assumption, not source or deployment proof) states that this authenticated caller has add_note, view_document, and change_document globally, has object view and change_document grants on the existing document, and is not its owner. Observed behavior: PaperlessNotePermissions requires those three global permissions for POST at src/documents/permissions.py:673-685. The handler binds request.user to currentUser and loads the document identified by pk; its earlier view check is at src/documents/views.py:17-22. For POST, it tests change_document with the owner-aware helper and returns forbidden only if that check fails at src/documents/views.py:37-46. The helper returns true for an unowned object, ownership, or a matching object permission; therefore non-ownership is not conclusive, and the declared object-level change grant satisfies the checker at src/documents/permissions.py:624-635. The forbidden branch is not taken, so execution reaches Note.objects.create at src/documents/views.py:48-52. Thus the accepted policy is satisfied and the source-visible result is allow.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The notes action accepts POST and enters the notes handler, where the caller is read from request.user.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1,
+                    "endLine": 9,
+                    "quote": "    @action(\n        methods=[\"get\", \"post\", \"delete\"],\n        detail=True,\n        permission_classes=[PaperlessNotePermissions],\n        pagination_class=None,\n        filter_backends=[],\n    )\n    def notes(self, request, pk=None):\n        currentUser = request.user"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The principal used by the authorization checks is currentUser, bound directly from request.user.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 8,
+                    "endLine": 9,
+                    "quote": "    def notes(self, request, pk=None):\n        currentUser = request.user"
+                  }
+                ]
+              },
+              {
+                "statement": "The protected existing document is loaded by the handler from Document objects using the supplied pk and retained as doc.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 10,
+                    "endLine": 16,
+                    "quote": "        try:\n            doc = (\n                Document.objects.select_related(\"owner\")\n                .prefetch_related(\"notes\")\n                .only(\"pk\", \"owner__id\")\n                .get(pk=pk)\n            )"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "For POST, the note permission class requires add_note, view_document, and change_document global permissions and checks them with request.user.has_perms.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 673,
+                    "endLine": 699,
+                    "quote": "class PaperlessNotePermissions(BasePermission):\n    \"\"\"\n    Permissions class that checks for model permissions for Notes.\n    \"\"\"\n\n    perms_map = {\n        \"OPTIONS\": [\"documents.view_note\", \"documents.view_document\"],\n        \"GET\": [\"documents.view_note\", \"documents.view_document\"],\n        \"POST\": [\n            \"documents.add_note\",\n            \"documents.view_document\",\n            \"documents.change_document\",\n        ],\n        \"DELETE\": [\n            \"documents.delete_note\",\n            \"documents.view_document\",\n            \"documents.change_document\",\n        ],\n    }\n\n    def has_permission(self, request, view):\n        if not request.user or (not request.user.is_authenticated):  # pragma: no cover\n            return False\n\n        perms = self.perms_map[request.method]\n\n        return request.user.has_perms(perms)"
+                  }
+                ]
+              },
+              {
+                "statement": "The decisive POST control checks owner-aware change_document authorization on doc and returns forbidden only when that check fails.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 37,
+                    "endLine": 46,
+                    "quote": "        elif request.method == \"POST\":\n            try:\n                if currentUser is not None and not has_perms_owner_aware(\n                    currentUser,\n                    \"change_document\",\n                    doc,\n                ):\n                    return HttpResponseForbidden(\n                        \"Insufficient permissions to create notes\",\n                    )"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "After the change_document check passes, the protected effect creates a Note associated with doc and currentUser.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 48,
+                    "endLine": 52,
+                    "quote": "                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],\n                    user=currentUser,\n                )"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The owner-aware helper authorizes when the document is unowned, owned by the caller, or the object-permission checker confirms the requested permission; consequently a matching object change grant can authorize a non-owner.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  }
+                ]
+              },
+              {
+                "statement": "Before method-specific POST handling, the handler checks owner-aware view_document authorization on doc and returns forbidden when it fails.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 17,
+                    "endLine": 22,
+                    "quote": "            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,\n                \"view_document\",\n                doc,\n            ):\n                return HttpResponseForbidden(\"Insufficient permissions to view notes\")"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        },
+        {
+          "obligationId": "scenario%3Aview-only::entry%3Adeclared-entry",
+          "conclusion": "source_refuted",
+          "explanation": "Accepted policy: note creation requires all three stated global permissions plus object-level change_document authorization; an object view grant alone would be insufficient, but document ownership can satisfy the required object control. The declared handler-entry premise (an assumption, not source or deployment proof) states that this authenticated caller has add_note, view_document, and change_document globally and owns the existing document. Observed behavior: PaperlessNotePermissions requires those three global permissions for POST at src/documents/permissions.py:673-685. The handler binds request.user to currentUser and loads the document identified by pk; its earlier view check is at src/documents/views.py:17-22. For POST, it tests change_document with the owner-aware helper and returns forbidden only if that check fails at src/documents/views.py:37-46. The helper treats obj.owner == user as sufficient independently of an explicit object permission at src/documents/permissions.py:624-635. Therefore the unchanged ownership premise satisfies the accepted policy's object-control alternative and the observed owner-aware check. The forbidden branch is not taken, so execution reaches Note.objects.create at src/documents/views.py:48-52. The scenario key does not alter the premise: this is an ownership-authorized case, not a case authorized merely by object view.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The notes action accepts POST and enters the notes handler, where the caller is read from request.user.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1,
+                    "endLine": 9,
+                    "quote": "    @action(\n        methods=[\"get\", \"post\", \"delete\"],\n        detail=True,\n        permission_classes=[PaperlessNotePermissions],\n        pagination_class=None,\n        filter_backends=[],\n    )\n    def notes(self, request, pk=None):\n        currentUser = request.user"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The principal used by the authorization checks is currentUser, bound directly from request.user.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 8,
+                    "endLine": 9,
+                    "quote": "    def notes(self, request, pk=None):\n        currentUser = request.user"
+                  }
+                ]
+              },
+              {
+                "statement": "The protected existing document is loaded by the handler from Document objects using the supplied pk and retained as doc.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 10,
+                    "endLine": 16,
+                    "quote": "        try:\n            doc = (\n                Document.objects.select_related(\"owner\")\n                .prefetch_related(\"notes\")\n                .only(\"pk\", \"owner__id\")\n                .get(pk=pk)\n            )"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "For POST, the note permission class requires add_note, view_document, and change_document global permissions and checks them with request.user.has_perms.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 673,
+                    "endLine": 699,
+                    "quote": "class PaperlessNotePermissions(BasePermission):\n    \"\"\"\n    Permissions class that checks for model permissions for Notes.\n    \"\"\"\n\n    perms_map = {\n        \"OPTIONS\": [\"documents.view_note\", \"documents.view_document\"],\n        \"GET\": [\"documents.view_note\", \"documents.view_document\"],\n        \"POST\": [\n            \"documents.add_note\",\n            \"documents.view_document\",\n            \"documents.change_document\",\n        ],\n        \"DELETE\": [\n            \"documents.delete_note\",\n            \"documents.view_document\",\n            \"documents.change_document\",\n        ],\n    }\n\n    def has_permission(self, request, view):\n        if not request.user or (not request.user.is_authenticated):  # pragma: no cover\n            return False\n\n        perms = self.perms_map[request.method]\n\n        return request.user.has_perms(perms)"
+                  }
+                ]
+              },
+              {
+                "statement": "The decisive POST control checks owner-aware change_document authorization on doc and returns forbidden only when that check fails.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 37,
+                    "endLine": 46,
+                    "quote": "        elif request.method == \"POST\":\n            try:\n                if currentUser is not None and not has_perms_owner_aware(\n                    currentUser,\n                    \"change_document\",\n                    doc,\n                ):\n                    return HttpResponseForbidden(\n                        \"Insufficient permissions to create notes\",\n                    )"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "After the change_document check passes, the protected effect creates a Note associated with doc and currentUser.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 48,
+                    "endLine": 52,
+                    "quote": "                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],\n                    user=currentUser,\n                )"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The owner-aware helper authorizes when the document is unowned, owned by the caller, or the object-permission checker confirms the requested permission; document ownership therefore satisfies this object-level check.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  }
+                ]
+              },
+              {
+                "statement": "Before method-specific POST handling, the handler checks owner-aware view_document authorization on doc and returns forbidden when it fails.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 17,
+                    "endLine": 22,
+                    "quote": "            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,\n                \"view_document\",\n                doc,\n            ):\n                return HttpResponseForbidden(\"Insufficient permissions to view notes\")"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Achange-granted::entry%3Adeclared-entry",
+          "explanation": "Accepted policy: note creation requires all three stated global permissions plus object-level change_document authorization; object view alone would not suffice, while an object-level change grant does. The declared handler-entry premise (an assumption, not source or deployment proof) states that this authenticated caller has add_note, view_document, and change_document globally, has object view and change_document grants on the existing document, and is not its owner. Observed behavior: PaperlessNotePermissions requires those three global permissions for POST at src/documents/permissions.py:673-685. The handler binds request.user to currentUser and loads the document identified by pk; its earlier view check is at src/documents/views.py:17-22. For POST, it tests change_document with the owner-aware helper and returns forbidden only if that check fails at src/documents/views.py:37-46. The helper returns true for an unowned object, ownership, or a matching object permission; therefore non-ownership is not conclusive, and the declared object-level change grant satisfies the checker at src/documents/permissions.py:624-635. The forbidden branch is not taken, so execution reaches Note.objects.create at src/documents/views.py:48-52. Thus the accepted policy is satisfied and the source-visible result is allow.",
+          "facts": [
+            {
+              "id": "change-entry",
+              "kind": "entry",
+              "statement": "The notes action accepts POST and enters the notes handler, where the caller is read from request.user.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 1,
+                  "endLine": 9
+                }
+              ]
+            },
+            {
+              "id": "change-principal-binding",
+              "kind": "binding",
+              "statement": "The principal used by the authorization checks is currentUser, bound directly from request.user.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 8,
+                  "endLine": 9
+                }
+              ]
+            },
+            {
+              "id": "change-resource-binding",
+              "kind": "binding",
+              "statement": "The protected existing document is loaded by the handler from Document objects using the supplied pk and retained as doc.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 10,
+                  "endLine": 16
+                }
+              ]
+            },
+            {
+              "id": "change-global-control",
+              "kind": "control",
+              "statement": "For POST, the note permission class requires add_note, view_document, and change_document global permissions and checks them with request.user.has_perms.",
+              "citations": [
+                {
+                  "sourceId": "src-81f6400744c9c9e9",
+                  "startLine": 673,
+                  "endLine": 699
+                }
+              ]
+            },
+            {
+              "id": "change-view-condition",
+              "kind": "condition",
+              "statement": "Before method-specific POST handling, the handler checks owner-aware view_document authorization on doc and returns forbidden when it fails.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 17,
+                  "endLine": 22
+                }
+              ]
+            },
+            {
+              "id": "change-post-control",
+              "kind": "control",
+              "statement": "The decisive POST control checks owner-aware change_document authorization on doc and returns forbidden only when that check fails.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 37,
+                  "endLine": 46
+                }
+              ]
+            },
+            {
+              "id": "change-owner-aware-condition",
+              "kind": "condition",
+              "statement": "The owner-aware helper authorizes when the document is unowned, owned by the caller, or the object-permission checker confirms the requested permission; consequently a matching object change grant can authorize a non-owner.",
+              "citations": [
+                {
+                  "sourceId": "src-81f6400744c9c9e9",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "change-effect",
+              "kind": "effect",
+              "statement": "After the change_document check passes, the protected effect creates a Note associated with doc and currentUser.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 48,
+                  "endLine": 52
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "allow"
+          },
+          "branchResults": []
+        },
+        {
+          "obligationId": "scenario%3Aview-only::entry%3Adeclared-entry",
+          "explanation": "Accepted policy: note creation requires all three stated global permissions plus object-level change_document authorization; an object view grant alone would be insufficient, but document ownership can satisfy the required object control. The declared handler-entry premise (an assumption, not source or deployment proof) states that this authenticated caller has add_note, view_document, and change_document globally and owns the existing document. Observed behavior: PaperlessNotePermissions requires those three global permissions for POST at src/documents/permissions.py:673-685. The handler binds request.user to currentUser and loads the document identified by pk; its earlier view check is at src/documents/views.py:17-22. For POST, it tests change_document with the owner-aware helper and returns forbidden only if that check fails at src/documents/views.py:37-46. The helper treats obj.owner == user as sufficient independently of an explicit object permission at src/documents/permissions.py:624-635. Therefore the unchanged ownership premise satisfies the accepted policy's object-control alternative and the observed owner-aware check. The forbidden branch is not taken, so execution reaches Note.objects.create at src/documents/views.py:48-52. The scenario key does not alter the premise: this is an ownership-authorized case, not a case authorized merely by object view.",
+          "facts": [
+            {
+              "id": "owner-entry",
+              "kind": "entry",
+              "statement": "The notes action accepts POST and enters the notes handler, where the caller is read from request.user.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 1,
+                  "endLine": 9
+                }
+              ]
+            },
+            {
+              "id": "owner-principal-binding",
+              "kind": "binding",
+              "statement": "The principal used by the authorization checks is currentUser, bound directly from request.user.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 8,
+                  "endLine": 9
+                }
+              ]
+            },
+            {
+              "id": "owner-resource-binding",
+              "kind": "binding",
+              "statement": "The protected existing document is loaded by the handler from Document objects using the supplied pk and retained as doc.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 10,
+                  "endLine": 16
+                }
+              ]
+            },
+            {
+              "id": "owner-global-control",
+              "kind": "control",
+              "statement": "For POST, the note permission class requires add_note, view_document, and change_document global permissions and checks them with request.user.has_perms.",
+              "citations": [
+                {
+                  "sourceId": "src-81f6400744c9c9e9",
+                  "startLine": 673,
+                  "endLine": 699
+                }
+              ]
+            },
+            {
+              "id": "owner-view-condition",
+              "kind": "condition",
+              "statement": "Before method-specific POST handling, the handler checks owner-aware view_document authorization on doc and returns forbidden when it fails.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 17,
+                  "endLine": 22
+                }
+              ]
+            },
+            {
+              "id": "owner-post-control",
+              "kind": "control",
+              "statement": "The decisive POST control checks owner-aware change_document authorization on doc and returns forbidden only when that check fails.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 37,
+                  "endLine": 46
+                }
+              ]
+            },
+            {
+              "id": "owner-aware-condition",
+              "kind": "condition",
+              "statement": "The owner-aware helper authorizes when the document is unowned, owned by the caller, or the object-permission checker confirms the requested permission; document ownership therefore satisfies this object-level check.",
+              "citations": [
+                {
+                  "sourceId": "src-81f6400744c9c9e9",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "owner-effect",
+              "kind": "effect",
+              "statement": "After the change_document check passes, the protected effect creates a Note associated with doc and currentUser.",
+              "citations": [
+                {
+                  "sourceId": "src-dbf91e921bfbd270",
+                  "startLine": 48,
+                  "endLine": 52
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "allow"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "normalizerVersion": "authorization-wire-normalizer/v6",
+    "relationCoverage": [],
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Achange-granted::entry%3Adeclared-entry",
+        "expectation": "allow",
+        "observed": "allow",
+        "derivedConclusion": "source_refuted"
+      },
+      {
+        "obligationId": "scenario%3Aview-only::entry%3Adeclared-entry",
+        "expectation": "allow",
+        "observed": "allow",
+        "derivedConclusion": "source_refuted"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 10344,
+        "output": 1965,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

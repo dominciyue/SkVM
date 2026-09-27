@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "source-authorization-assessment/v0",
+  "taskId": "paperless-version-download-root",
+  "request": "At DocumentViewSet.download handler entry, can an authenticated user download a requested version document they own when its root document is owned by someone else and they lack an object view grant on that root? Assume the user has the required global view permission and the documents exist.",
+  "repository": "https://github.com/paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceMode": "fixed-context",
+  "policySources": [
+    {
+      "id": "policy:document-root-view",
+      "kind": "explicit-task-requirement",
+      "text": "A download must pass the owner-aware view_document check on the root document before serving any selected file version.",
+      "location": "src/documents/views.py:1401-1448; src/documents/permissions.py:624-635",
+      "revision": "126ec414a8b65158368653a2604ae58415e43103",
+      "acceptance": {
+        "status": "accepted",
+        "actorRole": "task-author",
+        "reason": "Public fixed-ref source and task-author bounded requirement."
+      }
+    }
+  ],
+  "principals": [
+    {
+      "id": "principal:version-owner",
+      "role": "authenticated user who owns the requested version but not the root document",
+      "description": "Author facts: [\"The caller has global documents.view_document permission.\",\"The caller has no object view_document grant on the root.\"]",
+      "startingCapabilities": []
+    }
+  ],
+  "resources": [
+    {
+      "id": "resource:rooted-version",
+      "type": "document version and root",
+      "description": "Author facts: [\"The requested version and its root both exist.\",\"The version is caller-owned; the root has another owner and no caller view grant.\"]"
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry:download",
+      "name": "DocumentViewSet.download",
+      "locations": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1834,
+          "endLine": 1839
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "id": "scenario:version-owner-no-root-view",
+      "principalId": "principal:version-owner",
+      "resourceId": "resource:rooted-version",
+      "relation": "owns-version-not-root",
+      "operation": "download requested document version",
+      "expectation": "deny",
+      "conditions": [],
+      "policySourceId": "policy:document-root-view",
+      "entryIds": [
+        "entry:download"
+      ]
+    }
+  ],
+  "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+  "requiredAnalysis": [
+    "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+    "identify the principal, operation, protected resource, decisive control, and effect",
+    "return source_supported_failure, source_refuted, or unknown with exact supplied-source locations"
+  ],
+  "constraints": [
+    "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+    "Use only the supplied fixed-ref case inputs.",
+    "Do not execute the target project or infer deployment facts."
+  ]
+}
