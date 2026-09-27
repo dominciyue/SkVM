@@ -37,3 +37,47 @@ test("prepare checks without writing, then publishes a runnable ordinary input a
     expect(stderr.at(-1)).toContain("exists")
   } finally { await rm(root, { recursive: true, force: true }) }
 })
+
+test("prepare accepts one optional model dependency proposal through the same bounded validator", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "authorization-proposal-cli-"))
+  try {
+    await mkdir(path.join(root, "project", "src"), { recursive: true })
+    await writeFile(path.join(root, "project", "src", "entry.ts"), "export function update() {\n  return authorize()\n}\n", "utf8")
+    await writeFile(path.join(root, "project", "src", "guard.ts"), "export function authorize() {\n  return true\n}\n", "utf8")
+    const task = {
+      schemaVersion: "source-authorization-assessment/v0", taskId: "proposal-cli", request: "Assess update.", repository: "https://example.test/project", sourceRef: "fixed-ref", sourceMode: "fixed-context",
+      policySources: [{ id: "policy", kind: "task-requirement", text: "Only owners update.", location: "brief#/policy", revision: "v1", acceptance: { status: "accepted", actorRole: "author", reason: "Task requirement" } }],
+      principals: [{ id: "member", role: "member", description: "Caller", startingCapabilities: [] }], resources: [{ id: "record", type: "record", description: "Target" }],
+      entries: [{ id: "update", name: "update", locations: [{ path: "src/entry.ts", startLine: 1, endLine: 3 }] }],
+      obligations: [{ id: "scenario", principalId: "member", resourceId: "record", relation: "non-owner", operation: "update", expectation: "deny", conditions: [], policySourceId: "policy", entryIds: ["update"] }],
+      scopeAssurance: "Declared entry only.", requiredAnalysis: ["Trace the control."], constraints: ["Do not execute target."],
+    }
+    const inputFile = path.join(root, "assessment.json")
+    await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-assessment-input/v1", sourceIdentity: { repository: task.repository, sourceRef: task.sourceRef }, sourceRoot: "project", sources: ["src/entry.ts"], task }), "utf8")
+    const requestFile = path.join(root, "request.json")
+    await writeFile(requestFile, JSON.stringify({ schemaVersion: "authorization-evidence-request/v1", sourceRoot: "project", allowedFiles: ["src/entry.ts", "src/guard.ts"], entries: [{ entryKey: "update", path: "src/entry.ts", startLine: 1, endLine: 3 }], dependencies: [], limits: { maxFiles: 2, maxBytes: 500, maxDepth: 2 } }), "utf8")
+    let calls = 0
+    const out = path.join(root, "prepared")
+    const code = await runAuthorizationCli(["prepare", `--input=${inputFile}`, `--request=${requestFile}`, `--out=${out}`, "--proposal-model=test/mock"], {
+      stdout: () => {}, stderr: () => {}, providerFactory: () => ({ name: "mock", complete: async () => {
+        calls++
+        return { text: JSON.stringify({ dependencies: [{ id: "guard", from: "update", path: "src/guard.ts", startLine: 1, endLine: 3, match: "function authorize", reason: "control" }] }), toolCalls: [], tokens: { input: 10, output: 10, cacheRead: 0, cacheWrite: 0 }, durationMs: 1, stopReason: "end_turn" }
+      }, completeWithToolResults: async () => { throw new Error("unexpected second call") } }),
+    })
+    expect(code).toBe(0)
+    expect(calls).toBe(1)
+    const report = JSON.parse(await readFile(path.join(out, "report.json"), "utf8"))
+    expect(report.status).toBe("ready")
+    expect(report.included.some((item: { origins: string[] }) => item.origins.includes("model-proposal:guard"))).toBe(true)
+    expect(await readFile(path.join(out, "proposal.json"), "utf8")).toContain('"model": "test/mock"')
+    const escapedOut = path.join(root, "escaped")
+    const escaped = await runAuthorizationCli(["prepare", `--input=${inputFile}`, `--request=${requestFile}`, `--out=${escapedOut}`, "--proposal-model=test/mock"], {
+      stdout: () => {}, stderr: () => {}, providerFactory: () => ({ name: "mock", complete: async () => ({
+        text: JSON.stringify({ dependencies: [{ id: "escape", from: "update", path: "../secret.ts", startLine: 1, endLine: 1, reason: "control" }] }),
+        toolCalls: [], tokens: { input: 10, output: 10, cacheRead: 0, cacheWrite: 0 }, durationMs: 1, stopReason: "end_turn",
+      }), completeWithToolResults: async () => { throw new Error("unexpected second call") } }),
+    })
+    expect(escaped).toBe(1)
+    await expect(stat(escapedOut)).rejects.toThrow()
+  } finally { await rm(root, { recursive: true, force: true }) }
+})

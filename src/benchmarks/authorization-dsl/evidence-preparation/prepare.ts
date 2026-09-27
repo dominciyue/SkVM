@@ -120,6 +120,7 @@ export async function prepareAuthorizationEvidence(input: {
     const origin = resolveOrigin(dependency.from)
     if (!origin) { report.gaps.push({ id: dependency.id, entryKey: "$", reason: "unresolved-or-cyclic-parent", attemptedPath: dependency.path }); continue }
     if (origin.depth + 1 > request.limits.maxDepth) { report.gaps.push({ id: dependency.id, entryKey: origin.entryKey, reason: "depth-budget", attemptedPath: dependency.path }); continue }
+    if (dependency.unresolvedReason) { report.gaps.push({ id: dependency.id, entryKey: origin.entryKey, reason: dependency.unresolvedReason, attemptedPath: dependency.path }); continue }
     if (dependency.startLine === undefined || dependency.endLine === undefined) { report.gaps.push({ id: dependency.id, entryKey: origin.entryKey, reason: "range-required", attemptedPath: dependency.path }); continue }
     if (dependency.match) {
       const located = await locateAuthorizationSource({ root: sourceRoot, file: dependency.path, match: dependency.match })

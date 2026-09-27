@@ -142,7 +142,7 @@ test("records unresolved parent, cycle, depth and explicit-range gaps without in
       dependencies: [
         { id: "cycle-a", from: "cycle-b", path: "src/helper.ts", startLine: 1, endLine: 1, reason: "control", basis: "author" },
         { id: "cycle-b", from: "cycle-a", path: "src/helper.ts", startLine: 1, endLine: 1, reason: "control", basis: "author" },
-        { id: "dynamic", from: "archive", path: "src/helper.ts", reason: "control", basis: "author" },
+        { id: "dynamic", from: "archive", path: "src/helper.ts", reason: "control", basis: "author", unresolvedReason: "dynamic-dispatch" },
         { id: "direct", from: "archive", path: "src/helper.ts", startLine: 1, endLine: 1, reason: "control", basis: "author" },
         { id: "too-deep", from: "direct", path: "src/helper.ts", startLine: 1, endLine: 1, reason: "effect", basis: "author" },
       ], limits: { maxFiles: 12, maxBytes: 65_536, maxDepth: 1 },
@@ -150,7 +150,7 @@ test("records unresolved parent, cycle, depth and explicit-range gaps without in
     expect(result.report.status).toBe("partial")
     expect(result.report.gaps.map(gap => [gap.id, gap.reason])).toEqual([
       ["cycle-a", "unresolved-or-cyclic-parent"], ["cycle-b", "unresolved-or-cyclic-parent"],
-      ["dynamic", "range-required"], ["too-deep", "depth-budget"],
+      ["dynamic", "dynamic-dispatch"], ["too-deep", "depth-budget"],
     ])
     expect(result.snapshots.find(item => item.path === "src/helper.ts")?.content).toBe("guard\n")
   } finally { await rm(f.root, { recursive: true, force: true }) }

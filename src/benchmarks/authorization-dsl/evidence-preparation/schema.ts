@@ -13,7 +13,8 @@ export const AuthorizationEvidenceRequestSchema = z.object({
     id: Text, from: Text, path: Text, startLine: Line.optional(), endLine: Line.optional(), match: Text.optional(),
     reason: z.enum(["identity", "resource-binding", "control", "effect", "other"]),
     basis: z.enum(["author", "locator", "model-proposal"]),
-  }).strict()),
+    unresolvedReason: z.enum(["dynamic-dispatch", "external-middleware", "missing-symbol"]).optional(),
+  }).strict().refine(value => !value.unresolvedReason || (value.startLine === undefined && value.endLine === undefined && value.match === undefined), "unresolved dependency must not carry a source range or literal match")),
   limits: z.object({ maxFiles: z.number().int().min(1).max(1_000), maxBytes: z.number().int().min(1).max(10_485_760), maxDepth: z.number().int().min(0).max(20) }).strict(),
 }).strict()
 

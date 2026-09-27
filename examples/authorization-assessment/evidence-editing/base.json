@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "synthetic-evidence-editing",
+  "request": "At archiveRecord entry, assess an authenticated owner archiving their record and an authenticated supervisor archiving another owner's record. Treat the accepted policy separately from source behavior.",
+  "repository": "https://example.test/evidence-editing/records",
+  "sourceRef": "synthetic-evidence-editing-v1",
+  "sourceRoot": "project",
+  "sources": ["src/record.ts"],
+  "policies": {
+    "archive": {
+      "text": "Only the authenticated record owner may archive a record; supervisor status alone is insufficient.",
+      "location": "base.json#/policies/archive",
+      "revision": "owner-only-v1",
+      "acceptance": "accepted",
+      "reason": "The task author supplied this rule independently of the example source."
+    }
+  },
+  "principals": {
+    "member": {
+      "role": "authenticated member",
+      "facts": ["The actor is authenticated at the declared handler entry."],
+      "capabilities": ["may invoke the declared handler in the stated scenarios"]
+    }
+  },
+  "resources": {
+    "record": {
+      "type": "existing record",
+      "facts": ["The record exists and has not yet been archived."]
+    }
+  },
+  "entries": {
+    "archive": {
+      "name": "archiveRecord",
+      "locations": [{ "path": "src/record.ts", "startLine": 5, "endLine": 9 }]
+    }
+  },
+  "scenarios": {
+    "owner": {
+      "principal": "member",
+      "resource": "record",
+      "policy": "archive",
+      "entries": ["archive"],
+      "relation": "actor-is-record-owner",
+      "operation": "archive own record",
+      "expectation": "allow"
+    },
+    "supervisor-foreign": {
+      "principal": "member",
+      "resource": "record",
+      "policy": "archive",
+      "entries": ["archive"],
+      "relation": "actor-is-supervisor-but-not-owner",
+      "operation": "archive another owner's record",
+      "expectation": "deny"
+    }
+  },
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "For each declared handler-entry scenario, identify the source control and protected effect with line citations. Keep accepted policy and observed source behavior separate. Do not claim an actual deployment result.",
+    "scenarios": {
+      "owner": {
+        "boundary": "declared-entry",
+        "premises": [{ "id": "owner-relation", "statement": "At archiveRecord entry, the authenticated actor owns the existing record.", "atEntry": "archive", "provenance": "task-assumption" }],
+        "requestedBranches": [],
+        "requiredResponseDetails": ["State the result at the declared handler entry."]
+      },
+      "supervisor-foreign": {
+        "boundary": "declared-entry",
+        "premises": [{ "id": "supervisor-relation", "statement": "At archiveRecord entry, the authenticated actor is a supervisor and is not the existing record's owner.", "atEntry": "archive", "provenance": "task-assumption" }],
+        "requestedBranches": [],
+        "requiredResponseDetails": ["Distinguish the policy result from the source result."]
+      }
+    }
+  }
+}
