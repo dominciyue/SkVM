@@ -6,6 +6,8 @@ import type { LLMProvider, LLMResponse } from "../../providers/types.ts"
 import type { AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
 import { buildAuthorizationSourceCatalog } from "./inputs.ts"
 import { loadLocalAuthorizationInput } from "./local-input.ts"
+import { assessmentConditionId } from "../../task-dsl/authorization/assessment-contract.ts"
+import { compareAuthorizationInput } from "./change-report.ts"
 import {
   checkLocalAuthorizationInput,
   executeLocalAuthorizationRun,
@@ -161,6 +163,65 @@ function dependencies(
     providerFactory: async () => providerFor(inputPath, calls),
   }
 }
+
+it("sidecar selects explicit v6 by default while an explicit legacy selection keeps the same public paragraph", async () => {
+  const fixture = await makeFixture()
+  const input: any = JSON.parse(await readFile(fixture.inputPath, "utf8"))
+  const conditionId = assessmentConditionId("deny-update", "authenticated")
+  input.analysisContract = { schemaVersion: "authorization-analysis-contract/v1", publicInstruction: "COMMON PUBLIC PARAGRAPH FOR BOTH ARMS.", scenarios: [{ obligationId: "deny-update", boundary: "declared-entry", premises: [{ id: "caller", statement: "Caller is authenticated at update entry.", atEntryId: "update", provenance: "task-assumption" }], requestedBranches: [{ id: "signed-out", kind: "counterfactual", assumptions: [{ conditionId, value: "false" }] }], requiredResponseDetails: [] }] }
+  await writeFile(fixture.inputPath, `${JSON.stringify(input, null, 2)}\n`, "utf8")
+  const explicit = await checkLocalAuthorizationInput(fixture.inputPath, "B", "plain")
+  const legacy = await checkLocalAuthorizationInput(fixture.inputPath, "B", "plain", "v4", "standard", "legacy")
+  expect(explicit.status).toBe("valid")
+  expect(explicit.assessmentMode).toBe("explicit-v1")
+  expect(explicit.wireVersion).toBe("source-authorization-assessment-wire/v6")
+  expect(legacy.status).toBe("valid")
+  expect(legacy.assessmentMode).toBe("legacy")
+  for (const report of [explicit, legacy]) expect(report.preview?.split("COMMON PUBLIC PARAGRAPH FOR BOTH ARMS.")).toHaveLength(2)
+  expect(explicit.preview).toContain("Explicit assessment program")
+  expect(legacy.preview).not.toContain("Explicit assessment program")
+  const mismatched = await checkLocalAuthorizationInput(fixture.inputPath, "B", "plain", "v4", "standard", "explicit-v1")
+  expect(mismatched.status).toBe("invalid")
+  expect(mismatched.diagnostics[0]?.path).toBe("wireVersion")
+})
+
+it("explicit v6 survives run and inspect; changing a premise requires review", async () => {
+  const fixture = await makeFixture()
+  const input: any = JSON.parse(await readFile(fixture.inputPath, "utf8"))
+  const conditionId = assessmentConditionId("deny-update", "authenticated")
+  input.analysisContract = { schemaVersion: "authorization-analysis-contract/v1", publicInstruction: "CURRENT PUBLIC REQUIREMENTS.", scenarios: [{ obligationId: "deny-update", boundary: "declared-entry", premises: [{ id: "caller", statement: "The caller is authenticated at update entry.", atEntryId: "update", provenance: "task-assumption" }], requestedBranches: [{ id: "signed-out", kind: "counterfactual", assumptions: [{ conditionId, value: "false" }] }], requiredResponseDetails: [] }] }
+  await writeFile(fixture.inputPath, `${JSON.stringify(input, null, 2)}\n`, "utf8")
+  const loaded = await loadLocalAuthorizationInput(fixture.inputPath)
+  if (loaded.status !== "valid") throw Error("fixture")
+  const catalog = buildAuthorizationSourceCatalog(loaded.sourceBundle)
+  if (!catalog.success) throw Error("catalog")
+  const sourceId = catalog.catalog.sources[0]!.sourceId
+  const branchId = loaded.assessmentProgram!.entries[0]!.requestedBranches[0]!.id
+  const wire = { results: [{ obligationId: "deny-update::update", decision: { kind: "observed", observed: "deny" }, explanation: "The owner comparison denies the write.", facts: ["entry", "binding", "control", "effect", "condition"].map((kind, i) => ({ id: `f${i}`, kind, statement: `${kind} evidence`, citations: [{ sourceId, startLine: i === 4 ? 2 : i + 1, endLine: i === 4 ? 2 : i + 1 }] })), decisiveMissingFacts: [], suggestedObservations: [], branchResults: [{ id: branchId, assumptions: [{ conditionId, value: "false" }], effect: "blocked", explanation: "The branch cannot write.", factIds: ["f2"], missingFacts: [] }] }] }
+  let calls = 0
+  const report = await executeLocalAuthorizationRun({ inputFile: fixture.inputPath, model: "mock/v6", outRoot: fixture.outRoot, method: "plain", providerFactory: () => ({ name: "v6-mock", async complete() { calls++; return { text: "", toolCalls: [{ id: "one", name: "submit_authorization_result", arguments: wire }], tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 1, stopReason: "tool_use" } }, async completeWithToolResults() { throw Error("no") } }) })
+  expect(report.status).toBe("completed")
+  if (!("sessionPath" in report)) return
+  expect(report.assessmentMode).toBe("explicit-v1")
+  expect(report.normalizerVersion).toBe("authorization-wire-normalizer/v6")
+  expect(report.observedDecisions).toHaveLength(1)
+  const inspected = await inspectLocalAuthorizationOutput(report.sessionPath)
+  expect(inspected).toEqual(report)
+  expect(calls).toBe(1)
+  const same = await compareAuthorizationInput(report.sessionPath, fixture.inputPath)
+  expect(same.status).toBe("current")
+  input.analysisContract.scenarios[0].premises[0].statement = "The caller is a different stated principal at entry."
+  await writeFile(fixture.inputPath, `${JSON.stringify(input, null, 2)}\n`, "utf8")
+  const changed = await compareAuthorizationInput(report.sessionPath, fixture.inputPath)
+  expect(changed.status).toBe("needs-review")
+  expect(changed.reasons).toContain("assessment-contract-changed")
+  expect(calls).toBe(1)
+  const descriptorPath = path.join(report.sessionPath, "session.json")
+  const descriptor = JSON.parse(await readFile(descriptorPath, "utf8"))
+  descriptor.assessmentMode = "legacy"
+  await writeFile(descriptorPath, `${JSON.stringify(descriptor, null, 2)}\n`, "utf8")
+  expect(inspectLocalAuthorizationOutput(report.sessionPath)).rejects.toThrow("identity")
+})
 
 describe("local authorization runner", () => {
   it("rejects unknown reasoning before provider creation and persists focused prompt identity", async () => {

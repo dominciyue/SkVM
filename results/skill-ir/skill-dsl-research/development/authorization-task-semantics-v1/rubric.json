@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "authorization-ai-rubric/v1",
+  "frozenBeforeGeneration": true,
+  "unitOfAnalysis": "one fixed source case and declared scenario, not an additional independent case for a repeat",
+  "primaryFullRule": "A full answer correctly decides the current scenario at its declared boundary, supports the decisive control and protected effect with supplied source, answers every explicitly requested counterfactual with a source-supported or justified unknown effect, and includes the publicly required response details. Logically equivalent wording counts.",
+  "dimensions": [
+    {"id": "current-decision", "values": ["correct", "incorrect", "justified-unknown", "over-abstention", "unscorable"], "basis": "Current scenario only, including declared-entry versus supplied-path versus deployment boundary."},
+    {"id": "necessary-control-evidence", "values": ["supported", "partial", "unsupported", "missing"], "basis": "Decisive authorization control, route order, protected effect, and exact supplied-source locations; citations alone do not establish semantics."},
+    {"id": "requested-branches", "values": ["complete-correct", "complete-with-error", "partial", "missing", "not-requested"], "basis": "Only the branches listed in public requirements; a branch may reasonably be unknown when its decisive fact is unavailable."},
+    {"id": "required-response-details", "values": ["complete", "partial", "missing", "none-requested"], "basis": "Only details publicly requested for that case."},
+    {"id": "policy-label-consistency", "values": ["consistent", "inconsistent", "unknown-appropriate", "unscorable"], "basis": "Compare observed implementation behavior against authored policy; do not accept a schema label without source-supported behavior."},
+    {"id": "extra-unrequested-detail", "values": ["none", "accurate", "inaccurate"], "basis": "Reported separately; missing unrequested details cannot lower primaryFullRule."},
+    {"id": "completion", "values": ["first-answer", "one-repair", "dispatch-unknown", "protocol-invalid", "failed"], "basis": "Keep first delivery and every actual attempt, fallback, and repair in accounting."}
+  ],
+  "specialChecks": [
+    "For owui-text and gitea-lock, a correct observed denial paired with source_supported_failure is a label inconsistency.",
+    "For fastapi-superuser-read, a stated current_user handler-entry premise must not be turned into a demand to prove cropped-out dependency wiring; the supplied-path variant separately tests that wiring limit.",
+    "For owui-header, a deployment conclusion needs deployment facts; source-visible application branches and any requested denial/status behavior still need explicit answers.",
+    "For gitea-assignee, token scope and repository permission are distinct; assess both requested permission-true branches."
+  ],
+  "blindEvaluation": "Generate the complete first block before reading evaluator answers or scoring. Reconcile all dispatch attempts before calculating denominators."
+}

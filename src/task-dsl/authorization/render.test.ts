@@ -1,6 +1,8 @@
 import { describe, expect, it } from "bun:test"
 import { compileAuthorizationTask } from "./semantics.ts"
 import { compileConditionAnalysisRequest } from "./conditions.ts"
+import { compileAuthorizationAssessmentProgram } from "./assessment-program.ts"
+import { assessmentConditionId } from "./assessment-contract.ts"
 import {
   measureAuthorizationPromptCharacters,
   renderAuthorizationTask,
@@ -61,6 +63,26 @@ const task: AuthorizationTaskV0 = {
   ],
   constraints: ["Use only the fixed source context.", "Do not execute or modify the target."],
 }
+
+const explicitProgram = compileAuthorizationAssessmentProgram(task, { schemaVersion: "authorization-analysis-contract/v1", scenarios: [{ obligationId: "deny-cross-team-delete", boundary: "declared-entry", premises: [{ id: "caller", statement: "Caller is the stated analyst at entry.", atEntryId: "delete-report", provenance: "task-assumption" }], requestedBranches: [{ id: "signed-out", kind: "counterfactual", assumptions: [{ conditionId: assessmentConditionId("deny-cross-team-delete", "authenticated"), value: "false" }] }], requiredResponseDetails: ["State the response status when visible."] }] }).program
+
+it("renders one shared public paragraph and a bounded explicit program for DSL and independent Markdown", () => {
+  const compiled = compileAuthorizationTask(task)
+  const common = "COMMON PUBLIC REQUIREMENTS: decide the stated entry and requested branch."
+  const options = { wireVersion: "v6" as const, assessmentProgram: explicitProgram, publicRequirementsText: common }
+  const dsl = renderAuthorizationTask(compiled, "B", undefined, undefined, options)
+  const markdown = renderAuthorizationTask(compiled, "B", undefined, undefined, { ...options, researchInstructions: { instructions: "Independently authored task instructions.", instructionOrigin: "independent-author" as const, instructionPath: "author.md" } })
+  for (const rendered of [dsl, markdown]) {
+    expect(rendered.sections.publicAnalysis).toBe(common)
+    expect(rendered.prompt.split(common)).toHaveLength(2)
+    expect(rendered.prompt).toContain("Caller is the stated analyst at entry.")
+    expect(rendered.prompt).toContain("counterfactual")
+    expect(rendered.prompt).toContain("branchResults")
+    expect(rendered.prompt.split("<SOURCE_CONTEXT_INSERTED_BY_HOST>")).toHaveLength(2)
+  }
+  expect(markdown.sections.declaration).toBe("Independently authored task instructions.")
+  expect(() => renderAuthorizationTask(compiled, "B", undefined, undefined, { ...options, reasoningStrategy: "control-binding-v1" })).toThrow()
+})
 
 describe("renderAuthorizationTask", () => {
   it("adds the same bounded reasoning questions to DSL and independent Markdown only when selected", () => {

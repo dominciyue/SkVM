@@ -141,6 +141,10 @@
         "description": "Additional author constraint."
       },
       "description": "Optional constraints appended to the bounded source-visible assessment constraints."
+    },
+    "analysisContract": {
+      "allOf": [{ "$ref": "#/definitions/analysisContract" }],
+      "description": "Optional explicit task boundary, accepted entry premises, and requested counterfactuals. Runtime validates references and repeated assignments."
     }
   },
   "required": [
@@ -410,6 +414,61 @@
         "names"
       ],
       "additionalProperties": false
+    },
+    "analysisContract": {
+      "type": "object",
+      "description": "Versioned author task semantics, separate from source and deployment proof.",
+      "properties": {
+        "schemaVersion": { "type": "string", "const": "authorization-analysis-contract/v1", "description": "Exact contract version." },
+        "publicInstruction": { "allOf": [{ "$ref": "#/definitions/text" }], "description": "Optional public instruction shown once for all comparison arms." },
+        "scenarios": {
+          "type": "object", "minProperties": 1,
+          "propertyNames": { "$ref": "#/definitions/key" },
+          "additionalProperties": { "$ref": "#/definitions/assessmentScenario" },
+          "description": "Author scenario names; runtime binds them to declared obligations."
+        }
+      },
+      "required": ["schemaVersion", "scenarios"],
+      "additionalProperties": false
+    },
+    "assessmentScenario": {
+      "type": "object",
+      "description": "Boundary and bounded analysis requests for one declared scenario.",
+      "properties": {
+        "boundary": { "type": "string", "enum": ["declared-entry", "supplied-path", "deployment"], "description": "Question boundary; deployment facts are never invented." },
+        "premises": { "type": "array", "items": { "$ref": "#/definitions/assessmentPremise" }, "description": "Accepted question assumptions at named entries, not source citations." },
+        "requestedBranches": { "type": "array", "maxItems": 12, "items": { "$ref": "#/definitions/assessmentBranch" }, "description": "Only explicitly requested counterfactual combinations." },
+        "requiredResponseDetails": { "type": "array", "items": { "$ref": "#/definitions/text" }, "description": "Publicly requested response details; may be empty." }
+      },
+      "required": ["boundary", "premises", "requestedBranches", "requiredResponseDetails"],
+      "additionalProperties": false
+    },
+    "assessmentPremise": {
+      "type": "object", "description": "Entry-local task assumption.",
+      "properties": {
+        "id": { "allOf": [{ "$ref": "#/definitions/key" }], "description": "Stable premise name within the scenario." },
+        "statement": { "allOf": [{ "$ref": "#/definitions/text" }], "description": "Assumed fact at the named entry." },
+        "atEntry": { "allOf": [{ "$ref": "#/definitions/key" }], "description": "Declared entry name; runtime checks scenario membership." },
+        "provenance": { "type": "string", "const": "task-assumption", "description": "A question assumption, never a source citation." }
+      },
+      "required": ["id", "statement", "atEntry", "provenance"], "additionalProperties": false
+    },
+    "assessmentBranch": {
+      "type": "object", "description": "One author-requested counterfactual branch, without an expected effect.",
+      "properties": {
+        "id": { "allOf": [{ "$ref": "#/definitions/key" }], "description": "Branch name unique within the scenario." },
+        "kind": { "type": "string", "const": "counterfactual", "description": "The branch changes assumptions without changing the current case." },
+        "assumptions": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/assessmentAssumption" }, "description": "Explicit condition assignments; runtime rejects repeated or conflicting names." }
+      },
+      "required": ["id", "kind", "assumptions"], "additionalProperties": false
+    },
+    "assessmentAssumption": {
+      "type": "object", "description": "One declared condition assignment.",
+      "properties": {
+        "condition": { "allOf": [{ "$ref": "#/definitions/key" }], "description": "Condition name declared on this scenario." },
+        "value": { "anyOf": [{ "type": "boolean", "description": "Known true or false counterfactual value." }, { "type": "string", "const": "unknown", "description": "Explicitly unknown condition value." }], "description": "True, false, or unknown; no expected effect is declared." }
+      },
+      "required": ["condition", "value"], "additionalProperties": false
     },
     "scenario": {
       "type": "object",

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "authorization-ai-failure-map/v1",
+  "source": "AH public development panel, retained without modifying its scores or answers",
+  "cases": [
+    {
+      "mechanism": "label-direction",
+      "units": ["initial-owui-text-D0", "initial-gitea-lock-D0", "repeat-gitea-lock-D0"],
+      "observed": "The explanation says the declared deny is enforced before the protected write or lock, but the wire conclusion is source_supported_failure.",
+      "failureLayer": "policy-label consistency",
+      "newResponsibility": "For unconditional expectations the model reports observed allow/deny/unknown; the host compares this with the authored expectation.",
+      "remainingResponsibility": "A semantic reviewer still checks that observed behavior and cited control path are source supported."
+    },
+    {
+      "mechanism": "entry-boundary",
+      "units": ["initial-fastapi-superuser-read-D1"],
+      "observed": "The answer identifies the superuser bypass but returns unknown because the supplied crop omits the CurrentUser dependency, despite the task fixing an authenticated active superuser at the handler entry.",
+      "failureLayer": "scenario premise versus source proof obligation",
+      "newResponsibility": "A declared-entry premise is shown as an accepted question assumption, while supplied-path and deployment boundaries retain decisive unknowns.",
+      "remainingResponsibility": "The reviewer checks whether source contradicts a premise or whether the requested boundary truly requires missing wiring."
+    },
+    {
+      "mechanism": "requested-branch-omission",
+      "units": ["initial-owui-header-M0", "initial-owui-header-D0", "initial-owui-header-M1", "initial-owui-header-D1", "initial-gitea-assignee-M0", "initial-gitea-assignee-D0", "initial-gitea-assignee-M1", "initial-gitea-assignee-D1", "repeat-gitea-assignee-M0", "repeat-gitea-assignee-D0", "repeat-gitea-assignee-M1", "repeat-gitea-assignee-D1"],
+      "observed": "The current outcome is usually right, while the requested closed/password/authentication cases or permission-true/assignee-resolution cases are omitted or only implied.",
+      "failureLayer": "response completeness for explicitly requested counterfactuals",
+      "newResponsibility": "The compiled program names only authored requested branches; the host checks exact branch IDs, assumptions, effects and explicit incomplete status.",
+      "remainingResponsibility": "A reviewer checks source support and whether the branch explanation states the necessary response details."
+    }
+  ],
+  "controls": [
+    "The natural/plain renderer already describes authored facts; naturalizing JSON again is not a new capability.",
+    "Premises are author-provided task assumptions, not source citations or verified deployment facts.",
+    "Policy expectation is normative input and must never be inferred from observed implementation behavior.",
+    "Unknown is appropriate only for a decisive missing fact within the requested boundary; an unrequested external dependency cannot erase a source-decidable handler question."
+  ]
+}

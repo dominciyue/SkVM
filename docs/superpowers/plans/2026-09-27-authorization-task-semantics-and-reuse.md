@@ -105,6 +105,8 @@ export interface AuthorizationAssessmentProgram {
 
 编译器做引用解析、显式义务展开、稳定ID及回答位置生成；不扫描源码猜branch、不预填allow/deny。renderer把“当前问题”“接受的场景假设”“需要证实的路径”“额外反事实”分开，删掉等义重复，源码只出现一次。旧自然语言renderer、AH策略和旧结果继续可读；新主面板固定reasoning=standard，不叠加AH四问题造成第二个干预。
 
+AI2实际接口细节：authoring/v2继续以场景、入口、条件作者名称索引；normalized sidecar采用`scenarios`数组、`obligationId`、`atEntryId`、`conditionId`，布尔值规范化为`"true"/"false"/"unknown"`。纯编译器展开到每个可运行入口，premise按`atEntryId`局部附着；重复branch ID、重复/矛盾赋值及同组合重复在authoring和normalized两个入口均拒绝。v6用互斥`decision`对象和独立薄`branchResults`，plain不自动升级为ledger。
+
 运行增加明确的 `assessmentMode: "legacy" | "explicit-v1"`，普通CLI可用 `--assessment` 覆盖；省略时按输入是否显式提供analysisContract选择，旧输入仍legacy。研究M0/D0与outcome-only显式选择legacy：公共要求和事实全部保留，仅不启用新程序；M1/D1选择explicit-v1。explicit-v1缺sidecar时返回指向analysisContract的needs-input，不能悄悄猜前提。选择和程序内容必须进入session、恢复身份和compare，避免消融臂误走相同路径。
 
 新程序需要v6的分支回答合同：explicit-v1且未指定wire时选择v6；显式指定旧wire时在provider前说明应使用v6或legacy assessment，不能丢弃branch请求。legacy assessment继续按原规则选择默认wire，同时允许显式v6以运行outcome-only。method保持既有选择逻辑，不因sidecar自动添加六类ledger；本轮示例和主面板明确用plain。所有实际选择记录在check/session中，旧输入的默认prompt与wire不变。

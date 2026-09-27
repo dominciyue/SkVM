@@ -44,6 +44,32 @@ test("check-only compare reports a common policy override without writing either
   expect(report.commonChangedFields).toContain("policies")
   expect(report.variants[0].effectiveChangedFields).toContain("policies")
 })
+test("workspace tracks analysisContract inheritance, whole-field override and a current scenario summary", async () => {
+  const f = await fixture(), io = capture()
+  const basePath = path.join(f.root, "base.json")
+  const base: any = JSON.parse(await readFile(basePath, "utf8"))
+  const sidecar = { schemaVersion: "authorization-analysis-contract/v1", publicInstruction: "Assess the given entry.", scenarios: { archive: { boundary: "declared-entry", premises: [{ id: "caller", statement: "The given support caller reaches archiveRecord.", atEntry: "archive", provenance: "task-assumption" }], requestedBranches: [], requiredResponseDetails: [] } } }
+  base.analysisContract = sidecar
+  await writeFile(basePath, JSON.stringify(base))
+  const oldBasePath = path.join(f.root, "old-base.json")
+  await writeFile(oldBasePath, JSON.stringify(base))
+  const oldWorkspace = path.join(f.root, "old-workspace.json")
+  await writeFile(oldWorkspace, JSON.stringify({ schemaVersion: "authorization-scenario-workspace/v1", base: "old-base.json", variants: [{ id: "owner", replacements: "changes.json" }] }))
+  base.analysisContract.scenarios.archive.premises[0].statement = "The changed support caller reaches archiveRecord."
+  await writeFile(basePath, JSON.stringify(base))
+  expect(await runAuthorizationComposeCli([`--workspace=${f.workspace}`, `--out=${f.out}`, "--check-only", `--compare-with=${oldWorkspace}`], io)).toBe(0)
+  const report = JSON.parse(io.output[0]!)
+  expect(report.commonChangedFields).toContain("analysisContract")
+  expect(report.variants[0].effectiveChangedFields).toContain("analysisContract")
+  expect(report.variants[0].inheritedChangedFields).toContain("analysisContract")
+  const planIo = capture()
+  expect(await runAuthorizationComposeCli([`--workspace=${f.workspace}`, `--out=${f.out}`, "--check-only"], planIo)).toBe(0)
+  expect(JSON.parse(planIo.output[0]!).variants[0].provenance.scenarioSummary[0].boundary).toBe("declared-entry")
+  await writeFile(path.join(f.root, "changes.json"), JSON.stringify([{ field: "analysisContract", value: sidecar, origin: "author override" }]))
+  const overrideIo = capture()
+  expect(await runAuthorizationComposeCli([`--workspace=${f.workspace}`, `--out=${f.out}`, "--check-only", `--compare-with=${oldWorkspace}`], overrideIo)).toBe(0)
+  expect(JSON.parse(overrideIo.output[0]!).variants[0].overriddenChangedFields).toContain("analysisContract")
+})
 test("CLI prints exact variant/field semantic diagnostics and returns 1", async () => {
   const f = await fixture(), io = capture()
   const base = JSON.parse(await readFile(path.join(f.root, "base.json"), "utf8"))

@@ -18,6 +18,8 @@ import {
 } from "../../task-dsl/authorization/conditions.ts"
 import { AuthorizationTaskV0Schema, type AuthorizationTaskV0 } from "../../task-dsl/authorization/schema.ts"
 import { compileAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
+import { AuthorizationAnalysisContractV1Schema, type AuthorizationAnalysisContractV1 } from "../../task-dsl/authorization/assessment-contract.ts"
+import { compileAuthorizationAssessmentProgram, type AuthorizationAssessmentProgram } from "../../task-dsl/authorization/assessment-program.ts"
 import { loadPortableSourceBundle, type SourceBundle } from "./inputs.ts"
 import type { AuthorizationAuthoringProvenance } from "./authoring.ts"
 
@@ -46,6 +48,7 @@ export const LocalAuthorizationInputSchema = z.object({
   analysisProfile: LocalAnalysisProfileSchema.optional(),
   analysisRequirements: AnalysisRequirementsSchema.optional(),
   conditionAnalysisRequest: AuthorizationConditionAnalysisRequestV1Schema.optional(),
+  analysisContract: AuthorizationAnalysisContractV1Schema.optional(),
 }).strict()
 
 export type LocalAuthorizationInput = z.infer<typeof LocalAuthorizationInputSchema>
@@ -66,6 +69,8 @@ export type LocalInputResult =
     analysisPlan: AnalysisPlan
     conditionAnalysisRequest?: AuthorizationConditionAnalysisRequestV1
     conditionPlan?: ConditionAnalysisPlan
+    analysisContract?: AuthorizationAnalysisContractV1
+    assessmentProgram?: AuthorizationAssessmentProgram
   }
   | { status: "invalid"; inputPath: string; diagnostics: AnalysisDiagnostic[] }
 
@@ -298,6 +303,8 @@ export async function loadLocalAuthorizationInputValue(
       ))
     }
   }
+  const assessment = input.analysisContract ? compileAuthorizationAssessmentProgram(input.task, input.analysisContract) : undefined
+  if (assessment && assessment.status !== "ready") diagnostics.push(...assessment.diagnostics.map(item => localDiagnostic(item.code, item.message, item.path)))
 
   if (diagnostics.length > 0 || !loadedBundle.success) {
     return { status: "invalid", inputPath, diagnostics }
@@ -317,5 +324,6 @@ export async function loadLocalAuthorizationInputValue(
     ...(input.conditionAnalysisRequest
       ? { conditionAnalysisRequest: input.conditionAnalysisRequest, conditionPlan }
       : {}),
+    ...(input.analysisContract ? { analysisContract: input.analysisContract, assessmentProgram: assessment?.program } : {}),
   }
 }

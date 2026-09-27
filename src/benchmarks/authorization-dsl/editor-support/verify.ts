@@ -157,6 +157,11 @@ export function findStructuralDrift(
       compare(path, "minProperties", raw.safeParse({}).success ? 0 : 1, node.minProperties ?? 0)
       visit(type.keySchema, node.propertyNames, `${path}.[name]`)
       visit(type.valueSchema, node.additionalProperties, `${path}.*`)
+    } else if (type instanceof z.ZodUnion) {
+      compare(path, "anyOf count", type.options.length, node.anyOf?.length)
+      type.options.forEach((option: z.ZodTypeAny, index: number) => visit(option, node.anyOf?.[index], `${path}.anyOf.${index}`))
+    } else if (type instanceof z.ZodBoolean) {
+      compare(path, "type", "boolean", node.type)
     } else if (type instanceof z.ZodArray) {
       compare(path, "type", "array", node.type)
       compare(path, "minItems", type._def.minLength?.value ?? 0, node.minItems ?? 0)

@@ -7,7 +7,7 @@ import { validMarkdownStudyInput } from "../../task-dsl/authorization/render.ts"
 import type { MarkdownStudyInput } from "../../task-dsl/authorization/render.ts"
 export type { MarkdownStudyInput } from "../../task-dsl/authorization/render.ts"
 export type ExternalReuseArm = "markdown" | "dsl"
-export async function executeMarkdownStudyRun(input: Omit<Parameters<typeof executeLocalAuthorizationRun>[0],"method"|"wireVersion"|"arm"|"studyArm"> & {markdown:MarkdownStudyInput; wireVersion?: "v4" | "v5"}) {
+export async function executeMarkdownStudyRun(input: Omit<Parameters<typeof executeLocalAuthorizationRun>[0],"method"|"wireVersion"|"arm"|"studyArm"> & {markdown:MarkdownStudyInput; wireVersion?: "v4" | "v5" | "v6"}) {
   const {markdown, wireVersion = "v4", ...local} = input
   if (validMarkdownStudyInput(markdown)) {
     let exists = false
@@ -24,6 +24,7 @@ export async function executeMarkdownStudyRun(input: Omit<Parameters<typeof exec
           || descriptor.wireVersion !== `source-authorization-assessment-wire/${wireVersion}`
           || descriptor.inputSha256 !== hash(loaded.rawInput)
           || (descriptor.reasoningStrategy ?? "standard") !== (input.reasoningStrategy ?? "standard")
+          || (descriptor.assessmentMode ?? "legacy") !== (input.assessmentMode ?? (loaded.status === "valid" && loaded.analysisContract ? "explicit-v1" : "legacy"))
           || retained.sha256 !== hash(markdown.instructions)
           || retained.instructions !== markdown.instructions || retained.instructionOrigin !== markdown.instructionOrigin
           || retained.instructionPath !== markdown.instructionPath

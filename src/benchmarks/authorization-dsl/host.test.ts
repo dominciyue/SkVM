@@ -7,6 +7,8 @@ import type { AnalysisRequirement } from "../../task-dsl/authorization/relations
 import type { AuthorizationConditionAnalysisRequestV1 } from "../../task-dsl/authorization/conditions.ts"
 import { buildAuthorizationSourceCatalog, type SourceBundle } from "./inputs.ts"
 import { runAuthorizationTask } from "./host.ts"
+import { compileAuthorizationAssessmentProgram } from "../../task-dsl/authorization/assessment-program.ts"
+import { assessmentConditionId } from "../../task-dsl/authorization/assessment-contract.ts"
 
 const sourceContent = [
   "export async function updateRecord(request: Request) {",
@@ -326,6 +328,26 @@ function sequenceProvider(
     },
   }
 }
+
+it("v6 sends observed decision and requested branches through the provider and repairs a missing branch once", async () => {
+  const task = makeTask()
+  const conditionId = assessmentConditionId("deny-unrelated-update", "authenticated")
+  const program = compileAuthorizationAssessmentProgram(task, { schemaVersion: "authorization-analysis-contract/v1", scenarios: [{ obligationId: "deny-unrelated-update", boundary: "declared-entry", premises: [], requestedBranches: [{ id: "signed-out", kind: "counterfactual", assumptions: [{ conditionId, value: "false" }] }], requiredResponseDetails: [] }] }).program
+  const built = buildAuthorizationSourceCatalog(makeBundle())
+  if (!built.success) throw Error("catalog")
+  const sourceId = built.catalog.sources[0]!.sourceId
+  const item = { obligationId: "deny-unrelated-update::update-record", decision: { kind: "observed", observed: "deny" }, explanation: "The fixed control blocks the update.", facts: ["entry", "binding", "control", "effect", "condition"].map((kind, i) => ({ id: `f${i}`, kind, statement: `${kind} fact`, citations: [{ sourceId, startLine: i + 1, endLine: i + 1 }] })), decisiveMissingFacts: [], suggestedObservations: [], branchResults: [{ id: program.entries[0]!.requestedBranches[0]!.id, assumptions: [{ conditionId, value: "false" }], effect: "blocked", explanation: "The branch is blocked.", factIds: ["f2"], missingFacts: [] }] }
+  const calls: CompletionParams[] = []
+  const run = await runAuthorizationTask({ task, sourceBundle: makeBundle(), assessmentProgram: program, wireVersion: "v6", arm: "B", renderOptions: { publicRequirementsText: "Same public task paragraph.", assessmentProgram: program }, options: { timeoutMs: 1_000, maxTokens: 2_000, maxDomainRepairs: 1 }, provider: sequenceProvider([toolResponse({ results: [{ ...item, branchResults: [] }] }), toolResponse({ results: [item] })], calls, { value: 0 }) })
+  expect(run.status).toBe("completed")
+  expect(run.wireVersion).toBe("source-authorization-assessment-wire/v6")
+  expect(run.initialTransport?.normalization.diagnostics.some(d => d.code === "missing-requested-branch")).toBe(true)
+  expect(run.repair?.result.results[0]?.conclusion).toBe("source_refuted")
+  expect(calls).toHaveLength(2)
+  expect(calls[0]?.messages.map(message => message.content).join("\n")).toContain("Same public task paragraph.")
+  expect(calls[1]?.messages.map(message => message.content).join("\n")).toContain("missing-requested-branch")
+  expect((calls[0]?.tools?.[0]?.inputSchema as any).properties.results.items.properties.decision).toBeDefined()
+})
 
 describe("runAuthorizationTask", () => {
   it("uses only the non-executed result schema tool", async () => {

@@ -4,7 +4,7 @@ import {AuthorizationAuthoringInputV2Schema} from "./authoring-v2.ts"
 const replaceableFields = new Set([
   "taskId", "request", "repository", "sourceRef", "sourceRoot", "sources",
   "policies", "principals", "resources", "entries", "scenarios",
-  "additionalQuestions", "additionalConstraints",
+  "additionalQuestions", "additionalConstraints", "analysisContract",
 ])
 
 /** Whole top-level replacements only. Run ordinary check afterwards for references and source bounds. */

@@ -2,7 +2,7 @@ import { z } from "zod"
 import { CompactItemSchema, CompactCoverageSchema, CompactConditionSchema, normalizeCompactAuthorizationResult, type CompactAuthorizationNormalization } from "./compact-transport.ts"
 import type { AuthorizationMethod } from "./method.ts"
 
-export type AuthorizationWireVersion = "legacy" | "v4" | "v5"
+export type AuthorizationWireVersion = "legacy" | "v4" | "v5" | "v6"
 export const POLICY_CONCLUSION = {
   satisfied: "source_refuted",
   violated: "source_supported_failure",

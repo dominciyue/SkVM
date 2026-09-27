@@ -62,3 +62,17 @@ test("v2 reports ill-formed Unicode names rather than throwing during ID encodin
   value.scenarios["\ud800"]={...value.scenarios.archive}
   expect(normalizeAuthorizationAuthoringInput(value).status).toBe("needs-input")
 })
+
+test("v2 carries a public sidecar into normalized input and provenance without changing canonical v0 task", () => {
+  const value: any = structuredClone(fixture)
+  value.scenarios.archive.conditions = { owner: { basis: "Author declares an ownership condition." } }
+  value.analysisContract = { schemaVersion: "authorization-analysis-contract/v1", publicInstruction: "PUBLIC TASK REQUIREMENTS.", scenarios: { archive: { boundary: "declared-entry", premises: [{ id: "caller", statement: "The given caller reaches archiveRecord.", atEntry: "archive", provenance: "task-assumption" }], requestedBranches: [{ id: "owner-yes", kind: "counterfactual", assumptions: [{ condition: "owner", value: true }] }], requiredResponseDetails: [] } } }
+  const result = normalizeAuthorizationAuthoringInput(value)
+  expect(result.status).toBe("ready")
+  if (result.status !== "ready") return
+  expect(result.normalizedInput.analysisContract?.scenarios[0]?.obligationId).toBe("scenario:archive")
+  expect(result.normalizedInput.analysisContract?.scenarios[0]?.premises[0]?.atEntryId).toBe("entry:archive")
+  expect(result.normalizedInput.analysisContract?.scenarios[0]?.requestedBranches[0]?.assumptions[0]).toEqual({ conditionId: "condition:archive:owner", value: "true" })
+  expect(result.normalizedInput.task.schemaVersion).toBe("source-authorization-assessment/v0")
+  expect(result.provenance.analysisContract).toBe("author")
+})

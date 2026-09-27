@@ -1,5 +1,6 @@
 import { z } from "zod"
 import type { AuthorizationAuthoringInputV1, AuthorizationAuthoringNormalization, AuthorizationAuthoringDiagnostic } from "./authoring.ts"
+import { AuthorAnalysisContractV1Schema, assessmentConditionId, lowerAuthorAnalysisContract } from "../../task-dsl/authorization/assessment-contract.ts"
 
 const Text = z.string().trim().min(1)
 const Key = z.string().min(1).refine(v => {
@@ -17,6 +18,7 @@ export const AuthorizationAuthoringInputV2Schema = z.object({
   entries:dictionary(z.object({name:Text,locations:z.array(Location).min(1)}).strict()),
   scenarios:dictionary(z.object({principal:Key,resource:Key,policy:Key,entries:z.array(Key).min(1),relation:Text,operation:Text,expectation:z.enum(["allow","deny","conditional"]),conditions:dictionary(z.object({basis:Text}).strict(),false).optional(),analyzeConditions:z.object({names:z.array(Key).min(1),maxBranches:z.number().int().min(1).max(12).optional()}).strict().optional()}).strict()),
   additionalQuestions:z.array(Text).optional(), additionalConstraints:z.array(Text).optional(),
+  analysisContract:AuthorAnalysisContractV1Schema.optional(),
 }).strict()
 export type AuthorizationAuthoringInputV2 = z.infer<typeof AuthorizationAuthoringInputV2Schema>
 export const AUTHORING_V2_NORMALIZER = "authoring-v2-lowering/1"
@@ -43,6 +45,12 @@ export function lowerAuthorizationAuthoringV2(input:unknown, normalizeV1:(v:unkn
     if(v.policies[s.policy] && v.policies[s.policy]!.acceptance!=="accepted") add(`policies.${s.policy}.acceptance`,"Policy is not accepted; its scenarios cannot run.","Resolve the policy and record the author acceptance reason before running; do not infer acceptance from implementation.")
   }
   if(diagnostics.length) return {status:"needs-input",diagnostics:[...new Map(diagnostics.map(d=>[d.path,d])).values()]}
+  const analysisContract = v.analysisContract ? lowerAuthorAnalysisContract(v.analysisContract, Object.fromEntries(sorted(v.scenarios).map(([key,scenario]) => [key, {
+    obligationId: authoringId("scenario", key),
+    entries: Object.fromEntries(scenario.entries.map(entry => [entry, authoringId("entry", entry)])),
+    conditions: Object.fromEntries(sorted(scenario.conditions ?? {}).map(([condition]) => [condition, assessmentConditionId(authoringId("scenario", key), condition)])),
+  }]))) : undefined
+  if (analysisContract?.status === "needs-input") return { status: "needs-input", diagnostics: analysisContract.diagnostics }
   const requests=sorted(v.scenarios).flatMap(([key,s])=>s.analyzeConditions ? [{obligationId:authoringId("scenario",key),conditionBindings:s.analyzeConditions.names.map(name=>({id:`condition:${encodeURIComponent(key)}:${encodeURIComponent(name)}`,name})),maxBranches:s.analyzeConditions.maxBranches??8}] : [])
   const authoring:AuthorizationAuthoringInputV1={
     schemaVersion:"authorization-assessment-authoring/v1",sourceRoot:v.sourceRoot,sources:v.sources,
@@ -56,8 +64,9 @@ export function lowerAuthorizationAuthoringV2(input:unknown, normalizeV1:(v:unkn
       requiredAnalysis:["Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",...(v.additionalQuestions??[])],
       constraints:["Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",...(v.additionalConstraints??[])],
     },...(requests.length ? {conditionAnalysisRequest:{schemaVersion:"authorization-condition-analysis-request/v1",requests}} : {}),
+    ...(analysisContract?.status === "ready" ? { analysisContract: analysisContract.contract } : {}),
   }
   const result=normalizeV1(authoring)
   if(result.status!=="ready") return result
-  return {...result,authoringInput:v,provenance:{...result.provenance,normalizerVersion:AUTHORING_V2_NORMALIZER,fieldSources:{author:["taskId","request","repository","sourceRef","sourceRoot","sources","policies","principals","resources","entries","scenarios","additionalQuestions","additionalConstraints"],derived:["IDs from names","sourceIdentity","sourceMode","scopeAssurance","requiredAnalysis base","constraints base","analysisProfile","conditionBindings"],omitted:"facts/capabilities/conditions absent means not declared, never inferred"}}}
+  return {...result,authoringInput:v,provenance:{...result.provenance,normalizerVersion:AUTHORING_V2_NORMALIZER,fieldSources:{author:["taskId","request","repository","sourceRef","sourceRoot","sources","policies","principals","resources","entries","scenarios","additionalQuestions","additionalConstraints",...(v.analysisContract ? ["analysisContract"] : [])],derived:["IDs from names","sourceIdentity","sourceMode","scopeAssurance","requiredAnalysis base","constraints base","analysisProfile","conditionBindings",...(v.analysisContract ? ["analysisContract canonical references"] : [])],omitted:"facts/capabilities/conditions absent means not declared, never inferred"}}}
 }

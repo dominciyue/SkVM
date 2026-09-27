@@ -62,6 +62,17 @@ test("field coverage follows nested runtime objects, required keys and structure
   expect(findStructuralDrift(loadAuthoringEditorSchema(), newerRuntime).some(d => d.message.includes("newPublicField"))).toBe(true)
 })
 
+test("editor structure covers optional task premises and bounded counterfactuals", () => {
+  const value: any = createStructuralFixtures()[0]!.value
+  value.scenarios.archive.conditions = { owner: { basis: "Declared by author." } }
+  value.analysisContract = { schemaVersion: "authorization-analysis-contract/v1", publicInstruction: "Assess the stated entry and branch.", scenarios: { archive: { boundary: "declared-entry", premises: [{ id: "caller", statement: "Caller reaches the entry.", atEntry: "archive", provenance: "task-assumption" }], requestedBranches: [{ id: "owner-yes", kind: "counterfactual", assumptions: [{ condition: "owner", value: true }] }], requiredResponseDetails: [] } } }
+  expect(checkEditorStructure(value).valid).toBe(true)
+  expect(AuthorizationAuthoringInputV2Schema.safeParse(value).success).toBe(true)
+  const bad = structuredClone(value); bad.analysisContract.scenarios.archive.requestedBranches[0].assumptions[0].value = "allowed"
+  expect(checkEditorStructure(bad).valid).toBe(false)
+  expect(AuthorizationAuthoringInputV2Schema.safeParse(bad).success).toBe(false)
+})
+
 test("explicit runtime-only cases remain editor-valid but fail the authoritative runtime", () => {
   for (const fixture of createRuntimeOnlyFixtures()) {
     expect(checkEditorStructure(fixture.value).valid).toBe(true)

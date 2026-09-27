@@ -24,7 +24,7 @@ export interface AuthorizationWorkspaceChangeReport {
 const fields = [
   "taskId", "request", "repository", "sourceRef", "sourceRoot", "sources",
   "policies", "principals", "resources", "entries", "scenarios",
-  "additionalQuestions", "additionalConstraints",
+  "additionalQuestions", "additionalConstraints", "analysisContract",
 ] as const satisfies readonly (keyof AuthorizationAuthoringInputV2)[]
 
 const equal = (left: unknown, right: unknown): boolean => stableAuthorizationJson(left) === stableAuthorizationJson(right)

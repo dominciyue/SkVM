@@ -13,6 +13,8 @@ import {
 } from "../../task-dsl/authorization/conditions.ts"
 import { AuthorizationTaskV0Schema } from "../../task-dsl/authorization/schema.ts"
 import { compileAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
+import { AuthorizationAnalysisContractV1Schema } from "../../task-dsl/authorization/assessment-contract.ts"
+import { compileAuthorizationAssessmentProgram } from "../../task-dsl/authorization/assessment-program.ts"
 import {
   LocalAuthorizationInputSchema,
   type LocalAnalysisProfile,
@@ -38,6 +40,7 @@ export const AuthorizationAuthoringInputV1Schema = z.object({
   task: AuthorizationTaskV0Schema,
   analysisProfile: AuthorizationAuthoringProfileV1Schema.optional(),
   conditionAnalysisRequest: AuthorizationConditionAnalysisRequestV1Schema.optional(),
+  analysisContract: AuthorizationAnalysisContractV1Schema.optional(),
 }).strict()
 
 const AuthorizationAuthoringEnvelopeV1Schema = AuthorizationAuthoringInputV1Schema.extend({
@@ -62,6 +65,7 @@ export interface AuthorizationAuthoringProvenance {
   sourceIdentity: "derived-from-task"
   analysisRequirements: "derived-from-authorization-core-v1" | "author"
   conditionAnalysisRequest: "author" | "not-provided"
+  analysisContract?: "author" | "not-provided"
   sourceRefVerification: "authored"
 }
 
@@ -284,6 +288,12 @@ export function normalizeAuthorizationAuthoringInput(
       }
     }
   }
+  if (authoringInput.analysisContract) {
+    const assessment = compileAuthorizationAssessmentProgram(authoringInput.task, authoringInput.analysisContract)
+    if (assessment.status !== "ready") diagnostics.push(...assessment.diagnostics.map(item => diagnostic(
+      `author-${item.code}`, item.message, item.path, "Use a runnable obligation and its own declared entries and conditions.",
+    )))
+  }
 
   if (diagnostics.length > 0) {
     return { status: "needs-input", diagnostics: sortedDiagnostics(diagnostics) }
@@ -303,6 +313,7 @@ export function normalizeAuthorizationAuthoringInput(
     ...(authoringInput.conditionAnalysisRequest
       ? { conditionAnalysisRequest: authoringInput.conditionAnalysisRequest }
       : {}),
+    ...(authoringInput.analysisContract ? { analysisContract: authoringInput.analysisContract } : {}),
   })
   const provenance: AuthorizationAuthoringProvenance = {
     task: "author",
@@ -313,6 +324,7 @@ export function normalizeAuthorizationAuthoringInput(
       ? "author"
       : "derived-from-authorization-core-v1",
     conditionAnalysisRequest: authoringInput.conditionAnalysisRequest ? "author" : "not-provided",
+    ...(authoringInput.analysisContract ? { analysisContract: "author" as const } : {}),
     sourceRefVerification: "authored",
   }
   return {

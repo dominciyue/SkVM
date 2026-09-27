@@ -6,7 +6,7 @@
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-**当前授权队列：** [AI0–AI16 任务语义、答案合成与变化后复用](../superpowers/plans/2026-09-27-authorization-task-semantics-and-reuse.md)已规划，用户要求由新`gpt-6-sol / max`任务直接在`skill-ir-aot`连续执行。基线为AH发布`d1b82005`及本轮规划提交；AI0才建立运行状态。重点是明确场景前提与待证明事实、编译显式请求分支、由宿主完成可确定的实际行为/政策对照，并真实运行作者原/变输入。沿用CLI/host/workspace，旧默认兼容，公共要求在Markdown/DSL中对齐。质量60%/复用40%分别验收，设计及复盘见[研究§7.28](skill-dsl-research.md#728-ai-任务语义答案合成与变化后复用)。本规划没有新增模型实验，AH历史结果保持。
+**当前授权队列：** [AI0–AI16 任务语义、答案合成与变化后复用](../superpowers/plans/2026-09-27-authorization-task-semantics-and-reuse.md)正在`skill-ir-aot`执行，实时恢复点为[AI status](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/status.json)。AI0–AI7已完成公开要求冻结、可选sidecar、义务局部程序、wire/v6行为/政策对照、普通check/run/inspect/compare、Markdown与workspace/editor接线；授权聚合离线测试308 pass/1平台skip、2359断言，typecheck已通过。AI8正在准备8状态四臂真实面板，尚无本轮模型调用或质量结论。重点仍是实际答案的独立语义评价及作者原/变输入真实消费；旧默认兼容，AH历史结果保持。质量60%/复用40%分别验收，方法设计及逐步证据见[研究§7.28](skill-dsl-research.md#728-ai-任务语义答案合成与变化后复用)。
 
 [V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)、[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)和[Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)均已结束发布，Y最终提交`70906261`。后续复核确认Y主体工程可用，但公共`--method`选择曾有漏项，已在Z补齐；历史机器summary保留。
 

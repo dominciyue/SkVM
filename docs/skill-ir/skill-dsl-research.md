@@ -892,6 +892,8 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 **研究安排。** 最多8状态四臂及4预定重复共48主单元，三机制的outcome-only观察最多6单元，作者真实原/变消费最多16单元；共享实现bug修订另最多8。M0/D0与M1/D1分别比较旧/新支持，同支持再比较表示。全部公共事实与要求相同，程序不读oracle；来源和新场景变化明确记为development。当前只完成设计，效果由后续实际数据决定。小设计调整写入本节和任务书后继续，不增加日常确认。
 
+**AI1–AI3 落地。** 本轮结果根已在模型生成前冻结8题公开要求、显式请求分支和分层rubric；两个新增状态是原源码上的`declared-scenario-variation`。作者`analysisContract.scenarios`仍按作者名称索引；lowering产出的normalized sidecar改为按`obligationId`列举场景，`atEntryId`和`conditionId`均为稳定canonical引用。布尔赋值在normalized侧写成`true/false/unknown`字符串，以便沿用已有condition值域。程序只展开可运行的已声明入口，入口前提不跨入口传播，反事实不含预期effect。v6预定采用互斥`decision`对象（unconditional的`observed`或conditional的`policyStatus`）及独立薄`branchResults`；普通plain不被迫输出relation coverage。旧输入无sidecar时保持旧结果结构和默认选择。AI3聚焦测试已红绿通过；这一段仅说明接口和离线工程，不宣称答案质量改善。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
