@@ -196,32 +196,32 @@ workspace补 `analysisContract` 的整字段替换、来源和依赖比较。旧
 
 ### AI0 恢复和基线
 
-- [ ] 按§2读取，确认分支、Git和origin，无其他活跃写者；不清理历史本地排除材料。
-- [ ] 创建本轮 `status.json`/`journal.jsonl`，记录规划/实际基线与归属，明确下一实际命令。
-- [ ] 使用父任务338 pass/1 skip及AH replay作为已知基线；先跑将修改模块的focused测试，不重复历史全量审计。
+- [x] 按§2读取，确认分支、Git和origin，无其他活跃写者；不清理历史本地排除材料。
+- [x] 创建本轮 `status.json`/`journal.jsonl`，记录规划/实际基线与归属，明确下一实际命令。
+- [x] 使用父任务338 pass/1 skip及AH replay作为已知基线；先跑将修改模块的focused测试，不重复历史全量审计。
 
 ### AI1 失败语义与公开要求
 
-- [ ] 点验AH text/lock、superuser、header/assignee的原答及裁定，写紧凑 `failure-map.json`，区分标签、边界、漏答和源事实判断。
-- [ ] 为8个候选状态建立公开要求清单与分层rubric；核对当前任务和反事实要求，接受逻辑等价回答。
-- [ ] 原始来源/许可/暴露状态沿用已有归档；追加来源只为补具体缺口，按首合格规则保留失败，不扩大skill分类普查。
+- [x] 点验AH text/lock、superuser、header/assignee的原答及裁定，写紧凑 `failure-map.json`，区分标签、边界、漏答和源事实判断。
+- [x] 为8个候选状态建立公开要求清单与分层rubric；核对当前任务和反事实要求，接受逻辑等价回答。
+- [x] 原始来源/许可/暴露状态沿用已有归档；追加来源只为补具体缺口，按首合格规则保留失败，不扩大skill分类普查。
 
 ### AI2 合同与接口定稿
 
-- [ ] 亲读authoring/local-input/conditions/render/host/compare，按§3落定sidecar、program、v6 decision联合类型与文件归属，更新研究§7.28。
-- [ ] 写两个synthetic相反例：入口已给定caller→确定判断；同样代码而部署绑定未知→保留unknown。另有固定场景与显式反事实分支各一例。
-- [ ] 核对所有公开字段和ID映射；普通旧输入无新增字段、空前提/分支正常、conditional不走二值映射。将实际设计修订写回本书后继续，无需再等确认。
+- [x] 亲读authoring/local-input/conditions/render/host/compare，按§3落定sidecar、program、v6 decision联合类型与文件归属，更新研究§7.28。
+- [x] 写两个synthetic相反例：入口已给定caller→确定判断；同样代码而部署绑定未知→保留unknown。另有固定场景与显式反事实分支各一例。
+- [x] 核对所有公开字段和ID映射；普通旧输入无新增字段、空前提/分支正常、conditional不走二值映射。将实际设计修订写回本书后继续，无需再等确认。
 
 ### AI3 合同与程序红绿实现
 
-- [ ] 在新增 `assessment-contract.test.ts` 固定缺失可选字段、非法引用、重复/矛盾分支和跨入口前提反例；运行确认预期失败。
-- [ ] 实现schema与lowering sidecar、`compileAuthorizationAssessmentProgram`，保持稳定命名、重排等价、blocked义务不伪装可运行。
-- [ ] 新增程序测试使用完整synthetic canonical fixture，不通过类型断言绕过真实parser。至少断言分支不生成effect/expectedOutcome、前提不变成源码citation、同一义务只收到自己的前提。
-- [ ] 跑 `bun test ./src/task-dsl/authorization/assessment-contract.test.ts ./src/task-dsl/authorization/assessment-program.test.ts`，确认通过后聚焦提交。
+- [x] 在新增 `assessment-contract.test.ts` 固定缺失可选字段、非法引用、重复/矛盾分支和跨入口前提反例；运行确认预期失败。
+- [x] 实现schema与lowering sidecar、`compileAuthorizationAssessmentProgram`，保持稳定命名、重排等价、blocked义务不伪装可运行。
+- [x] 新增程序测试使用完整synthetic canonical fixture，不通过类型断言绕过真实parser。至少断言分支不生成effect/expectedOutcome、前提不变成源码citation、同一义务只收到自己的前提。
+- [x] 跑 `bun test ./src/task-dsl/authorization/assessment-contract.test.ts ./src/task-dsl/authorization/assessment-program.test.ts`，确认通过后聚焦提交。
 
 ### AI4 政策对照纯函数
 
-- [ ] 在 `outcome-result.test.ts` 先写下列完整真值表红测：
+- [x] 在 `outcome-result.test.ts` 先写下列完整真值表红测：
 
 ```ts
 import { expect, test } from "bun:test"
@@ -236,30 +236,30 @@ test("compares an observed effect with the authored expectation", () => {
 })
 ```
 
-- [ ] 实现§3.3纯函数；strict解析另外拒绝伪造mode/重复conclusion，conditional明确走已有政策判断映射。
-- [ ] 补v6 normalizer测试：fact归属、无效citation、分支缺失、unknown缺口、conditional处理、错误时无canonical成功泄漏；复用旧normalizer，不重新手写引用校验。
-- [ ] 运行 `bun test ./src/task-dsl/authorization/outcome-result.test.ts ./src/task-dsl/authorization/compact-transport.test.ts ./src/task-dsl/authorization/policy-result.test.ts`，确认通过并提交。
+- [x] 实现§3.3纯函数；strict解析另外拒绝伪造mode/重复conclusion，conditional明确走已有政策判断映射。
+- [x] 补v6 normalizer测试：fact归属、无效citation、分支缺失、unknown缺口、conditional处理、错误时无canonical成功泄漏；复用旧normalizer，不重新手写引用校验。
+- [x] 运行 `bun test ./src/task-dsl/authorization/outcome-result.test.ts ./src/task-dsl/authorization/compact-transport.test.ts ./src/task-dsl/authorization/policy-result.test.ts`，确认通过并提交。
 
 ### AI5 模型呈现与可检查的分支
 
-- [ ] 先写renderer红测：相同公共要求一次出现、已给定前提与待证明事实分区、反事实显式标记、源文本一次出现、旧默认逐字兼容。
-- [ ] 新增程序替代相同含义的泛化问题，不同时重复旧六问题、AH四问题和新program。旧显式AH策略保持可用，冲突组合给清晰说明。
-- [ ] 复用条件校验实现requested branch精确覆盖；允许模型如实返回unknown/incomplete。只有缺失/矛盾等机械诊断进入一次修复，不能将oracle答案塞给修复。
-- [ ] 运行render、conditions、assessment-program相关测试；核对prompt分节字符和可测token账户分开。
+- [x] 先写renderer红测：相同公共要求一次出现、已给定前提与待证明事实分区、反事实显式标记、源文本一次出现、旧默认逐字兼容。
+- [x] 新增程序替代相同含义的泛化问题，不同时重复旧六问题、AH四问题和新program。旧显式AH策略保持可用，冲突组合给清晰说明。
+- [x] 复用条件校验实现requested branch精确覆盖；允许模型如实返回unknown/incomplete。只有缺失/矛盾等机械诊断进入一次修复，不能将oracle答案塞给修复。
+- [x] 运行render、conditions、assessment-program相关测试；核对prompt分节字符和可测token账户分开。
 
 ### AI6 普通运行与恢复接通
 
-- [ ] 更新普通check/run、host、schema抽取、fallback、repair、session、inspect和完整依赖compare。输入sidecar自包含；默认不需研究配置。
-- [ ] 接入 `assessmentMode` 与 `--assessment`，测试显式legacy仍接收共同公开要求但不附加program，explicit-v1确实使用program；wire/v6可用于outcome-only，不能因v6自动启用新程序。
-- [ ] Mock验证一次成功、一次结构修复、未知完成不重发、边界/前提/分支变化触发needs-review。策略和schema选择都进入实际provider prompt与持久身份。
-- [ ] Markdown新支持接同一program；公共要求不得在独立Markdown分支消失。旧Markdown study恢复仍核对原身份，新语义研究使用新显式版本/选项记录。
-- [ ] 运行 `bun test ./src/benchmarks/authorization-dsl/host.test.ts ./src/benchmarks/authorization-dsl/local-run.test.ts ./src/benchmarks/authorization-dsl/markdown-study.test.ts ./src/cli/authorization.test.ts`，再typecheck，提交共享接线。
+- [x] 更新普通check/run、host、schema抽取、fallback、repair、session、inspect和完整依赖compare。输入sidecar自包含；默认不需研究配置。
+- [x] 接入 `assessmentMode` 与 `--assessment`，测试显式legacy仍接收共同公开要求但不附加program，explicit-v1确实使用program；wire/v6可用于outcome-only，不能因v6自动启用新程序。
+- [x] Mock验证一次成功、一次结构修复、未知完成不重发、边界/前提/分支变化触发needs-review。策略和schema选择都进入实际provider prompt与持久身份。
+- [x] Markdown新支持接同一program；公共要求不得在独立Markdown分支消失。旧Markdown study恢复仍核对原身份，新语义研究使用新显式版本/选项记录。
+- [x] 运行 `bun test ./src/benchmarks/authorization-dsl/host.test.ts ./src/benchmarks/authorization-dsl/local-run.test.ts ./src/benchmarks/authorization-dsl/markdown-study.test.ts ./src/cli/authorization.test.ts`，再typecheck，提交共享接线。
 
 ### AI7 编写、编辑与workspace集成
 
-- [ ] 把新增sidecar加入authoring字段来源、编辑schema、composer整字段替换和workspace compare；缺省不让旧输入变成invalid。
-- [ ] 确定性测试覆盖共同前提变化、被override遮蔽、分支增删、source不变而policy变化、同字节搬移。更新生成的场景摘要，稳定ID和原作者说明分开。
-- [ ] 复用现有CLI定位与诊断，避免新增无必要命令。运行workspace/compose/authoring与编辑支持focused测试，提交。
+- [x] 把新增sidecar加入authoring字段来源、编辑schema、composer整字段替换和workspace compare；缺省不让旧输入变成invalid。
+- [x] 确定性测试覆盖共同前提变化、被override遮蔽、分支增删、source不变而policy变化、同字节搬移。更新生成的场景摘要，稳定ID和原作者说明分开。
+- [x] 复用现有CLI定位与诊断，避免新增无必要命令。运行workspace/compose/authoring与编辑支持focused测试，提交。
 
 ### AI8 中立材料和运行配置
 
@@ -296,26 +296,34 @@ test("compares an observed effect with the authored expectation", () => {
 
 ### AI12 修改后的真实消费
 
-- [ ] 使用作者实际产物在普通目录运行原/变两场景，最多16单元，走现有run/inspect/compare，不用mock充当新答案。
-- [ ] 按预先准备的独立标准评价政策变化、角色关系变化和未改场景。作者输入有语义缺陷时保留失败并指出是编写还是分析问题。
-- [ ] 汇总端到端准备与消费的所有可测调用/token/耗时；无法获得的作者账户或真人分钟为unknown。
+2026-09-27执行记录：8个真实session/16个场景全完成，独立源码语义复核16/16 full；Gitea Markdown原稿一次首答未交付，经一次诊断repair完成。分析9次provider调用、已知input 27,782/output 13,531/cache-read 3,200、响应耗时求和344,124ms；作者12次外层请求与已知14,329/10,873/1,792分账，3次失败usage、实际USD和真人分钟未知。4个变化输入的普通compare均需复查。作者直接有效7/8及机械恢复稿消费分开记录。[真实消费汇总](../../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-use-summary.json)可零provider重放。
+
+- [x] 使用作者实际产物在普通目录运行原/变两场景，最多16单元，走现有run/inspect/compare，不用mock充当新答案。
+- [x] 按预先准备的独立标准评价政策变化、角色关系变化和未改场景。作者输入有语义缺陷时保留失败并指出是编写还是分析问题。
+- [x] 汇总端到端准备与消费的所有可测调用/token/耗时；无法获得的作者账户或真人分钟为unknown。
 
 ### AI13 普通交付与例子
 
-- [ ] 在 `examples/authorization-assessment/` 增加完整synthetic例子与可直接运行的现有CLI命令，展示入口假设、显式反事实、unknown和workspace修改。
-- [ ] 搬到一个普通临时目录验证compose/check/inspect/compare和依赖定位；真实模型证据复用本轮session，离线搬移另标，不补付费演示数量。
-- [ ] 更新usage/developer-guide说明新选项、旧默认、可解释的诊断与实际输出。让用户只准备任务和源码，不提供oracle或研究manifest。
+2026-09-27执行记录：新增[完整synthetic例子](../../../examples/authorization-assessment/task-semantics/README.md)；普通临时目录的synthetic与同字节源码作者包均完成compose/check，复用已存真实session执行inspect/compare且定位到合同/程序/场景依赖变化，零新provider和目标执行。usage与开发指南同步。
+
+- [x] 在 `examples/authorization-assessment/` 增加完整synthetic例子与可直接运行的现有CLI命令，展示入口假设、显式反事实、unknown和workspace修改。
+- [x] 搬到一个普通临时目录验证compose/check/inspect/compare和依赖定位；真实模型证据复用本轮session，离线搬移另标，不补付费演示数量。
+- [x] 更新usage/developer-guide说明新选项、旧默认、可解释的诊断与实际输出。让用户只准备任务和源码，不提供oracle或研究manifest。
 
 ### AI14 方法结论与文档归并
 
-- [ ] 更新研究§7.28、当前主题和问题表；保留问题→根因→解决→验证→取舍，旧AH评分和文件不改。
-- [ ] 当前问题正确性、请求完成度、表示效果、编写复用和全部开销分开；必要时推荐简单路径，未测收益保持未知。
-- [ ] 把仍未完成的工程要求与没有正向研究收益分开：不能用mixed替代缺失接线，也不把完成工程写成方法正向。
+2026-09-27执行记录：研究§7.28、当前状态/计划、spec、证据索引与实验目录已同步。AI8–AI10不支持稳定新增机制质量增益；AI12只支持两包原/变的有界真实消费，工程能力完成，作者有效率、分析完成率、token/USD和真人时间各自保留口径。
+
+- [x] 更新研究§7.28、当前主题和问题表；保留问题→根因→解决→验证→取舍，旧AH评分和文件不改。
+- [x] 当前问题正确性、请求完成度、表示效果、编写复用和全部开销分开；必要时推荐简单路径，未测收益保持未知。
+- [x] 把仍未完成的工程要求与没有正向研究收益分开：不能用mixed替代缺失接线，也不把完成工程写成方法正向。
 
 ### AI15 有限验证
 
-- [ ] 一次相关完整回归、主typecheck和本轮driver typecheck；新模块自动包含在相应目录测试。只在新失败/新改动时追加针对性验证。
-- [ ] 一次零provider离线replay、文档测试及链接检查、本轮JSON/JSONL解析和定向凭据检查，不重做历史全量冻结审计。
+2026-09-27新鲜验证：相关回归359 pass/1平台skip、2494 assertions，主typecheck及研究脚本typecheck通过；两条AI12 run/evaluation replay均0 provider且哈希一致，12项文档测试通过，15,602文件链接扫描无broken/legacy/governance error；AI结果根1,064 JSON及130 JSONL/400记录全部解析，结果和新示例定向凭据扫描0文件命中。原始session `preview.md`含生成的尾随空格，保持字节不改；暂存差异检查仅对该原始预览作精确排除，其余通过。
+
+- [x] 一次相关完整回归、主typecheck和本轮driver typecheck；新模块自动包含在相应目录测试。只在新失败/新改动时追加针对性验证。
+- [x] 一次零provider离线replay、文档测试及链接检查、本轮JSON/JSONL解析和定向凭据检查，不重做历史全量冻结审计。
 
 ```powershell
 bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts ./src/cli/authorization-compose.test.ts ./src/providers/structured.test.ts ./src/measurement/token-accounting.test.ts ./scripts/token-accounting
@@ -325,7 +333,7 @@ python ./scripts/check_skill_ir_doc_links.py --root .
 git diff --check
 ```
 
-- [ ] status记录实际命令、退出码和结果；实验脚本自己的tsconfig及replay命令在实现后写入status和本书，不能只用bundle成功替代类型检查。
+- [x] status记录实际命令、退出码和结果；实验脚本自己的tsconfig及replay命令在实现后写入status和本书，不能只用bundle成功替代类型检查。
 
 ### AI16 提交和发布
 

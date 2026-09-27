@@ -13,6 +13,7 @@ result 流水。状态为 `not-established` 时表示现有比较不能识别该
 | 新包在匹配任务保持 checker 质量 | supported-on-four-selected-pairs；original 4/4、optimized 4/4 | `results/skill-ir/trace-guided-skill-optimization-20260913/u6/effect-report-all.json` | 跨模型、跨职责、真实 API 行为 |
 | 新包减少总体成本 | not-established；duration/output 降，input/cache/observed total 升，USD unknown | 同上 | 不得声称成本或人工节省 |
 | 外部项目可复用同一授权流程 | supported-bounded；2项目/4操作/8状态，16/16交付；MD 8 full、DSL 6 full/2标签错误，实际授权推理均正确 | [AB汇总](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/summary.json) | 工程复用不等于DSL收益；不得外推生产安全、纯语法因果、真人节省或一般泛化 |
+| AI作者变化稿可经普通流程获得新答案 | supported-bounded；2包/8 session/16场景独立源码复核full；作者直接有效7/8，另1稿机械恢复后消费 | [AI真实消费](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-use-summary.json) | 不能把恢复稿计作者成功，或外推未见任务、人工省时与部署安全 |
 
 ## 已支持的窄主张
 
@@ -38,6 +39,7 @@ result 流水。状态为 `not-established` 时表示现有比较不能识别该
 | AOT 使 LLM 跨模型更稳定 | not-established；Stage N matrix 未创建 | 对应 Stage N qualification result | 不得写跨模型主表 |
 | 任意 skill 全自动构造 | not-established；受限 preset 与人工边界 | readiness/automation reports | 不得写 arbitrary-skill optimizer |
 | 独特增益来自 Skill IR 而非直接脚本/成熟工具 | not-established；缺对照 | 现有 artifact reports | 不得声明独特算法贡献 |
+| AI任务语义机制稳定提高回答质量 | not-established；54单元仅40完成、初轮配对没有稳定full增益 | [AI质量面板](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/panel-summary.json) | 16/16作者消费无旧机制配对，不能替代机制增益证据 |
 
 ## 使用规则
 

@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-27
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AH已发布至`d1b82005`；用户已授权新GPT-6 Sol max任务执行AI0–AI16。本次已完成规划，运行状态在AI0建立。
+- 状态：AI0–AI14已完成工程、冻结质量面板、独立作者真实消费和普通示例；AI15验证与AI16发布进行中，实时状态见结果根。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AI0–AI16](../superpowers/plans/2026-09-27-authorization-task-semantics-and-reuse.md)
@@ -23,6 +23,8 @@
 | AI14–AI16 | 研究归并、有限回归、提交发布 | 当前文档与真实结果一致，origin同步 |
 
 基线`d1b82005`，单一`gpt-6-sol / max`任务为核心代码/共享文档/Git唯一写者。实验主面板最多48单元，预定机制观察6、作者原/变消费16，共享实现修订另最多8；有目的付费与网络已授权，未知费用保留。质量与复用按60%/40%安排投入，不预定positive。任务书定义实际缩减与失败处理，不用重复调用延长执行。
+
+实际质量面板54单元中40完成、14因超时/传输缺失；39/54主口径full、固定crop争议敏感性40/54，没有稳定新增机制质量增益。作者8稿最终7稿直接有效、1稿仅单字符机械恢复后消费；8个真实session回答原/变16场景并经独立源码复核16/16 full。AI普通synthetic示例与搬移后的compose/check/inspect/compare均零新增provider；作者/分析已知token和未知USD、人力范围详见[研究§7.28](skill-dsl-research.md#728-ai-任务语义答案合成与变化后复用)与[消费汇总](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-use-summary.json)。
 
 ## 最近完成的独立并行队列
 
