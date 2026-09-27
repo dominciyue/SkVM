@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 authorization/provider/measurement 模块、Python 文档检查。
 
-- 日期：2026-09-27；状态：已规划并授权执行，实际执行从 AI0 开始。
+- 日期：2026-09-27；状态：AI0–AI16已完成并发布到用户origin。
 - 基线：`d1b82005fa873170120f41030494d22b189570d1` 加本规划提交。
 - 仓库：`D:/skill优化/SkVM`；直接使用 `skill-ir-aot`，仅推用户 `origin`，不创建分支/worktree。
 - 开发任务模型：`gpt-6-sol / max`；研究模型沿用 `xty/gpt-5.6-sol`，两种账户分开。
@@ -337,10 +337,12 @@ git diff --check
 
 ### AI16 提交和发布
 
-- [ ] 按合同/合成/接线/作者复用/证据提交，只暂存本轮归属路径；原始大日志沿用必要归档，避免相同review包复制多份。
-- [ ] 更新current-status、plan/spec、研究、实验目录、任务书和根conversation_log；数据与当前建议一致。
-- [ ] 推 `origin/skill-ir-aot`，核对远端HEAD、ahead/behind和工作区。其他新出现的无关改动保留并说明归属。
-- [ ] 最终提供实际命令、工程产物、分层效果、成本、失败与剩余问题。完成后停止，不创建自选追加目标。
+2026-09-27执行记录：本任务先后按工程`1f1b62a5`、面板冻结`5ce2a3d3`、面板证据`f2fcbe56`、作者输入`8fcd8a3b`、真实消费`b3a9ba90`、普通示例`4422dbff`及研究归并`b45926f6`聚焦提交。首次推送后，用户`origin/skill-ir-aot`与本地同为`b45926f622b3c7491b05c144222f023fb2c665d3`，ahead/behind为0/0且工作树干净。最终状态记录另以一个窄提交推送并复核远端；不追加研究调用或任务。
+
+- [x] 按合同/合成/接线/作者复用/证据提交，只暂存本轮归属路径；原始大日志沿用必要归档，避免相同review包复制多份。
+- [x] 更新current-status、plan/spec、研究、实验目录、任务书和根conversation_log；数据与当前建议一致。
+- [x] 推 `origin/skill-ir-aot`，核对远端HEAD、ahead/behind和工作区。其他新出现的无关改动保留并说明归属。
+- [x] 最终提供实际命令、工程产物、分层效果、成本、失败与剩余问题。完成后停止，不创建自选追加目标。
 
 ## 7. 失败与自主执行
 

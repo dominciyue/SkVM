@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-27
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AI0–AI14已完成工程、冻结质量面板、独立作者真实消费和普通示例；AI15验证与AI16发布进行中，实时状态见结果根。
+- 状态：AI0–AI16已完成工程、冻结质量面板、独立作者真实消费、普通示例、有限验证及用户origin发布；实时状态见结果根。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AI0–AI16](../superpowers/plans/2026-09-27-authorization-task-semantics-and-reuse.md)
