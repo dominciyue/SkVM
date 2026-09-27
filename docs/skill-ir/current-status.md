@@ -6,7 +6,7 @@
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-**当前授权队列：** [AI0–AI16 任务语义、答案合成与变化后复用](../superpowers/plans/2026-09-27-authorization-task-semantics-and-reuse.md)正在`skill-ir-aot`执行，实时恢复点为[AI status](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/status.json)。AI0–AI7已完成公开要求冻结、可选sidecar、义务局部程序、wire/v6行为/政策对照、普通check/run/inspect/compare、Markdown与workspace/editor接线；授权聚合离线测试308 pass/1平台skip、2359断言，typecheck已通过。AI8正在准备8状态四臂真实面板，尚无本轮模型调用或质量结论。重点仍是实际答案的独立语义评价及作者原/变输入真实消费；旧默认兼容，AH历史结果保持。质量60%/复用40%分别验收，方法设计及逐步证据见[研究§7.28](skill-dsl-research.md#728-ai-任务语义答案合成与变化后复用)。
+**当前授权队列：** [AI0–AI16 任务语义、答案合成与变化后复用](../superpowers/plans/2026-09-27-authorization-task-semantics-and-reuse.md)正在`skill-ir-aot`执行，实时恢复点为[AI status](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/status.json)。AI0–AI7已完成公开要求冻结、可选sidecar、义务局部程序、wire/v6行为/政策对照、普通check/run/inspect/compare、Markdown与workspace/editor接线；授权聚合离线测试308 pass/1平台skip、2359断言。AI8已冻结8状态、54单元四臂面板及共同公开要求，16种输入检查和一次v6离线模拟通过；两条新变化任务的独立Markdown作者原稿已保存，作者模型2次完成、实际USD未知，分析面板尚未调用。下一步先提交冻结材料，再执行AI9真实质量运行及独立语义评价与作者原/变输入消费。旧默认兼容，AH历史结果保持。质量60%/复用40%分别验收，方法设计及逐步证据见[研究§7.28](skill-dsl-research.md#728-ai-任务语义答案合成与变化后复用)。
 
 [V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)、[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)和[Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)均已结束发布，Y最终提交`70906261`。后续复核确认Y主体工程可用，但公共`--method`选择曾有漏项，已在Z补齐；历史机器summary保留。
 

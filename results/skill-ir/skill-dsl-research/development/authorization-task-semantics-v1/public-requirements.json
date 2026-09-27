@@ -5,6 +5,7 @@
   "cases": [
     {
       "id": "owui-file",
+      "currentQuestion": "Can a verified non-admin who owns the supplied file write its content to an existing caller-selected knowledge-base collection without a write grant through POST /process/file?",
       "sourceCase": "owui-file",
       "selection": "AH exposed mechanism: target-specific write authorization",
       "boundary": "declared-entry",
@@ -14,6 +15,7 @@
     },
     {
       "id": "owui-text",
+      "currentQuestion": "Can a verified non-admin write caller-selected text to an existing caller-selected knowledge-base collection without a write grant through POST /process/text?",
       "sourceCase": "owui-text",
       "selection": "AH exposed mechanism: policy label direction",
       "boundary": "declared-entry",
@@ -23,6 +25,7 @@
     },
     {
       "id": "owui-header",
+      "currentQuestion": "Can an unauthenticated external client impersonate an arbitrary existing user in the actual deployment by sending a trusted-email header to POST /signin?",
       "sourceCase": "owui-header",
       "selection": "AH exposed mechanism: requested branches and deployment unknown",
       "boundary": "deployment",
@@ -38,6 +41,7 @@
     },
     {
       "id": "fastapi-superuser-read",
+      "currentQuestion": "Can the stated authenticated active superuser read an existing item owned by another user through GET /items/{id}, assessed at the read_item handler entry?",
       "sourceCase": "fastapi-superuser-read",
       "selection": "AH exposed mechanism: stated handler-entry premise",
       "boundary": "declared-entry",
@@ -47,6 +51,7 @@
     },
     {
       "id": "gitea-assignee",
+      "currentQuestion": "Can an authenticated caller with issue-write token scope but no repository issue-write permission add an existing user to an existing issue through the named POST route?",
       "sourceCase": "gitea-assignee",
       "selection": "AH exposed mechanism: repository permission and requested branches",
       "boundary": "declared-entry",
@@ -59,6 +64,7 @@
     },
     {
       "id": "gitea-lock",
+      "currentQuestion": "Can an authenticated issue writer with full token scope but neither repository-admin nor site-admin status lock an existing unlocked issue through the named PUT route?",
       "sourceCase": "gitea-lock",
       "selection": "AH exposed mechanism: route-level role and policy label direction",
       "boundary": "declared-entry",
@@ -68,6 +74,7 @@
     },
     {
       "id": "fastapi-superuser-supplied-path",
+      "currentQuestion": "Does the supplied path prove that an external caller claiming active-superuser status can read another user's existing item, without assuming the cropped-out CurrentUser binding?",
       "sourceCase": "fastapi-superuser-read",
       "selection": "declared-scenario-variation: same source, supplied-path rather than handler-entry binding",
       "boundary": "supplied-path",
@@ -77,6 +84,7 @@
     },
     {
       "id": "gitea-collaborator-self",
+      "currentQuestion": "Can the stated authenticated repository-read collaborator who is neither a site nor repository administrator query that caller's own existing username through GetRepoPermissions?",
       "sourceCase": "gitea-collaborator",
       "selection": "declared-scenario-variation: same source, self relation instead of other-user relation",
       "boundary": "declared-entry",

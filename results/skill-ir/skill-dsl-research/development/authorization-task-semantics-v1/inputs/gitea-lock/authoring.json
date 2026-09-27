@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "gitea-issue-lock-writer-nonadmin",
+  "request": "Determine whether an authenticated repository issue writer with full token scope, but with neither repository-administrator nor site-administrator status, may lock an existing unlocked issue through PUT /repos/{owner}/{repo}/issues/{index}/lock.",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceRoot": "../../../authorization-semantic-quality-v1/inputs/gitea-lock/source",
+  "sources": [
+    "route_guard.go",
+    "issue_lock.go"
+  ],
+  "policies": {
+    "issue-lock-admin-policy": {
+      "text": "The issue-lock route requires repository-administrator or site-administrator status; the handler then also requires issue-write permission before locking an unlocked issue.",
+      "location": "policy.json#/normativePolicy",
+      "revision": "gitea@fc28937:routers/api/v1/api.go#L451-L459,L1741-L1745;routers/api/v1/repo/issue_lock.go#L15-L81",
+      "acceptance": "accepted",
+      "reason": "The fixed public route and handler expose both permission gates before the lock mutation."
+    }
+  },
+  "principals": {
+    "authenticated-issue-writer-without-admin-role": {
+      "role": "authenticated repository issue writer without an administrator role",
+      "facts": [
+        "The caller has full token scope and repository issue-write permission, but is neither a repository administrator nor a site administrator."
+      ],
+      "capabilities": [
+        "authenticated",
+        "token-scope-all",
+        "repository-issue-read",
+        "repository-issue-write"
+      ]
+    }
+  },
+  "resources": {
+    "existing-unlocked-issue": {
+      "type": "repository issue lock state",
+      "facts": [
+        "An existing readable issue whose lock state is currently unlocked."
+      ]
+    }
+  },
+  "entries": {
+    "put-issue-lock": {
+      "name": "PUT /repos/{owner}/{repo}/issues/{index}/lock",
+      "locations": [
+        {
+          "path": "route_guard.go",
+          "startLine": 4,
+          "endLine": 12
+        },
+        {
+          "path": "route_guard.go",
+          "startLine": 16,
+          "endLine": 20
+        },
+        {
+          "path": "issue_lock.go",
+          "startLine": 4,
+          "endLine": 70
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "deny-nonadmin-issue-lock": {
+      "principal": "authenticated-issue-writer-without-admin-role",
+      "resource": "existing-unlocked-issue",
+      "policy": "issue-lock-admin-policy",
+      "entries": [
+        "put-issue-lock"
+      ],
+      "relation": "issue-writer-without-repository-or-site-admin-role",
+      "operation": "lock-issue",
+      "expectation": "deny",
+      "conditions": {
+        "requester-authenticated": {
+          "basis": "The bounded scenario fixes an authenticated caller."
+        },
+        "requester-is-repository-admin": {
+          "basis": "False in the bounded scenario."
+        },
+        "requester-is-site-admin": {
+          "basis": "False in the bounded scenario."
+        },
+        "requester-has-repository-issue-write": {
+          "basis": "True in the bounded scenario, isolating the stronger route-level administrator gate."
+        },
+        "issue-exists-and-is-readable": {
+          "basis": "The bounded scenario fixes an existing issue visible to the caller."
+        },
+        "issue-is-currently-locked": {
+          "basis": "False in the bounded scenario, so a permitted path would reach the lock mutation rather than a no-op success."
+        }
+      }
+    }
+  },
+  "additionalQuestions": [
+    "Trace the declared principal, resource relation, authorization control, and protected effect through the supplied fixed source.",
+    "State any decisive fact unavailable from the fixed source instead of inferring it, and explain how the declared conditions change reachability."
+  ],
+  "additionalConstraints": [
+    "Use only policy.json, route_guard.go, and issue_lock.go from the supplied fixed source context.",
+    "Do not execute or modify Gitea and do not contact a deployment.",
+    "Do not treat full token scope or repository issue-write permission as repository-administrator status."
+  ],
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Decide the current scenario at the stated boundary from the supplied fixed source and accepted policy. Treat listed premises as question assumptions at the named entry, not as source or deployment proof. Trace the decisive authorization control and protected effect with exact supplied-source locations. Answer every explicitly requested counterfactual branch separately, identifying its changed assumptions and any decisive unknown. Include only the response details requested below. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: Can an authenticated issue writer with full token scope but neither repository-admin nor site-admin status lock an existing unlocked issue through the named PUT route?\nAnalysis boundary: declared-entry.\nTask premise: At the named PUT route the authenticated caller has full token scope and issue-write permission but neither repository-admin nor site-admin status; the issue exists and is unlocked.\nRequired response detail: Trace the route and handler gates in order and identify whether the lock mutation is reached.",
+    "scenarios": {
+      "deny-nonadmin-issue-lock": {
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At the named PUT route the authenticated caller has full token scope and issue-write permission but neither repository-admin nor site-admin status; the issue exists and is unlocked.",
+            "atEntry": "put-issue-lock",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the route and handler gates in order and identify whether the lock mutation is reached."
+        ]
+      }
+    }
+  }
+}

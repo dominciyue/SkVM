@@ -1,0 +1,18 @@
+{
+  "caseId": "gitea-collaborator-self",
+  "model": "xty/gpt-5.6-sol",
+  "prompt": "You are an independent author of a Markdown instruction for a fixed-source authorization assessment. Write the instruction that another model will receive, not an answer to the assessment. Return only the Markdown instruction paragraph(s), no code fence or commentary.\nUse only this neutral public brief; no DSL draft, answer key, or evaluator exists in your context. Keep the question, accepted policy, source crop, analysis boundary, premises, requested branches, and response details aligned. Do not invent source facts. A common public requirements paragraph will be added separately to every arm, so do not quote it verbatim.\nSource: Gitea at fc28937a8d772fe9e4025c9b5f24d5db4d86610b; supplied crop is collaborators.go and the named GetRepoPermissions handler.\nAccepted policy: A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. If none holds, the request is rejected with HTTP 403 before the target collaborator is loaded.\nCurrent question: Can the stated authenticated repository-read collaborator who is neither a site nor repository administrator query that caller's own existing username through GetRepoPermissions?\nBoundary: declared-entry\nPremises: At GetRepoPermissions the authenticated repository-read collaborator is neither a site nor repository administrator, and the queried username is the caller's own existing username.\nRequested branches: []\nRequired response details: Explain the self-query branch and distinguish it from the other-user role check.",
+  "response": {
+    "text": "Using only the supplied crop from Gitea commit `fc28937a8d772fe9e4025c9b5f24d5db4d86610b`—specifically `collaborators.go` and the named `GetRepoPermissions` handler—assess the current question at the declared-entry boundary. Apply the accepted authorization policy supplied with the task without importing facts from outside the crop, and do not infer behavior beyond the handler’s relevant entry-point logic.\n\nThe premises are that the authenticated caller has repository-read access but is neither a site administrator nor a repository administrator, and that the requested username is the caller’s own existing username. State whether the request is authorized, explain how the self-query condition is evaluated, and distinguish that branch from the role check that applies when querying another user. There are no additional requested branches. Do not invent source facts, cite unavailable files, or provide an answer key or evaluator commentary.",
+    "toolCalls": [],
+    "tokens": {
+      "input": 606,
+      "output": 394,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "durationMs": 20592.2894,
+    "stopReason": "end_turn"
+  },
+  "date": "2026-09-27T12:47:03.801Z"
+}

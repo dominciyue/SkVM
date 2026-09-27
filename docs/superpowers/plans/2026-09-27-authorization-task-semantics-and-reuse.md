@@ -263,10 +263,12 @@ test("compares an observed effect with the authored expectation", () => {
 
 ### AI8 中立材料和运行配置
 
-- [ ] 独立Markdown作者从中立brief准备材料，保存原稿与有理由的机械修正；新旧公共要求固定，不从oracle派生输入。
-- [ ] 逐项对齐双方的前提、政策、请求分支和响应要求；校验实际prompt公共段相同。新旧支持的差异记录成一张表。
-- [ ] 在生成前记录8状态、四臂/重复/6机制观察、顺序、代码revision、模型、预算、rubric和停止规则；真实变化与synthetic分别计数。
-- [ ] 复用AH薄driver模式调用现有runner；新driver提供check/run/status/evaluate/replay，纳入脚本typecheck。一次离线生命周期验证即可。
+2026-09-27 执行记录：8状态、54单元、公开要求与rubric已在首个分析模型调用前冻结；配置SHA-256为`a9adbb380923fa1e742f7975b497bd2dbb15c202f5f5482b29b8750bf01f63d8`。6份AH独立Markdown原文复用，2份变化任务由独立模型依据中立公开brief起草，原始prompt/回复留存；首次直连网关失败无交付，按本机HTTPS代理重试后两次作者调用完成。16种输入检查、一次v6离线生命周期和脚本typecheck通过。薄driver的check/run/status已接通；evaluate/replay随AI10评价接入。
+
+- [x] 独立Markdown作者从中立brief准备材料，保存原稿与有理由的机械修正；新旧公共要求固定，不从oracle派生输入。
+- [x] 逐项对齐双方的前提、政策、请求分支和响应要求；校验实际prompt公共段相同。新旧支持的差异记录成一张表。
+- [x] 在生成前记录8状态、四臂/重复/6机制观察、顺序、代码revision、模型、预算、rubric和停止规则；真实变化与synthetic分别计数。
+- [ ] 复用AH薄driver模式调用现有runner；新driver提供check/run/status/evaluate/replay，纳入脚本typecheck。一次离线生命周期验证即可。check/run/status、脚本typecheck及离线模拟已通过，evaluate/replay待AI10评价接线。
 
 ### AI9 真实质量运行
 
