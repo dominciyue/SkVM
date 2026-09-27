@@ -1,0 +1,498 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "assessmentMode": "explicit-v1",
+  "reasoningStrategy": "standard",
+  "researchIdentity": {
+    "arm": "markdown",
+    "instructionOrigin": "independent-author",
+    "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-packages/fastapi-policy-change/markdown/original.md",
+    "sha256": "000f892ba18f9cdcf595d27d1f5454f6cf8ed6eccbb9ce0e0d3c930b36673b53",
+    "characters": 3863
+  },
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260927T145159499Z-c36e706a",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\author-use-runs\\fastapi-policy-change-markdown-original\\sessions\\20260927T145159499Z-c36e706a",
+  "createdAt": "2026-09-27T14:51:59.499Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\author-md-inputs\\fastapi-policy-change\\original.json",
+  "taskId": "fastapi-policy-change-original-neutral-markdown-harness",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 138,
+      "declaration": 3863,
+      "publicAnalysis": 344,
+      "assessmentProgram": 1193,
+      "source": 4317,
+      "outputContract": 2936,
+      "total": 12941,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "fastapi-policy-change-original-neutral-markdown-harness",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "results": [
+      {
+        "obligationId": "scenario%3Aforeign-update::entry%3Aupdate",
+        "conclusion": "source_refuted",
+        "explanation": "Scenario ID: foreign-update. Question: At update_item handler entry, can an authenticated active non-superuser change an existing item owned by another user? Entry premise: current_user is the stated active non-superuser, the item exists, and its owner differs from current_user.id. Boundary: declared-entry. Policy requirement: an authenticated non-superuser may modify only items they own; therefore this foreign update must be forbidden. Observed handler behavior: update_item receives current_user and the item identifier, looks up the item, and would return 404 only if it were missing. For the stated existing item, the authorization condition evaluates true because current_user is not a superuser and owner_id differs from current_user.id, so the handler raises 403. The mutation, add, commit, refresh, and return operations occur only after that check and are not reached on this path. Assessment: the source-visible denial conforms to the accepted policy. Requested change: none is required in update_item at lines 89-96 for this scenario. This conclusion is limited to the supplied handler crop and stated entry premise and makes no claim about upstream principal binding.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The declared update_item entry receives session, current_user, id, and item_in.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 75,
+                  "endLine": 82,
+                  "quote": "@router.put(\"/{id}\", response_model=ItemPublic)\ndef update_item(\n    *,\n    session: SessionDep,\n    current_user: CurrentUser,\n    id: uuid.UUID,\n    item_in: ItemUpdate,\n) -> Any:"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "Within the visible handler interface, authorization uses the current_user parameter; the crop does not establish how that principal was authenticated or bound upstream.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 76,
+                  "endLine": 81,
+                  "quote": "def update_item(\n    *,\n    session: SessionDep,\n    current_user: CurrentUser,\n    id: uuid.UUID,\n    item_in: ItemUpdate,"
+                }
+              ]
+            },
+            {
+              "statement": "The handler binds the target resource by retrieving Item with the supplied id.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 86,
+                  "endLine": 86,
+                  "quote": "    item = session.get(Item, id)"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "The strongest visible authorization control raises 403 when the user is not a superuser and the item's owner differs from the user's id.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 89,
+                  "endLine": 90,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "The protected update and persistence operations mutate the item, add it to the session, commit, refresh, and return it, all after the authorization check.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 91,
+                  "endLine": 96,
+                  "quote": "    update_dict = item_in.model_dump(exclude_unset=True)\n    item.sqlmodel_update(update_dict)\n    session.add(item)\n    session.commit()\n    session.refresh(item)\n    return item"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "For a non-superuser whose id differs from item.owner_id, the authorization conjunction is true and triggers the 403 denial before mutation.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 89,
+                  "endLine": 92,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    update_dict = item_in.model_dump(exclude_unset=True)\n    item.sqlmodel_update(update_dict)"
+                }
+              ]
+            },
+            {
+              "statement": "A missing lookup result raises 404; under the stated existing-item premise, this branch does not terminate the path.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 86,
+                  "endLine": 88,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": []
+      },
+      {
+        "obligationId": "scenario%3Asuperuser-read::entry%3Aread",
+        "conclusion": "source_refuted",
+        "explanation": "Scenario ID: superuser-read. Question: At read_item handler entry, can an authenticated active superuser read an existing item owned by another user? Entry premise: current_user is the stated authenticated active superuser, the item exists, and its owner differs from current_user.id. Boundary: declared-entry. Policy requirement: an authenticated active superuser may read an item regardless of owner. Observed handler behavior: read_item receives current_user and the item identifier, looks up the item, and would return 404 only if it were missing. For the stated existing item, the 403 condition is false because it begins with not current_user.is_superuser; the foreign ownership comparison therefore does not cause denial for the stated superuser. The handler returns the item. Assessment: the source-visible allowance conforms to the accepted policy. Requested change: none is required in read_item at lines 56-58 for this scenario. This conclusion is limited to the supplied handler crop and stated entry premise and makes no claim about upstream principal binding.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "The declared read_item entry receives session, current_user, and id.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 48,
+                  "endLine": 49,
+                  "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "Within the visible handler interface, authorization uses the current_user parameter; the crop does not establish how that principal was authenticated, active, or bound upstream.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 49,
+                  "endLine": 49,
+                  "quote": "def read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:"
+                }
+              ]
+            },
+            {
+              "statement": "The handler binds the target resource by retrieving Item with the supplied id.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 53,
+                  "endLine": 53,
+                  "quote": "    item = session.get(Item, id)"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "The strongest visible authorization control raises 403 only when the user is not a superuser and the item's owner differs from the user's id.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 56,
+                  "endLine": 57,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "After the lookup and authorization check, the handler returns the item.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 58,
+                  "endLine": 58,
+                  "quote": "    return item"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "For a superuser, the leading not-is_superuser term is false, so foreign ownership does not trigger the 403 branch and control proceeds to the return.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 56,
+                  "endLine": 58,
+                  "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    return item"
+                }
+              ]
+            },
+            {
+              "statement": "A missing lookup result raises 404; under the stated existing-item premise, this branch does not terminate the path.",
+              "citations": [
+                {
+                  "path": "items.py",
+                  "startLine": 53,
+                  "endLine": 55,
+                  "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": []
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "wireResult": {
+    "results": [
+      {
+        "obligationId": "scenario%3Aforeign-update::entry%3Aupdate",
+        "explanation": "Scenario ID: foreign-update. Question: At update_item handler entry, can an authenticated active non-superuser change an existing item owned by another user? Entry premise: current_user is the stated active non-superuser, the item exists, and its owner differs from current_user.id. Boundary: declared-entry. Policy requirement: an authenticated non-superuser may modify only items they own; therefore this foreign update must be forbidden. Observed handler behavior: update_item receives current_user and the item identifier, looks up the item, and would return 404 only if it were missing. For the stated existing item, the authorization condition evaluates true because current_user is not a superuser and owner_id differs from current_user.id, so the handler raises 403. The mutation, add, commit, refresh, and return operations occur only after that check and are not reached on this path. Assessment: the source-visible denial conforms to the accepted policy. Requested change: none is required in update_item at lines 89-96 for this scenario. This conclusion is limited to the supplied handler crop and stated entry premise and makes no claim about upstream principal binding.",
+        "facts": [
+          {
+            "id": "fu-entry",
+            "kind": "entry",
+            "statement": "The declared update_item entry receives session, current_user, id, and item_in.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 75,
+                "endLine": 82
+              }
+            ]
+          },
+          {
+            "id": "fu-principal-binding",
+            "kind": "binding",
+            "statement": "Within the visible handler interface, authorization uses the current_user parameter; the crop does not establish how that principal was authenticated or bound upstream.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 76,
+                "endLine": 81
+              }
+            ]
+          },
+          {
+            "id": "fu-resource-binding",
+            "kind": "binding",
+            "statement": "The handler binds the target resource by retrieving Item with the supplied id.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 86,
+                "endLine": 86
+              }
+            ]
+          },
+          {
+            "id": "fu-existence-condition",
+            "kind": "condition",
+            "statement": "A missing lookup result raises 404; under the stated existing-item premise, this branch does not terminate the path.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 86,
+                "endLine": 88
+              }
+            ]
+          },
+          {
+            "id": "fu-auth-control",
+            "kind": "control",
+            "statement": "The strongest visible authorization control raises 403 when the user is not a superuser and the item's owner differs from the user's id.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 89,
+                "endLine": 90
+              }
+            ]
+          },
+          {
+            "id": "fu-decisive-condition",
+            "kind": "condition",
+            "statement": "For a non-superuser whose id differs from item.owner_id, the authorization conjunction is true and triggers the 403 denial before mutation.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 89,
+                "endLine": 92
+              }
+            ]
+          },
+          {
+            "id": "fu-protected-effect",
+            "kind": "effect",
+            "statement": "The protected update and persistence operations mutate the item, add it to the session, commit, refresh, and return it, all after the authorization check.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 91,
+                "endLine": 96
+              }
+            ]
+          }
+        ],
+        "decisiveMissingFacts": [],
+        "suggestedObservations": [],
+        "decision": {
+          "kind": "observed",
+          "observed": "deny"
+        },
+        "branchResults": []
+      },
+      {
+        "obligationId": "scenario%3Asuperuser-read::entry%3Aread",
+        "explanation": "Scenario ID: superuser-read. Question: At read_item handler entry, can an authenticated active superuser read an existing item owned by another user? Entry premise: current_user is the stated authenticated active superuser, the item exists, and its owner differs from current_user.id. Boundary: declared-entry. Policy requirement: an authenticated active superuser may read an item regardless of owner. Observed handler behavior: read_item receives current_user and the item identifier, looks up the item, and would return 404 only if it were missing. For the stated existing item, the 403 condition is false because it begins with not current_user.is_superuser; the foreign ownership comparison therefore does not cause denial for the stated superuser. The handler returns the item. Assessment: the source-visible allowance conforms to the accepted policy. Requested change: none is required in read_item at lines 56-58 for this scenario. This conclusion is limited to the supplied handler crop and stated entry premise and makes no claim about upstream principal binding.",
+        "facts": [
+          {
+            "id": "sr-entry",
+            "kind": "entry",
+            "statement": "The declared read_item entry receives session, current_user, and id.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 48,
+                "endLine": 49
+              }
+            ]
+          },
+          {
+            "id": "sr-principal-binding",
+            "kind": "binding",
+            "statement": "Within the visible handler interface, authorization uses the current_user parameter; the crop does not establish how that principal was authenticated, active, or bound upstream.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 49,
+                "endLine": 49
+              }
+            ]
+          },
+          {
+            "id": "sr-resource-binding",
+            "kind": "binding",
+            "statement": "The handler binds the target resource by retrieving Item with the supplied id.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 53,
+                "endLine": 53
+              }
+            ]
+          },
+          {
+            "id": "sr-existence-condition",
+            "kind": "condition",
+            "statement": "A missing lookup result raises 404; under the stated existing-item premise, this branch does not terminate the path.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 53,
+                "endLine": 55
+              }
+            ]
+          },
+          {
+            "id": "sr-auth-control",
+            "kind": "control",
+            "statement": "The strongest visible authorization control raises 403 only when the user is not a superuser and the item's owner differs from the user's id.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 56,
+                "endLine": 57
+              }
+            ]
+          },
+          {
+            "id": "sr-decisive-condition",
+            "kind": "condition",
+            "statement": "For a superuser, the leading not-is_superuser term is false, so foreign ownership does not trigger the 403 branch and control proceeds to the return.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 56,
+                "endLine": 58
+              }
+            ]
+          },
+          {
+            "id": "sr-protected-effect",
+            "kind": "effect",
+            "statement": "After the lookup and authorization check, the handler returns the item.",
+            "citations": [
+              {
+                "sourceId": "src-dcbab1685696c702",
+                "startLine": 58,
+                "endLine": 58
+              }
+            ]
+          }
+        ],
+        "decisiveMissingFacts": [],
+        "suggestedObservations": [],
+        "decision": {
+          "kind": "observed",
+          "observed": "allow"
+        },
+        "branchResults": []
+      }
+    ]
+  },
+  "normalizerVersion": "authorization-wire-normalizer/v6",
+  "relationCoverage": [],
+  "observedDecisions": [
+    {
+      "obligationId": "scenario%3Aforeign-update::entry%3Aupdate",
+      "expectation": "deny",
+      "observed": "deny",
+      "derivedConclusion": "source_refuted"
+    },
+    {
+      "obligationId": "scenario%3Asuperuser-read::entry%3Aread",
+      "expectation": "allow",
+      "observed": "allow",
+      "derivedConclusion": "source_refuted"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 190,
+      "output": 1760,
+      "cacheRead": 3200,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

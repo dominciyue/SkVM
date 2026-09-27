@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "source-authorization-assessment/v0",
+  "taskId": "gitea-relation-change-original-neutral-markdown-harness",
+  "request": "At GetRepoPermissions, can an authenticated repository-read collaborator who is neither site nor repository administrator query another existing user's permission? At GetRepoPermissions, can an authenticated repository administrator query another existing user's permission?",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceMode": "fixed-context",
+  "policySources": [
+    {
+      "id": "policy:accepted",
+      "kind": "explicit-task-requirement",
+      "text": "A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. Otherwise the request is rejected with HTTP 403 before the target collaborator is loaded.",
+      "location": "author-neutral-briefs.json#/packages/1/originalPolicy",
+      "revision": "gitea-relation-change-original",
+      "acceptance": {
+        "status": "accepted",
+        "actorRole": "task-author",
+        "reason": "Supplied by the independent neutral task author, not inferred from source behavior."
+      }
+    }
+  ],
+  "principals": [
+    {
+      "id": "principal:nonadmin",
+      "role": "authenticated repository-read collaborator, not administrator",
+      "description": "Author facts: [\"At entry, caller and queried existing collaborator have different usernames; caller is neither site nor repository administrator.\"]",
+      "startingCapabilities": [
+        "authenticated",
+        "repository-read"
+      ]
+    },
+    {
+      "id": "principal:repoadmin",
+      "role": "authenticated repository administrator",
+      "description": "Author facts: [\"At entry, caller is a repository administrator and the queried existing collaborator has a different username.\"]",
+      "startingCapabilities": [
+        "authenticated",
+        "repository-admin"
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "resource:collaborator",
+      "type": "existing collaborator",
+      "description": "Author facts: [\"The queried collaborator exists; username relation is specified separately per scenario.\"]"
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry:permissions",
+      "name": "GetRepoPermissions",
+      "locations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 4,
+          "endLine": 58
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "id": "scenario:nonadmin-other",
+      "principalId": "principal:nonadmin",
+      "resourceId": "resource:collaborator",
+      "relation": "different-username",
+      "operation": "At GetRepoPermissions, can an authenticated repository-read collaborator who is neither site nor repository administrator query another existing user's permission?",
+      "expectation": "deny",
+      "conditions": [],
+      "policySourceId": "policy:accepted",
+      "entryIds": [
+        "entry:permissions"
+      ]
+    },
+    {
+      "id": "scenario:repo-admin-other",
+      "principalId": "principal:repoadmin",
+      "resourceId": "resource:collaborator",
+      "relation": "different-username",
+      "operation": "At GetRepoPermissions, can an authenticated repository administrator query another existing user's permission?",
+      "expectation": "allow",
+      "conditions": [],
+      "policySourceId": "policy:accepted",
+      "entryIds": [
+        "entry:permissions"
+      ]
+    }
+  ],
+  "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+  "requiredAnalysis": [
+    "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+  ],
+  "constraints": [
+    "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+  ]
+}

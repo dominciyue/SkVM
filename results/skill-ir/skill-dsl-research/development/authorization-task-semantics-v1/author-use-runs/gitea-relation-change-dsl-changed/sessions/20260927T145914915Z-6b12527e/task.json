@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "source-authorization-assessment/v0",
+  "taskId": "gitea-relation-change-self",
+  "request": "Using only the supplied collaborators.go crop at the fixed ref, assess GetRepoPermissions against the accepted policy for both scenarios. Evaluate policy authorization separately from observed source behavior, including whether denial occurs before the target collaborator is loaded. The changed scenario is a nonadmin collaborator querying their own existing username; keep the repository-administrator querying another user unchanged. If the implementation diverges, request only the minimal source change needed to conform; do not rewrite the accepted policy or assume unshown upstream behavior.",
+  "repository": "https://github.com/go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceMode": "fixed-context",
+  "policySources": [
+    {
+      "id": "policy:collaborator-permission-query",
+      "kind": "explicit-task-requirement",
+      "text": "A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. Otherwise the request is rejected with HTTP 403 before the target collaborator is loaded.",
+      "location": "author-neutral-briefs.json#/packages/1/originalPolicy",
+      "revision": "original",
+      "acceptance": {
+        "status": "accepted",
+        "actorRole": "task-author",
+        "reason": "This is the task author's accepted authorization policy and must remain independent of implementation behavior."
+      }
+    }
+  ],
+  "principals": [
+    {
+      "id": "principal:nonadmin-self-collaborator",
+      "role": "authenticated repository-read collaborator",
+      "description": "Author facts: [\"Caller is not a site administrator.\",\"Caller is not a repository administrator.\",\"Caller username equals the queried collaborator username.\"]",
+      "startingCapabilities": [
+        "Read the repository."
+      ]
+    },
+    {
+      "id": "principal:repository-administrator",
+      "role": "authenticated repository administrator",
+      "description": "Author facts: [\"Caller is a repository administrator.\",\"Caller username differs from the queried collaborator username.\"]",
+      "startingCapabilities": [
+        "Administer the repository."
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "resource:other-existing-collaborator-permission",
+      "type": "repository collaborator permission",
+      "description": "Author facts: [\"The queried collaborator exists.\",\"The queried collaborator has a username different from the caller.\",\"The permission belongs to the repository handled by GetRepoPermissions.\"]"
+    },
+    {
+      "id": "resource:own-existing-collaborator-permission",
+      "type": "repository collaborator permission",
+      "description": "Author facts: [\"The queried collaborator exists.\",\"The queried collaborator username equals the caller username.\",\"The permission belongs to the repository handled by GetRepoPermissions.\"]"
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry:get-repo-permissions",
+      "name": "GetRepoPermissions",
+      "locations": [
+        {
+          "path": "collaborators.go",
+          "startLine": 5,
+          "endLine": 58
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "id": "scenario:nonadmin-self",
+      "principalId": "principal:nonadmin-self-collaborator",
+      "resourceId": "resource:own-existing-collaborator-permission",
+      "relation": "permission of the caller's own repository collaborator identity",
+      "operation": "query",
+      "expectation": "allow",
+      "conditions": [],
+      "policySourceId": "policy:collaborator-permission-query",
+      "entryIds": [
+        "entry:get-repo-permissions"
+      ]
+    },
+    {
+      "id": "scenario:repo-admin-other",
+      "principalId": "principal:repository-administrator",
+      "resourceId": "resource:other-existing-collaborator-permission",
+      "relation": "permission of another repository collaborator",
+      "operation": "query",
+      "expectation": "allow",
+      "conditions": [],
+      "policySourceId": "policy:collaborator-permission-query",
+      "entryIds": [
+        "entry:get-repo-permissions"
+      ]
+    }
+  ],
+  "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+  "requiredAnalysis": [
+    "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+  ],
+  "constraints": [
+    "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+  ]
+}

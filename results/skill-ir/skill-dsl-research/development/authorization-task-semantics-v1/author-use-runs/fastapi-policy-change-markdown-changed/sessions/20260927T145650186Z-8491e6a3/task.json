@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "source-authorization-assessment/v0",
+  "taskId": "fastapi-policy-change-changed-neutral-markdown-harness",
+  "request": "At update_item handler entry, can an authenticated active non-superuser change an existing item owned by another user? At read_item handler entry, can an authenticated active superuser read an existing item owned by another user?",
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "sourceMode": "fixed-context",
+  "policySources": [
+    {
+      "id": "policy:accepted",
+      "kind": "explicit-task-requirement",
+      "text": "Only the authenticated owner may read or modify an existing item; active superuser status alone grants no exception for an item owned by someone else.",
+      "location": "author-neutral-briefs.json#/packages/0/changedPolicy",
+      "revision": "fastapi-policy-change-changed",
+      "acceptance": {
+        "status": "accepted",
+        "actorRole": "task-author",
+        "reason": "Supplied by the independent neutral task author, not inferred from source behavior."
+      }
+    }
+  ],
+  "principals": [
+    {
+      "id": "principal:nonadmin",
+      "role": "authenticated active non-superuser",
+      "description": "Author facts: [\"At entry, current_user is the stated active non-superuser and the existing item's owner differs from current_user.id.\"]",
+      "startingCapabilities": [
+        "authenticated"
+      ]
+    },
+    {
+      "id": "principal:superuser",
+      "role": "authenticated active superuser",
+      "description": "Author facts: [\"At entry, current_user is the stated authenticated active superuser and the existing item's owner differs from current_user.id.\"]",
+      "startingCapabilities": [
+        "authenticated",
+        "superuser"
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "resource:item",
+      "type": "existing item",
+      "description": "Author facts: [\"Owned by someone other than the stated caller.\"]"
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry:read",
+      "name": "read_item",
+      "locations": [
+        {
+          "path": "items.py",
+          "startLine": 48,
+          "endLine": 58
+        }
+      ]
+    },
+    {
+      "id": "entry:update",
+      "name": "update_item",
+      "locations": [
+        {
+          "path": "items.py",
+          "startLine": 75,
+          "endLine": 96
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "id": "scenario:foreign-update",
+      "principalId": "principal:nonadmin",
+      "resourceId": "resource:item",
+      "relation": "foreign-owner",
+      "operation": "At update_item handler entry, can an authenticated active non-superuser change an existing item owned by another user?",
+      "expectation": "deny",
+      "conditions": [],
+      "policySourceId": "policy:accepted",
+      "entryIds": [
+        "entry:update"
+      ]
+    },
+    {
+      "id": "scenario:superuser-read",
+      "principalId": "principal:superuser",
+      "resourceId": "resource:item",
+      "relation": "foreign-owner",
+      "operation": "At read_item handler entry, can an authenticated active superuser read an existing item owned by another user?",
+      "expectation": "deny",
+      "conditions": [],
+      "policySourceId": "policy:accepted",
+      "entryIds": [
+        "entry:read"
+      ]
+    }
+  ],
+  "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+  "requiredAnalysis": [
+    "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+  ],
+  "constraints": [
+    "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+  ]
+}

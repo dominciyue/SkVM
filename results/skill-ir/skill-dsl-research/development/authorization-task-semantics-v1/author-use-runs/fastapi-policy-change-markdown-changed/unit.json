@@ -1,0 +1,427 @@
+{
+  "unit": {
+    "id": "fastapi-policy-change-markdown-changed",
+    "packageId": "fastapi-policy-change",
+    "phase": "changed",
+    "representation": "markdown",
+    "input": {
+      "path": "results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-md-inputs/fastapi-policy-change/changed.json",
+      "sha256": "f7a0d8376ef7752d2b6466e5bc8475c0023bf2e90842f72bbda13201cb92bd2a"
+    },
+    "markdown": {
+      "path": "results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-packages/fastapi-policy-change/markdown/changed.md",
+      "sha256": "1f0d43b931d32db9df5f76186df539b440f2a497596a59a4c61081aed1a0a291"
+    },
+    "scenarios": [
+      "foreign-update",
+      "superuser-read"
+    ]
+  },
+  "configSha256": "0f45455605f7e2f8dadcf50ba9ccae62d411ef5e81133f0fcda9d9a2e9740c84",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v6",
+    "assessmentMode": "explicit-v1",
+    "reasoningStrategy": "standard",
+    "researchIdentity": {
+      "arm": "markdown",
+      "instructionOrigin": "independent-author",
+      "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-packages/fastapi-policy-change/markdown/changed.md",
+      "sha256": "1f0d43b931d32db9df5f76186df539b440f2a497596a59a4c61081aed1a0a291",
+      "characters": 4287
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260927T145650186Z-8491e6a3",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\author-use-runs\\fastapi-policy-change-markdown-changed\\sessions\\20260927T145650186Z-8491e6a3",
+    "createdAt": "2026-09-27T14:56:50.186Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\author-md-inputs\\fastapi-policy-change\\changed.json",
+    "taskId": "fastapi-policy-change-changed-neutral-markdown-harness",
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 138,
+        "declaration": 4287,
+        "publicAnalysis": 344,
+        "assessmentProgram": 1193,
+        "source": 4317,
+        "outputContract": 2936,
+        "total": 13365,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "fastapi-policy-change-changed-neutral-markdown-harness",
+      "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+      "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+      "results": [
+        {
+          "obligationId": "scenario%3Aforeign-update::entry%3Aupdate",
+          "conclusion": "source_refuted",
+          "explanation": "At the declared handler-entry boundary, the stated active non-superuser and the stated existing foreign-owned item are accepted premises. The handler retrieves the item at lines 86-86; because the item is existing, the missing-item branch at lines 87-88 is not taken. The authorization condition at lines 89-90 is true for a non-superuser whose ID differs from the item's owner, so the handler raises 403 and does not reach the mutation or persistence operations at lines 91-96. Thus the source-visible behavior is deny. This conforms to the changed owner-only policy for the foreign update scenario. The crop does not establish upstream principal binding; none is needed because the entry premise is expressly given. No implementation change is required for this scenario, although the same handler condition would need removal of the superuser bypass to enforce the policy generally.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "At handler entry, current_user is the stated active authenticated non-superuser and the item is existing and owned by another user.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 75,
+                    "endLine": 82,
+                    "quote": "@router.put(\"/{id}\", response_model=ItemPublic)\ndef update_item(\n    *,\n    session: SessionDep,\n    current_user: CurrentUser,\n    id: uuid.UUID,\n    item_in: ItemUpdate,\n) -> Any:"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The scenario's declared-entry premise supplies the principal state and ownership relationship; the handler crop does not prove upstream binding.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 78,
+                    "endLine": 81,
+                    "quote": "    session: SessionDep,\n    current_user: CurrentUser,\n    id: uuid.UUID,\n    item_in: ItemUpdate,"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "For a non-superuser with a different owner ID, the authorization condition raises HTTP 403.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 89,
+                    "endLine": 90,
+                    "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The update, add, commit, refresh, and return operations occur only after the authorization check, so they are not reached on this path.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 91,
+                    "endLine": 96,
+                    "quote": "    update_dict = item_in.model_dump(exclude_unset=True)\n    item.sqlmodel_update(update_dict)\n    session.add(item)\n    session.commit()\n    session.refresh(item)\n    return item"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The handler looks up the item by the requested ID and only raises the 404 missing-item branch when no item is found.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 86,
+                    "endLine": 88,
+                    "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        },
+        {
+          "obligationId": "scenario%3Asuperuser-read::entry%3Aread",
+          "conclusion": "source_supported_failure",
+          "explanation": "At the declared handler-entry boundary, the stated authenticated active superuser and the stated existing foreign-owned item are accepted premises. The handler retrieves the item at lines 53-53; because the item is existing, the missing-item branch at lines 54-55 is not taken. The authorization condition at lines 56-57 denies only when the user is not a superuser and the owner differs. With the stated active superuser, that condition is false, so the handler returns the item at line 58. Thus the source-visible behavior is allow. This does not conform to the changed policy, which permits reads only by the authenticated owner and grants no exception based solely on active superuser status. The requested change is to replace the bypassing condition at lines 56-57 with an owner-only check that rejects when item.owner_id differs from current_user.id, regardless of superuser status. The crop does not establish upstream principal binding; none is needed because the entry premise is expressly given.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "At handler entry, current_user is the stated authenticated active superuser and the item is existing and owned by another user.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 48,
+                    "endLine": 49,
+                    "quote": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The scenario's declared-entry premise supplies the principal state and ownership relationship; the handler crop does not prove upstream binding.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 49,
+                    "endLine": 49,
+                    "quote": "def read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The read authorization condition rejects only when the user is not a superuser and the owner ID differs, so active superuser status bypasses the foreign-owner rejection.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 56,
+                    "endLine": 57,
+                    "quote": "    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "After the authorization condition, the handler returns the item.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 58,
+                    "endLine": 58,
+                    "quote": "    return item"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The handler looks up the item by ID and only raises the 404 missing-item branch when no item is found.",
+                "citations": [
+                  {
+                    "path": "items.py",
+                    "startLine": 53,
+                    "endLine": 55,
+                    "quote": "    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aforeign-update::entry%3Aupdate",
+          "explanation": "At the declared handler-entry boundary, the stated active non-superuser and the stated existing foreign-owned item are accepted premises. The handler retrieves the item at lines 86-86; because the item is existing, the missing-item branch at lines 87-88 is not taken. The authorization condition at lines 89-90 is true for a non-superuser whose ID differs from the item's owner, so the handler raises 403 and does not reach the mutation or persistence operations at lines 91-96. Thus the source-visible behavior is deny. This conforms to the changed owner-only policy for the foreign update scenario. The crop does not establish upstream principal binding; none is needed because the entry premise is expressly given. No implementation change is required for this scenario, although the same handler condition would need removal of the superuser bypass to enforce the policy generally.",
+          "facts": [
+            {
+              "id": "fu-entry",
+              "kind": "entry",
+              "statement": "At handler entry, current_user is the stated active authenticated non-superuser and the item is existing and owned by another user.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 75,
+                  "endLine": 82
+                }
+              ]
+            },
+            {
+              "id": "fu-binding",
+              "kind": "binding",
+              "statement": "The scenario's declared-entry premise supplies the principal state and ownership relationship; the handler crop does not prove upstream binding.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 78,
+                  "endLine": 81
+                }
+              ]
+            },
+            {
+              "id": "fu-resource",
+              "kind": "condition",
+              "statement": "The handler looks up the item by the requested ID and only raises the 404 missing-item branch when no item is found.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 86,
+                  "endLine": 88
+                }
+              ]
+            },
+            {
+              "id": "fu-control",
+              "kind": "control",
+              "statement": "For a non-superuser with a different owner ID, the authorization condition raises HTTP 403.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 89,
+                  "endLine": 90
+                }
+              ]
+            },
+            {
+              "id": "fu-effect",
+              "kind": "effect",
+              "statement": "The update, add, commit, refresh, and return operations occur only after the authorization check, so they are not reached on this path.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 91,
+                  "endLine": 96
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "deny"
+          },
+          "branchResults": []
+        },
+        {
+          "obligationId": "scenario%3Asuperuser-read::entry%3Aread",
+          "explanation": "At the declared handler-entry boundary, the stated authenticated active superuser and the stated existing foreign-owned item are accepted premises. The handler retrieves the item at lines 53-53; because the item is existing, the missing-item branch at lines 54-55 is not taken. The authorization condition at lines 56-57 denies only when the user is not a superuser and the owner differs. With the stated active superuser, that condition is false, so the handler returns the item at line 58. Thus the source-visible behavior is allow. This does not conform to the changed policy, which permits reads only by the authenticated owner and grants no exception based solely on active superuser status. The requested change is to replace the bypassing condition at lines 56-57 with an owner-only check that rejects when item.owner_id differs from current_user.id, regardless of superuser status. The crop does not establish upstream principal binding; none is needed because the entry premise is expressly given.",
+          "facts": [
+            {
+              "id": "sr-entry",
+              "kind": "entry",
+              "statement": "At handler entry, current_user is the stated authenticated active superuser and the item is existing and owned by another user.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 48,
+                  "endLine": 49
+                }
+              ]
+            },
+            {
+              "id": "sr-binding",
+              "kind": "binding",
+              "statement": "The scenario's declared-entry premise supplies the principal state and ownership relationship; the handler crop does not prove upstream binding.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 49,
+                  "endLine": 49
+                }
+              ]
+            },
+            {
+              "id": "sr-resource",
+              "kind": "condition",
+              "statement": "The handler looks up the item by ID and only raises the 404 missing-item branch when no item is found.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 53,
+                  "endLine": 55
+                }
+              ]
+            },
+            {
+              "id": "sr-control",
+              "kind": "control",
+              "statement": "The read authorization condition rejects only when the user is not a superuser and the owner ID differs, so active superuser status bypasses the foreign-owner rejection.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 56,
+                  "endLine": 57
+                }
+              ]
+            },
+            {
+              "id": "sr-effect",
+              "kind": "effect",
+              "statement": "After the authorization condition, the handler returns the item.",
+              "citations": [
+                {
+                  "sourceId": "src-dcbab1685696c702",
+                  "startLine": 58,
+                  "endLine": 58
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "allow"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "normalizerVersion": "authorization-wire-normalizer/v6",
+    "relationCoverage": [],
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Aforeign-update::entry%3Aupdate",
+        "expectation": "deny",
+        "observed": "deny",
+        "derivedConclusion": "source_refuted"
+      },
+      {
+        "obligationId": "scenario%3Asuperuser-read::entry%3Aread",
+        "expectation": "deny",
+        "observed": "allow",
+        "derivedConclusion": "source_supported_failure"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 3470,
+        "output": 1229,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

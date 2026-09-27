@@ -1,0 +1,271 @@
+{
+  "schemaVersion": "authorization-assessment-input/v1",
+  "sourceIdentity": {
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b"
+  },
+  "sourceRoot": "../../../../authorization-semantic-quality-v1/inputs/gitea-collaborator/source",
+  "sources": [
+    "collaborators.go"
+  ],
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "gitea-relation-change-self",
+    "request": "Using only the supplied collaborators.go crop at the fixed ref, assess GetRepoPermissions against the accepted policy for both scenarios. Evaluate policy authorization separately from observed source behavior, including whether denial occurs before the target collaborator is loaded. The changed scenario is a nonadmin collaborator querying their own existing username; keep the repository-administrator querying another user unchanged. If the implementation diverges, request only the minimal source change needed to conform; do not rewrite the accepted policy or assume unshown upstream behavior.",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:collaborator-permission-query",
+        "kind": "explicit-task-requirement",
+        "text": "A caller may query a collaborator's repository permission when the caller is a site administrator, is a repository administrator, or is querying their own username. Otherwise the request is rejected with HTTP 403 before the target collaborator is loaded.",
+        "location": "author-neutral-briefs.json#/packages/1/originalPolicy",
+        "revision": "original",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "This is the task author's accepted authorization policy and must remain independent of implementation behavior."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:nonadmin-self-collaborator",
+        "role": "authenticated repository-read collaborator",
+        "description": "Author facts: [\"Caller is not a site administrator.\",\"Caller is not a repository administrator.\",\"Caller username equals the queried collaborator username.\"]",
+        "startingCapabilities": [
+          "Read the repository."
+        ]
+      },
+      {
+        "id": "principal:repository-administrator",
+        "role": "authenticated repository administrator",
+        "description": "Author facts: [\"Caller is a repository administrator.\",\"Caller username differs from the queried collaborator username.\"]",
+        "startingCapabilities": [
+          "Administer the repository."
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:other-existing-collaborator-permission",
+        "type": "repository collaborator permission",
+        "description": "Author facts: [\"The queried collaborator exists.\",\"The queried collaborator has a username different from the caller.\",\"The permission belongs to the repository handled by GetRepoPermissions.\"]"
+      },
+      {
+        "id": "resource:own-existing-collaborator-permission",
+        "type": "repository collaborator permission",
+        "description": "Author facts: [\"The queried collaborator exists.\",\"The queried collaborator username equals the caller username.\",\"The permission belongs to the repository handled by GetRepoPermissions.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:get-repo-permissions",
+        "name": "GetRepoPermissions",
+        "locations": [
+          {
+            "path": "collaborators.go",
+            "startLine": 5,
+            "endLine": 58
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:nonadmin-self",
+        "principalId": "principal:nonadmin-self-collaborator",
+        "resourceId": "resource:own-existing-collaborator-permission",
+        "relation": "permission of the caller's own repository collaborator identity",
+        "operation": "query",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:collaborator-permission-query",
+        "entryIds": [
+          "entry:get-repo-permissions"
+        ]
+      },
+      {
+        "id": "scenario:repo-admin-other",
+        "principalId": "principal:repository-administrator",
+        "resourceId": "resource:other-existing-collaborator-permission",
+        "relation": "permission of another repository collaborator",
+        "operation": "query",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:collaborator-permission-query",
+        "entryIds": [
+          "entry:get-repo-permissions"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+    ]
+  },
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "analysisRequirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:nonadmin-self",
+        "scenario:repo-admin-other"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:nonadmin-self",
+        "scenario:repo-admin-other"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:nonadmin-self",
+        "scenario:repo-admin-other"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:nonadmin-self",
+        "scenario:repo-admin-other"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:nonadmin-self",
+        "scenario:repo-admin-other"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:nonadmin-self",
+        "scenario:repo-admin-other"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "The analysis boundary is the declared GetRepoPermissions entry and the supplied collaborators.go crop only. Treat each listed premise as true at handler entry, not as proof of upstream authentication, routing, repository loading, or role injection. Do not consult an evaluator or infer code outside the crop. For each scenario, compare the accepted policy judgment with the supplied source path, determine whether any denial precedes loading the target collaborator, and identify any required minimal change without altering the policy.",
+    "scenarios": [
+      {
+        "obligationId": "scenario:nonadmin-self",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "authenticated-read-collaborator",
+            "statement": "At entry, caller is an authenticated repository-read collaborator.",
+            "atEntryId": "entry:get-repo-permissions",
+            "provenance": "task-assumption"
+          },
+          {
+            "id": "existing-collaborator",
+            "statement": "At entry, the queried collaborator exists.",
+            "atEntryId": "entry:get-repo-permissions",
+            "provenance": "task-assumption"
+          },
+          {
+            "id": "not-repo-admin",
+            "statement": "At entry, caller is not a repository administrator.",
+            "atEntryId": "entry:get-repo-permissions",
+            "provenance": "task-assumption"
+          },
+          {
+            "id": "not-site-admin",
+            "statement": "At entry, caller is not a site administrator.",
+            "atEntryId": "entry:get-repo-permissions",
+            "provenance": "task-assumption"
+          },
+          {
+            "id": "same-username",
+            "statement": "At entry, caller and queried existing collaborator have the same username.",
+            "atEntryId": "entry:get-repo-permissions",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "State the accepted-policy authorization judgment.",
+          "Trace the supplied-source condition and response path with line references.",
+          "Determine whether any denial precedes loading the target collaborator.",
+          "State any policy mismatch and the minimal requested source change, or state that none is required."
+        ]
+      },
+      {
+        "obligationId": "scenario:repo-admin-other",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "different-usernames",
+            "statement": "At entry, caller and queried existing collaborator have different usernames.",
+            "atEntryId": "entry:get-repo-permissions",
+            "provenance": "task-assumption"
+          },
+          {
+            "id": "existing-collaborator",
+            "statement": "At entry, the queried collaborator exists.",
+            "atEntryId": "entry:get-repo-permissions",
+            "provenance": "task-assumption"
+          },
+          {
+            "id": "repo-admin",
+            "statement": "At entry, caller is a repository administrator.",
+            "atEntryId": "entry:get-repo-permissions",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "State the accepted-policy authorization judgment.",
+          "Trace the relevant supplied-source condition and subsequent permission lookup with line references.",
+          "Distinguish authorization from possible downstream lookup or internal errors.",
+          "State any policy mismatch and the minimal requested source change, or state that none is required."
+        ]
+      }
+    ]
+  }
+}

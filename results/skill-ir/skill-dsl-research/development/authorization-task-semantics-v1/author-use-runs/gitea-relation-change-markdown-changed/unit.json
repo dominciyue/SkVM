@@ -1,0 +1,565 @@
+{
+  "unit": {
+    "id": "gitea-relation-change-markdown-changed",
+    "packageId": "gitea-relation-change",
+    "phase": "changed",
+    "representation": "markdown",
+    "input": {
+      "path": "results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-md-inputs/gitea-relation-change/changed.json",
+      "sha256": "8aaf4c0dac930c361992470c545c441f3e6c01005e796c5aa411db8af71126c4"
+    },
+    "markdown": {
+      "path": "results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-packages/gitea-relation-change/markdown/changed.md",
+      "sha256": "3831317248d808563137f5c8273d39147a3c0f8978ffdfd7337d5789b2955e59"
+    },
+    "scenarios": [
+      "nonadmin-other",
+      "repo-admin-other"
+    ]
+  },
+  "configSha256": "0f45455605f7e2f8dadcf50ba9ccae62d411ef5e81133f0fcda9d9a2e9740c84",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v6",
+    "assessmentMode": "explicit-v1",
+    "reasoningStrategy": "standard",
+    "researchIdentity": {
+      "arm": "markdown",
+      "instructionOrigin": "independent-author",
+      "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-packages/gitea-relation-change/markdown/changed.md",
+      "sha256": "3831317248d808563137f5c8273d39147a3c0f8978ffdfd7337d5789b2955e59",
+      "characters": 5129
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260927T145838482Z-3ed79cbf",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\author-use-runs\\gitea-relation-change-markdown-changed\\sessions\\20260927T145838482Z-3ed79cbf",
+    "createdAt": "2026-09-27T14:58:38.482Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-task-semantics-v1\\author-md-inputs\\gitea-relation-change\\changed.json",
+    "taskId": "gitea-relation-change-changed-neutral-markdown-harness",
+    "repository": "https://github.com/go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 138,
+        "declaration": 5129,
+        "publicAnalysis": 344,
+        "assessmentProgram": 1212,
+        "source": 2535,
+        "outputContract": 2950,
+        "total": 12458,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "gitea-relation-change-changed-neutral-markdown-harness",
+      "repository": "https://github.com/go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "results": [
+        {
+          "obligationId": "scenario%3Anonadmin-other::entry%3Apermissions",
+          "conclusion": "source_refuted",
+          "explanation": "At the declared handler entry, the caller is non-admin and queries their own username. The accepted policy therefore requires the request to be allowed because self-querying is the third permitted case. In the supplied handler, the username is read at line 35, and the denial condition at lines 36-38 requires all three predicates to be true: not site admin, username not equal, and not repository admin. Because the caller and queried username are equal under the entry premise, the inequality predicate is false, so the forbidden response is not taken. Execution proceeds to target-user loading at lines 41-49, then reaches permission lookup at lines 51-55; on lookup success it constructs an HTTP 200 response at line 57, while lookup errors follow the shown internal-error path. Thus the visible authorization behavior conforms for this self-query, and no authorization change is required. The source crop does not establish upstream identity binding; the same-username relationship is an entry premise, not a discovery claim.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "At handler entry, the caller is authenticated, is neither a site nor repository administrator, and queries their own existing username.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 4,
+                    "endLine": 5,
+                    "quote": "// GetRepoPermissions gets repository permissions for a user\nfunc GetRepoPermissions(ctx *context.APIContext) {"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The caller and queried collaborator are the same principal by username under the declared scenario premise.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 35,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")"
+                  }
+                ]
+              },
+              {
+                "statement": "The queried collaborator is declared to exist at entry; the handler uses the path username as the target lookup key.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 35,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The forbidden condition requires the caller not to be a site administrator, not to match the queried username case-insensitively, and not to be a repository administrator.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 36,
+                    "endLine": 36,
+                    "quote": "\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {"
+                  }
+                ]
+              },
+              {
+                "statement": "When the forbidden condition is false, execution reaches target-user loading and its error handling.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 41,
+                    "endLine": 49,
+                    "quote": "\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "When the authorization condition is true, the handler emits HTTP 403 and returns before target-user loading.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 37,
+                    "endLine": 39,
+                    "quote": "\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                  }
+                ]
+              },
+              {
+                "statement": "After a successful permission lookup, the handler returns HTTP 200 with the converted collaborator and permission data.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 51,
+                    "endLine": 58,
+                    "quote": "\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))\n}"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The username equality premise makes the negated case-insensitive comparison false, so the compound forbidden condition is not satisfied.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 38,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        },
+        {
+          "obligationId": "scenario%3Arepo-admin-other::entry%3Apermissions",
+          "conclusion": "source_refuted",
+          "explanation": "At the declared handler entry, the caller is a repository administrator and queries a different existing username. The accepted policy requires the request to be allowed because repository administrators may query all repository permissions. In the supplied handler, the username is read at line 35, and the denial condition at lines 36-38 includes !ctx.IsUserRepoAdmin(). That predicate is false for the declared repository-admin premise, so the compound forbidden condition is false even though the username comparison is unequal. The handler therefore does not emit HTTP 403 and proceeds to target-user loading at lines 41-49, then reaches permission lookup at lines 51-55; on lookup success it returns HTTP 200 at line 57, while lookup errors follow the shown internal-error path. The observed authorization behavior conforms to the accepted policy, so no change is required. The source crop does not establish upstream administrator binding; repository-admin status and the different-username relation are treated as declared entry premises.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "At handler entry, the caller is authenticated, is a repository administrator, and queries a different existing username.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 4,
+                    "endLine": 5,
+                    "quote": "// GetRepoPermissions gets repository permissions for a user\nfunc GetRepoPermissions(ctx *context.APIContext) {"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The caller and queried collaborator are different principals by username under the declared scenario premise.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 35,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")"
+                  }
+                ]
+              },
+              {
+                "statement": "The queried collaborator is declared to exist at entry, and the handler uses the path username as the target lookup key.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 35,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The forbidden condition requires the caller not to be a repository administrator, in addition to the site-admin and username-mismatch predicates.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 36,
+                    "endLine": 36,
+                    "quote": "\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {"
+                  }
+                ]
+              },
+              {
+                "statement": "For the declared repository-admin premise, the forbidden condition is false and execution proceeds to target-user loading and its error handling.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 41,
+                    "endLine": 49,
+                    "quote": "\tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n\tif err != nil {\n\t\tif user_model.IsErrUserNotExist(err) {\n\t\t\tctx.APIError(http.StatusNotFound, err.Error())\n\t\t} else {\n\t\t\tctx.APIErrorInternal(err)\n\t\t}\n\t\treturn\n\t}"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "If the compound authorization condition is true, the handler emits HTTP 403 and returns before target-user loading.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 37,
+                    "endLine": 39,
+                    "quote": "\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn\n\t}"
+                  }
+                ]
+              },
+              {
+                "statement": "After a successful permission lookup, the handler returns HTTP 200 with the converted collaborator and permission data.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 51,
+                    "endLine": 58,
+                    "quote": "\tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n\tif err != nil {\n\t\tctx.APIErrorInternal(err)\n\t\treturn\n\t}\n\n\tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))\n}"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The repository-administrator premise makes the negated repository-admin predicate false, defeating the compound forbidden condition despite the different username.",
+                "citations": [
+                  {
+                    "path": "collaborators.go",
+                    "startLine": 35,
+                    "endLine": 38,
+                    "quote": "\tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n\tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n\t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n\t\treturn"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Anonadmin-other::entry%3Apermissions",
+          "explanation": "At the declared handler entry, the caller is non-admin and queries their own username. The accepted policy therefore requires the request to be allowed because self-querying is the third permitted case. In the supplied handler, the username is read at line 35, and the denial condition at lines 36-38 requires all three predicates to be true: not site admin, username not equal, and not repository admin. Because the caller and queried username are equal under the entry premise, the inequality predicate is false, so the forbidden response is not taken. Execution proceeds to target-user loading at lines 41-49, then reaches permission lookup at lines 51-55; on lookup success it constructs an HTTP 200 response at line 57, while lookup errors follow the shown internal-error path. Thus the visible authorization behavior conforms for this self-query, and no authorization change is required. The source crop does not establish upstream identity binding; the same-username relationship is an entry premise, not a discovery claim.",
+          "facts": [
+            {
+              "id": "entry-self-nonadmin",
+              "kind": "entry",
+              "statement": "At handler entry, the caller is authenticated, is neither a site nor repository administrator, and queries their own existing username.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 4,
+                  "endLine": 5
+                }
+              ]
+            },
+            {
+              "id": "principal-self-relation",
+              "kind": "binding",
+              "statement": "The caller and queried collaborator are the same principal by username under the declared scenario premise.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 35,
+                  "endLine": 35
+                }
+              ]
+            },
+            {
+              "id": "resource-existing",
+              "kind": "binding",
+              "statement": "The queried collaborator is declared to exist at entry; the handler uses the path username as the target lookup key.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 35,
+                  "endLine": 35
+                }
+              ]
+            },
+            {
+              "id": "authorization-self-bypass",
+              "kind": "control",
+              "statement": "The forbidden condition requires the caller not to be a site administrator, not to match the queried username case-insensitively, and not to be a repository administrator.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 36,
+                  "endLine": 36
+                }
+              ]
+            },
+            {
+              "id": "authorization-forbidden-effect",
+              "kind": "effect",
+              "statement": "When the authorization condition is true, the handler emits HTTP 403 and returns before target-user loading.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 37,
+                  "endLine": 39
+                }
+              ]
+            },
+            {
+              "id": "target-load-reached",
+              "kind": "control",
+              "statement": "When the forbidden condition is false, execution reaches target-user loading and its error handling.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 41,
+                  "endLine": 49
+                }
+              ]
+            },
+            {
+              "id": "permission-success-response",
+              "kind": "effect",
+              "statement": "After a successful permission lookup, the handler returns HTTP 200 with the converted collaborator and permission data.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 51,
+                  "endLine": 58
+                }
+              ]
+            },
+            {
+              "id": "self-condition",
+              "kind": "condition",
+              "statement": "The username equality premise makes the negated case-insensitive comparison false, so the compound forbidden condition is not satisfied.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 35,
+                  "endLine": 38
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "allow"
+          },
+          "branchResults": []
+        },
+        {
+          "obligationId": "scenario%3Arepo-admin-other::entry%3Apermissions",
+          "explanation": "At the declared handler entry, the caller is a repository administrator and queries a different existing username. The accepted policy requires the request to be allowed because repository administrators may query all repository permissions. In the supplied handler, the username is read at line 35, and the denial condition at lines 36-38 includes !ctx.IsUserRepoAdmin(). That predicate is false for the declared repository-admin premise, so the compound forbidden condition is false even though the username comparison is unequal. The handler therefore does not emit HTTP 403 and proceeds to target-user loading at lines 41-49, then reaches permission lookup at lines 51-55; on lookup success it returns HTTP 200 at line 57, while lookup errors follow the shown internal-error path. The observed authorization behavior conforms to the accepted policy, so no change is required. The source crop does not establish upstream administrator binding; repository-admin status and the different-username relation are treated as declared entry premises.",
+          "facts": [
+            {
+              "id": "entry-repo-admin-other",
+              "kind": "entry",
+              "statement": "At handler entry, the caller is authenticated, is a repository administrator, and queries a different existing username.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 4,
+                  "endLine": 5
+                }
+              ]
+            },
+            {
+              "id": "principal-different-relation",
+              "kind": "binding",
+              "statement": "The caller and queried collaborator are different principals by username under the declared scenario premise.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 35,
+                  "endLine": 35
+                }
+              ]
+            },
+            {
+              "id": "resource-existing-admin",
+              "kind": "binding",
+              "statement": "The queried collaborator is declared to exist at entry, and the handler uses the path username as the target lookup key.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 35,
+                  "endLine": 35
+                }
+              ]
+            },
+            {
+              "id": "authorization-repo-admin",
+              "kind": "control",
+              "statement": "The forbidden condition requires the caller not to be a repository administrator, in addition to the site-admin and username-mismatch predicates.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 36,
+                  "endLine": 36
+                }
+              ]
+            },
+            {
+              "id": "authorization-forbidden-effect-admin",
+              "kind": "effect",
+              "statement": "If the compound authorization condition is true, the handler emits HTTP 403 and returns before target-user loading.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 37,
+                  "endLine": 39
+                }
+              ]
+            },
+            {
+              "id": "target-load-reached-admin",
+              "kind": "control",
+              "statement": "For the declared repository-admin premise, the forbidden condition is false and execution proceeds to target-user loading and its error handling.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 41,
+                  "endLine": 49
+                }
+              ]
+            },
+            {
+              "id": "permission-success-response-admin",
+              "kind": "effect",
+              "statement": "After a successful permission lookup, the handler returns HTTP 200 with the converted collaborator and permission data.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 51,
+                  "endLine": 58
+                }
+              ]
+            },
+            {
+              "id": "repo-admin-condition",
+              "kind": "condition",
+              "statement": "The repository-administrator premise makes the negated repository-admin predicate false, defeating the compound forbidden condition despite the different username.",
+              "citations": [
+                {
+                  "sourceId": "src-89fab2db8921e6cb",
+                  "startLine": 35,
+                  "endLine": 38
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "allow"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "normalizerVersion": "authorization-wire-normalizer/v6",
+    "relationCoverage": [],
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Anonadmin-other::entry%3Apermissions",
+        "expectation": "allow",
+        "observed": "allow",
+        "derivedConclusion": "source_refuted"
+      },
+      {
+        "obligationId": "scenario%3Arepo-admin-other::entry%3Apermissions",
+        "expectation": "allow",
+        "observed": "allow",
+        "derivedConclusion": "source_refuted"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 3176,
+        "output": 1851,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}
