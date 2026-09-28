@@ -66,3 +66,49 @@ original policy that conflicts with `supervisor-foreign`; against the changed
 owner-or-supervisor policy it agrees. Review model reasoning and citations
 before relying on either conclusion. No oracle or research script is needed
 to use this example.
+
+The explicit v2 request keeps `src/record.ts` original lines 1–2 and 5–9 in
+one mapped snapshot, omitting lines 3–4. Its report records both original and
+snapshot ranges. The source preview marks the omitted interval, and a quote
+cannot cross it. This small example demonstrates the mapping contract; the
+AK eight-task same-request comparison measures the distant-helper budget effect.
+
+```powershell
+bun ./src/index.ts authorization prepare --input="$demo/base.json" --request="$demo/request-ready-v2.json" --out="$demo/segments"
+bun ./src/index.ts authorization check --input="$demo/segments/assessment.json" --method=plain --assessment=explicit-v1 --wire=v6
+bun ./src/index.ts authorization prepare --input="$demo/edited/assessment.json" --request="$demo/request-ready-v2-edited.json" --out="$demo/edited-segments"
+```
+
+`entry-seed-v2.json` supplies the handler and file allowlist with no dependency
+answers. The provider-free discovery option can locate `mayArchive` by its
+visible reference. Add a configured model only when you want advisory location
+proposals and bounded supplementary reads:
+
+```powershell
+bun ./src/index.ts authorization prepare --input="$demo/base.json" --request="$demo/entry-seed-v2.json" --out="$demo/discovered" --discover=true --check-only=true
+bun ./src/index.ts authorization prepare --input="$demo/base.json" --request="$demo/entry-seed-v2.json" --out="$demo/discovered" --discover=true
+bun ./src/index.ts authorization prepare --input="$demo/base.json" --request="$demo/entry-seed-v2.json" --out="$demo/advised" --discover=true --proposal-model=<provider/model>
+bun ./src/index.ts authorization run --input="$demo/segments/assessment.json" --model=<provider/model> --out="$demo/segment-original-runs" --method=plain --assessment=explicit-v1 --wire=v6
+bun ./src/index.ts authorization inspect --out=<printed-segment-original-sessionPath>
+bun ./src/index.ts authorization compare --previous=<printed-segment-original-sessionPath> --input="$demo/edited-segments/assessment.json"
+bun ./src/index.ts authorization run --input="$demo/edited-segments/assessment.json" --model=<provider/model> --out="$demo/segment-changed-runs" --method=plain --assessment=explicit-v1 --wire=v6
+```
+
+Check/prepare count one analysis entry and two scenarios/obligations; helper
+support adds evidence only. Explicit extra analysis entries still add work.
+The index is lexical and reports unresolved, ambiguous or dynamic references;
+it does not establish full source coverage. Defaults are 12 candidate files,
+1MiB cumulative candidate-index reads, 64KiB cumulative source display and final
+source bytes, and dependency depth 3. Input validation and final snapshot reads
+happen separately; the index counter is not total filesystem I/O. An advised
+job has at most two position calls and one
+format revision. Failed/unknown proposals retain their response, usage and
+publication status under a separate `advised.attempts-*` directory. Actual cost
+is unknown when the provider does not report it. Do not resend a dispatched
+request merely because its completion is unknown. Runnable partial material
+still carries its gaps into analysis.
+
+For a policy-only edit, unchanged source snapshots may be reused while rebuilding
+the task and dependency identity; compare the old session and run the changed
+task fresh. Changed source or locator ranges need rechecking and preparation,
+with a sourceRef identifying the actual new bytes. The example remains synthetic.
