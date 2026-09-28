@@ -1,16 +1,31 @@
 # Skill IR AOT 当前执行计划
 
-- 更新日期：2026-09-28
+- 更新日期：2026-09-29
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AI0–AI16已完成并复核；AJ0–AJ16已完成并发布用户origin，本轮完成记录见结果根status。
+- 状态：AJ0–AJ16已发布并复核；AK0–AK16规划就绪，用户已授权派发执行。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
-- 当前任务书：[AJ0–AJ16](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)
-- 当前设计：[研究§7.29](skill-dsl-research.md#729-aj-证据准备与局部修改)；AI证据保留在§7.28。
+- 当前任务书：[AK0–AK16](../superpowers/plans/2026-09-29-authorization-bounded-dependency-preparation.md)
+- 当前设计：[研究§7.30](skill-dsl-research.md#730-ak-有界依赖准备与源码片段)；AJ证据保留在§7.29。
 
 分类继续服务于范围，DSL价值包含编写、修改、质量与效率。AB同包/schema/核心可处理两项目八状态；Markdown 8/8 full、DSL 6/8 full，后者两项标签错误，必要控制与解释均正确。DSL整体收益未建立，准备/修改/运行负担及限制见研究§7.25。
 
-## AJ 当前执行队列
+## AK 当前执行队列
+
+在`b0cfbc10`基线上由一个`gpt-6-sol / max`任务负责实现、共享文档和发布。质量60%/复用40%分别验收；继续单repo/ref、明确政策/入口与允许源码范围内的授权任务。
+
+| 阶段 | 工作 | 验收 |
+|---|---|---|
+| AK0–AK2 | 基线、接口、失败提议留账 | 无效响应/超时/发布失败仍保留已知usage和未知项 |
+| AK3–AK4 | 多片段预算、来源及引用接线 | 不纳入远距中间字节；原行号可引用、缺口不可引用 |
+| AK5–AK7 | 有界定位、普通prepare、入口/support和变化预览 | 从不完整依赖seed产生材料，支持位置不扩大分析义务 |
+| AK8–AK11 | 同请求离线比较、真实准备、40质量单元与独立评价 | 准备/表示/质量收益分账，失败分母保留 |
+| AK12–AK13 | 两包8次原/变消费及可搬移示例 | 记录作者首稿与修订、展开工作量和实际使用 |
+| AK14–AK16 | 统一复盘、有限验证、提交推送 | 普通可用命令、真实结果与用户origin同步 |
+
+v1显式准备保留，v2多片段与有界定位显式启用；wire/v6和普通默认保持。用AJ原8任务，不扩样或重写旧结果。主要质量对照为同任务Markdown/DSL×显式依赖v1/入口seed自动准备v2；同请求零调用比较另行隔离片段算法。计划40质量+8消费session、准备最多12job（每job最多3提议/修订调用）；一次有据共享修订另最多8配对session。具体方法、失败处理和代码职责由任务书约束，不把开发模型与被测provider混算。
+
+## AJ 已完成队列
 
 用户确认AI复核后的方向并要求开发任务配置`gpt-6-sol / max`；被测provider使用`xty/gpt-5.6-sol`。单一任务在`skill-ir-aot`负责实现、共享文档和Git发布，质量60%/复用40%分别验收。
 

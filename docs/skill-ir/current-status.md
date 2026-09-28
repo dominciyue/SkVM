@@ -1,12 +1,14 @@
 # Skill IR 当前状态
 
-更新于 2026-09-28。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；历史任务书保存当时的执行记录。
+更新于 2026-09-29。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；历史任务书保存当时的执行记录。
 
 ## 当前方向与任务
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-**当前授权队列：** [AJ0–AJ16 证据准备与局部修改](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)已完成并发布到用户`origin/skill-ir-aot`；工程、证据和研究文档首次发布头`096fb7cf`已与真实远端SHA核对一致，收尾状态提交随后同步。[本轮status](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/status.json)留作完成记录。围绕指定入口准备源码及依赖缺口，用局部patch修改政策/场景，接通现有普通运行。Markdown与DSL共用证据准备做公平对照，质量和复用分开评价。方法与结果见[研究§7.29](skill-dsl-research.md#729-aj-证据准备与局部修改)。AI旧状态不作恢复入口；未建立新的默认方法或自动后续队列。
+**当前授权队列：** [AK0–AK16 有界依赖准备、源码片段与普通任务闭环](../superpowers/plans/2026-09-29-authorization-bounded-dependency-preparation.md)，规划已就绪，用户要求派发`gpt-6-sol / max`在现有主开发分支连续执行。优先补失败提议留账、多片段来源与引用、入口/support区分，以及从入口seed开始的真实有界定位；质量约60%、使用复用约40%。设计见[研究§7.30](skill-dsl-research.md#730-ak-有界依赖准备与源码片段)。AK0开始时才建立本轮结果状态；当前未运行AK模型实验。旧默认保持兼容。
+
+**AJ已完成：** [AJ0–AJ16 证据准备与局部修改](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)已发布，最终`b0cfbc10`与origin一致、工作区干净。父任务新鲜复核376 pass/1平台skip、2597断言、typecheck及两份评价重放通过。发现invalid proposal响应丢usage的模拟反例、多段源码合并造成预算浪费，以及helper误列入口扩大义务，已列入AK；AJ真实proposal调用为0，旧69次调用统计不受影响。[AJ status](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/status.json)与[研究§7.29](skill-dsl-research.md#729-aj-证据准备与局部修改)保存完成结果。旧临时副本删除被自动策略拒绝，未绕过处理，不影响仓库。
 
 **AJ实际进展：** 普通`authorization prepare/edit`及其报告、源码快照、变更依赖已接通；[可搬移示例](../../examples/authorization-assessment/evidence-editing/README.md)在临时目录得到具名`partial`→`ready`及编辑后`ready`，零provider。冻结40个质量单元全部完成，43次分析调用含3次诊断修复、最终26/40 full；初轮原材料Markdown/DSL各4/8 full，准备材料后各7/8，同材料表示未显示稳定额外质量收益。两包作者8首稿中6份语义有效，两次针对性修订后8份有效；8个原/变fresh消费session和16个预先声明场景经独立源码复核均full，4次旧结果compare均`needs-review`。Paperless DSL作者多声明helper入口，使义务展开总数从16增至28。全部研究69次模型调用，已知input 373,105/output 77,981/cache-read 37,120 tokens；实际USD与真人分钟未知，目标执行0。逐案与成本见[质量汇总](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/panel-summary.json)、[作者消费汇总](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/author-use-summary.json)。当前普通默认不改；有确切入口和可限定依赖时显式使用prepare，已声明政策/场景小改动时使用edit并重新运行。公开development与fixed-context结果不证明一般可靠性或部署安全。
 
