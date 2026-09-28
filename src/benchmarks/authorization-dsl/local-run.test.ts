@@ -262,6 +262,38 @@ it("explicit v6 survives run and inspect; changing a premise requires review", a
   expect(inspectLocalAuthorizationOutput(report.sessionPath)).rejects.toThrow("identity")
 })
 
+it("ordinary v6 retains original segments through run inspect and all-input compare", async () => {
+  const f = await makeFixture(), input: any = JSON.parse(await readFile(f.inputPath, "utf8"))
+  input.task.entries[0].locations[0].endLine = 3
+  input.analysisContract = { schemaVersion: "authorization-analysis-contract/v1", publicInstruction: "Assess the declared entry with its support.", scenarios: [{ obligationId: "deny-update", boundary: "declared-entry", premises: [], requestedBranches: [], requiredResponseDetails: [] }] }
+  input.evidencePreparation = { schemaVersion: "authorization-evidence-report/v2", status: "ready", sourceIdentity: input.sourceIdentity, sourceRoot: "project", included: [{ path: "src/record.ts", originalPath: "src/record.ts", startLine: 1, endLine: 901, origins: ["entry:update", "locator:support"], segments: [
+    { originalStartLine: 1, originalEndLine: 3, snapshotStartLine: 1, snapshotEndLine: 3, origins: ["entry:update"] },
+    { originalStartLine: 900, originalEndLine: 901, snapshotStartLine: 4, snapshotEndLine: 5, origins: ["locator:support"] },
+  ] }], gaps: [], closureClaim: "declared-dependencies-only" }
+  await writeFile(f.inputPath, JSON.stringify(input))
+  const loaded = await loadLocalAuthorizationInput(f.inputPath)
+  if (loaded.status !== "valid") throw Error(JSON.stringify(loaded.diagnostics))
+  const catalog = buildAuthorizationSourceCatalog(loaded.sourceBundle)
+  if (!catalog.success) throw Error("catalog")
+  const sourceId = catalog.catalog.sources[0]!.sourceId
+  const wire = { results: [{ obligationId: "deny-update::update", decision: { kind: "observed", observed: "deny" }, explanation: "The owner control denies the effect.", facts: ["entry", "binding", "control", "effect", "condition"].map((kind, i) => ({ id: `f${i}`, kind, statement: `${kind} evidence`, citations: [{ sourceId, startLine: i === 3 ? 900 : i === 4 ? 2 : i + 1, endLine: i === 3 ? 900 : i === 4 ? 2 : i + 1 }] })), decisiveMissingFacts: [], suggestedObservations: [], branchResults: [] }] }
+  let sent = "", calls = 0
+  const result = await executeLocalAuthorizationRun({ inputFile: f.inputPath, model: "mock/v6", outRoot: f.outRoot, method: "plain", wireVersion: "v6", providerFactory: () => ({ name: "mock", async complete(params) { sent = JSON.stringify(params); calls++; return { text: "", toolCalls: [{ id: "one", name: "submit_authorization_result", arguments: wire }], tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 1, stopReason: "tool_use" } }, async completeWithToolResults() { throw Error("no") } }) })
+  expect(result.status).toBe("completed")
+  if (!("sessionPath" in result)) return
+  expect(sent).toContain("OMITTED original lines 4-899")
+  expect((await inspectLocalAuthorizationOutput(result.sessionPath)).evidencePreparation).toEqual(input.evidencePreparation)
+  expect((await compareAuthorizationInput(result.sessionPath, f.inputPath)).status).toBe("current")
+  input.evidencePreparation.included[0].segments[1].originalStartLine = 1000
+  input.evidencePreparation.included[0].segments[1].originalEndLine = 1001
+  input.evidencePreparation.included[0].endLine = 1001
+  await writeFile(f.inputPath, JSON.stringify(input))
+  const changed = await compareAuthorizationInput(result.sessionPath, f.inputPath)
+  expect(changed.status).toBe("needs-review")
+  expect(changed.reasons).toContain("source-bundle-changed")
+  expect(calls).toBe(1)
+})
+
 describe("local authorization runner", () => {
   it("rejects unknown reasoning before provider creation and persists focused prompt identity", async () => {
     const fixture = await makeFixture()

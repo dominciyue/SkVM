@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、已有 portable source reader、provider 生命周期与 token-accounting、SkVM CLI、Python 文档检查。
 
-- 日期：2026-09-29；状态：`planned-not-started`，执行者在 AK0 才建立结果状态。
+- 日期：2026-09-29；状态：`in-progress`，AK0–AK7工程完成，AK8开始零调用准备与真实配置固定。
 - 基线：`b0cfbc1053791adb9444194141da78bb6c679a9c` 加本规划提交；直接使用 `D:/skill优化/SkVM` 的 `skill-ir-aot`，只推用户 origin，不建分支/worktree。
 - 开发任务模型：`gpt-6-sol / max`。被测模型继续 `xty/gpt-5.6-sol`，沿用已配置 provider；开发代理、准备、作者、分析和评价成本分列。
 - 结果根：`results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/`。
@@ -179,50 +179,50 @@ v1显式请求来自AJ既有请求，不故意削弱；自动准备不接触它�
 
 ### AK0 恢复和执行状态
 
-- [ ] 核对基线、分支、origin和工作区；只记录实际差异，不重复AJ全量审计。
-- [ ] 创建AK status/journal，登记唯一写者、调用分账和下一命令；旧临时删除受策略拒绝的记录不再重试或换工具绕过。
+- [x] 核对基线、分支、origin和工作区；只记录实际差异，不重复AJ全量审计。
+- [x] 创建AK status/journal，登记唯一写者、调用分账和下一命令；旧临时删除受策略拒绝的记录不再重试或换工具绕过。
 
 ### AK1 接口与可复现反例
 
-- [ ] 亲读准备、catalog/citation、普通loader和生命周期；确认本书代码图、版本与类型，更新§7.30。
-- [ ] 加入远距片段超过连续预算、support扩大义务、invalid proposal丢usage、窗口外helper四个小反例；用现有AJ材料作离线对照。
-- [ ] 定稿新report/source映射与可选准备参数，写出旧v1兼容表及真实调用配置；不把全仓发现塞入本轮。
+- [x] 亲读准备、catalog/citation、普通loader和生命周期；确认本书代码图、版本与类型，更新§7.30。
+- [x] 加入远距片段超过连续预算、support扩大义务、invalid proposal丢usage、窗口外helper四个小反例；用现有AJ材料作离线对照。
+- [x] 定稿新report/source映射与可选准备参数，写出旧v1兼容表及真实调用配置；不把全仓发现塞入本轮。
 
 ### AK2 提议失败留账
 
-- [ ] 为invalid JSON、schema错误、位置拒绝、timeout、取消、输出不可写和已存在目录编写mock测试。
-- [ ] 将dispatch/response记录放在解析和发布之前；失败输出包含attempt位置、已知usage及未知原因，没有ready产物。
-- [ ] `bun test ./src/cli/authorization-prepare.test.ts ./src/benchmarks/authorization-dsl/evidence-preparation` 转绿；实测mock 123/7/.001保留，check-only调用数0。
+- [x] 为invalid JSON、schema错误、位置拒绝、timeout、取消、输出不可写和已存在目录编写mock测试。
+- [x] 将dispatch/response记录放在解析和发布之前；失败输出包含attempt位置、已知usage及未知原因，没有ready产物。
+- [x] `bun test ./src/cli/authorization-prepare.test.ts ./src/benchmarks/authorization-dsl/evidence-preparation` 转绿；实测mock 123/7/.001保留，check-only调用数0。
 
 ### AK3 多片段纯函数与预算
 
-- [ ] 新建segments模块与测试：重叠/相邻合并、远距不补空隙、稳定排序、重复计费去重、UTF-8/CRLF/无末换行。
-- [ ] 测试远距10–12和900–902两段均进入预算，缺口13–899不进入；mandatory入口超预算返回invalid，辅助超预算返回partial。
-- [ ] 实现v2选择并保留v1行为；不默认填满剩余预算。
+- [x] 新建segments模块与测试：重叠/相邻合并、远距不补空隙、稳定排序、重复计费去重、UTF-8/CRLF/无末换行。
+- [x] 测试远距10–12和900–902两段均进入预算，缺口13–899不进入；mandatory入口超预算返回invalid，辅助超预算返回partial。
+- [x] 实现v2选择并保留v1行为；不默认填满剩余预算。
 
 ### AK4 普通来源与引用接线
 
-- [ ] 先测试多片段原始行引用、跨缺口引用拒绝、错映射/重复坐标拒绝、相对路径搬移和旧连续输入仍可读。
-- [ ] 接通loader、catalog、renderer、transport、session/inspect和compare；M/D看到同字节源码与相同缺口，entry原始位置仍可核对。
-- [ ] 聚焦运行 `bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl/inputs.test.ts ./src/benchmarks/authorization-dsl/local-input.test.ts`，记录新增的映射/引用用例与实际结果。
+- [x] 先测试多片段原始行引用、跨缺口引用拒绝、错映射/重复坐标拒绝、相对路径搬移和旧连续输入仍可读。
+- [x] 接通loader、catalog、renderer、transport、session/inspect和compare；M/D看到同字节源码与相同缺口，entry原始位置仍可核对。
+- [x] 聚焦运行 `bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl/inputs.test.ts ./src/benchmarks/authorization-dsl/local-input.test.ts`，记录新增的映射/引用用例与实际结果。
 
 ### AK5 有界定位索引与窗口
 
-- [ ] 新建discovery模块，测试白名单/读取预算、候选在文件第120行以外、重复符号、嵌套依赖、循环和动态未知。
-- [ ] 从入口与真实词法/显式关联形成候选，宿主按请求读取额外窗口；所有片段都有原始位置，绝不执行目标或任意命令。
-- [ ] 为缺失/歧义保留诊断；禁止导入evaluator、AJ完整依赖表或写项目名成功分支。
+- [x] 新建discovery模块，测试白名单/读取预算、候选在文件第120行以外、重复符号、嵌套依赖、循环和动态未知。
+- [x] 从入口与真实词法/显式关联形成候选，宿主按请求读取额外窗口；所有片段都有原始位置，绝不执行目标或任意命令。
+- [x] 为缺失/歧义保留诊断；禁止导入evaluator、AJ完整依赖表或写项目名成功分支。
 
 ### AK6 可选模型定位与普通prepare
 
-- [ ] 接通两轮位置建议、至多一次格式修订、统一预算和每次留账；现有手工依赖路径、旧默认、check-only保持兼容。
-- [ ] mock验证第1轮请求新窗口、第2轮有效定位、未展示行被拒绝、路径越界、全部失败可恢复和重新运行不会覆写原尝试。
-- [ ] 普通命令产出可run输入/报告/尝试目录，真实核心不藏在研究driver里。
+- [x] 接通两轮位置建议、至多一次格式修订、统一预算和每次留账；现有手工依赖路径、旧默认、check-only保持兼容。
+- [x] mock验证第1轮请求新窗口、第2轮有效定位、未展示行被拒绝、路径越界、全部失败可恢复和重新运行不会覆写原尝试。
+- [x] 普通命令产出可run输入/报告/尝试目录，真实核心不藏在研究driver里。
 
 ### AK7 入口/support及变化预览
 
-- [ ] 给check/prepare预览和作者schema说明增加入口、support、场景与展开义务计数及具体来源；优先复用现有字段。
-- [ ] 测试同两场景加入3个support后义务数不变；显式增加真正分析入口时按原规则展开，不静默压掉用户任务。
-- [ ] 复用edit/compose处理原/变；源内容改变或片段范围变更均使compare提示复查，政策变化保留无关字段。
+- [x] 给check/prepare预览和作者schema说明增加入口、support、场景与展开义务计数及具体来源；优先复用现有字段。
+- [x] 测试同两场景加入3个support后义务数不变；显式增加真正分析入口时按原规则展开，不静默压掉用户任务。
+- [x] 复用edit/compose处理原/变；源内容改变或片段范围变更均使compare提示复查，政策变化保留无关字段。
 
 ### AK8 零调用准备评价与真实计划固定
 

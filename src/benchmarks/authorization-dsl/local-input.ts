@@ -20,8 +20,9 @@ import { AuthorizationTaskV0Schema, type AuthorizationTaskV0 } from "../../task-
 import { compileAuthorizationTask } from "../../task-dsl/authorization/semantics.ts"
 import { AuthorizationAnalysisContractV1Schema, type AuthorizationAnalysisContractV1 } from "../../task-dsl/authorization/assessment-contract.ts"
 import { compileAuthorizationAssessmentProgram, type AuthorizationAssessmentProgram } from "../../task-dsl/authorization/assessment-program.ts"
-import { loadPortableSourceBundle, type SourceBundle } from "./inputs.ts"
+import { loadPortableSourceBundle, sourceRangeText, type SourceBundle } from "./inputs.ts"
 import { AuthorizationEvidenceReportSchema } from "./evidence-preparation/schema.ts"
+import { validateSourceSegments } from "./evidence-preparation/segments.ts"
 import type { AuthorizationAuthoringProvenance } from "./authoring.ts"
 
 const NonEmptyString = z.string().trim().min(1)
@@ -104,13 +105,12 @@ function declarationLocationDiagnostics(task: AuthorizationTaskV0, bundle: Sourc
     entry.locations.forEach((location, locationIndex) => {
       const file = files.get(location.path)
       if (!file
-        || location.startLine < file.cropRange.startLine
-        || location.endLine > file.cropRange.endLine) {
+        || sourceRangeText(file, location.startLine, location.endLine) === undefined) {
         diagnostics.push({ ...localDiagnostic(
           "declaration-source-location-invalid",
           `Declaration location is outside the explicit source bundle: ${location.path}:${location.startLine}-${location.endLine}.`,
           authorV2 ? `entries.${decodeURIComponent(entry.id.slice(6))}.locations.${locationIndex}` : `task.entries.${entryIndex}.locations.${locationIndex}`,
-        ), ...{fix: file ? `Use supplied-file line numbers ${file.cropRange.startLine}-${file.cropRange.endLine} for ${location.path}, including excerpt headers; do not use original upstream line numbers.` : `Add ${location.path} to sources or point this location to a listed source file.`} })
+        ), ...{fix: file ? file.segments ? `Use an original range fully inside one retained segment for ${location.path}.` : `Use supplied-file line numbers ${file.cropRange.startLine}-${file.cropRange.endLine} for ${location.path}, including excerpt headers; do not use original upstream line numbers.` : `Add ${location.path} to sources or point this location to a listed source file.`} })
       }
     })
   })
@@ -246,7 +246,10 @@ export async function loadLocalAuthorizationInputValue(
         const item = included.get(file.relativePath)
         const lineCount = file.content.length === 0 ? 0 : file.content.replace(/\r?\n$/, "").split(/\r?\n/).length
         return !item || item.originalPath !== file.relativePath
-          || item.endLine - item.startLine + 1 !== lineCount
+          || ("segments" in item ? validateSourceSegments(file.content, item.segments).length > 0
+            || item.startLine !== item.segments[0]?.originalStartLine || item.endLine !== item.segments.at(-1)?.originalEndLine
+            || JSON.stringify([...new Set(item.segments.flatMap(segment => segment.origins))].sort()) !== JSON.stringify([...new Set(item.origins)].sort())
+            : item.endLine - item.startLine + 1 !== lineCount)
       })
     if (invalid) diagnostics.push(localDiagnostic(
       "evidence-preparation-invalid",
@@ -259,7 +262,8 @@ export async function loadLocalAuthorizationInputValue(
       files: sourceBundle.files.map(file => {
         const item = included.get(file.relativePath)!
         return { ...file, cropRange: { startLine: item.startLine, endLine: item.endLine },
-          originalLocations: [`${item.originalPath}:${item.startLine}-${item.endLine}`] }
+          ...("segments" in item ? { segments: structuredClone(item.segments) } : {}),
+          originalLocations: "segments" in item ? item.segments.map(segment => `${item.originalPath}:${segment.originalStartLine}-${segment.originalEndLine}`) : [`${item.originalPath}:${item.startLine}-${item.endLine}`] }
       }),
     }
   }

@@ -5,6 +5,7 @@ import {
   type SourceBundle,
 } from "../../benchmarks/authorization-dsl/inputs.ts"
 import { compileAuthorizationTask } from "./semantics.ts"
+import { validateAuthorizationResult } from "./result.ts"
 import type { AuthorizationTaskV0 } from "./schema.ts"
 import {
   AuthorizationWireResultV1Schema,
@@ -115,6 +116,25 @@ function normalize(input: unknown, sourceBundle = bundle()) {
 }
 
 describe("AuthorizationWireResultV1", () => {
+  it("binds and validates original segment quotes while refusing a cross-gap wire citation", () => {
+    const sourceBundle = bundle(), file = sourceBundle.files[0]!
+    file.cropRange = { startLine: 20, endLine: 901 }
+    file.segments = [
+      { originalStartLine: 20, originalEndLine: 22, snapshotStartLine: 1, snapshotEndLine: 3, origins: ["entry"] },
+      { originalStartLine: 900, originalEndLine: 901, snapshotStartLine: 4, snapshotEndLine: 5, origins: ["support"] },
+    ]
+    const id = sourceId(sourceBundle), input = wire() as any
+    for (const [group, facts] of Object.entries(input.results[0].facts) as [string, any[]][]) for (const fact of facts) for (const citation of fact.citations) {
+      citation.sourceId = id
+      if (group === "effect") citation.startLine = citation.endLine = 900
+    }
+    const result = normalize(input, sourceBundle)
+    expect(result.status).toBe("valid")
+    expect(result.result?.results[0]?.facts.effect[0]?.citations[0]?.quote).toBe("  return persist(request.itemId)")
+    expect(validateAuthorizationResult(compileAuthorizationTask(task()), result.result, sourceBundle).diagnostics).toEqual([])
+    input.results[0].facts.control[0].citations[0].endLine = 900
+    expect(normalize(input, sourceBundle).status).toBe("invalid")
+  })
   it("lets the host bind canonical metadata and exact source quotations", () => {
     const normalized = normalize(wire())
 

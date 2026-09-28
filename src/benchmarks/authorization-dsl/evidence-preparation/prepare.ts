@@ -4,6 +4,7 @@ import { loadPortableSourceBundle } from "../inputs.ts"
 import { locateAuthorizationSource } from "../source-location.ts"
 import type { LocalAuthorizationInput } from "../local-input.ts"
 import { AuthorizationEvidenceRequestSchema, type AuthorizationEvidenceReport, type AuthorizationEvidenceRequest } from "./schema.ts"
+import { mergeSourceRanges, packSourceSegments, physicalSourceLines, type OriginalSourceRange } from "./segments.ts"
 
 export interface AuthorizationPreparedSnapshot { path: string; content: string }
 export interface AuthorizationEvidencePreparation {
@@ -15,14 +16,6 @@ export interface AuthorizationEvidencePreparation {
 const portable = (value: string) => value.length > 0 && !value.includes("\\") && !value.includes("\0")
   && !path.isAbsolute(value) && !path.win32.isAbsolute(value) && !path.posix.isAbsolute(value)
   && value.split("/").every(segment => segment !== "" && segment !== "." && segment !== "..")
-
-function physicalLines(content: string): string[] {
-  return content.match(/[^\n]*\n|[^\n]+$/g) ?? []
-}
-
-function intervalText(lines: string[], startLine: number, endLine: number): string {
-  return lines.slice(startLine - 1, endLine).join("")
-}
 
 function emptyReport(inputFile: string, request: unknown): AuthorizationEvidenceReport {
   const sourceRoot = typeof request === "object" && request !== null && "sourceRoot" in request && typeof request.sourceRoot === "string" ? request.sourceRoot : "unknown"
@@ -40,7 +33,7 @@ export async function prepareAuthorizationEvidence(input: {
   const loaded = await loadLocalAuthorizationInput(input.inputFile)
   if (!parsed.success || loaded.status !== "valid") return { report: emptyReport(input.inputFile, input.request), snapshots: [] }
   const request = parsed.data
-  const report: AuthorizationEvidenceReport = { schemaVersion: "authorization-evidence-report/v1", status: "invalid",
+  const report: AuthorizationEvidenceReport = { schemaVersion: request.schemaVersion === "authorization-evidence-request/v2" ? "authorization-evidence-report/v2" : "authorization-evidence-report/v1", status: "invalid",
     sourceIdentity: { repository: loaded.task.repository, sourceRef: loaded.task.sourceRef }, sourceRoot: request.sourceRoot,
     included: [], gaps: [], closureClaim: "declared-dependencies-only" }
   const invalid = (id: string, entryKey: string, reason: string, attemptedPath?: string): AuthorizationEvidencePreparation => ({
@@ -75,13 +68,13 @@ export async function prepareAuthorizationEvidence(input: {
       return null
     }
     const content = result.bundle.files[0]!.content
-    const value = { content, lines: physicalLines(content) }
+    const value = { content, lines: physicalSourceLines(content) }
     cache.set(sourcePath, value)
     return value
   }
-  type Selection = { path: string; startLine: number; endLine: number; origins: string[] }
+  type Selection = { path: string; ranges: OriginalSourceRange[] }
   const selected = new Map<string, Selection>()
-  const bytes = (selection: Selection, source: { lines: string[] }) => Buffer.byteLength(intervalText(source.lines, selection.startLine, selection.endLine), "utf8")
+  const bytes = (selection: Selection, source: { content: string }) => packSourceSegments(source.content, selection.ranges).bytes
   const assign = async (sourcePath: string, startLine: number, endLine: number, origin: string, required: boolean): Promise<string | null> => {
     let source: Awaited<ReturnType<typeof readSource>>
     try { source = await readSource(sourcePath) } catch (error) { return `invalid-source:${String(error)}` }
@@ -89,9 +82,10 @@ export async function prepareAuthorizationEvidence(input: {
     if (startLine < 1 || endLine < startLine || endLine > source.lines.length) return "out-of-range"
     const previous = selected.get(sourcePath)
     if (!previous && selected.size >= request.limits.maxFiles) return "file-budget"
-    const proposed: Selection = previous ? {
-      path: sourcePath, startLine: Math.min(previous.startLine, startLine), endLine: Math.max(previous.endLine, endLine), origins: [...new Set([...previous.origins, origin])],
-    } : { path: sourcePath, startLine, endLine, origins: [origin] }
+    const ranges = mergeSourceRanges([...(previous?.ranges ?? []), { originalStartLine: startLine, originalEndLine: endLine, origins: [origin] }])
+    const proposed: Selection = { path: sourcePath, ranges: request.schemaVersion === "authorization-evidence-request/v1" ? [{
+      originalStartLine: ranges[0]!.originalStartLine, originalEndLine: ranges.at(-1)!.originalEndLine, origins: [...new Set(ranges.flatMap(range => range.origins))],
+    }] : ranges }
     const current = [...selected.values()].reduce((sum, item) => sum + bytes(item, cache.get(item.path)!), 0)
     const prior = previous ? bytes(previous, source) : 0
     if (current - prior + bytes(proposed, source) > request.limits.maxBytes) return required ? "entry-byte-budget" : "byte-budget"
@@ -136,17 +130,19 @@ export async function prepareAuthorizationEvidence(input: {
     }
   }
   // Reserve every declared range before spending spare bytes on complete files.
-  for (const [sourcePath, selection] of selected) {
+  for (const [sourcePath, selection] of request.schemaVersion === "authorization-evidence-request/v1" ? selected : []) {
     const source = cache.get(sourcePath)!
     if (!source || source.lines.length === 0) continue
-    const full = { ...selection, startLine: 1, endLine: source.lines.length }
+    const full: Selection = { ...selection, ranges: [{ originalStartLine: 1, originalEndLine: source.lines.length, origins: selection.ranges.flatMap(range => range.origins) }] }
     const current = [...selected.values()].reduce((sum, item) => sum + bytes(item, cache.get(item.path)!), 0)
     if (current - bytes(selection, source) + bytes(full, source) <= request.limits.maxBytes) selected.set(sourcePath, full)
   }
-  const snapshots = [...selected.values()].map(selection => ({ path: selection.path,
-    content: intervalText(cache.get(selection.path)!.lines, selection.startLine, selection.endLine) }))
-  report.included = [...selected.values()].map(selection => ({ path: selection.path, originalPath: selection.path,
-    startLine: selection.startLine, endLine: selection.endLine, origins: selection.origins }))
+  const packed = [...selected.values()].map(selection => ({ path: selection.path, ...packSourceSegments(cache.get(selection.path)!.content, selection.ranges) }))
+  const snapshots = packed.map(({ path, content }) => ({ path, content }))
+  const included = packed.map(item => ({ path: item.path, originalPath: item.path,
+    startLine: item.segments[0]!.originalStartLine, endLine: item.segments.at(-1)!.originalEndLine, origins: [...new Set(item.segments.flatMap(segment => segment.origins))], segments: item.segments }))
+  if (report.schemaVersion === "authorization-evidence-report/v2") report.included = included
+  else report.included = included.map(({ segments: _segments, ...item }) => item)
   report.status = report.gaps.length ? "partial" : "ready"
   const preparedInput = { ...structuredClone(loaded.normalizedInput), sourceRoot: "source", sources: snapshots.map(item => item.path), evidencePreparation: report }
   return { report, snapshots, preparedInput }

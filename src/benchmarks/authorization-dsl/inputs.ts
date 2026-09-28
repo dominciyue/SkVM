@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto"
 import { readFile, realpath, stat } from "node:fs/promises"
 import path from "node:path"
-import type { AuthorizationEvidenceReport } from "./evidence-preparation/schema.ts"
+import type { AuthorizationEvidenceReport, PreparedSourceSegment } from "./evidence-preparation/schema.ts"
+import { containsOriginalRange, validateSourceSegments } from "./evidence-preparation/segments.ts"
 
 export interface SourceBundleFile {
   relativePath: string
@@ -12,6 +13,7 @@ export interface SourceBundleFile {
     endLine: number
   }
   originalLocations: string[]
+  segments?: PreparedSourceSegment[]
 }
 
 export interface SourceBundle {
@@ -30,6 +32,7 @@ export interface AuthorizationSourceCatalogEntry {
   cropRange: SourceBundleFile["cropRange"]
   originalLocations: string[]
   lines: Array<{ lineNumber: number; text: string }>
+  segments?: PreparedSourceSegment[]
 }
 
 export interface AuthorizationSourceCatalog {
@@ -83,6 +86,7 @@ export interface SourceInputDiagnostic {
     | "symlink-escape"
     | "not-a-file"
     | "input-read-failed"
+    | "input-byte-budget"
   message: string
   path: string
 }
@@ -101,6 +105,7 @@ export interface LoadPortableSourceBundleOptions {
   sourceRef: string
   sourceFiles: string[]
   originalLocationsByFile?: Record<string, string[]>
+  maxBytes?: number
 }
 
 export type LoadExactSourceBundleResult =
@@ -141,8 +146,22 @@ function sourceLines(content: string): string[] {
 }
 
 function authorizationSourceId(bundle: SourceBundle, file: SourceBundleFile): string {
-  const identity = [bundle.repository, bundle.sourceRef, file.relativePath, file.sha256].join("\0")
+  const identity = [bundle.repository, bundle.sourceRef, file.relativePath, file.sha256, ...(file.segments ? [JSON.stringify(file.segments)] : [])].join("\0")
   return `src-${createHash("sha256").update(identity, "utf8").digest("hex").slice(0, 16)}`
+}
+
+/** Original coordinates for mapped snapshots; legacy continuous files retain their existing crop coordinates. */
+export function sourceRangeText(file: SourceBundleFile, startLine: number, endLine: number): string | undefined {
+  if (!Number.isInteger(startLine) || !Number.isInteger(endLine) || endLine < startLine) return undefined
+  const lines = sourceLines(file.content)
+  if (file.segments) {
+    const segment = file.segments.find(item => containsOriginalRange([item], startLine, endLine))
+    if (!segment) return undefined
+    const offset = segment.snapshotStartLine - 1 + startLine - segment.originalStartLine
+    return lines.slice(offset, offset + endLine - startLine + 1).join("\n")
+  }
+  if (startLine < file.cropRange.startLine || endLine > file.cropRange.endLine) return undefined
+  return lines.slice(startLine - file.cropRange.startLine, endLine - file.cropRange.startLine + 1).join("\n")
 }
 
 function sourceDiagnostic(
@@ -185,7 +204,9 @@ export function buildAuthorizationSourceCatalog(bundle: SourceBundle): BuildAuth
     if (
       !Number.isInteger(file.cropRange.startLine)
       || file.cropRange.startLine < 1
-      || file.cropRange.endLine !== expectedEndLine
+      || (file.segments ? validateSourceSegments(file.content, file.segments).length > 0
+        || file.cropRange.startLine !== file.segments[0]?.originalStartLine
+        || file.cropRange.endLine !== file.segments.at(-1)?.originalEndLine : file.cropRange.endLine !== expectedEndLine)
     ) {
       diagnostics.push(sourceDiagnostic(
         "source-crop-range-mismatch",
@@ -211,7 +232,8 @@ export function buildAuthorizationSourceCatalog(bundle: SourceBundle): BuildAuth
       sha256: file.sha256,
       cropRange: { ...file.cropRange },
       originalLocations: [...file.originalLocations],
-      lines: lines.map((text, lineIndex) => ({
+      ...(file.segments ? { segments: structuredClone(file.segments) } : {}),
+      lines: file.segments ? file.segments.flatMap(segment => lines.slice(segment.snapshotStartLine - 1, segment.snapshotEndLine).map((text, i) => ({ lineNumber: segment.originalStartLine + i, text }))) : lines.map((text, lineIndex) => ({
         lineNumber: file.cropRange.startLine + lineIndex,
         text,
       })),
@@ -252,6 +274,7 @@ export function resolveAuthorizationSourceCitation(
     || reference.startLine < source.cropRange.startLine
     || reference.endLine > source.cropRange.endLine
     || reference.endLine < reference.startLine
+    || (source.segments && !containsOriginalRange(source.segments, reference.startLine, reference.endLine))
   ) {
     return {
       success: false,
@@ -263,8 +286,6 @@ export function resolveAuthorizationSourceCitation(
     }
   }
 
-  const startOffset = reference.startLine - source.cropRange.startLine
-  const endOffset = reference.endLine - source.cropRange.startLine + 1
   return {
     success: true,
     diagnostics: [],
@@ -272,7 +293,7 @@ export function resolveAuthorizationSourceCitation(
       path: source.relativePath,
       startLine: reference.startLine,
       endLine: reference.endLine,
-      quote: source.lines.slice(startOffset, endOffset).map(line => line.text).join("\n"),
+      quote: source.lines.filter(line => line.lineNumber >= reference.startLine && line.lineNumber <= reference.endLine).map(line => line.text).join("\n"),
     },
   }
 }
@@ -294,9 +315,11 @@ async function loadSourceBundleFromRoot(options: {
   collection: "allowedInputFiles" | "sources"
   inputsOnly: boolean
   originalLocationsByFile?: Record<string, string[]>
+  maxBytes?: number
 }): Promise<LoadExactSourceBundleResult> {
   const diagnostics: SourceInputDiagnostic[] = []
   const files: SourceBundleFile[] = []
+  let readBytes = 0
   let canonicalRoot: string
   try {
     canonicalRoot = await realpath(options.root)
@@ -425,8 +448,19 @@ async function loadSourceBundleFromRoot(options: {
       continue
     }
 
+    if (options.maxBytes !== undefined && fileStats.size > options.maxBytes - readBytes) {
+      diagnostics.push(diagnostic("input-byte-budget", index, `Allowlisted source exceeds the remaining read budget: ${normalizedPath}`, options.collection))
+      continue
+    }
+
     try {
       const content = await readFile(canonicalCandidate, "utf8")
+      const contentBytes = Buffer.byteLength(content, "utf8")
+      if (options.maxBytes !== undefined && contentBytes > options.maxBytes - readBytes) {
+        diagnostics.push(diagnostic("input-byte-budget", index, `Source grew beyond the read budget: ${normalizedPath}`, options.collection))
+        continue
+      }
+      readBytes += contentBytes
       files.push({
         relativePath: normalizedPath,
         content,
@@ -489,6 +523,7 @@ export async function loadPortableSourceBundle(
     files: options.sourceFiles,
     collection: "sources",
     inputsOnly: false,
+    ...(options.maxBytes === undefined ? {} : { maxBytes: options.maxBytes }),
     ...(options.originalLocationsByFile
       ? { originalLocationsByFile: options.originalLocationsByFile }
       : {}),
@@ -508,8 +543,8 @@ export function renderSourceBundle(bundle: SourceBundle): string {
       `===== BEGIN ALLOWED INPUT: ${source.relativePath} =====`,
       `Source ID: ${source.sourceId}`,
       `Location note: crop lines ${source.cropRange.startLine}-${source.cropRange.endLine}; original locations: ${provenance}`,
-      "Citation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.",
-      source.lines.map(line => `${line.lineNumber} | ${line.text}`).join("\n"),
+      source.segments ? "Citation contract: use original line numbers in one displayed segment; ranges cannot cross omitted intervals or sources." : "Citation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.",
+      source.lines.map((line, i) => `${i > 0 && line.lineNumber > source.lines[i - 1]!.lineNumber + 1 ? `[OMITTED original lines ${source.lines[i - 1]!.lineNumber + 1}-${line.lineNumber - 1}]\n` : ""}${line.lineNumber} | ${line.text}`).join("\n"),
       `===== END ALLOWED INPUT: ${source.relativePath} =====`,
     ].join("\n")
   }).join("\n\n")
@@ -519,7 +554,7 @@ export function renderSourceBundle(bundle: SourceBundle): string {
     `Preparation status: ${report.status}`,
     `Closure claim: ${report.closureClaim}`,
     `Prepared from: ${report.sourceIdentity.repository}@${report.sourceIdentity.sourceRef}; root ${report.sourceRoot}`,
-    `Included original ranges: ${report.included.map(item => `${item.originalPath}:${item.startLine}-${item.endLine} [${item.origins.join(", ")}]`).join("; ")}`,
+    `Included original ranges: ${report.included.flatMap(item => "segments" in item ? item.segments.map(segment => `${item.originalPath}:${segment.originalStartLine}-${segment.originalEndLine} [${segment.origins.join(", ")}]`) : [`${item.originalPath}:${item.startLine}-${item.endLine} [${item.origins.join(", ")}]`]).join("; ")}`,
     `Unresolved gaps: ${report.gaps.length === 0 ? "none" : report.gaps.map(gap => `${gap.id}: ${gap.reason}${gap.attemptedPath ? ` (${gap.attemptedPath})` : ""}`).join("; ")}`,
     sourceText,
   ].join("\n\n")

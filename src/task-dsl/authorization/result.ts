@@ -1,4 +1,5 @@
-import type { SourceBundle } from "../../benchmarks/authorization-dsl/inputs.ts"
+import { sourceRangeText, type SourceBundle } from "../../benchmarks/authorization-dsl/inputs.ts"
+import type { PreparedSourceSegment } from "../../benchmarks/authorization-dsl/evidence-preparation/schema.ts"
 import {
   parseAuthorizationResult,
   type AuthorizationObligationResult,
@@ -15,7 +16,7 @@ export interface AuthorizationDependencySnapshot {
   task?: AuthorizationTaskV0
   repository: string
   sourceRef: string
-  sourceFiles: Array<{ path: string; sha256: string }>
+  sourceFiles: Array<{ path: string; sha256: string; segments?: PreparedSourceSegment[] }>
   policies: Array<{
     id: string
     revision: string
@@ -85,7 +86,7 @@ function createDependencySnapshot(
     repository: compiled.task.repository,
     sourceRef: compiled.task.sourceRef,
     sourceFiles: sourceBundle.files
-      .map(file => ({ path: file.relativePath, sha256: file.sha256 }))
+      .map(file => ({ path: file.relativePath, sha256: file.sha256, ...(file.segments ? { segments: structuredClone(file.segments) } : {}) }))
       .sort((left, right) => left.path.localeCompare(right.path)),
     policies: compiled.task.policySources
       .map(policy => ({
@@ -142,12 +143,6 @@ function validateMetadata(
   return diagnostics
 }
 
-function citationSegment(content: string, cropStartLine: number, startLine: number, endLine: number): string {
-  const startOffset = startLine - cropStartLine
-  const endOffset = endLine - cropStartLine + 1
-  return content.replace(/\r?\n$/, "").split(/\r?\n/).slice(startOffset, endOffset).join("\n")
-}
-
 function validateEvidence(
   result: AuthorizationObligationResult,
   resultIndex: number,
@@ -176,11 +171,8 @@ function validateEvidence(
           ))
           return
         }
-        if (
-          citation.startLine < file.cropRange.startLine
-          || citation.endLine > file.cropRange.endLine
-          || citation.endLine < citation.startLine
-        ) {
+        const segment = sourceRangeText(file, citation.startLine, citation.endLine)
+        if (segment === undefined) {
           invalid = true
           diagnostics.push(makeDiagnostic(
             "citation-out-of-range",
@@ -189,12 +181,6 @@ function validateEvidence(
           ))
           return
         }
-        const segment = citationSegment(
-          file.content,
-          file.cropRange.startLine,
-          citation.startLine,
-          citation.endLine,
-        )
         if (!segment.includes(citation.quote)) {
           invalid = true
           diagnostics.push(makeDiagnostic(

@@ -27,6 +27,7 @@ import {
 } from "./host.ts"
 import { renderSourceBundle } from "./inputs.ts"
 import { AuthorizationEvidenceReportSchema, type AuthorizationEvidenceReport } from "./evidence-preparation/schema.ts"
+import { authorizationScopePreview } from "./evidence-preparation/scope.ts"
 import {
   loadLocalAuthorizationInput,
   type LocalAnalysisProfile,
@@ -47,6 +48,7 @@ export interface LocalAuthorizationCheckReport {
   sourceRef?: string
   sourceRoot?: string
   sourceFiles?: string[]
+  scopePreview?: ReturnType<typeof authorizationScopePreview>
   arm?: AuthorizationRenderArm
   studyArm?: AuthorizationStudyArm
   methodSelection?: AuthorizationMethodSelection
@@ -427,6 +429,7 @@ function checkReport(
     sourceRef: loaded.task.sourceRef,
     sourceRoot: loaded.sourceRoot,
     sourceFiles: loaded.sourceBundle.files.map(file => file.relativePath),
+    scopePreview: authorizationScopePreview(loaded.task, loaded.normalizedInput.evidencePreparation),
     ...(loaded.normalizedInput.evidencePreparation ? { evidencePreparation: loaded.normalizedInput.evidencePreparation } : {}),
     arm,
     ...(studyArm ? { studyArm } : {}),

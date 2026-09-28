@@ -92,6 +92,32 @@ async function makeFixture(inputOverrides: Record<string, unknown> = {}) {
 }
 
 describe("loadLocalAuthorizationInput", () => {
+  it("loads portable multi-segment evidence and refuses declarations inside a gap or ambiguous coordinates", async () => {
+    const f = await makeFixture()
+    const content = "entry\r\nguard\r\nfinal"
+    await writeFile(path.join(f.projectRoot, "src", "record.ts"), content)
+    const report = {
+      schemaVersion: "authorization-evidence-report/v2", status: "ready", sourceIdentity: f.input.sourceIdentity, sourceRoot: "project",
+      included: [{ path: "src/record.ts", originalPath: "src/record.ts", startLine: 10, endLine: 902, origins: ["entry", "support"], segments: [
+        { originalStartLine: 10, originalEndLine: 10, snapshotStartLine: 1, snapshotEndLine: 1, origins: ["entry"] },
+        { originalStartLine: 901, originalEndLine: 902, snapshotStartLine: 2, snapshotEndLine: 3, origins: ["support"] },
+      ] }], gaps: [], closureClaim: "declared-dependencies-only",
+    }
+    const task = makeTask({ entries: [{ id: "update-record", name: "updateRecord", locations: [{ path: "src/record.ts", startLine: 10, endLine: 10 }] }] })
+    const input = { ...f.input, task, evidencePreparation: report }
+    await writeFile(f.inputPath, JSON.stringify(input))
+    expect((await loadLocalAuthorizationInput(f.inputPath)).status).toBe("valid")
+    const moved = path.join(f.root, "moved"); await mkdir(moved)
+    await writeFile(path.join(moved, "input.json"), JSON.stringify({ ...input, sourceRoot: "../project" }))
+    expect((await loadLocalAuthorizationInput(path.join(moved, "input.json"))).status).toBe("valid")
+    task.entries[0]!.locations[0]!.startLine = 500; task.entries[0]!.locations[0]!.endLine = 500
+    await writeFile(f.inputPath, JSON.stringify(input))
+    expect((await loadLocalAuthorizationInput(f.inputPath)).status).toBe("invalid")
+    task.entries[0]!.locations[0]!.startLine = 10; task.entries[0]!.locations[0]!.endLine = 10
+    report.included[0]!.segments[1]!.originalStartLine = 10
+    await writeFile(f.inputPath, JSON.stringify(input))
+    expect((await loadLocalAuthorizationInput(f.inputPath)).status).toBe("invalid")
+  })
   it("checks a value at a future output coordinate without writing an input file", async () => {
     const fixture = await makeFixture()
     const loader = (localInput as any).loadLocalAuthorizationInputValue

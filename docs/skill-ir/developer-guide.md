@@ -89,6 +89,10 @@ AJ局部修改由`authoring-workspace/local-edit.ts`的`applyAuthorizationLocalE
 
 `src/measurement/token-accounting.ts`提供纯函数`normalizeTokenObservation`、`aggregateTokenObservations`、`compareTokenGroups`；`scripts/token-accounting/cli.ts`离线读取显式JSON，输出完整prompt/total、已知小计与缺值计数，同一账户/来源/缓存口径才能比较。`skvm-disjoint`把适配器非缓存input与cacheRead相加；`inclusive-input`不能重复加缓存；`unknown`不推算百分比。AE面板逐次记录fallback/repair用量；AB历史澄清见[AG证据](../../results/skill-ir/token-accounting-semantics-20260927/ab-accounting-clarification.json)，旧raw和summary未改。实际美元缺失保留null，不以字符或价格估算。修改时运行计量模块和脚本测试及脚本独立typecheck，命令与数据合同见[计量README](../../scripts/token-accounting/README.md)。
 
+AK在同一组件加入显式request/report v2。`segments.ts`合并重叠/相邻原范围并按原字节拼接远距片段，报告同时保留原包络和连续snapshot坐标；包络不授予跨缺口引用。`sourceRangeText`供catalog/resolver/canonical validator共享使用，catalog按实际原行编号渲染`OMITTED`，loader校验映射和entry覆盖，execution dependencies及结果快照包含映射。旧v1的连续范围和余量扩整文件行为不变。修改此链路先测Unicode/CRLF/末行、错映射、原行引用、跨缺口、搬移及run/inspect/compare。
+
+`discoverAuthorizationEvidence({inputFile,request,maxReadBytes?,maxDisplayBytes?})`只读作者白名单，建立Python/Go/JS词法符号及引用候选，记录missing/ambiguous/cycle/dynamic/budget诊断；不是语义调用图。`readDiscoveryWindows`只接受已按1MiB累计预算读取文件的literal/range补窗。默认12文件、64KiB累计展示、64KiB最终材料、深度3；初窗预留一半展示预算供补读。`proposeBoundedAuthorizationDependencies`复用telemetry进行至多两轮位置提议和一次纯格式修订，索引中的未展示位置拒绝。准备不读取oracle或旧答案，不执行目标；超出词法能力时由作者显式补依赖。CLI `--discover=true`要求request/v2，`--proposal-model`显式启用模型，`--proposal-timeout-ms`最多300000；check-only零调用。提议前检查新目录/写入，将dispatch/response事件及account放在独立attempt目录，失败后usage仍可恢复，未知完成不自动重发。`authorizationScopePreview`只展示入口、支持位置、场景和义务计数，不删用户的真正多入口。聚焦命令为`bun test ./src/cli/authorization-prepare.test.ts ./src/benchmarks/authorization-dsl/evidence-preparation`，之后跑共享引用/run回归和typecheck。实际研究记录集中在AK结果根，当前阶段仍未调用真实模型。
+
 ```powershell
 bun ./src/index.ts authorization check --input=./examples/authorization-assessment/assessment.json
 bun ./src/index.ts authorization run --input=./examples/authorization-assessment/assessment.json --model=<provider/model> --out=./.skvm/authorization-demo

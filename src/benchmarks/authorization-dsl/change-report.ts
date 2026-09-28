@@ -20,7 +20,7 @@ export function createExecutionDependencies(loaded:ValidInput, checked:LocalAuth
   }]))
   return {schemaVersion:"authorization-execution-dependencies/v1" as const,
     task:structuredClone(task), scenarios,
-    sourceBundle:loaded.sourceBundle.files.map(f=>({path:f.relativePath,sha256:hash(f.content),cropRange:f.cropRange,originalLocations:f.originalLocations})),
+    sourceBundle:loaded.sourceBundle.files.map(f=>({path:f.relativePath,sha256:hash(f.content),cropRange:f.cropRange,originalLocations:f.originalLocations,...(f.segments?{segments:structuredClone(f.segments)}:{})})),
     evidencePreparation:loaded.normalizedInput.evidencePreparation??null,
     sourceRoot:loaded.normalizedInput.sourceRoot, sources:loaded.normalizedInput.sources,
     profile:loaded.analysisProfile,requirements:loaded.analysisRequirements,conditionRequest:loaded.conditionAnalysisRequest??null,

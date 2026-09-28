@@ -254,6 +254,30 @@ function catalogBundle(input: {
 }
 
 describe("authorization source catalog", () => {
+  it("renders explicit original segments and rejects citations crossing an omitted interval", () => {
+    const bundle = catalogBundle({ files: [{ relativePath: "src/a.ts", content: "entry\r\nhelper\r\nlast", startLine: 10 }] })
+    const file = bundle.files[0]!
+    file.cropRange = { startLine: 10, endLine: 902 }
+    file.segments = [
+      { originalStartLine: 10, originalEndLine: 10, snapshotStartLine: 1, snapshotEndLine: 1, origins: ["entry"] },
+      { originalStartLine: 901, originalEndLine: 902, snapshotStartLine: 2, snapshotEndLine: 3, origins: ["support"] },
+    ]
+    const built = buildAuthorizationSourceCatalog(bundle)
+    expect(built.success).toBe(true)
+    if (!built.success) return
+    const source = built.catalog.sources[0]!
+    expect(source.lines.map(line => line.lineNumber)).toEqual([10, 901, 902])
+    expect(resolveAuthorizationSourceCitation(built.catalog, { sourceId: source.sourceId, startLine: 901, endLine: 902 })).toMatchObject({ success: true, citation: { quote: "helper\nlast", startLine: 901 } })
+    expect(resolveAuthorizationSourceCitation(built.catalog, { sourceId: source.sourceId, startLine: 10, endLine: 901 }).success).toBe(false)
+    expect(resolveAuthorizationSourceCitation(built.catalog, { sourceId: source.sourceId, startLine: 500, endLine: 500 }).success).toBe(false)
+    expect(renderSourceBundle(bundle)).toContain("OMITTED original lines 11-900")
+    const previousId = source.sourceId
+    file.segments[1]!.originalStartLine = 900; file.segments[1]!.originalEndLine = 901; file.cropRange.endLine = 901
+    const shifted = buildAuthorizationSourceCatalog(bundle)
+    expect(shifted.success && shifted.catalog.sources[0]!.sourceId).not.toBe(previousId)
+    file.segments[1]!.snapshotStartLine = 1
+    expect(buildAuthorizationSourceCatalog(bundle).success).toBe(false)
+  })
   it("keeps source IDs stable across array order while distinguishing equal bytes at different paths", () => {
     const files = [
       { relativePath: "inputs/example/a.ts", content: "same\n" },

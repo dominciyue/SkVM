@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { mkdtemp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises"
+import { mkdtemp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { runAuthorizationCli } from "./authorization.ts"
@@ -35,6 +35,38 @@ test("prepare checks without writing, then publishes a runnable ordinary input a
     expect(await readFile(path.join(out, "report.json"), "utf8")).toContain("missing-file")
     expect(await runAuthorizationCli(["prepare", ...args], deps)).toBe(1)
     expect(stderr.at(-1)).toContain("exists")
+  } finally { await rm(root, { recursive: true, force: true }) }
+})
+
+test("paid prepare archives invalid proposal usage and preflights output before dispatch", async () => {
+  const demo = path.resolve("examples/authorization-assessment/evidence-editing")
+  const root = await mkdtemp(path.join(os.tmpdir(), "authorization-failed-prepare-"))
+  try {
+    let calls = 0
+    const stdout: string[] = [], stderr: string[] = []
+    const deps = { stdout: (s: string) => stdout.push(s), stderr: (s: string) => stderr.push(s), providerFactory: () => ({
+      name: "mock", complete: async () => { calls++; return { text: "bad JSON", toolCalls: [], tokens: { input: 123, output: 7, cacheRead: 0, cacheWrite: 0 }, costUsd: .001, durationMs: 1, stopReason: "end_turn" as const } },
+      completeWithToolResults: async () => { throw new Error("unexpected") },
+    }) }
+    const args = [`--input=${path.join(demo, "base.json")}`, `--request=${path.join(demo, "request-ready.json")}`, "--proposal-model=test/mock"]
+    expect(await runAuthorizationCli(["prepare", ...args, `--out=${path.join(root, "missing", "out")}`], deps)).toBe(1)
+    expect(calls).toBe(0)
+    const out = path.join(root, "failed")
+    expect(await runAuthorizationCli(["prepare", ...args, `--out=${out}`], deps)).toBe(1)
+    expect(calls).toBe(1)
+    await expect(stat(out)).rejects.toThrow()
+    const report = JSON.parse(stdout.at(-1)!)
+    const account = JSON.parse(await readFile(path.join(report.attemptPath, "account.json"), "utf8"))
+    expect(account.telemetry.knownTokens.input).toBe(123)
+    expect(account.telemetry.knownTokens.output).toBe(7)
+    expect(account.telemetry.totalActualUsd).toBe(.001)
+    expect(account.published).toBe(false)
+    expect(await readFile(path.join(report.attemptPath, "events.jsonl"), "utf8")).toContain('"kind":"response"')
+    expect(await runAuthorizationCli(["prepare", ...args, `--out=${out}`], deps)).toBe(1)
+    expect((await readdir(root)).filter(name => name.includes("attempts-")).length).toBe(2)
+    await mkdir(path.join(root, "existing"))
+    expect(await runAuthorizationCli(["prepare", ...args, `--out=${path.join(root, "existing")}`], deps)).toBe(1)
+    expect(calls).toBe(2)
   } finally { await rm(root, { recursive: true, force: true }) }
 })
 
@@ -79,5 +111,47 @@ test("prepare accepts one optional model dependency proposal through the same bo
     })
     expect(escaped).toBe(1)
     await expect(stat(escapedOut)).rejects.toThrow()
+  } finally { await rm(root, { recursive: true, force: true }) }
+})
+
+test("publication failure keeps the already returned response and cost outside output", async () => {
+  const demo = path.resolve("examples/authorization-assessment/evidence-editing")
+  const root = await mkdtemp(path.join(os.tmpdir(), "authorization-publish-failure-"))
+  try {
+    const out = path.join(root, "out"), stdout: string[] = []
+    const code = await runAuthorizationCli(["prepare", `--input=${path.join(demo, "base.json")}`, `--request=${path.join(demo, "request-ready.json")}`, `--out=${out}`, "--proposal-model=test/mock"], {
+      stdout: s => stdout.push(s), stderr: () => {}, providerFactory: () => ({ name: "mock", complete: async () => {
+        await mkdir(out); await writeFile(path.join(out, "someone-else.txt"), "preserve")
+        return { text: '{"dependencies":[]}', toolCalls: [], tokens: { input: 123, output: 7, cacheRead: 0, cacheWrite: 0 }, costUsd: .001, durationMs: 1, stopReason: "end_turn" }
+      }, completeWithToolResults: async () => { throw new Error("unexpected") } }),
+    })
+    expect(code).toBe(1)
+    const account = JSON.parse(await readFile(path.join(JSON.parse(stdout.at(-1)!).attemptPath, "account.json"), "utf8"))
+    expect(account.telemetry.totalActualUsd).toBe(.001)
+    expect(account.published).toBe(false)
+    expect(await readFile(path.join(out, "someone-else.txt"), "utf8")).toBe("preserve")
+    await expect(stat(path.join(out, "assessment.json"))).rejects.toThrow()
+  } finally { await rm(root, { recursive: true, force: true }) }
+})
+
+test("ordinary discover v2 starts with entry seeds, preserves scene count, and check-only calls no provider", async () => {
+  const demo = path.resolve("examples/authorization-assessment/evidence-editing"), root = await mkdtemp(path.join(os.tmpdir(), "authorization-discover-cli-"))
+  try {
+    const request = JSON.parse(await readFile(path.join(demo, "request-ready.json"), "utf8"))
+    request.schemaVersion = "authorization-evidence-request/v2"; request.dependencies = []
+    const requestFile = path.join(root, "request.json"); await writeFile(requestFile, JSON.stringify(request))
+    const out = path.join(root, "out"), stdout: string[] = [], stderr: string[] = []
+    const deps = { stdout: (s: string) => stdout.push(s), stderr: (s: string) => stderr.push(s), providerFactory: () => { throw new Error("zero provider") } }
+    const args = ["prepare", `--input=${path.join(demo, "base.json")}`, `--request=${requestFile}`, `--out=${out}`, "--discover=true"]
+    expect(await runAuthorizationCli([...args, "--check-only=true"], deps)).toBe(0)
+    await expect(stat(out)).rejects.toThrow()
+    expect(await runAuthorizationCli(args, deps)).toBe(0)
+    const loaded = await loadLocalAuthorizationInput(path.join(out, "assessment.json"))
+    expect(loaded.status).toBe("valid")
+    if (loaded.status !== "valid") return
+    expect(loaded.task.entries).toHaveLength(1)
+    expect(loaded.task.obligations).toHaveLength(2)
+    expect(loaded.sourceBundle.files.some(file => file.relativePath === "src/guard.ts")).toBe(true)
+    expect(JSON.parse(stdout.at(-1)!).scopePreview).toMatchObject({ analysisEntries: 1, declaredScenarios: 2, expandedObligations: 2 })
   } finally { await rm(root, { recursive: true, force: true }) }
 })

@@ -155,3 +155,35 @@ test("records unresolved parent, cycle, depth and explicit-range gaps without in
     expect(result.snapshots.find(item => item.path === "src/helper.ts")?.content).toBe("guard\n")
   } finally { await rm(f.root, { recursive: true, force: true }) }
 })
+
+test("v2 includes distant slices within budget without expanding support into task entries", async () => {
+  const f = await fixture(Array.from({ length: 1000 }, (_, i) => `line ${i + 1}\n`).join(""))
+  try {
+    const dependencies: AuthorizationEvidenceRequest["dependencies"] = [
+      { id: "late", from: "archive", path: "src/record.ts", startLine: 900, endLine: 902, reason: "control", basis: "author" },
+      { id: "later-copy", from: "archive", path: "src/record.ts", startLine: 900, endLine: 902, reason: "effect", basis: "author" },
+    ]
+    const old = await prepareAuthorizationEvidence({ ...f, request: request({ dependencies, limits: { maxFiles: 12, maxBytes: 64, maxDepth: 3 } }) })
+    expect(old.report.gaps[0]?.reason).toBe("byte-budget")
+    const result = await prepareAuthorizationEvidence({ ...f, request: request({ schemaVersion: "authorization-evidence-request/v2", dependencies, limits: { maxFiles: 12, maxBytes: 64, maxDepth: 3 } }) })
+    expect(result.report.status).toBe("ready")
+    expect(result.report.schemaVersion).toBe("authorization-evidence-report/v2")
+    expect(result.snapshots[0]?.content).toBe("line 2\nline 3\nline 900\nline 901\nline 902\n")
+    expect(result.preparedInput?.task.entries).toHaveLength(1)
+    expect(result.preparedInput?.task.obligations).toHaveLength(1)
+    const invalid = await prepareAuthorizationEvidence({ ...f, request: request({ schemaVersion: "authorization-evidence-request/v2", limits: { maxFiles: 12, maxBytes: 1, maxDepth: 3 } }) })
+    expect(invalid.report.status).toBe("invalid")
+    expect(invalid.preparedInput).toBeUndefined()
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
+
+test("v2 auxiliary byte overflow remains partial with only the mandatory entry retained", async () => {
+  const f = await fixture("prefix\nentry\nreturn\n", { "helper.ts": "unrelated but very large support line\n" })
+  try {
+    const result = await prepareAuthorizationEvidence({ ...f, request: request({ schemaVersion: "authorization-evidence-request/v2", dependencies: [{ id: "large", from: "archive", path: "src/helper.ts", startLine: 1, endLine: 1, reason: "control", basis: "author" }], limits: { maxFiles: 12, maxBytes: 20, maxDepth: 3 } }) })
+    expect(result.report.status).toBe("partial")
+    expect(result.report.gaps).toContainEqual(expect.objectContaining({ id: "large", reason: "byte-budget" }))
+    expect(result.snapshots).toEqual([{ path: "src/record.ts", content: "entry\nreturn\n" }])
+    expect(result.preparedInput).toBeDefined()
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})

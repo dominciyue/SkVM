@@ -5,7 +5,7 @@ const Line = z.number().int().positive()
 const Range = z.object({ startLine: Line, endLine: Line }).refine(value => value.endLine >= value.startLine, "endLine must not precede startLine")
 
 export const AuthorizationEvidenceRequestSchema = z.object({
-  schemaVersion: z.literal("authorization-evidence-request/v1"),
+  schemaVersion: z.enum(["authorization-evidence-request/v1", "authorization-evidence-request/v2"]),
   sourceRoot: Text,
   allowedFiles: z.array(Text).min(1),
   entries: z.array(z.object({ entryKey: Text, path: Text, startLine: Line, endLine: Line }).strict()).min(1),
@@ -20,14 +20,21 @@ export const AuthorizationEvidenceRequestSchema = z.object({
 
 export type AuthorizationEvidenceRequest = z.infer<typeof AuthorizationEvidenceRequestSchema>
 
-export const AuthorizationEvidenceReportSchema = z.object({
-  schemaVersion: z.literal("authorization-evidence-report/v1"),
+export const PreparedSourceSegmentSchema = z.object({
+  originalStartLine: Line, originalEndLine: Line, snapshotStartLine: Line, snapshotEndLine: Line, origins: z.array(Text).min(1),
+}).strict()
+export type PreparedSourceSegment = z.infer<typeof PreparedSourceSegmentSchema>
+const IncludedSourceSchema = z.object({ path: Text, originalPath: Text, startLine: Line, endLine: Line, origins: z.array(Text).min(1) }).strict()
+const ReportFields = {
   status: z.enum(["ready", "partial", "invalid"]),
   sourceIdentity: z.object({ repository: Text, sourceRef: Text }).strict(),
   sourceRoot: Text,
-  included: z.array(z.object({ path: Text, originalPath: Text, startLine: Line, endLine: Line, origins: z.array(Text).min(1) }).strict()),
   gaps: z.array(z.object({ id: Text, entryKey: Text, reason: Text, attemptedPath: Text.optional() }).strict()),
   closureClaim: z.literal("declared-dependencies-only"),
-}).strict()
+}
+export const AuthorizationEvidenceReportSchema = z.discriminatedUnion("schemaVersion", [
+  z.object({ ...ReportFields, schemaVersion: z.literal("authorization-evidence-report/v1"), included: z.array(IncludedSourceSchema) }).strict(),
+  z.object({ ...ReportFields, schemaVersion: z.literal("authorization-evidence-report/v2"), included: z.array(IncludedSourceSchema.extend({ segments: z.array(PreparedSourceSegmentSchema).min(1) }).strict()) }).strict(),
+])
 
 export type AuthorizationEvidenceReport = z.infer<typeof AuthorizationEvidenceReportSchema>
