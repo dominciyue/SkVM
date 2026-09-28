@@ -1,0 +1,95 @@
+{
+  "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+  "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7",
+  "sourceMode": "fixed-context",
+  "isolation": "exact-allowlist",
+  "files": [
+    {
+      "relativePath": "backend/app/api/routes/items.py",
+      "content": "@router.get(\"/{id}\", response_model=ItemPublic)\ndef read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:\n    \"\"\"\n    Get item by ID.\n    \"\"\"\n    item = session.get(Item, id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"Item not found\")\n    if not current_user.is_superuser and (item.owner_id != current_user.id):\n        raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n    return item\n",
+      "sha256": "045196c00251cc443b2086e3ea815e0316a09e92992eb50255aade45b093c4de",
+      "cropRange": {
+        "startLine": 48,
+        "endLine": 58
+      },
+      "originalLocations": [
+        "backend/app/api/routes/items.py:48-58"
+      ],
+      "segments": [
+        {
+          "originalStartLine": 48,
+          "originalEndLine": 58,
+          "snapshotStartLine": 1,
+          "snapshotEndLine": 11,
+          "origins": [
+            "entry:read-item"
+          ]
+        }
+      ]
+    }
+  ],
+  "evidencePreparation": {
+    "status": "partial",
+    "sourceIdentity": {
+      "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+      "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/fastapi",
+    "gaps": [
+      {
+        "id": "dep:read-item:current-user",
+        "entryKey": "read-item",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/app/api/routes/items.py"
+      },
+      {
+        "id": "dep:read-item:item-lookup",
+        "entryKey": "read-item",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/app/api/routes/items.py"
+      },
+      {
+        "id": "dep:read-item:missing-item-control",
+        "entryKey": "read-item",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/app/api/routes/items.py"
+      },
+      {
+        "id": "dep:read-item:ownership-control",
+        "entryKey": "read-item",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/app/api/routes/items.py"
+      },
+      {
+        "id": "dep:read-item:return-item",
+        "entryKey": "read-item",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/app/api/routes/items.py"
+      }
+    ],
+    "closureClaim": "declared-dependencies-only",
+    "schemaVersion": "authorization-evidence-report/v2",
+    "included": [
+      {
+        "path": "backend/app/api/routes/items.py",
+        "originalPath": "backend/app/api/routes/items.py",
+        "startLine": 48,
+        "endLine": 58,
+        "origins": [
+          "entry:read-item"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 48,
+            "originalEndLine": 58,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 11,
+            "origins": [
+              "entry:read-item"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

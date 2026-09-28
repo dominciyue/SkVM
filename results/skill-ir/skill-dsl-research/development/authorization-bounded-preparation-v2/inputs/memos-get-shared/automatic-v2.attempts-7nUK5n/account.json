@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "authorization-preparation-attempts/v1",
+  "model": "xty/gpt-5.6-sol",
+  "status": "rejected",
+  "published": false,
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "prompt-parse",
+      "status": "response",
+      "startedAt": "2026-09-28T17:51:31.730Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 17530,
+        "toolNames": [],
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 5158,
+        "output": 2042,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "{\"dependencies\":[{\"id\":\"dep-1\",\"from\":\"get-shared\",\"path\":\"server/api/v1/memo_share_service.go\",\"startLine\":173,\"endLine\":176,\"reason\":\"control\",\"match\":\"s.getActiveMemoShare(ctx, request.ShareToken); return nil, err\"},{\"id\":\"dep-2\",\"from\":\"get-shared\",\"path\":\"server/api/v1/memo_share_service.go\",\"startLine\":178,\"endLine\":185,\"reason\":\"resource-binding\",\"match\":\"GetMemo by ms.MemoID; reject nil, non-normal, or SpaceAudience memos\"},{\"id\":\"dep-3\",\"from\":\"get-shared\",\"path\":\"server/api/v1/memo_share_service.go\",\"startLine\":186,\"endLine\":189,\"reason\":\"control\",\"match\":\"buildMemoReadContext; reject when context resolution fails or CheckMemoReadContext is not allowed\"},{\"id\":\"dep-4\",\"from\":\"get-shared\",\"path\":\"server/api/v1/memo_share_service.go\",\"startLine\":191,\"endLine\":209,\"reason\":\"effect\",\"match\":\"list reactions and attachments, then convert the memo; storage failures are Internal and missing creator conversion is NotFound\"},{\"id\":\"dep-5\",\"from\":\"get-shared\",\"path\":\"server/api/v1/memo_share_service.go\",\"startLine\":210,\"endLine\":213,\"reason\":\"effect\",\"match\":\"clear Parent and return the converted memo\"},{\"id\":\"dep-6\",\"from\":\"get-shared\",\"path\":\"server/api/v1/memo_share_service.go\",\"startLine\":221,\"endLine\":229,\"reason\":\"control\",\"match\":\"lookup the share by UID; nil or expired shares are NotFound; otherwise return the share\"},{\"id\":\"dep-7\",\"from\":\"get-shared\",\"path\":\"server/api/v1/memo_share_service.go\",\"startLine\":217,\"endLine\":219,\"reason\":\"control\",\"match\":\"share is expired only when ExpiresTs is non-nil and current Unix time is greater than it\"},{\"id\":\"dep-8\",\"from\":\"get-shared\",\"path\":\"server/api/v1/memo_access.go\",\"startLine\":17,\"endLine\":30,\"reason\":\"identity\",\"match\":\"fetch current viewer; nil viewer is treated as anonymous and resolves instance anonymous-access policy\"},{\"id\":\"dep-9\",\"from\":\"get-shared\",\"path\":\"server/api/v1/memo_access.go\",\"startLine\":32,\"endLine\":40,\"reason\":\"control\",\"match\":\"resolve the memo read context for the memo and shared memo ID\"},{\"id\":\"dep-10\",\"from\":\"get-shared\",\"path\":\"core/access/memo.go\",\"startLine\":92,\"endLine\":101,\"reason\":\"control\",\"match\":\"nil memo or invalid creator is NotFound; invalid visibility and invalid SpaceAudience placement are NotFound\"},{\"id\":\"dep-11\",\"from\":\"get-shared\",\"path\":\"core/access/memo.go\",\"startLine\":104,\"endLine\":117,\"reason\":\"control\",\"match\":\"non-normal/non-archived status is denied; archived non-author memos are denied\"},{\"id\":\"dep-12\",\"from\":\"get-shared\",\"path\":\"core/access/memo.go\",\"startLine\":119,\"endLine\":122,\"reason\":\"resource-binding\",\"match\":\"shared access applies when SharedMemoID is non-nil, memo ID equals it, and visibility is not SpaceAudience; this returns allowed private access\"},{\"id\":\"dep-13\",\"from\":\"get-shared\",\"path\":\"core/access/memo.go\",\"startLine\":138,\"endLine\":145,\"reason\":\"control\",\"match\":\"without the share override, a private memo requires an active author\"},{\"id\":\"dep-14\",\"from\":\"get-shared\",\"path\":\"core/access/memo.go\",\"startLine\":51,\"endLine\":53,\"reason\":\"control\",\"match\":\"only a decision with no denial is Allowed\"},{\"id\":\"dep-15\",\"from\":\"get-shared\",\"path\":\"store/memo_share.go\",\"startLine\":57,\"endLine\":59,\"reason\":\"resource-binding\",\"match\":\"GetMemoShare delegates token lookup to the driver\"},{\"id\":\"dep-16\",\"from\":\"get-shared\",\"path\":\"core/access/memo_resolve.go\",\"startLine\":85,\"endLine\":91,\"reason\":\"control\",\"match\":\"resolve memo read facts, then apply viewer and shared-memo inputs\"}],\"reads\":[{\"path\":\"core/access/memo_resolve.go\",\"startLine\":31,\"endLine\":81,\"match\":\"ResolveMemoReadFacts and WithViewer\",\"contextLines\":2},{\"path\":\"server/api/v1/memo_share_service.go\",\"startLine\":234,\"endLine\":244,\"match\":\"convertMemoShareFromStore and related conversion behavior\",\"contextLines\":2},{\"path\":\"server/api/v1/memo_access.go\",\"startLine\":1,\"endLine\":16,\"match\":\"fetchCurrentUser behavior used to determine whether the caller is anonymous\",\"contextLines\":2}]}",
+        "toolCalls": [],
+        "tokens": {
+          "input": 5158,
+          "output": 2042,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 46557.505900000004,
+        "stopReason": "end_turn"
+      },
+      "endedAt": "2026-09-28T17:52:18.288Z"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 5158,
+      "output": 2042,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  },
+  "rounds": [
+    {
+      "kind": "proposal",
+      "promptCharacters": 17530,
+      "displayedBytes": 7531,
+      "diagnostics": []
+    }
+  ],
+  "diagnostics": [
+    "Supplementary literal is missing or ambiguous: core/access/memo_resolve.go",
+    "Supplementary literal is missing or ambiguous: core/access/memo_resolve.go"
+  ],
+  "unknownCostReason": "provider did not report actual cost for every dispatched request"
+}

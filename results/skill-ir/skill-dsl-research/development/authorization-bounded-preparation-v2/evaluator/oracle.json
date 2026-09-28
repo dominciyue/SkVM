@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "authorization-ak-oracle/v2",
+  "visibility": "evaluator-only; never supplied to preparation or authors",
+  "frozenBeforeModelAnswers": true,
+  "cases": [
+    {
+      "id": "owui-file",
+      "scenarios": [
+        {
+          "key": "file-owner-without-destination-write-grant",
+          "expectedDecision": "allow",
+          "expectedConclusion": "source_supported_failure"
+        }
+      ],
+      "decisiveEvidence": [
+        "backend/open_webui/routers/retrieval.py:1559-1563 checks source-file ownership",
+        "backend/open_webui/routers/retrieval.py:1566-1569 accepts caller collection_name",
+        "backend/open_webui/routers/retrieval.py:1694-1705 forwards selected collection without destination permission check",
+        "backend/open_webui/routers/retrieval.py:1458-1534 helper can insert into existing collection without checking the caller's destination write grant"
+      ],
+      "limits": "External vector DB success is not guaranteed; the source-visible missing authorization control is the assessed failure. The old AI crop omitted much of the helper."
+    },
+    {
+      "id": "fastapi-superuser-read",
+      "scenarios": [
+        {
+          "key": "read-item",
+          "expectedDecision": "allow",
+          "expectedConclusion": "source_refuted"
+        }
+      ],
+      "decisiveEvidence": [
+        "backend/app/api/routes/items.py:48-58 gets the item and denies a different owner only when current_user is not superuser",
+        "backend/app/api/deps.py:30-49 binds CurrentUser upstream, but the task explicitly assumes an active authenticated superuser at handler entry"
+      ],
+      "limits": "Conclusion is at the declared handler entry; the original crop does not independently prove an external request's CurrentUser binding."
+    },
+    {
+      "id": "memos-create-share",
+      "scenarios": [
+        {
+          "key": "admin-other-memo",
+          "expectedDecision": "allow",
+          "expectedConclusion": "source_refuted"
+        }
+      ],
+      "decisiveEvidence": [
+        "server/api/v1/memo_share_service.go:25-55 authenticates, resolves the active memo, invokes CanManageMemo, excludes SPACE",
+        "core/access/memo.go:61-85 accepts an active instance ADMIN for author-level operations",
+        "server/api/v1/memo_share_service.go:66-80 builds a write policy and invokes Store.CreateMemoShare",
+        "store/memo.go:285-296 preserves the admin exception in snapshot authorization"
+      ],
+      "limits": "Authorization under stated entry premises is allowed; a concurrent mutation or store failure can still prevent persistence. The handler comment at memo_share_service.go:23-25 says creator only, but the fixed-ref proto policy and actual CanManageMemo implementation include an active instance administrator."
+    },
+    {
+      "id": "memos-get-shared",
+      "scenarios": [
+        {
+          "key": "token-status-unspecified",
+          "expectedDecision": "conditional-policy:undetermined",
+          "expectedConclusion": "unknown"
+        }
+      ],
+      "decisiveEvidence": [
+        "server/api/v1/memo_share_service.go:170-189 resolves a token and reads the memo identified by ms.MemoID",
+        "server/api/v1/memo_share_service.go:221-229 rejects missing or expired token",
+        "core/access/memo.go:87-121 accepts a share for SharedMemoID matching that resolved memo",
+        "server/api/v1/memo_share_service.go:210-213 excludes relation graph access"
+      ],
+      "limits": "Token existence and expiry are deliberately unspecified, so no unconditional delivery claim is supported. The API request carries no separate target memo ID; a valid token selects its associated memo."
+    },
+    {
+      "id": "memos-member-leave",
+      "scenarios": [
+        {
+          "key": "self-leave",
+          "expectedDecision": "allow",
+          "expectedConclusion": "source_refuted"
+        },
+        {
+          "key": "other-member",
+          "expectedDecision": "deny",
+          "expectedConclusion": "source_refuted"
+        }
+      ],
+      "decisiveEvidence": [
+        "server/api/v1/space_service.go:632-662 resolves an active caller/target membership in the same space",
+        "server/api/v1/space_service.go:750-755 skips administrator check for self and applies it for another target",
+        "server/api/v1/space_service.go:54-58 requires administrator role",
+        "server/api/v1/space_service.go:756-763 passes the resolved target IDs to Store.DeleteSpaceMember"
+      ],
+      "limits": "Entry premises fix successful resource resolution and active membership; store failure is outside this source-visible authorization conclusion."
+    },
+    {
+      "id": "paperless-download",
+      "scenarios": [
+        {
+          "key": "version-owner-no-root-view",
+          "expectedDecision": "deny",
+          "expectedConclusion": "source_refuted"
+        }
+      ],
+      "decisiveEvidence": [
+        "src/documents/views.py:1834-1839 routes download through file_response",
+        "src/documents/views.py:1401-1427 checks view_document against root_doc",
+        "src/documents/permissions.py:624-635 permits an unowned, owned or object-granted document",
+        "src/documents/views.py:1429-1448 would serve the selected file_doc only after the root check"
+      ],
+      "limits": "Global permission and document existence are assumed; version ownership does not grant root view."
+    },
+    {
+      "id": "paperless-note-post",
+      "scenarios": [
+        {
+          "key": "viewer-cannot-add-note",
+          "expectedDecision": "deny",
+          "expectedConclusion": "source_refuted"
+        }
+      ],
+      "decisiveEvidence": [
+        "src/documents/permissions.py:673-699 gives POST a global add_note/view_document/change_document gate",
+        "src/documents/views.py:1857-1863 checks object view",
+        "src/documents/views.py:1877-1892 checks object change before Note.objects.create",
+        "src/documents/permissions.py:624-635 implements owner-aware object grant"
+      ],
+      "limits": "The caller's global permissions and object view grant are premises; missing object change grant blocks note creation."
+    },
+    {
+      "id": "paperless-share-create",
+      "scenarios": [
+        {
+          "key": "global-only-no-document-view",
+          "expectedDecision": "deny",
+          "expectedConclusion": "source_refuted"
+        }
+      ],
+      "decisiveEvidence": [
+        "src/documents/views.py:4696-4717 selects ShareLinkSerializer with IsAuthenticated and PaperlessObjectPermissions",
+        "src/documents/permissions.py:30-53 maps POST to global add_sharelink",
+        "src/documents/views.py:406-425 passes user to permission-aware serializer",
+        "src/documents/serialisers.py:2869-2886 validates global and owner-aware view_document for the referenced document before creation"
+      ],
+      "limits": "The referenced document is assumed to exist. Global permissions do not give owner-aware object view."
+    }
+  ],
+  "materialRule": "Apply original policy/behavior semantics to actual supplied material. A newly retained genuine helper may resolve an old crop gap. Unknown external conditions remain unknown; evidence existence is not semantic proof.",
+  "scope": "public-development; never read by generation/preparation/author runner",
+  "changes": [
+    "Paperless share-create user binding is assessable when views.py:406-425 is actually supplied",
+    "Memos GetShared still has deliberately unspecified token existence/expiry"
+  ]
+}

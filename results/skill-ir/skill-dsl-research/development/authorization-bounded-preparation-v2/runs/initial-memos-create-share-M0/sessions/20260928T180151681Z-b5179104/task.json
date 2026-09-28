@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "source-authorization-assessment/v0",
+  "taskId": "memos-create-share-admin",
+  "request": "At CreateMemoShare handler entry, does an authenticated active instance administrator pass the source-visible authorization controls to create a share for an existing active non-SPACE memo authored by someone else? Assess authorization, not whether an external store call succeeds under every runtime condition.",
+  "repository": "https://github.com/usememos/memos",
+  "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+  "sourceMode": "fixed-context",
+  "policySources": [
+    {
+      "id": "policy:memo-share-creator-or-admin",
+      "kind": "explicit-task-requirement",
+      "text": "A memo share may be created by the memo creator or an instance administrator; SPACE audience memos are not shareable.",
+      "location": "proto/api/v1/memo_service.proto:116-123; server/api/v1/memo_share_service.go:54-56",
+      "revision": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "acceptance": {
+        "status": "accepted",
+        "actorRole": "task-author",
+        "reason": "Public fixed-ref source and task-author bounded requirement."
+      }
+    }
+  ],
+  "principals": [
+    {
+      "id": "principal:instance-admin",
+      "role": "authenticated active instance administrator, not the memo creator",
+      "description": "Author facts: [\"The caller is active and has the instance ADMIN role.\",\"The caller is not the memo's creator.\"]",
+      "startingCapabilities": []
+    }
+  ],
+  "resources": [
+    {
+      "id": "resource:other-normal-memo",
+      "type": "memo",
+      "description": "Author facts: [\"The memo exists, is active, and has a non-SPACE audience.\",\"The memo was created by another user.\"]"
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry:create-share",
+      "name": "CreateMemoShare",
+      "locations": [
+        {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 23,
+          "endLine": 80
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "id": "scenario:admin-other-memo",
+      "principalId": "principal:instance-admin",
+      "resourceId": "resource:other-normal-memo",
+      "relation": "active-instance-admin-not-creator",
+      "operation": "create memo share",
+      "expectation": "allow",
+      "conditions": [],
+      "policySourceId": "policy:memo-share-creator-or-admin",
+      "entryIds": [
+        "entry:create-share"
+      ]
+    }
+  ],
+  "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+  "requiredAnalysis": [
+    "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+    "identify the principal, operation, protected resource, decisive control, and effect",
+    "return source_supported_failure, source_refuted, or unknown with exact supplied-source locations"
+  ],
+  "constraints": [
+    "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+    "Use only the supplied fixed-ref case inputs.",
+    "Do not execute the target project or infer deployment facts."
+  ]
+}

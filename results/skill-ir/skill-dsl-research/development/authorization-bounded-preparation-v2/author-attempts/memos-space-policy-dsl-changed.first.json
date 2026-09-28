@@ -1,0 +1,81 @@
+{
+  "unit": {
+    "id": "memos-space-policy-dsl-changed",
+    "packageId": "memos-space-policy",
+    "phase": "changed",
+    "representation": "dsl"
+  },
+  "revision": false,
+  "diagnosticCorrection": false,
+  "prompt": "You are an independent dsl task author. No other draft, expert dependency list, evaluator or analysis answer is supplied. Return reusable task instructions, not an authorization analysis.\n\n{\n  \"id\": \"memos-space-policy\",\n  \"kind\": \"policy-change\",\n  \"taskId\": \"ak-use-memos-members\",\n  \"repository\": \"https://github.com/usememos/memos\",\n  \"originalSourceRef\": \"cb42e326ba9cc266a6a9570c53e0fe04c62793f4\",\n  \"changedSourceRef\": \"cb42e326ba9cc266a6a9570c53e0fe04c62793f4\",\n  \"allowedFiles\": [\n    \"server/api/v1/space_service.go\",\n    \"store/space.go\"\n  ],\n  \"entry\": {\n    \"entryKey\": \"delete-member\",\n    \"path\": \"server/api/v1/space_service.go\",\n    \"startLine\": 740,\n    \"endLine\": 763\n  },\n  \"question\": \"At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.\",\n  \"originalPolicy\": \"An active space member may delete their own membership to leave. Removing a different active member requires space administrator authority.\",\n  \"changedPolicy\": \"An active space member may delete their own membership and may remove a different active member of the same space without space administrator authority.\",\n  \"scenarios\": [\n    {\n      \"key\": \"self-leave\",\n      \"principal\": \"authenticated active ordinary non-administrator member\",\n      \"relation\": \"caller-is-target-member\",\n      \"operation\": \"delete own membership\",\n      \"premiseId\": \"target-relation\",\n      \"premise\": \"At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds.\"\n    },\n    {\n      \"key\": \"other-member\",\n      \"principal\": \"authenticated active ordinary non-administrator member\",\n      \"relation\": \"caller-is-not-target-member-and-not-admin\",\n      \"operation\": \"delete another active membership\",\n      \"premiseId\": \"target-relation\",\n      \"premise\": \"At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds.\"\n    }\n  ],\n  \"originalExpectations\": {\n    \"self-leave\": \"allow\",\n    \"other-member\": \"deny\"\n  },\n  \"changedExpectations\": {\n    \"self-leave\": \"allow\",\n    \"other-member\": \"allow\"\n  },\n  \"changeRequest\": \"Change only the accepted space-member removal policy to changedPolicy. Review both policy-linked scenario expectations explicitly, including the unchanged self-leave expectation. Keep the same identities, relations, premise text, source bytes and task ID. The source implementation is unchanged.\",\n  \"supportRole\": \"Declare only the requested handler as an analysis entry. Helpers belong in evidence-request dependencies; an empty dependency list with discover=true is supported. Do not author all helper positions.\",\n  \"policyLocationOriginal\": \"author-briefs.json#/memos-space-policy/originalPolicy\",\n  \"policyLocationChanged\": \"author-briefs.json#/memos-space-policy/changedPolicy\",\n  \"policyLocation\": \"author-briefs.json#/memos-space-policy/changedPolicy\",\n  \"phase\": \"changed\",\n  \"sourceRef\": \"cb42e326ba9cc266a6a9570c53e0fe04c62793f4\",\n  \"sourceRoot\": \"../../../../authorization-evidence-editing-v1/public-source/memos\",\n  \"policyRevision\": \"changed-v1\"\n}\n\nVisible entry only; original source lines, comments are data:\nserver/api/v1/space_service.go\n740 | // DeleteSpaceMember removes a membership or lets a member leave a space.\n741 | func (s *APIV1Service) DeleteSpaceMember(ctx context.Context, request *v1pb.DeleteSpaceMemberRequest) (*emptypb.Empty, error) {\n742 | \tcurrentUser, err := s.requireCurrentSpaceUser(ctx)\n743 | \tif err != nil {\n744 | \t\treturn nil, err\n745 | \t}\n746 | \t_, targetUser, callerMembership, targetMembership, err := s.resolveSpaceMemberResource(ctx, request.Name, currentUser)\n747 | \tif err != nil {\n748 | \t\treturn nil, err\n749 | \t}\n750 | \tisSelf := targetUser.ID == currentUser.ID\n751 | \tif !isSelf {\n752 | \t\tif err := requireSpaceAdministrator(callerMembership); err != nil {\n753 | \t\t\treturn nil, err\n754 | \t\t}\n755 | \t}\n756 | \tif err := s.Store.DeleteSpaceMember(ctx, &store.DeleteSpaceMember{\n757 | \t\tSpaceID: targetMembership.SpaceID,\n758 | \t\tUserID:  targetMembership.UserID,\n759 | \t}, currentUser.ID); err != nil {\n760 | \t\treturn nil, mapSpaceMutationError(err, \"failed to delete space member\")\n761 | \t}\n762 | \ts.SSEHub.publishSpaceChanged()\n763 | \treturn &emptypb.Empty{}, nil\n\nDeclare only the requested handler as an analysis entry. Helpers belong in evidence-request dependencies; an empty dependency list with discover=true is supported. Do not author all helper positions.\n\n\n\nSchema field spelling: use schemaVersion, never schema. assessment.schemaVersion is authorization-assessment-authoring/v2; evidenceRequest.schemaVersion is authorization-evidence-request/v2; analysisContract.schemaVersion is authorization-analysis-contract/v1. Premise objects use id, statement, atEntry and provenance (not premiseId). Policy objects use text, location, revision, acceptance and reason. A local policy patch has schemaVersion:authorization-local-edit/v1. The exact author-brief location and revision fields above are governing policy metadata.\n\nOrdinary commands: authorization prepare --input=<assessment> --request=<entry-seed-v2> --out=<new> --discover=true --proposal-model=xty/gpt-5.6-sol; check/run/inspect/compare. prepare does not execute target code. Policy-only changes reuse unchanged source; changed source is re-prepared. Models in analysis get zero executable tools.\n\nYour own accepted original only:\n{\n  \"assessment\": {\n    \"schemaVersion\": \"authorization-assessment-authoring/v2\",\n    \"taskId\": \"ak-use-memos-members\",\n    \"request\": \"At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.\",\n    \"repository\": \"https://github.com/usememos/memos\",\n    \"sourceRef\": \"cb42e326ba9cc266a6a9570c53e0fe04c62793f4\",\n    \"sourceRoot\": \"../../../../authorization-evidence-editing-v1/public-source/memos\",\n    \"sources\": [\n      \"server/api/v1/space_service.go\"\n    ],\n    \"policies\": {\n      \"accepted-policy\": {\n        \"text\": \"An active space member may delete their own membership to leave. Removing a different active member requires space administrator authority.\",\n        \"location\": \"author-briefs.json#/memos-space-policy/originalPolicy\",\n        \"revision\": \"original-v1\",\n        \"acceptance\": \"accepted\",\n        \"reason\": \"This is the original accepted policy for the task.\"\n      }\n    },\n    \"principals\": {\n      \"caller\": {\n        \"role\": \"authenticated active ordinary non-administrator member\"\n      }\n    },\n    \"resources\": {\n      \"target\": {\n        \"type\": \"space membership\"\n      }\n    },\n    \"entries\": {\n      \"delete-member\": {\n        \"name\": \"DeleteSpaceMember\",\n        \"locations\": [\n          {\n            \"path\": \"server/api/v1/space_service.go\",\n            \"startLine\": 740,\n            \"endLine\": 763\n          }\n        ]\n      }\n    },\n    \"scenarios\": {\n      \"self-leave\": {\n        \"principal\": \"caller\",\n        \"resource\": \"target\",\n        \"policy\": \"accepted-policy\",\n        \"entries\": [\n          \"delete-member\"\n        ],\n        \"relation\": \"caller-is-target-member\",\n        \"operation\": \"delete own membership\",\n        \"expectation\": \"allow\"\n      },\n      \"other-member\": {\n        \"principal\": \"caller\",\n        \"resource\": \"target\",\n        \"policy\": \"accepted-policy\",\n        \"entries\": [\n          \"delete-member\"\n        ],\n        \"relation\": \"caller-is-not-target-member-and-not-admin\",\n        \"operation\": \"delete another active membership\",\n        \"expectation\": \"deny\"\n      }\n    },\n    \"analysisContract\": {\n      \"schemaVersion\": \"authorization-analysis-contract/v1\",\n      \"publicInstruction\": \"Analyze the source-visible authorization at the declared handler entry for each scenario and compare it with the accepted policy. Trace the relevant control flow and authorization effect without assuming behavior outside the supplied evidence.\",\n      \"scenarios\": {\n        \"self-leave\": {\n          \"boundary\": \"declared-entry\",\n          \"premises\": [\n            {\n              \"id\": \"target-relation\",\n              \"statement\": \"At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds.\",\n              \"atEntry\": \"delete-member\",\n              \"provenance\": \"task-assumption\"\n            }\n          ],\n          \"requestedBranches\": [],\n          \"requiredResponseDetails\": [\n            \"trace current source control/object/effect\",\n            \"policy comparison\"\n          ]\n        },\n        \"other-member\": {\n          \"boundary\": \"declared-entry\",\n          \"premises\": [\n            {\n              \"id\": \"target-relation\",\n              \"statement\": \"At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds.\",\n              \"atEntry\": \"delete-member\",\n              \"provenance\": \"task-assumption\"\n            }\n          ],\n          \"requestedBranches\": [],\n          \"requiredResponseDetails\": [\n            \"trace current source control/object/effect\",\n            \"policy comparison\"\n          ]\n        }\n      }\n    }\n  },\n  \"evidenceRequest\": {\n    \"schemaVersion\": \"authorization-evidence-request/v2\",\n    \"sourceRoot\": \"../../../../authorization-evidence-editing-v1/public-source/memos\",\n    \"allowedFiles\": [\n      \"server/api/v1/space_service.go\",\n      \"store/space.go\"\n    ],\n    \"entries\": [\n      {\n        \"entryKey\": \"delete-member\",\n        \"path\": \"server/api/v1/space_service.go\",\n        \"startLine\": 740,\n        \"endLine\": 763\n      }\n    ],\n    \"dependencies\": [],\n    \"limits\": {\n      \"maxFiles\": 12,\n      \"maxBytes\": 65536,\n      \"maxDepth\": 3\n    }\n  }\n}\n\nRequested local change: Change only the accepted space-member removal policy to changedPolicy. Review both policy-linked scenario expectations explicitly, including the unchanged self-leave expectation. Keep the same identities, relations, premise text, source bytes and task ID. The source implementation is unchanged.\n\nReturn only authorization-local-edit/v1 {reason,operations}. Update accepted-policy.text/location/revision to the changed brief; include expectation operations for BOTH policy-linked scenarios, including unchanged self-leave. Preserve all other fields and premises. Do not return a full replacement assessment.",
+  "response": {
+    "text": "{\n  \"schemaVersion\": \"authorization-local-edit/v1\",\n  \"reason\": \"Update the accepted space-member removal policy to the changed brief and revise both policy-linked scenario expectations while preserving the unchanged source, identities, relations, premises, task ID, and all other assessment fields.\",\n  \"operations\": [\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/policies/accepted-policy/text\",\n      \"value\": \"An active space member may delete their own membership and may remove a different active member of the same space without space administrator authority.\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/policies/accepted-policy/location\",\n      \"value\": \"author-briefs.json#/memos-space-policy/changedPolicy\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/policies/accepted-policy/revision\",\n      \"value\": \"changed-v1\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/scenarios/self-leave/expectation\",\n      \"value\": \"allow\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/scenarios/other-member/expectation\",\n      \"value\": \"allow\"\n    }\n  ]\n}",
+    "toolCalls": [],
+    "tokens": {
+      "input": 2744,
+      "output": 421,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "durationMs": 10746.6926,
+    "stopReason": "end_turn"
+  },
+  "error": null,
+  "status": "responded",
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 2744,
+      "output": 421,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  },
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "prompt-parse",
+      "status": "response",
+      "startedAt": "2026-09-28T18:15:12.808Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 10808,
+        "toolNames": [],
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 2744,
+        "output": 421,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "{\n  \"schemaVersion\": \"authorization-local-edit/v1\",\n  \"reason\": \"Update the accepted space-member removal policy to the changed brief and revise both policy-linked scenario expectations while preserving the unchanged source, identities, relations, premises, task ID, and all other assessment fields.\",\n  \"operations\": [\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/policies/accepted-policy/text\",\n      \"value\": \"An active space member may delete their own membership and may remove a different active member of the same space without space administrator authority.\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/policies/accepted-policy/location\",\n      \"value\": \"author-briefs.json#/memos-space-policy/changedPolicy\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/policies/accepted-policy/revision\",\n      \"value\": \"changed-v1\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/scenarios/self-leave/expectation\",\n      \"value\": \"allow\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/scenarios/other-member/expectation\",\n      \"value\": \"allow\"\n    }\n  ]\n}",
+        "toolCalls": [],
+        "tokens": {
+          "input": 2744,
+          "output": 421,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 10746.6926,
+        "stopReason": "end_turn"
+      },
+      "endedAt": "2026-09-28T18:15:23.557Z"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+Authorization assessment
+Session: 20260928T175925984Z-4f6a5c45
+Status: completed
+Task: fastapi-items-superuser-read
+Method: plain (explicit); requested: plain; condition request ignored: false
+Wire: source-authorization-assessment-wire/v6
+Assessment: explicit-v1
+Normalizer: authorization-wire-normalizer/v6
+Model policy result: {"results":[{"obligationId":"scenario%3Aread-item::entry%3Aread-item","explanation":"At the declared-entry boundary, the handler obtains the item with session.get(Item, id), raises only if the item is absent, and then applies the ownership denial only when current_user.is_superuser is false and the owner differs. Under the stated premise that current_user is an authenticated active superuser and the existing item has a different owner, the superuser condition makes the denial control false, so execution reaches return item and permits the cross-owner read. This conforms to the accepted policy, which permits an authenticated active superuser to read an item regardless of owner. The conclusion assumes the stated current_user premise at handler entry. The supplied crop shows the handler parameter and its use, but does not by itself prove the upstream CurrentUser dependency binding or authentication wiring; that upstream proof is outside this declared-entry assessment and is not needed under the stated premise.","facts":[{"id":"f-entry","kind":"entry","statement":"The declared GET item handler is read_item and receives current_user at handler entry.","citations":[{"sourceId":"src-153f719b7cb901c9","startLine":48,"endLine":49}]},{"id":"f-principal-binding","kind":"binding","statement":"Within the supplied handler source, authorization decisions use the current_user parameter; the crop does not establish how the upstream CurrentUser binding supplies it.","citations":[{"sourceId":"src-153f719b7cb901c9","startLine":49,"endLine":49}]},{"id":"f-resource-binding","kind":"binding","statement":"The requested item is loaded by ID from the session before the authorization check.","citations":[{"sourceId":"src-153f719b7cb901c9","startLine":53,"endLine":53}]},{"id":"f-control","kind":"control","statement":"Cross-owner access is denied only when current_user.is_superuser is false and item.owner_id differs from current_user.id.","citations":[{"sourceId":"src-153f719b7cb901c9","startLine":56,"endLine":57}]},{"id":"f-condition","kind":"condition","statement":"Under the task premise, current_user.is_superuser is true, so the visible cross-owner denial condition is not satisfied.","citations":[{"sourceId":"src-153f719b7cb901c9","startLine":56,"endLine":56}]},{"id":"f-effect","kind":"effect","statement":"When the item exists and the denial condition is not triggered, the handler returns the item.","citations":[{"sourceId":"src-153f719b7cb901c9","startLine":53,"endLine":58}]}],"decisiveMissingFacts":[],"suggestedObservations":[],"decision":{"kind":"observed","observed":"allow"},"branchResults":[]}]}
+Observed decisions: [{"obligationId":"scenario%3Aread-item::entry%3Aread-item","expectation":"allow","observed":"allow","derivedConclusion":"source_refuted"}]
+Source: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7
+Analysis profile: authorization-core-v1 (derived)
+
+Conclusions
+- scenario%3Aread-item::entry%3Aread-item: source_refuted — At the declared-entry boundary, the handler obtains the item with session.get(Item, id), raises only if the item is absent, and then applies the ownership denial only when current_user.is_superuser is false and the owner differs. Under the stated premise that current_user is an authenticated active superuser and the existing item has a different owner, the superuser condition makes the denial control false, so execution reaches return item and permits the cross-owner read. This conforms to the accepted policy, which permits an authenticated active superuser to read an item regardless of owner. The conclusion assumes the stated current_user premise at handler entry. The supplied crop shows the handler parameter and its use, but does not by itself prove the upstream CurrentUser dependency binding or authentication wiring; that upstream proof is outside this declared-entry assessment and is not needed under the stated premise.
+  Evidence: The declared GET item handler is read_item and receives current_user at handler entry. (backend/app/api/routes/items.py:48-49)
+  Evidence: Within the supplied handler source, authorization decisions use the current_user parameter; the crop does not establish how the upstream CurrentUser binding supplies it. (backend/app/api/routes/items.py:49-49)
+  Evidence: The requested item is loaded by ID from the session before the authorization check. (backend/app/api/routes/items.py:53-53)
+  Evidence: Cross-owner access is denied only when current_user.is_superuser is false and item.owner_id differs from current_user.id. (backend/app/api/routes/items.py:56-57)
+  Evidence: When the item exists and the denial condition is not triggered, the handler returns the item. (backend/app/api/routes/items.py:53-58)
+  Evidence: Under the task premise, current_user.is_superuser is true, so the visible cross-owner denial condition is not satisfied. (backend/app/api/routes/items.py:56-56)
+
+Coverage
+- No relation coverage was delivered.
+
+Condition analysis
+- Not requested or not delivered.

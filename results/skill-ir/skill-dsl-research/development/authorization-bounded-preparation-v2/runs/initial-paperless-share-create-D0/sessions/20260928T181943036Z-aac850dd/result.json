@@ -1,0 +1,340 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "assessmentMode": "explicit-v1",
+  "reasoningStrategy": "standard",
+  "evidencePreparation": {
+    "status": "partial",
+    "sourceIdentity": {
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+    "gaps": [
+      {
+        "id": "serializer-user",
+        "entryKey": "share-create",
+        "reason": "byte-budget",
+        "attemptedPath": "src/documents/views.py"
+      }
+    ],
+    "closureClaim": "declared-dependencies-only",
+    "schemaVersion": "authorization-evidence-report/v1",
+    "included": [
+      {
+        "path": "src/documents/views.py",
+        "originalPath": "src/documents/views.py",
+        "startLine": 4696,
+        "endLine": 4717,
+        "origins": [
+          "entry:share-create"
+        ]
+      },
+      {
+        "path": "src/documents/permissions.py",
+        "originalPath": "src/documents/permissions.py",
+        "startLine": 1,
+        "endLine": 717,
+        "origins": [
+          "locator:global-share-permission",
+          "locator:owner-aware"
+        ]
+      },
+      {
+        "path": "src/documents/serialisers.py",
+        "originalPath": "src/documents/serialisers.py",
+        "startLine": 2851,
+        "endLine": 2886,
+        "origins": [
+          "locator:document-validation"
+        ]
+      }
+    ]
+  },
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260928T181943036Z-aac850dd",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-bounded-preparation-v2\\runs\\initial-paperless-share-create-D0\\sessions\\20260928T181943036Z-aac850dd",
+  "createdAt": "2026-09-28T18:19:43.036Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-bounded-preparation-v2\\inputs\\paperless-share-create\\explicit-v1\\assessment.json",
+  "taskId": "paperless-share-create-document-view",
+  "repository": "https://github.com/paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 3098,
+      "publicAnalysis": 1149,
+      "assessmentProgram": 716,
+      "source": 34899,
+      "outputContract": 2914,
+      "total": 43310,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "evidencePreparation": "evidence-preparation.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "paperless-share-create-document-view",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "results": [
+      {
+        "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+        "conclusion": "source_refuted",
+        "explanation": "At the declared ShareLinkViewSet.create entry, the supplied view source binds the operation to ShareLink creation and uses IsAuthenticated plus PaperlessObjectPermissions, whose POST mapping requires global add_sharelink; the accepted task premise supplies that authenticated/global-permission state. The protected target is not the new share-link object alone: ShareLinkSerializer validates the referenced document separately. Its validate_document path requires both the caller's global documents.view_document permission and has_perms_owner_aware(..., \"view_document\", document). The owner-aware helper permits only an unowned document, a document owned by the caller, or an explicit object permission; the supplied premise says the document is owned by someone else and lacks the caller's object view grant, so that decisive target-document check fails and raises PermissionDenied. Therefore the source-visible effect is denial of creating the share link. This is source_supported_failure, not a repository-wide completeness claim. No decisive runtime fact is missing within the declared-entry boundary because the task premises provide the authenticated identity, global permissions, target existence/ownership, and absence of object view access; those premises are not treated as source/deployment proof.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "ShareLinkViewSet is the declared entry and is configured with ShareLink as its model, ShareLinkSerializer as its serializer, and authenticated/object permission classes.",
+              "citations": [
+                {
+                  "path": "src/documents/views.py",
+                  "startLine": 4696,
+                  "endLine": 4710,
+                  "quote": "class ShareLinkViewSet(\n    PassUserMixin,\n    CreateModelMixin,\n    RetrieveModelMixin,\n    DestroyModelMixin,\n    ListModelMixin,\n    GenericViewSet,\n):\n    model = ShareLink\n\n    queryset = ShareLink.objects.select_related(\"document\")\n\n    serializer_class = ShareLinkSerializer\n    pagination_class = StandardPagination\n    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "At POST, the view's PaperlessObjectPermissions control requires the global add_sharelink permission; the task premise supplies the caller's authenticated identity and global add_sharelink permission.",
+              "citations": [
+                {
+                  "path": "src/documents/permissions.py",
+                  "startLine": 30,
+                  "endLine": 51,
+                  "quote": "class PaperlessObjectPermissions(DjangoObjectPermissions):\n    \"\"\"\n    A permissions backend that checks for object-level permissions\n    or for ownership.\n    \"\"\"\n\n    perms_map = {\n        \"GET\": [\"%(app_label)s.view_%(model_name)s\"],\n        \"OPTIONS\": [\"%(app_label)s.view_%(model_name)s\"],\n        \"HEAD\": [\"%(app_label)s.view_%(model_name)s\"],\n        \"POST\": [\"%(app_label)s.add_%(model_name)s\"],\n        \"PUT\": [\"%(app_label)s.change_%(model_name)s\"],\n        \"PATCH\": [\"%(app_label)s.change_%(model_name)s\"],\n        \"DELETE\": [\"%(app_label)s.delete_%(model_name)s\"],\n    }\n\n    def has_object_permission(self, request, view, obj):\n        if hasattr(obj, \"owner\") and obj.owner is not None:\n            if request.user == obj.owner:\n                return True\n            else:\n                return super().has_object_permission(request, view, obj)"
+                }
+              ]
+            },
+            {
+              "statement": "The serializer binds the referenced document as the target resource and validates it through validate_document before accepting the share-link data.",
+              "citations": [
+                {
+                  "path": "src/documents/serialisers.py",
+                  "startLine": 2851,
+                  "endLine": 2873,
+                  "quote": "class ShareLinkSerializer(OwnedObjectSerializer):\n    document_title = serializers.CharField(\n        source=\"document.title\",\n        read_only=True,\n    )\n\n    class Meta:\n        model = ShareLink\n        fields = (\n            \"id\",\n            \"created\",\n            \"expiration\",\n            \"slug\",\n            \"document\",\n            \"document_title\",\n            \"file_version\",\n        )\n\n    def create(self, validated_data):\n        validated_data[\"slug\"] = get_random_string(50)\n        return super().create(validated_data)\n\n    def validate_document(self, document):"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "Referenced-document validation requires global documents.view_document and an owner-aware view_document check on that specific document; the owner-aware helper allows an unowned document, caller ownership, or explicit object permission, and does not use a global permission as the object check.",
+              "citations": [
+                {
+                  "path": "src/documents/serialisers.py",
+                  "startLine": 2873,
+                  "endLine": 2886,
+                  "quote": "    def validate_document(self, document):\n        if (\n            self.user is not None\n            and self.user.has_perm(\"documents.view_document\")\n            and has_perms_owner_aware(\n                self.user,\n                \"view_document\",\n                document,\n            )\n        ):\n            return document\n        raise PermissionDenied(\n            _(\"Insufficient permissions.\"),\n        )"
+                },
+                {
+                  "path": "src/documents/permissions.py",
+                  "startLine": 624,
+                  "endLine": 635,
+                  "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "Because the target-document validation raises PermissionDenied under the supplied no-object-view/other-owner premise, the protected effect—creation of the new share link referencing that document—is denied.",
+              "citations": [
+                {
+                  "path": "src/documents/serialisers.py",
+                  "startLine": 2873,
+                  "endLine": 2886,
+                  "quote": "    def validate_document(self, document):\n        if (\n            self.user is not None\n            and self.user.has_perm(\"documents.view_document\")\n            and has_perms_owner_aware(\n                self.user,\n                \"view_document\",\n                document,\n            )\n        ):\n            return document\n        raise PermissionDenied(\n            _(\"Insufficient permissions.\"),\n        )"
+                },
+                {
+                  "path": "src/documents/serialisers.py",
+                  "startLine": 2869,
+                  "endLine": 2871,
+                  "quote": "    def create(self, validated_data):\n        validated_data[\"slug\"] = get_random_string(50)\n        return super().create(validated_data)"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The question's fixed premises identify an authenticated caller with global add_sharelink and view_document, a target document owned by another user, and no caller object view_document grant; these are accepted task premises rather than source citations.",
+              "citations": [
+                {
+                  "path": "src/documents/views.py",
+                  "startLine": 4696,
+                  "endLine": 4710,
+                  "quote": "class ShareLinkViewSet(\n    PassUserMixin,\n    CreateModelMixin,\n    RetrieveModelMixin,\n    DestroyModelMixin,\n    ListModelMixin,\n    GenericViewSet,\n):\n    model = ShareLink\n\n    queryset = ShareLink.objects.select_related(\"document\")\n\n    serializer_class = ShareLinkSerializer\n    pagination_class = StandardPagination\n    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [],
+        "suggestedObservations": []
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "wireResult": {
+    "results": [
+      {
+        "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+        "explanation": "At the declared ShareLinkViewSet.create entry, the supplied view source binds the operation to ShareLink creation and uses IsAuthenticated plus PaperlessObjectPermissions, whose POST mapping requires global add_sharelink; the accepted task premise supplies that authenticated/global-permission state. The protected target is not the new share-link object alone: ShareLinkSerializer validates the referenced document separately. Its validate_document path requires both the caller's global documents.view_document permission and has_perms_owner_aware(..., \"view_document\", document). The owner-aware helper permits only an unowned document, a document owned by the caller, or an explicit object permission; the supplied premise says the document is owned by someone else and lacks the caller's object view grant, so that decisive target-document check fails and raises PermissionDenied. Therefore the source-visible effect is denial of creating the share link. This is source_supported_failure, not a repository-wide completeness claim. No decisive runtime fact is missing within the declared-entry boundary because the task premises provide the authenticated identity, global permissions, target existence/ownership, and absence of object view access; those premises are not treated as source/deployment proof.",
+        "facts": [
+          {
+            "id": "f-entry-share-viewset",
+            "kind": "entry",
+            "statement": "ShareLinkViewSet is the declared entry and is configured with ShareLink as its model, ShareLinkSerializer as its serializer, and authenticated/object permission classes.",
+            "citations": [
+              {
+                "sourceId": "src-64b8926d5eb16fbb",
+                "startLine": 4696,
+                "endLine": 4710
+              }
+            ]
+          },
+          {
+            "id": "f-binding-global-permissions",
+            "kind": "binding",
+            "statement": "At POST, the view's PaperlessObjectPermissions control requires the global add_sharelink permission; the task premise supplies the caller's authenticated identity and global add_sharelink permission.",
+            "citations": [
+              {
+                "sourceId": "src-81f6400744c9c9e9",
+                "startLine": 30,
+                "endLine": 51
+              }
+            ]
+          },
+          {
+            "id": "f-binding-target-document",
+            "kind": "binding",
+            "statement": "The serializer binds the referenced document as the target resource and validates it through validate_document before accepting the share-link data.",
+            "citations": [
+              {
+                "sourceId": "src-baa9e644e5441f97",
+                "startLine": 2851,
+                "endLine": 2873
+              }
+            ]
+          },
+          {
+            "id": "f-control-target-view",
+            "kind": "control",
+            "statement": "Referenced-document validation requires global documents.view_document and an owner-aware view_document check on that specific document; the owner-aware helper allows an unowned document, caller ownership, or explicit object permission, and does not use a global permission as the object check.",
+            "citations": [
+              {
+                "sourceId": "src-baa9e644e5441f97",
+                "startLine": 2873,
+                "endLine": 2886
+              },
+              {
+                "sourceId": "src-81f6400744c9c9e9",
+                "startLine": 624,
+                "endLine": 635
+              }
+            ]
+          },
+          {
+            "id": "f-effect-denied-share-create",
+            "kind": "effect",
+            "statement": "Because the target-document validation raises PermissionDenied under the supplied no-object-view/other-owner premise, the protected effect—creation of the new share link referencing that document—is denied.",
+            "citations": [
+              {
+                "sourceId": "src-baa9e644e5441f97",
+                "startLine": 2873,
+                "endLine": 2886
+              },
+              {
+                "sourceId": "src-baa9e644e5441f97",
+                "startLine": 2869,
+                "endLine": 2871
+              }
+            ]
+          },
+          {
+            "id": "f-condition-premise",
+            "kind": "condition",
+            "statement": "The question's fixed premises identify an authenticated caller with global add_sharelink and view_document, a target document owned by another user, and no caller object view_document grant; these are accepted task premises rather than source citations.",
+            "citations": [
+              {
+                "sourceId": "src-64b8926d5eb16fbb",
+                "startLine": 4696,
+                "endLine": 4710
+              }
+            ]
+          }
+        ],
+        "decisiveMissingFacts": [],
+        "suggestedObservations": [],
+        "decision": {
+          "kind": "observed",
+          "observed": "deny"
+        },
+        "branchResults": []
+      }
+    ]
+  },
+  "normalizerVersion": "authorization-wire-normalizer/v6",
+  "relationCoverage": [],
+  "observedDecisions": [
+    {
+      "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+      "expectation": "deny",
+      "observed": "deny",
+      "derivedConclusion": "source_refuted"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 10400,
+      "output": 856,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

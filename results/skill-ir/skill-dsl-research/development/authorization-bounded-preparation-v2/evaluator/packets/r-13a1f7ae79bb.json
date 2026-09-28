@@ -1,0 +1,753 @@
+{
+  "schemaVersion": "authorization-ak-review-packet/v1",
+  "anonymousId": "r-13a1f7ae79bb",
+  "caseId": "memos-create-share",
+  "status": "completed",
+  "publicInstruction": "Decide the stated authorization scenario at the declared entry from supplied fixed source and accepted policy. Treat premises as assumptions, cite exact supplied-source locations for the control and effect, preserve decisive unknowns, and do not execute the target or infer deployment facts.",
+  "publicBrief": {
+    "id": "memos-create-share",
+    "repository": "https://github.com/usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "entry": "server/api/v1/memo_share_service.go:23-80",
+    "acceptedPolicy": "A memo share may be created by the memo creator or an instance administrator; SPACE audience memos are not shareable.",
+    "currentQuestion": "At CreateMemoShare handler entry, does an authenticated active instance administrator pass the source-visible authorization controls to create a share for an existing active non-SPACE memo authored by someone else? Assess authorization, not whether an external store call succeeds under every runtime condition.",
+    "boundary": "declared-entry",
+    "premises": [
+      "At CreateMemoShare entry, the caller is an authenticated active instance ADMIN; the selected memo exists, is active, non-SPACE, and authored by another user. The requested expiry, if any, is valid."
+    ],
+    "requiredResponseDetails": [
+      "Trace the author-or-admin helper and the protected CreateMemoShare store effect; keep store failure and concurrent state changes outside the authorization conclusion."
+    ]
+  },
+  "materialId": "m-93542b0bf54b",
+  "materialPath": "evaluator/materials/m-93542b0bf54b.txt",
+  "first": {
+    "deliveryComplete": true,
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "memos-create-share-admin",
+      "repository": "https://github.com/usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "results": [
+        {
+          "obligationId": "scenario%3Aadmin-other-memo::entry%3Acreate-share",
+          "conclusion": "source_refuted",
+          "explanation": "At the declared CreateMemoShare entry, the handler authenticates and requires a non-nil user, fetches the selected memo, requires Normal status, applies access.CanManageMemo, rejects SPACE visibility, validates any expiry, and then invokes Store.CreateMemoShare. CanManageMemo permits an active author or an instance administrator: its helper requires an active user and accepts either matching creator ID or RoleAdmin. Under the stated premises, the active ADMIN therefore passes the author-or-administrator control despite being a different user, and the active non-SPACE memo passes the remaining source-visible authorization gates. The protected effect is the CreateMemoShare store call, supplied with the actor ID and CreatingShare policy. This conclusion is authorization at the declared entry boundary only; it does not assert that the store operation succeeds, that downstream validation succeeds under all runtime conditions, or that state cannot change concurrently.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "CreateMemoShare obtains the current user, rejects an unauthenticated caller, resolves the memo, and performs the authorization checks before the share-creation call.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/memo_share_service.go",
+                    "startLine": 23,
+                    "endLine": 55,
+                    "quote": "// CreateMemoShare creates an opaque share link for a memo.\n// Only the memo's creator may call this.\nfunc (s *APIV1Service) CreateMemoShare(ctx context.Context, request *v1pb.CreateMemoShareRequest) (*v1pb.MemoShare, error) {\n\tuser, err := s.fetchCurrentUser(ctx)\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to get user\")\n\t}\n\tif user == nil {\n\t\treturn nil, status.Errorf(codes.Unauthenticated, \"user not authenticated\")\n\t}\n\tif err := s.throttleAndCharge(ratelimit.ScopeWriteUser, userKey(user.ID), 1); err != nil {\n\t\treturn nil, err\n\t}\n\n\tmemoUID, err := ExtractMemoUIDFromName(request.Parent)\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.InvalidArgument, \"invalid memo name: %v\", err)\n\t}\n\tmemo, err := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to get memo\")\n\t}\n\tif memo == nil {\n\t\treturn nil, status.Errorf(codes.NotFound, \"memo not found\")\n\t}\n\tif memo.RowStatus != store.Normal {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"only active memos can be shared\")\n\t}\n\tif !access.CanManageMemo(user, memo) {\n\t\treturn nil, status.Errorf(codes.PermissionDenied, \"permission denied\")\n\t}\n\tif memo.Visibility == store.SpaceAudience {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"SPACE audience memos cannot be shared\")"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The shared memo-management predicate requires an active user and accepts either matching authorship or the administrator role; IsInstanceAdmin also requires active status.",
+                "citations": [
+                  {
+                    "path": "core/access/memo.go",
+                    "startLine": 55,
+                    "endLine": 85,
+                    "quote": "// IsActiveUser reports whether the user exists and is in the normal lifecycle\n// state, which every authenticated authorization decision requires.\nfunc IsActiveUser(user *store.User) bool {\n\treturn user != nil && user.RowStatus == store.Normal\n}\n\n// IsInstanceAdmin reports whether the user is an active application ADMIN.\n// An instance administrator is the superuser for named memo operations: every\n// memo-local authorization check (authorship, audience, Space membership and\n// participation, attachment and reaction ownership) passes. Structural\n// validity still applies, and collection listings keep the audience predicate\n// so feeds never surface other users' private memos.\nfunc IsInstanceAdmin(user *store.User) bool {\n\treturn IsActiveUser(user) && user.Role == store.RoleAdmin\n}\n\n// CanManageMemo reports whether the actor may perform author-level operations\n// on the memo: the active author, or an instance administrator.\nfunc CanManageMemo(actor *store.User, memo *store.Memo) bool {\n\treturn memo != nil && ownsOrAdministers(actor, memo.CreatorID)\n}\n\n// CanManageAttachment reports whether the actor may mutate an attachment row\n// directly: the active owner, or an instance administrator.\nfunc CanManageAttachment(actor *store.User, attachment *store.Attachment) bool {\n\treturn attachment != nil && ownsOrAdministers(actor, attachment.CreatorID)\n}\n\nfunc ownsOrAdministers(actor *store.User, creatorID int32) bool {\n\treturn IsActiveUser(actor) && (actor.ID == creatorID || actor.Role == store.RoleAdmin)\n}"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "access.CanManageMemo(user, memo) is the decisive handler authorization control for the memo, and its predicate allows an active instance administrator even when the actor ID differs from memo.CreatorID.",
+                "citations": [
+                  {
+                    "path": "core/access/memo.go",
+                    "startLine": 61,
+                    "endLine": 85,
+                    "quote": "// IsInstanceAdmin reports whether the user is an active application ADMIN.\n// An instance administrator is the superuser for named memo operations: every\n// memo-local authorization check (authorship, audience, Space membership and\n// participation, attachment and reaction ownership) passes. Structural\n// validity still applies, and collection listings keep the audience predicate\n// so feeds never surface other users' private memos.\nfunc IsInstanceAdmin(user *store.User) bool {\n\treturn IsActiveUser(user) && user.Role == store.RoleAdmin\n}\n\n// CanManageMemo reports whether the actor may perform author-level operations\n// on the memo: the active author, or an instance administrator.\nfunc CanManageMemo(actor *store.User, memo *store.Memo) bool {\n\treturn memo != nil && ownsOrAdministers(actor, memo.CreatorID)\n}\n\n// CanManageAttachment reports whether the actor may mutate an attachment row\n// directly: the active owner, or an instance administrator.\nfunc CanManageAttachment(actor *store.User, attachment *store.Attachment) bool {\n\treturn attachment != nil && ownsOrAdministers(actor, attachment.CreatorID)\n}\n\nfunc ownsOrAdministers(actor *store.User, creatorID int32) bool {\n\treturn IsActiveUser(actor) && (actor.ID == creatorID || actor.Role == store.RoleAdmin)\n}"
+                  },
+                  {
+                    "path": "server/api/v1/memo_share_service.go",
+                    "startLine": 48,
+                    "endLine": 52,
+                    "quote": "\tif memo.RowStatus != store.Normal {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"only active memos can be shared\")\n\t}\n\tif !access.CanManageMemo(user, memo) {\n\t\treturn nil, status.Errorf(codes.PermissionDenied, \"permission denied\")"
+                  }
+                ]
+              },
+              {
+                "statement": "The store CreateMemoShare wrapper validates the supplied memo-write policy before forwarding the request to the driver; the supplied policy contains the actor identity and CreatingShare intent.",
+                "citations": [
+                  {
+                    "path": "store/memo_share.go",
+                    "startLine": 37,
+                    "endLine": 49,
+                    "quote": "// CreateMemoShare creates a new share grant.\nfunc (s *Store) CreateMemoShare(ctx context.Context, create *MemoShare) (*MemoShare, error) {\n\tif create == nil {\n\t\treturn nil, errors.New(\"memo share is required\")\n\t}\n\tif err := validateMemoWritePolicy(create.Policy); err != nil {\n\t\treturn nil, err\n\t}\n\tif create.Policy == nil {\n\t\treturn s.driver.CreateMemoShare(ctx, create)\n\t}\n\treturn s.driver.CreateMemoShare(ctx, create)\n}"
+                  },
+                  {
+                    "path": "store/memo.go",
+                    "startLine": 126,
+                    "endLine": 138,
+                    "quote": "// MemoWritePolicy identifies the actor and the intended kind of\n// transport-facing mutation. Drivers discover and authorize the current memo,\n// Space, membership, and share state in the write transaction.\ntype MemoWritePolicy struct {\n\tActorUserID int32\n\t// LifecycleOnly permits an author who is no longer a member of the source\n\t// Space to move or withdraw the memo. It never permits content, metadata,\n\t// attachment, relation, or share mutations.\n\tLifecycleOnly bool\n\t// CreatingShare rejects a share if the memo's current audience is\n\t// SPACE. Share revocation deliberately leaves this false.\n\tCreatingShare bool\n}"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "After the checks, the handler creates a write policy for the caller, marks it CreatingShare, and passes it with the memo ID and actor ID to Store.CreateMemoShare.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/memo_share_service.go",
+                    "startLine": 66,
+                    "endLine": 77,
+                    "quote": "\t// Generate a URL-safe token using shortuuid (base57-encoded UUID v4, 22 chars, 122-bit entropy).\n\tpolicy := memoWritePolicy(user.ID, false)\n\tpolicy.CreatingShare = true\n\tms, err := s.Store.CreateMemoShare(ctx, &store.MemoShare{\n\t\tUID:       shortuuid.New(),\n\t\tMemoID:    memo.ID,\n\t\tCreatorID: user.ID,\n\t\tExpiresTs: expiresTs,\n\t\tPolicy:    policy,\n\t})\n\tif err != nil {\n\t\treturn nil, mapMemoWriteError(err, \"failed to create memo share\")"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The handler requires the selected memo to have Normal row status and rejects the SPACE audience before creation.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/memo_share_service.go",
+                    "startLine": 41,
+                    "endLine": 55,
+                    "quote": "\tmemo, err := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to get memo\")\n\t}\n\tif memo == nil {\n\t\treturn nil, status.Errorf(codes.NotFound, \"memo not found\")\n\t}\n\tif memo.RowStatus != store.Normal {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"only active memos can be shared\")\n\t}\n\tif !access.CanManageMemo(user, memo) {\n\t\treturn nil, status.Errorf(codes.PermissionDenied, \"permission denied\")\n\t}\n\tif memo.Visibility == store.SpaceAudience {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"SPACE audience memos cannot be shared\")"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aadmin-other-memo::entry%3Acreate-share",
+          "explanation": "At the declared CreateMemoShare entry, the handler authenticates and requires a non-nil user, fetches the selected memo, requires Normal status, applies access.CanManageMemo, rejects SPACE visibility, validates any expiry, and then invokes Store.CreateMemoShare. CanManageMemo permits an active author or an instance administrator: its helper requires an active user and accepts either matching creator ID or RoleAdmin. Under the stated premises, the active ADMIN therefore passes the author-or-administrator control despite being a different user, and the active non-SPACE memo passes the remaining source-visible authorization gates. The protected effect is the CreateMemoShare store call, supplied with the actor ID and CreatingShare policy. This conclusion is authorization at the declared entry boundary only; it does not assert that the store operation succeeds, that downstream validation succeeds under all runtime conditions, or that state cannot change concurrently.",
+          "facts": [
+            {
+              "id": "entry-create-share",
+              "kind": "entry",
+              "statement": "CreateMemoShare obtains the current user, rejects an unauthenticated caller, resolves the memo, and performs the authorization checks before the share-creation call.",
+              "citations": [
+                {
+                  "sourceId": "src-ba5b8420bf39f2db",
+                  "startLine": 23,
+                  "endLine": 55
+                }
+              ]
+            },
+            {
+              "id": "identity-active-admin",
+              "kind": "binding",
+              "statement": "The shared memo-management predicate requires an active user and accepts either matching authorship or the administrator role; IsInstanceAdmin also requires active status.",
+              "citations": [
+                {
+                  "sourceId": "src-da9fb2a209342c1f",
+                  "startLine": 55,
+                  "endLine": 85
+                }
+              ]
+            },
+            {
+              "id": "resource-active-nonspace",
+              "kind": "condition",
+              "statement": "The handler requires the selected memo to have Normal row status and rejects the SPACE audience before creation.",
+              "citations": [
+                {
+                  "sourceId": "src-ba5b8420bf39f2db",
+                  "startLine": 41,
+                  "endLine": 55
+                }
+              ]
+            },
+            {
+              "id": "authorization-author-or-admin",
+              "kind": "control",
+              "statement": "access.CanManageMemo(user, memo) is the decisive handler authorization control for the memo, and its predicate allows an active instance administrator even when the actor ID differs from memo.CreatorID.",
+              "citations": [
+                {
+                  "sourceId": "src-da9fb2a209342c1f",
+                  "startLine": 61,
+                  "endLine": 85
+                },
+                {
+                  "sourceId": "src-ba5b8420bf39f2db",
+                  "startLine": 48,
+                  "endLine": 52
+                }
+              ]
+            },
+            {
+              "id": "protected-create-share-effect",
+              "kind": "effect",
+              "statement": "After the checks, the handler creates a write policy for the caller, marks it CreatingShare, and passes it with the memo ID and actor ID to Store.CreateMemoShare.",
+              "citations": [
+                {
+                  "sourceId": "src-ba5b8420bf39f2db",
+                  "startLine": 66,
+                  "endLine": 77
+                }
+              ]
+            },
+            {
+              "id": "store-policy-gate",
+              "kind": "control",
+              "statement": "The store CreateMemoShare wrapper validates the supplied memo-write policy before forwarding the request to the driver; the supplied policy contains the actor identity and CreatingShare intent.",
+              "citations": [
+                {
+                  "sourceId": "src-94b067169ac3605d",
+                  "startLine": 37,
+                  "endLine": 49
+                },
+                {
+                  "sourceId": "src-9bc01fffab4188fc",
+                  "startLine": 126,
+                  "endLine": 138
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "allow"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Aadmin-other-memo::entry%3Acreate-share",
+        "expectation": "allow",
+        "observed": "allow",
+        "derivedConclusion": "source_refuted"
+      }
+    ],
+    "validation": {
+      "parsedResult": {
+        "schemaVersion": "source-authorization-assessment-result/v0",
+        "taskId": "memos-create-share-admin",
+        "repository": "https://github.com/usememos/memos",
+        "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+        "results": [
+          {
+            "obligationId": "scenario%3Aadmin-other-memo::entry%3Acreate-share",
+            "conclusion": "source_refuted",
+            "explanation": "At the declared CreateMemoShare entry, the handler authenticates and requires a non-nil user, fetches the selected memo, requires Normal status, applies access.CanManageMemo, rejects SPACE visibility, validates any expiry, and then invokes Store.CreateMemoShare. CanManageMemo permits an active author or an instance administrator: its helper requires an active user and accepts either matching creator ID or RoleAdmin. Under the stated premises, the active ADMIN therefore passes the author-or-administrator control despite being a different user, and the active non-SPACE memo passes the remaining source-visible authorization gates. The protected effect is the CreateMemoShare store call, supplied with the actor ID and CreatingShare policy. This conclusion is authorization at the declared entry boundary only; it does not assert that the store operation succeeds, that downstream validation succeeds under all runtime conditions, or that state cannot change concurrently.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "CreateMemoShare obtains the current user, rejects an unauthenticated caller, resolves the memo, and performs the authorization checks before the share-creation call.",
+                  "citations": [
+                    {
+                      "path": "server/api/v1/memo_share_service.go",
+                      "startLine": 23,
+                      "endLine": 55,
+                      "quote": "// CreateMemoShare creates an opaque share link for a memo.\n// Only the memo's creator may call this.\nfunc (s *APIV1Service) CreateMemoShare(ctx context.Context, request *v1pb.CreateMemoShareRequest) (*v1pb.MemoShare, error) {\n\tuser, err := s.fetchCurrentUser(ctx)\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to get user\")\n\t}\n\tif user == nil {\n\t\treturn nil, status.Errorf(codes.Unauthenticated, \"user not authenticated\")\n\t}\n\tif err := s.throttleAndCharge(ratelimit.ScopeWriteUser, userKey(user.ID), 1); err != nil {\n\t\treturn nil, err\n\t}\n\n\tmemoUID, err := ExtractMemoUIDFromName(request.Parent)\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.InvalidArgument, \"invalid memo name: %v\", err)\n\t}\n\tmemo, err := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to get memo\")\n\t}\n\tif memo == nil {\n\t\treturn nil, status.Errorf(codes.NotFound, \"memo not found\")\n\t}\n\tif memo.RowStatus != store.Normal {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"only active memos can be shared\")\n\t}\n\tif !access.CanManageMemo(user, memo) {\n\t\treturn nil, status.Errorf(codes.PermissionDenied, \"permission denied\")\n\t}\n\tif memo.Visibility == store.SpaceAudience {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"SPACE audience memos cannot be shared\")"
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "The shared memo-management predicate requires an active user and accepts either matching authorship or the administrator role; IsInstanceAdmin also requires active status.",
+                  "citations": [
+                    {
+                      "path": "core/access/memo.go",
+                      "startLine": 55,
+                      "endLine": 85,
+                      "quote": "// IsActiveUser reports whether the user exists and is in the normal lifecycle\n// state, which every authenticated authorization decision requires.\nfunc IsActiveUser(user *store.User) bool {\n\treturn user != nil && user.RowStatus == store.Normal\n}\n\n// IsInstanceAdmin reports whether the user is an active application ADMIN.\n// An instance administrator is the superuser for named memo operations: every\n// memo-local authorization check (authorship, audience, Space membership and\n// participation, attachment and reaction ownership) passes. Structural\n// validity still applies, and collection listings keep the audience predicate\n// so feeds never surface other users' private memos.\nfunc IsInstanceAdmin(user *store.User) bool {\n\treturn IsActiveUser(user) && user.Role == store.RoleAdmin\n}\n\n// CanManageMemo reports whether the actor may perform author-level operations\n// on the memo: the active author, or an instance administrator.\nfunc CanManageMemo(actor *store.User, memo *store.Memo) bool {\n\treturn memo != nil && ownsOrAdministers(actor, memo.CreatorID)\n}\n\n// CanManageAttachment reports whether the actor may mutate an attachment row\n// directly: the active owner, or an instance administrator.\nfunc CanManageAttachment(actor *store.User, attachment *store.Attachment) bool {\n\treturn attachment != nil && ownsOrAdministers(actor, attachment.CreatorID)\n}\n\nfunc ownsOrAdministers(actor *store.User, creatorID int32) bool {\n\treturn IsActiveUser(actor) && (actor.ID == creatorID || actor.Role == store.RoleAdmin)\n}"
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "access.CanManageMemo(user, memo) is the decisive handler authorization control for the memo, and its predicate allows an active instance administrator even when the actor ID differs from memo.CreatorID.",
+                  "citations": [
+                    {
+                      "path": "core/access/memo.go",
+                      "startLine": 61,
+                      "endLine": 85,
+                      "quote": "// IsInstanceAdmin reports whether the user is an active application ADMIN.\n// An instance administrator is the superuser for named memo operations: every\n// memo-local authorization check (authorship, audience, Space membership and\n// participation, attachment and reaction ownership) passes. Structural\n// validity still applies, and collection listings keep the audience predicate\n// so feeds never surface other users' private memos.\nfunc IsInstanceAdmin(user *store.User) bool {\n\treturn IsActiveUser(user) && user.Role == store.RoleAdmin\n}\n\n// CanManageMemo reports whether the actor may perform author-level operations\n// on the memo: the active author, or an instance administrator.\nfunc CanManageMemo(actor *store.User, memo *store.Memo) bool {\n\treturn memo != nil && ownsOrAdministers(actor, memo.CreatorID)\n}\n\n// CanManageAttachment reports whether the actor may mutate an attachment row\n// directly: the active owner, or an instance administrator.\nfunc CanManageAttachment(actor *store.User, attachment *store.Attachment) bool {\n\treturn attachment != nil && ownsOrAdministers(actor, attachment.CreatorID)\n}\n\nfunc ownsOrAdministers(actor *store.User, creatorID int32) bool {\n\treturn IsActiveUser(actor) && (actor.ID == creatorID || actor.Role == store.RoleAdmin)\n}"
+                    },
+                    {
+                      "path": "server/api/v1/memo_share_service.go",
+                      "startLine": 48,
+                      "endLine": 52,
+                      "quote": "if memo.RowStatus != store.Normal {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"only active memos can be shared\")\n\t}\n\tif !access.CanManageMemo(user, memo) {\n\t\treturn nil, status.Errorf(codes.PermissionDenied, \"permission denied\")"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The store CreateMemoShare wrapper validates the supplied memo-write policy before forwarding the request to the driver; the supplied policy contains the actor identity and CreatingShare intent.",
+                  "citations": [
+                    {
+                      "path": "store/memo_share.go",
+                      "startLine": 37,
+                      "endLine": 49,
+                      "quote": "// CreateMemoShare creates a new share grant.\nfunc (s *Store) CreateMemoShare(ctx context.Context, create *MemoShare) (*MemoShare, error) {\n\tif create == nil {\n\t\treturn nil, errors.New(\"memo share is required\")\n\t}\n\tif err := validateMemoWritePolicy(create.Policy); err != nil {\n\t\treturn nil, err\n\t}\n\tif create.Policy == nil {\n\t\treturn s.driver.CreateMemoShare(ctx, create)\n\t}\n\treturn s.driver.CreateMemoShare(ctx, create)\n}"
+                    },
+                    {
+                      "path": "store/memo.go",
+                      "startLine": 126,
+                      "endLine": 138,
+                      "quote": "// MemoWritePolicy identifies the actor and the intended kind of\n// transport-facing mutation. Drivers discover and authorize the current memo,\n// Space, membership, and share state in the write transaction.\ntype MemoWritePolicy struct {\n\tActorUserID int32\n\t// LifecycleOnly permits an author who is no longer a member of the source\n\t// Space to move or withdraw the memo. It never permits content, metadata,\n\t// attachment, relation, or share mutations.\n\tLifecycleOnly bool\n\t// CreatingShare rejects a share if the memo's current audience is\n\t// SPACE. Share revocation deliberately leaves this false.\n\tCreatingShare bool\n}"
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "After the checks, the handler creates a write policy for the caller, marks it CreatingShare, and passes it with the memo ID and actor ID to Store.CreateMemoShare.",
+                  "citations": [
+                    {
+                      "path": "server/api/v1/memo_share_service.go",
+                      "startLine": 66,
+                      "endLine": 77,
+                      "quote": "// Generate a URL-safe token using shortuuid (base57-encoded UUID v4, 22 chars, 122-bit entropy).\n\tpolicy := memoWritePolicy(user.ID, false)\n\tpolicy.CreatingShare = true\n\tms, err := s.Store.CreateMemoShare(ctx, &store.MemoShare{\n\t\tUID:       shortuuid.New(),\n\t\tMemoID:    memo.ID,\n\t\tCreatorID: user.ID,\n\t\tExpiresTs: expiresTs,\n\t\tPolicy:    policy,\n\t})\n\tif err != nil {\n\t\treturn nil, mapMemoWriteError(err, \"failed to create memo share\")"
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The handler requires the selected memo to have Normal row status and rejects the SPACE audience before creation.",
+                  "citations": [
+                    {
+                      "path": "server/api/v1/memo_share_service.go",
+                      "startLine": 41,
+                      "endLine": 55,
+                      "quote": "memo, err := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to get memo\")\n\t}\n\tif memo == nil {\n\t\treturn nil, status.Errorf(codes.NotFound, \"memo not found\")\n\t}\n\tif memo.RowStatus != store.Normal {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"only active memos can be shared\")\n\t}\n\tif !access.CanManageMemo(user, memo) {\n\t\treturn nil, status.Errorf(codes.PermissionDenied, \"permission denied\")\n\t}\n\tif memo.Visibility == store.SpaceAudience {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"SPACE audience memos cannot be shared\")"
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [],
+            "suggestedObservations": []
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+        }
+      },
+      "structure": {
+        "status": "valid",
+        "diagnostics": []
+      },
+      "declared": {
+        "total": 1,
+        "disposed": 1,
+        "pending": 0,
+        "blocked": 0,
+        "invalid": 0,
+        "status": "all-disposed",
+        "completionPercent": 100
+      },
+      "discovery": {
+        "status": "not-tested",
+        "claimLimit": "declared-obligations-only"
+      },
+      "evidencePresence": [
+        {
+          "obligationId": "scenario%3Aadmin-other-memo::entry%3Acreate-share",
+          "status": "present"
+        }
+      ],
+      "evidenceSupport": [
+        {
+          "obligationId": "scenario%3Aadmin-other-memo::entry%3Acreate-share",
+          "status": "unreviewed"
+        }
+      ],
+      "completeness": {
+        "status": "accepted",
+        "kind": "declared-obligations-only"
+      },
+      "dependencySnapshot": {
+        "schemaVersion": "authorization-task-dependencies/v1",
+        "task": {
+          "schemaVersion": "source-authorization-assessment/v0",
+          "taskId": "memos-create-share-admin",
+          "request": "At CreateMemoShare handler entry, does an authenticated active instance administrator pass the source-visible authorization controls to create a share for an existing active non-SPACE memo authored by someone else? Assess authorization, not whether an external store call succeeds under every runtime condition.",
+          "repository": "https://github.com/usememos/memos",
+          "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+          "sourceMode": "fixed-context",
+          "policySources": [
+            {
+              "id": "policy:memo-share-creator-or-admin",
+              "kind": "explicit-task-requirement",
+              "text": "A memo share may be created by the memo creator or an instance administrator; SPACE audience memos are not shareable.",
+              "location": "proto/api/v1/memo_service.proto:116-123; server/api/v1/memo_share_service.go:54-56",
+              "revision": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+              "acceptance": {
+                "status": "accepted",
+                "actorRole": "task-author",
+                "reason": "Public fixed-ref source and task-author bounded requirement."
+              }
+            }
+          ],
+          "principals": [
+            {
+              "id": "principal:instance-admin",
+              "role": "authenticated active instance administrator, not the memo creator",
+              "description": "Author facts: [\"The caller is active and has the instance ADMIN role.\",\"The caller is not the memo's creator.\"]",
+              "startingCapabilities": []
+            }
+          ],
+          "resources": [
+            {
+              "id": "resource:other-normal-memo",
+              "type": "memo",
+              "description": "Author facts: [\"The memo exists, is active, and has a non-SPACE audience.\",\"The memo was created by another user.\"]"
+            }
+          ],
+          "entries": [
+            {
+              "id": "entry:create-share",
+              "name": "CreateMemoShare",
+              "locations": [
+                {
+                  "path": "server/api/v1/memo_share_service.go",
+                  "startLine": 23,
+                  "endLine": 80
+                }
+              ]
+            }
+          ],
+          "obligations": [
+            {
+              "id": "scenario:admin-other-memo",
+              "principalId": "principal:instance-admin",
+              "resourceId": "resource:other-normal-memo",
+              "relation": "active-instance-admin-not-creator",
+              "operation": "create memo share",
+              "expectation": "allow",
+              "conditions": [],
+              "policySourceId": "policy:memo-share-creator-or-admin",
+              "entryIds": [
+                "entry:create-share"
+              ]
+            }
+          ],
+          "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+          "requiredAnalysis": [
+            "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+            "identify the principal, operation, protected resource, decisive control, and effect",
+            "return source_supported_failure, source_refuted, or unknown with exact supplied-source locations"
+          ],
+          "constraints": [
+            "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+            "Use only the supplied fixed-ref case inputs.",
+            "Do not execute the target project or infer deployment facts."
+          ]
+        },
+        "repository": "https://github.com/usememos/memos",
+        "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+        "sourceFiles": [
+          {
+            "path": "core/access/memo.go",
+            "sha256": "86d782c17efe235db8ad4366b4f708a066d7a4a835639b6c0e70895f2e21e639"
+          },
+          {
+            "path": "server/api/v1/memo_access.go",
+            "sha256": "496c6a97240836d403cecf3a342769ea968ad80097331f855254b8a314f1fa47"
+          },
+          {
+            "path": "server/api/v1/memo_share_service.go",
+            "sha256": "2618c42f4062980213cf101710858b603b02bf9ab8ed4910fc09a0e5463894a8"
+          },
+          {
+            "path": "store/memo_share.go",
+            "sha256": "4513170339f2844f5cc9f9ad0153eb420e9a494e8d0eb3e74e0696000a4b6c86"
+          },
+          {
+            "path": "store/memo.go",
+            "sha256": "eb61ed8a7e709a092b42bf2e2c81aefc89c4623a1dd2e2612c5f724e806afe90"
+          }
+        ],
+        "policies": [
+          {
+            "id": "policy:memo-share-creator-or-admin",
+            "revision": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+            "location": "proto/api/v1/memo_service.proto:116-123; server/api/v1/memo_share_service.go:54-56",
+            "text": "A memo share may be created by the memo creator or an instance administrator; SPACE audience memos are not shareable.",
+            "acceptanceStatus": "accepted"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "scenario:admin-other-memo",
+            "principalId": "principal:instance-admin",
+            "resourceId": "resource:other-normal-memo",
+            "relation": "active-instance-admin-not-creator",
+            "operation": "create memo share",
+            "expectation": "allow",
+            "conditions": [],
+            "policySourceId": "policy:memo-share-creator-or-admin",
+            "entryIds": [
+              "entry:create-share"
+            ]
+          }
+        ]
+      },
+      "diagnostics": []
+    }
+  },
+  "final": {
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "memos-create-share-admin",
+      "repository": "https://github.com/usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "results": [
+        {
+          "obligationId": "scenario%3Aadmin-other-memo::entry%3Acreate-share",
+          "conclusion": "source_refuted",
+          "explanation": "At the declared CreateMemoShare entry, the handler authenticates and requires a non-nil user, fetches the selected memo, requires Normal status, applies access.CanManageMemo, rejects SPACE visibility, validates any expiry, and then invokes Store.CreateMemoShare. CanManageMemo permits an active author or an instance administrator: its helper requires an active user and accepts either matching creator ID or RoleAdmin. Under the stated premises, the active ADMIN therefore passes the author-or-administrator control despite being a different user, and the active non-SPACE memo passes the remaining source-visible authorization gates. The protected effect is the CreateMemoShare store call, supplied with the actor ID and CreatingShare policy. This conclusion is authorization at the declared entry boundary only; it does not assert that the store operation succeeds, that downstream validation succeeds under all runtime conditions, or that state cannot change concurrently.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "CreateMemoShare obtains the current user, rejects an unauthenticated caller, resolves the memo, and performs the authorization checks before the share-creation call.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/memo_share_service.go",
+                    "startLine": 23,
+                    "endLine": 55,
+                    "quote": "// CreateMemoShare creates an opaque share link for a memo.\n// Only the memo's creator may call this.\nfunc (s *APIV1Service) CreateMemoShare(ctx context.Context, request *v1pb.CreateMemoShareRequest) (*v1pb.MemoShare, error) {\n\tuser, err := s.fetchCurrentUser(ctx)\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to get user\")\n\t}\n\tif user == nil {\n\t\treturn nil, status.Errorf(codes.Unauthenticated, \"user not authenticated\")\n\t}\n\tif err := s.throttleAndCharge(ratelimit.ScopeWriteUser, userKey(user.ID), 1); err != nil {\n\t\treturn nil, err\n\t}\n\n\tmemoUID, err := ExtractMemoUIDFromName(request.Parent)\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.InvalidArgument, \"invalid memo name: %v\", err)\n\t}\n\tmemo, err := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to get memo\")\n\t}\n\tif memo == nil {\n\t\treturn nil, status.Errorf(codes.NotFound, \"memo not found\")\n\t}\n\tif memo.RowStatus != store.Normal {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"only active memos can be shared\")\n\t}\n\tif !access.CanManageMemo(user, memo) {\n\t\treturn nil, status.Errorf(codes.PermissionDenied, \"permission denied\")\n\t}\n\tif memo.Visibility == store.SpaceAudience {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"SPACE audience memos cannot be shared\")"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The shared memo-management predicate requires an active user and accepts either matching authorship or the administrator role; IsInstanceAdmin also requires active status.",
+                "citations": [
+                  {
+                    "path": "core/access/memo.go",
+                    "startLine": 55,
+                    "endLine": 85,
+                    "quote": "// IsActiveUser reports whether the user exists and is in the normal lifecycle\n// state, which every authenticated authorization decision requires.\nfunc IsActiveUser(user *store.User) bool {\n\treturn user != nil && user.RowStatus == store.Normal\n}\n\n// IsInstanceAdmin reports whether the user is an active application ADMIN.\n// An instance administrator is the superuser for named memo operations: every\n// memo-local authorization check (authorship, audience, Space membership and\n// participation, attachment and reaction ownership) passes. Structural\n// validity still applies, and collection listings keep the audience predicate\n// so feeds never surface other users' private memos.\nfunc IsInstanceAdmin(user *store.User) bool {\n\treturn IsActiveUser(user) && user.Role == store.RoleAdmin\n}\n\n// CanManageMemo reports whether the actor may perform author-level operations\n// on the memo: the active author, or an instance administrator.\nfunc CanManageMemo(actor *store.User, memo *store.Memo) bool {\n\treturn memo != nil && ownsOrAdministers(actor, memo.CreatorID)\n}\n\n// CanManageAttachment reports whether the actor may mutate an attachment row\n// directly: the active owner, or an instance administrator.\nfunc CanManageAttachment(actor *store.User, attachment *store.Attachment) bool {\n\treturn attachment != nil && ownsOrAdministers(actor, attachment.CreatorID)\n}\n\nfunc ownsOrAdministers(actor *store.User, creatorID int32) bool {\n\treturn IsActiveUser(actor) && (actor.ID == creatorID || actor.Role == store.RoleAdmin)\n}"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "access.CanManageMemo(user, memo) is the decisive handler authorization control for the memo, and its predicate allows an active instance administrator even when the actor ID differs from memo.CreatorID.",
+                "citations": [
+                  {
+                    "path": "core/access/memo.go",
+                    "startLine": 61,
+                    "endLine": 85,
+                    "quote": "// IsInstanceAdmin reports whether the user is an active application ADMIN.\n// An instance administrator is the superuser for named memo operations: every\n// memo-local authorization check (authorship, audience, Space membership and\n// participation, attachment and reaction ownership) passes. Structural\n// validity still applies, and collection listings keep the audience predicate\n// so feeds never surface other users' private memos.\nfunc IsInstanceAdmin(user *store.User) bool {\n\treturn IsActiveUser(user) && user.Role == store.RoleAdmin\n}\n\n// CanManageMemo reports whether the actor may perform author-level operations\n// on the memo: the active author, or an instance administrator.\nfunc CanManageMemo(actor *store.User, memo *store.Memo) bool {\n\treturn memo != nil && ownsOrAdministers(actor, memo.CreatorID)\n}\n\n// CanManageAttachment reports whether the actor may mutate an attachment row\n// directly: the active owner, or an instance administrator.\nfunc CanManageAttachment(actor *store.User, attachment *store.Attachment) bool {\n\treturn attachment != nil && ownsOrAdministers(actor, attachment.CreatorID)\n}\n\nfunc ownsOrAdministers(actor *store.User, creatorID int32) bool {\n\treturn IsActiveUser(actor) && (actor.ID == creatorID || actor.Role == store.RoleAdmin)\n}"
+                  },
+                  {
+                    "path": "server/api/v1/memo_share_service.go",
+                    "startLine": 48,
+                    "endLine": 52,
+                    "quote": "\tif memo.RowStatus != store.Normal {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"only active memos can be shared\")\n\t}\n\tif !access.CanManageMemo(user, memo) {\n\t\treturn nil, status.Errorf(codes.PermissionDenied, \"permission denied\")"
+                  }
+                ]
+              },
+              {
+                "statement": "The store CreateMemoShare wrapper validates the supplied memo-write policy before forwarding the request to the driver; the supplied policy contains the actor identity and CreatingShare intent.",
+                "citations": [
+                  {
+                    "path": "store/memo_share.go",
+                    "startLine": 37,
+                    "endLine": 49,
+                    "quote": "// CreateMemoShare creates a new share grant.\nfunc (s *Store) CreateMemoShare(ctx context.Context, create *MemoShare) (*MemoShare, error) {\n\tif create == nil {\n\t\treturn nil, errors.New(\"memo share is required\")\n\t}\n\tif err := validateMemoWritePolicy(create.Policy); err != nil {\n\t\treturn nil, err\n\t}\n\tif create.Policy == nil {\n\t\treturn s.driver.CreateMemoShare(ctx, create)\n\t}\n\treturn s.driver.CreateMemoShare(ctx, create)\n}"
+                  },
+                  {
+                    "path": "store/memo.go",
+                    "startLine": 126,
+                    "endLine": 138,
+                    "quote": "// MemoWritePolicy identifies the actor and the intended kind of\n// transport-facing mutation. Drivers discover and authorize the current memo,\n// Space, membership, and share state in the write transaction.\ntype MemoWritePolicy struct {\n\tActorUserID int32\n\t// LifecycleOnly permits an author who is no longer a member of the source\n\t// Space to move or withdraw the memo. It never permits content, metadata,\n\t// attachment, relation, or share mutations.\n\tLifecycleOnly bool\n\t// CreatingShare rejects a share if the memo's current audience is\n\t// SPACE. Share revocation deliberately leaves this false.\n\tCreatingShare bool\n}"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "After the checks, the handler creates a write policy for the caller, marks it CreatingShare, and passes it with the memo ID and actor ID to Store.CreateMemoShare.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/memo_share_service.go",
+                    "startLine": 66,
+                    "endLine": 77,
+                    "quote": "\t// Generate a URL-safe token using shortuuid (base57-encoded UUID v4, 22 chars, 122-bit entropy).\n\tpolicy := memoWritePolicy(user.ID, false)\n\tpolicy.CreatingShare = true\n\tms, err := s.Store.CreateMemoShare(ctx, &store.MemoShare{\n\t\tUID:       shortuuid.New(),\n\t\tMemoID:    memo.ID,\n\t\tCreatorID: user.ID,\n\t\tExpiresTs: expiresTs,\n\t\tPolicy:    policy,\n\t})\n\tif err != nil {\n\t\treturn nil, mapMemoWriteError(err, \"failed to create memo share\")"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The handler requires the selected memo to have Normal row status and rejects the SPACE audience before creation.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/memo_share_service.go",
+                    "startLine": 41,
+                    "endLine": 55,
+                    "quote": "\tmemo, err := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to get memo\")\n\t}\n\tif memo == nil {\n\t\treturn nil, status.Errorf(codes.NotFound, \"memo not found\")\n\t}\n\tif memo.RowStatus != store.Normal {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"only active memos can be shared\")\n\t}\n\tif !access.CanManageMemo(user, memo) {\n\t\treturn nil, status.Errorf(codes.PermissionDenied, \"permission denied\")\n\t}\n\tif memo.Visibility == store.SpaceAudience {\n\t\treturn nil, status.Errorf(codes.FailedPrecondition, \"SPACE audience memos cannot be shared\")"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aadmin-other-memo::entry%3Acreate-share",
+          "explanation": "At the declared CreateMemoShare entry, the handler authenticates and requires a non-nil user, fetches the selected memo, requires Normal status, applies access.CanManageMemo, rejects SPACE visibility, validates any expiry, and then invokes Store.CreateMemoShare. CanManageMemo permits an active author or an instance administrator: its helper requires an active user and accepts either matching creator ID or RoleAdmin. Under the stated premises, the active ADMIN therefore passes the author-or-administrator control despite being a different user, and the active non-SPACE memo passes the remaining source-visible authorization gates. The protected effect is the CreateMemoShare store call, supplied with the actor ID and CreatingShare policy. This conclusion is authorization at the declared entry boundary only; it does not assert that the store operation succeeds, that downstream validation succeeds under all runtime conditions, or that state cannot change concurrently.",
+          "facts": [
+            {
+              "id": "entry-create-share",
+              "kind": "entry",
+              "statement": "CreateMemoShare obtains the current user, rejects an unauthenticated caller, resolves the memo, and performs the authorization checks before the share-creation call.",
+              "citations": [
+                {
+                  "sourceId": "src-ba5b8420bf39f2db",
+                  "startLine": 23,
+                  "endLine": 55
+                }
+              ]
+            },
+            {
+              "id": "identity-active-admin",
+              "kind": "binding",
+              "statement": "The shared memo-management predicate requires an active user and accepts either matching authorship or the administrator role; IsInstanceAdmin also requires active status.",
+              "citations": [
+                {
+                  "sourceId": "src-da9fb2a209342c1f",
+                  "startLine": 55,
+                  "endLine": 85
+                }
+              ]
+            },
+            {
+              "id": "resource-active-nonspace",
+              "kind": "condition",
+              "statement": "The handler requires the selected memo to have Normal row status and rejects the SPACE audience before creation.",
+              "citations": [
+                {
+                  "sourceId": "src-ba5b8420bf39f2db",
+                  "startLine": 41,
+                  "endLine": 55
+                }
+              ]
+            },
+            {
+              "id": "authorization-author-or-admin",
+              "kind": "control",
+              "statement": "access.CanManageMemo(user, memo) is the decisive handler authorization control for the memo, and its predicate allows an active instance administrator even when the actor ID differs from memo.CreatorID.",
+              "citations": [
+                {
+                  "sourceId": "src-da9fb2a209342c1f",
+                  "startLine": 61,
+                  "endLine": 85
+                },
+                {
+                  "sourceId": "src-ba5b8420bf39f2db",
+                  "startLine": 48,
+                  "endLine": 52
+                }
+              ]
+            },
+            {
+              "id": "protected-create-share-effect",
+              "kind": "effect",
+              "statement": "After the checks, the handler creates a write policy for the caller, marks it CreatingShare, and passes it with the memo ID and actor ID to Store.CreateMemoShare.",
+              "citations": [
+                {
+                  "sourceId": "src-ba5b8420bf39f2db",
+                  "startLine": 66,
+                  "endLine": 77
+                }
+              ]
+            },
+            {
+              "id": "store-policy-gate",
+              "kind": "control",
+              "statement": "The store CreateMemoShare wrapper validates the supplied memo-write policy before forwarding the request to the driver; the supplied policy contains the actor identity and CreatingShare intent.",
+              "citations": [
+                {
+                  "sourceId": "src-94b067169ac3605d",
+                  "startLine": 37,
+                  "endLine": 49
+                },
+                {
+                  "sourceId": "src-9bc01fffab4188fc",
+                  "startLine": 126,
+                  "endLine": 138
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "allow"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Aadmin-other-memo::entry%3Acreate-share",
+        "expectation": "allow",
+        "observed": "allow",
+        "derivedConclusion": "source_refuted"
+      }
+    ]
+  },
+  "finalKind": "initial",
+  "sourceScope": "Only actually supplied fixed source is evidence. No target execution. Unknown external facts remain unknown.",
+  "rubric": {
+    "id": "memos-create-share",
+    "scenarios": [
+      {
+        "key": "admin-other-memo",
+        "expectedDecision": "allow",
+        "expectedConclusion": "source_refuted"
+      }
+    ],
+    "decisiveEvidence": [
+      "server/api/v1/memo_share_service.go:25-55 authenticates, resolves the active memo, invokes CanManageMemo, excludes SPACE",
+      "core/access/memo.go:61-85 accepts an active instance ADMIN for author-level operations",
+      "server/api/v1/memo_share_service.go:66-80 builds a write policy and invokes Store.CreateMemoShare",
+      "store/memo.go:285-296 preserves the admin exception in snapshot authorization"
+    ],
+    "limits": "Authorization under stated entry premises is allowed; a concurrent mutation or store failure can still prevent persistence. The handler comment at memo_share_service.go:23-25 says creator only, but the fixed-ref proto policy and actual CanManageMemo implementation include an active instance administrator."
+  },
+  "materialRule": "Apply original policy/behavior semantics to actual supplied material. A newly retained genuine helper may resolve an old crop gap. Unknown external conditions remain unknown; evidence existence is not semantic proof."
+}

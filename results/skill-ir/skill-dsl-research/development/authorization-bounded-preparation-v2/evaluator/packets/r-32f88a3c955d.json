@@ -1,0 +1,823 @@
+{
+  "schemaVersion": "authorization-ak-review-packet/v1",
+  "anonymousId": "r-32f88a3c955d",
+  "caseId": "owui-file",
+  "status": "completed",
+  "publicInstruction": "Decide the stated authorization scenario at the declared entry from supplied fixed source and accepted policy. Treat premises as assumptions, cite exact supplied-source locations for the control and effect, preserve decisive unknowns, and do not execute the target or infer deployment facts.",
+  "publicBrief": {
+    "id": "owui-file",
+    "repository": "https://github.com/open-webui/open-webui",
+    "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+    "entry": "POST /process/file -> process_file",
+    "acceptedPolicy": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+    "currentQuestion": "At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.",
+    "boundary": "declared-entry",
+    "premises": [
+      "At POST /process/file the verified non-admin owns the supplied file but has no ownership or write grant on the existing caller-selected destination collection."
+    ],
+    "requiredResponseDetails": [
+      "Identify the destination write sink and distinguish source-file ownership from destination write permission."
+    ]
+  },
+  "materialId": "m-589f816dfc12",
+  "materialPath": "evaluator/materials/m-589f816dfc12.txt",
+  "first": {
+    "deliveryComplete": true,
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "owui-process-file-write",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "results": [
+        {
+          "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+          "conclusion": "unknown",
+          "explanation": "At the declared entry, a verified user is bound by get_verified_user, and the non-admin file lookup additionally binds the file to user.id; this distinguishes source-file ownership from authorization on the destination collection. The caller-controlled collection_name is read from form_data and passed unchanged to save_docs_to_vector_db, with add=True when a collection name is supplied. The visible destination-write operation is therefore the delegated save_docs_to_vector_db call, but the supplied source does not include that function's implementation or its collection-existence and write-authorization behavior. The separately supplied _validate_collection_access helper is not shown as called from this entry, and its displayed default is read access, so it cannot establish a destination write grant check here. Consequently, the source-visible path does not prove either that the no-grant write is blocked or that it succeeds. The destination write sink is the delegated save_docs_to_vector_db operation at the shown call site; the underlying vector-database write is a decisive source-external/missing binding. File ownership is established only for selecting the source file and does not itself establish destination knowledge-base write permission. This is an unknown source-boundary result, not a repository-wide completeness claim; source discovery is not-tested.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "POST /process/file dispatches to process_file.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1546,
+                    "endLine": 1552,
+                    "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),\n):"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The request obtains a verified user, and the non-admin branch retrieves the file by file ID and that user's ID.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1559,
+                    "endLine": 1564,
+                    "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:"
+                  }
+                ]
+              },
+              {
+                "statement": "The supplied collection name is taken from form data and is retained unless it is absent, in which case a file-specific name is constructed.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1566,
+                    "endLine": 1569,
+                    "quote": "            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The supplied collection-access helper computes allowed collections using a requested access_type and raises forbidden for denied names, but the shown entry path does not show a call to it and its displayed default is read.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 2339,
+                    "endLine": 2352,
+                    "quote": "async def _validate_collection_access(collection_names: list[str], user, access_type: str = 'read') -> None:\n    \"\"\"\n    Raise 403 if the user lacks access to any of the requested collections.\n    Delegates to the shared filter_accessible_collections utility so the\n    access rules stay in one place.\n    \"\"\"\n    requested = set(collection_names)\n    allowed = await filter_accessible_collections(requested, user, access_type=access_type)\n    denied = requested - allowed\n    if denied:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=ERROR_MESSAGES.ACCESS_PROHIBITED,\n        )"
+                  }
+                ]
+              },
+              {
+                "statement": "The collection-specific save is delegated with the selected collection name, add enabled for a supplied collection name, and the current user.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1694,
+                    "endLine": 1705,
+                    "quote": "                    result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The delegated save_docs_to_vector_db call is the visible destination-write sink, but its implementation and underlying vector-database write are not included in the supplied source.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1694,
+                    "endLine": 1707,
+                    "quote": "                    result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,\n                    )\n                    log.info(f'added {len(docs)} items to collection {collection_name}')"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The supplied scenario fixes a caller-selected existing collection and a verified non-admin who owns the source file without destination ownership or a write grant; these are task premises rather than source citations.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1559,
+                    "endLine": 1566,
+                    "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:\n        try:\n            collection_name = form_data.collection_name"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [
+            "Implementation of save_docs_to_vector_db, including whether it writes to the supplied existing collection and whether it enforces destination write authorization for the supplied user.",
+            "Binding, if any, from process_file to a destination-specific write-access check before or within save_docs_to_vector_db.",
+            "The concrete vector-database write operation and its success or denial behavior for an existing collection when the user has no write grant."
+          ],
+          "suggestedObservations": [
+            "Inspect the implementation reached by save_docs_to_vector_db at the shown call, including its handling of collection_name, add, and user.",
+            "Observe or source-trace whether a destination write authorization check is executed for the supplied collection and user.",
+            "Observe the resulting vector-database operation for an existing collection under the no-write-grant premise."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+          "explanation": "At the declared entry, a verified user is bound by get_verified_user, and the non-admin file lookup additionally binds the file to user.id; this distinguishes source-file ownership from authorization on the destination collection. The caller-controlled collection_name is read from form_data and passed unchanged to save_docs_to_vector_db, with add=True when a collection name is supplied. The visible destination-write operation is therefore the delegated save_docs_to_vector_db call, but the supplied source does not include that function's implementation or its collection-existence and write-authorization behavior. The separately supplied _validate_collection_access helper is not shown as called from this entry, and its displayed default is read access, so it cannot establish a destination write grant check here. Consequently, the source-visible path does not prove either that the no-grant write is blocked or that it succeeds. The destination write sink is the delegated save_docs_to_vector_db operation at the shown call site; the underlying vector-database write is a decisive source-external/missing binding. File ownership is established only for selecting the source file and does not itself establish destination knowledge-base write permission. This is an unknown source-boundary result, not a repository-wide completeness claim; source discovery is not-tested.",
+          "facts": [
+            {
+              "id": "f-entry",
+              "kind": "entry",
+              "statement": "POST /process/file dispatches to process_file.",
+              "citations": [
+                {
+                  "sourceId": "src-3ef7d3faaf41dffa",
+                  "startLine": 1546,
+                  "endLine": 1552
+                }
+              ]
+            },
+            {
+              "id": "f-identity",
+              "kind": "binding",
+              "statement": "The request obtains a verified user, and the non-admin branch retrieves the file by file ID and that user's ID.",
+              "citations": [
+                {
+                  "sourceId": "src-3ef7d3faaf41dffa",
+                  "startLine": 1559,
+                  "endLine": 1564
+                }
+              ]
+            },
+            {
+              "id": "f-resource",
+              "kind": "binding",
+              "statement": "The supplied collection name is taken from form data and is retained unless it is absent, in which case a file-specific name is constructed.",
+              "citations": [
+                {
+                  "sourceId": "src-3ef7d3faaf41dffa",
+                  "startLine": 1566,
+                  "endLine": 1569
+                }
+              ]
+            },
+            {
+              "id": "f-control",
+              "kind": "control",
+              "statement": "The collection-specific save is delegated with the selected collection name, add enabled for a supplied collection name, and the current user.",
+              "citations": [
+                {
+                  "sourceId": "src-3ef7d3faaf41dffa",
+                  "startLine": 1694,
+                  "endLine": 1705
+                }
+              ]
+            },
+            {
+              "id": "f-effect",
+              "kind": "effect",
+              "statement": "The delegated save_docs_to_vector_db call is the visible destination-write sink, but its implementation and underlying vector-database write are not included in the supplied source.",
+              "citations": [
+                {
+                  "sourceId": "src-3ef7d3faaf41dffa",
+                  "startLine": 1694,
+                  "endLine": 1707
+                }
+              ]
+            },
+            {
+              "id": "f-condition",
+              "kind": "condition",
+              "statement": "The supplied scenario fixes a caller-selected existing collection and a verified non-admin who owns the source file without destination ownership or a write grant; these are task premises rather than source citations.",
+              "citations": [
+                {
+                  "sourceId": "src-3ef7d3faaf41dffa",
+                  "startLine": 1559,
+                  "endLine": 1566
+                }
+              ]
+            },
+            {
+              "id": "f-access-helper",
+              "kind": "control",
+              "statement": "The supplied collection-access helper computes allowed collections using a requested access_type and raises forbidden for denied names, but the shown entry path does not show a call to it and its displayed default is read.",
+              "citations": [
+                {
+                  "sourceId": "src-3ef7d3faaf41dffa",
+                  "startLine": 2339,
+                  "endLine": 2352
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [
+            "Implementation of save_docs_to_vector_db, including whether it writes to the supplied existing collection and whether it enforces destination write authorization for the supplied user.",
+            "Binding, if any, from process_file to a destination-specific write-access check before or within save_docs_to_vector_db.",
+            "The concrete vector-database write operation and its success or denial behavior for an existing collection when the user has no write grant."
+          ],
+          "suggestedObservations": [
+            "Inspect the implementation reached by save_docs_to_vector_db at the shown call, including its handling of collection_name, add, and user.",
+            "Observe or source-trace whether a destination write authorization check is executed for the supplied collection and user.",
+            "Observe the resulting vector-database operation for an existing collection under the no-write-grant premise."
+          ],
+          "decision": {
+            "kind": "observed",
+            "observed": "unknown"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+        "expectation": "deny",
+        "observed": "unknown",
+        "derivedConclusion": "unknown"
+      }
+    ],
+    "validation": {
+      "parsedResult": {
+        "schemaVersion": "source-authorization-assessment-result/v0",
+        "taskId": "owui-process-file-write",
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "results": [
+          {
+            "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+            "conclusion": "unknown",
+            "explanation": "At the declared entry, a verified user is bound by get_verified_user, and the non-admin file lookup additionally binds the file to user.id; this distinguishes source-file ownership from authorization on the destination collection. The caller-controlled collection_name is read from form_data and passed unchanged to save_docs_to_vector_db, with add=True when a collection name is supplied. The visible destination-write operation is therefore the delegated save_docs_to_vector_db call, but the supplied source does not include that function's implementation or its collection-existence and write-authorization behavior. The separately supplied _validate_collection_access helper is not shown as called from this entry, and its displayed default is read access, so it cannot establish a destination write grant check here. Consequently, the source-visible path does not prove either that the no-grant write is blocked or that it succeeds. The destination write sink is the delegated save_docs_to_vector_db operation at the shown call site; the underlying vector-database write is a decisive source-external/missing binding. File ownership is established only for selecting the source file and does not itself establish destination knowledge-base write permission. This is an unknown source-boundary result, not a repository-wide completeness claim; source discovery is not-tested.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "POST /process/file dispatches to process_file.",
+                  "citations": [
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 1546,
+                      "endLine": 1552,
+                      "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),\n):"
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "The request obtains a verified user, and the non-admin branch retrieves the file by file ID and that user's ID.",
+                  "citations": [
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 1559,
+                      "endLine": 1564,
+                      "quote": "if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The supplied collection name is taken from form data and is retained unless it is absent, in which case a file-specific name is constructed.",
+                  "citations": [
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 1566,
+                      "endLine": 1569,
+                      "quote": "collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "The supplied collection-access helper computes allowed collections using a requested access_type and raises forbidden for denied names, but the shown entry path does not show a call to it and its displayed default is read.",
+                  "citations": [
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 2339,
+                      "endLine": 2352,
+                      "quote": "async def _validate_collection_access(collection_names: list[str], user, access_type: str = 'read') -> None:\n    \"\"\"\n    Raise 403 if the user lacks access to any of the requested collections.\n    Delegates to the shared filter_accessible_collections utility so the\n    access rules stay in one place.\n    \"\"\"\n    requested = set(collection_names)\n    allowed = await filter_accessible_collections(requested, user, access_type=access_type)\n    denied = requested - allowed\n    if denied:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=ERROR_MESSAGES.ACCESS_PROHIBITED,\n        )"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The collection-specific save is delegated with the selected collection name, add enabled for a supplied collection name, and the current user.",
+                  "citations": [
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 1694,
+                      "endLine": 1705,
+                      "quote": "result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,"
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "The delegated save_docs_to_vector_db call is the visible destination-write sink, but its implementation and underlying vector-database write are not included in the supplied source.",
+                  "citations": [
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 1694,
+                      "endLine": 1707,
+                      "quote": "result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,\n                    )\n                    log.info(f'added {len(docs)} items to collection {collection_name}')"
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The supplied scenario fixes a caller-selected existing collection and a verified non-admin who owns the source file without destination ownership or a write grant; these are task premises rather than source citations.",
+                  "citations": [
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 1559,
+                      "endLine": 1566,
+                      "quote": "if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:\n        try:\n            collection_name = form_data.collection_name"
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [
+              "Implementation of save_docs_to_vector_db, including whether it writes to the supplied existing collection and whether it enforces destination write authorization for the supplied user.",
+              "Binding, if any, from process_file to a destination-specific write-access check before or within save_docs_to_vector_db.",
+              "The concrete vector-database write operation and its success or denial behavior for an existing collection when the user has no write grant."
+            ],
+            "suggestedObservations": [
+              "Inspect the implementation reached by save_docs_to_vector_db at the shown call, including its handling of collection_name, add, and user.",
+              "Observe or source-trace whether a destination write authorization check is executed for the supplied collection and user.",
+              "Observe the resulting vector-database operation for an existing collection under the no-write-grant premise."
+            ]
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+        }
+      },
+      "structure": {
+        "status": "valid",
+        "diagnostics": []
+      },
+      "declared": {
+        "total": 1,
+        "disposed": 1,
+        "pending": 0,
+        "blocked": 0,
+        "invalid": 0,
+        "status": "all-disposed",
+        "completionPercent": 100
+      },
+      "discovery": {
+        "status": "not-tested",
+        "claimLimit": "declared-obligations-only"
+      },
+      "evidencePresence": [
+        {
+          "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+          "status": "present"
+        }
+      ],
+      "evidenceSupport": [
+        {
+          "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+          "status": "unreviewed"
+        }
+      ],
+      "completeness": {
+        "status": "accepted",
+        "kind": "declared-obligations-only"
+      },
+      "dependencySnapshot": {
+        "schemaVersion": "authorization-task-dependencies/v1",
+        "task": {
+          "schemaVersion": "source-authorization-assessment/v0",
+          "taskId": "owui-process-file-write",
+          "request": "At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.",
+          "repository": "https://github.com/open-webui/open-webui",
+          "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+          "sourceMode": "fixed-context",
+          "policySources": [
+            {
+              "id": "policy:destination-knowledge-write-policy",
+              "kind": "explicit-task-requirement",
+              "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+              "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+              "revision": "authorization-case-input/v1@841c9045",
+              "acceptance": {
+                "status": "accepted",
+                "actorRole": "task-author",
+                "reason": "The study task author supplied this bounded normative requirement for the comparison."
+              }
+            }
+          ],
+          "principals": [
+            {
+              "id": "principal:verified-non-admin-file-owner",
+              "role": "verified non-administrator who owns the supplied source file",
+              "description": "Author facts: [\"A signed-in non-admin whose file ownership is distinct from authorization on the destination knowledge base.\"]",
+              "startingCapabilities": [
+                "authenticated-as-verified-user",
+                "owns-supplied-source-file",
+                "can-submit-process-file-form"
+              ]
+            }
+          ],
+          "resources": [
+            {
+              "id": "resource:existing-destination-knowledge-base",
+              "type": "knowledge-base-vector-collection",
+              "description": "Author facts: [\"An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal.\"]"
+            }
+          ],
+          "entries": [
+            {
+              "id": "entry:post-process-file",
+              "name": "POST /process/file -> process_file",
+              "locations": [
+                {
+                  "path": "backend/open_webui/routers/retrieval.py",
+                  "startLine": 1546,
+                  "endLine": 1762
+                }
+              ]
+            }
+          ],
+          "obligations": [
+            {
+              "id": "scenario:file-owner-without-destination-write-grant",
+              "principalId": "principal:verified-non-admin-file-owner",
+              "resourceId": "resource:existing-destination-knowledge-base",
+              "relation": "owns-source-file-but-no-destination-write-grant",
+              "operation": "write-file-content-to-existing-knowledge-base",
+              "expectation": "deny",
+              "conditions": [
+                {
+                  "name": "caller-supplies-existing-collection-name",
+                  "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+                },
+                {
+                  "name": "principal-is-not-admin",
+                  "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+                }
+              ],
+              "policySourceId": "policy:destination-knowledge-write-policy",
+              "entryIds": [
+                "entry:post-process-file"
+              ]
+            }
+          ],
+          "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+          "requiredAnalysis": [
+            "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+            "identify the principal, operation, target resource relation, entry, and write sink",
+            "trace the user-controlled collection name through any target-specific authorization control",
+            "distinguish file ownership from destination knowledge-base write permission",
+            "return source_supported_failure, source_refuted, or unknown with exact input locations"
+          ],
+          "constraints": [
+            "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+            "Use only the allowed case inputs.",
+            "Do not search for advisories, fixes, later versions, or deployment behavior.",
+            "Do not execute the project or propose a patch."
+          ]
+        },
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "sourceFiles": [
+          {
+            "path": "backend/open_webui/routers/retrieval.py",
+            "sha256": "5cf77223464231ed2fea5473e8db0d39b6eb15379f20eb1b0056085f62dbe8f9",
+            "segments": [
+              {
+                "originalStartLine": 1546,
+                "originalEndLine": 1762,
+                "snapshotStartLine": 1,
+                "snapshotEndLine": 217,
+                "origins": [
+                  "entry:post-process-file"
+                ]
+              },
+              {
+                "originalStartLine": 2339,
+                "originalEndLine": 2352,
+                "snapshotStartLine": 218,
+                "snapshotEndLine": 231,
+                "origins": [
+                  "model-proposal:dep:process-file:collection-access-validation"
+                ]
+              }
+            ]
+          }
+        ],
+        "policies": [
+          {
+            "id": "policy:destination-knowledge-write-policy",
+            "revision": "authorization-case-input/v1@841c9045",
+            "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+            "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+            "acceptanceStatus": "accepted"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "scenario:file-owner-without-destination-write-grant",
+            "principalId": "principal:verified-non-admin-file-owner",
+            "resourceId": "resource:existing-destination-knowledge-base",
+            "relation": "owns-source-file-but-no-destination-write-grant",
+            "operation": "write-file-content-to-existing-knowledge-base",
+            "expectation": "deny",
+            "conditions": [
+              {
+                "name": "caller-supplies-existing-collection-name",
+                "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+              },
+              {
+                "name": "principal-is-not-admin",
+                "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+              }
+            ],
+            "policySourceId": "policy:destination-knowledge-write-policy",
+            "entryIds": [
+              "entry:post-process-file"
+            ]
+          }
+        ]
+      },
+      "diagnostics": []
+    }
+  },
+  "final": {
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "owui-process-file-write",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "results": [
+        {
+          "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+          "conclusion": "unknown",
+          "explanation": "At the declared entry, a verified user is bound by get_verified_user, and the non-admin file lookup additionally binds the file to user.id; this distinguishes source-file ownership from authorization on the destination collection. The caller-controlled collection_name is read from form_data and passed unchanged to save_docs_to_vector_db, with add=True when a collection name is supplied. The visible destination-write operation is therefore the delegated save_docs_to_vector_db call, but the supplied source does not include that function's implementation or its collection-existence and write-authorization behavior. The separately supplied _validate_collection_access helper is not shown as called from this entry, and its displayed default is read access, so it cannot establish a destination write grant check here. Consequently, the source-visible path does not prove either that the no-grant write is blocked or that it succeeds. The destination write sink is the delegated save_docs_to_vector_db operation at the shown call site; the underlying vector-database write is a decisive source-external/missing binding. File ownership is established only for selecting the source file and does not itself establish destination knowledge-base write permission. This is an unknown source-boundary result, not a repository-wide completeness claim; source discovery is not-tested.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "POST /process/file dispatches to process_file.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1546,
+                    "endLine": 1552,
+                    "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),\n):"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The request obtains a verified user, and the non-admin branch retrieves the file by file ID and that user's ID.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1559,
+                    "endLine": 1564,
+                    "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:"
+                  }
+                ]
+              },
+              {
+                "statement": "The supplied collection name is taken from form data and is retained unless it is absent, in which case a file-specific name is constructed.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1566,
+                    "endLine": 1569,
+                    "quote": "            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The supplied collection-access helper computes allowed collections using a requested access_type and raises forbidden for denied names, but the shown entry path does not show a call to it and its displayed default is read.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 2339,
+                    "endLine": 2352,
+                    "quote": "async def _validate_collection_access(collection_names: list[str], user, access_type: str = 'read') -> None:\n    \"\"\"\n    Raise 403 if the user lacks access to any of the requested collections.\n    Delegates to the shared filter_accessible_collections utility so the\n    access rules stay in one place.\n    \"\"\"\n    requested = set(collection_names)\n    allowed = await filter_accessible_collections(requested, user, access_type=access_type)\n    denied = requested - allowed\n    if denied:\n        raise HTTPException(\n            status_code=status.HTTP_403_FORBIDDEN,\n            detail=ERROR_MESSAGES.ACCESS_PROHIBITED,\n        )"
+                  }
+                ]
+              },
+              {
+                "statement": "The collection-specific save is delegated with the selected collection name, add enabled for a supplied collection name, and the current user.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1694,
+                    "endLine": 1705,
+                    "quote": "                    result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The delegated save_docs_to_vector_db call is the visible destination-write sink, but its implementation and underlying vector-database write are not included in the supplied source.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1694,
+                    "endLine": 1707,
+                    "quote": "                    result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,\n                    )\n                    log.info(f'added {len(docs)} items to collection {collection_name}')"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The supplied scenario fixes a caller-selected existing collection and a verified non-admin who owns the source file without destination ownership or a write grant; these are task premises rather than source citations.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1559,
+                    "endLine": 1566,
+                    "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:\n        try:\n            collection_name = form_data.collection_name"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [
+            "Implementation of save_docs_to_vector_db, including whether it writes to the supplied existing collection and whether it enforces destination write authorization for the supplied user.",
+            "Binding, if any, from process_file to a destination-specific write-access check before or within save_docs_to_vector_db.",
+            "The concrete vector-database write operation and its success or denial behavior for an existing collection when the user has no write grant."
+          ],
+          "suggestedObservations": [
+            "Inspect the implementation reached by save_docs_to_vector_db at the shown call, including its handling of collection_name, add, and user.",
+            "Observe or source-trace whether a destination write authorization check is executed for the supplied collection and user.",
+            "Observe the resulting vector-database operation for an existing collection under the no-write-grant premise."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+          "explanation": "At the declared entry, a verified user is bound by get_verified_user, and the non-admin file lookup additionally binds the file to user.id; this distinguishes source-file ownership from authorization on the destination collection. The caller-controlled collection_name is read from form_data and passed unchanged to save_docs_to_vector_db, with add=True when a collection name is supplied. The visible destination-write operation is therefore the delegated save_docs_to_vector_db call, but the supplied source does not include that function's implementation or its collection-existence and write-authorization behavior. The separately supplied _validate_collection_access helper is not shown as called from this entry, and its displayed default is read access, so it cannot establish a destination write grant check here. Consequently, the source-visible path does not prove either that the no-grant write is blocked or that it succeeds. The destination write sink is the delegated save_docs_to_vector_db operation at the shown call site; the underlying vector-database write is a decisive source-external/missing binding. File ownership is established only for selecting the source file and does not itself establish destination knowledge-base write permission. This is an unknown source-boundary result, not a repository-wide completeness claim; source discovery is not-tested.",
+          "facts": [
+            {
+              "id": "f-entry",
+              "kind": "entry",
+              "statement": "POST /process/file dispatches to process_file.",
+              "citations": [
+                {
+                  "sourceId": "src-3ef7d3faaf41dffa",
+                  "startLine": 1546,
+                  "endLine": 1552
+                }
+              ]
+            },
+            {
+              "id": "f-identity",
+              "kind": "binding",
+              "statement": "The request obtains a verified user, and the non-admin branch retrieves the file by file ID and that user's ID.",
+              "citations": [
+                {
+                  "sourceId": "src-3ef7d3faaf41dffa",
+                  "startLine": 1559,
+                  "endLine": 1564
+                }
+              ]
+            },
+            {
+              "id": "f-resource",
+              "kind": "binding",
+              "statement": "The supplied collection name is taken from form data and is retained unless it is absent, in which case a file-specific name is constructed.",
+              "citations": [
+                {
+                  "sourceId": "src-3ef7d3faaf41dffa",
+                  "startLine": 1566,
+                  "endLine": 1569
+                }
+              ]
+            },
+            {
+              "id": "f-control",
+              "kind": "control",
+              "statement": "The collection-specific save is delegated with the selected collection name, add enabled for a supplied collection name, and the current user.",
+              "citations": [
+                {
+                  "sourceId": "src-3ef7d3faaf41dffa",
+                  "startLine": 1694,
+                  "endLine": 1705
+                }
+              ]
+            },
+            {
+              "id": "f-effect",
+              "kind": "effect",
+              "statement": "The delegated save_docs_to_vector_db call is the visible destination-write sink, but its implementation and underlying vector-database write are not included in the supplied source.",
+              "citations": [
+                {
+                  "sourceId": "src-3ef7d3faaf41dffa",
+                  "startLine": 1694,
+                  "endLine": 1707
+                }
+              ]
+            },
+            {
+              "id": "f-condition",
+              "kind": "condition",
+              "statement": "The supplied scenario fixes a caller-selected existing collection and a verified non-admin who owns the source file without destination ownership or a write grant; these are task premises rather than source citations.",
+              "citations": [
+                {
+                  "sourceId": "src-3ef7d3faaf41dffa",
+                  "startLine": 1559,
+                  "endLine": 1566
+                }
+              ]
+            },
+            {
+              "id": "f-access-helper",
+              "kind": "control",
+              "statement": "The supplied collection-access helper computes allowed collections using a requested access_type and raises forbidden for denied names, but the shown entry path does not show a call to it and its displayed default is read.",
+              "citations": [
+                {
+                  "sourceId": "src-3ef7d3faaf41dffa",
+                  "startLine": 2339,
+                  "endLine": 2352
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [
+            "Implementation of save_docs_to_vector_db, including whether it writes to the supplied existing collection and whether it enforces destination write authorization for the supplied user.",
+            "Binding, if any, from process_file to a destination-specific write-access check before or within save_docs_to_vector_db.",
+            "The concrete vector-database write operation and its success or denial behavior for an existing collection when the user has no write grant."
+          ],
+          "suggestedObservations": [
+            "Inspect the implementation reached by save_docs_to_vector_db at the shown call, including its handling of collection_name, add, and user.",
+            "Observe or source-trace whether a destination write authorization check is executed for the supplied collection and user.",
+            "Observe the resulting vector-database operation for an existing collection under the no-write-grant premise."
+          ],
+          "decision": {
+            "kind": "observed",
+            "observed": "unknown"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+        "expectation": "deny",
+        "observed": "unknown",
+        "derivedConclusion": "unknown"
+      }
+    ]
+  },
+  "finalKind": "initial",
+  "sourceScope": "Only actually supplied fixed source is evidence. No target execution. Unknown external facts remain unknown.",
+  "rubric": {
+    "id": "owui-file",
+    "scenarios": [
+      {
+        "key": "file-owner-without-destination-write-grant",
+        "expectedDecision": "allow",
+        "expectedConclusion": "source_supported_failure"
+      }
+    ],
+    "decisiveEvidence": [
+      "backend/open_webui/routers/retrieval.py:1559-1563 checks source-file ownership",
+      "backend/open_webui/routers/retrieval.py:1566-1569 accepts caller collection_name",
+      "backend/open_webui/routers/retrieval.py:1694-1705 forwards selected collection without destination permission check",
+      "backend/open_webui/routers/retrieval.py:1458-1534 helper can insert into existing collection without checking the caller's destination write grant"
+    ],
+    "limits": "External vector DB success is not guaranteed; the source-visible missing authorization control is the assessed failure. The old AI crop omitted much of the helper."
+  },
+  "materialRule": "Apply original policy/behavior semantics to actual supplied material. A newly retained genuine helper may resolve an old crop gap. Unknown external conditions remain unknown; evidence existence is not semantic proof."
+}

@@ -1,0 +1,63 @@
+Preparation status: partial
+
+Closure claim: declared-dependencies-only
+
+Prepared from: https://github.com/paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103; root ../../../authorization-evidence-editing-v1/public-source/paperless
+
+Included original ranges: src/documents/views.py:406-430 [locator:located-2, locator:located-3]; src/documents/views.py:4696-4717 [locator:located-1, entry:share-create]
+
+Unresolved gaps: dep-1: ambiguous-location (src/documents/serialisers.py); dep-2: ambiguous-location (src/documents/permissions.py)
+
+===== BEGIN ALLOWED INPUT: src/documents/views.py =====
+Source ID: src-149e2c31b30d3ec6
+Location note: crop lines 406-4717; original locations: src/documents/views.py:406-430, src/documents/views.py:4696-4717
+Citation contract: use original line numbers in one displayed segment; ranges cannot cross omitted intervals or sources.
+406 | class PassUserMixin(GenericAPIView[Any]):
+407 |     """
+408 |     Pass a user object to serializer
+409 |     """
+410 | 
+411 |     def get_serializer(self, *args, **kwargs):
+412 |         serializer_class = self.get_serializer_class()
+413 |         if isinstance(serializer_class, type) and issubclass(
+414 |             serializer_class,
+415 |             SerializerWithPerms,
+416 |         ):
+417 |             kwargs.setdefault("user", self.request.user)
+418 |             try:
+419 |                 full_perms = get_boolean(
+420 |                     str(self.request.query_params.get("full_perms", "false")),
+421 |                 )
+422 |             except ValueError:
+423 |                 full_perms = False
+424 |             kwargs.setdefault(
+425 |                 "full_perms",
+426 |                 full_perms,
+427 |             )
+428 |         return super().get_serializer(*args, **kwargs)
+429 | 
+430 | 
+[OMITTED original lines 431-4695]
+4696 | class ShareLinkViewSet(
+4697 |     PassUserMixin,
+4698 |     CreateModelMixin,
+4699 |     RetrieveModelMixin,
+4700 |     DestroyModelMixin,
+4701 |     ListModelMixin,
+4702 |     GenericViewSet,
+4703 | ):
+4704 |     model = ShareLink
+4705 | 
+4706 |     queryset = ShareLink.objects.select_related("document")
+4707 | 
+4708 |     serializer_class = ShareLinkSerializer
+4709 |     pagination_class = StandardPagination
+4710 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+4711 |     filter_backends = (
+4712 |         DjangoFilterBackend,
+4713 |         OrderingFilter,
+4714 |         PermittedObjectsFilter,
+4715 |     )
+4716 |     filterset_class = ShareLinkFilterSet
+4717 |     ordering_fields = ("created", "expiration", "document__title")
+===== END ALLOWED INPUT: src/documents/views.py =====

@@ -1,0 +1,1043 @@
+{
+  "anonymousId": "a-3a6b784ba43d",
+  "packageId": "memos-space-policy",
+  "phase": "changed",
+  "materialPath": "evaluator/materials/m-168499cd6326.txt",
+  "status": "completed",
+  "brief": {
+    "id": "memos-space-policy",
+    "kind": "policy-change",
+    "taskId": "ak-use-memos-members",
+    "repository": "https://github.com/usememos/memos",
+    "originalSourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "changedSourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "originalSourceRoot": "../authorization-evidence-editing-v1/public-source/memos",
+    "changedSourceRoot": "../authorization-evidence-editing-v1/public-source/memos",
+    "allowedFiles": [
+      "server/api/v1/space_service.go",
+      "store/space.go"
+    ],
+    "entry": {
+      "entryKey": "delete-member",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 740,
+      "endLine": 763
+    },
+    "question": "At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.",
+    "originalPolicy": "An active space member may delete their own membership to leave. Removing a different active member requires space administrator authority.",
+    "changedPolicy": "An active space member may delete their own membership and may remove a different active member of the same space without space administrator authority.",
+    "scenarios": [
+      {
+        "key": "self-leave",
+        "principal": "authenticated active ordinary non-administrator member",
+        "relation": "caller-is-target-member",
+        "operation": "delete own membership",
+        "premiseId": "target-relation",
+        "premise": "At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds."
+      },
+      {
+        "key": "other-member",
+        "principal": "authenticated active ordinary non-administrator member",
+        "relation": "caller-is-not-target-member-and-not-admin",
+        "operation": "delete another active membership",
+        "premiseId": "target-relation",
+        "premise": "At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds."
+      }
+    ],
+    "originalExpectations": {
+      "self-leave": "allow",
+      "other-member": "deny"
+    },
+    "changedExpectations": {
+      "self-leave": "allow",
+      "other-member": "allow"
+    },
+    "changeRequest": "Change only the accepted space-member removal policy to changedPolicy. Review both policy-linked scenario expectations explicitly, including the unchanged self-leave expectation. Keep the same identities, relations, premise text, source bytes and task ID. The source implementation is unchanged.",
+    "supportRole": "Declare only the requested handler as an analysis entry. Helpers belong in evidence-request dependencies; an empty dependency list with discover=true is supported. Do not author all helper positions.",
+    "policyLocationOriginal": "author-briefs.json#/memos-space-policy/originalPolicy",
+    "policyLocationChanged": "author-briefs.json#/memos-space-policy/changedPolicy"
+  },
+  "scope": {
+    "analysisEntries": 1,
+    "declaredScenarios": 2,
+    "expandedObligations": 2,
+    "entries": [
+      {
+        "id": "entry:delete-member",
+        "name": "DeleteSpaceMember",
+        "locations": [
+          {
+            "path": "server/api/v1/space_service.go",
+            "startLine": 740,
+            "endLine": 763
+          }
+        ],
+        "scenarioIds": [
+          "scenario:other-member",
+          "scenario:self-leave"
+        ]
+      }
+    ],
+    "supportDependencies": 19,
+    "supports": [
+      {
+        "id": "locator:located-1",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 19,
+        "endLine": 28,
+        "basis": "locator"
+      },
+      {
+        "id": "model-proposal:dep-auth-helper",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 19,
+        "endLine": 28,
+        "basis": "model-proposal"
+      },
+      {
+        "id": "locator:located-6",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 30,
+        "endLine": 52,
+        "basis": "locator"
+      },
+      {
+        "id": "model-proposal:dep-caller-membership-resolution",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 30,
+        "endLine": 52,
+        "basis": "model-proposal"
+      },
+      {
+        "id": "locator:located-3",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 54,
+        "endLine": 59,
+        "basis": "locator"
+      },
+      {
+        "id": "model-proposal:dep-admin-requirement",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 54,
+        "endLine": 59,
+        "basis": "model-proposal"
+      },
+      {
+        "id": "locator:located-5",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 61,
+        "endLine": 84,
+        "basis": "locator"
+      },
+      {
+        "id": "model-proposal:dep-delete-error-mapping",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 61,
+        "endLine": 84,
+        "basis": "model-proposal"
+      },
+      {
+        "id": "locator:located-9",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 167,
+        "endLine": 177,
+        "basis": "locator"
+      },
+      {
+        "id": "locator:located-2",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 632,
+        "endLine": 663,
+        "basis": "locator"
+      },
+      {
+        "id": "model-proposal:dep-resource-resolution",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 632,
+        "endLine": 663,
+        "basis": "model-proposal"
+      },
+      {
+        "id": "locator:located-7",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 666,
+        "endLine": 676,
+        "basis": "locator"
+      },
+      {
+        "id": "locator:located-4",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 740,
+        "endLine": 764,
+        "basis": "locator"
+      },
+      {
+        "id": "model-proposal:dep-auth-call",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 740,
+        "endLine": 764,
+        "basis": "model-proposal"
+      },
+      {
+        "id": "model-proposal:dep-resource-resolution-call",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 740,
+        "endLine": 764,
+        "basis": "model-proposal"
+      },
+      {
+        "id": "model-proposal:dep-self-versus-other-branch",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 740,
+        "endLine": 764,
+        "basis": "model-proposal"
+      },
+      {
+        "id": "model-proposal:dep-delete-effect-call",
+        "from": null,
+        "path": "server/api/v1/space_service.go",
+        "startLine": 740,
+        "endLine": 764,
+        "basis": "model-proposal"
+      },
+      {
+        "id": "locator:located-8",
+        "from": null,
+        "path": "store/space.go",
+        "startLine": 64,
+        "endLine": 66,
+        "basis": "locator"
+      },
+      {
+        "id": "model-proposal:dep-store-delete-space-member",
+        "from": null,
+        "path": "store/space.go",
+        "startLine": 274,
+        "endLine": 279,
+        "basis": "model-proposal"
+      }
+    ],
+    "scopeRule": "Only declared scenario-entry pairs are analyzed. Support does not add an entry; explicit multiple analysis entries are preserved."
+  },
+  "sourceRule": "Supplied source and exact task premises only. Original sources immutable; Paperless changed bytes are explicitly synthetic.",
+  "expectedSourceDecisions": {
+    "self-leave": "allow",
+    "other-member": "deny"
+  },
+  "first": {
+    "deliveryComplete": true,
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "ak-use-memos-members",
+      "repository": "https://github.com/usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "results": [
+        {
+          "obligationId": "scenario%3Aother-member::entry%3Adelete-member",
+          "conclusion": "source_supported_failure",
+          "explanation": "At the declared handler entry, the current user is obtained and the named space member resource is resolved, including caller and target memberships. Under the supplied other-member premise, targetUser.ID differs from currentUser.ID, so isSelf is false. The strongest visible authorization control then requires callerMembership to be a space administrator; an ordinary non-administrator caller fails that check and the handler returns PermissionDenied before the deletion call. The protected deletion effect is therefore not reached on this source path. This source-visible denial conflicts with the accepted policy, which allows an active ordinary member to remove a different active member without administrator authority. The assessment does not claim repository-wide or deployment behavior; the supplied source does not establish facts beyond the declared premises and visible handler path.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "DeleteSpaceMember is the declared handler entry.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 740,
+                    "endLine": 742,
+                    "quote": "// DeleteSpaceMember removes a membership or lets a member leave a space.\nfunc (s *APIV1Service) DeleteSpaceMember(ctx context.Context, request *v1pb.DeleteSpaceMemberRequest) (*emptypb.Empty, error) {\n\tcurrentUser, err := s.requireCurrentSpaceUser(ctx)"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The handler resolves the current authenticated user and passes that identity into space-member resource resolution.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 742,
+                    "endLine": 746,
+                    "quote": "\tcurrentUser, err := s.requireCurrentSpaceUser(ctx)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\t_, targetUser, callerMembership, targetMembership, err := s.resolveSpaceMemberResource(ctx, request.Name, currentUser)"
+                  }
+                ]
+              },
+              {
+                "statement": "Resource resolution binds the selected space, target user, caller membership, and target membership, and requires the target membership to be active.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 632,
+                    "endLine": 662,
+                    "quote": "func (s *APIV1Service) resolveSpaceMemberResource(ctx context.Context, name string, currentUser *store.User) (*store.Space, *store.User, *store.SpaceMember, *store.SpaceMember, error) {\n\tspaceUID, username, err := ExtractSpaceMemberTokensFromName(name)\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, status.Errorf(codes.InvalidArgument, \"invalid space member name: %v\", err)\n\t}\n\tspace, callerMembership, err := s.resolveMemberSpace(ctx, buildSpaceName(spaceUID), currentUser)\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, err\n\t}\n\ttargetUser, err := ResolveUserByName(ctx, s.Store, BuildUserName(username))\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to resolve member user: %v\", err)\n\t}\n\tif targetUser == nil {\n\t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n\t}\n\tif targetUser.RowStatus != store.Normal {\n\t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n\t}\n\ttargetMembership, err := s.Store.GetSpaceMember(ctx, &store.FindSpaceMember{\n\t\tSpaceID:      &space.ID,\n\t\tUserID:       &targetUser.ID,\n\t\tViewerUserID: &currentUser.ID,\n\t})\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to get space membership: %v\", err)\n\t}\n\tif targetMembership == nil || !targetMembership.Role.IsActiveMember() {\n\t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n\t}\n\treturn space, targetUser, callerMembership, targetMembership, nil"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "A non-administrator callerMembership is rejected with a permission-denied error before deletion.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 54,
+                    "endLine": 58,
+                    "quote": "func requireSpaceAdministrator(member *store.SpaceMember) error {\n\tif member == nil || member.Role != store.SpaceMemberRoleAdmin {\n\t\treturn status.Error(codes.PermissionDenied, \"space administrator permission required\")\n\t}\n\treturn nil"
+                  }
+                ]
+              },
+              {
+                "statement": "The handler compares targetUser.ID with currentUser.ID and, for a different target, enters the administrator check.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 750,
+                    "endLine": 752,
+                    "quote": "\tisSelf := targetUser.ID == currentUser.ID\n\tif !isSelf {\n\t\tif err := requireSpaceAdministrator(callerMembership); err != nil {"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The deletion call and success publication occur only after the authorization check; this path returns before those operations.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 751,
+                    "endLine": 763,
+                    "quote": "\tif !isSelf {\n\t\tif err := requireSpaceAdministrator(callerMembership); err != nil {\n\t\t\treturn nil, err\n\t\t}\n\t}\n\tif err := s.Store.DeleteSpaceMember(ctx, &store.DeleteSpaceMember{\n\t\tSpaceID: targetMembership.SpaceID,\n\t\tUserID:  targetMembership.UserID,\n\t}, currentUser.ID); err != nil {\n\t\treturn nil, mapSpaceMutationError(err, \"failed to delete space member\")\n\t}\n\ts.SSEHub.publishSpaceChanged()\n\treturn &emptypb.Empty{}, nil"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The resolver recognizes active memberships through IsActiveMember, whose visible roles are administrator and ordinary user.",
+                "citations": [
+                  {
+                    "path": "store/space.go",
+                    "startLine": 64,
+                    "endLine": 66,
+                    "quote": "func (r SpaceMemberRole) IsActiveMember() bool {\n\treturn r == SpaceMemberRoleAdmin || r == SpaceMemberRoleUser\n}"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        },
+        {
+          "obligationId": "scenario%3Aself-leave::entry%3Adelete-member",
+          "conclusion": "source_refuted",
+          "explanation": "At the declared handler entry, the current user is obtained and the named space member resource is resolved, including caller and target memberships. Under the supplied self-leave premise, targetUser.ID equals currentUser.ID, so isSelf is true. The administrator check is skipped, and the handler invokes DeleteSpaceMember for the resolved target membership, then publishes the space change and returns success if the store call does not report an error. Thus the source-visible authorization path allows self-removal for the ordinary non-administrator caller. This matches the accepted policy's allowance for an active member to delete their own membership. The source crop shows the handler's protected effect invocation, but does not establish external store-driver behavior or deployment facts.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "DeleteSpaceMember is the declared handler entry.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 740,
+                    "endLine": 742,
+                    "quote": "// DeleteSpaceMember removes a membership or lets a member leave a space.\nfunc (s *APIV1Service) DeleteSpaceMember(ctx context.Context, request *v1pb.DeleteSpaceMemberRequest) (*emptypb.Empty, error) {\n\tcurrentUser, err := s.requireCurrentSpaceUser(ctx)"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The handler resolves the current authenticated user and uses that identity in resolving the requested member resource.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 742,
+                    "endLine": 746,
+                    "quote": "\tcurrentUser, err := s.requireCurrentSpaceUser(ctx)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\t_, targetUser, callerMembership, targetMembership, err := s.resolveSpaceMemberResource(ctx, request.Name, currentUser)"
+                  }
+                ]
+              },
+              {
+                "statement": "Resource resolution binds the selected space, target user, caller membership, and target membership, and requires the target membership to be active.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 632,
+                    "endLine": 662,
+                    "quote": "func (s *APIV1Service) resolveSpaceMemberResource(ctx context.Context, name string, currentUser *store.User) (*store.Space, *store.User, *store.SpaceMember, *store.SpaceMember, error) {\n\tspaceUID, username, err := ExtractSpaceMemberTokensFromName(name)\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, status.Errorf(codes.InvalidArgument, \"invalid space member name: %v\", err)\n\t}\n\tspace, callerMembership, err := s.resolveMemberSpace(ctx, buildSpaceName(spaceUID), currentUser)\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, err\n\t}\n\ttargetUser, err := ResolveUserByName(ctx, s.Store, BuildUserName(username))\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to resolve member user: %v\", err)\n\t}\n\tif targetUser == nil {\n\t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n\t}\n\tif targetUser.RowStatus != store.Normal {\n\t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n\t}\n\ttargetMembership, err := s.Store.GetSpaceMember(ctx, &store.FindSpaceMember{\n\t\tSpaceID:      &space.ID,\n\t\tUserID:       &targetUser.ID,\n\t\tViewerUserID: &currentUser.ID,\n\t})\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to get space membership: %v\", err)\n\t}\n\tif targetMembership == nil || !targetMembership.Role.IsActiveMember() {\n\t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n\t}\n\treturn space, targetUser, callerMembership, targetMembership, nil"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The handler compares targetUser.ID with currentUser.ID and treats equality as self-removal, so the administrator-only branch is not entered.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 750,
+                    "endLine": 755,
+                    "quote": "\tisSelf := targetUser.ID == currentUser.ID\n\tif !isSelf {\n\t\tif err := requireSpaceAdministrator(callerMembership); err != nil {\n\t\t\treturn nil, err\n\t\t}\n\t}"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "After the self-removal authorization path, the handler invokes deletion for the resolved target membership and publishes the space change on success.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 756,
+                    "endLine": 763,
+                    "quote": "\tif err := s.Store.DeleteSpaceMember(ctx, &store.DeleteSpaceMember{\n\t\tSpaceID: targetMembership.SpaceID,\n\t\tUserID:  targetMembership.UserID,\n\t}, currentUser.ID); err != nil {\n\t\treturn nil, mapSpaceMutationError(err, \"failed to delete space member\")\n\t}\n\ts.SSEHub.publishSpaceChanged()\n\treturn &emptypb.Empty{}, nil"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The resolver recognizes active memberships through IsActiveMember, whose visible roles are administrator and ordinary user.",
+                "citations": [
+                  {
+                    "path": "store/space.go",
+                    "startLine": 64,
+                    "endLine": 66,
+                    "quote": "func (r SpaceMemberRole) IsActiveMember() bool {\n\treturn r == SpaceMemberRoleAdmin || r == SpaceMemberRoleUser\n}"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aother-member::entry%3Adelete-member",
+          "explanation": "At the declared handler entry, the current user is obtained and the named space member resource is resolved, including caller and target memberships. Under the supplied other-member premise, targetUser.ID differs from currentUser.ID, so isSelf is false. The strongest visible authorization control then requires callerMembership to be a space administrator; an ordinary non-administrator caller fails that check and the handler returns PermissionDenied before the deletion call. The protected deletion effect is therefore not reached on this source path. This source-visible denial conflicts with the accepted policy, which allows an active ordinary member to remove a different active member without administrator authority. The assessment does not claim repository-wide or deployment behavior; the supplied source does not establish facts beyond the declared premises and visible handler path.",
+          "facts": [
+            {
+              "id": "other-entry",
+              "kind": "entry",
+              "statement": "DeleteSpaceMember is the declared handler entry.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 740,
+                  "endLine": 742
+                }
+              ]
+            },
+            {
+              "id": "other-identity-binding",
+              "kind": "binding",
+              "statement": "The handler resolves the current authenticated user and passes that identity into space-member resource resolution.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 742,
+                  "endLine": 746
+                }
+              ]
+            },
+            {
+              "id": "other-resource-binding",
+              "kind": "binding",
+              "statement": "Resource resolution binds the selected space, target user, caller membership, and target membership, and requires the target membership to be active.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 632,
+                  "endLine": 662
+                }
+              ]
+            },
+            {
+              "id": "other-active-condition",
+              "kind": "condition",
+              "statement": "The resolver recognizes active memberships through IsActiveMember, whose visible roles are administrator and ordinary user.",
+              "citations": [
+                {
+                  "sourceId": "src-a88b144abe83d813",
+                  "startLine": 64,
+                  "endLine": 66
+                }
+              ]
+            },
+            {
+              "id": "other-self-test",
+              "kind": "control",
+              "statement": "The handler compares targetUser.ID with currentUser.ID and, for a different target, enters the administrator check.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 750,
+                  "endLine": 752
+                }
+              ]
+            },
+            {
+              "id": "other-admin-control",
+              "kind": "control",
+              "statement": "A non-administrator callerMembership is rejected with a permission-denied error before deletion.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 54,
+                  "endLine": 58
+                }
+              ]
+            },
+            {
+              "id": "other-protected-effect",
+              "kind": "effect",
+              "statement": "The deletion call and success publication occur only after the authorization check; this path returns before those operations.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 751,
+                  "endLine": 763
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "deny"
+          },
+          "branchResults": []
+        },
+        {
+          "obligationId": "scenario%3Aself-leave::entry%3Adelete-member",
+          "explanation": "At the declared handler entry, the current user is obtained and the named space member resource is resolved, including caller and target memberships. Under the supplied self-leave premise, targetUser.ID equals currentUser.ID, so isSelf is true. The administrator check is skipped, and the handler invokes DeleteSpaceMember for the resolved target membership, then publishes the space change and returns success if the store call does not report an error. Thus the source-visible authorization path allows self-removal for the ordinary non-administrator caller. This matches the accepted policy's allowance for an active member to delete their own membership. The source crop shows the handler's protected effect invocation, but does not establish external store-driver behavior or deployment facts.",
+          "facts": [
+            {
+              "id": "self-entry",
+              "kind": "entry",
+              "statement": "DeleteSpaceMember is the declared handler entry.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 740,
+                  "endLine": 742
+                }
+              ]
+            },
+            {
+              "id": "self-identity-binding",
+              "kind": "binding",
+              "statement": "The handler resolves the current authenticated user and uses that identity in resolving the requested member resource.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 742,
+                  "endLine": 746
+                }
+              ]
+            },
+            {
+              "id": "self-resource-binding",
+              "kind": "binding",
+              "statement": "Resource resolution binds the selected space, target user, caller membership, and target membership, and requires the target membership to be active.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 632,
+                  "endLine": 662
+                }
+              ]
+            },
+            {
+              "id": "self-active-condition",
+              "kind": "condition",
+              "statement": "The resolver recognizes active memberships through IsActiveMember, whose visible roles are administrator and ordinary user.",
+              "citations": [
+                {
+                  "sourceId": "src-a88b144abe83d813",
+                  "startLine": 64,
+                  "endLine": 66
+                }
+              ]
+            },
+            {
+              "id": "self-identity-control",
+              "kind": "control",
+              "statement": "The handler compares targetUser.ID with currentUser.ID and treats equality as self-removal, so the administrator-only branch is not entered.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 750,
+                  "endLine": 755
+                }
+              ]
+            },
+            {
+              "id": "self-protected-effect",
+              "kind": "effect",
+              "statement": "After the self-removal authorization path, the handler invokes deletion for the resolved target membership and publishes the space change on success.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 756,
+                  "endLine": 763
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "allow"
+          },
+          "branchResults": []
+        }
+      ]
+    }
+  },
+  "final": {
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "ak-use-memos-members",
+      "repository": "https://github.com/usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "results": [
+        {
+          "obligationId": "scenario%3Aother-member::entry%3Adelete-member",
+          "conclusion": "source_supported_failure",
+          "explanation": "At the declared handler entry, the current user is obtained and the named space member resource is resolved, including caller and target memberships. Under the supplied other-member premise, targetUser.ID differs from currentUser.ID, so isSelf is false. The strongest visible authorization control then requires callerMembership to be a space administrator; an ordinary non-administrator caller fails that check and the handler returns PermissionDenied before the deletion call. The protected deletion effect is therefore not reached on this source path. This source-visible denial conflicts with the accepted policy, which allows an active ordinary member to remove a different active member without administrator authority. The assessment does not claim repository-wide or deployment behavior; the supplied source does not establish facts beyond the declared premises and visible handler path.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "DeleteSpaceMember is the declared handler entry.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 740,
+                    "endLine": 742,
+                    "quote": "// DeleteSpaceMember removes a membership or lets a member leave a space.\nfunc (s *APIV1Service) DeleteSpaceMember(ctx context.Context, request *v1pb.DeleteSpaceMemberRequest) (*emptypb.Empty, error) {\n\tcurrentUser, err := s.requireCurrentSpaceUser(ctx)"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The handler resolves the current authenticated user and passes that identity into space-member resource resolution.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 742,
+                    "endLine": 746,
+                    "quote": "\tcurrentUser, err := s.requireCurrentSpaceUser(ctx)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\t_, targetUser, callerMembership, targetMembership, err := s.resolveSpaceMemberResource(ctx, request.Name, currentUser)"
+                  }
+                ]
+              },
+              {
+                "statement": "Resource resolution binds the selected space, target user, caller membership, and target membership, and requires the target membership to be active.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 632,
+                    "endLine": 662,
+                    "quote": "func (s *APIV1Service) resolveSpaceMemberResource(ctx context.Context, name string, currentUser *store.User) (*store.Space, *store.User, *store.SpaceMember, *store.SpaceMember, error) {\n\tspaceUID, username, err := ExtractSpaceMemberTokensFromName(name)\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, status.Errorf(codes.InvalidArgument, \"invalid space member name: %v\", err)\n\t}\n\tspace, callerMembership, err := s.resolveMemberSpace(ctx, buildSpaceName(spaceUID), currentUser)\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, err\n\t}\n\ttargetUser, err := ResolveUserByName(ctx, s.Store, BuildUserName(username))\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to resolve member user: %v\", err)\n\t}\n\tif targetUser == nil {\n\t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n\t}\n\tif targetUser.RowStatus != store.Normal {\n\t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n\t}\n\ttargetMembership, err := s.Store.GetSpaceMember(ctx, &store.FindSpaceMember{\n\t\tSpaceID:      &space.ID,\n\t\tUserID:       &targetUser.ID,\n\t\tViewerUserID: &currentUser.ID,\n\t})\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to get space membership: %v\", err)\n\t}\n\tif targetMembership == nil || !targetMembership.Role.IsActiveMember() {\n\t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n\t}\n\treturn space, targetUser, callerMembership, targetMembership, nil"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "A non-administrator callerMembership is rejected with a permission-denied error before deletion.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 54,
+                    "endLine": 58,
+                    "quote": "func requireSpaceAdministrator(member *store.SpaceMember) error {\n\tif member == nil || member.Role != store.SpaceMemberRoleAdmin {\n\t\treturn status.Error(codes.PermissionDenied, \"space administrator permission required\")\n\t}\n\treturn nil"
+                  }
+                ]
+              },
+              {
+                "statement": "The handler compares targetUser.ID with currentUser.ID and, for a different target, enters the administrator check.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 750,
+                    "endLine": 752,
+                    "quote": "\tisSelf := targetUser.ID == currentUser.ID\n\tif !isSelf {\n\t\tif err := requireSpaceAdministrator(callerMembership); err != nil {"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The deletion call and success publication occur only after the authorization check; this path returns before those operations.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 751,
+                    "endLine": 763,
+                    "quote": "\tif !isSelf {\n\t\tif err := requireSpaceAdministrator(callerMembership); err != nil {\n\t\t\treturn nil, err\n\t\t}\n\t}\n\tif err := s.Store.DeleteSpaceMember(ctx, &store.DeleteSpaceMember{\n\t\tSpaceID: targetMembership.SpaceID,\n\t\tUserID:  targetMembership.UserID,\n\t}, currentUser.ID); err != nil {\n\t\treturn nil, mapSpaceMutationError(err, \"failed to delete space member\")\n\t}\n\ts.SSEHub.publishSpaceChanged()\n\treturn &emptypb.Empty{}, nil"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The resolver recognizes active memberships through IsActiveMember, whose visible roles are administrator and ordinary user.",
+                "citations": [
+                  {
+                    "path": "store/space.go",
+                    "startLine": 64,
+                    "endLine": 66,
+                    "quote": "func (r SpaceMemberRole) IsActiveMember() bool {\n\treturn r == SpaceMemberRoleAdmin || r == SpaceMemberRoleUser\n}"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        },
+        {
+          "obligationId": "scenario%3Aself-leave::entry%3Adelete-member",
+          "conclusion": "source_refuted",
+          "explanation": "At the declared handler entry, the current user is obtained and the named space member resource is resolved, including caller and target memberships. Under the supplied self-leave premise, targetUser.ID equals currentUser.ID, so isSelf is true. The administrator check is skipped, and the handler invokes DeleteSpaceMember for the resolved target membership, then publishes the space change and returns success if the store call does not report an error. Thus the source-visible authorization path allows self-removal for the ordinary non-administrator caller. This matches the accepted policy's allowance for an active member to delete their own membership. The source crop shows the handler's protected effect invocation, but does not establish external store-driver behavior or deployment facts.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "DeleteSpaceMember is the declared handler entry.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 740,
+                    "endLine": 742,
+                    "quote": "// DeleteSpaceMember removes a membership or lets a member leave a space.\nfunc (s *APIV1Service) DeleteSpaceMember(ctx context.Context, request *v1pb.DeleteSpaceMemberRequest) (*emptypb.Empty, error) {\n\tcurrentUser, err := s.requireCurrentSpaceUser(ctx)"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The handler resolves the current authenticated user and uses that identity in resolving the requested member resource.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 742,
+                    "endLine": 746,
+                    "quote": "\tcurrentUser, err := s.requireCurrentSpaceUser(ctx)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\t_, targetUser, callerMembership, targetMembership, err := s.resolveSpaceMemberResource(ctx, request.Name, currentUser)"
+                  }
+                ]
+              },
+              {
+                "statement": "Resource resolution binds the selected space, target user, caller membership, and target membership, and requires the target membership to be active.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 632,
+                    "endLine": 662,
+                    "quote": "func (s *APIV1Service) resolveSpaceMemberResource(ctx context.Context, name string, currentUser *store.User) (*store.Space, *store.User, *store.SpaceMember, *store.SpaceMember, error) {\n\tspaceUID, username, err := ExtractSpaceMemberTokensFromName(name)\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, status.Errorf(codes.InvalidArgument, \"invalid space member name: %v\", err)\n\t}\n\tspace, callerMembership, err := s.resolveMemberSpace(ctx, buildSpaceName(spaceUID), currentUser)\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, err\n\t}\n\ttargetUser, err := ResolveUserByName(ctx, s.Store, BuildUserName(username))\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to resolve member user: %v\", err)\n\t}\n\tif targetUser == nil {\n\t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n\t}\n\tif targetUser.RowStatus != store.Normal {\n\t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n\t}\n\ttargetMembership, err := s.Store.GetSpaceMember(ctx, &store.FindSpaceMember{\n\t\tSpaceID:      &space.ID,\n\t\tUserID:       &targetUser.ID,\n\t\tViewerUserID: &currentUser.ID,\n\t})\n\tif err != nil {\n\t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to get space membership: %v\", err)\n\t}\n\tif targetMembership == nil || !targetMembership.Role.IsActiveMember() {\n\t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n\t}\n\treturn space, targetUser, callerMembership, targetMembership, nil"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The handler compares targetUser.ID with currentUser.ID and treats equality as self-removal, so the administrator-only branch is not entered.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 750,
+                    "endLine": 755,
+                    "quote": "\tisSelf := targetUser.ID == currentUser.ID\n\tif !isSelf {\n\t\tif err := requireSpaceAdministrator(callerMembership); err != nil {\n\t\t\treturn nil, err\n\t\t}\n\t}"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "After the self-removal authorization path, the handler invokes deletion for the resolved target membership and publishes the space change on success.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/space_service.go",
+                    "startLine": 756,
+                    "endLine": 763,
+                    "quote": "\tif err := s.Store.DeleteSpaceMember(ctx, &store.DeleteSpaceMember{\n\t\tSpaceID: targetMembership.SpaceID,\n\t\tUserID:  targetMembership.UserID,\n\t}, currentUser.ID); err != nil {\n\t\treturn nil, mapSpaceMutationError(err, \"failed to delete space member\")\n\t}\n\ts.SSEHub.publishSpaceChanged()\n\treturn &emptypb.Empty{}, nil"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The resolver recognizes active memberships through IsActiveMember, whose visible roles are administrator and ordinary user.",
+                "citations": [
+                  {
+                    "path": "store/space.go",
+                    "startLine": 64,
+                    "endLine": 66,
+                    "quote": "func (r SpaceMemberRole) IsActiveMember() bool {\n\treturn r == SpaceMemberRoleAdmin || r == SpaceMemberRoleUser\n}"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aother-member::entry%3Adelete-member",
+          "explanation": "At the declared handler entry, the current user is obtained and the named space member resource is resolved, including caller and target memberships. Under the supplied other-member premise, targetUser.ID differs from currentUser.ID, so isSelf is false. The strongest visible authorization control then requires callerMembership to be a space administrator; an ordinary non-administrator caller fails that check and the handler returns PermissionDenied before the deletion call. The protected deletion effect is therefore not reached on this source path. This source-visible denial conflicts with the accepted policy, which allows an active ordinary member to remove a different active member without administrator authority. The assessment does not claim repository-wide or deployment behavior; the supplied source does not establish facts beyond the declared premises and visible handler path.",
+          "facts": [
+            {
+              "id": "other-entry",
+              "kind": "entry",
+              "statement": "DeleteSpaceMember is the declared handler entry.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 740,
+                  "endLine": 742
+                }
+              ]
+            },
+            {
+              "id": "other-identity-binding",
+              "kind": "binding",
+              "statement": "The handler resolves the current authenticated user and passes that identity into space-member resource resolution.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 742,
+                  "endLine": 746
+                }
+              ]
+            },
+            {
+              "id": "other-resource-binding",
+              "kind": "binding",
+              "statement": "Resource resolution binds the selected space, target user, caller membership, and target membership, and requires the target membership to be active.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 632,
+                  "endLine": 662
+                }
+              ]
+            },
+            {
+              "id": "other-active-condition",
+              "kind": "condition",
+              "statement": "The resolver recognizes active memberships through IsActiveMember, whose visible roles are administrator and ordinary user.",
+              "citations": [
+                {
+                  "sourceId": "src-a88b144abe83d813",
+                  "startLine": 64,
+                  "endLine": 66
+                }
+              ]
+            },
+            {
+              "id": "other-self-test",
+              "kind": "control",
+              "statement": "The handler compares targetUser.ID with currentUser.ID and, for a different target, enters the administrator check.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 750,
+                  "endLine": 752
+                }
+              ]
+            },
+            {
+              "id": "other-admin-control",
+              "kind": "control",
+              "statement": "A non-administrator callerMembership is rejected with a permission-denied error before deletion.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 54,
+                  "endLine": 58
+                }
+              ]
+            },
+            {
+              "id": "other-protected-effect",
+              "kind": "effect",
+              "statement": "The deletion call and success publication occur only after the authorization check; this path returns before those operations.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 751,
+                  "endLine": 763
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "deny"
+          },
+          "branchResults": []
+        },
+        {
+          "obligationId": "scenario%3Aself-leave::entry%3Adelete-member",
+          "explanation": "At the declared handler entry, the current user is obtained and the named space member resource is resolved, including caller and target memberships. Under the supplied self-leave premise, targetUser.ID equals currentUser.ID, so isSelf is true. The administrator check is skipped, and the handler invokes DeleteSpaceMember for the resolved target membership, then publishes the space change and returns success if the store call does not report an error. Thus the source-visible authorization path allows self-removal for the ordinary non-administrator caller. This matches the accepted policy's allowance for an active member to delete their own membership. The source crop shows the handler's protected effect invocation, but does not establish external store-driver behavior or deployment facts.",
+          "facts": [
+            {
+              "id": "self-entry",
+              "kind": "entry",
+              "statement": "DeleteSpaceMember is the declared handler entry.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 740,
+                  "endLine": 742
+                }
+              ]
+            },
+            {
+              "id": "self-identity-binding",
+              "kind": "binding",
+              "statement": "The handler resolves the current authenticated user and uses that identity in resolving the requested member resource.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 742,
+                  "endLine": 746
+                }
+              ]
+            },
+            {
+              "id": "self-resource-binding",
+              "kind": "binding",
+              "statement": "Resource resolution binds the selected space, target user, caller membership, and target membership, and requires the target membership to be active.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 632,
+                  "endLine": 662
+                }
+              ]
+            },
+            {
+              "id": "self-active-condition",
+              "kind": "condition",
+              "statement": "The resolver recognizes active memberships through IsActiveMember, whose visible roles are administrator and ordinary user.",
+              "citations": [
+                {
+                  "sourceId": "src-a88b144abe83d813",
+                  "startLine": 64,
+                  "endLine": 66
+                }
+              ]
+            },
+            {
+              "id": "self-identity-control",
+              "kind": "control",
+              "statement": "The handler compares targetUser.ID with currentUser.ID and treats equality as self-removal, so the administrator-only branch is not entered.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 750,
+                  "endLine": 755
+                }
+              ]
+            },
+            {
+              "id": "self-protected-effect",
+              "kind": "effect",
+              "statement": "After the self-removal authorization path, the handler invokes deletion for the resolved target membership and publishes the space change on success.",
+              "citations": [
+                {
+                  "sourceId": "src-e2ad4ef5bd43e06f",
+                  "startLine": 756,
+                  "endLine": 763
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "allow"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Aother-member::entry%3Adelete-member",
+        "expectation": "allow",
+        "observed": "deny",
+        "derivedConclusion": "source_supported_failure"
+      },
+      {
+        "obligationId": "scenario%3Aself-leave::entry%3Adelete-member",
+        "expectation": "allow",
+        "observed": "allow",
+        "derivedConclusion": "source_refuted"
+      }
+    ]
+  },
+  "firstAuthor": {
+    "text": "{\n  \"schemaVersion\": \"authorization-local-edit/v1\",\n  \"reason\": \"Update the accepted space-member removal policy to the changed brief and revise both policy-linked scenario expectations while preserving the unchanged source, identities, relations, premises, task ID, and all other assessment fields.\",\n  \"operations\": [\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/policies/accepted-policy/text\",\n      \"value\": \"An active space member may delete their own membership and may remove a different active member of the same space without space administrator authority.\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/policies/accepted-policy/location\",\n      \"value\": \"author-briefs.json#/memos-space-policy/changedPolicy\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/policies/accepted-policy/revision\",\n      \"value\": \"changed-v1\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/scenarios/self-leave/expectation\",\n      \"value\": \"allow\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/assessment/scenarios/other-member/expectation\",\n      \"value\": \"allow\"\n    }\n  ]\n}",
+    "deterministicValid": false,
+    "diagnostics": [
+      "operations.0.kind: Invalid discriminator value. Expected 'policy' | 'scenario' | 'premise'",
+      "operations.1.kind: Invalid discriminator value. Expected 'policy' | 'scenario' | 'premise'",
+      "operations.2.kind: Invalid discriminator value. Expected 'policy' | 'scenario' | 'premise'",
+      "operations.3.kind: Invalid discriminator value. Expected 'policy' | 'scenario' | 'premise'",
+      "operations.4.kind: Invalid discriminator value. Expected 'policy' | 'scenario' | 'premise'",
+      "No complete assessment after applying the author delivery."
+    ]
+  },
+  "finalAuthor": {
+    "text": "{\n  \"schemaVersion\": \"authorization-local-edit/v1\",\n  \"reason\": \"Update the accepted space-member removal policy to the changed brief and explicitly set both policy-linked scenario expectations while preserving the unchanged source, identities, relations, premises, task ID, and all other assessment fields.\",\n  \"operations\": [\n    {\n      \"kind\": \"policy\",\n      \"key\": \"accepted-policy\",\n      \"set\": {\n        \"text\": \"An active space member may delete their own membership and may remove a different active member of the same space without space administrator authority.\",\n        \"location\": \"author-briefs.json#/memos-space-policy/changedPolicy\",\n        \"revision\": \"changed-v1\"\n      }\n    },\n    {\n      \"kind\": \"scenario\",\n      \"key\": \"self-leave\",\n      \"set\": {\n        \"expectation\": \"allow\"\n      }\n    },\n    {\n      \"kind\": \"scenario\",\n      \"key\": \"other-member\",\n      \"set\": {\n        \"expectation\": \"allow\"\n      }\n    }\n  ]\n}",
+    "deterministicValid": true,
+    "selectedAttempt": "revision"
+  },
+  "reviewQuestions": [
+    "Rate each of the two declared scenarios full|partial|incorrect using actual source, policy expectation and v6/canonical label consistency",
+    "Are final author instructions faithful to this brief, without filled source answers or extra analysis entries?",
+    "Did policy/source changes preserve unrelated task fields and force fresh analysis?",
+    "Keep first author failures and two extra diagnostic corrections separate from final usability"
+  ]
+}

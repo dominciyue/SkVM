@@ -1,0 +1,280 @@
+{
+  "id": "fastapi-superuser-read",
+  "status": "published",
+  "code": 0,
+  "stdout": [
+    "{\n  \"schemaVersion\": \"authorization-evidence-report/v2\",\n  \"status\": \"partial\",\n  \"sourceIdentity\": {\n    \"repository\": \"https://github.com/fastapi/full-stack-fastapi-template\",\n    \"sourceRef\": \"cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7\"\n  },\n  \"sourceRoot\": \"../../../authorization-evidence-editing-v1/public-source/fastapi\",\n  \"included\": [\n    {\n      \"path\": \"backend/app/api/routes/items.py\",\n      \"originalPath\": \"backend/app/api/routes/items.py\",\n      \"startLine\": 48,\n      \"endLine\": 58,\n      \"origins\": [\n        \"entry:read-item\"\n      ],\n      \"segments\": [\n        {\n          \"originalStartLine\": 48,\n          \"originalEndLine\": 58,\n          \"origins\": [\n            \"entry:read-item\"\n          ],\n          \"snapshotStartLine\": 1,\n          \"snapshotEndLine\": 11\n        }\n      ]\n    }\n  ],\n  \"gaps\": [\n    {\n      \"id\": \"dep:read-item:current-user\",\n      \"entryKey\": \"read-item\",\n      \"reason\": \"ambiguous-location\",\n      \"attemptedPath\": \"backend/app/api/routes/items.py\"\n    },\n    {\n      \"id\": \"dep:read-item:item-lookup\",\n      \"entryKey\": \"read-item\",\n      \"reason\": \"ambiguous-location\",\n      \"attemptedPath\": \"backend/app/api/routes/items.py\"\n    },\n    {\n      \"id\": \"dep:read-item:missing-item-control\",\n      \"entryKey\": \"read-item\",\n      \"reason\": \"ambiguous-location\",\n      \"attemptedPath\": \"backend/app/api/routes/items.py\"\n    },\n    {\n      \"id\": \"dep:read-item:ownership-control\",\n      \"entryKey\": \"read-item\",\n      \"reason\": \"ambiguous-location\",\n      \"attemptedPath\": \"backend/app/api/routes/items.py\"\n    },\n    {\n      \"id\": \"dep:read-item:return-item\",\n      \"entryKey\": \"read-item\",\n      \"reason\": \"ambiguous-location\",\n      \"attemptedPath\": \"backend/app/api/routes/items.py\"\n    }\n  ],\n  \"closureClaim\": \"declared-dependencies-only\",\n  \"scopePreview\": {\n    \"analysisEntries\": 1,\n    \"declaredScenarios\": 1,\n    \"expandedObligations\": 1,\n    \"entries\": [\n      {\n        \"id\": \"entry:read-item\",\n        \"name\": \"read_item\",\n        \"locations\": [\n          {\n            \"path\": \"backend/app/api/routes/items.py\",\n            \"startLine\": 48,\n            \"endLine\": 58\n          }\n        ],\n        \"scenarioIds\": [\n          \"scenario:read-item\"\n        ]\n      }\n    ],\n    \"supportDependencies\": 5,\n    \"supports\": [\n      {\n        \"id\": \"dep:read-item:current-user\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"startLine\": 49,\n        \"endLine\": 49,\n        \"basis\": \"model-proposal\"\n      },\n      {\n        \"id\": \"dep:read-item:item-lookup\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"startLine\": 53,\n        \"endLine\": 53,\n        \"basis\": \"model-proposal\"\n      },\n      {\n        \"id\": \"dep:read-item:missing-item-control\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"startLine\": 54,\n        \"endLine\": 55,\n        \"basis\": \"model-proposal\"\n      },\n      {\n        \"id\": \"dep:read-item:ownership-control\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"startLine\": 56,\n        \"endLine\": 57,\n        \"basis\": \"model-proposal\"\n      },\n      {\n        \"id\": \"dep:read-item:return-item\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"startLine\": 58,\n        \"endLine\": 58,\n        \"basis\": \"model-proposal\"\n      }\n    ],\n    \"scopeRule\": \"Only declared scenario-entry pairs are analyzed. Support does not add an entry; explicit multiple analysis entries are preserved.\"\n  },\n  \"discoveryPath\": \"D:\\\\skill优化\\\\SkVM\\\\results\\\\skill-ir\\\\skill-dsl-research\\\\development\\\\authorization-bounded-preparation-v2\\\\inputs\\\\fastapi-superuser-read\\\\automatic-v2\\\\discovery.json\",\n  \"proposal\": {\n    \"schemaVersion\": \"authorization-dependency-proposal/v2\",\n    \"model\": \"xty/gpt-5.6-sol\",\n    \"dependencies\": [\n      {\n        \"id\": \"dep:read-item:current-user\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"startLine\": 49,\n        \"endLine\": 49,\n        \"match\": \"current_user: CurrentUser\",\n        \"reason\": \"identity\",\n        \"basis\": \"model-proposal\"\n      },\n      {\n        \"id\": \"dep:read-item:item-lookup\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"startLine\": 53,\n        \"endLine\": 53,\n        \"match\": \"item = session.get(Item, id)\",\n        \"reason\": \"resource-binding\",\n        \"basis\": \"model-proposal\"\n      },\n      {\n        \"id\": \"dep:read-item:missing-item-control\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"startLine\": 54,\n        \"endLine\": 55,\n        \"match\": \"if not item: ... raise HTTPException(status_code=404, detail=\\\"Item not found\\\")\",\n        \"reason\": \"control\",\n        \"basis\": \"model-proposal\"\n      },\n      {\n        \"id\": \"dep:read-item:ownership-control\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"startLine\": 56,\n        \"endLine\": 57,\n        \"match\": \"if not current_user.is_superuser and (item.owner_id != current_user.id): ... raise HTTPException(status_code=403, detail=\\\"Not enough permissions\\\")\",\n        \"reason\": \"control\",\n        \"basis\": \"model-proposal\"\n      },\n      {\n        \"id\": \"dep:read-item:return-item\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"startLine\": 58,\n        \"endLine\": 58,\n        \"match\": \"return item\",\n        \"reason\": \"effect\",\n        \"basis\": \"model-proposal\"\n      }\n    ],\n    \"promptCharacters\": 3440,\n    \"responseCharacters\": 1100,\n    \"durationMs\": 24269.0279,\n    \"tokens\": {\n      \"input\": 1164,\n      \"output\": 528,\n      \"cacheRead\": 0,\n      \"cacheWrite\": 0\n    },\n    \"actualCostUsd\": null,\n    \"account\": {\n      \"schemaVersion\": \"authorization-preparation-attempts/v1\",\n      \"model\": \"xty/gpt-5.6-sol\",\n      \"status\": \"completed\",\n      \"published\": true,\n      \"attempts\": [\n        {\n          \"id\": \"provider-attempt-1\",\n          \"phase\": \"initial\",\n          \"transport\": \"prompt-parse\",\n          \"status\": \"response\",\n          \"startedAt\": \"2026-09-28T17:50:37.444Z\",\n          \"request\": {\n            \"messageCount\": 1,\n            \"messageCharacters\": 3440,\n            \"toolNames\": [],\n            \"maxTokens\": 6000,\n            \"temperature\": 0,\n            \"executableTools\": false\n          },\n          \"usage\": {\n            \"input\": 1164,\n            \"output\": 528,\n            \"cacheRead\": 0,\n            \"cacheWrite\": 0\n          },\n          \"costUsd\": null,\n          \"transportAttempts\": \"unknown\",\n          \"response\": {\n            \"text\": \"{\\\"dependencies\\\":[{\\\"id\\\":\\\"dep:read-item:current-user\\\",\\\"from\\\":\\\"read-item\\\",\\\"path\\\":\\\"backend/app/api/routes/items.py\\\",\\\"startLine\\\":49,\\\"endLine\\\":49,\\\"reason\\\":\\\"identity\\\",\\\"match\\\":\\\"current_user: CurrentUser\\\"},{\\\"id\\\":\\\"dep:read-item:item-lookup\\\",\\\"from\\\":\\\"read-item\\\",\\\"path\\\":\\\"backend/app/api/routes/items.py\\\",\\\"startLine\\\":53,\\\"endLine\\\":53,\\\"reason\\\":\\\"resource-binding\\\",\\\"match\\\":\\\"item = session.get(Item, id)\\\"},{\\\"id\\\":\\\"dep:read-item:missing-item-control\\\",\\\"from\\\":\\\"read-item\\\",\\\"path\\\":\\\"backend/app/api/routes/items.py\\\",\\\"startLine\\\":54,\\\"endLine\\\":55,\\\"reason\\\":\\\"control\\\",\\\"match\\\":\\\"if not item: ... raise HTTPException(status_code=404, detail=\\\\\\\"Item not found\\\\\\\")\\\"},{\\\"id\\\":\\\"dep:read-item:ownership-control\\\",\\\"from\\\":\\\"read-item\\\",\\\"path\\\":\\\"backend/app/api/routes/items.py\\\",\\\"startLine\\\":56,\\\"endLine\\\":57,\\\"reason\\\":\\\"control\\\",\\\"match\\\":\\\"if not current_user.is_superuser and (item.owner_id != current_user.id): ... raise HTTPException(status_code=403, detail=\\\\\\\"Not enough permissions\\\\\\\")\\\"},{\\\"id\\\":\\\"dep:read-item:return-item\\\",\\\"from\\\":\\\"read-item\\\",\\\"path\\\":\\\"backend/app/api/routes/items.py\\\",\\\"startLine\\\":58,\\\"endLine\\\":58,\\\"reason\\\":\\\"effect\\\",\\\"match\\\":\\\"return item\\\"}]}\",\n            \"toolCalls\": [],\n            \"tokens\": {\n              \"input\": 1164,\n              \"output\": 528,\n              \"cacheRead\": 0,\n              \"cacheWrite\": 0\n            },\n            \"costUsd\": null,\n            \"durationMs\": 24269.0279,\n            \"stopReason\": \"end_turn\"\n          },\n          \"endedAt\": \"2026-09-28T17:51:01.713Z\"\n        }\n      ],\n      \"telemetry\": {\n        \"providerCalls\": 1,\n        \"respondedCalls\": 1,\n        \"unknownUsageCalls\": 0,\n        \"unknownCostCalls\": 1,\n        \"knownTokens\": {\n          \"input\": 1164,\n          \"output\": 528,\n          \"cacheRead\": 0,\n          \"cacheWrite\": 0\n        },\n        \"tokensStatus\": \"complete\",\n        \"knownActualUsdSubtotal\": 0,\n        \"totalActualUsd\": null,\n        \"actualUsdStatus\": \"unknown\",\n        \"transportAttempts\": \"unknown\"\n      },\n      \"rounds\": [\n        {\n          \"kind\": \"proposal\",\n          \"promptCharacters\": 3440,\n          \"displayedBytes\": 514,\n          \"diagnostics\": []\n        }\n      ],\n      \"diagnostics\": [],\n      \"unknownCostReason\": \"provider did not report actual cost for every dispatched request\"\n    }\n  },\n  \"attemptPath\": \"D:\\\\skill优化\\\\SkVM\\\\results\\\\skill-ir\\\\skill-dsl-research\\\\development\\\\authorization-bounded-preparation-v2\\\\inputs\\\\fastapi-superuser-read\\\\automatic-v2.attempts-kzY1fJ\",\n  \"outputPath\": \"D:\\\\skill优化\\\\SkVM\\\\results\\\\skill-ir\\\\skill-dsl-research\\\\development\\\\authorization-bounded-preparation-v2\\\\inputs\\\\fastapi-superuser-read\\\\automatic-v2\",\n  \"inputPath\": \"D:\\\\skill优化\\\\SkVM\\\\results\\\\skill-ir\\\\skill-dsl-research\\\\development\\\\authorization-bounded-preparation-v2\\\\inputs\\\\fastapi-superuser-read\\\\automatic-v2\\\\assessment.json\"\n}"
+  ],
+  "stderr": [],
+  "report": {
+    "schemaVersion": "authorization-evidence-report/v2",
+    "status": "partial",
+    "sourceIdentity": {
+      "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+      "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/fastapi",
+    "included": [
+      {
+        "path": "backend/app/api/routes/items.py",
+        "originalPath": "backend/app/api/routes/items.py",
+        "startLine": 48,
+        "endLine": 58,
+        "origins": [
+          "entry:read-item"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 48,
+            "originalEndLine": 58,
+            "origins": [
+              "entry:read-item"
+            ],
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 11
+          }
+        ]
+      }
+    ],
+    "gaps": [
+      {
+        "id": "dep:read-item:current-user",
+        "entryKey": "read-item",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/app/api/routes/items.py"
+      },
+      {
+        "id": "dep:read-item:item-lookup",
+        "entryKey": "read-item",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/app/api/routes/items.py"
+      },
+      {
+        "id": "dep:read-item:missing-item-control",
+        "entryKey": "read-item",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/app/api/routes/items.py"
+      },
+      {
+        "id": "dep:read-item:ownership-control",
+        "entryKey": "read-item",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/app/api/routes/items.py"
+      },
+      {
+        "id": "dep:read-item:return-item",
+        "entryKey": "read-item",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/app/api/routes/items.py"
+      }
+    ],
+    "closureClaim": "declared-dependencies-only",
+    "scopePreview": {
+      "analysisEntries": 1,
+      "declaredScenarios": 1,
+      "expandedObligations": 1,
+      "entries": [
+        {
+          "id": "entry:read-item",
+          "name": "read_item",
+          "locations": [
+            {
+              "path": "backend/app/api/routes/items.py",
+              "startLine": 48,
+              "endLine": 58
+            }
+          ],
+          "scenarioIds": [
+            "scenario:read-item"
+          ]
+        }
+      ],
+      "supportDependencies": 5,
+      "supports": [
+        {
+          "id": "dep:read-item:current-user",
+          "from": "read-item",
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 49,
+          "endLine": 49,
+          "basis": "model-proposal"
+        },
+        {
+          "id": "dep:read-item:item-lookup",
+          "from": "read-item",
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 53,
+          "endLine": 53,
+          "basis": "model-proposal"
+        },
+        {
+          "id": "dep:read-item:missing-item-control",
+          "from": "read-item",
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 54,
+          "endLine": 55,
+          "basis": "model-proposal"
+        },
+        {
+          "id": "dep:read-item:ownership-control",
+          "from": "read-item",
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 56,
+          "endLine": 57,
+          "basis": "model-proposal"
+        },
+        {
+          "id": "dep:read-item:return-item",
+          "from": "read-item",
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 58,
+          "endLine": 58,
+          "basis": "model-proposal"
+        }
+      ],
+      "scopeRule": "Only declared scenario-entry pairs are analyzed. Support does not add an entry; explicit multiple analysis entries are preserved."
+    },
+    "discoveryPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-bounded-preparation-v2\\inputs\\fastapi-superuser-read\\automatic-v2\\discovery.json",
+    "proposal": {
+      "schemaVersion": "authorization-dependency-proposal/v2",
+      "model": "xty/gpt-5.6-sol",
+      "dependencies": [
+        {
+          "id": "dep:read-item:current-user",
+          "from": "read-item",
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 49,
+          "endLine": 49,
+          "match": "current_user: CurrentUser",
+          "reason": "identity",
+          "basis": "model-proposal"
+        },
+        {
+          "id": "dep:read-item:item-lookup",
+          "from": "read-item",
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 53,
+          "endLine": 53,
+          "match": "item = session.get(Item, id)",
+          "reason": "resource-binding",
+          "basis": "model-proposal"
+        },
+        {
+          "id": "dep:read-item:missing-item-control",
+          "from": "read-item",
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 54,
+          "endLine": 55,
+          "match": "if not item: ... raise HTTPException(status_code=404, detail=\"Item not found\")",
+          "reason": "control",
+          "basis": "model-proposal"
+        },
+        {
+          "id": "dep:read-item:ownership-control",
+          "from": "read-item",
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 56,
+          "endLine": 57,
+          "match": "if not current_user.is_superuser and (item.owner_id != current_user.id): ... raise HTTPException(status_code=403, detail=\"Not enough permissions\")",
+          "reason": "control",
+          "basis": "model-proposal"
+        },
+        {
+          "id": "dep:read-item:return-item",
+          "from": "read-item",
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 58,
+          "endLine": 58,
+          "match": "return item",
+          "reason": "effect",
+          "basis": "model-proposal"
+        }
+      ],
+      "promptCharacters": 3440,
+      "responseCharacters": 1100,
+      "durationMs": 24269.0279,
+      "tokens": {
+        "input": 1164,
+        "output": 528,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "actualCostUsd": null,
+      "account": {
+        "schemaVersion": "authorization-preparation-attempts/v1",
+        "model": "xty/gpt-5.6-sol",
+        "status": "completed",
+        "published": true,
+        "attempts": [
+          {
+            "id": "provider-attempt-1",
+            "phase": "initial",
+            "transport": "prompt-parse",
+            "status": "response",
+            "startedAt": "2026-09-28T17:50:37.444Z",
+            "request": {
+              "messageCount": 1,
+              "messageCharacters": 3440,
+              "toolNames": [],
+              "maxTokens": 6000,
+              "temperature": 0,
+              "executableTools": false
+            },
+            "usage": {
+              "input": 1164,
+              "output": 528,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "costUsd": null,
+            "transportAttempts": "unknown",
+            "response": {
+              "text": "{\"dependencies\":[{\"id\":\"dep:read-item:current-user\",\"from\":\"read-item\",\"path\":\"backend/app/api/routes/items.py\",\"startLine\":49,\"endLine\":49,\"reason\":\"identity\",\"match\":\"current_user: CurrentUser\"},{\"id\":\"dep:read-item:item-lookup\",\"from\":\"read-item\",\"path\":\"backend/app/api/routes/items.py\",\"startLine\":53,\"endLine\":53,\"reason\":\"resource-binding\",\"match\":\"item = session.get(Item, id)\"},{\"id\":\"dep:read-item:missing-item-control\",\"from\":\"read-item\",\"path\":\"backend/app/api/routes/items.py\",\"startLine\":54,\"endLine\":55,\"reason\":\"control\",\"match\":\"if not item: ... raise HTTPException(status_code=404, detail=\\\"Item not found\\\")\"},{\"id\":\"dep:read-item:ownership-control\",\"from\":\"read-item\",\"path\":\"backend/app/api/routes/items.py\",\"startLine\":56,\"endLine\":57,\"reason\":\"control\",\"match\":\"if not current_user.is_superuser and (item.owner_id != current_user.id): ... raise HTTPException(status_code=403, detail=\\\"Not enough permissions\\\")\"},{\"id\":\"dep:read-item:return-item\",\"from\":\"read-item\",\"path\":\"backend/app/api/routes/items.py\",\"startLine\":58,\"endLine\":58,\"reason\":\"effect\",\"match\":\"return item\"}]}",
+              "toolCalls": [],
+              "tokens": {
+                "input": 1164,
+                "output": 528,
+                "cacheRead": 0,
+                "cacheWrite": 0
+              },
+              "costUsd": null,
+              "durationMs": 24269.0279,
+              "stopReason": "end_turn"
+            },
+            "endedAt": "2026-09-28T17:51:01.713Z"
+          }
+        ],
+        "telemetry": {
+          "providerCalls": 1,
+          "respondedCalls": 1,
+          "unknownUsageCalls": 0,
+          "unknownCostCalls": 1,
+          "knownTokens": {
+            "input": 1164,
+            "output": 528,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "tokensStatus": "complete",
+          "knownActualUsdSubtotal": 0,
+          "totalActualUsd": null,
+          "actualUsdStatus": "unknown",
+          "transportAttempts": "unknown"
+        },
+        "rounds": [
+          {
+            "kind": "proposal",
+            "promptCharacters": 3440,
+            "displayedBytes": 514,
+            "diagnostics": []
+          }
+        ],
+        "diagnostics": [],
+        "unknownCostReason": "provider did not report actual cost for every dispatched request"
+      }
+    },
+    "attemptPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-bounded-preparation-v2\\inputs\\fastapi-superuser-read\\automatic-v2.attempts-kzY1fJ",
+    "outputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-bounded-preparation-v2\\inputs\\fastapi-superuser-read\\automatic-v2",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-bounded-preparation-v2\\inputs\\fastapi-superuser-read\\automatic-v2\\assessment.json"
+  }
+}

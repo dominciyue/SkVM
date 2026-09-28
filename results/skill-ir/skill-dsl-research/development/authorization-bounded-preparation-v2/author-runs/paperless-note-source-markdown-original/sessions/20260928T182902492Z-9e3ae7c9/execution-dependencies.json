@@ -1,0 +1,576 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "ak-use-paperless-note",
+    "request": "At the notes POST handler, assess two declared relations between an authenticated caller and an existing document. Both callers hold global add_note, view_document and change_document permissions and can view the document. Use each scenario's object relation to determine whether Note.objects.create is reached.",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:accepted-policy",
+        "kind": "explicit-task-requirement",
+        "text": "Creating a note requires the stated global permissions and object-level change_document authorization; a view grant alone is insufficient, while document ownership or an object change grant can satisfy the object control.",
+        "location": "author-briefs.json#/paperless-note-source/originalPolicy",
+        "revision": "original-v1",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The public task author supplies this accepted policy."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:caller",
+        "role": "Authenticated caller described separately by the two exact scenario premises.",
+        "description": "Author facts: not declared.",
+        "startingCapabilities": []
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:target",
+        "type": "Protected target fixed in each scenario premise.",
+        "description": "Author facts: not declared."
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:notes-post",
+        "name": "notes-post",
+        "locations": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1841,
+            "endLine": 1913
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:change-granted",
+        "principalId": "principal:caller",
+        "resourceId": "resource:target",
+        "relation": "object-change-granted-not-owner",
+        "operation": "create a note on the document",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:accepted-policy",
+        "entryIds": [
+          "entry:notes-post"
+        ]
+      },
+      {
+        "id": "scenario:view-only",
+        "principalId": "principal:caller",
+        "resourceId": "resource:target",
+        "relation": "object-view-granted-not-owner-no-change-grant",
+        "operation": "create a note on the document",
+        "expectation": "deny",
+        "conditions": [],
+        "policySourceId": "policy:accepted-policy",
+        "entryIds": [
+          "entry:notes-post"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+    ]
+  },
+  "scenarios": {
+    "scenario:change-granted": {
+      "name": "change-granted",
+      "obligation": {
+        "id": "scenario:change-granted",
+        "principalId": "principal:caller",
+        "resourceId": "resource:target",
+        "relation": "object-change-granted-not-owner",
+        "operation": "create a note on the document",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:accepted-policy",
+        "entryIds": [
+          "entry:notes-post"
+        ]
+      },
+      "principal": {
+        "id": "principal:caller",
+        "role": "Authenticated caller described separately by the two exact scenario premises.",
+        "description": "Author facts: not declared.",
+        "startingCapabilities": []
+      },
+      "resource": {
+        "id": "resource:target",
+        "type": "Protected target fixed in each scenario premise.",
+        "description": "Author facts: not declared."
+      },
+      "policy": {
+        "id": "policy:accepted-policy",
+        "kind": "explicit-task-requirement",
+        "text": "Creating a note requires the stated global permissions and object-level change_document authorization; a view grant alone is insufficient, while document ownership or an object change grant can satisfy the object control.",
+        "location": "author-briefs.json#/paperless-note-source/originalPolicy",
+        "revision": "original-v1",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The public task author supplies this accepted policy."
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:notes-post",
+          "name": "notes-post",
+          "locations": [
+            {
+              "path": "src/documents/views.py",
+              "startLine": 1841,
+              "endLine": 1913
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Achange-granted::entry%3Anotes-post"
+      ]
+    },
+    "scenario:view-only": {
+      "name": "view-only",
+      "obligation": {
+        "id": "scenario:view-only",
+        "principalId": "principal:caller",
+        "resourceId": "resource:target",
+        "relation": "object-view-granted-not-owner-no-change-grant",
+        "operation": "create a note on the document",
+        "expectation": "deny",
+        "conditions": [],
+        "policySourceId": "policy:accepted-policy",
+        "entryIds": [
+          "entry:notes-post"
+        ]
+      },
+      "principal": {
+        "id": "principal:caller",
+        "role": "Authenticated caller described separately by the two exact scenario premises.",
+        "description": "Author facts: not declared.",
+        "startingCapabilities": []
+      },
+      "resource": {
+        "id": "resource:target",
+        "type": "Protected target fixed in each scenario premise.",
+        "description": "Author facts: not declared."
+      },
+      "policy": {
+        "id": "policy:accepted-policy",
+        "kind": "explicit-task-requirement",
+        "text": "Creating a note requires the stated global permissions and object-level change_document authorization; a view grant alone is insufficient, while document ownership or an object change grant can satisfy the object control.",
+        "location": "author-briefs.json#/paperless-note-source/originalPolicy",
+        "revision": "original-v1",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "The public task author supplies this accepted policy."
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:notes-post",
+          "name": "notes-post",
+          "locations": [
+            {
+              "path": "src/documents/views.py",
+              "startLine": 1841,
+              "endLine": 1913
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Aview-only::entry%3Anotes-post"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "src/documents/views.py",
+      "sha256": "8ecf8e0d34aa87a4c5467b84a8c9501b684493e7c2d12dba5af0cc7889cc8b2b",
+      "cropRange": {
+        "startLine": 1841,
+        "endLine": 4833
+      },
+      "originalLocations": [
+        "src/documents/views.py:1841-1913",
+        "src/documents/views.py:4767-4833"
+      ],
+      "segments": [
+        {
+          "originalStartLine": 1841,
+          "originalEndLine": 1913,
+          "snapshotStartLine": 1,
+          "snapshotEndLine": 73,
+          "origins": [
+            "model-proposal:dep-1",
+            "entry:notes-post"
+          ]
+        },
+        {
+          "originalStartLine": 4767,
+          "originalEndLine": 4833,
+          "snapshotStartLine": 74,
+          "snapshotEndLine": 140,
+          "origins": [
+            "locator:located-2"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/documents/permissions.py",
+      "sha256": "5311db49b78f8bb791f5e52cdf2ba70980739c99de7478066e5a69689fb1d2f5",
+      "cropRange": {
+        "startLine": 345,
+        "endLine": 637
+      },
+      "originalLocations": [
+        "src/documents/permissions.py:345-350",
+        "src/documents/permissions.py:460-464",
+        "src/documents/permissions.py:624-637"
+      ],
+      "segments": [
+        {
+          "originalStartLine": 345,
+          "originalEndLine": 350,
+          "snapshotStartLine": 1,
+          "snapshotEndLine": 6,
+          "origins": [
+            "locator:located-3"
+          ]
+        },
+        {
+          "originalStartLine": 460,
+          "originalEndLine": 464,
+          "snapshotStartLine": 7,
+          "snapshotEndLine": 11,
+          "origins": [
+            "locator:located-4"
+          ]
+        },
+        {
+          "originalStartLine": 624,
+          "originalEndLine": 637,
+          "snapshotStartLine": 12,
+          "snapshotEndLine": 25,
+          "origins": [
+            "model-proposal:dep-6",
+            "locator:located-1"
+          ]
+        }
+      ]
+    }
+  ],
+  "evidencePreparation": {
+    "status": "partial",
+    "sourceIdentity": {
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+    "gaps": [
+      {
+        "id": "dep-2",
+        "entryKey": "notes-post",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-3",
+        "entryKey": "notes-post",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-4",
+        "entryKey": "notes-post",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-5",
+        "entryKey": "notes-post",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-7",
+        "entryKey": "notes-post",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-8",
+        "entryKey": "notes-post",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/permissions.py"
+      }
+    ],
+    "closureClaim": "declared-dependencies-only",
+    "schemaVersion": "authorization-evidence-report/v2",
+    "included": [
+      {
+        "path": "src/documents/views.py",
+        "originalPath": "src/documents/views.py",
+        "startLine": 1841,
+        "endLine": 4833,
+        "origins": [
+          "model-proposal:dep-1",
+          "entry:notes-post",
+          "locator:located-2"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 1841,
+            "originalEndLine": 1913,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 73,
+            "origins": [
+              "model-proposal:dep-1",
+              "entry:notes-post"
+            ]
+          },
+          {
+            "originalStartLine": 4767,
+            "originalEndLine": 4833,
+            "snapshotStartLine": 74,
+            "snapshotEndLine": 140,
+            "origins": [
+              "locator:located-2"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "src/documents/permissions.py",
+        "originalPath": "src/documents/permissions.py",
+        "startLine": 345,
+        "endLine": 637,
+        "origins": [
+          "locator:located-3",
+          "locator:located-4",
+          "model-proposal:dep-6",
+          "locator:located-1"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 345,
+            "originalEndLine": 350,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 6,
+            "origins": [
+              "locator:located-3"
+            ]
+          },
+          {
+            "originalStartLine": 460,
+            "originalEndLine": 464,
+            "snapshotStartLine": 7,
+            "snapshotEndLine": 11,
+            "origins": [
+              "locator:located-4"
+            ]
+          },
+          {
+            "originalStartLine": 624,
+            "originalEndLine": 637,
+            "snapshotStartLine": 12,
+            "snapshotEndLine": 25,
+            "origins": [
+              "model-proposal:dep-6",
+              "locator:located-1"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "sourceRoot": "../../../inputs/paperless-note-post/automatic-v2/source",
+  "sources": [
+    "src/documents/views.py",
+    "src/documents/permissions.py"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:change-granted",
+        "scenario:view-only"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": null,
+  "assessmentContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Assess both declared scenarios at handler entry using the supplied fixed source and accepted task policy. Treat premises as task assumptions, trace identity/object/control/effect with exact supplied-source citations, and separate policy expectation from observed authorization. Do not execute target code or infer deployment facts.",
+    "scenarios": [
+      {
+        "obligationId": "scenario:change-granted",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "object-relation",
+            "statement": "At handler entry, the caller has the stated global permissions and object view and change_document grants, but is not the document owner.",
+            "atEntryId": "entry:notes-post",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the decisive source-visible control and protected effect, and compare with the accepted policy."
+        ]
+      },
+      {
+        "obligationId": "scenario:view-only",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "object-relation",
+            "statement": "At handler entry, the caller has the stated global permissions and object view grant, but is not the document owner and has no object change_document grant.",
+            "atEntryId": "entry:notes-post",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the decisive source-visible control and protected effect, and compare with the accepted policy."
+        ]
+      }
+    ]
+  },
+  "assessmentProgram": {
+    "schemaVersion": "authorization-assessment-program/v1",
+    "entries": [
+      {
+        "obligationId": "scenario%3Achange-granted::entry%3Anotes-post",
+        "authorObligationId": "scenario:change-granted",
+        "entryId": "entry:notes-post",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "object-relation",
+            "statement": "At handler entry, the caller has the stated global permissions and object view and change_document grants, but is not the document owner.",
+            "atEntryId": "entry:notes-post",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the decisive source-visible control and protected effect, and compare with the accepted policy."
+        ]
+      },
+      {
+        "obligationId": "scenario%3Aview-only::entry%3Anotes-post",
+        "authorObligationId": "scenario:view-only",
+        "entryId": "entry:notes-post",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "object-relation",
+            "statement": "At handler entry, the caller has the stated global permissions and object view grant, but is not the document owner and has no object change_document grant.",
+            "atEntryId": "entry:notes-post",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the decisive source-visible control and protected effect, and compare with the accepted policy."
+        ]
+      }
+    ]
+  },
+  "assessmentMode": "explicit-v1",
+  "normalizerVersion": "normalized-input/v1",
+  "method": "plain",
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "arm": "B",
+  "reasoningStrategy": "standard",
+  "reasoningPlan": null,
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "b45219caf6f649e817bc55564410e2e8ce09088cbaf0f36ae94335969bb11163"
+}

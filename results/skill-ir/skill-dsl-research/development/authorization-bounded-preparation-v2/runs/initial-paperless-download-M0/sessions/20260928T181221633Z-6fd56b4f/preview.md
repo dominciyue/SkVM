@@ -1,0 +1,1265 @@
+<!-- analysis-profile: authorization-core-v1; origin: derived; study-arm: none; condition-analysis: disabled; assessment: explicit-v1 -->
+
+# Source-visible authorization assessment
+
+Assess the authored task below using only the supplied fixed source and common result contract.
+
+## Independent Markdown instructions
+# Fixed-Source Authorization Assessment
+
+Assess the authorization behavior of the specified handler using only the fixed source entry and the neutral brief below. Do not rely on other repository revisions, inferred implementation details, external documentation, or unstated assumptions. A common public requirements paragraph is supplied separately to all methods; do not quote it verbatim.
+
+## Source
+
+- **Repository:** https://github.com/paperless-ngx/paperless-ngx
+- **Fixed source ref:** `126ec414a8b65158368653a2604ae58415e43103`
+- **Entry:** `src/documents/views.py:1834-1839`
+- **Inspection boundary:** `declared-entry`
+
+Use the source at the fixed ref and entry as the controlling evidence. Do not invent source facts or decide the result from policy alone.
+
+## Accepted policy
+
+A download must pass the owner-aware `view_document` check on the root document before serving any selected file version.
+
+## Question
+
+At `DocumentViewSet.download` handler entry, can an authenticated user download a requested version document they own when its root document is owned by someone else and they lack an object view grant on that root?
+
+## Premises
+
+Assume all of the following at handler entry:
+
+- The authenticated caller has the required global document view permission.
+- The caller owns the requested version.
+- A different user owns the existing root document.
+- The caller has no object view grant on that root.
+- The documents exist.
+
+## Required response
+
+Give a source-grounded authorization assessment at the declared-entry boundary. Explicitly:
+
+1. Identify which object is checked by the relevant authorization logic.
+2. Identify which file object would be served if the request proceeds.
+3. Keep version ownership distinct from authorization on the root document.
+4. Explain how the fixed source relates to the accepted policy and the stated premises.
+5. State the conclusion only from the evidence available at the specified source entry; do not add facts from elsewhere in the repository.
+
+
+## Public analysis questions
+Decide the current scenario at the stated declared-entry boundary from the supplied fixed source and accepted policy. Treat premises as question assumptions, not source or deployment proof. Trace the decisive authorization control, protected object and effect with exact supplied-source locations. State any decisive missing runtime fact rather than assuming it. Do not execute the target, infer missing deployment facts, or consult later versions.
+Current question: At DocumentViewSet.download handler entry, can an authenticated user download a requested version document they own when its root document is owned by someone else and they lack an object view grant on that root? Assume the user has the required global view permission and the documents exist.
+Analysis boundary: declared-entry.
+Task premise: At download entry, the authenticated caller has global document view permission and owns the requested version, but a different user owns the existing root document and the caller has no object view grant on that root.
+Required response detail: Identify which object is checked and which file object would be served; do not collapse version ownership into root authorization.
+
+## Explicit assessment program
+- Current question scenario%3Aversion-owner-no-root-view::entry%3Adownload at entry:download; boundary: declared-entry.
+  Accepted task premises at this entry (not source citations): premise-1: At download entry, the authenticated caller has global document view permission and owns the requested version, but a different user owns the existing root document and the caller has no object view grant on that root..
+  Prove the decisive source path within the requested boundary; report a decisive missing binding only when that boundary requires it.
+  Required response details: Identify which object is checked and which file object would be served; do not collapse version ownership into root authorization..
+
+## Result contract
+Use compact wire/v6: top-level results only. Each item has obligationId, decision and branchResults, explanation, facts as an array of {id, kind, statement, citations}, decisiveMissingFacts and suggestedObservations. Fact IDs must be unique within each obligation. kind is entry/binding/control/effect/condition. The host fills all version/identity/scope metadata and groups facts; never output those fields. Include item-local coverage only when an analysis ledger is supplied, and item-local condition only when a condition request is supplied. Branches do not repeat obligationId.
+Return exactly one result for every runnable expanded obligation. Do not output conclusion or policyStatus at the item level. For an authored allow/deny expectation, return decision {kind:"observed",observed:"allow"|"deny"|"unknown"} describing the source-visible behavior, independently of the normative expectation. The host compares that observed behavior with the authored expectation. For an authored conditional expectation, return decision {kind:"conditional-policy",policyStatus:"satisfied"|"violated"|"undetermined"}; the host uses this policy judgment without a binary observed comparison. Unknown requires decisiveMissingFacts and suggestedObservations. Do not infer observed behavior from the expectation or prose.
+Every result includes branchResults, an empty array if no branch is requested. For each explicitly requested branch below, return its exact id and assumptions, a reachable/blocked/unknown effect, a causal explanation, same-obligation factIds for known effects, and decisive missingFacts for unknown effects. Counterfactual assumptions are hypotheses; they do not alter the current scenario or establish source/deployment facts. Extra or missing branches are invalid.
+Exact requested branch IDs and assumptions (closed list):
+- (none)
+Exact runnable obligation IDs (closed list):
+- scenario%3Aversion-owner-no-root-view::entry%3Adownload
+Use each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.
+Support the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.
+Address every public analysis question in the explanation and source-backed facts. No separate coverage ledger is required for this plain-method answer.
+
+## Fixed source context
+Preparation status: ready
+
+Closure claim: declared-dependencies-only
+
+Prepared from: https://github.com/paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103; root ../../../authorization-evidence-editing-v1/public-source/paperless
+
+Included original ranges: src/documents/views.py:1388-1839 [locator:version-selection, locator:root-resolution, locator:file-response, entry:download]; src/documents/permissions.py:1-717 [locator:owner-aware]
+
+Unresolved gaps: none
+
+===== BEGIN ALLOWED INPUT: src/documents/permissions.py =====
+Source ID: src-81f6400744c9c9e9
+Location note: crop lines 1-717; original locations: src/documents/permissions.py:1-717
+Citation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.
+1 | from typing import Any
+2 | from typing import TypeVar
+3 | 
+4 | from django.contrib.auth.models import Group
+5 | from django.contrib.auth.models import Permission
+6 | from django.contrib.auth.models import User
+7 | from django.contrib.contenttypes.models import ContentType
+8 | from django.db.models import Case
+9 | from django.db.models import Count
+10 | from django.db.models import IntegerField
+11 | from django.db.models import Model
+12 | from django.db.models import Q
+13 | from django.db.models import QuerySet
+14 | from django.db.models import Value
+15 | from django.db.models import When
+16 | from django.db.models.functions import Cast
+17 | from guardian.core import ObjectPermissionChecker
+18 | from guardian.models import GroupObjectPermission
+19 | from guardian.models import UserObjectPermission
+20 | from guardian.shortcuts import assign_perm
+21 | from guardian.shortcuts import get_objects_for_user
+22 | from guardian.shortcuts import get_users_with_perms
+23 | from guardian.shortcuts import remove_perm
+24 | from rest_framework.permissions import BasePermission
+25 | from rest_framework.permissions import DjangoObjectPermissions
+26 | 
+27 | from documents.models import Document
+28 | 
+29 | 
+30 | class PaperlessObjectPermissions(DjangoObjectPermissions):
+31 |     """
+32 |     A permissions backend that checks for object-level permissions
+33 |     or for ownership.
+34 |     """
+35 | 
+36 |     perms_map = {
+37 |         "GET": ["%(app_label)s.view_%(model_name)s"],
+38 |         "OPTIONS": ["%(app_label)s.view_%(model_name)s"],
+39 |         "HEAD": ["%(app_label)s.view_%(model_name)s"],
+40 |         "POST": ["%(app_label)s.add_%(model_name)s"],
+41 |         "PUT": ["%(app_label)s.change_%(model_name)s"],
+42 |         "PATCH": ["%(app_label)s.change_%(model_name)s"],
+43 |         "DELETE": ["%(app_label)s.delete_%(model_name)s"],
+44 |     }
+45 | 
+46 |     def has_object_permission(self, request, view, obj):
+47 |         if hasattr(obj, "owner") and obj.owner is not None:
+48 |             if request.user == obj.owner:
+49 |                 return True
+50 |             else:
+51 |                 return super().has_object_permission(request, view, obj)
+52 |         else:
+53 |             return True  # no owner
+54 | 
+55 | 
+56 | class PaperlessAdminPermissions(BasePermission):
+57 |     def has_permission(self, request, view):
+58 |         return request.user.is_active and request.user.is_staff
+59 | 
+60 | 
+61 | def has_global_statistics_permission(user: User | None) -> bool:
+62 |     if (
+63 |         user is None
+64 |         or not getattr(user, "is_active", False)
+65 |         or not getattr(user, "is_authenticated", False)
+66 |     ):
+67 |         return False
+68 | 
+69 |     return getattr(user, "is_superuser", False) or user.has_perm(
+70 |         "paperless.view_global_statistics",
+71 |     )
+72 | 
+73 | 
+74 | def has_system_status_permission(user: User | None) -> bool:
+75 |     if (
+76 |         user is None
+77 |         or not getattr(user, "is_active", False)
+78 |         or not getattr(user, "is_authenticated", False)
+79 |     ):
+80 |         return False
+81 | 
+82 |     return (
+83 |         getattr(user, "is_superuser", False)
+84 |         or getattr(user, "is_staff", False)
+85 |         or user.has_perm("paperless.view_system_monitoring")
+86 |     )
+87 | 
+88 | 
+89 | def get_groups_with_only_permission(obj, codename):
+90 |     ctype = ContentType.objects.get_for_model(obj)
+91 |     permission = Permission.objects.get(content_type=ctype, codename=codename)
+92 |     group_object_perm_group_ids = (
+93 |         GroupObjectPermission.objects.filter(
+94 |             object_pk=obj.pk,
+95 |             content_type=ctype,
+96 |         )
+97 |         .filter(permission=permission)
+98 |         .values_list("group_id")
+99 |     )
+100 |     return Group.objects.filter(id__in=group_object_perm_group_ids).distinct()
+101 | 
+102 | 
+103 | def set_permissions_for_object(
+104 |     permissions: dict,
+105 |     object,
+106 |     *,
+107 |     merge: bool = False,
+108 | ) -> None:
+109 |     """
+110 |     Set permissions for an object. The permissions are given as a mapping of actions
+111 |     to a dict of user / group id lists, e.g.
+112 |     {"view": {"users": [1], "groups": [2]}, "change": {"users": [], "groups": []}}.
+113 | 
+114 |     If merge is True, the permissions are merged with the existing permissions and
+115 |     no users or groups are removed. If False, the permissions are set to exactly
+116 |     the given list of users and groups.
+117 |     """
+118 | 
+119 |     for action, entry in permissions.items():
+120 |         permission = f"{action}_{object.__class__.__name__.lower()}"
+121 |         if "users" in entry:
+122 |             # users
+123 |             users_to_add = User.objects.filter(id__in=entry["users"])
+124 |             users_to_remove = (
+125 |                 get_users_with_perms(
+126 |                     object,
+127 |                     only_with_perms_in=[permission],
+128 |                     with_group_users=False,
+129 |                 )
+130 |                 if not merge
+131 |                 else User.objects.none()
+132 |             )
+133 |             if users_to_add.exists() and users_to_remove.exists():
+134 |                 users_to_remove = users_to_remove.exclude(id__in=users_to_add)
+135 |             if users_to_remove.exists():
+136 |                 for user in users_to_remove:
+137 |                     remove_perm(permission, user, object)
+138 |             if users_to_add.exists():
+139 |                 for user in users_to_add:
+140 |                     assign_perm(permission, user, object)
+141 |                     if action == "change":
+142 |                         # change gives view too
+143 |                         assign_perm(
+144 |                             f"view_{object.__class__.__name__.lower()}",
+145 |                             user,
+146 |                             object,
+147 |                         )
+148 |         if "groups" in entry:
+149 |             # groups
+150 |             groups_to_add = Group.objects.filter(id__in=entry["groups"])
+151 |             groups_to_remove = (
+152 |                 get_groups_with_only_permission(
+153 |                     object,
+154 |                     permission,
+155 |                 )
+156 |                 if not merge
+157 |                 else Group.objects.none()
+158 |             )
+159 |             if groups_to_add.exists() and groups_to_remove.exists():
+160 |                 groups_to_remove = groups_to_remove.exclude(id__in=groups_to_add)
+161 |             if groups_to_remove.exists():
+162 |                 for group in groups_to_remove:
+163 |                     remove_perm(permission, group, object)
+164 |             if groups_to_add.exists():
+165 |                 for group in groups_to_add:
+166 |                     assign_perm(permission, group, object)
+167 |                     if action == "change":
+168 |                         # change gives view too
+169 |                         assign_perm(
+170 |                             f"view_{object.__class__.__name__.lower()}",
+171 |                             group,
+172 |                             object,
+173 |                         )
+174 | 
+175 | 
+176 | def _resolve_permissions(codenames: set[str], ctype: ContentType) -> list[Permission]:
+177 |     """
+178 |     Resolves `codenames` to Permission rows, raising like the single-object
+179 |     assign_perm() this bulk path replaces does (via a `.get()` internally)
+180 |     if any codename doesn't exist. SetPermissionsSerializer rejects unknown
+181 |     action names at the API, but a caller passing one directly would
+182 |     otherwise get a plain `.filter()` that silently builds zero rows and
+183 |     no-ops instead of reporting the bad input.
+184 |     """
+185 |     permission_objs = list(
+186 |         Permission.objects.filter(content_type=ctype, codename__in=codenames),
+187 |     )
+188 |     missing = codenames - {p.codename for p in permission_objs}
+189 |     if missing:
+190 |         raise Permission.DoesNotExist(
+191 |             f"Permission matching query does not exist for codename(s): "
+192 |             f"{', '.join(sorted(missing))}",
+193 |         )
+194 |     return permission_objs
+195 | 
+196 | 
+197 | def _apply_bulk_permission_entry(
+198 |     *,
+199 |     perm_model: type[UserObjectPermission] | type[GroupObjectPermission],
+200 |     identity_model: type[User] | type[Group],
+201 |     identity_field: str,
+202 |     ids: list[int],
+203 |     codename: str,
+204 |     permission_objs: list[Permission],
+205 |     ctype: ContentType,
+206 |     object_pks: list[str],
+207 |     merge: bool,
+208 | ) -> None:
+209 |     # Only the ids are needed to build permission rows (via `<field>_id=`),
+210 |     # so avoid fetching full User/Group rows for identities that may not
+211 |     # even end up being granted anything new.
+212 |     add_ids = set(
+213 |         identity_model.objects.filter(id__in=ids).values_list("id", flat=True),
+214 |     )
+215 | 
+216 |     if not merge:
+217 |         existing_ids = set(
+218 |             perm_model.objects.filter(
+219 |                 content_type=ctype,
+220 |                 object_pk__in=object_pks,
+221 |                 permission__codename=codename,
+222 |             )
+223 |             .values_list(f"{identity_field}_id", flat=True)
+224 |             .distinct(),
+225 |         )
+226 |         remove_ids = existing_ids - add_ids
+227 |         if remove_ids:
+228 |             perm_model.objects.filter(
+229 |                 content_type=ctype,
+230 |                 object_pk__in=object_pks,
+231 |                 permission__codename=codename,
+232 |                 **{f"{identity_field}_id__in": remove_ids},
+233 |             ).delete()
+234 | 
+235 |     if not add_ids:
+236 |         return
+237 | 
+238 |     rows = [
+239 |         perm_model(
+240 |             content_type=ctype,
+241 |             object_pk=pk,
+242 |             permission=permission_obj,
+243 |             **{f"{identity_field}_id": identity_id},
+244 |         )
+245 |         for permission_obj in permission_objs
+246 |         for pk in object_pks
+247 |         for identity_id in add_ids
+248 |     ]
+249 |     # ignore_conflicts skips only rows that already exist as an exact
+250 |     # (identity, permission, object) match -- the same de-dup the
+251 |     # underlying (user|group, permission, object_pk) unique constraint
+252 |     # already enforces for the single-object assign_perm() this replaces,
+253 |     # so it doesn't change what counts as "already granted". batch_size
+254 |     # caps how many rows go into a single INSERT statement.
+255 |     perm_model.objects.bulk_create(rows, ignore_conflicts=True, batch_size=1000)
+256 | 
+257 | 
+258 | def set_permissions_for_objects(
+259 |     permissions: dict,
+260 |     model: type[Model],
+261 |     pks: QuerySet | list,
+262 |     *,
+263 |     merge: bool = False,
+264 | ) -> None:
+265 |     """
+266 |     Bulk equivalent of set_permissions_for_object: applies the same
+267 |     permission changes to every object identified by `pks` at once.
+268 | 
+269 |     Takes a model + pks (rather than model instances) deliberately -- the
+270 |     permission rows built below only ever need `pk`, `content_type`, and
+271 |     identity ids, so callers shouldn't have to fetch full rows (with every
+272 |     other field) just to hand them to this function.
+273 | 
+274 |     Deliberately does not use guardian's queryset/list-aware assign_perm:
+275 |     passing a list as the object routes to bulk_assign_perm, which skips
+276 |     creating a direct permission row for anyone who already has the
+277 |     permission via ANY group membership (it checks
+278 |     ObjectPermissionChecker.has_perm, which is group-inheritance-aware) --
+279 |     unlike the single-object assign_perm this replaces, which always
+280 |     ensures a direct row via get_or_create regardless of group-derived
+281 |     access. Losing that guarantee would mean a later revocation of the
+282 |     group's grant silently strips access an admin explicitly asked to be
+283 |     direct. Bulk-creating rows straight against the permission models
+284 |     instead (see _apply_bulk_permission_entry) preserves the original
+285 |     always-create-a-direct-row semantics while still batching every object
+286 |     and every identity into one query per action, rather than one query per
+287 |     (object, user) pair.
+288 |     """
+289 |     object_pks = [str(pk) for pk in pks]
+290 |     if not object_pks:  # pragma: no cover
+291 |         return
+292 | 
+293 |     model_name = model.__name__.lower()
+294 |     ctype = ContentType.objects.get_for_model(model)
+295 | 
+296 |     # Every action is resolved up front, before anything is written, so an
+297 |     # unrecognized action name (see _resolve_permissions) aborts the whole
+298 |     # call instead of leaving the actions ahead of it already applied.
+299 |     # SetPermissionsSerializer rejects unknown actions at the API, so this
+300 |     # guards any other caller.
+301 |     permissions_by_action: dict[str, list[Permission]] = {}
+302 |     for action, entry in permissions.items():
+303 |         if "users" not in entry and "groups" not in entry:
+304 |             continue
+305 |         implied_codenames = {f"{action}_{model_name}"}
+306 |         if action == "change":
+307 |             # change gives view too
+308 |             implied_codenames.add(f"view_{model_name}")
+309 |         permissions_by_action[action] = _resolve_permissions(
+310 |             implied_codenames,
+311 |             ctype,
+312 |         )
+313 | 
+314 |     for action, entry in permissions.items():
+315 |         codename = f"{action}_{model_name}"
+316 |         permission_objs = permissions_by_action.get(action, [])
+317 | 
+318 |         if "users" in entry:
+319 |             _apply_bulk_permission_entry(
+320 |                 perm_model=UserObjectPermission,
+321 |                 identity_model=User,
+322 |                 identity_field="user",
+323 |                 ids=entry["users"],
+324 |                 codename=codename,
+325 |                 permission_objs=permission_objs,
+326 |                 ctype=ctype,
+327 |                 object_pks=object_pks,
+328 |                 merge=merge,
+329 |             )
+330 | 
+331 |         if "groups" in entry:
+332 |             _apply_bulk_permission_entry(
+333 |                 perm_model=GroupObjectPermission,
+334 |                 identity_model=Group,
+335 |                 identity_field="group",
+336 |                 ids=entry["groups"],
+337 |                 codename=codename,
+338 |                 permission_objs=permission_objs,
+339 |                 ctype=ctype,
+340 |                 object_pks=object_pks,
+341 |                 merge=merge,
+342 |             )
+343 | 
+344 | 
+345 | def permitted_object_ids(
+346 |     user: User | None,
+347 |     model: type[Model],
+348 |     perm: str,
+349 |     *,
+350 |     include_deleted: bool = False,
+351 | ) -> QuerySet[int]:
+352 |     """
+353 |     Generic version of ``permitted_document_ids`` for any model with an
+354 |     ``owner`` field and guardian object-level permissions. ``include_deleted``
+355 |     only has an effect for models exposing a ``global_objects``/``deleted_at``
+356 |     soft-delete pattern (currently only ``Document``); for every other model
+357 |     it is accepted but has no effect, since those models have no soft-delete
+358 |     concept.
+359 |     """
+360 |     has_soft_delete = hasattr(model, "global_objects")
+361 |     manager = (
+362 |         model.global_objects if include_deleted and has_soft_delete else model.objects
+363 |     )
+364 |     base_qs = manager.all().only("id", "owner")
+365 | 
+366 |     if user is None or not getattr(user, "is_authenticated", False):
+367 |         return base_qs.filter(owner__isnull=True).values_list("id", flat=True)
+368 | 
+369 |     # Deactivated users get nothing, deactivated superusers included, so this
+370 |     # has to come before the superuser shortcut. guardian's
+371 |     # ObjectPermissionChecker denies inactive users, but get_objects_for_user
+372 |     # (the pattern this replaces) does not, so it would not be inherited.
+373 |     if not getattr(user, "is_active", False):
+374 |         return base_qs.none().values_list("id", flat=True)
+375 | 
+376 |     if getattr(user, "is_superuser", False):
+377 |         return base_qs.values_list("id", flat=True)
+378 | 
+379 |     # Guardian's UserObjectPermission/GroupObjectPermission always store a bare
+380 |     # codename, but has_perm()-style callers commonly pass the qualified
+381 |     # "app_label.codename" form. content_type already disambiguates the
+382 |     # codename, so just drop any prefix rather than silently under-permitting.
+383 |     perm = perm.rsplit(".", 1)[-1]
+384 | 
+385 |     content_type = ContentType.objects.get_for_model(model)
+386 |     perm_filter = {
+387 |         "permission__codename": perm,
+388 |         "permission__content_type": content_type,
+389 |     }
+390 | 
+391 |     user_perm_ids = (
+392 |         UserObjectPermission.objects.filter(user=user, **perm_filter)
+393 |         .annotate(object_pk_int=Cast("object_pk", IntegerField()))
+394 |         .values_list("object_pk_int", flat=True)
+395 |     )
+396 |     group_perm_ids = (
+397 |         GroupObjectPermission.objects.filter(group__user=user, **perm_filter)
+398 |         .annotate(object_pk_int=Cast("object_pk", IntegerField()))
+399 |         .values_list("object_pk_int", flat=True)
+400 |     )
+401 |     permitted_ids = user_perm_ids.union(group_perm_ids)
+402 | 
+403 |     return base_qs.filter(
+404 |         Q(owner=user) | Q(owner__isnull=True) | Q(id__in=permitted_ids),
+405 |     ).values_list("id", flat=True)
+406 | 
+407 | 
+408 | ModelT = TypeVar("ModelT", bound=Model)
+409 | 
+410 | 
+411 | def user_is_unrestricted(user: User | None) -> bool:
+412 |     """
+413 |     True when ``user`` means "no restriction at all" (an absent user, or an
+414 |     *active* superuser) without needing a database check to know it.
+415 | 
+416 |     ``permitted_object_ids(None, ...)`` itself means the much narrower "only
+417 |     unowned rows", which is NOT the same thing as "no user filtering
+418 |     requested", so callers must special-case this before ever calling it.
+419 |     A deactivated superuser is deliberately NOT unrestricted here, matching
+420 |     permitted_object_ids's own is_active-before-is_superuser ordering.
+421 | 
+422 |     Callers that can avoid a database round trip entirely when this is true
+423 |     (e.g. checking a single already-loaded object's visibility rather than
+424 |     filtering a queryset) should do so via this function directly, rather
+425 |     than through restrict_queryset_to_visible() below.
+426 |     """
+427 |     if user is None:
+428 |         return True
+429 |     return (
+430 |         getattr(user, "is_authenticated", False)
+431 |         and getattr(user, "is_active", False)
+432 |         and getattr(user, "is_superuser", False)
+433 |     )
+434 | 
+435 | 
+436 | def restrict_queryset_to_visible(
+437 |     queryset: QuerySet[ModelT],
+438 |     user: User | None,
+439 |     perm: str,
+440 | ) -> QuerySet[ModelT]:
+441 |     """
+442 |     Restrict ``queryset`` to the rows ``user`` may see with ``perm``.
+443 | 
+444 |     Delegates the visibility check to the database as a
+445 |     ``WHERE id IN (subquery)`` rather than materializing the full
+446 |     permitted-id set into a Python collection first: a caller that only
+447 |     needs to check a small handful of rows (a resolved-id list, a few
+448 |     RAG-neighbour candidate ids) never pays for scanning or holding the
+449 |     installation's entire taxonomy in memory to do it.
+450 | 
+451 |     Returns ``queryset`` unchanged for user_is_unrestricted(user); every
+452 |     other case is delegated to ``permitted_object_ids`` rather than
+453 |     re-deciding the ordering here.
+454 |     """
+455 |     if user_is_unrestricted(user):
+456 |         return queryset
+457 |     return queryset.filter(pk__in=permitted_object_ids(user, queryset.model, perm))
+458 | 
+459 | 
+460 | def permitted_document_ids(
+461 |     user: User | None,
+462 |     *,
+463 |     perm: str = "view_document",
+464 |     include_deleted: bool = False,
+465 | ) -> QuerySet[int]:
+466 |     """
+467 |     Document-specific convenience wrapper around ``permitted_object_ids``.
+468 |     Return a queryset of document IDs the user has ``perm`` on (default
+469 |     ``"view_document"``). By default limited to non-deleted documents; pass
+470 |     ``include_deleted=True`` for callers that need to check permission on
+471 |     soft-deleted documents (e.g. trash restore). This intentionally avoids
+472 |     ``get_objects_for_user`` to keep the subquery small and index-friendly.
+473 |     """
+474 |     return permitted_object_ids(user, Document, perm, include_deleted=include_deleted)
+475 | 
+476 | 
+477 | def get_document_count_filter_for_user(user, related_name: str = "documents"):
+478 |     """
+479 |     Return the Q object used to filter document counts for the given user.
+480 | 
+481 |     The filter is expressed as an ``id__in`` against a small subquery of permitted
+482 |     document IDs to keep the generated SQL simple and avoid large OR clauses.
+483 | 
+484 |     ``related_name`` is the ORM path from the annotated model to Document (e.g.
+485 |     ``"documents"`` for Tag's direct M2M, or ``"fields__document"`` for CustomField,
+486 |     which only reaches Document via the CustomFieldInstance through-model).
+487 |     """
+488 | 
+489 |     if getattr(user, "is_superuser", False):
+490 |         # Superuser: no permission filtering needed
+491 |         return Q(**{f"{related_name}__deleted_at__isnull": True})
+492 | 
+493 |     permitted_ids = permitted_document_ids(user)
+494 |     return Q(**{f"{related_name}__id__in": permitted_ids})
+495 | 
+496 | 
+497 | def annotate_document_count_by_ids(
+498 |     queryset: QuerySet[Any],
+499 |     through_model: Any,
+500 |     related_object_field: str,
+501 |     document_ids: Any,
+502 |     target_field: str = "document_id",
+503 | ) -> QuerySet[Any]:
+504 |     """
+505 |     Annotate a queryset with a document count for a relation to Document that
+506 |     goes through an M2M/through-model table (e.g. Tag via
+507 |     ``Document.tags.through``, or CustomField via ``CustomFieldInstance``),
+508 |     for an explicit, already-resolved set of document ids.
+509 | 
+510 |     Counts are computed via a single, independent GROUP BY over the relation
+511 |     table -- with the id filter expressed as a plain ``WHERE`` rather than an
+512 |     aggregate ``FILTER`` -- then injected via ``Case``/``When``. This
+513 |     deliberately avoids two slower alternatives found while building this:
+514 | 
+515 |     - A per-outer-row correlated subquery (one execution per row of the
+516 |       annotated queryset): fine at a handful of rows, catastrophic once the
+517 |       queryset has hundreds/thousands of rows.
+518 |     - ``Count(..., filter=Q(id__in=document_ids), distinct=True)`` applied
+519 |       directly to the M2M relation: Postgres can fail to plan the ``id__in``
+520 |       check as a semi-join and instead re-checks subquery membership once per
+521 |       row of the (much larger) M2M join -- worse than the correlated subquery.
+522 | 
+523 |     Aggregation is restricted to rows whose ``related_object_field`` is one of
+524 |     ``queryset``'s pks, so passing a subset (e.g. a handful of tag descendants)
+525 |     doesn't pay the cost of counting for every row matching ``document_ids``.
+526 | 
+527 |     Args:
+528 |         queryset: base queryset to annotate (must contain pk)
+529 |         through_model: model representing the relation (e.g., Document.tags.through
+530 |                        or CustomFieldInstance)
+531 |         related_object_field: field on the relation pointing back to queryset pk
+532 |         document_ids: the document ids to count against -- a concrete list/set,
+533 |                        or a simple (already resolved) queryset of ids. Callers
+534 |                        that need this filtered by a complex condition (e.g. a
+535 |                        permission check) should resolve it to a concrete list
+536 |                        first if the same ids will be reused across multiple
+537 |                        calls, rather than passing the complex queryset itself
+538 |                        into each -- see ``_get_selection_data_for_queryset``.
+539 |         target_field: field on the relation pointing to Document id
+540 |     """
+541 | 
+542 |     counts = (
+543 |         through_model.objects.filter(
+544 |             **{
+545 |                 f"{related_object_field}__in": queryset.values("pk"),
+546 |                 f"{target_field}__in": document_ids,
+547 |             },
+548 |         )
+549 |         .values(related_object_field)
+550 |         .annotate(c=Count(target_field, distinct=True))
+551 |     )
+552 |     counts_by_pk = {row[related_object_field]: row["c"] for row in counts}
+553 | 
+554 |     if not counts_by_pk:
+555 |         return queryset.annotate(
+556 |             document_count=Value(0, output_field=IntegerField()),
+557 |         )
+558 | 
+559 |     return queryset.annotate(
+560 |         document_count=Case(
+561 |             *(When(pk=pk, then=Value(count)) for pk, count in counts_by_pk.items()),
+562 |             default=Value(0),
+563 |             output_field=IntegerField(),
+564 |         ),
+565 |     )
+566 | 
+567 | 
+568 | def annotate_document_count_for_related_queryset(
+569 |     queryset: QuerySet[Any],
+570 |     through_model: Any,
+571 |     related_object_field: str,
+572 |     target_field: str = "document_id",
+573 |     user: User | None = None,
+574 | ) -> QuerySet[Any]:
+575 |     """
+576 |     Same as ``annotate_document_count_by_ids``, but resolves the document ids
+577 |     from the given user's view permissions rather than taking them directly.
+578 |     """
+579 | 
+580 |     return annotate_document_count_by_ids(
+581 |         queryset,
+582 |         through_model=through_model,
+583 |         related_object_field=related_object_field,
+584 |         document_ids=permitted_document_ids(user),
+585 |         target_field=target_field,
+586 |     )
+587 | 
+588 | 
+589 | def get_objects_for_user_owner_aware(
+590 |     user: User | None,
+591 |     perms: str | list[str],
+592 |     Model: Any,
+593 |     *,
+594 |     include_deleted: bool = False,
+595 | ) -> QuerySet[Any]:
+596 |     """
+597 |     Returns objects the user owns, are unowned, or has explicit perms.
+598 |     When include_deleted is True, soft-deleted items are also included.
+599 | 
+600 |     Legacy slow path (guardian-backed, O(n) style permission resolution).
+601 |     Most queryset-filtering call sites have migrated onto
+602 |     ``PermittedObjectsFilter``/``permitted_object_ids()``, but this function
+603 |     is kept because production callers still remain. Several callers remain
+604 |     across ``documents/``, ``paperless_mail/``, and ``paperless_ai/`` --
+605 |     grep for this function name before removing it.
+606 |     """
+607 |     manager = (
+608 |         Model.global_objects
+609 |         if include_deleted and hasattr(Model, "global_objects")
+610 |         else Model.objects
+611 |     )
+612 | 
+613 |     objects_owned = manager.filter(owner=user)
+614 |     objects_unowned = manager.filter(owner__isnull=True)
+615 |     objects_with_perms = get_objects_for_user(
+616 |         user=user,
+617 |         perms=perms,
+618 |         klass=manager.all(),
+619 |         accept_global_perms=False,
+620 |     )
+621 |     return objects_owned | objects_unowned | objects_with_perms
+622 | 
+623 | 
+624 | def has_perms_owner_aware(user, perms, obj):
+625 |     """
+626 |     Legacy slow path (guardian-backed) single-object permission check.
+627 | 
+628 |     The queryset-filtering side of this migrated onto
+629 |     ``PermittedObjectsFilter``/``permitted_object_ids()``, but this
+630 |     single-object check still has many production callers. Several callers
+631 |     remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``
+632 |     -- grep for this function name before removing it.
+633 |     """
+634 |     checker = ObjectPermissionChecker(user)
+635 |     return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)
+636 | 
+637 | 
+638 | class ViewDocumentsPermissions(BasePermission):
+639 |     """
+640 |     Permissions class that checks for model permissions for only viewing Documents.
+641 |     """
+642 | 
+643 |     perms_map = {
+644 |         "OPTIONS": ["documents.view_document"],
+645 |         "GET": ["documents.view_document"],
+646 |         "POST": ["documents.view_document"],
+647 |     }
+648 | 
+649 |     def has_permission(self, request, view):
+650 |         if not request.user or (not request.user.is_authenticated):  # pragma: no cover
+651 |             return False
+652 | 
+653 |         return request.user.has_perms(self.perms_map.get(request.method, []))
+654 | 
+655 | 
+656 | class TrashPermissions(BasePermission):
+657 |     """Check the global document permission for each trash operation."""
+658 | 
+659 |     perms_map = {
+660 |         "OPTIONS": ["documents.view_document"],
+661 |         "HEAD": ["documents.view_document"],
+662 |         "GET": ["documents.view_document"],
+663 |         "POST": ["documents.delete_document"],
+664 |     }
+665 | 
+666 |     def has_permission(self, request, view):
+667 |         if not request.user or not request.user.is_authenticated:  # pragma: no cover
+668 |             return False
+669 | 
+670 |         return request.user.has_perms(self.perms_map.get(request.method, []))
+671 | 
+672 | 
+673 | class PaperlessNotePermissions(BasePermission):
+674 |     """
+675 |     Permissions class that checks for model permissions for Notes.
+676 |     """
+677 | 
+678 |     perms_map = {
+679 |         "OPTIONS": ["documents.view_note", "documents.view_document"],
+680 |         "GET": ["documents.view_note", "documents.view_document"],
+681 |         "POST": [
+682 |             "documents.add_note",
+683 |             "documents.view_document",
+684 |             "documents.change_document",
+685 |         ],
+686 |         "DELETE": [
+687 |             "documents.delete_note",
+688 |             "documents.view_document",
+689 |             "documents.change_document",
+690 |         ],
+691 |     }
+692 | 
+693 |     def has_permission(self, request, view):
+694 |         if not request.user or (not request.user.is_authenticated):  # pragma: no cover
+695 |             return False
+696 | 
+697 |         perms = self.perms_map[request.method]
+698 | 
+699 |         return request.user.has_perms(perms)
+700 | 
+701 | 
+702 | class AcknowledgeTasksPermissions(BasePermission):
+703 |     """
+704 |     Permissions class that checks for model permissions for acknowledging tasks.
+705 |     """
+706 | 
+707 |     perms_map = {
+708 |         "POST": ["documents.change_paperlesstask"],
+709 |     }
+710 | 
+711 |     def has_permission(self, request: Any, view: Any) -> bool:
+712 |         if not request.user or not request.user.is_authenticated:  # pragma: no cover
+713 |             return False
+714 | 
+715 |         perms = self.perms_map.get(request.method, [])
+716 | 
+717 |         return request.user.has_perms(perms)
+===== END ALLOWED INPUT: src/documents/permissions.py =====
+
+===== BEGIN ALLOWED INPUT: src/documents/views.py =====
+Source ID: src-7178cab55a635a65
+Location note: crop lines 1388-1839; original locations: src/documents/views.py:1388-1839
+Citation contract: select one source ID and a closed crop-line range shown below; ranges cannot cross sources.
+1388 |     def _get_effective_file_doc(
+1389 |         self,
+1390 |         request_doc: Document,
+1391 |         root_doc: Document,
+1392 |         request: Request,
+1393 |     ) -> Document:
+1394 |         if (
+1395 |             request_doc.root_document_id is not None
+1396 |             and get_request_version_param(request) is None
+1397 |         ):
+1398 |             return request_doc
+1399 |         return self._resolve_file_doc(root_doc, request)
+1400 | 
+1401 |     def _resolve_request_and_root_doc(
+1402 |         self,
+1403 |         pk,
+1404 |         request: Request,
+1405 |         *,
+1406 |         include_deleted: bool = False,
+1407 |     ) -> ResolvedRequestDocs | HttpResponseForbidden:
+1408 |         manager = Document.global_objects if include_deleted else Document.objects
+1409 |         try:
+1410 |             request_doc = manager.select_related(
+1411 |                 "owner",
+1412 |                 "root_document",
+1413 |             ).get(id=pk)
+1414 |         except Document.DoesNotExist:
+1415 |             raise Http404
+1416 | 
+1417 |         root_doc = get_root_document(
+1418 |             request_doc,
+1419 |             include_deleted=include_deleted,
+1420 |         )
+1421 |         if request.user is not None and not has_perms_owner_aware(
+1422 |             request.user,
+1423 |             "view_document",
+1424 |             root_doc,
+1425 |         ):
+1426 |             return HttpResponseForbidden("Insufficient permissions")
+1427 |         return ResolvedRequestDocs(request_doc=request_doc, root_doc=root_doc)
+1428 | 
+1429 |     def file_response(self, pk, request, disposition):
+1430 |         resolved = self._resolve_request_and_root_doc(
+1431 |             pk,
+1432 |             request,
+1433 |             include_deleted=True,
+1434 |         )
+1435 |         if isinstance(resolved, HttpResponseForbidden):
+1436 |             return resolved
+1437 |         file_doc = self._get_effective_file_doc(
+1438 |             resolved.request_doc,
+1439 |             resolved.root_doc,
+1440 |             request,
+1441 |         )
+1442 |         return serve_file(
+1443 |             doc=file_doc,
+1444 |             use_archive=not self.original_requested(request)
+1445 |             and file_doc.has_archive_version,
+1446 |             disposition=disposition,
+1447 |             follow_formatting=request.query_params.get("follow_formatting", False),
+1448 |         )
+1449 | 
+1450 |     def get_metadata(self, file, mime_type):
+1451 |         if not Path(file).is_file():
+1452 |             return None
+1453 | 
+1454 |         parser_class = get_parser_registry().get_parser_for_file(
+1455 |             mime_type,
+1456 |             Path(file).name,
+1457 |             Path(file),
+1458 |         )
+1459 |         if parser_class:
+1460 |             try:
+1461 |                 with parser_class() as parser:
+1462 |                     return parser.extract_metadata(file, mime_type)
+1463 |             except Exception:  # pragma: no cover
+1464 |                 logger.exception(f"Issue getting metadata for {file}")
+1465 |                 return []
+1466 |         else:  # pragma: no cover
+1467 |             logger.warning(f"No parser for {mime_type}")
+1468 |             return []
+1469 | 
+1470 |     def get_filesize(self, filename):
+1471 |         if Path(filename).is_file():
+1472 |             return Path(filename).stat().st_size
+1473 |         return None
+1474 | 
+1475 |     @action(methods=["get"], detail=True, filter_backends=[])
+1476 |     @method_decorator(cache_control(no_cache=True))
+1477 |     @method_decorator(
+1478 |         condition(etag_func=metadata_etag, last_modified_func=metadata_last_modified),
+1479 |     )
+1480 |     def metadata(self, request, pk=None):
+1481 |         resolved = self._resolve_request_and_root_doc(pk, request)
+1482 |         if isinstance(resolved, HttpResponseForbidden):
+1483 |             return resolved
+1484 | 
+1485 |         # Choose the effective document (newest version by default,
+1486 |         # or explicit via ?version=).
+1487 |         doc = self._get_effective_file_doc(
+1488 |             resolved.request_doc,
+1489 |             resolved.root_doc,
+1490 |             request,
+1491 |         )
+1492 | 
+1493 |         document_cached_metadata = get_metadata_cache(doc.pk)
+1494 | 
+1495 |         archive_metadata = None
+1496 |         archive_filesize = (
+1497 |             self.get_filesize(doc.archive_path) if doc.has_archive_version else None
+1498 |         )
+1499 |         if document_cached_metadata is not None:
+1500 |             original_metadata = document_cached_metadata.original_metadata
+1501 |             archive_metadata = document_cached_metadata.archive_metadata
+1502 |             refresh_metadata_cache(doc.pk)
+1503 |         else:
+1504 |             original_metadata = self.get_metadata(doc.source_path, doc.mime_type)
+1505 | 
+1506 |             if doc.has_archive_version:
+1507 |                 archive_metadata = self.get_metadata(
+1508 |                     doc.archive_path,
+1509 |                     "application/pdf",
+1510 |                 )
+1511 |             set_metadata_cache(doc, original_metadata, archive_metadata)
+1512 | 
+1513 |         meta = {
+1514 |             "original_checksum": doc.checksum,
+1515 |             "original_size": self.get_filesize(doc.source_path),
+1516 |             "original_mime_type": doc.mime_type,
+1517 |             "media_filename": doc.filename,
+1518 |             "has_archive_version": doc.has_archive_version,
+1519 |             "original_metadata": original_metadata,
+1520 |             "archive_checksum": doc.archive_checksum,
+1521 |             "archive_media_filename": doc.archive_filename,
+1522 |             "original_filename": doc.original_filename,
+1523 |             "archive_size": archive_filesize,
+1524 |             "archive_metadata": archive_metadata,
+1525 |         }
+1526 | 
+1527 |         lang = "en"
+1528 |         try:
+1529 |             lang = detect(doc.content)
+1530 |         except Exception:
+1531 |             pass
+1532 |         meta["lang"] = lang
+1533 | 
+1534 |         return Response(meta)
+1535 | 
+1536 |     @action(methods=["get"], detail=True, filter_backends=[])
+1537 |     @method_decorator(cache_control(no_cache=True))
+1538 |     @method_decorator(
+1539 |         condition(
+1540 |             etag_func=suggestions_etag,
+1541 |             last_modified_func=suggestions_last_modified,
+1542 |         ),
+1543 |     )
+1544 |     def suggestions(self, request, pk=None):
+1545 |         doc = get_object_or_404(
+1546 |             Document.objects.select_related("owner").prefetch_related("versions"),
+1547 |             pk=pk,
+1548 |         )
+1549 |         if request.user is not None and not has_perms_owner_aware(
+1550 |             request.user,
+1551 |             "change_document",
+1552 |             doc,
+1553 |         ):
+1554 |             return HttpResponseForbidden("Insufficient permissions")
+1555 | 
+1556 |         document_suggestions = get_suggestion_cache(doc.pk)
+1557 | 
+1558 |         if document_suggestions is not None:
+1559 |             refresh_suggestions_cache(doc.pk)
+1560 |             return Response(document_suggestions.suggestions)
+1561 | 
+1562 |         classifier = load_classifier()
+1563 | 
+1564 |         dates = []
+1565 |         if settings.NUMBER_OF_SUGGESTED_DATES > 0:
+1566 |             with get_date_parser() as date_parser:
+1567 |                 gen = date_parser.parse(doc.filename, doc.content)
+1568 |                 dates = sorted(
+1569 |                     {
+1570 |                         i
+1571 |                         for i in itertools.islice(
+1572 |                             gen,
+1573 |                             settings.NUMBER_OF_SUGGESTED_DATES,
+1574 |                         )
+1575 |                     },
+1576 |                 )
+1577 | 
+1578 |         resp_data = {
+1579 |             "correspondents": [
+1580 |                 c.id for c in match_correspondents(doc, classifier, request.user)
+1581 |             ],
+1582 |             "tags": [t.id for t in match_tags(doc, classifier, request.user)],
+1583 |             "document_types": [
+1584 |                 dt.id for dt in match_document_types(doc, classifier, request.user)
+1585 |             ],
+1586 |             "storage_paths": [
+1587 |                 dt.id for dt in match_storage_paths(doc, classifier, request.user)
+1588 |             ],
+1589 |             "dates": [date.strftime("%Y-%m-%d") for date in dates if date is not None],
+1590 |         }
+1591 | 
+1592 |         # Cache the suggestions and the classifier hash for later
+1593 |         set_suggestions_cache(doc.pk, resp_data, classifier)
+1594 | 
+1595 |         return Response(resp_data)
+1596 | 
+1597 |     @action(
+1598 |         methods=["get"],
+1599 |         detail=True,
+1600 |         filter_backends=[],
+1601 |         url_path="ai_suggestions",
+1602 |     )
+1603 |     @method_decorator(cache_control(no_cache=True))
+1604 |     def ai_suggestions(self, request, pk=None):
+1605 |         doc = get_object_or_404(
+1606 |             Document.objects.select_related("owner").prefetch_related("versions"),
+1607 |             pk=pk,
+1608 |         )
+1609 |         if request.user is not None and not has_perms_owner_aware(
+1610 |             request.user,
+1611 |             "change_document",
+1612 |             doc,
+1613 |         ):
+1614 |             return HttpResponseForbidden("Insufficient permissions")
+1615 | 
+1616 |         ai_config = AIConfig()
+1617 |         if not ai_config.ai_enabled:
+1618 |             return HttpResponseBadRequest("AI is required for this feature")
+1619 | 
+1620 |         output_language = get_llm_output_language(
+1621 |             ai_config=ai_config,
+1622 |             user=request.user,
+1623 |         )
+1624 |         llm_cache_backend = ":".join(
+1625 |             part
+1626 |             for part in (
+1627 |                 ai_config.llm_backend,
+1628 |                 ai_config.llm_model,
+1629 |                 ai_config.llm_endpoint,
+1630 |                 output_language,
+1631 |                 f"user={request.user.pk}",
+1632 |             )
+1633 |             if part
+1634 |         )
+1635 | 
+1636 |         cached_llm_suggestions = get_llm_suggestion_cache(
+1637 |             doc.pk,
+1638 |             backend=llm_cache_backend,
+1639 |         )
+1640 | 
+1641 |         if cached_llm_suggestions:
+1642 |             # Only the raw model choices are cached, never resolved object
+1643 |             # ids. resolve_choice() below still runs permission filtering
+1644 |             # freshly for this requester on every request, cache hit or not,
+1645 |             # so a resolved id cached for one user's visibility can never be
+1646 |             # handed unfiltered to a second, less-privileged requester of
+1647 |             # the same (backend + user-keyed) cache entry.
+1648 |             refresh_llm_suggestions_cache(
+1649 |                 doc.pk,
+1650 |                 backend=llm_cache_backend,
+1651 |             )
+1652 |             llm_suggestions = cached_llm_suggestions.suggestions
+1653 |         else:
+1654 |             try:
+1655 |                 llm_suggestions = get_ai_document_classification(
+1656 |                     doc,
+1657 |                     request.user,
+1658 |                     output_language,
+1659 |                 )
+1660 |             except ValueError as exc:
+1661 |                 logger.exception(
+1662 |                     "Invalid AI configuration while generating suggestions for "
+1663 |                     "document %s: %s",
+1664 |                     doc.pk,
+1665 |                     exc,
+1666 |                     exc_info=True,
+1667 |                 )
+1668 |                 raise ValidationError(
+1669 |                     {"ai": [_("Invalid AI configuration.")]},
+1670 |                 ) from exc
+1671 |             except LLMTimeoutError as exc:
+1672 |                 logger.exception(
+1673 |                     "AI backend timed out while generating suggestions for "
+1674 |                     "document %s: %s",
+1675 |                     doc.pk,
+1676 |                     exc,
+1677 |                     exc_info=True,
+1678 |                 )
+1679 |                 return Response(
+1680 |                     {"ai": [_("AI backend request timed out.")]},
+1681 |                     status=status.HTTP_503_SERVICE_UNAVAILABLE,
+1682 |                 )
+1683 |             except LLMProviderError:
+1684 |                 logger.exception(
+1685 |                     "AI backend rejected the request for document %s",
+1686 |                     doc.pk,
+1687 |                 )
+1688 |                 return Response(
+1689 |                     {
+1690 |                         "ai": [
+1691 |                             _(
+1692 |                                 "AI backend rejected the request. "
+1693 |                                 "Check logs for details.",
+1694 |                             ),
+1695 |                         ],
+1696 |                     },
+1697 |                     status=status.HTTP_502_BAD_GATEWAY,
+1698 |                 )
+1699 |             set_llm_suggestions_cache(
+1700 |                 doc.pk,
+1701 |                 llm_suggestions,
+1702 |                 backend=llm_cache_backend,
+1703 |             )
+1704 | 
+1705 |         tags_choice: TaxonomyChoiceDict = llm_suggestions["tags"]
+1706 |         correspondents_choice: TaxonomyChoiceDict = llm_suggestions["correspondents"]
+1707 |         document_types_choice: TaxonomyChoiceDict = llm_suggestions["document_types"]
+1708 |         storage_paths_choice: TaxonomyChoiceDict = llm_suggestions["storage_paths"]
+1709 | 
+1710 |         def resolve_choice(
+1711 |             choice: "TaxonomyChoiceDict",
+1712 |             resolve_ids: Callable[[list[int], User], list],
+1713 |             match_names: Callable[[list[str], User], list],
+1714 |         ) -> list:
+1715 |             """The ids the model picked from the candidates it was shown, plus
+1716 |             name matches for the values it proposed as new. The schema allows
+1717 |             the same object to satisfy both an existing_id and a new_name in
+1718 |             one valid response, so results are deduplicated by pk (keeping
+1719 |             first-seen order) rather than trusting the two lookups to be
+1720 |             disjoint.
+1721 |             """
+1722 |             matched = resolve_ids(choice["existing_ids"], request.user) + match_names(
+1723 |                 choice["new_names"],
+1724 |                 request.user,
+1725 |             )
+1726 |             seen_ids: set[int] = set()
+1727 |             deduped = []
+1728 |             for obj in matched:
+1729 |                 if obj.pk in seen_ids:
+1730 |                     continue
+1731 |                 seen_ids.add(obj.pk)
+1732 |                 deduped.append(obj)
+1733 |             return deduped
+1734 | 
+1735 |         matched_tags = resolve_choice(
+1736 |             tags_choice,
+1737 |             resolve_tag_ids,
+1738 |             match_tags_by_name,
+1739 |         )
+1740 |         matched_correspondents = resolve_choice(
+1741 |             correspondents_choice,
+1742 |             resolve_correspondent_ids,
+1743 |             match_correspondents_by_name,
+1744 |         )
+1745 |         matched_types = resolve_choice(
+1746 |             document_types_choice,
+1747 |             resolve_document_type_ids,
+1748 |             match_document_types_by_name,
+1749 |         )
+1750 |         matched_paths = resolve_choice(
+1751 |             storage_paths_choice,
+1752 |             resolve_storage_path_ids,
+1753 |             match_storage_paths_by_name,
+1754 |         )
+1755 | 
+1756 |         resp_data = {
+1757 |             "title": llm_suggestions["title"],
+1758 |             "tags": [t.id for t in matched_tags],
+1759 |             "suggested_tags": extract_unmatched_names(
+1760 |                 tags_choice["new_names"],
+1761 |                 matched_tags,
+1762 |             ),
+1763 |             "correspondents": [c.id for c in matched_correspondents],
+1764 |             "suggested_correspondents": extract_unmatched_names(
+1765 |                 correspondents_choice["new_names"],
+1766 |                 matched_correspondents,
+1767 |             ),
+1768 |             "document_types": [d.id for d in matched_types],
+1769 |             "suggested_document_types": extract_unmatched_names(
+1770 |                 document_types_choice["new_names"],
+1771 |                 matched_types,
+1772 |             ),
+1773 |             "storage_paths": [s.id for s in matched_paths],
+1774 |             "suggested_storage_paths": extract_unmatched_names(
+1775 |                 storage_paths_choice["new_names"],
+1776 |                 matched_paths,
+1777 |             ),
+1778 |             "dates": llm_suggestions["dates"],
+1779 |         }
+1780 | 
+1781 |         return Response(resp_data)
+1782 | 
+1783 |     @action(methods=["get"], detail=True, filter_backends=[])
+1784 |     @method_decorator(cache_control(no_cache=True))
+1785 |     @method_decorator(
+1786 |         condition(etag_func=preview_etag, last_modified_func=preview_last_modified),
+1787 |     )
+1788 |     def preview(self, request, pk=None):
+1789 |         resolved = self._resolve_request_and_root_doc(pk, request, include_deleted=True)
+1790 |         if isinstance(resolved, HttpResponseForbidden):
+1791 |             return resolved
+1792 | 
+1793 |         try:
+1794 |             file_doc = self._get_effective_file_doc(
+1795 |                 resolved.request_doc,
+1796 |                 resolved.root_doc,
+1797 |                 request,
+1798 |             )
+1799 | 
+1800 |             return serve_file(
+1801 |                 doc=file_doc,
+1802 |                 use_archive=not self.original_requested(request)
+1803 |                 and file_doc.has_archive_version,
+1804 |                 disposition="inline",
+1805 |             )
+1806 |         except FileNotFoundError:
+1807 |             raise Http404
+1808 | 
+1809 |     @action(methods=["get"], detail=True, filter_backends=[])
+1810 |     @method_decorator(cache_control(no_cache=True))
+1811 |     @method_decorator(
+1812 |         condition(
+1813 |             etag_func=thumbnail_etag,
+1814 |             last_modified_func=thumbnail_last_modified,
+1815 |         ),
+1816 |     )
+1817 |     def thumb(self, request, pk=None):
+1818 |         resolved = self._resolve_request_and_root_doc(pk, request, include_deleted=True)
+1819 |         if isinstance(resolved, HttpResponseForbidden):
+1820 |             return resolved
+1821 | 
+1822 |         try:
+1823 |             file_doc = self._get_effective_file_doc(
+1824 |                 resolved.request_doc,
+1825 |                 resolved.root_doc,
+1826 |                 request,
+1827 |             )
+1828 |             handle = file_doc.thumbnail_file
+1829 | 
+1830 |             return FileResponse(handle, content_type="image/webp")
+1831 |         except FileNotFoundError:
+1832 |             raise Http404
+1833 | 
+1834 |     @action(methods=["get"], detail=True)
+1835 |     def download(self, request, pk=None):
+1836 |         try:
+1837 |             return self.file_response(pk, request, "attachment")
+1838 |         except (FileNotFoundError, Document.DoesNotExist):
+1839 |             raise Http404
+===== END ALLOWED INPUT: src/documents/views.py =====

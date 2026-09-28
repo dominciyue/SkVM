@@ -1,0 +1,373 @@
+{
+  "unit": {
+    "id": "initial-memos-get-shared-D0",
+    "phase": "initial",
+    "caseId": "memos-get-shared",
+    "arm": "D0",
+    "material": "explicit-v1"
+  },
+  "configSha256": "81a534d2cb2626ae82e752bd5817f12b05a0bb7c152b1f3b219dd387a8721949",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v6",
+    "assessmentMode": "explicit-v1",
+    "reasoningStrategy": "standard",
+    "evidencePreparation": {
+      "status": "ready",
+      "sourceIdentity": {
+        "repository": "https://github.com/usememos/memos",
+        "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4"
+      },
+      "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/memos",
+      "gaps": [],
+      "closureClaim": "declared-dependencies-only",
+      "schemaVersion": "authorization-evidence-report/v1",
+      "included": [
+        {
+          "path": "server/api/v1/memo_share_service.go",
+          "originalPath": "server/api/v1/memo_share_service.go",
+          "startLine": 1,
+          "endLine": 244,
+          "origins": [
+            "entry:get-shared",
+            "locator:active-token"
+          ]
+        },
+        {
+          "path": "server/api/v1/memo_access.go",
+          "originalPath": "server/api/v1/memo_access.go",
+          "startLine": 1,
+          "endLine": 210,
+          "origins": [
+            "locator:read-context"
+          ]
+        },
+        {
+          "path": "core/access/memo.go",
+          "originalPath": "core/access/memo.go",
+          "startLine": 1,
+          "endLine": 157,
+          "origins": [
+            "locator:read-decision"
+          ]
+        },
+        {
+          "path": "core/access/memo_resolve.go",
+          "originalPath": "core/access/memo_resolve.go",
+          "startLine": 1,
+          "endLine": 91,
+          "origins": [
+            "locator:read-resolve"
+          ]
+        }
+      ]
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260928T180432815Z-d3c4da78",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-bounded-preparation-v2\\runs\\initial-memos-get-shared-D0\\sessions\\20260928T180432815Z-d3c4da78",
+    "createdAt": "2026-09-28T18:04:32.815Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-bounded-preparation-v2\\inputs\\memos-get-shared\\explicit-v1\\assessment.json",
+    "taskId": "memos-get-shared-anonymous",
+    "repository": "https://github.com/usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 396,
+        "declaration": 3078,
+        "publicAnalysis": 1230,
+        "assessmentProgram": 709,
+        "source": 31680,
+        "outputContract": 2908,
+        "total": 40139,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "evidencePreparation": "evidence-preparation.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "memos-get-shared-anonymous",
+      "repository": "https://github.com/usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "results": [
+        {
+          "obligationId": "scenario%3Atoken-status-unspecified::entry%3Aget-shared",
+          "conclusion": "unknown",
+          "explanation": "At the declared GetSharedMemo entry, the source first resolves the supplied share token and returns NOT_FOUND when the token is missing or expired. If the token is active, the handler retrieves exactly the token-associated memo, rejects a missing, non-active, or SPACE memo, then builds a read context using that memo and the associated memo ID before applying the memo-read decision. The supplied premises establish an anonymous caller and, conditional on token resolution, an active private non-SPACE memo with a valid creator. The share-specific control applies only when the context's shared memo ID equals the memo ID and the memo is not SPACE, and it grants the private read class even for an anonymous viewer. The protected effect is returning the converted memo; the response clears Parent, so the token grants only that memo. Because token existence and expiry are unspecified, the source-visible outcome is conditional: invalid or expired yields NOT_FOUND, while an active token resolving to the stated memo can permit retrieval, subject to the source-visible access-context and conversion operations succeeding. No separate requested memo identity is used. Deployment success and runtime store results are not inferred.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "GetSharedMemo is the assessed entry and requires no authentication at the handler declaration; it begins by resolving the supplied share token.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/memo_share_service.go",
+                    "startLine": 170,
+                    "endLine": 175,
+                    "quote": "// GetSharedMemo resolves a share token to its memo. No authentication required.\n// Returns NOT_FOUND for invalid or expired tokens (no information leakage).\nfunc (s *APIV1Service) GetSharedMemo(ctx context.Context, request *v1pb.GetSharedMemoRequest) (*v1pb.Memo, error) {\n\tms, err := s.getActiveMemoShare(ctx, request.ShareToken)\n\tif err != nil {\n\t\treturn nil, err"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The read context is built from the current viewer and the token-associated memo ID; an absent current user is treated as the anonymous viewer path.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/memo_access.go",
+                    "startLine": 15,
+                    "endLine": 29,
+                    "quote": "// buildMemoReadContext resolves authorization inputs for exactly one memo.\n// Relations never contribute access to either endpoint.\nfunc (s *APIV1Service) buildMemoReadContext(ctx context.Context, memo *store.Memo, sharedMemoID *int32) (access.MemoReadContext, error) {\n\tviewer, err := s.fetchCurrentUser(ctx)\n\tif err != nil {\n\t\treturn access.MemoReadContext{}, status.Errorf(codes.Internal, \"failed to get user\")\n\t}\n\tallowAnonymous := false\n\tif viewer == nil {\n\t\tallowAnonymous, err = s.Store.AllowsAnonymousAccess(ctx)\n\t\tif err != nil {\n\t\t\treturn access.MemoReadContext{}, status.Errorf(codes.Internal, \"failed to resolve instance access policy\")\n\t\t}\n\t}\n\treturn s.buildMemoReadContextForViewer(ctx, memo, viewer, allowAnonymous, sharedMemoID)"
+                  }
+                ]
+              },
+              {
+                "statement": "The handler loads the memo by the resolved share's MemoID, and the share check applies only when the context shared memo ID equals that memo's ID and the memo is not SPACE.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/memo_share_service.go",
+                    "startLine": 178,
+                    "endLine": 188,
+                    "quote": "\tmemo, err := s.Store.GetMemo(ctx, &store.FindMemo{ID: &ms.MemoID})\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to get memo\")\n\t}\n\t// Treat archived or missing memos the same as an invalid token — no information leakage.\n\tif memo == nil || memo.RowStatus != store.Normal || memo.Visibility == store.SpaceAudience {\n\t\treturn nil, status.Errorf(codes.NotFound, \"not found\")\n\t}\n\treadContext, err := s.buildMemoReadContext(ctx, memo, &ms.MemoID)\n\tif err != nil || !access.CheckMemoReadContext(readContext).Allowed() {\n\t\treturn nil, status.Error(codes.NotFound, \"not found\")"
+                  },
+                  {
+                    "path": "core/access/memo.go",
+                    "startLine": 119,
+                    "endLine": 122,
+                    "quote": "\tshareApplies := ctx.SharedMemoID != nil && memo.ID == *ctx.SharedMemoID && memo.Visibility != store.SpaceAudience\n\tif shareApplies {\n\t\treturn MemoReadDecision{Class: MemoReadClassPrivate}\n\t}"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "For a valid exact-memo share, the memo-read decision returns the private read class before the ordinary private-visibility anonymous denial path.",
+                "citations": [
+                  {
+                    "path": "core/access/memo.go",
+                    "startLine": 107,
+                    "endLine": 122,
+                    "quote": "\t// A structurally valid memo is readable by name to an instance\n\t// administrator regardless of audience, placement, or lifecycle state.\n\tif IsInstanceAdmin(ctx.Viewer) {\n\t\treturn MemoReadDecision{Class: MemoReadClassPrivate}\n\t}\n\n\tviewerActive := IsActiveUser(ctx.Viewer)\n\tviewerIsAuthor := viewerActive && ctx.Viewer.ID == memo.CreatorID\n\tif memo.RowStatus == store.Archived && !viewerIsAuthor {\n\t\treturn MemoReadDecision{Denial: MemoReadDenialNotFound}\n\t}\n\n\tshareApplies := ctx.SharedMemoID != nil && memo.ID == *ctx.SharedMemoID && memo.Visibility != store.SpaceAudience\n\tif shareApplies {\n\t\treturn MemoReadDecision{Class: MemoReadClassPrivate}\n\t}"
+                  }
+                ]
+              },
+              {
+                "statement": "A missing share record or an expired share causes NOT_FOUND before memo retrieval; an active share continues to the associated memo.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/memo_share_service.go",
+                    "startLine": 216,
+                    "endLine": 229,
+                    "quote": "// isMemoShareExpired returns true if the share has a defined expiry that has already passed.\nfunc isMemoShareExpired(ms *store.MemoShare) bool {\n\treturn ms.ExpiresTs != nil && time.Now().Unix() > *ms.ExpiresTs\n}\n\nfunc (s *APIV1Service) getActiveMemoShare(ctx context.Context, shareID string) (*store.MemoShare, error) {\n\tms, err := s.Store.GetMemoShare(ctx, &store.FindMemoShare{UID: &shareID})\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to get memo share\")\n\t}\n\tif ms == nil || isMemoShareExpired(ms) {\n\t\treturn nil, status.Errorf(codes.NotFound, \"not found\")\n\t}\n\treturn ms, nil"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "After successful access checking, the handler converts and returns the memo, and clears Parent so the share exposes the exact memo rather than its surrounding relation graph.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/memo_share_service.go",
+                    "startLine": 191,
+                    "endLine": 213,
+                    "quote": "\treactions, err := s.Store.ListReactions(ctx, &store.FindReaction{\n\t\tMemoID: &memo.ID,\n\t})\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to list reactions\")\n\t}\n\n\tattachments, err := s.Store.ListAttachments(ctx, &store.FindAttachment{MemoID: &memo.ID})\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to list attachments\")\n\t}\n\n\tmemoMessage, err := s.convertMemoFromStore(ctx, memo, reactions, attachments, nil)\n\tif err != nil {\n\t\tif stderrors.Is(err, errMemoCreatorNotFound) {\n\t\t\treturn nil, status.Errorf(codes.NotFound, \"not found\")\n\t\t}\n\t\treturn nil, errors.Wrap(err, \"failed to convert memo\")\n\t}\n\t// A share token grants access to this memo only, not to its surrounding\n\t// conversation or relation graph.\n\tmemoMessage.Parent = nil\n\treturn memoMessage, nil"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The handler rejects a missing, non-active, or SPACE-associated memo; under the supplied premises those rejection conditions are absent if the token resolves.",
+                "citations": [
+                  {
+                    "path": "server/api/v1/memo_share_service.go",
+                    "startLine": 178,
+                    "endLine": 188,
+                    "quote": "\tmemo, err := s.Store.GetMemo(ctx, &store.FindMemo{ID: &ms.MemoID})\n\tif err != nil {\n\t\treturn nil, status.Errorf(codes.Internal, \"failed to get memo\")\n\t}\n\t// Treat archived or missing memos the same as an invalid token — no information leakage.\n\tif memo == nil || memo.RowStatus != store.Normal || memo.Visibility == store.SpaceAudience {\n\t\treturn nil, status.Errorf(codes.NotFound, \"not found\")\n\t}\n\treadContext, err := s.buildMemoReadContext(ctx, memo, &ms.MemoID)\n\tif err != nil || !access.CheckMemoReadContext(readContext).Allowed() {\n\t\treturn nil, status.Error(codes.NotFound, \"not found\")"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [
+            "Whether the supplied share token resolves to a share record.",
+            "Whether a resolved share token is unexpired at evaluation time.",
+            "Whether the runtime store and conversion operations complete successfully; this is needed to establish successful retrieval rather than only the authorization path."
+          ],
+          "suggestedObservations": [
+            "Observe GetMemoShare for the supplied token and whether the returned share is non-nil and unexpired.",
+            "If the share resolves, observe the memo returned for its MemoID, including row status, visibility, and creator resolution.",
+            "Observe completion of buildMemoReadContext, CheckMemoReadContext, reaction and attachment listing, and memo conversion for the request."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Atoken-status-unspecified::entry%3Aget-shared",
+          "explanation": "At the declared GetSharedMemo entry, the source first resolves the supplied share token and returns NOT_FOUND when the token is missing or expired. If the token is active, the handler retrieves exactly the token-associated memo, rejects a missing, non-active, or SPACE memo, then builds a read context using that memo and the associated memo ID before applying the memo-read decision. The supplied premises establish an anonymous caller and, conditional on token resolution, an active private non-SPACE memo with a valid creator. The share-specific control applies only when the context's shared memo ID equals the memo ID and the memo is not SPACE, and it grants the private read class even for an anonymous viewer. The protected effect is returning the converted memo; the response clears Parent, so the token grants only that memo. Because token existence and expiry are unspecified, the source-visible outcome is conditional: invalid or expired yields NOT_FOUND, while an active token resolving to the stated memo can permit retrieval, subject to the source-visible access-context and conversion operations succeeding. No separate requested memo identity is used. Deployment success and runtime store results are not inferred.",
+          "facts": [
+            {
+              "id": "entry-get-shared",
+              "kind": "entry",
+              "statement": "GetSharedMemo is the assessed entry and requires no authentication at the handler declaration; it begins by resolving the supplied share token.",
+              "citations": [
+                {
+                  "sourceId": "src-ba5b8420bf39f2db",
+                  "startLine": 170,
+                  "endLine": 175
+                }
+              ]
+            },
+            {
+              "id": "binding-anonymous-viewer",
+              "kind": "binding",
+              "statement": "The read context is built from the current viewer and the token-associated memo ID; an absent current user is treated as the anonymous viewer path.",
+              "citations": [
+                {
+                  "sourceId": "src-69d26d731760c05a",
+                  "startLine": 15,
+                  "endLine": 29
+                }
+              ]
+            },
+            {
+              "id": "binding-exact-memo",
+              "kind": "binding",
+              "statement": "The handler loads the memo by the resolved share's MemoID, and the share check applies only when the context shared memo ID equals that memo's ID and the memo is not SPACE.",
+              "citations": [
+                {
+                  "sourceId": "src-ba5b8420bf39f2db",
+                  "startLine": 178,
+                  "endLine": 188
+                },
+                {
+                  "sourceId": "src-da9fb2a209342c1f",
+                  "startLine": 119,
+                  "endLine": 122
+                }
+              ]
+            },
+            {
+              "id": "control-token-status",
+              "kind": "control",
+              "statement": "A missing share record or an expired share causes NOT_FOUND before memo retrieval; an active share continues to the associated memo.",
+              "citations": [
+                {
+                  "sourceId": "src-ba5b8420bf39f2db",
+                  "startLine": 216,
+                  "endLine": 229
+                }
+              ]
+            },
+            {
+              "id": "control-share-read",
+              "kind": "control",
+              "statement": "For a valid exact-memo share, the memo-read decision returns the private read class before the ordinary private-visibility anonymous denial path.",
+              "citations": [
+                {
+                  "sourceId": "src-da9fb2a209342c1f",
+                  "startLine": 107,
+                  "endLine": 122
+                }
+              ]
+            },
+            {
+              "id": "condition-memo-premises",
+              "kind": "condition",
+              "statement": "The handler rejects a missing, non-active, or SPACE-associated memo; under the supplied premises those rejection conditions are absent if the token resolves.",
+              "citations": [
+                {
+                  "sourceId": "src-ba5b8420bf39f2db",
+                  "startLine": 178,
+                  "endLine": 188
+                }
+              ]
+            },
+            {
+              "id": "effect-retrieve-memo",
+              "kind": "effect",
+              "statement": "After successful access checking, the handler converts and returns the memo, and clears Parent so the share exposes the exact memo rather than its surrounding relation graph.",
+              "citations": [
+                {
+                  "sourceId": "src-ba5b8420bf39f2db",
+                  "startLine": 191,
+                  "endLine": 213
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [
+            "Whether the supplied share token resolves to a share record.",
+            "Whether a resolved share token is unexpired at evaluation time.",
+            "Whether the runtime store and conversion operations complete successfully; this is needed to establish successful retrieval rather than only the authorization path."
+          ],
+          "suggestedObservations": [
+            "Observe GetMemoShare for the supplied token and whether the returned share is non-nil and unexpired.",
+            "If the share resolves, observe the memo returned for its MemoID, including row status, visibility, and creator resolution.",
+            "Observe completion of buildMemoReadContext, CheckMemoReadContext, reaction and attachment listing, and memo conversion for the request."
+          ],
+          "decision": {
+            "kind": "conditional-policy",
+            "policyStatus": "undetermined"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "normalizerVersion": "authorization-wire-normalizer/v6",
+    "relationCoverage": [],
+    "observedDecisions": [],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 11071,
+        "output": 948,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "authorization-ak-author-briefs/v1",
+  "model": "xty/gpt-5.6-sol",
+  "frozenBeforeAnyPaidCall": true,
+  "packages": [
+    {
+      "id": "memos-space-policy",
+      "kind": "policy-change",
+      "taskId": "ak-use-memos-members",
+      "repository": "https://github.com/usememos/memos",
+      "originalSourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "changedSourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "originalSourceRoot": "../authorization-evidence-editing-v1/public-source/memos",
+      "changedSourceRoot": "../authorization-evidence-editing-v1/public-source/memos",
+      "allowedFiles": [
+        "server/api/v1/space_service.go",
+        "store/space.go"
+      ],
+      "entry": {
+        "entryKey": "delete-member",
+        "path": "server/api/v1/space_service.go",
+        "startLine": 740,
+        "endLine": 763
+      },
+      "question": "At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.",
+      "originalPolicy": "An active space member may delete their own membership to leave. Removing a different active member requires space administrator authority.",
+      "changedPolicy": "An active space member may delete their own membership and may remove a different active member of the same space without space administrator authority.",
+      "scenarios": [
+        {
+          "key": "self-leave",
+          "principal": "authenticated active ordinary non-administrator member",
+          "relation": "caller-is-target-member",
+          "operation": "delete own membership",
+          "premiseId": "target-relation",
+          "premise": "At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds."
+        },
+        {
+          "key": "other-member",
+          "principal": "authenticated active ordinary non-administrator member",
+          "relation": "caller-is-not-target-member-and-not-admin",
+          "operation": "delete another active membership",
+          "premiseId": "target-relation",
+          "premise": "At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds."
+        }
+      ],
+      "originalExpectations": {
+        "self-leave": "allow",
+        "other-member": "deny"
+      },
+      "changedExpectations": {
+        "self-leave": "allow",
+        "other-member": "allow"
+      },
+      "changeRequest": "Change only the accepted space-member removal policy to changedPolicy. Review both policy-linked scenario expectations explicitly, including the unchanged self-leave expectation. Keep the same identities, relations, premise text, source bytes and task ID. The source implementation is unchanged.",
+      "supportRole": "Declare only the requested handler as an analysis entry. Helpers belong in evidence-request dependencies; an empty dependency list with discover=true is supported. Do not author all helper positions.",
+      "policyLocationOriginal": "author-briefs.json#/memos-space-policy/originalPolicy",
+      "policyLocationChanged": "author-briefs.json#/memos-space-policy/changedPolicy"
+    },
+    {
+      "id": "paperless-note-source",
+      "kind": "synthetic-source-change",
+      "taskId": "ak-use-paperless-note",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "originalSourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "changedSourceRef": "synthetic-ak-change-grants-disabled-v1-6c01553267afcf78",
+      "originalSourceRoot": "../authorization-evidence-editing-v1/public-source/paperless",
+      "changedSourceRoot": "author-source/paperless-synthetic",
+      "allowedFiles": [
+        "src/documents/views.py",
+        "src/documents/permissions.py"
+      ],
+      "entry": {
+        "entryKey": "notes-post",
+        "path": "src/documents/views.py",
+        "startLine": 1841,
+        "endLine": 1913
+      },
+      "question": "At the notes POST handler, assess two declared relations between an authenticated caller and an existing document. Both callers hold global add_note, view_document and change_document permissions and can view the document. Use each scenario's object relation to determine whether Note.objects.create is reached.",
+      "originalPolicy": "Creating a note requires the stated global permissions and object-level change_document authorization; a view grant alone is insufficient, while document ownership or an object change grant can satisfy the object control.",
+      "changedPolicy": "Creating a note requires the stated global permissions and object-level change_document authorization; a view grant alone is insufficient, while document ownership or an object change grant can satisfy the object control.",
+      "scenarios": [
+        {
+          "key": "view-only",
+          "principal": "authenticated user with the stated global permissions",
+          "relation": "object-view-granted-not-owner-no-change-grant",
+          "operation": "create a note on the document",
+          "premiseId": "object-relation",
+          "premise": "At handler entry, the caller has the stated global permissions and object view grant, but is not the document owner and has no object change_document grant."
+        },
+        {
+          "key": "change-granted",
+          "principal": "authenticated user with the stated global permissions",
+          "relation": "object-change-granted-not-owner",
+          "operation": "create a note on the document",
+          "premiseId": "object-relation",
+          "premise": "At handler entry, the caller has the stated global permissions and object view and change_document grants, but is not the document owner."
+        }
+      ],
+      "originalExpectations": {
+        "view-only": "deny",
+        "change-granted": "allow"
+      },
+      "changedExpectations": {
+        "view-only": "deny",
+        "change-granted": "allow"
+      },
+      "changeRequest": "Use the supplied synthetic source copy and its new sourceRef. It changes only the owner-aware permission helper so non-owner change_document object grants are no longer honored. The accepted policy, scenario premises/relations/expectations, identities and task ID stay unchanged. Re-prepare the changed source, compare to the original session, and run fresh. Do not answer the scenarios in the authored instructions.",
+      "supportRole": "Declare only the requested handler as an analysis entry. Helpers belong in evidence-request dependencies; an empty dependency list with discover=true is supported. Do not author all helper positions.",
+      "policyLocationOriginal": "author-briefs.json#/paperless-note-source/originalPolicy",
+      "policyLocationChanged": "author-briefs.json#/paperless-note-source/originalPolicy"
+    }
+  ]
+}

@@ -1,0 +1,363 @@
+{
+  "unit": {
+    "id": "initial-paperless-share-create-M1",
+    "phase": "initial",
+    "caseId": "paperless-share-create",
+    "arm": "M1",
+    "material": "automatic-v2"
+  },
+  "configSha256": "81a534d2cb2626ae82e752bd5817f12b05a0bb7c152b1f3b219dd387a8721949",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v6",
+    "assessmentMode": "explicit-v1",
+    "reasoningStrategy": "standard",
+    "evidencePreparation": {
+      "status": "partial",
+      "sourceIdentity": {
+        "repository": "https://github.com/paperless-ngx/paperless-ngx",
+        "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+      },
+      "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+      "gaps": [
+        {
+          "id": "dep-1",
+          "entryKey": "share-create",
+          "reason": "ambiguous-location",
+          "attemptedPath": "src/documents/serialisers.py"
+        },
+        {
+          "id": "dep-2",
+          "entryKey": "share-create",
+          "reason": "ambiguous-location",
+          "attemptedPath": "src/documents/permissions.py"
+        }
+      ],
+      "closureClaim": "declared-dependencies-only",
+      "schemaVersion": "authorization-evidence-report/v2",
+      "included": [
+        {
+          "path": "src/documents/views.py",
+          "originalPath": "src/documents/views.py",
+          "startLine": 406,
+          "endLine": 4717,
+          "origins": [
+            "locator:located-2",
+            "locator:located-3",
+            "locator:located-1",
+            "entry:share-create"
+          ],
+          "segments": [
+            {
+              "originalStartLine": 406,
+              "originalEndLine": 430,
+              "snapshotStartLine": 1,
+              "snapshotEndLine": 25,
+              "origins": [
+                "locator:located-2",
+                "locator:located-3"
+              ]
+            },
+            {
+              "originalStartLine": 4696,
+              "originalEndLine": 4717,
+              "snapshotStartLine": 26,
+              "snapshotEndLine": 47,
+              "origins": [
+                "locator:located-1",
+                "entry:share-create"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "researchIdentity": {
+      "arm": "markdown",
+      "instructionOrigin": "independent-author",
+      "instructionPath": "results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/inputs/paperless-share-create/independent.md",
+      "sha256": "160bf421e9746913d7df6211a01bb82b4fe2ed7b31037efba3651272f970ab69",
+      "characters": 2321
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260928T182040275Z-ef258037",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-bounded-preparation-v2\\runs\\initial-paperless-share-create-M1\\sessions\\20260928T182040275Z-ef258037",
+    "createdAt": "2026-09-28T18:20:40.275Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-bounded-preparation-v2\\inputs\\paperless-share-create\\automatic-v2\\assessment.json",
+    "taskId": "paperless-share-create-document-view",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 138,
+        "declaration": 2321,
+        "publicAnalysis": 1149,
+        "assessmentProgram": 716,
+        "source": 2665,
+        "outputContract": 2914,
+        "total": 10053,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "evidencePreparation": "evidence-preparation.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "paperless-share-create-document-view",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "results": [
+        {
+          "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+          "conclusion": "unknown",
+          "explanation": "The supplied source establishes the ShareLinkViewSet entry and its declared viewset-level permissions, but it does not include the implementations needed to decide the create-time authorization outcome. The viewset uses IsAuthenticated and PaperlessObjectPermissions, and its serializer is ShareLinkSerializer. However, the fixed source omits the relevant permission implementation and serializer definition/validation path (the source itself identifies unresolved gaps for permissions.py and serialisers.py). Therefore the source-visible behavior cannot establish whether the share-link object creation permission is granted by the stated global add_sharelink premise, nor whether serializer validation performs the owner-aware/object-level view_document check on the referenced target document. The share-link object and the target document are consequently distinct but the decisive target-document control is not available in the supplied source. Global view_document cannot be said, from this crop, either to substitute for or fail to substitute for that object-level check.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "ShareLinkViewSet is the supplied handler entry for share-link operations and includes CreateModelMixin.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 4696,
+                    "endLine": 4703,
+                    "quote": "class ShareLinkViewSet(\n    PassUserMixin,\n    CreateModelMixin,\n    RetrieveModelMixin,\n    DestroyModelMixin,\n    ListModelMixin,\n    GenericViewSet,\n):"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The create path declares ShareLinkSerializer as the serializer class.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 4708,
+                    "endLine": 4709,
+                    "quote": "    serializer_class = ShareLinkSerializer\n    pagination_class = StandardPagination"
+                  }
+                ]
+              },
+              {
+                "statement": "The viewset operates on ShareLink objects and uses a queryset selecting the related document.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 4704,
+                    "endLine": 4708,
+                    "quote": "    model = ShareLink\n\n    queryset = ShareLink.objects.select_related(\"document\")\n\n    serializer_class = ShareLinkSerializer"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The declared viewset permission classes are IsAuthenticated and PaperlessObjectPermissions.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 4708,
+                    "endLine": 4710,
+                    "quote": "    serializer_class = ShareLinkSerializer\n    pagination_class = StandardPagination\n    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The relevant protected effect is creation of a ShareLink object through the create-capable viewset.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 4696,
+                    "endLine": 4703,
+                    "quote": "class ShareLinkViewSet(\n    PassUserMixin,\n    CreateModelMixin,\n    RetrieveModelMixin,\n    DestroyModelMixin,\n    ListModelMixin,\n    GenericViewSet,\n):"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "Whether ShareLinkSerializer resolves the referenced document and enforces an owner-aware/object-level view_document check, and whether PaperlessObjectPermissions grants the required create authorization under the stated global permission, is not shown in the supplied source crop.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 4708,
+                    "endLine": 4710,
+                    "quote": "    serializer_class = ShareLinkSerializer\n    pagination_class = StandardPagination\n    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [
+            "The implementation of PaperlessObjectPermissions for ShareLinkViewSet creation, including how global add_sharelink is evaluated and whether object-level target-document permission is checked.",
+            "The implementation of ShareLinkSerializer validation, including resolution of the referenced Document and any owner-aware/object-level view_document authorization check.",
+            "The create/serializer-validation path connecting CreateModelMixin to ShareLinkSerializer in the fixed revision, if any custom behavior is relevant."
+          ],
+          "suggestedObservations": [
+            "Inspect the fixed-revision definition of PaperlessObjectPermissions and its create decision for ShareLinkViewSet.",
+            "Inspect the fixed-revision definition of ShareLinkSerializer and its document field validation/create path.",
+            "Observe validation of a share-link request for the stated document with global add_sharelink and global view_document but no object-level view_document grant, recording whether validation succeeds or raises a permission/validation error."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+          "explanation": "The supplied source establishes the ShareLinkViewSet entry and its declared viewset-level permissions, but it does not include the implementations needed to decide the create-time authorization outcome. The viewset uses IsAuthenticated and PaperlessObjectPermissions, and its serializer is ShareLinkSerializer. However, the fixed source omits the relevant permission implementation and serializer definition/validation path (the source itself identifies unresolved gaps for permissions.py and serialisers.py). Therefore the source-visible behavior cannot establish whether the share-link object creation permission is granted by the stated global add_sharelink premise, nor whether serializer validation performs the owner-aware/object-level view_document check on the referenced target document. The share-link object and the target document are consequently distinct but the decisive target-document control is not available in the supplied source. Global view_document cannot be said, from this crop, either to substitute for or fail to substitute for that object-level check.",
+          "facts": [
+            {
+              "id": "entry-share-create",
+              "kind": "entry",
+              "statement": "ShareLinkViewSet is the supplied handler entry for share-link operations and includes CreateModelMixin.",
+              "citations": [
+                {
+                  "sourceId": "src-149e2c31b30d3ec6",
+                  "startLine": 4696,
+                  "endLine": 4703
+                }
+              ]
+            },
+            {
+              "id": "binding-sharelink-object",
+              "kind": "binding",
+              "statement": "The viewset operates on ShareLink objects and uses a queryset selecting the related document.",
+              "citations": [
+                {
+                  "sourceId": "src-149e2c31b30d3ec6",
+                  "startLine": 4704,
+                  "endLine": 4708
+                }
+              ]
+            },
+            {
+              "id": "control-viewset-permissions",
+              "kind": "control",
+              "statement": "The declared viewset permission classes are IsAuthenticated and PaperlessObjectPermissions.",
+              "citations": [
+                {
+                  "sourceId": "src-149e2c31b30d3ec6",
+                  "startLine": 4708,
+                  "endLine": 4710
+                }
+              ]
+            },
+            {
+              "id": "binding-serializer",
+              "kind": "binding",
+              "statement": "The create path declares ShareLinkSerializer as the serializer class.",
+              "citations": [
+                {
+                  "sourceId": "src-149e2c31b30d3ec6",
+                  "startLine": 4708,
+                  "endLine": 4709
+                }
+              ]
+            },
+            {
+              "id": "effect-sharelink-create",
+              "kind": "effect",
+              "statement": "The relevant protected effect is creation of a ShareLink object through the create-capable viewset.",
+              "citations": [
+                {
+                  "sourceId": "src-149e2c31b30d3ec6",
+                  "startLine": 4696,
+                  "endLine": 4703
+                }
+              ]
+            },
+            {
+              "id": "condition-target-document-check",
+              "kind": "condition",
+              "statement": "Whether ShareLinkSerializer resolves the referenced document and enforces an owner-aware/object-level view_document check, and whether PaperlessObjectPermissions grants the required create authorization under the stated global permission, is not shown in the supplied source crop.",
+              "citations": [
+                {
+                  "sourceId": "src-149e2c31b30d3ec6",
+                  "startLine": 4708,
+                  "endLine": 4710
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [
+            "The implementation of PaperlessObjectPermissions for ShareLinkViewSet creation, including how global add_sharelink is evaluated and whether object-level target-document permission is checked.",
+            "The implementation of ShareLinkSerializer validation, including resolution of the referenced Document and any owner-aware/object-level view_document authorization check.",
+            "The create/serializer-validation path connecting CreateModelMixin to ShareLinkSerializer in the fixed revision, if any custom behavior is relevant."
+          ],
+          "suggestedObservations": [
+            "Inspect the fixed-revision definition of PaperlessObjectPermissions and its create decision for ShareLinkViewSet.",
+            "Inspect the fixed-revision definition of ShareLinkSerializer and its document field validation/create path.",
+            "Observe validation of a share-link request for the stated document with global add_sharelink and global view_document but no object-level view_document grant, recording whether validation succeeds or raises a permission/validation error."
+          ],
+          "decision": {
+            "kind": "observed",
+            "observed": "unknown"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "normalizerVersion": "authorization-wire-normalizer/v6",
+    "relationCoverage": [],
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+        "expectation": "deny",
+        "observed": "unknown",
+        "derivedConclusion": "unknown"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 2631,
+        "output": 928,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

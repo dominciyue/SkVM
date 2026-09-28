@@ -1,0 +1,351 @@
+{
+  "schemaVersion": "authorization-assessment-input/v1",
+  "sourceIdentity": {
+    "repository": "https://github.com/usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4"
+  },
+  "sourceRoot": "source",
+  "sources": [
+    "server/api/v1/memo_share_service.go",
+    "store/memo.go",
+    "core/access/memo.go",
+    "server/api/v1/memo_access.go"
+  ],
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "memos-create-share-admin",
+    "request": "At CreateMemoShare handler entry, does an authenticated active instance administrator pass the source-visible authorization controls to create a share for an existing active non-SPACE memo authored by someone else? Assess authorization, not whether an external store call succeeds under every runtime condition.",
+    "repository": "https://github.com/usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:memo-share-creator-or-admin",
+        "kind": "explicit-task-requirement",
+        "text": "A memo share may be created by the memo creator or an instance administrator; SPACE audience memos are not shareable.",
+        "location": "proto/api/v1/memo_service.proto:116-123; server/api/v1/memo_share_service.go:54-56",
+        "revision": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "Public fixed-ref source and task-author bounded requirement."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:instance-admin",
+        "role": "authenticated active instance administrator, not the memo creator",
+        "description": "Author facts: [\"The caller is active and has the instance ADMIN role.\",\"The caller is not the memo's creator.\"]",
+        "startingCapabilities": []
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:other-normal-memo",
+        "type": "memo",
+        "description": "Author facts: [\"The memo exists, is active, and has a non-SPACE audience.\",\"The memo was created by another user.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:create-share",
+        "name": "CreateMemoShare",
+        "locations": [
+          {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 23,
+            "endLine": 80
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:admin-other-memo",
+        "principalId": "principal:instance-admin",
+        "resourceId": "resource:other-normal-memo",
+        "relation": "active-instance-admin-not-creator",
+        "operation": "create memo share",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:memo-share-creator-or-admin",
+        "entryIds": [
+          "entry:create-share"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+      "identify the principal, operation, protected resource, decisive control, and effect",
+      "return source_supported_failure, source_refuted, or unknown with exact supplied-source locations"
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+      "Use only the supplied fixed-ref case inputs.",
+      "Do not execute the target project or infer deployment facts."
+    ]
+  },
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "analysisRequirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:admin-other-memo"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:admin-other-memo"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:admin-other-memo"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:admin-other-memo"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:admin-other-memo"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:admin-other-memo"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Decide the current scenario at the stated declared-entry boundary from the supplied fixed source and accepted policy. Treat premises as question assumptions, not source or deployment proof. Trace the decisive authorization control, protected object and effect with exact supplied-source locations. State any decisive missing runtime fact rather than assuming it. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: At CreateMemoShare handler entry, does an authenticated active instance administrator pass the source-visible authorization controls to create a share for an existing active non-SPACE memo authored by someone else? Assess authorization, not whether an external store call succeeds under every runtime condition.\nAnalysis boundary: declared-entry.\nTask premise: At CreateMemoShare entry, the caller is an authenticated active instance ADMIN; the selected memo exists, is active, non-SPACE, and authored by another user. The requested expiry, if any, is valid.\nRequired response detail: Trace the author-or-admin helper and the protected CreateMemoShare store effect; keep store failure and concurrent state changes outside the authorization conclusion.",
+    "scenarios": [
+      {
+        "obligationId": "scenario:admin-other-memo",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At CreateMemoShare entry, the caller is an authenticated active instance ADMIN; the selected memo exists, is active, non-SPACE, and authored by another user. The requested expiry, if any, is valid.",
+            "atEntryId": "entry:create-share",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the author-or-admin helper and the protected CreateMemoShare store effect; keep store failure and concurrent state changes outside the authorization conclusion."
+        ]
+      }
+    ]
+  },
+  "evidencePreparation": {
+    "schemaVersion": "authorization-evidence-report/v2",
+    "status": "ready",
+    "sourceIdentity": {
+      "repository": "https://github.com/usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/memos",
+    "included": [
+      {
+        "path": "server/api/v1/memo_share_service.go",
+        "originalPath": "server/api/v1/memo_share_service.go",
+        "startLine": 23,
+        "endLine": 244,
+        "origins": [
+          "entry:create-share",
+          "locator:located-4",
+          "model-proposal:dep-1",
+          "model-proposal:dep-2",
+          "model-proposal:dep-3",
+          "model-proposal:dep-9",
+          "model-proposal:dep-10",
+          "locator:located-6"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 23,
+            "originalEndLine": 81,
+            "origins": [
+              "entry:create-share",
+              "locator:located-4",
+              "model-proposal:dep-1",
+              "model-proposal:dep-2",
+              "model-proposal:dep-3",
+              "model-proposal:dep-9",
+              "model-proposal:dep-10"
+            ],
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 59
+          },
+          {
+            "originalStartLine": 234,
+            "originalEndLine": 244,
+            "origins": [
+              "locator:located-6"
+            ],
+            "snapshotStartLine": 60,
+            "snapshotEndLine": 70
+          }
+        ]
+      },
+      {
+        "path": "store/memo.go",
+        "originalPath": "store/memo.go",
+        "startLine": 228,
+        "endLine": 243,
+        "origins": [
+          "locator:located-7",
+          "model-proposal:dep-8",
+          "locator:located-1",
+          "model-proposal:dep-7"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 228,
+            "originalEndLine": 230,
+            "origins": [
+              "locator:located-7",
+              "model-proposal:dep-8"
+            ],
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 3
+          },
+          {
+            "originalStartLine": 232,
+            "originalEndLine": 243,
+            "origins": [
+              "locator:located-1",
+              "model-proposal:dep-7"
+            ],
+            "snapshotStartLine": 4,
+            "snapshotEndLine": 15
+          }
+        ]
+      },
+      {
+        "path": "core/access/memo.go",
+        "originalPath": "core/access/memo.go",
+        "startLine": 57,
+        "endLine": 85,
+        "origins": [
+          "locator:located-9",
+          "model-proposal:dep-6",
+          "locator:located-2",
+          "model-proposal:dep-4",
+          "locator:located-8",
+          "model-proposal:dep-5"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 57,
+            "originalEndLine": 59,
+            "origins": [
+              "locator:located-9",
+              "model-proposal:dep-6"
+            ],
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 3
+          },
+          {
+            "originalStartLine": 73,
+            "originalEndLine": 75,
+            "origins": [
+              "locator:located-2",
+              "model-proposal:dep-4"
+            ],
+            "snapshotStartLine": 4,
+            "snapshotEndLine": 6
+          },
+          {
+            "originalStartLine": 83,
+            "originalEndLine": 85,
+            "origins": [
+              "locator:located-8",
+              "model-proposal:dep-5"
+            ],
+            "snapshotStartLine": 7,
+            "snapshotEndLine": 9
+          }
+        ]
+      },
+      {
+        "path": "server/api/v1/memo_access.go",
+        "originalPath": "server/api/v1/memo_access.go",
+        "startLine": 163,
+        "endLine": 183,
+        "origins": [
+          "locator:located-3",
+          "locator:located-5"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 163,
+            "originalEndLine": 168,
+            "origins": [
+              "locator:located-3"
+            ],
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 6
+          },
+          {
+            "originalStartLine": 170,
+            "originalEndLine": 183,
+            "origins": [
+              "locator:located-5"
+            ],
+            "snapshotStartLine": 7,
+            "snapshotEndLine": 20
+          }
+        ]
+      }
+    ],
+    "gaps": [],
+    "closureClaim": "declared-dependencies-only"
+  }
+}

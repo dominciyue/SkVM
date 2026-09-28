@@ -1,0 +1,236 @@
+{
+  "schemaVersion": "authorization-assessment-input/v1",
+  "sourceIdentity": {
+    "repository": "https://github.com/usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4"
+  },
+  "sourceRoot": "source",
+  "sources": [
+    "server/api/v1/memo_share_service.go",
+    "server/api/v1/memo_access.go",
+    "core/access/memo.go",
+    "core/access/memo_resolve.go"
+  ],
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "memos-get-shared-anonymous",
+    "request": "At GetSharedMemo handler entry, can an anonymous caller retrieve the private, active, non-SPACE memo associated with a supplied share token when this task does not say whether the token exists or is unexpired? Assume the associated memo has a valid creator if the token resolves. State the source-visible branches and missing runtime facts.",
+    "repository": "https://github.com/usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:share-token-exact-memo",
+        "kind": "explicit-task-requirement",
+        "text": "GetSharedMemo needs no authentication; a current share token grants access to its exact memo only. Invalid or expired tokens and inaccessible memos yield NOT_FOUND.",
+        "location": "proto/api/v1/memo_service.proto:134-138; server/api/v1/memo_share_service.go:170-213",
+        "revision": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "Public fixed-ref source and task-author bounded requirement."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:anonymous-token-holder",
+        "role": "anonymous caller presenting an unspecified share token",
+        "description": "Author facts: [\"The caller is not authenticated.\",\"Token existence and expiry are not supplied as facts.\"]",
+        "startingCapabilities": []
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:private-memo",
+        "type": "memo",
+        "description": "Author facts: [\"If the token resolves, its associated memo is active, private, non-SPACE, and has a valid creator.\",\"There is no separately named memo identifier in GetSharedMemoRequest.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:get-shared",
+        "name": "GetSharedMemo",
+        "locations": [
+          {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 170,
+            "endLine": 213
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:token-status-unspecified",
+        "principalId": "principal:anonymous-token-holder",
+        "resourceId": "resource:private-memo",
+        "relation": "anonymous-token-validity-unknown",
+        "operation": "retrieve token-associated memo",
+        "expectation": "conditional",
+        "conditions": [],
+        "policySourceId": "policy:share-token-exact-memo",
+        "entryIds": [
+          "entry:get-shared"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+      "identify the principal, operation, protected resource, decisive control, and effect",
+      "return source_supported_failure, source_refuted, or unknown with exact supplied-source locations"
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+      "Use only the supplied fixed-ref case inputs.",
+      "Do not execute the target project or infer deployment facts."
+    ]
+  },
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "analysisRequirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:token-status-unspecified"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:token-status-unspecified"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:token-status-unspecified"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:token-status-unspecified"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:token-status-unspecified"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:token-status-unspecified"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Decide the current scenario at the stated declared-entry boundary from the supplied fixed source and accepted policy. Treat premises as question assumptions, not source or deployment proof. Trace the decisive authorization control, protected object and effect with exact supplied-source locations. State any decisive missing runtime fact rather than assuming it. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: At GetSharedMemo handler entry, can an anonymous caller retrieve the private, active, non-SPACE memo associated with a supplied share token when this task does not say whether the token exists or is unexpired? Assume the associated memo has a valid creator if the token resolves. State the source-visible branches and missing runtime facts.\nAnalysis boundary: declared-entry.\nTask premise: At GetSharedMemo entry, the caller is anonymous. If the token resolves, its associated memo is active, private, non-SPACE, and has a valid creator. Token existence and expiry are unspecified.\nRequired response detail: Explain the valid token-associated memo and invalid/expired branches; do not invent token state, a separate requested memo identity, or deployment success.",
+    "scenarios": [
+      {
+        "obligationId": "scenario:token-status-unspecified",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At GetSharedMemo entry, the caller is anonymous. If the token resolves, its associated memo is active, private, non-SPACE, and has a valid creator. Token existence and expiry are unspecified.",
+            "atEntryId": "entry:get-shared",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Explain the valid token-associated memo and invalid/expired branches; do not invent token state, a separate requested memo identity, or deployment success."
+        ]
+      }
+    ]
+  },
+  "evidencePreparation": {
+    "status": "ready",
+    "sourceIdentity": {
+      "repository": "https://github.com/usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/memos",
+    "gaps": [],
+    "closureClaim": "declared-dependencies-only",
+    "schemaVersion": "authorization-evidence-report/v1",
+    "included": [
+      {
+        "path": "server/api/v1/memo_share_service.go",
+        "originalPath": "server/api/v1/memo_share_service.go",
+        "startLine": 1,
+        "endLine": 244,
+        "origins": [
+          "entry:get-shared",
+          "locator:active-token"
+        ]
+      },
+      {
+        "path": "server/api/v1/memo_access.go",
+        "originalPath": "server/api/v1/memo_access.go",
+        "startLine": 1,
+        "endLine": 210,
+        "origins": [
+          "locator:read-context"
+        ]
+      },
+      {
+        "path": "core/access/memo.go",
+        "originalPath": "core/access/memo.go",
+        "startLine": 1,
+        "endLine": 157,
+        "origins": [
+          "locator:read-decision"
+        ]
+      },
+      {
+        "path": "core/access/memo_resolve.go",
+        "originalPath": "core/access/memo_resolve.go",
+        "startLine": 1,
+        "endLine": 91,
+        "origins": [
+          "locator:read-resolve"
+        ]
+      }
+    ]
+  }
+}

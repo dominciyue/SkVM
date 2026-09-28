@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "source-authorization-assessment/v0",
+  "taskId": "ak-use-paperless-note",
+  "request": "At the notes POST handler, assess two declared relations between an authenticated caller and an existing document. Both callers hold global add_note, view_document and change_document permissions and can view the document. Use each scenario's object relation to determine whether Note.objects.create is reached.",
+  "repository": "https://github.com/paperless-ngx/paperless-ngx",
+  "sourceRef": "synthetic-ak-change-grants-disabled-v1-6c01553267afcf78",
+  "sourceMode": "fixed-context",
+  "policySources": [
+    {
+      "id": "policy:accepted-policy",
+      "kind": "explicit-task-requirement",
+      "text": "Creating a note requires the stated global permissions and object-level change_document authorization; a view grant alone is insufficient, while document ownership or an object change grant can satisfy the object control.",
+      "location": "author-briefs.json#/paperless-note-source/originalPolicy",
+      "revision": "original-v1",
+      "acceptance": {
+        "status": "accepted",
+        "actorRole": "task-author",
+        "reason": "This is the accepted policy for the original two-scenario task."
+      }
+    }
+  ],
+  "principals": [
+    {
+      "id": "principal:caller",
+      "role": "authenticated caller",
+      "description": "Author facts: not declared.",
+      "startingCapabilities": []
+    }
+  ],
+  "resources": [
+    {
+      "id": "resource:target",
+      "type": "document",
+      "description": "Author facts: not declared."
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry:notes-post",
+      "name": "notes POST handler",
+      "locations": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1841,
+          "endLine": 1913
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "id": "scenario:change-granted",
+      "principalId": "principal:caller",
+      "resourceId": "resource:target",
+      "relation": "object-change-granted-not-owner",
+      "operation": "create a note on the document",
+      "expectation": "allow",
+      "conditions": [],
+      "policySourceId": "policy:accepted-policy",
+      "entryIds": [
+        "entry:notes-post"
+      ]
+    },
+    {
+      "id": "scenario:view-only",
+      "principalId": "principal:caller",
+      "resourceId": "resource:target",
+      "relation": "object-view-granted-not-owner-no-change-grant",
+      "operation": "create a note on the document",
+      "expectation": "deny",
+      "conditions": [],
+      "policySourceId": "policy:accepted-policy",
+      "entryIds": [
+        "entry:notes-post"
+      ]
+    }
+  ],
+  "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+  "requiredAnalysis": [
+    "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+  ],
+  "constraints": [
+    "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+  ]
+}

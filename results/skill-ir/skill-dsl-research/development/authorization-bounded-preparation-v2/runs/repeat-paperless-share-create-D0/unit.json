@@ -1,0 +1,373 @@
+{
+  "unit": {
+    "id": "repeat-paperless-share-create-D0",
+    "phase": "repeat",
+    "caseId": "paperless-share-create",
+    "arm": "D0",
+    "material": "explicit-v1"
+  },
+  "configSha256": "81a534d2cb2626ae82e752bd5817f12b05a0bb7c152b1f3b219dd387a8721949",
+  "report": {
+    "methodSelection": {
+      "requested": "plain",
+      "effective": "plain",
+      "selectionOrigin": "explicit",
+      "conditionRequestIgnored": false
+    },
+    "wireVersion": "source-authorization-assessment-wire/v6",
+    "assessmentMode": "explicit-v1",
+    "reasoningStrategy": "standard",
+    "evidencePreparation": {
+      "status": "partial",
+      "sourceIdentity": {
+        "repository": "https://github.com/paperless-ngx/paperless-ngx",
+        "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+      },
+      "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+      "gaps": [
+        {
+          "id": "serializer-user",
+          "entryKey": "share-create",
+          "reason": "byte-budget",
+          "attemptedPath": "src/documents/views.py"
+        }
+      ],
+      "closureClaim": "declared-dependencies-only",
+      "schemaVersion": "authorization-evidence-report/v1",
+      "included": [
+        {
+          "path": "src/documents/views.py",
+          "originalPath": "src/documents/views.py",
+          "startLine": 4696,
+          "endLine": 4717,
+          "origins": [
+            "entry:share-create"
+          ]
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "originalPath": "src/documents/permissions.py",
+          "startLine": 1,
+          "endLine": 717,
+          "origins": [
+            "locator:global-share-permission",
+            "locator:owner-aware"
+          ]
+        },
+        {
+          "path": "src/documents/serialisers.py",
+          "originalPath": "src/documents/serialisers.py",
+          "startLine": 2851,
+          "endLine": 2886,
+          "origins": [
+            "locator:document-validation"
+          ]
+        }
+      ]
+    },
+    "schemaVersion": "authorization-local-result/v1",
+    "sessionId": "20260928T182503692Z-579786ac",
+    "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-bounded-preparation-v2\\runs\\repeat-paperless-share-create-D0\\sessions\\20260928T182503692Z-579786ac",
+    "createdAt": "2026-09-28T18:25:03.692Z",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-bounded-preparation-v2\\inputs\\paperless-share-create\\explicit-v1\\assessment.json",
+    "taskId": "paperless-share-create-document-view",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "model": "xty/gpt-5.6-sol",
+    "arm": "B",
+    "analysisProfile": {
+      "id": "authorization-core-v1",
+      "origin": "derived"
+    },
+    "promptCharacters": {
+      "initial": {
+        "instructions": 396,
+        "declaration": 3098,
+        "publicAnalysis": 1149,
+        "assessmentProgram": 716,
+        "source": 34899,
+        "outputContract": 2914,
+        "total": 43310,
+        "tokenMeasurement": "provider-reported-only"
+      }
+    },
+    "artifacts": {
+      "session": "session.json",
+      "check": "check.json",
+      "input": "input.json",
+      "normalizedInput": "normalized-input.json",
+      "fieldProvenance": "field-provenance.json",
+      "executionDependencies": "execution-dependencies.json",
+      "evidencePreparation": "evidence-preparation.json",
+      "task": "task.json",
+      "sourceBundle": "source-bundle.json",
+      "analysisRequirements": "analysis-requirements.json",
+      "preview": "preview.md",
+      "events": "events.jsonl",
+      "result": "result.json",
+      "summary": "summary.txt",
+      "dispatch": "dispatch.json",
+      "run": "run.json"
+    },
+    "status": "completed",
+    "finalKind": "initial",
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "paperless-share-create-document-view",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "results": [
+        {
+          "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+          "conclusion": "source_refuted",
+          "explanation": "At the declared entry boundary, ShareLinkViewSet uses IsAuthenticated and PaperlessObjectPermissions, and its serializer is ShareLinkSerializer. The viewset therefore binds the authenticated principal to the share-link create operation, while the serializer separately validates the referenced document. The decisive control is ShareLinkSerializer.validate_document: it requires both the caller's global documents.view_document permission and has_perms_owner_aware(..., \"view_document\", document). The supplied premise provides the global permission but states that the caller lacks object view_document permission on an other-user-owned document. The owner-aware check returns true only for an unowned document, the owner, or a successful object-permission check; on the supplied premise those alternatives are unavailable, so validation raises PermissionDenied before ShareLinkSerializer.create can persist the new share link. Thus the share-link object is the protected effect, while the referenced document is the separately protected target resource. This is source_supported_failure, not a repository-wide completeness claim. No decisive runtime fact is missing within the declared-entry boundary because the task premise supplies the referenced document, ownership, global permission, and absent object grant; deployment behavior and broader repository discovery remain untested.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "ShareLinkViewSet is the declared create entry and selects ShareLinkSerializer with IsAuthenticated and PaperlessObjectPermissions.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 4696,
+                    "endLine": 4710,
+                    "quote": "class ShareLinkViewSet(\n    PassUserMixin,\n    CreateModelMixin,\n    RetrieveModelMixin,\n    DestroyModelMixin,\n    ListModelMixin,\n    GenericViewSet,\n):\n    model = ShareLink\n\n    queryset = ShareLink.objects.select_related(\"document\")\n\n    serializer_class = ShareLinkSerializer\n    pagination_class = StandardPagination\n    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The viewset's permission classes require an authenticated caller and apply the object-permission class to the ShareLink viewset operation.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 4708,
+                    "endLine": 4710,
+                    "quote": "    serializer_class = ShareLinkSerializer\n    pagination_class = StandardPagination\n    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)"
+                  }
+                ]
+              },
+              {
+                "statement": "The serializer exposes the document relation as the ShareLink field being validated, while document_title is read from the referenced document.",
+                "citations": [
+                  {
+                    "path": "src/documents/serialisers.py",
+                    "startLine": 2851,
+                    "endLine": 2867,
+                    "quote": "class ShareLinkSerializer(OwnedObjectSerializer):\n    document_title = serializers.CharField(\n        source=\"document.title\",\n        read_only=True,\n    )\n\n    class Meta:\n        model = ShareLink\n        fields = (\n            \"id\",\n            \"created\",\n            \"expiration\",\n            \"slug\",\n            \"document\",\n            \"document_title\",\n            \"file_version\",\n        )"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "Referenced-document validation requires the caller to have the global documents.view_document permission.",
+                "citations": [
+                  {
+                    "path": "src/documents/serialisers.py",
+                    "startLine": 2873,
+                    "endLine": 2877,
+                    "quote": "    def validate_document(self, document):\n        if (\n            self.user is not None\n            and self.user.has_perm(\"documents.view_document\")\n            and has_perms_owner_aware("
+                  }
+                ]
+              },
+              {
+                "statement": "Referenced-document validation also requires the owner-aware view_document check on that document; the helper accepts ownership, an unowned object, or a successful object permission.",
+                "citations": [
+                  {
+                    "path": "src/documents/serialisers.py",
+                    "startLine": 2873,
+                    "endLine": 2882,
+                    "quote": "    def validate_document(self, document):\n        if (\n            self.user is not None\n            and self.user.has_perm(\"documents.view_document\")\n            and has_perms_owner_aware(\n                self.user,\n                \"view_document\",\n                document,\n            )\n        ):"
+                  },
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The serializer creates the new ShareLink only after validation, and rejects the referenced document with PermissionDenied when the combined authorization condition fails.",
+                "citations": [
+                  {
+                    "path": "src/documents/serialisers.py",
+                    "startLine": 2869,
+                    "endLine": 2871,
+                    "quote": "    def create(self, validated_data):\n        validated_data[\"slug\"] = get_random_string(50)\n        return super().create(validated_data)"
+                  },
+                  {
+                    "path": "src/documents/serialisers.py",
+                    "startLine": 2882,
+                    "endLine": 2886,
+                    "quote": "        ):\n            return document\n        raise PermissionDenied(\n            _(\"Insufficient permissions.\"),\n        )"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The decisive supplied scenario condition is that the referenced document is owned by another user and the caller lacks object view_document permission; under the helper's owner-aware alternatives, the object check therefore does not authorize the document.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+          "explanation": "At the declared entry boundary, ShareLinkViewSet uses IsAuthenticated and PaperlessObjectPermissions, and its serializer is ShareLinkSerializer. The viewset therefore binds the authenticated principal to the share-link create operation, while the serializer separately validates the referenced document. The decisive control is ShareLinkSerializer.validate_document: it requires both the caller's global documents.view_document permission and has_perms_owner_aware(..., \"view_document\", document). The supplied premise provides the global permission but states that the caller lacks object view_document permission on an other-user-owned document. The owner-aware check returns true only for an unowned document, the owner, or a successful object-permission check; on the supplied premise those alternatives are unavailable, so validation raises PermissionDenied before ShareLinkSerializer.create can persist the new share link. Thus the share-link object is the protected effect, while the referenced document is the separately protected target resource. This is source_supported_failure, not a repository-wide completeness claim. No decisive runtime fact is missing within the declared-entry boundary because the task premise supplies the referenced document, ownership, global permission, and absent object grant; deployment behavior and broader repository discovery remain untested.",
+          "facts": [
+            {
+              "id": "f-entry",
+              "kind": "entry",
+              "statement": "ShareLinkViewSet is the declared create entry and selects ShareLinkSerializer with IsAuthenticated and PaperlessObjectPermissions.",
+              "citations": [
+                {
+                  "sourceId": "src-64b8926d5eb16fbb",
+                  "startLine": 4696,
+                  "endLine": 4710
+                }
+              ]
+            },
+            {
+              "id": "f-binding-principal",
+              "kind": "binding",
+              "statement": "The viewset's permission classes require an authenticated caller and apply the object-permission class to the ShareLink viewset operation.",
+              "citations": [
+                {
+                  "sourceId": "src-64b8926d5eb16fbb",
+                  "startLine": 4708,
+                  "endLine": 4710
+                }
+              ]
+            },
+            {
+              "id": "f-binding-resource",
+              "kind": "binding",
+              "statement": "The serializer exposes the document relation as the ShareLink field being validated, while document_title is read from the referenced document.",
+              "citations": [
+                {
+                  "sourceId": "src-baa9e644e5441f97",
+                  "startLine": 2851,
+                  "endLine": 2867
+                }
+              ]
+            },
+            {
+              "id": "f-control-global",
+              "kind": "control",
+              "statement": "Referenced-document validation requires the caller to have the global documents.view_document permission.",
+              "citations": [
+                {
+                  "sourceId": "src-baa9e644e5441f97",
+                  "startLine": 2873,
+                  "endLine": 2877
+                }
+              ]
+            },
+            {
+              "id": "f-control-object",
+              "kind": "control",
+              "statement": "Referenced-document validation also requires the owner-aware view_document check on that document; the helper accepts ownership, an unowned object, or a successful object permission.",
+              "citations": [
+                {
+                  "sourceId": "src-baa9e644e5441f97",
+                  "startLine": 2873,
+                  "endLine": 2882
+                },
+                {
+                  "sourceId": "src-81f6400744c9c9e9",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "f-effect",
+              "kind": "effect",
+              "statement": "The serializer creates the new ShareLink only after validation, and rejects the referenced document with PermissionDenied when the combined authorization condition fails.",
+              "citations": [
+                {
+                  "sourceId": "src-baa9e644e5441f97",
+                  "startLine": 2869,
+                  "endLine": 2871
+                },
+                {
+                  "sourceId": "src-baa9e644e5441f97",
+                  "startLine": 2882,
+                  "endLine": 2886
+                }
+              ]
+            },
+            {
+              "id": "f-condition",
+              "kind": "condition",
+              "statement": "The decisive supplied scenario condition is that the referenced document is owned by another user and the caller lacks object view_document permission; under the helper's owner-aware alternatives, the object check therefore does not authorize the document.",
+              "citations": [
+                {
+                  "sourceId": "src-81f6400744c9c9e9",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "deny"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "normalizerVersion": "authorization-wire-normalizer/v6",
+    "relationCoverage": [],
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+        "expectation": "deny",
+        "observed": "deny",
+        "derivedConclusion": "source_refuted"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 1,
+      "respondedCalls": 1,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 1,
+      "knownTokens": {
+        "input": 800,
+        "output": 861,
+        "cacheRead": 9600,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    }
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "source-authorization-assessment/v0",
+  "taskId": "ak-use-memos-members",
+  "request": "At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.",
+  "repository": "https://github.com/usememos/memos",
+  "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+  "sourceMode": "fixed-context",
+  "policySources": [
+    {
+      "id": "policy:accepted-policy",
+      "kind": "explicit-task-requirement",
+      "text": "An active space member may delete their own membership to leave. Removing a different active member requires space administrator authority.",
+      "location": "author-briefs.json#/memos-space-policy/originalPolicy",
+      "revision": "original-v1",
+      "acceptance": {
+        "status": "accepted",
+        "actorRole": "task-author",
+        "reason": "The public task author supplies this accepted policy."
+      }
+    }
+  ],
+  "principals": [
+    {
+      "id": "principal:caller",
+      "role": "Authenticated caller described separately by the two exact scenario premises.",
+      "description": "Author facts: not declared.",
+      "startingCapabilities": []
+    }
+  ],
+  "resources": [
+    {
+      "id": "resource:target",
+      "type": "Protected target fixed in each scenario premise.",
+      "description": "Author facts: not declared."
+    }
+  ],
+  "entries": [
+    {
+      "id": "entry:delete-member",
+      "name": "delete-member",
+      "locations": [
+        {
+          "path": "server/api/v1/space_service.go",
+          "startLine": 740,
+          "endLine": 763
+        }
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "id": "scenario:other-member",
+      "principalId": "principal:caller",
+      "resourceId": "resource:target",
+      "relation": "caller-is-not-target-member-and-not-admin",
+      "operation": "delete another active membership",
+      "expectation": "deny",
+      "conditions": [],
+      "policySourceId": "policy:accepted-policy",
+      "entryIds": [
+        "entry:delete-member"
+      ]
+    },
+    {
+      "id": "scenario:self-leave",
+      "principalId": "principal:caller",
+      "resourceId": "resource:target",
+      "relation": "caller-is-target-member",
+      "operation": "delete own membership",
+      "expectation": "allow",
+      "conditions": [],
+      "policySourceId": "policy:accepted-policy",
+      "entryIds": [
+        "entry:delete-member"
+      ]
+    }
+  ],
+  "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+  "requiredAnalysis": [
+    "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+  ],
+  "constraints": [
+    "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+  ]
+}

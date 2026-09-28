@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "authorization-evidence-request/v2",
+  "sourceRoot": "../../author-source/paperless-synthetic",
+  "allowedFiles": [
+    "src/documents/views.py",
+    "src/documents/permissions.py"
+  ],
+  "entries": [
+    {
+      "entryKey": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 1841,
+      "endLine": 1913
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "located-1",
+      "from": "notes-post",
+      "path": "src/documents/permissions.py",
+      "startLine": 624,
+      "endLine": 637,
+      "reason": "other",
+      "basis": "locator"
+    },
+    {
+      "id": "located-2",
+      "from": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 4767,
+      "endLine": 4833,
+      "reason": "other",
+      "basis": "locator"
+    },
+    {
+      "id": "located-3",
+      "from": "located-1",
+      "path": "src/documents/permissions.py",
+      "startLine": 345,
+      "endLine": 350,
+      "reason": "other",
+      "basis": "locator"
+    },
+    {
+      "id": "located-4",
+      "from": "located-2",
+      "path": "src/documents/permissions.py",
+      "startLine": 460,
+      "endLine": 464,
+      "reason": "other",
+      "basis": "locator"
+    },
+    {
+      "id": "dep-1",
+      "from": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 1841,
+      "endLine": 1846,
+      "match": "permission_classes=[PaperlessNotePermissions]",
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-2",
+      "from": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 1851,
+      "endLine": 1856,
+      "match": "Document.objects...get(pk=pk)",
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-3",
+      "from": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 1857,
+      "endLine": 1862,
+      "match": "has_perms_owner_aware(currentUser, \"view_document\", doc)",
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-4",
+      "from": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 1877,
+      "endLine": 1886,
+      "match": "has_perms_owner_aware(currentUser, \"change_document\", doc)",
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-5",
+      "from": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 1888,
+      "endLine": 1892,
+      "match": "Note.objects.create(document=doc, ...)",
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-6",
+      "from": "notes-post",
+      "path": "src/documents/permissions.py",
+      "startLine": 624,
+      "endLine": 635,
+      "match": "obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)",
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-7",
+      "from": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 1893,
+      "endLine": 1905,
+      "match": "audit log and document modification after note creation",
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-8",
+      "from": "notes-post",
+      "path": "src/documents/permissions.py",
+      "startLine": 678,
+      "endLine": 699,
+      "match": "\"POST\": [\"documents.add_note\", \"documents.view_document\", \"documents.change_document\"]",
+      "reason": "control",
+      "basis": "model-proposal"
+    }
+  ],
+  "limits": {
+    "maxFiles": 12,
+    "maxBytes": 65536,
+    "maxDepth": 3
+  }
+}

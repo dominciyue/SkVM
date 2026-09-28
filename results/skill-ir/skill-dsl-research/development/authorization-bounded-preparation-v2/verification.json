@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "authorization-ak-verification/v1",
+  "date": "2026-09-29",
+  "status": "passed",
+  "core": {
+    "source": "engineering-verification.json",
+    "tests": {
+      "passed": 402,
+      "skipped": 1,
+      "failed": 0,
+      "assertions": 2735
+    },
+    "mainTypecheckExitCode": 0,
+    "unchangedSinceEngineeringVerification": true,
+    "currentAndHeadBlobMatchFrozenImplementationFiles": 16
+  },
+  "checks": [
+    {
+      "name": "artifact audit",
+      "command": "bun ./verify-artifacts.ts",
+      "exitCode": 0,
+      "report": "artifact-audit.json",
+      "ordinaryInspections": 8
+    },
+    {
+      "name": "research typecheck",
+      "command": "bunx tsc --noEmit --project ./results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/tsconfig.json",
+      "exitCode": 0
+    },
+    {
+      "name": "doc tests",
+      "command": "python ./scripts/check_skill_ir_doc_links_test.py",
+      "exitCode": 0,
+      "passed": 12
+    },
+    {
+      "name": "doc links",
+      "command": "python ./scripts/check_skill_ir_doc_links.py --root .",
+      "exitCode": 0,
+      "scannedFiles": 17191,
+      "brokenReferences": 0,
+      "legacyReferences": 0,
+      "governanceErrors": 0,
+      "nonfatalSoftLineWarnings": 5,
+      "stdoutCaptured": "Tool output truncated; displayed structured head/tail confirms these counters"
+    },
+    {
+      "name": "catalog check",
+      "command": "bun ./scripts/experiment-catalog/cli.ts check --root=. --catalog=results/skill-ir/experiment-catalog.json",
+      "exitCode": 0,
+      "entries": 10,
+      "diagnostics": 0
+    },
+    {
+      "name": "diff whitespace",
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "zeroProviderReplays": [
+    {
+      "cwd": "results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2",
+      "command": "bun ./prepare-study.ts replay",
+      "exitCode": 0,
+      "providerCalls": 0
+    },
+    {
+      "cwd": "results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2",
+      "command": "bun ./run-panel.ts replay",
+      "exitCode": 0,
+      "providerCalls": 0
+    },
+    {
+      "cwd": "results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2",
+      "command": "bun ./authors.ts replay",
+      "exitCode": 0,
+      "providerCalls": 0
+    },
+    {
+      "cwd": "results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2",
+      "command": "bun ./author-consume.ts replay",
+      "exitCode": 0,
+      "providerCalls": 0
+    },
+    {
+      "cwd": "results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2",
+      "command": "bun ./evaluate.ts replay",
+      "exitCode": 0,
+      "providerCalls": 0
+    },
+    {
+      "cwd": "results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2",
+      "command": "bun ./evaluate-author-use.ts replay",
+      "exitCode": 0,
+      "providerCalls": 0
+    },
+    {
+      "cwd": "results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2",
+      "command": "bun ./summarize.ts replay",
+      "exitCode": 0,
+      "providerCalls": 0
+    }
+  ],
+  "historicalAJChecks": [
+    {
+      "command": "bun ./evaluate-panel.ts replay",
+      "exitCode": 0,
+      "sha256": "1b5070ce2effcbe42d02ee4cd3f1b5389008d93521d4af01f446e6ed5fbf49dc"
+    },
+    {
+      "command": "bun ./evaluate-author-use.ts replay",
+      "exitCode": 1,
+      "reason": "Frozen byte mismatch: src/benchmarks/authorization-dsl/local-run.ts; changed by authorized AK implementation",
+      "handling": "Preserve historical identity and bytes; no retry or bypass"
+    }
+  ],
+  "targetExecutions": 0,
+  "verificationProviderCalls": 0,
+  "knownLimitations": [
+    "Actual USD, evaluator/developer agent overhead and human time unknown",
+    "Two extra author format corrections separate from original protocol",
+    "Author non-null-owner sensitivity does not replace actual frozen brief",
+    "The artifact scan excludes later metadata written during finalization, which contains only fixed summary facts and references"
+  ],
+  "independentReview": "independent-diff-review.json",
+  "packaging": {
+    "initialStagedWhitespaceExitCode": 1,
+    "reason": "Recorded source blank EOF and numbered preview blank-line markers are immutable evidence",
+    "attributes": ".gitattributes",
+    "scope": "Archived source spans, author synthetic source, numbered preview.md, evaluator materials only",
+    "finalStagedWhitespaceExitCode": 0,
+    "byteCheck": "packaging-byte-check.json"
+  }
+}

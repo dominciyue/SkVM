@@ -1,0 +1,256 @@
+{
+  "schemaVersion": "authorization-dependency-proposal/v2",
+  "model": "xty/gpt-5.6-sol",
+  "dependencies": [
+    {
+      "id": "dep:process-file:ownership-lookup",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1559,
+      "endLine": 1562,
+      "match": "Non-admin users retrieve the file through get_file_by_id_and_user_id(form_data.file_id, user.id, db=db).",
+      "reason": "identity",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep:process-file:collection-input",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1564,
+      "endLine": 1569,
+      "match": "collection_name is taken directly from form_data, with a file-specific default only when it is None.",
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep:process-file:collection-branch",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1597,
+      "endLine": 1626,
+      "match": "A supplied collection_name selects the branch that obtains the file's existing content and prepares it for saving.",
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep:process-file:content-source",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1613,
+      "endLine": 1626,
+      "match": "The documents and text_content can be constructed from the owned file's stored content.",
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep:process-file:save-call",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1683,
+      "endLine": 1706,
+      "match": "save_docs_to_vector_db receives the caller-supplied collection_name, the prepared docs, add=True when form_data.collection_name is supplied, and user=user.",
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep:process-file:success-binding",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1707,
+      "endLine": 1732,
+      "match": "On a successful save, the file metadata is updated with the supplied collection_name and the endpoint returns success.",
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep:process-file:error-path",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1733,
+      "endLine": 1759,
+      "match": "Save failures are converted into an HTTP 400 response after recording failed file status.",
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep:process-file:collection-access-validation",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 2339,
+      "endLine": 2352,
+      "match": "allowed = await filter_accessible_collections(requested, user, access_type=access_type)",
+      "reason": "control",
+      "basis": "model-proposal"
+    }
+  ],
+  "promptCharacters": 25196,
+  "responseCharacters": 2979,
+  "durationMs": 38898.9105,
+  "tokens": {
+    "input": 6826,
+    "output": 1440,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "actualCostUsd": null,
+  "account": {
+    "schemaVersion": "authorization-preparation-attempts/v1",
+    "model": "xty/gpt-5.6-sol",
+    "status": "completed",
+    "published": false,
+    "attempts": [
+      {
+        "id": "provider-attempt-1",
+        "phase": "initial",
+        "transport": "prompt-parse",
+        "status": "response",
+        "startedAt": "2026-09-28T17:49:58.474Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 21164,
+          "toolNames": [],
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false
+        },
+        "usage": {
+          "input": 5230,
+          "output": 907,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "transportAttempts": "unknown",
+        "response": {
+          "text": "{\"dependencies\":[{\"id\":\"dep:process-file:ownership-lookup\",\"from\":\"post-process-file\",\"path\":\"backend/open_webui/routers/retrieval.py\",\"startLine\":1559,\"endLine\":1562,\"reason\":\"identity\",\"match\":\"Non-admin users retrieve the file through get_file_by_id_and_user_id(form_data.file_id, user.id, db=db).\"},{\"id\":\"dep:process-file:collection-input\",\"from\":\"post-process-file\",\"path\":\"backend/open_webui/routers/retrieval.py\",\"startLine\":1564,\"endLine\":1569,\"reason\":\"resource-binding\",\"match\":\"collection_name is taken directly from form_data, with a file-specific default only when it is None.\"},{\"id\":\"dep:process-file:collection-branch\",\"from\":\"post-process-file\",\"path\":\"backend/open_webui/routers/retrieval.py\",\"startLine\":1597,\"endLine\":1626,\"reason\":\"control\",\"match\":\"A supplied collection_name selects the branch that obtains the file's existing content and prepares it for saving.\"},{\"id\":\"dep:process-file:content-source\",\"from\":\"post-process-file\",\"path\":\"backend/open_webui/routers/retrieval.py\",\"startLine\":1613,\"endLine\":1626,\"reason\":\"resource-binding\",\"match\":\"The documents and text_content can be constructed from the owned file's stored content.\"},{\"id\":\"dep:process-file:save-call\",\"from\":\"post-process-file\",\"path\":\"backend/open_webui/routers/retrieval.py\",\"startLine\":1683,\"endLine\":1706,\"reason\":\"effect\",\"match\":\"save_docs_to_vector_db receives the caller-supplied collection_name, the prepared docs, add=True when form_data.collection_name is supplied, and user=user.\"},{\"id\":\"dep:process-file:success-binding\",\"from\":\"post-process-file\",\"path\":\"backend/open_webui/routers/retrieval.py\",\"startLine\":1707,\"endLine\":1732,\"reason\":\"effect\",\"match\":\"On a successful save, the file metadata is updated with the supplied collection_name and the endpoint returns success.\"},{\"id\":\"dep:process-file:error-path\",\"from\":\"post-process-file\",\"path\":\"backend/open_webui/routers/retrieval.py\",\"startLine\":1733,\"endLine\":1759,\"reason\":\"control\",\"match\":\"Save failures are converted into an HTTP 400 response after recording failed file status.\"}],\"reads\":[{\"path\":\"backend/open_webui/routers/retrieval.py\",\"startLine\":1340,\"endLine\":1348,\"contextLines\":12},{\"path\":\"backend/open_webui/routers/retrieval.py\",\"startLine\":2339,\"endLine\":2354,\"contextLines\":12},{\"path\":\"backend/open_webui/routers/retrieval.py\",\"startLine\":1540,\"endLine\":1545,\"contextLines\":8}]}",
+          "toolCalls": [],
+          "tokens": {
+            "input": 5230,
+            "output": 907,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "costUsd": null,
+          "durationMs": 22889.456599999998,
+          "stopReason": "end_turn"
+        },
+        "endedAt": "2026-09-28T17:50:21.367Z"
+      },
+      {
+        "id": "provider-attempt-2",
+        "phase": "initial",
+        "transport": "prompt-parse",
+        "status": "response",
+        "startedAt": "2026-09-28T17:50:21.369Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 2787,
+          "toolNames": [],
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false
+        },
+        "usage": {
+          "input": 995,
+          "output": 420,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "transportAttempts": "unknown",
+        "response": {
+          "text": "{\"dependencies\":[{\"id\":\"dep:process-file:collection-access-validation\",\"from\":\"post-process-file\",\"path\":\"backend/open_webui/routers/retrieval.py\",\"startLine\":2339,\"endLine\":2352,\"reason\":\"control\",\"match\":\"allowed = await filter_accessible_collections(requested, user, access_type=access_type)\",\"contextLines\":1}]}",
+          "toolCalls": [],
+          "tokens": {
+            "input": 995,
+            "output": 420,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "costUsd": null,
+          "durationMs": 12417.234199999999,
+          "stopReason": "end_turn"
+        },
+        "endedAt": "2026-09-28T17:50:33.787Z"
+      },
+      {
+        "id": "provider-attempt-3",
+        "phase": "domain-repair",
+        "transport": "prompt-parse",
+        "status": "response",
+        "startedAt": "2026-09-28T17:50:33.790Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 1245,
+          "toolNames": [],
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false
+        },
+        "usage": {
+          "input": 601,
+          "output": 113,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "transportAttempts": "unknown",
+        "response": {
+          "text": "{\"dependencies\":[{\"id\":\"dep:process-file:collection-access-validation\",\"from\":\"post-process-file\",\"path\":\"backend/open_webui/routers/retrieval.py\",\"startLine\":2339,\"endLine\":2352,\"reason\":\"control\",\"match\":\"allowed = await filter_accessible_collections(requested, user, access_type=access_type)\"}]}",
+          "toolCalls": [],
+          "tokens": {
+            "input": 601,
+            "output": 113,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "costUsd": null,
+          "durationMs": 3592.2197000000015,
+          "stopReason": "end_turn"
+        },
+        "endedAt": "2026-09-28T17:50:37.383Z"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 3,
+      "respondedCalls": 3,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 3,
+      "knownTokens": {
+        "input": 6826,
+        "output": 1440,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    },
+    "rounds": [
+      {
+        "kind": "proposal",
+        "promptCharacters": 21164,
+        "displayedBytes": 10781,
+        "diagnostics": []
+      },
+      {
+        "kind": "supplement",
+        "promptCharacters": 2787,
+        "displayedBytes": 1185,
+        "diagnostics": [
+          "[\n  {\n    \"code\": \"unrecognized_keys\",\n    \"keys\": [\n      \"contextLines\"\n    ],\n    \"path\": [\n      \"dependencies\",\n      0\n    ],\n    \"message\": \"Unrecognized key(s) in object: 'contextLines'\"\n  }\n]"
+        ]
+      },
+      {
+        "kind": "format-repair",
+        "promptCharacters": 1245,
+        "displayedBytes": 0,
+        "diagnostics": []
+      }
+    ],
+    "diagnostics": [],
+    "unknownCostReason": "provider did not report actual cost for every dispatched request"
+  }
+}

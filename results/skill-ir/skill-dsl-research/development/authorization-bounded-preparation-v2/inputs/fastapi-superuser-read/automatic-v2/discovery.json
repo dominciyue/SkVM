@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "authorization-bounded-discovery/v1",
+  "request": {
+    "schemaVersion": "authorization-evidence-request/v2",
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/fastapi",
+    "allowedFiles": [
+      "backend/app/api/routes/items.py",
+      "backend/app/api/deps.py"
+    ],
+    "entries": [
+      {
+        "entryKey": "read-item",
+        "path": "backend/app/api/routes/items.py",
+        "startLine": 48,
+        "endLine": 58
+      }
+    ],
+    "dependencies": [],
+    "limits": {
+      "maxFiles": 12,
+      "maxBytes": 65536,
+      "maxDepth": 3
+    }
+  },
+  "files": [
+    {
+      "path": "backend/app/api/routes/items.py",
+      "sha256": "7f0fa55d1f7b02188c4abd4f88aa6db92fe03de38258b765ed050ec72032b410",
+      "bytes": 3446,
+      "lineCount": 113
+    },
+    {
+      "path": "backend/app/api/deps.py",
+      "sha256": "84c30966b3b862c643009c14146d1924dec50be5b0efb9f56798e2fda5189daa",
+      "bytes": 1711,
+      "lineCount": 57
+    }
+  ],
+  "symbols": [
+    {
+      "id": "symbol:backend/app/api/routes/items.py:14:read_items",
+      "path": "backend/app/api/routes/items.py",
+      "name": "read_items",
+      "kind": "function",
+      "startLine": 14,
+      "endLine": 15
+    },
+    {
+      "id": "symbol:backend/app/api/routes/items.py:49:read_item",
+      "path": "backend/app/api/routes/items.py",
+      "name": "read_item",
+      "kind": "function",
+      "startLine": 49,
+      "endLine": 60
+    },
+    {
+      "id": "symbol:backend/app/api/routes/items.py:62:create_item",
+      "path": "backend/app/api/routes/items.py",
+      "name": "create_item",
+      "kind": "function",
+      "startLine": 62,
+      "endLine": 63
+    },
+    {
+      "id": "symbol:backend/app/api/routes/items.py:76:update_item",
+      "path": "backend/app/api/routes/items.py",
+      "name": "update_item",
+      "kind": "function",
+      "startLine": 76,
+      "endLine": 81
+    },
+    {
+      "id": "symbol:backend/app/api/routes/items.py:100:delete_item",
+      "path": "backend/app/api/routes/items.py",
+      "name": "delete_item",
+      "kind": "function",
+      "startLine": 100,
+      "endLine": 101
+    },
+    {
+      "id": "symbol:backend/app/api/deps.py:21:get_db",
+      "path": "backend/app/api/deps.py",
+      "name": "get_db",
+      "kind": "function",
+      "startLine": 21,
+      "endLine": 25
+    },
+    {
+      "id": "symbol:backend/app/api/deps.py:30:get_current_user",
+      "path": "backend/app/api/deps.py",
+      "name": "get_current_user",
+      "kind": "function",
+      "startLine": 30,
+      "endLine": 48
+    },
+    {
+      "id": "symbol:backend/app/api/deps.py:52:get_current_active_superuser",
+      "path": "backend/app/api/deps.py",
+      "name": "get_current_active_superuser",
+      "kind": "function",
+      "startLine": 52,
+      "endLine": 57
+    }
+  ],
+  "windows": [
+    {
+      "path": "backend/app/api/routes/items.py",
+      "startLine": 48,
+      "endLine": 58,
+      "text": "48 | @router.get(\"/{id}\", response_model=ItemPublic)\n49 | def read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:\n50 |     \"\"\"\n51 |     Get item by ID.\n52 |     \"\"\"\n53 |     item = session.get(Item, id)\n54 |     if not item:\n55 |         raise HTTPException(status_code=404, detail=\"Item not found\")\n56 |     if not current_user.is_superuser and (item.owner_id != current_user.id):\n57 |         raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n58 |     return item",
+      "bytes": 514,
+      "origin": "read-item"
+    }
+  ],
+  "diagnostics": [
+    {
+      "reason": "unresolved-reference",
+      "symbol": "get",
+      "from": "read-item"
+    },
+    {
+      "reason": "unresolved-reference",
+      "symbol": "HTTPException",
+      "from": "read-item"
+    },
+    {
+      "reason": "unresolved-reference",
+      "symbol": "and",
+      "from": "read-item"
+    }
+  ],
+  "readBytes": 5157,
+  "displayBytes": 514,
+  "maxDisplayBytes": 65536,
+  "locator": "lexical-reference-candidates; not a semantic call graph"
+}

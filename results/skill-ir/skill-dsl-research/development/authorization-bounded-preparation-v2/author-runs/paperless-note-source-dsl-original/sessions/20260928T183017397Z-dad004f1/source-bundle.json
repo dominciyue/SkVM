@@ -1,0 +1,210 @@
+{
+  "repository": "https://github.com/paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceMode": "fixed-context",
+  "isolation": "exact-allowlist",
+  "files": [
+    {
+      "relativePath": "src/documents/views.py",
+      "content": "    @action(\n        methods=[\"get\", \"post\", \"delete\"],\n        detail=True,\n        permission_classes=[PaperlessNotePermissions],\n        pagination_class=None,\n        filter_backends=[],\n    )\n    def notes(self, request, pk=None):\n        currentUser = request.user\n        try:\n            doc = (\n                Document.objects.select_related(\"owner\")\n                .prefetch_related(\"notes\")\n                .only(\"pk\", \"owner__id\")\n                .get(pk=pk)\n            )\n            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,\n                \"view_document\",\n                doc,\n            ):\n                return HttpResponseForbidden(\"Insufficient permissions to view notes\")\n        except Document.DoesNotExist:\n            raise Http404\n\n        serializer = self.get_serializer(doc)\n\n        if request.method == \"GET\":\n            try:\n                notes = serializer.to_representation(doc).get(\"notes\")\n                return Response(notes)\n            except Exception as e:\n                logger.warning(f\"An error occurred retrieving notes: {e!s}\")\n                return Response(\n                    {\"error\": \"Error retrieving notes, check logs for more detail.\"},\n                )\n        elif request.method == \"POST\":\n            try:\n                if currentUser is not None and not has_perms_owner_aware(\n                    currentUser,\n                    \"change_document\",\n                    doc,\n                ):\n                    return HttpResponseForbidden(\n                        \"Insufficient permissions to create notes\",\n                    )\n\n                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],\n                    user=currentUser,\n                )\n                # If audit log is enabled make an entry in the log\n                # about this note change\n                if settings.AUDIT_LOG_ENABLED:\n                    LogEntry.objects.log_create(\n                        instance=doc,\n                        changes={\n                            \"Note Added\": [\"None\", c.id],\n                        },\n                        action=LogEntry.Action.UPDATE,\n                    )\n\n                doc.modified = timezone.now()\n                doc.save(update_fields=[\"modified\"])\n\n                from documents.search import get_backend\n\n                get_backend().add_or_update(doc)\n\n                notes = serializer.to_representation(doc).get(\"notes\")\n\n                return Response(notes)\n    def create(self, request, *args, **kwargs):\n        serializer = self.get_serializer(data=request.data)\n        serializer.is_valid(raise_exception=True)\n        document_ids = serializer.validated_data[\"document_ids\"]\n        documents_qs = Document.objects.filter(pk__in=document_ids).select_related(\n            \"owner\",\n        )\n        found_ids = set(documents_qs.values_list(\"pk\", flat=True))\n        missing = sorted(set(document_ids) - found_ids)\n        if missing:\n            raise ValidationError(\n                {\n                    \"document_ids\": _(\n                        \"Documents not found: %(ids)s\",\n                    )\n                    % {\"ids\": \", \".join(str(item) for item in missing)},\n                },\n            )\n\n        documents = list(documents_qs)\n        permitted_ids = set(permitted_document_ids(request.user))\n        for document in documents:\n            if document.pk not in permitted_ids:\n                raise ValidationError(\n                    {\n                        \"document_ids\": _(\n                            \"Insufficient permissions to share document %(id)s.\",\n                        )\n                        % {\"id\": document.pk},\n                    },\n                )\n\n        document_map = {document.pk: document for document in documents}\n        ordered_documents = [document_map[doc_id] for doc_id in document_ids]\n\n        bundle = serializer.save(\n            owner=request.user,\n            documents=ordered_documents,\n        )\n        bundle.remove_file()\n        bundle.status = ShareLinkBundle.Status.PENDING\n        bundle.last_error = None\n        bundle.size_bytes = None\n        bundle.built_at = None\n        bundle.file_path = \"\"\n        bundle.save(\n            update_fields=[\n                \"status\",\n                \"last_error\",\n                \"size_bytes\",\n                \"built_at\",\n                \"file_path\",\n            ],\n        )\n        build_share_link_bundle.apply_async(\n            kwargs={\"bundle_id\": bundle.pk},\n            headers={\"trigger_source\": PaperlessTask.TriggerSource.MANUAL},\n        )\n        bundle.document_total = len(ordered_documents)\n        response_serializer = self.get_serializer(bundle)\n        headers = self.get_success_headers(response_serializer.data)\n        return Response(\n            response_serializer.data,\n            status=status.HTTP_201_CREATED,\n            headers=headers,\n        )\n\n",
+      "sha256": "07a061251eccac8ac1e30fc4b75078868a06f9054b38fae38233cff76aac8ea2",
+      "cropRange": {
+        "startLine": 1841,
+        "endLine": 4833
+      },
+      "originalLocations": [
+        "src/documents/views.py:1841-1913",
+        "src/documents/views.py:4767-4833"
+      ],
+      "segments": [
+        {
+          "originalStartLine": 1841,
+          "originalEndLine": 1913,
+          "snapshotStartLine": 1,
+          "snapshotEndLine": 73,
+          "origins": [
+            "model-proposal:dep-1",
+            "entry:notes-post"
+          ]
+        },
+        {
+          "originalStartLine": 4767,
+          "originalEndLine": 4833,
+          "snapshotStartLine": 74,
+          "snapshotEndLine": 140,
+          "origins": [
+            "locator:located-2"
+          ]
+        }
+      ]
+    },
+    {
+      "relativePath": "src/documents/permissions.py",
+      "content": "def permitted_object_ids(\n    user: User | None,\n    model: type[Model],\n    perm: str,\n    *,\n    include_deleted: bool = False,\ndef permitted_document_ids(\n    user: User | None,\n    *,\n    perm: str = \"view_document\",\n    include_deleted: bool = False,\ndef has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)\n\n\n",
+      "sha256": "1948fce5af6a3b7e589e2770b89be699fb2f94665b9ef1ec141e1bb6545feaad",
+      "cropRange": {
+        "startLine": 345,
+        "endLine": 637
+      },
+      "originalLocations": [
+        "src/documents/permissions.py:345-350",
+        "src/documents/permissions.py:460-464",
+        "src/documents/permissions.py:624-637"
+      ],
+      "segments": [
+        {
+          "originalStartLine": 345,
+          "originalEndLine": 350,
+          "snapshotStartLine": 1,
+          "snapshotEndLine": 6,
+          "origins": [
+            "locator:located-3"
+          ]
+        },
+        {
+          "originalStartLine": 460,
+          "originalEndLine": 464,
+          "snapshotStartLine": 7,
+          "snapshotEndLine": 11,
+          "origins": [
+            "locator:located-4"
+          ]
+        },
+        {
+          "originalStartLine": 624,
+          "originalEndLine": 637,
+          "snapshotStartLine": 12,
+          "snapshotEndLine": 25,
+          "origins": [
+            "model-proposal:dep-6",
+            "locator:located-1"
+          ]
+        }
+      ]
+    }
+  ],
+  "evidencePreparation": {
+    "status": "partial",
+    "sourceIdentity": {
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+    "gaps": [
+      {
+        "id": "dep-2",
+        "entryKey": "notes-post",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-3",
+        "entryKey": "notes-post",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-4",
+        "entryKey": "notes-post",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-5",
+        "entryKey": "notes-post",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-7",
+        "entryKey": "notes-post",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-8",
+        "entryKey": "notes-post",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/permissions.py"
+      }
+    ],
+    "closureClaim": "declared-dependencies-only",
+    "schemaVersion": "authorization-evidence-report/v2",
+    "included": [
+      {
+        "path": "src/documents/views.py",
+        "originalPath": "src/documents/views.py",
+        "startLine": 1841,
+        "endLine": 4833,
+        "origins": [
+          "model-proposal:dep-1",
+          "entry:notes-post",
+          "locator:located-2"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 1841,
+            "originalEndLine": 1913,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 73,
+            "origins": [
+              "model-proposal:dep-1",
+              "entry:notes-post"
+            ]
+          },
+          {
+            "originalStartLine": 4767,
+            "originalEndLine": 4833,
+            "snapshotStartLine": 74,
+            "snapshotEndLine": 140,
+            "origins": [
+              "locator:located-2"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "src/documents/permissions.py",
+        "originalPath": "src/documents/permissions.py",
+        "startLine": 345,
+        "endLine": 637,
+        "origins": [
+          "locator:located-3",
+          "locator:located-4",
+          "model-proposal:dep-6",
+          "locator:located-1"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 345,
+            "originalEndLine": 350,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 6,
+            "origins": [
+              "locator:located-3"
+            ]
+          },
+          {
+            "originalStartLine": 460,
+            "originalEndLine": 464,
+            "snapshotStartLine": 7,
+            "snapshotEndLine": 11,
+            "origins": [
+              "locator:located-4"
+            ]
+          },
+          {
+            "originalStartLine": 624,
+            "originalEndLine": 637,
+            "snapshotStartLine": 12,
+            "snapshotEndLine": 25,
+            "origins": [
+              "model-proposal:dep-6",
+              "locator:located-1"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

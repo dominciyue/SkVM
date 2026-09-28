@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "authorization-evidence-request/v2",
+  "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+  "allowedFiles": [
+    "src/documents/views.py",
+    "src/documents/permissions.py",
+    "src/documents/serialisers.py"
+  ],
+  "entries": [
+    {
+      "entryKey": "share-create",
+      "path": "src/documents/views.py",
+      "startLine": 4696,
+      "endLine": 4717
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "global-share-permission",
+      "from": "share-create",
+      "path": "src/documents/permissions.py",
+      "startLine": 30,
+      "endLine": 53,
+      "match": "class PaperlessObjectPermissions",
+      "reason": "control",
+      "basis": "locator"
+    },
+    {
+      "id": "serializer-user",
+      "from": "share-create",
+      "path": "src/documents/views.py",
+      "startLine": 406,
+      "endLine": 426,
+      "match": "class PassUserMixin",
+      "reason": "identity",
+      "basis": "locator"
+    },
+    {
+      "id": "document-validation",
+      "from": "share-create",
+      "path": "src/documents/serialisers.py",
+      "startLine": 2851,
+      "endLine": 2886,
+      "match": "class ShareLinkSerializer",
+      "reason": "control",
+      "basis": "locator"
+    },
+    {
+      "id": "owner-aware",
+      "from": "document-validation",
+      "path": "src/documents/permissions.py",
+      "startLine": 624,
+      "endLine": 635,
+      "match": "def has_perms_owner_aware",
+      "reason": "control",
+      "basis": "locator"
+    }
+  ],
+  "limits": {
+    "maxFiles": 12,
+    "maxBytes": 65536,
+    "maxDepth": 3
+  }
+}

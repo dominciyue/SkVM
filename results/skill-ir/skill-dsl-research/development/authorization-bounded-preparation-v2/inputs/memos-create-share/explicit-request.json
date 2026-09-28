@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "authorization-evidence-request/v1",
+  "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/memos",
+  "allowedFiles": [
+    "server/api/v1/memo_share_service.go",
+    "core/access/memo.go",
+    "server/api/v1/memo_access.go",
+    "store/memo.go",
+    "store/memo_share.go"
+  ],
+  "entries": [
+    {
+      "entryKey": "create-share",
+      "path": "server/api/v1/memo_share_service.go",
+      "startLine": 23,
+      "endLine": 80
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "manage",
+      "from": "create-share",
+      "path": "core/access/memo.go",
+      "startLine": 61,
+      "endLine": 85,
+      "match": "func CanManageMemo",
+      "reason": "control",
+      "basis": "locator"
+    },
+    {
+      "id": "write-policy",
+      "from": "create-share",
+      "path": "server/api/v1/memo_access.go",
+      "startLine": 163,
+      "endLine": 168,
+      "match": "func memoWritePolicy",
+      "reason": "control",
+      "basis": "locator"
+    },
+    {
+      "id": "write-snapshot",
+      "from": "write-policy",
+      "path": "store/memo.go",
+      "startLine": 277,
+      "endLine": 350,
+      "match": "func ValidateMemoWriteSnapshot",
+      "reason": "control",
+      "basis": "locator"
+    },
+    {
+      "id": "share-store",
+      "from": "create-share",
+      "path": "store/memo_share.go",
+      "startLine": 37,
+      "endLine": 49,
+      "match": "func (s *Store) CreateMemoShare",
+      "reason": "effect",
+      "basis": "locator"
+    }
+  ],
+  "limits": {
+    "maxFiles": 12,
+    "maxBytes": 65536,
+    "maxDepth": 3
+  }
+}

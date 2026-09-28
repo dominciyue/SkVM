@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "authorization-ak-adjudications/v1",
+  "primaryRule": "Evaluate exact frozen task/source premises, not an unstated intended non-null-owner assumption",
+  "rows": [
+    {
+      "issue": "Consumer versus author first",
+      "sources": [
+        "author-summary.json",
+        "author-use-replay.json",
+        "evaluator/author-packets/a-06bb01ff59b1.json",
+        "evaluator/author-packets/a-f12ca17da150.json"
+      ],
+      "decision": "Every consumer uses the final selected authored draft; all eight first consumer deliveries complete. Preserve five first author valid, six within normal revision, eight after two extra diagnostic corrections."
+    },
+    {
+      "issue": "Changed Memos policy conflict",
+      "sources": [
+        "author-briefs.json:27-54",
+        "server/api/v1/space_service.go:750-759",
+        "evaluator/author-packets/a-3533b3e03495.json:253",
+        "evaluator/author-packets/a-3a6b784ba43d.json:610"
+      ],
+      "decision": "Observed deny/source_supported_failure correctly identifies violation of changed allow expectation; four changed Memos scenarios are full."
+    },
+    {
+      "issue": "Paperless missing owner premise",
+      "sources": [
+        "author-briefs.json:88",
+        "author-briefs.json:96",
+        "src/documents/permissions.py:635",
+        "evaluator/author-packets/a-e2074a3aaf0b.json:142"
+      ],
+      "decision": "Not-owner does not exclude owner=None. Two original view-only and two changed Markdown scenarios are partial for unconditional denial; changed DSL accurately preserves conditional unknown and is full."
+    },
+    {
+      "issue": "Original change grant",
+      "sources": [
+        "evaluator/author-packets/a-2d21168db161.json:150",
+        "evaluator/author-packets/a-f12ca17da150.json:150",
+        "src/documents/permissions.py:635"
+      ],
+      "decision": "Original change grant ensures helper success whether owner is null or not. Both original change-granted answers remain full; missing irrelevant branch enumeration is not a failure."
+    },
+    {
+      "issue": "Non-null owner sensitivity",
+      "sources": [
+        "author-briefs.json:88",
+        "author-briefs.json:96"
+      ],
+      "decision": "Hypothetical additional non-null different-owner premise gives 14/16 full: six Paperless definite answers full, two changed DSL unknown labels partial. This is not the primary brief or new model sampling."
+    },
+    {
+      "issue": "Quality note premise and secondary references",
+      "sources": [
+        "public-briefs.json:72",
+        "public-briefs.json:75",
+        "evaluator/review-groups.json"
+      ],
+      "decision": "Quality question explicitly says a different user owns the document, unlike author brief. Four quality note ratings remain full on original source; secondary synthetic-source reference mistakes are not adopted."
+    }
+  ],
+  "newProviderCalls": 0,
+  "newAnalysisUnits": 0,
+  "sourceOrTaskEdits": 0
+}

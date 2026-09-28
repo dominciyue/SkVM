@@ -1,0 +1,521 @@
+{
+  "schemaVersion": "authorization-execution-dependencies/v1",
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "paperless-version-download-root",
+    "request": "At DocumentViewSet.download handler entry, can an authenticated user download a requested version document they own when its root document is owned by someone else and they lack an object view grant on that root? Assume the user has the required global view permission and the documents exist.",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:document-root-view",
+        "kind": "explicit-task-requirement",
+        "text": "A download must pass the owner-aware view_document check on the root document before serving any selected file version.",
+        "location": "src/documents/views.py:1401-1448; src/documents/permissions.py:624-635",
+        "revision": "126ec414a8b65158368653a2604ae58415e43103",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "Public fixed-ref source and task-author bounded requirement."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:version-owner",
+        "role": "authenticated user who owns the requested version but not the root document",
+        "description": "Author facts: [\"The caller has global documents.view_document permission.\",\"The caller has no object view_document grant on the root.\"]",
+        "startingCapabilities": []
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:rooted-version",
+        "type": "document version and root",
+        "description": "Author facts: [\"The requested version and its root both exist.\",\"The version is caller-owned; the root has another owner and no caller view grant.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:download",
+        "name": "DocumentViewSet.download",
+        "locations": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1834,
+            "endLine": 1839
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:version-owner-no-root-view",
+        "principalId": "principal:version-owner",
+        "resourceId": "resource:rooted-version",
+        "relation": "owns-version-not-root",
+        "operation": "download requested document version",
+        "expectation": "deny",
+        "conditions": [],
+        "policySourceId": "policy:document-root-view",
+        "entryIds": [
+          "entry:download"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+      "identify the principal, operation, protected resource, decisive control, and effect",
+      "return source_supported_failure, source_refuted, or unknown with exact supplied-source locations"
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+      "Use only the supplied fixed-ref case inputs.",
+      "Do not execute the target project or infer deployment facts."
+    ]
+  },
+  "scenarios": {
+    "scenario:version-owner-no-root-view": {
+      "name": "version-owner-no-root-view",
+      "obligation": {
+        "id": "scenario:version-owner-no-root-view",
+        "principalId": "principal:version-owner",
+        "resourceId": "resource:rooted-version",
+        "relation": "owns-version-not-root",
+        "operation": "download requested document version",
+        "expectation": "deny",
+        "conditions": [],
+        "policySourceId": "policy:document-root-view",
+        "entryIds": [
+          "entry:download"
+        ]
+      },
+      "principal": {
+        "id": "principal:version-owner",
+        "role": "authenticated user who owns the requested version but not the root document",
+        "description": "Author facts: [\"The caller has global documents.view_document permission.\",\"The caller has no object view_document grant on the root.\"]",
+        "startingCapabilities": []
+      },
+      "resource": {
+        "id": "resource:rooted-version",
+        "type": "document version and root",
+        "description": "Author facts: [\"The requested version and its root both exist.\",\"The version is caller-owned; the root has another owner and no caller view grant.\"]"
+      },
+      "policy": {
+        "id": "policy:document-root-view",
+        "kind": "explicit-task-requirement",
+        "text": "A download must pass the owner-aware view_document check on the root document before serving any selected file version.",
+        "location": "src/documents/views.py:1401-1448; src/documents/permissions.py:624-635",
+        "revision": "126ec414a8b65158368653a2604ae58415e43103",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "Public fixed-ref source and task-author bounded requirement."
+        }
+      },
+      "entries": [
+        {
+          "id": "entry:download",
+          "name": "DocumentViewSet.download",
+          "locations": [
+            {
+              "path": "src/documents/views.py",
+              "startLine": 1834,
+              "endLine": 1839
+            }
+          ]
+        }
+      ],
+      "expandedIds": [
+        "scenario%3Aversion-owner-no-root-view::entry%3Adownload"
+      ]
+    }
+  },
+  "sourceBundle": [
+    {
+      "path": "src/documents/views.py",
+      "sha256": "8e3dbb7af75d836f1e384acc1d5105fa5b59b15563eee873923e875c0c446aa9",
+      "cropRange": {
+        "startLine": 1369,
+        "endLine": 4946
+      },
+      "originalLocations": [
+        "src/documents/views.py:1369-1374",
+        "src/documents/views.py:1388-1392",
+        "src/documents/views.py:1401-1406",
+        "src/documents/views.py:1429-1449",
+        "src/documents/views.py:1834-1839",
+        "src/documents/views.py:4941-4946"
+      ],
+      "segments": [
+        {
+          "originalStartLine": 1369,
+          "originalEndLine": 1374,
+          "snapshotStartLine": 1,
+          "snapshotEndLine": 6,
+          "origins": [
+            "locator:located-5"
+          ]
+        },
+        {
+          "originalStartLine": 1388,
+          "originalEndLine": 1392,
+          "snapshotStartLine": 7,
+          "snapshotEndLine": 11,
+          "origins": [
+            "locator:located-3"
+          ]
+        },
+        {
+          "originalStartLine": 1401,
+          "originalEndLine": 1406,
+          "snapshotStartLine": 12,
+          "snapshotEndLine": 17,
+          "origins": [
+            "locator:located-2"
+          ]
+        },
+        {
+          "originalStartLine": 1429,
+          "originalEndLine": 1449,
+          "snapshotStartLine": 18,
+          "snapshotEndLine": 38,
+          "origins": [
+            "locator:located-1"
+          ]
+        },
+        {
+          "originalStartLine": 1834,
+          "originalEndLine": 1839,
+          "snapshotStartLine": 39,
+          "snapshotEndLine": 44,
+          "origins": [
+            "entry:download",
+            "model-proposal:dep-1"
+          ]
+        },
+        {
+          "originalStartLine": 4941,
+          "originalEndLine": 4946,
+          "snapshotStartLine": 45,
+          "snapshotEndLine": 50,
+          "origins": [
+            "locator:located-4"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/documents/permissions.py",
+      "sha256": "2856fb6dfe24397ed93b639dfcec855eb634ad5a63195174233d8b1e8f7c5825",
+      "cropRange": {
+        "startLine": 624,
+        "endLine": 635
+      },
+      "originalLocations": [
+        "src/documents/permissions.py:624-635"
+      ],
+      "segments": [
+        {
+          "originalStartLine": 624,
+          "originalEndLine": 635,
+          "snapshotStartLine": 1,
+          "snapshotEndLine": 12,
+          "origins": [
+            "model-proposal:dep-8"
+          ]
+        }
+      ]
+    }
+  ],
+  "evidencePreparation": {
+    "status": "partial",
+    "sourceIdentity": {
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+    "gaps": [
+      {
+        "id": "dep-2",
+        "entryKey": "download",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-3",
+        "entryKey": "download",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-4",
+        "entryKey": "download",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-5",
+        "entryKey": "download",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-6",
+        "entryKey": "download",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-7",
+        "entryKey": "download",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-9",
+        "entryKey": "download",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      },
+      {
+        "id": "dep-10",
+        "entryKey": "download",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/views.py"
+      }
+    ],
+    "closureClaim": "declared-dependencies-only",
+    "schemaVersion": "authorization-evidence-report/v2",
+    "included": [
+      {
+        "path": "src/documents/views.py",
+        "originalPath": "src/documents/views.py",
+        "startLine": 1369,
+        "endLine": 4946,
+        "origins": [
+          "locator:located-5",
+          "locator:located-3",
+          "locator:located-2",
+          "locator:located-1",
+          "entry:download",
+          "model-proposal:dep-1",
+          "locator:located-4"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 1369,
+            "originalEndLine": 1374,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 6,
+            "origins": [
+              "locator:located-5"
+            ]
+          },
+          {
+            "originalStartLine": 1388,
+            "originalEndLine": 1392,
+            "snapshotStartLine": 7,
+            "snapshotEndLine": 11,
+            "origins": [
+              "locator:located-3"
+            ]
+          },
+          {
+            "originalStartLine": 1401,
+            "originalEndLine": 1406,
+            "snapshotStartLine": 12,
+            "snapshotEndLine": 17,
+            "origins": [
+              "locator:located-2"
+            ]
+          },
+          {
+            "originalStartLine": 1429,
+            "originalEndLine": 1449,
+            "snapshotStartLine": 18,
+            "snapshotEndLine": 38,
+            "origins": [
+              "locator:located-1"
+            ]
+          },
+          {
+            "originalStartLine": 1834,
+            "originalEndLine": 1839,
+            "snapshotStartLine": 39,
+            "snapshotEndLine": 44,
+            "origins": [
+              "entry:download",
+              "model-proposal:dep-1"
+            ]
+          },
+          {
+            "originalStartLine": 4941,
+            "originalEndLine": 4946,
+            "snapshotStartLine": 45,
+            "snapshotEndLine": 50,
+            "origins": [
+              "locator:located-4"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "src/documents/permissions.py",
+        "originalPath": "src/documents/permissions.py",
+        "startLine": 624,
+        "endLine": 635,
+        "origins": [
+          "model-proposal:dep-8"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 624,
+            "originalEndLine": 635,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 12,
+            "origins": [
+              "model-proposal:dep-8"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "sourceRoot": "source",
+  "sources": [
+    "src/documents/views.py",
+    "src/documents/permissions.py"
+  ],
+  "profile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:version-owner-no-root-view"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:version-owner-no-root-view"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:version-owner-no-root-view"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:version-owner-no-root-view"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:version-owner-no-root-view"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:version-owner-no-root-view"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "conditionRequest": null,
+  "assessmentContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Decide the current scenario at the stated declared-entry boundary from the supplied fixed source and accepted policy. Treat premises as question assumptions, not source or deployment proof. Trace the decisive authorization control, protected object and effect with exact supplied-source locations. State any decisive missing runtime fact rather than assuming it. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: At DocumentViewSet.download handler entry, can an authenticated user download a requested version document they own when its root document is owned by someone else and they lack an object view grant on that root? Assume the user has the required global view permission and the documents exist.\nAnalysis boundary: declared-entry.\nTask premise: At download entry, the authenticated caller has global document view permission and owns the requested version, but a different user owns the existing root document and the caller has no object view grant on that root.\nRequired response detail: Identify which object is checked and which file object would be served; do not collapse version ownership into root authorization.",
+    "scenarios": [
+      {
+        "obligationId": "scenario:version-owner-no-root-view",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At download entry, the authenticated caller has global document view permission and owns the requested version, but a different user owns the existing root document and the caller has no object view grant on that root.",
+            "atEntryId": "entry:download",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Identify which object is checked and which file object would be served; do not collapse version ownership into root authorization."
+        ]
+      }
+    ]
+  },
+  "assessmentProgram": {
+    "schemaVersion": "authorization-assessment-program/v1",
+    "entries": [
+      {
+        "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+        "authorObligationId": "scenario:version-owner-no-root-view",
+        "entryId": "entry:download",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At download entry, the authenticated caller has global document view permission and owns the requested version, but a different user owns the existing root document and the caller has no object view grant on that root.",
+            "atEntryId": "entry:download",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Identify which object is checked and which file object would be served; do not collapse version ownership into root authorization."
+        ]
+      }
+    ]
+  },
+  "assessmentMode": "explicit-v1",
+  "normalizerVersion": "normalized-input/v1",
+  "method": "plain",
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "arm": "B",
+  "reasoningStrategy": "standard",
+  "reasoningPlan": null,
+  "resultContract": "source-authorization-assessment-result/v0",
+  "promptSha256": "78e1b3d6faebd7636ddaa06077cabc735c07d4e220245e40976c06071c3b0a10"
+}
