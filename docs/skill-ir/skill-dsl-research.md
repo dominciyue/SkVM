@@ -1,12 +1,12 @@
 # Skill 分类与领域 DSL 研究总文档
 
-更新于 2026-09-27。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并 S0–S11、D0–D11 及后续研究，并记录 DSL 实现中发现和解决的问题。实时执行状态仍由 [current-status](current-status.md) 维护，待办见[当前计划](skill-ir-aot-optimization-plan.md)。
+更新于 2026-09-29。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并 S0–S11、D0–D11 及后续研究，并记录 DSL 实现中发现和解决的问题。实时执行状态仍由 [current-status](current-status.md) 维护，待办见[当前计划](skill-ir-aot-optimization-plan.md)。
 
 ## 1. 当前结论
 
 **AH已完成44条四臂公开development评价，新增局部问题支架未建立稳定质量收益。** 同一11个任务出现次数下，Markdown标准/新支架均8/11 full，DSL标准5/11、新支架7/11；新支架修正了DSL若干标签错误，也新增一条superuser过度弃答，且同支架Markdown仍8/11、高于DSL的7/11。完整prompt+output为34,264/41,402/45,237/50,905 tokens（依次为Markdown标准/新支架、DSL标准/新支架），44次业务模型调用的实际美元费用均未知。独立模型辅助作者完成两包原/变任务，工作区继承显示公共政策变更，但有一处旧taskId来源说明未同步；真人时间与作者token未知，不能推算节省。可选策略和只读变更反馈保留为工程能力，普通默认不变。详细分母、错误和取舍见§7.27；AB两项目16条评价（Markdown 8/8、DSL 6/8）及AE四组各6/6的旧结论仍见§7.25–7.26，AC/AD和AF/AG工程工具不增加AH分母。
 
-**当前授权阶段：** AJ证据准备、局部修改、40单元质量对照和8次原/变消费已完成，结果见§7.29。共同增加的决定性源码改善两种表示，AJ未显示稳定的额外DSL质量增益。用户已授权AK0–AK16深化有界定位、多片段与普通使用，规划见§7.30；AK尚未产生真实运行结果。旧结果原样保留。
+**当前授权阶段：** AK工程、真实使用及有限验证已完成，用户origin发布收尾中。40质量单元中36完成、4准备阻塞，最终36/40 full含12项合理unknown；8作者消费/16义务完成，按冻结前提12/16 full。同材料M/D最终打平，自动定位降低材料字节却增加未解决问题。当前取舍、额外作者纠正和语义裁定统一见§7.30，旧结果原样保留。
 
 已经站得住的判断：
 
@@ -938,7 +938,7 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 ### 7.30 AK 有界依赖准备与源码片段
 
-2026-09-29用户确认AJ复核后的方向，要求下一任务由`gpt-6-sol / max`执行。[AK0–AK16任务书](../superpowers/plans/2026-09-29-authorization-bounded-dependency-preparation.md)以`b0cfbc10`为基线，在现有主开发分支继续。父任务复核的376 pass/1 skip、2597断言、typecheck和两份零调用评价重放均通过；此处记录新设计，尚无AK研究结果。
+2026-09-29用户确认AJ复核后的方向，要求下一任务由`gpt-6-sol / max`执行。[AK0–AK16任务书](../superpowers/plans/2026-09-29-authorization-bounded-dependency-preparation.md)从干净`9105e74c`规划提交启动，AJ工程基线为`b0cfbc10`，继续现有主开发分支。研究调用使用`xty/gpt-5.6-sol`；开发任务配置与研究provider分别记录。
 
 **问题与根因。** AJ的同文件范围合并为连续区间并使用余量扩整文件，远距helper把无关字节带入预算；Paperless share-create仍缺serializer-user。Paperless DSL作者把三个helper当分析入口，两次消费额外展开12项义务。实际依赖清单主要由研究者提供，模型位置提议只做过mock。另一个父任务mock确认：提议响应带用量但JSON无效时，普通Error和CLI退出丢失usage；旧AJ无真实提议调用，历史统计不受影响。
 
@@ -946,11 +946,54 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 **评价设计。** 先对AJ原八份请求做零模型v1/v2同请求预算比较，隔离片段算法；真实路线只给入口、政策和允许文件，不能复制专家依赖表。八任务Markdown/DSL×显式依赖v1/自动定位v2共32初轮，两个预定任务各四臂重复，共40单元。两表示共享准备产物和缺口，完整流程成本包括准备。另两包8次原/变作者消费，检验范围是否膨胀、准备和编辑到底由谁完成。原始失败、修订与缺口均保留；受控源码变体标synthetic，旧材料不改。
 
-**当前取舍。** 深化公共准备能力与声明的角色约束，保持任务类别、v6及普通默认。回答质量和使用复用按60%/40%安排但分开评价。若更完整材料改善两种表示，收益归共同准备；DSL独立价值继续由相同材料下的质量及作者使用验证。后续问题、实现、验证与取舍直接追加本节，不另写平行研究正文。
+**当前取舍。** v2显式依赖打包的工程收益成立，有界词法定位仍是可检查的辅助入口。自动路线未证明能替代作者列决定性依赖；同材料DSL也未显示最终语义增益。保持任务类别、v6及普通默认。已知依赖宜显式列原行范围并用v2；引用明显、文件白名单小的任务可尝试discover，按report补尚缺的决定性位置并重新准备。源码和政策变化仍需compare后fresh run。后续问题直接追加本节，不另写平行研究正文。
 
 **AK0–AK2接口与留账。** 从干净`9105e74c`启动，用户origin同SHA。新版请求`authorization-evidence-request/v2`显式选择分段，报告`authorization-evidence-report/v2`在每文件保留原始包络范围及`segments`（原始/快照闭区间、来源）；包络不授予缺口引用权限。普通input/v1只扩展可选report联合类型，wire/default/旧v1连续扩整文件行为不改。定位读取1MiB、累计展示64KiB、最终64KiB、12文件、深度3的共同预算暂不调整。第一组反例证实原proposal在解析前丢用量且输出父目录预检太晚；复用现有telemetry，将dispatch/response事件持久化后才解析，失败account与发布目录分离。模拟123 input/7 output/$0.001、schema/位置拒绝、timeout与取消已有聚焦回归；超时完成未知不自动重发。Memos历史争议没有确定性共享实现反例，不能借此改答案或触发额外采样。
 
-**AK3–AK7工程结果。** v2保留多个实际原行片段、去重UTF-8字节，拒绝缺口引用；映射经过普通loader/catalog/resolver、canonical结果、session/inspect与compare，搬移不会丢原行坐标。真正多入口继续展开；两个场景加三个support仍为两个义务。词法候选读取被限制在作者白名单与1MiB累计预算，初窗保留半数展示预算供补读；缺失/同名歧义、动态、循环和深度分别诊断，不是全仓或语义调用图。模型最多两轮已展示位置建议、一次纯格式修订；账户在解析之前保留响应，输出预检在派发之前。未展示行拒绝、Unicode展示计数、词法声明名误作调用及生成ID碰撞均有回归。新鲜授权聚合402 pass、1平台skip、2735断言；主typecheck通过。尚无真实AK模型调用，质量和作者效果待后续固定面板。
+**AK3–AK7工程结果。** v2保留多个实际原行片段、去重UTF-8字节，拒绝缺口引用；映射经过普通loader/catalog/resolver、canonical结果、session/inspect与compare，搬移不会丢原行坐标。真正多入口继续展开；两个场景加三个support仍为两个义务。词法候选索引受作者白名单与1MiB累计读取预算限制，初窗保留半数展示预算供补读；该读取数只计候选索引阶段，普通输入校验和最终快照读取另行发生，不能当成全流程物理I/O总量。缺失/同名歧义、动态、循环和深度分别诊断，不是全仓或语义调用图。模型最多两轮已展示位置建议、一次纯格式修订；账户在解析之前保留响应，输出预检在派发之前。未展示行拒绝、Unicode展示计数、词法声明名误作调用及生成ID碰撞均有回归。新鲜授权聚合402 pass、1平台skip、2735断言；主typecheck通过，工程提交`a9f80284`。
+
+**AK8–AK9准备观察。** 固定八任务、两条材料路线和40单元顺序后才调用模型。同一专家请求的v2片段打包均ready，字节下降且原始范围覆盖不减；share-create从v1 partial、3/4参考范围覆盖转为v2 ready、4/4。这是零模型算法对照，不能代替入口seed路线。八个真实自动准备job共14次调用：七个发布（1 ready、6 partial），Memos GetShared因补充literal缺失或歧义失败且保留账本。精确参考范围覆盖与决定性语义覆盖分开判断，不按回答事后手补。详细范围、窗口、gap和usage见[准备汇总](../../results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/preparation-summary.json)与[packing对照](../../results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/packing-summary.json)。
+
+| 任务 | 同请求v1→v2源码字节 | 入口seed自动产物 | 实际找到/仍缺 |
+|---|---:|---|---|
+| Open WebUI file | 17,498→17,367 | partial，9,894 | 入口与部分关联；仍缺vector写入helper |
+| FastAPI superuser read | 5,157→1,187 | partial，460 | 入口足以回答所给superuser前提；仍缺上游CurrentUser完整绑定 |
+| Memos CreateShare | 36,936→6,799 | ready，4,203 | 已有决定性ADMIN/管理控制；只覆盖1/4旧声明完整范围，不等于语义失败 |
+| Memos GetShared | 25,961→9,083 | failed | 补读literal歧义，1次响应保留，相关4单元阻塞 |
+| Memos MemberLeave | 29,762→2,644 | partial，6,548 | resolution/admin参考范围2/2；更深依赖达到深度预算 |
+| Paperless download | 43,266→2,831 | partial，2,115 | owner-aware/file-response已纳入；仍缺root resolution/version selection |
+| Paperless notes POST | 29,694→4,015 | partial，5,885 | owner-aware已纳入；全局permission旧完整范围未覆盖，任务已给全局前提 |
+| Paperless ShareCreate | 28,678→3,775 | partial，1,391 | 找到serializer-user；仍缺global permission/document validation/owner-aware |
+
+**AK10–AK11质量。** 40计划单元全部关闭，36 completed、4 preparation-blocked；39次分析调用含3次诊断repair，fallback 0。五个独立只读探子在关闭后对匿名首答/最终和实际源码评审，首答33/40 full、最终36/40 full。其中12项为合理unknown，确定行为且完整的回答为24/40；不能把更谨慎的unknown当作依赖闭合。Memos GetShared在显式材料中仍因token存在/过期未给定而正确保留条件unknown，标签与条件叙述一致。未发现确定性共享分析合同缺陷，额外修订分析单元为0。
+
+| 准备/表示 | 初轮最终full | 重复最终full | 全轮合理unknown | 全轮完整且确定 |
+|---|---:|---:|---:|---:|
+| 显式v1 / Markdown | 8/8 | 2/2 | 2/10 | 8/10 |
+| 显式v1 / DSL | 8/8 | 2/2 | 2/10 | 8/10 |
+| 自动v2 / Markdown | 7/8 | 1/2 | 4/10 | 4/10 |
+| 自动v2 / DSL | 7/8 | 1/2 | 4/10 | 4/10 |
+
+同材料最终质量没有表示差异；自动材料的完成配对初轮为7/8、重复为1/2，注册分母不删阻塞行。自动路线比显式路线多出OWUI写入、download绑定和share-create绑定三个决定性缺口，降低了可确定问题数。原始首答、配对和来源理由见[质量汇总](../../results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/panel-summary.json)。这一端到端比较也包含专家请求与入口seed的不同前置投入，不能把差异单独归因于v1/v2 packing。
+
+**作者接口诊断修正。** 研究driver最初只描述authoring/v2形状，遗漏完整已有schema；两份DSL原稿及各自唯一正常格式修订仍缺`request/policies/schemaVersion`等字段。零调用反例显示仅走归一化会先在版本退出，不能给作者完整结构诊断。按任务书§5.3先修driver：展示已有完整editor schema并合并结构诊断，另登记两次仅格式纠正，原首稿、首修和成本保留。八首稿5份可运行，三次正常修订后6份可运行，两次额外纠正后8份可运行；13次作者调用全部分账，不能按原单次修订预算声称8/8自然成功。Paperless变化使用新ref的受控synthetic源码，政策与场景不改；Memos只改政策期待。
+
+**AK12原/变消费与评价纠正。** 两包8个fresh session全部completed，8次调用，声明场景与展开义务均为16；support没有重演AJ的额外入口膨胀。原稿复用同入口、白名单和ref的实际自动快照；Memos政策变化重建任务身份但复用源码，Paperless源码变化用先前实际定位请求再次准备（1额外job、0模型），不追加专家位置。四个compare均needs-review，八份最终作者说明忠于共同brief。共同事实转成MD消费canonical scaffold的宿主工作是公开任务前提，不计作独立作者自动完成。
+
+严格按冻结作者brief，首/最终消费均12/16 full，4项partial来自Paperless缺失的owner前提。原helper和synthetic helper都先允许`obj.owner is None`；作者只声明“not owner”，不能自动补“另有非空所有者”。两份原稿view-only和变稿Markdown两场景给出无条件deny，缺少这个分支；原稿change-granted有grant时两分支都allow，仍full。变稿DSL明确区分null-owner allow与非空foreign-owner deny并保留unknown，两场景full。首轮评审曾把Memos正确报告变化政策冲突判为错误、把无版本作者首稿当成消费首答；独立二审与主代理按引用裁定，所有原始评分保留。附加非空foreign-owner假设的敏感性为14/16 full，另外2项DSL unknown在该假设下过度弃答；不是新采样或主结果。质量面板notes问题明确写“different user owns”，没有作者brief歧义。具体理由见[作者消费汇总](../../results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/author-use-summary.json)和[裁定](../../results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/evaluator/adjudications.json)。
+
+**完整成本与剩余工作。** 74次provider dispatch全部响应且usage已知：405,708 fresh input、44,416 cache-read、74,252 output、cache-write 0；完整prompt 450,124，含output总计524,376 tokens。actual USD全部未报，开发/评审代理宿主用量、底层transport attempts和真人分钟另记unknown，不以单价估算冒充实测。阶段成本如下，失败、首修与额外纠正均计入；准备在两种表示及重复间共用，只计一次。
+
+| 阶段 | 调用 | 完整prompt tokens | output tokens |
+|---|---:|---:|---:|
+| 8自动准备job | 14 | 77,172 | 8,875 |
+| 40质量单元 | 39 | 295,943 | 41,408 |
+| 8作者交付及修订 | 13 | 40,590 | 11,008 |
+| 8fresh消费 | 8 | 36,419 | 12,961 |
+
+作者仍要接受政策、准确声明关系/入口/白名单、检查决定性gap、区分sourceRef与政策修改，以及复核不完整前提。语义评价确认有界消费链，但没有真人省时或一般自动依赖可靠性的证据。仓外具名v2示例已零调用验证映射、省略、编辑与两义务；普通命令见[示例](../../examples/authorization-assessment/evidence-editing/README.md)，全账本见[合并摘要](../../results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/summary.json)。
+
+**AK15核验。** 相关402 pass/1平台skip及主typecheck后，16个实际冻结实现文件的当前字节和Git blob均一致。研究脚本typecheck、文档12测试/链接、10项目录、定向凭据扫描和8份普通session inspect通过；所有AK离线复算零provider。旧AJ面板评价复现，旧AJ作者评价因授权修改的local-run冻结哈希不同拒绝，旧身份不改。[独立diff核验](../../results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/independent-diff-review.json)未发现阻断发布问题；确认定位第二轮只展示补窗而不重给首窗（proposal.ts:109），可能影响质量，作为后续有界窗口策略事项保留，不修改已冻结初轮。完整验证见[verification](../../results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/verification.json)。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -1016,11 +1059,11 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 |---|---|---|---|---|
 | Q1 | 哪类外部任务值得首先做领域方法？ | 影响选类 | 两个独立 skill 家族支持单 repo/ref、source-visible authorization/trust-boundary 切片 | 范围已定；原型不扩大到 full/diff/broad |
 | Q2 | 成员共享领域含义还是流程外壳？ | 影响选类 | principal/resource/operation/control/evidence 可迁移；成员完整职责不能迁移 | v0 只保留 authorization-boundary；其他变体路由 |
-| Q3 | 用户反复遇到什么问题？ | 影响方法 | AJ解决局部编辑；连续片段预算、手写依赖、helper误作入口和失败提议usage仍有具体缺口 | AK补多片段、有界定位、角色区分和调用留账，走普通入口实测 |
-| Q4 | 配置、好说明或现成语言是否足够？ | 影响方法价值 | AJ同材料M/D初轮各4/8→准备后各7/8；DSL有一条标签退化，Paperless多入口加大负担 | 默认保持兼容；仅在确有准备/局部改稿需求时显式使用，不宣称表示净收益 |
-| Q5 | 领域声明应怎样被消费？ | 影响方法价值 | v2/v6加prepare/edit通过普通check/run/inspect/compare；8次原/变session、16场景full，但support扩大了额外义务 | AK从有限seed到实际准备/消费；入口决定任务，support只提供证据，变化后fresh run |
+| Q3 | 用户反复遇到什么问题？ | 影响方法 | AK补失败usage、片段预算与角色；自动定位7/8发布但多处决定性helper仍缺，共同作者brief遗漏owner非空条件 | 先检查gap和准确前提；已知依赖用显式v2，多片段不替代语义闭合 |
+| Q4 | 配置、好说明或现成语言是否足够？ | 影响方法价值 | AK同材料M/D最终打平；自动路线每表示8/10 full含4unknown，显式10/10含2unknown | 默认兼容，不宣称表示净收益或自动替代专家依赖 |
+| Q5 | 领域声明应怎样被消费？ | 影响方法价值 | AK8fresh session/16义务、4compare完成；首稿5有效、正常修订后6、额外纠正后8；消费12/16主口径full | 入口/support分离和变化后fresh消费成立；作者前提、政策接受与语义复核仍需承担 |
 | Q6 | 如何实现不损失结构？ | 仅影响未来实现 | 存在回填反例 | 只有本地化重新入选时才补编码与结构检查 |
-| Q7 | 如何评价且避免错误归因？ | 影响方法价值 | AJ冻结40单元全交付、盲评与零模型replay；同证据表示对照打平，准备与分析/作者成本分账 | 保留初答、具名gap、未知USD和development边界；不按结果补题或重抽 |
+| Q7 | 如何评价且避免错误归因？ | 影响方法价值 | AK40计划/36完成/4阻塞、盲评和一次二审；36full含12合理unknown；74调用成本完整分账，USD/真人时间未知 | 保留注册和完成配对、原评分与语义裁定；不把不同准备路线当packing因果，不按结果补题 |
 
 决策沿革：
 
@@ -1030,6 +1073,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-09-20 / 用户决定：** 暂缓 I1，先用外部任务重新检查类别；不预设本地化、不重建 CLI；本文件成为持续调研正文。
 - **2026-09-20 / E8：** 宽安全 profile 未经住边界成员；收窄为只含 authorization-boundary 的实验表示，并将“现有配置 + 同一 helper”设为必须击败或至少显示不同收益的主对照。
 - **2026-09-20 / T9：** 真实案例、oracle、coverage/evidence 与最小消费路径支持 `ready-with-bounded-questions`；首轮改为 organized B 对 domain-method D 的整体方法比较，第二表示和 active discovery 后置，旧 engineer-day 估算撤销。
+- **2026-09-29 / AK：** 显式多片段准备和角色边界完成；入口seed自动定位仍缺决定性依赖，M/D最终同材料打平。共同作者前提缺口按实际源码纠正评价并保留敏感性；不改旧默认、不新增分析采样。
 
 ## 12. 后续追加规则
 

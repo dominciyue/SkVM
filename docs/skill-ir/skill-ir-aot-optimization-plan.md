@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-29
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AJ0–AJ16已发布并复核；AK0–AK16规划就绪，用户已授权派发执行。
+- 状态：AK0–AK15工程、真实运行、评审及有限验证完成；AK16提交发布收尾中。AJ历史保留。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AK0–AK16](../superpowers/plans/2026-09-29-authorization-bounded-dependency-preparation.md)
@@ -24,6 +24,8 @@
 | AK14–AK16 | 统一复盘、有限验证、提交推送 | 普通可用命令、真实结果与用户origin同步 |
 
 v1显式准备保留，v2多片段与有界定位显式启用；wire/v6和普通默认保持。用AJ原8任务，不扩样或重写旧结果。主要质量对照为同任务Markdown/DSL×显式依赖v1/入口seed自动准备v2；同请求零调用比较另行隔离片段算法。计划40质量+8消费session、准备最多12job（每job最多3提议/修订调用）；一次有据共享修订另最多8配对session。具体方法、失败处理和代码职责由任务书约束，不把开发模型与被测provider混算。
+
+**AK实际闭环：** 同请求v2八项ready；入口seed真实准备7/8发布，40质量计划36完成/4阻塞，36full含12合理unknown，同材料M/D最终打平。8fresh消费/16义务完成，准确冻结前提为12/16full，附加非空owner敏感性14/16。作者首稿5有效、正常修订后6，两次额外schema诊断纠正后8；协议偏离和原失败单列。全部74次provider调用，实际USD/人力未知。共享分析修订not-needed、追加分析0；当前只执行一次有限验证、独立diff核验和用户origin发布。下一建议是补明确的决定性位置及精确前提，自动发现和DSL净收益不扩主张。来源见[研究§7.30](skill-dsl-research.md#730-ak-有界依赖准备与源码片段)。
 
 ## AJ 已完成队列
 

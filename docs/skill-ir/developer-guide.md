@@ -91,7 +91,27 @@ AJ局部修改由`authoring-workspace/local-edit.ts`的`applyAuthorizationLocalE
 
 AK在同一组件加入显式request/report v2。`segments.ts`合并重叠/相邻原范围并按原字节拼接远距片段，报告同时保留原包络和连续snapshot坐标；包络不授予跨缺口引用。`sourceRangeText`供catalog/resolver/canonical validator共享使用，catalog按实际原行编号渲染`OMITTED`，loader校验映射和entry覆盖，execution dependencies及结果快照包含映射。旧v1的连续范围和余量扩整文件行为不变。修改此链路先测Unicode/CRLF/末行、错映射、原行引用、跨缺口、搬移及run/inspect/compare。
 
-`discoverAuthorizationEvidence({inputFile,request,maxReadBytes?,maxDisplayBytes?})`只读作者白名单，建立Python/Go/JS词法符号及引用候选，记录missing/ambiguous/cycle/dynamic/budget诊断；不是语义调用图。`readDiscoveryWindows`只接受已按1MiB累计预算读取文件的literal/range补窗。默认12文件、64KiB累计展示、64KiB最终材料、深度3；初窗预留一半展示预算供补读。`proposeBoundedAuthorizationDependencies`复用telemetry进行至多两轮位置提议和一次纯格式修订，索引中的未展示位置拒绝。准备不读取oracle或旧答案，不执行目标；超出词法能力时由作者显式补依赖。CLI `--discover=true`要求request/v2，`--proposal-model`显式启用模型，`--proposal-timeout-ms`最多300000；check-only零调用。提议前检查新目录/写入，将dispatch/response事件及account放在独立attempt目录，失败后usage仍可恢复，未知完成不自动重发。`authorizationScopePreview`只展示入口、支持位置、场景和义务计数，不删用户的真正多入口。聚焦命令为`bun test ./src/cli/authorization-prepare.test.ts ./src/benchmarks/authorization-dsl/evidence-preparation`，之后跑共享引用/run回归和typecheck。实际研究记录集中在AK结果根，当前阶段仍未调用真实模型。
+`discoverAuthorizationEvidence({inputFile,request,maxReadBytes?,maxDisplayBytes?})`只读作者白名单，建立Python/Go/JS词法符号及引用候选，记录missing/ambiguous/cycle/dynamic/budget诊断；不是语义调用图。`readDiscoveryWindows`只接受已按1MiB候选索引累计预算读取文件的literal/range补窗；普通输入校验和最终快照读取另行发生，该数不是全流程物理I/O上限。默认12文件、64KiB累计展示、64KiB最终材料、深度3；初窗预留一半展示预算供补读。`proposeBoundedAuthorizationDependencies`复用telemetry进行至多两轮位置提议和一次纯格式修订，索引中的未展示位置拒绝。准备不读取oracle或旧答案，不执行目标；超出词法能力时由作者显式补依赖。CLI `--discover=true`要求request/v2，`--proposal-model`显式启用模型，`--proposal-timeout-ms`最多300000；check-only零调用。提议前检查新目录/写入，将dispatch/response事件及account放在独立attempt目录，失败后usage仍可恢复，未知完成不自动重发。`authorizationScopePreview`只展示入口、支持位置、场景和义务计数，不删用户的真正多入口。聚焦命令为`bun test ./src/cli/authorization-prepare.test.ts ./src/benchmarks/authorization-dsl/evidence-preparation`，之后跑共享引用/run回归和typecheck。
+
+AK实际8job/14准备调用中7发布、1失败；40质量计划单元36完成、4阻塞，36full含12合理unknown。同材料M/D最终一致；不以ready、少token或引用存在代替决定性源码闭合。8fresh作者消费保持16义务，主口径12/16full，owner非空附加假设仅为14/16敏感性。作者首稿5有效、正常修订后6，两次另记的完整schema诊断纠正后8；这项研究driver接口偏离保留首稿/首修，不能视为共享分析器修复。结果与裁定见[AK合并摘要](../../results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/summary.json)和[研究§7.30](skill-dsl-research.md#730-ak-有界依赖准备与源码片段)。本轮总74次provider调用、actual USD及真人时间未知。生成driver不读oracle，评价包仅在所有单元关闭后构建。
+
+从仓根执行以下复算均不初始化provider，也不执行目标；不重跑创建目录或真实run命令：
+
+```powershell
+$ak = './results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2'
+bun "$ak/prepare-study.ts" replay
+bun "$ak/run-panel.ts" replay
+bun "$ak/authors.ts" replay
+bun "$ak/author-consume.ts" replay
+bun "$ak/evaluate.ts" replay
+bun "$ak/evaluate-author-use.ts" replay
+bun "$ak/summarize.ts" replay
+bunx tsc --noEmit --project "$ak/tsconfig.json"
+```
+
+AK新实现使旧AJ作者evaluator的冻结`local-run.ts`哈希校验拒绝；AJ面板evaluator仍复现。保留旧配置与原产物，不改哈希使旧runner冒充同实现重放。
+
+新checkout复算时以`core.autocrlf=false`保留冻结实现及既有来源的LF字节；本轮结果目录的`.gitattributes`另外保留归档原字节。源码截取末尾空行、编号预览中的`line | `和材料文本属于实际记录，只对这些归档路径关闭空白风格检查，不修剪证据；脚本和说明仍做普通diff检查。
 
 ```powershell
 bun ./src/index.ts authorization check --input=./examples/authorization-assessment/assessment.json

@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、已有 portable source reader、provider 生命周期与 token-accounting、SkVM CLI、Python 文档检查。
 
-- 日期：2026-09-29；状态：`in-progress`，AK0–AK7工程完成，AK8开始零调用准备与真实配置固定。
+- 日期：2026-09-29；状态：`ready-for-publication`，AK0–AK15完成，AK16白名单提交与用户origin发布收尾中。
 - 基线：`b0cfbc1053791adb9444194141da78bb6c679a9c` 加本规划提交；直接使用 `D:/skill优化/SkVM` 的 `skill-ir-aot`，只推用户 origin，不建分支/worktree。
 - 开发任务模型：`gpt-6-sol / max`。被测模型继续 `xty/gpt-5.6-sol`，沿用已配置 provider；开发代理、准备、作者、分析和评价成本分列。
 - 结果根：`results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/`。
@@ -159,8 +159,10 @@ v1显式请求来自AJ既有请求，不故意削弱；自动准备不接触它�
 
 - 原稿目标是准备输入，而非抄写全部helper坐标。记录作者实际必须补哪些字段、是否误把support当入口，以及准备后是否需要人工式定位。
 - 首稿结构/语义不符各最多一次明确诊断修订，保存首稿、修订和来源。主代理不得代填领域字段后计作作者成功。
+- AK12执行修正：两份DSL原稿的研究driver说明没有明确request/policies/schemaVersion的完整结构，normalizer在缺版本时只返回版本诊断，导致首修仍遗漏字段。用既有editor结构validator可确定复现request/policies等遗漏；接入完整schema与结构诊断后，登记两次额外纯格式修订（每个DSL原稿一次），独立保存为diagnostic-correction。原首稿/首修与失败结论保留，额外调用与方法偏离单列；不由主代理填写领域字段，不重抽分析答案。这是本书§7允许的小接口/执行预算修正。
 - 8个普通fresh消费session，16个声明场景；展示展开义务数，任何额外入口均记录。两种表示共享可复用源码准备，但各自作者失败与修订独立记账。
 - 准备job最多另4个（两个包原/变）；纯政策变化优先复用实际未变源码，源码变化按共同规则重新准备，记录是否再次调用模型。
+- AK8固定的作者变化是Memos政策变更和Paperless受控helper源码变更（synthetic新ref，原始635行只限制非owner的change_document object grant）。Memos使用现有local-edit政策patch；Paperless只修改作者原稿的sourceRoot/sourceRef，因local-edit/v1明确不接受源码身份，使用普通文件修改后重新准备。原稿允许复用AK已真实自动准备的同入口、同白名单、同ref快照；源码变体对先前实际定位的请求重新读取/校验，不从专家清单追加位置。纯政策变化复用相同快照并重建任务身份，均需compare和fresh run。
 - 其中一项变化采用已有公开源码的另一个固定版本，或标为synthetic的受控源码副本；为新字节设置明确的新sourceRef，原来源只读。不得执行目标。区分源码变化与政策变化，保持无关场景并通过compare→fresh run检查。
 
 ### 5.4 评价、预算与失败处理
@@ -168,6 +170,8 @@ v1显式请求来自AJ既有请求，不故意削弱；自动准备不接触它�
 优先指标：决定性错误、完整回答、合理unknown/过度弃答、来源与控制对象绑定、首答可用性。准备层单列必要依赖覆盖、未解决定位、预算丢弃、无关字节和意外义务；没有独立标注依据的“无关”记为未测，不凭token下降推断。
 
 两种表示同材料比较；新旧准备同任务比较；作者首稿/修订、修改字段、无关变化和调用分别比较。匿名评价核对真实源码与政策；模型评价或开发代理复核的身份如实标明，不冒充真人。争议保留理由和敏感性，generation不读oracle。
+
+AK11–AK12评价纠正：消费首答来自最终所选作者稿的fresh run，不等于作者首稿；正确报告变化政策冲突是成功分析。Paperless作者brief的“not owner”未排除helper的owner=None成功分支，按冻结前提评主结果，附加非空foreign-owner假设仅作敏感性。质量问题另有明确different-user ownership，不混用。保留两轮评分及源行裁定，不改task/source字节、不追加模型分析；这属于评价前提纠正，不触发共享实现修订配对。
 
 正常计划40质量+8消费session；准备最多12job、每job最多3调用，作者8首稿各最多一次诊断修订。一次经确定性反例证实的共享实现修订允许另8个预先登记配对session；初轮不覆盖。不因低分重复采样。
 
@@ -226,51 +230,51 @@ v1显式请求来自AJ既有请求，不故意削弱；自动准备不接触它�
 
 ### AK8 零调用准备评价与真实计划固定
 
-- [ ] 在AK新目录复用AJ八任务原字节与请求；完成同请求v1/v2准备对照及source mapping检查。
-- [ ] 建立entry-only seeds、两条路线、公平M/D材料、独立依赖覆盖评价表、40单元顺序与作者brief；不读取新skill或新项目。
-- [ ] 在任何AK真实准备/分析调用前固定输入规则、模型、预算和评价版本；一次实现/配置身份足够，不加重复冻结链。
+- [x] 在AK新目录复用AJ八任务原字节与请求；完成同请求v1/v2准备对照及source mapping检查。
+- [x] 建立entry-only seeds、两条路线、公平M/D材料、独立依赖覆盖评价表、40单元顺序与作者brief；不读取新skill或新项目。
+- [x] 在任何AK真实准备/分析调用前固定输入规则、模型、预算和评价版本；一次实现/配置身份足够，不加重复冻结链。
 
 ### AK9 真实准备与产物核验
 
-- [ ] 对8任务各运行新有界准备一次，记录每个候选窗口、提议/拒绝、usage和最终gap；不得事后手补使其变ready。
-- [ ] 普通check验证v1/v2产物和M/D事实等价；准备失败保留分母，其他任务继续。
-- [ ] 真实报告指出哪些helper由系统找到、哪些仍需作者补充、哪些外部事实仍未知；准备收益不预定。
+- [x] 对8任务各运行新有界准备一次，记录每个候选窗口、提议/拒绝、usage和最终gap；不得事后手补使其变ready。
+- [x] 普通check验证v1/v2产物和M/D事实等价；准备失败保留分母，其他任务继续。
+- [x] 真实报告指出哪些helper由系统找到、哪些仍需作者补充、哪些外部事实仍未知；准备收益不预定。
 
 ### AK10 质量面板
 
-- [ ] 按固定顺序运行40计划单元，复用既有session生命周期与修复规则；已完成/未知单元不重发。
-- [ ] 保存全部首答、修订、fallback、失败和分项成本；没有合法准备材料的单元保留preparation-blocked。
-- [ ] 全部初轮关闭后再生成匿名评价包，不边看答案边修改材料。
+- [x] 按固定顺序运行40计划单元，复用既有session生命周期与修复规则；已完成/未知单元不重发。
+- [x] 保存全部首答、修订、fallback、失败和分项成本；没有合法准备材料的单元保留preparation-blocked。
+- [x] 全部初轮关闭后再生成匿名评价包，不边看答案边修改材料。
 
 ### AK11 独立语义评价与一次有据修订
 
-- [ ] 独立复核行为、决定性证据、政策/条件与标签一致性；对Paperless和Memos争议提供逐项来源。
-- [ ] 分开汇总同请求packing、实际自动准备、质量、表示以及全流程成本；原分母和完成配对均报告。
-- [ ] 只有确定性反例证实共享缺陷才启用最多8个完整配对修订单元；无缺陷则写not-needed，不为凑任务强行再跑。
+- [x] 独立复核行为、决定性证据、政策/条件与标签一致性；对Paperless和Memos争议提供逐项来源，两轮评分及裁定保留。
+- [x] 分开汇总同请求packing、实际自动准备、质量、表示以及全流程成本；原分母和完成配对均报告。
+- [x] 未发现确定性共享分析缺陷，修订not-needed、追加分析0；前提与评价纠正不重抽模型。
 
 ### AK12 独立作者原/变使用
 
-- [ ] 两包MD/DSL各原/变，共8首稿；执行一次诊断修订政策，保存原始交付且主代理不代修领域字段。
-- [ ] 实际准备/消费8session、16声明场景；记录展开义务、入口/support错误、修改扩散、源码/政策来源一致性与fresh结果。
-- [ ] 四组compare与新运行对应；作者、准备、分析分别计量，真人分钟没有测量就保持unknown。
+- [x] 两包MD/DSL各原/变，共8首稿；3正常修订、§5.3登记的2额外诊断纠正分列，保存原始交付，主代理未代修领域字段。
+- [x] 实际准备/消费8session、16声明场景；记录展开义务、入口/support错误、修改扩散、源码/政策来源一致性与fresh结果。
+- [x] 四组compare与新运行对应；作者、准备、分析分别计量，真人分钟没有测量就保持unknown。
 
 ### AK13 可搬移普通示例
 
-- [ ] 扩充既有evidence-editing示例，提供完整的显式多片段和可选模型定位命令、partial说明、edit/check/run/inspect/compare。
-- [ ] 搬到一个已登记的仓外测试目录，验证相对引用与来源行号；零模型演练可以复用真实session做inspect，不能替代AK12。
-- [ ] 只清理本轮明确创建且路径确认的临时文件；策略拒绝即记录保留，不换工具绕过，也不清理旧临时副本。
+- [x] 扩充既有evidence-editing示例，提供完整的显式多片段和可选模型定位命令、partial说明、edit/check/run/inspect/compare。
+- [x] 搬到一个已登记的仓外测试目录，验证相对引用与来源行号；零模型演练不能替代AK12。
+- [x] 本轮具名临时演练目录登记并保留供复核；没有执行清理，旧策略拒绝副本不动。
 
 ### AK14 方法取舍与文档同步
 
-- [ ] 统一更新研究§7.30、§11、usage、developer-guide、当前状态、plan/spec和实验目录；机器细节留results。
-- [ ] 说明哪些任务适合自动准备、何时应显式列依赖、实际剩余作者负担与预算影响。旧默认先保持兼容；本轮数据只支持对应显式使用建议。
-- [ ] 同步计划checkbox与终态，避免“全部完成”却仍留下未解释必做项；不复制旧阶段流水形成第二份研究正文。
+- [x] 统一更新研究§7.30、§11、usage、developer-guide、当前状态、plan/spec和实验目录；机器细节留results。
+- [x] 说明哪些任务适合自动准备、何时应显式列依赖、实际剩余作者负担与预算影响。旧默认兼容；本轮数据只支持对应显式使用建议。
+- [x] 同步已完成阶段checkbox与当前进度；AK15/AK16待完成后置终态，不另建平行研究正文。
 
 ### AK15 一次有限验证与离线复算
 
-- [ ] 相关回归、主/研究脚本typecheck、文档测试/链接检查、目录检查及定向凭据扫描。
-- [ ] 准备/面板/作者汇总零provider重放，核对planned/dispatch/response/terminal分母和cache口径；旧AJ evaluator各复验一次即可，不反复运行受历史实现hash约束的旧runner。
-- [ ] 新鲜diff审阅和一次独立只读核验；发现问题修复后只复验受影响范围，避免小时级重复总审计。
+- [x] 相关402 pass/1 skip、主/研究脚本typecheck、文档12测试/链接、10项目录及定向凭据扫描通过。
+- [x] AK准备/面板/作者/消费/评价/总账零provider重放，核对分母/cache。旧AJ面板评价复现，旧AJ作者评价因local-run冻结哈希不同拒绝；旧身份不改、不重复审计。
+- [x] 新鲜diff审阅和一次独立只读核验通过；第二轮只展示补窗的质量限制记为minor后续事项，不改已冻结初轮。
 
 ```powershell
 bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts ./src/cli/authorization-compose.test.ts ./src/cli/authorization-prepare.test.ts ./src/cli/authorization-edit.test.ts ./src/providers/structured.test.ts ./src/measurement/token-accounting.test.ts ./scripts/token-accounting
