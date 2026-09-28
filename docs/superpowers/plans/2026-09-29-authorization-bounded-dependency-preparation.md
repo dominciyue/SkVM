@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、已有 portable source reader、provider 生命周期与 token-accounting、SkVM CLI、Python 文档检查。
 
-- 日期：2026-09-29；状态：`ready-for-publication`，AK0–AK15完成，AK16白名单提交与用户origin发布收尾中。
+- 日期：2026-09-29；状态：`completed`，AK0–AK16完成；首次发布头`a9aa3d9eb693fbdbb27a136e7f39a629a02b4a0b`已与用户origin核对一致、Git工作区干净，终态记录随本书再同步。
 - 基线：`b0cfbc1053791adb9444194141da78bb6c679a9c` 加本规划提交；直接使用 `D:/skill优化/SkVM` 的 `skill-ir-aot`，只推用户 origin，不建分支/worktree。
 - 开发任务模型：`gpt-6-sol / max`。被测模型继续 `xty/gpt-5.6-sol`，沿用已配置 provider；开发代理、准备、作者、分析和评价成本分列。
 - 结果根：`results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/`。
@@ -268,7 +268,7 @@ AK11–AK12评价纠正：消费首答来自最终所选作者稿的fresh run，
 
 - [x] 统一更新研究§7.30、§11、usage、developer-guide、当前状态、plan/spec和实验目录；机器细节留results。
 - [x] 说明哪些任务适合自动准备、何时应显式列依赖、实际剩余作者负担与预算影响。旧默认兼容；本轮数据只支持对应显式使用建议。
-- [x] 同步已完成阶段checkbox与当前进度；AK15/AK16待完成后置终态，不另建平行研究正文。
+- [x] 同步已完成阶段checkbox与当前进度；AK15/AK16完成后已置终态，不另建平行研究正文。
 
 ### AK15 一次有限验证与离线复算
 
@@ -288,9 +288,9 @@ git diff --check
 
 ### AK16 发布与交付
 
-- [ ] 工程/示例、实际证据、文档分职责提交，白名单暂存本轮文件；历史raw/cache及本地排除项不纳入。
-- [ ] 推送用户 `origin/skill-ir-aot`，核对真实远端SHA和Git工作区；不推upstream、不强推、不新建分支/worktree。
-- [ ] 最终回答包含可直接执行的普通命令、实际自动找到/仍缺的依赖、同任务质量与完整成本、作者首稿/修订、未完成项和下一建议；工程完成和效果结果分别陈述。
+- [x] 工程/示例、实际证据、文档分职责提交，白名单暂存本轮文件；历史raw/cache及本地排除项不纳入。
+- [x] 推送用户 `origin/skill-ir-aot`，核对真实远端SHA和Git工作区；不推upstream、不强推、不新建分支/worktree。
+- [x] 最终交付包含可直接执行的普通命令、实际自动找到/仍缺的依赖、同任务质量与完整成本、作者首稿/修订、未完成项和下一建议；工程完成和效果结果分别陈述。
 
 ## 7. 完成标准与允许调整
 
