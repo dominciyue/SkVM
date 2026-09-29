@@ -121,4 +121,3 @@ if (mode === "run") {
   const summary = { schemaVersion: "authorization-al-authors/v1", planned: 8, firstValid: rows.filter(r => r.firstValid).length, finalValid: rows.filter(r => r.finalValid).length, revisionCalls: accounts.filter(a => a.kind === "revision").length, rows, usage: aggregateUsage(accounts), accounts, providerCallsThisCommand: 0 }
   await save(path.join(root, "author-summary.json"), summary); console.log(JSON.stringify({ planned: 8, firstValid: summary.firstValid, finalValid: summary.finalValid, revisionCalls: summary.revisionCalls, usage: summary.usage }))
 }
-

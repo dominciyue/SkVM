@@ -103,4 +103,3 @@ if (mode === "prepare") {
     usage: aggregateUsage(rows.flatMap(r => r.account ? [r.account] : [])), preparationUsage: aggregateUsage(preparationAccounts), preparationAccounts, providerCallsThisCommand: 0 }
   await save(path.join(root, "consumer-replay.json"), summary); console.log(JSON.stringify(summary))
 }
-

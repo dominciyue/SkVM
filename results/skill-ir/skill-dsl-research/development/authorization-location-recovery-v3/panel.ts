@@ -73,4 +73,3 @@ if (mode === "freeze") {
     await save(path.join(root, "panel-replay.json"), replay); console.log(JSON.stringify(replay))
   }
 }
-

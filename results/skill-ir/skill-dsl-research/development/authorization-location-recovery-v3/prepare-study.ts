@@ -58,4 +58,3 @@ if (mode === "check") {
   if (mode === "replay") await save(path.join(root, "preparation-summary.json"), summary)
   console.log(JSON.stringify(summary))
 }
-
