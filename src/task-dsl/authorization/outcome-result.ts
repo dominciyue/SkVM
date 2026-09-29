@@ -6,6 +6,7 @@ import type { AuthorizationAssessmentProgram } from "./assessment-program.ts"
 import { mapPolicyStatus } from "./policy-result.ts"
 import type { AuthorizationMethod } from "./method.ts"
 import type { AuthorizationTransportDiagnostic } from "./transport.ts"
+import type { AuthorizationTaskContractMode } from "./task-contract.ts"
 
 const Text = z.string().trim().min(1)
 const Decision = z.discriminatedUnion("kind", [
@@ -25,11 +26,16 @@ export function outcomeAuthorizationSchema(method: AuthorizationMethod): z.ZodTy
 export function conclusionFromObservedDecision(expectation: "allow" | "deny", observed: "allow" | "deny" | "unknown"): "source_refuted" | "source_supported_failure" | "unknown" {
   return observed === "unknown" ? "unknown" : expectation === observed ? "source_refuted" : "source_supported_failure"
 }
+export function summarizeObservedPolicy(expectation: "allow" | "deny", observed: "allow" | "deny" | "unknown") {
+  const status = observed === "unknown" ? "undetermined" as const : observed === expectation ? "satisfied" as const : "violated" as const
+  return { expectation, observed, status, text: `Declared policy expects ${expectation}; supplied source behavior is ${observed}; policy comparison is ${status}.` }
+}
 
 export interface OutcomeAuthorizationNormalization extends Omit<CompactAuthorizationNormalization, "normalizerVersion" | "wireResult"> {
   normalizerVersion: "authorization-wire-normalizer/v6"
   wireResult?: OutcomeAuthorizationResult
   observedDecisions?: Array<{ obligationId: string; expectation: "allow" | "deny"; observed: "allow" | "deny" | "unknown"; derivedConclusion: "source_refuted" | "source_supported_failure" | "unknown" }>
+  policySummaries?: Array<{ obligationId: string; expectation: "allow" | "deny"; observed: "allow" | "deny" | "unknown"; status: "satisfied" | "violated" | "undetermined"; text: string; modelExplanation: string }>
   requestedBranchAnalysis?: AuthorizationConditionAnalysisResultV1
   requestedBranchValidation?: ConditionAnalysisValidation
 }
@@ -38,7 +44,7 @@ type CompactInput = Parameters<typeof normalizeCompactAuthorizationResult>[0]
 const diagnostic = (code: string, message: string, path: string): AuthorizationTransportDiagnostic => ({ code, message, path, severity: "error" })
 const branchKey = (assumptions: Array<{ conditionId: string; value: string }>) => JSON.stringify(assumptions.map(item => [item.conditionId, item.value]).sort(([a], [b]) => String(a).localeCompare(String(b))))
 
-export function normalizeOutcomeAuthorizationResult(input: CompactInput & { program?: AuthorizationAssessmentProgram }): OutcomeAuthorizationNormalization {
+export function normalizeOutcomeAuthorizationResult(input: CompactInput & { program?: AuthorizationAssessmentProgram; taskContract?: AuthorizationTaskContractMode }): OutcomeAuthorizationNormalization {
   const base = { normalizerVersion: "authorization-wire-normalizer/v6" as const, canonicalResultVersion: "source-authorization-assessment-result/v0" as const }
   const parsed = outcomeAuthorizationSchema(input.method).safeParse(input.input)
   if (!parsed.success) return { ...base, status: "invalid", diagnostics: parsed.error.issues.map(issue => diagnostic("wire-schema-invalid", issue.message, issue.path.join(".") || "$")) }
@@ -46,6 +52,7 @@ export function normalizeOutcomeAuthorizationResult(input: CompactInput & { prog
   const byId = new Map(input.compiled.runnableObligations.map(entry => [entry.id, entry]))
   const diagnostics: AuthorizationTransportDiagnostic[] = []
   const observedDecisions: NonNullable<OutcomeAuthorizationNormalization["observedDecisions"]> = []
+  const policySummaries: NonNullable<OutcomeAuthorizationNormalization["policySummaries"]> = []
   const compactResults = wireResult.results.map((item, index) => {
     const { decision, branchResults: _branches, ...rest } = item
     const obligation = byId.get(item.obligationId)
@@ -57,7 +64,14 @@ export function normalizeOutcomeAuthorizationResult(input: CompactInput & { prog
       : expectation === "allow" || expectation === "deny"
         ? conclusionFromObservedDecision(expectation, decision.observed)
         : "unknown"
-    if (decision.kind === "observed" && (expectation === "allow" || expectation === "deny")) observedDecisions.push({ obligationId: item.obligationId, expectation, observed: decision.observed, derivedConclusion: conclusion })
+    if (decision.kind === "observed" && (expectation === "allow" || expectation === "deny")) {
+      observedDecisions.push({ obligationId: item.obligationId, expectation, observed: decision.observed, derivedConclusion: conclusion })
+      if (input.taskContract === "current-v1") {
+        policySummaries.push({ obligationId: item.obligationId, ...summarizeObservedPolicy(expectation, decision.observed), modelExplanation: item.explanation })
+        const labels = [...item.explanation.matchAll(/\b(?:source_supported_failure|source_refuted)\b/g)].map(match => match[0])
+        if (labels.some(label => label !== conclusion)) diagnostics.push(diagnostic("policy-explanation-contradiction", `Model explanation names a conclusion opposite to the observed decision and declared ${expectation} expectation; preserve the explanation and correct the policy comparison.`, `results.${index}.explanation`))
+      }
+    }
     return { ...rest, conclusion }
   })
   const normalized = normalizeCompactAuthorizationResult({ ...input, input: { results: compactResults } })
@@ -110,6 +124,7 @@ export function normalizeOutcomeAuthorizationResult(input: CompactInput & { prog
   }
   const { result, wireResult: _compactWire, normalizerVersion: _version, ...rest } = normalized
   return { ...rest, ...base, status: diagnostics.length ? "invalid" : "valid", diagnostics, wireResult, observedDecisions,
+    ...(input.taskContract === "current-v1" ? { policySummaries } : {}),
     ...(requestedBranchAnalysis ? { requestedBranchAnalysis } : {}),
     ...(requestedBranchValidation ? { requestedBranchValidation } : {}),
     ...(diagnostics.length === 0 && result ? { result } : {}),

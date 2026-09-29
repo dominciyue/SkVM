@@ -5,6 +5,7 @@ import type { ConditionAnalysisPlan } from "./conditions.ts"
 import type { AuthorizationWireVersion } from "./policy-result.ts"
 import type { AuthorizationAssessmentProgram } from "./assessment-program.ts"
 import { compileAuthorizationReasoningPlan, renderAuthorizationReasoningPlan, type AuthorizationReasoningPlan, type AuthorizationReasoningStrategy } from "./reasoning-plan.ts"
+import { AuthorizationTaskContractError, resolveCurrentTaskContract, type AuthorizationTaskContractMode } from "./task-contract.ts"
 
 export type AuthorizationRenderArm = "N" | "B" | "D"
 
@@ -43,6 +44,7 @@ export interface RenderedAuthorizationTask {
   conditionPlan?: ConditionAnalysisPlan
   reasoningPlan?: AuthorizationReasoningPlan
   assessmentProgram?: AuthorizationAssessmentProgram
+  taskContract?: ReturnType<typeof resolveCurrentTaskContract>
 }
 
 export interface AuthorizationRenderOptions {
@@ -54,6 +56,7 @@ export interface AuthorizationRenderOptions {
   publicRequirementsText?: string
   assessmentProgram?: AuthorizationAssessmentProgram
   reasoningStrategy?: AuthorizationReasoningStrategy
+  taskContract?: AuthorizationTaskContractMode
 }
 
 export interface MarkdownStudyInput {
@@ -294,7 +297,12 @@ export function renderAuthorizationTask(
     throw new Error("Independent Markdown requires a nonempty independent-author input and plain/v4, plain/v5, or plain/v6 on render arm B.")
   }
   if (options.assessmentProgram && options.reasoningStrategy === "control-binding-v1") throw new Error("Explicit assessment program cannot be combined with control-binding-v1 reasoning.")
+  const taskContract = options.taskContract === "current-v1"
+    ? resolveCurrentTaskContract(compiled.task.requiredAnalysis, options.researchInstructions?.instructions, options.publicRequirementsText)
+    : undefined
+  if (taskContract?.status === "needs-input") throw new AuthorizationTaskContractError(taskContract.diagnostics)
   const facts = collectFacts(compiled.task)
+  if (taskContract) facts.requiredAnalysis = taskContract.effectiveRequiredAnalysis
   const reasoningPlan = options.reasoningStrategy === undefined
     ? undefined
     : compileAuthorizationReasoningPlan(compiled, options.reasoningStrategy)
@@ -365,5 +373,6 @@ export function renderAuthorizationTask(
     ...(conditionPlan ? { conditionPlan } : {}),
     ...(reasoningPlan?.entries.length ? { reasoningPlan } : {}),
     ...(options.assessmentProgram ? { assessmentProgram: options.assessmentProgram } : {}),
+    ...(taskContract ? { taskContract } : {}),
   }
 }

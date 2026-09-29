@@ -8,6 +8,7 @@ import { buildAuthorizationSourceCatalog } from "./inputs.ts"
 import { loadLocalAuthorizationInput } from "./local-input.ts"
 import { assessmentConditionId } from "../../task-dsl/authorization/assessment-contract.ts"
 import { compareAuthorizationInput } from "./change-report.ts"
+import { executeMarkdownStudyRun } from "./markdown-study.ts"
 import type { AuthorizationEvidenceReport } from "./evidence-preparation/schema.ts"
 import {
   checkLocalAuthorizationInput,
@@ -292,6 +293,69 @@ it("ordinary v6 retains original segments through run inspect and all-input comp
   expect(changed.status).toBe("needs-review")
   expect(changed.reasons).toContain("source-bundle-changed")
   expect(calls).toBe(1)
+})
+
+it("AN current task contract reaches the provider prompt, session and compare without legacy return instructions", async () => {
+  const f = await makeFixture(), input: any = JSON.parse(await readFile(f.inputPath, "utf8"))
+  const oldRule = "return source_supported_failure, source_refuted, or unknown with exact supplied-source locations"
+  input.task.requiredAnalysis.push(oldRule)
+  input.analysisContract = { schemaVersion: "authorization-analysis-contract/v1", scenarios: [{ obligationId: "deny-update", boundary: "declared-entry", premises: [], requestedBranches: [], requiredResponseDetails: [] }] }
+  await writeFile(f.inputPath, JSON.stringify(input))
+  const invalid = await checkLocalAuthorizationInput(f.inputPath, "B", "ledger", "v6", "standard", "explicit-v1", "current-v1")
+  expect(invalid.status).toBe("invalid")
+  const checked = await checkLocalAuthorizationInput(f.inputPath, "B", "plain", "v6", "standard", "explicit-v1", "current-v1")
+  expect(checked.status).toBe("valid")
+  expect(checked.preview).not.toContain(oldRule)
+  expect(checked.taskContract?.migrations[0]?.original).toBe(oldRule)
+  const loaded = await loadLocalAuthorizationInput(f.inputPath)
+  if (loaded.status !== "valid") throw Error("fixture")
+  const catalog = buildAuthorizationSourceCatalog(loaded.sourceBundle)
+  if (!catalog.success) throw Error("catalog")
+  const sourceId = catalog.catalog.sources[0]!.sourceId
+  const wire = { results: [{ obligationId: "deny-update::update", decision: { kind: "observed", observed: "deny" }, explanation: "The owner control denies the effect.", facts: ["entry", "binding", "control", "effect", "condition"].map((kind, i) => ({ id: `f${i}`, kind, statement: `${kind} evidence`, citations: [{ sourceId, startLine: Math.min(i + 1, 5), endLine: Math.min(i + 1, 5) }] })), decisiveMissingFacts: [], suggestedObservations: [], branchResults: [] }] }
+  let sent = "", calls = 0
+  const result = await executeLocalAuthorizationRun({ inputFile: f.inputPath, model: "mock/v6", outRoot: f.outRoot, method: "plain", wireVersion: "v6", assessmentMode: "explicit-v1", taskContract: "current-v1",
+    providerFactory: () => ({ name: "mock", async complete(params) { sent = JSON.stringify(params); calls++; return { text: "", toolCalls: [{ id: "one", name: "submit_authorization_result", arguments: wire }], tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 1, stopReason: "tool_use" } }, async completeWithToolResults() { throw Error("no") } }) })
+  expect(result.status).toBe("completed")
+  if (!("sessionPath" in result)) return
+  expect(sent).not.toContain(oldRule)
+  expect(sent).toContain("observed")
+  expect((result.policySummaries as Array<{ status: string }> | undefined)?.[0]?.status).toBe("satisfied")
+  expect(await readFile(path.join(result.sessionPath, "summary.txt"), "utf8")).toContain("Model explanation")
+  expect((await inspectLocalAuthorizationOutput(result.sessionPath)).taskContractMode).toBe("current-v1")
+  expect((await compareAuthorizationInput(result.sessionPath, f.inputPath)).status).toBe("current")
+  expect((await compareAuthorizationInput(result.sessionPath, f.inputPath, { taskContractMode: "compatibility" })).status).toBe("needs-review")
+  expect(calls).toBe(1)
+  let markdownPrompt = "", markdownCalls = 0
+  const markdown = await executeMarkdownStudyRun({ inputFile: f.inputPath, model: "mock/v6", outRoot: path.join(f.root, "markdown-current"), assessmentMode: "explicit-v1", taskContract: "current-v1", wireVersion: "v6",
+    markdown: { instructions: "Assess the current policy and source path.", instructionOrigin: "independent-author", instructionPath: "independent.md" },
+    providerFactory: () => ({ name: "mock", async complete(params) { markdownPrompt = JSON.stringify(params); markdownCalls++; return { text: "", toolCalls: [{ id: "one", name: "submit_authorization_result", arguments: wire }], tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 1, stopReason: "tool_use" } }, async completeWithToolResults() { throw Error("no") } }) })
+  expect(markdown.status).toBe("completed")
+  expect(markdownPrompt).not.toContain(oldRule)
+  expect(markdownCalls).toBe(1)
+})
+
+it("AN explicit model-label contradiction uses the existing single repair and retains the first answer", async () => {
+  const f = await makeFixture(), input: any = JSON.parse(await readFile(f.inputPath, "utf8"))
+  input.analysisContract = { schemaVersion: "authorization-analysis-contract/v1", scenarios: [{ obligationId: "deny-update", boundary: "declared-entry", premises: [], requestedBranches: [], requiredResponseDetails: [] }] }
+  await writeFile(f.inputPath, JSON.stringify(input))
+  const loaded = await loadLocalAuthorizationInput(f.inputPath)
+  if (loaded.status !== "valid") throw Error("fixture")
+  const catalog = buildAuthorizationSourceCatalog(loaded.sourceBundle)
+  if (!catalog.success) throw Error("catalog")
+  const sourceId = catalog.catalog.sources[0]!.sourceId
+  const wire = { results: [{ obligationId: "deny-update::update", decision: { kind: "observed", observed: "deny" }, explanation: "source_supported_failure: owner control denies the effect.", facts: ["entry", "binding", "control", "effect", "condition"].map((kind, i) => ({ id: `f${i}`, kind, statement: `${kind} evidence`, citations: [{ sourceId, startLine: i + 1, endLine: i + 1 }] })), decisiveMissingFacts: [], suggestedObservations: [], branchResults: [] }] }
+  let calls = 0
+  const report = await executeLocalAuthorizationRun({ inputFile: f.inputPath, outRoot: f.outRoot, model: "mock/v6", method: "plain", wireVersion: "v6", assessmentMode: "explicit-v1", taskContract: "current-v1",
+    providerFactory: () => ({ name: "mock", async complete() { calls++; const answer = structuredClone(wire); if (calls === 2) answer.results[0]!.explanation = "The owner control denies the effect."; return { text: "", toolCalls: [{ id: `answer-${calls}`, name: "submit_authorization_result", arguments: answer }], tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 1, stopReason: "tool_use" } }, async completeWithToolResults() { throw Error("no") } }) })
+  expect(report.status).toBe("completed")
+  expect(calls).toBe(2)
+  if (!("sessionPath" in report)) return
+  const run = JSON.parse(await readFile(path.join(report.sessionPath, "run.json"), "utf8"))
+  expect(run.initialTransport.normalization.diagnostics.map((d: any) => d.code)).toContain("policy-explanation-contradiction")
+  expect(run.initialTransport.wireResult.results[0].explanation).toContain("source_supported_failure")
+  expect(run.finalKind).toBe("repair")
+  expect((await inspectLocalAuthorizationOutput(report.sessionPath)).status).toBe("completed")
 })
 
 describe("local authorization runner", () => {

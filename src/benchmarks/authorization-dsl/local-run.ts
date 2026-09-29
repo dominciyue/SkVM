@@ -20,6 +20,7 @@ import { compileAuthorizationTask } from "../../task-dsl/authorization/semantics
 import { compileAuthorizationReasoningPlan, validAuthorizationReasoningStrategy, type AuthorizationReasoningPlan, type AuthorizationReasoningStrategy } from "../../task-dsl/authorization/reasoning-plan.ts"
 import type { AuthorizationWireVersion } from "../../task-dsl/authorization/policy-result.ts"
 import type { AuthorizationAssessmentProgram } from "../../task-dsl/authorization/assessment-program.ts"
+import { AuthorizationTaskContractError, type AuthorizationTaskContractMode } from "../../task-dsl/authorization/task-contract.ts"
 import {
   runAuthorizationTask,
   type AuthorizationTaskRun,
@@ -55,6 +56,8 @@ export interface LocalAuthorizationCheckReport {
   wireVersion?: string
   assessmentMode?: AuthorizationAssessmentMode
   assessmentProgram?: AuthorizationAssessmentProgram
+  taskContractMode?: AuthorizationTaskContractMode
+  taskContract?: ReturnType<typeof import("../../task-dsl/authorization/task-contract.ts").resolveCurrentTaskContract>
   reasoningStrategy?: AuthorizationReasoningStrategy
   reasoningPlan?: AuthorizationReasoningPlan
   analysisProfile?: LocalAnalysisProfile
@@ -108,6 +111,7 @@ const PersistedLocalSessionSchema = z.object({
   analysisProfile: z.unknown().optional(),
   reasoningStrategy: z.enum(["standard", "control-binding-v1"]).optional(),
   assessmentMode: z.enum(["legacy", "explicit-v1"]).optional(),
+  taskContractMode: z.enum(["compatibility", "current-v1"]).optional(),
   evidencePreparation: AuthorizationEvidenceReportSchema.optional(),
   noAutomaticResend: z.literal(true).optional(),
 }).passthrough()
@@ -124,6 +128,7 @@ const PersistedLocalSessionReportSchema = z.object({
   studyArm: AuthorizationStudyArmSchema.optional(),
   reasoningStrategy: z.enum(["standard", "control-binding-v1"]).optional(),
   assessmentMode: z.enum(["legacy", "explicit-v1"]).optional(),
+  taskContractMode: z.enum(["compatibility", "current-v1"]).optional(),
   evidencePreparation: AuthorizationEvidenceReportSchema.optional(),
   finalKind: z.enum(["initial", "repair"]).optional(),
 }).passthrough()
@@ -135,6 +140,7 @@ const PersistedLocalDispatchSchema = z.object({
   studyArm: AuthorizationStudyArmSchema.optional(),
   reasoningStrategy: z.enum(["standard", "control-binding-v1"]).optional(),
   assessmentMode: z.enum(["legacy", "explicit-v1"]).optional(),
+  taskContractMode: z.enum(["compatibility", "current-v1"]).optional(),
   evidencePreparation: AuthorizationEvidenceReportSchema.optional(),
 }).passthrough()
 const PersistedAuthorizationRunSchema = z.object({
@@ -169,6 +175,8 @@ export interface LocalAuthorizationSessionReport {
   methodSelection?: AuthorizationMethodSelection
   wireVersion?: string
   assessmentMode?: AuthorizationAssessmentMode
+  taskContractMode?: AuthorizationTaskContractMode
+  taskContract?: ReturnType<typeof import("../../task-dsl/authorization/task-contract.ts").resolveCurrentTaskContract>
   analysisProfile?: LocalAnalysisProfile
   reasoningStrategy?: AuthorizationReasoningStrategy
   evidencePreparation?: AuthorizationEvidenceReport
@@ -183,6 +191,7 @@ export interface LocalAuthorizationSessionReport {
   requestedBranchAnalysis?: unknown
   requestedBranchValidation?: unknown
   observedDecisions?: unknown
+  policySummaries?: unknown
   telemetry?: AuthorizationTaskRun["telemetry"]
   promptCharacters?: AuthorizationTaskRun["promptCharacters"]
   artifacts?: {
@@ -336,6 +345,7 @@ function checkReport(
   researchInstructions?: MarkdownStudyInput,
   reasoningStrategy: AuthorizationReasoningStrategy = "standard",
   assessmentMode?: AuthorizationAssessmentMode,
+  taskContractMode: AuthorizationTaskContractMode = "compatibility",
 ): LocalAuthorizationCheckReport {
   if (!validAuthorizationReasoningStrategy(reasoningStrategy)) return {
     schemaVersion: "authorization-local-check/v1", status: "invalid", inputPath: loaded.inputPath,
@@ -402,22 +412,33 @@ function checkReport(
     schemaVersion: "authorization-local-check/v1", status: "invalid", inputPath: loaded.inputPath,
     methodSelection: resolved.selection, diagnostics: resolved.diagnostics,
   }
+  if (taskContractMode === "current-v1" && (resolved.selection.effective !== "plain" || effectiveAssessmentMode !== "explicit-v1" || effectiveWireVersion !== "v6")) return {
+    schemaVersion: "authorization-local-check/v1", status: "invalid", inputPath: loaded.inputPath,
+    diagnostics: [localStudyDiagnostic("task-contract-combination-unsupported", "current-v1 requires plain, explicit-v1 assessment and wire v6.", "taskContractMode")],
+  }
   const compiled = compileAuthorizationTask(loaded.task)
   const sourceContext = renderSourceBundle(loaded.sourceBundle)
   const selected = studyExecutionInputs(loaded, resolved.studyArm)
-  const rendered = renderAuthorizationTask(
-    compiled,
-    arm,
-    selected.analysisPlan,
-    selected.conditionPlan,
-    { ...selected.renderOptions, wireVersion: effectiveWireVersion, researchInstructions, reasoningStrategy,
-      ...(publicAssessmentText(loaded) ? { publicRequirementsText: publicAssessmentText(loaded) } : {}),
-      ...(effectiveAssessmentMode === "explicit-v1" && loaded.assessmentProgram ? { assessmentProgram: loaded.assessmentProgram } : {}),
-    },
-  )
+  let rendered: ReturnType<typeof renderAuthorizationTask>
+  try {
+    rendered = renderAuthorizationTask(
+      compiled,
+      arm,
+      selected.analysisPlan,
+      selected.conditionPlan,
+      { ...selected.renderOptions, wireVersion: effectiveWireVersion, researchInstructions, reasoningStrategy, taskContract: taskContractMode,
+        ...(publicAssessmentText(loaded) ? { publicRequirementsText: publicAssessmentText(loaded) } : {}),
+        ...(effectiveAssessmentMode === "explicit-v1" && loaded.assessmentProgram ? { assessmentProgram: loaded.assessmentProgram } : {}),
+      },
+    )
+  } catch (error) {
+    if (!(error instanceof AuthorizationTaskContractError)) throw error
+    return { schemaVersion: "authorization-local-check/v1", status: "invalid", inputPath: loaded.inputPath,
+      diagnostics: error.diagnostics.map(item => localStudyDiagnostic(item.code, item.message, item.path)) }
+  }
   const renderedPrompt = rendered.prompt.replace("<SOURCE_CONTEXT_INSERTED_BY_HOST>", sourceContext)
   const preview = [
-    `<!-- analysis-profile: ${loaded.analysisProfile.id}; origin: ${loaded.analysisProfile.origin}; study-arm: ${studyArm ?? "none"}; condition-analysis: ${selected.conditionPlan ? "enabled" : "disabled"}; assessment: ${effectiveAssessmentMode} -->`,
+    `<!-- analysis-profile: ${loaded.analysisProfile.id}; origin: ${loaded.analysisProfile.origin}; study-arm: ${studyArm ?? "none"}; condition-analysis: ${selected.conditionPlan ? "enabled" : "disabled"}; assessment: ${effectiveAssessmentMode}${taskContractMode === "current-v1" ? "; task-contract: current-v1" : ""} -->`,
     renderedPrompt,
   ].join("\n\n")
   return {
@@ -435,6 +456,8 @@ function checkReport(
     ...(studyArm ? { studyArm } : {}),
     methodSelection: resolved.selection,
     assessmentMode: effectiveAssessmentMode,
+    ...(taskContractMode === "current-v1" ? { taskContractMode } : {}),
+    ...(rendered.taskContract ? { taskContract: rendered.taskContract } : {}),
     ...(effectiveAssessmentMode === "explicit-v1" && loaded.assessmentProgram ? { assessmentProgram: loaded.assessmentProgram } : {}),
     reasoningStrategy,
     ...(reasoningStrategy !== "standard" ? { reasoningPlan: compileAuthorizationReasoningPlan(compiled, reasoningStrategy) } : {}),
@@ -476,8 +499,9 @@ export async function checkLocalAuthorizationInput(
   wireVersion?: AuthorizationWireVersion,
   reasoningStrategy: AuthorizationReasoningStrategy = "standard",
   assessmentMode?: AuthorizationAssessmentMode,
+  taskContractMode: AuthorizationTaskContractMode = "compatibility",
 ): Promise<LocalAuthorizationCheckReport> {
-  return checkReport(await loadLocalAuthorizationInput(inputFile), arm, undefined, method, wireVersion, undefined, reasoningStrategy, assessmentMode)
+  return checkReport(await loadLocalAuthorizationInput(inputFile), arm, undefined, method, wireVersion, undefined, reasoningStrategy, assessmentMode, taskContractMode)
 }
 
 export async function checkLocalAuthorizationStudyInput(
@@ -547,9 +571,17 @@ function summaryText(input: {
   if (input.report.methodSelection) lines.push(`Method: ${input.report.methodSelection.effective} (${input.report.methodSelection.selectionOrigin}); requested: ${input.report.methodSelection.requested ?? "omitted"}; condition request ignored: ${input.report.methodSelection.conditionRequestIgnored}`)
   if (input.report.wireVersion) lines.push(`Wire: ${input.report.wireVersion}`)
   if (input.report.assessmentMode) lines.push(`Assessment: ${input.report.assessmentMode}`)
+  if (input.report.taskContractMode) lines.push(`Task contract: ${input.report.taskContractMode}`)
   if (input.report.normalizerVersion) lines.push(`Normalizer: ${input.report.normalizerVersion}`)
   if (input.report.wireVersion === "source-authorization-assessment-wire/v5" || input.report.wireVersion === "source-authorization-assessment-wire/v6") lines.push(`Model policy result: ${JSON.stringify(input.report.wireResult)}`)
   if (input.report.observedDecisions) lines.push(`Observed decisions: ${JSON.stringify(input.report.observedDecisions)}`)
+  if (Array.isArray(input.report.policySummaries) && input.report.policySummaries.length) {
+    lines.push("", "Host policy comparison")
+    for (const summary of input.report.policySummaries as Array<{ obligationId: string; text: string; modelExplanation: string }>) {
+      lines.push(`- ${summary.obligationId}: ${summary.text}`)
+      lines.push(`  Model explanation: ${summary.modelExplanation}`)
+    }
+  }
   if (input.report.repository) lines.push(`Source: ${input.report.repository}@${input.report.sourceRef ?? "unknown"}`)
   if (input.report.analysisProfile) {
     lines.push(`Analysis profile: ${input.report.analysisProfile.id} (${input.report.analysisProfile.origin})`)
@@ -629,6 +661,7 @@ export async function executeLocalAuthorizationRun(input: {
   method?: AuthorizationMethod
   wireVersion?: AuthorizationWireVersion
   assessmentMode?: AuthorizationAssessmentMode
+  taskContract?: AuthorizationTaskContractMode
   reasoningStrategy?: AuthorizationReasoningStrategy
   executionOptions?: RunAuthorizationTaskOptions
   providerFactory?: LocalAuthorizationProviderFactory
@@ -637,7 +670,7 @@ export async function executeLocalAuthorizationRun(input: {
   const arm = input.arm ?? "B"
   const loaded = await loadLocalAuthorizationInput(input.inputFile)
   const reasoningStrategy = input.reasoningStrategy ?? "standard"
-  const checked = checkReport(loaded, arm, input.studyArm, input.method, input.wireVersion, input.researchInstructions, reasoningStrategy, input.assessmentMode)
+  const checked = checkReport(loaded, arm, input.studyArm, input.method, input.wireVersion, input.researchInstructions, reasoningStrategy, input.assessmentMode, input.taskContract ?? "compatibility")
   if (loaded.status === "invalid" || checked.status === "invalid") return checked
   const effectiveStudyArm = methodStudyArm[checked.methodSelection!.effective]
   const selected = studyExecutionInputs(loaded, effectiveStudyArm)
@@ -647,6 +680,7 @@ export async function executeLocalAuthorizationRun(input: {
     characters: input.researchInstructions.instructions.length,
   } : undefined
   const selectionMetadata = { methodSelection: checked.methodSelection, wireVersion: checked.wireVersion, assessmentMode: checked.assessmentMode, reasoningStrategy,
+    ...(checked.taskContractMode ? { taskContractMode: checked.taskContractMode } : {}),
     ...(checked.evidencePreparation ? { evidencePreparation: checked.evidencePreparation } : {}),
     ...(researchIdentity ? {researchIdentity} : {}) }
 
@@ -738,6 +772,7 @@ export async function executeLocalAuthorizationRun(input: {
     arm,
     ...(input.studyArm ? { studyArm: input.studyArm } : {}),
     analysisProfile: loaded.analysisProfile,
+    ...(checked.taskContract ? { taskContract: checked.taskContract } : {}),
     ...(checked.promptCharacters ? { promptCharacters: { initial: checked.promptCharacters } } : {}),
     artifacts: baseArtifacts,
   }
@@ -792,7 +827,7 @@ export async function executeLocalAuthorizationRun(input: {
       provider,
       arm,
       wireVersion: selectedWireVersion(checked.wireVersion!),
-      renderOptions: { ...selected.renderOptions, researchInstructions: input.researchInstructions, reasoningStrategy,
+      renderOptions: { ...selected.renderOptions, researchInstructions: input.researchInstructions, reasoningStrategy, taskContract: input.taskContract ?? "compatibility",
         ...(publicAssessmentText(loaded) ? { publicRequirementsText: publicAssessmentText(loaded) } : {}),
       },
       options: executionOptions,
@@ -821,6 +856,7 @@ export async function executeLocalAuthorizationRun(input: {
           : {}),
         ...(artifact.requestedBranchAnalysis ? { requestedBranchAnalysis: artifact.requestedBranchAnalysis, requestedBranchValidation: artifact.requestedBranchValidation } : {}),
         ...(artifact.observedDecisions ? { observedDecisions: artifact.observedDecisions } : {}),
+        ...(artifact.policySummaries ? { policySummaries: artifact.policySummaries } : {}),
       } : {}),
       telemetry: run.telemetry,
       promptCharacters: run.promptCharacters,
@@ -897,6 +933,7 @@ async function validateDispatchIdentity(
     || !samePersistedValue(session.methodSelection, dispatch.methodSelection)
     || !samePersistedValue(session.wireVersion, dispatch.wireVersion)
     || (session.assessmentMode ?? "legacy") !== (dispatch.assessmentMode ?? "legacy")
+    || (session.taskContractMode ?? "compatibility") !== (dispatch.taskContractMode ?? "compatibility")
     || (session.reasoningStrategy ?? "standard") !== (dispatch.reasoningStrategy ?? "standard")
     || !samePersistedValue(session.evidencePreparation, dispatch.evidencePreparation)
   ) {
@@ -923,6 +960,7 @@ async function validateTerminalSession(input: {
     || !samePersistedValue(session.methodSelection, report.methodSelection)
     || !samePersistedValue(session.wireVersion, report.wireVersion)
     || (session.assessmentMode ?? "legacy") !== (report.assessmentMode ?? "legacy")
+    || (session.taskContractMode ?? "compatibility") !== (report.taskContractMode ?? "compatibility")
     || (session.reasoningStrategy ?? "standard") !== (report.reasoningStrategy ?? "standard")
     || !samePersistedValue(session.evidencePreparation, report.evidencePreparation)
   ) {
@@ -931,13 +969,15 @@ async function validateTerminalSession(input: {
 
   const checkPath = path.join(sessionPath, "check.json")
   if (await pathKind(checkPath) === "file") {
-    const check = JSON.parse(await readFile(checkPath, "utf8")) as { inputPath?: string; taskId?: string; methodSelection?: unknown; wireVersion?: unknown; assessmentMode?: AuthorizationAssessmentMode; assessmentProgram?: AuthorizationAssessmentProgram; reasoningStrategy?: AuthorizationReasoningStrategy; reasoningPlan?: AuthorizationReasoningPlan; evidencePreparation?: AuthorizationEvidenceReport }
+    const check = JSON.parse(await readFile(checkPath, "utf8")) as { inputPath?: string; taskId?: string; methodSelection?: unknown; wireVersion?: unknown; assessmentMode?: AuthorizationAssessmentMode; taskContractMode?: AuthorizationTaskContractMode; taskContract?: unknown; assessmentProgram?: AuthorizationAssessmentProgram; reasoningStrategy?: AuthorizationReasoningStrategy; reasoningPlan?: AuthorizationReasoningPlan; evidencePreparation?: AuthorizationEvidenceReport }
     if (
       (check.inputPath !== undefined && path.resolve(report.inputPath ?? "") !== path.resolve(check.inputPath))
       || (check.taskId !== undefined && report.taskId !== check.taskId)
       || !samePersistedValue(check.methodSelection, report.methodSelection)
       || !samePersistedValue(check.wireVersion, report.wireVersion)
       || (check.assessmentMode ?? "legacy") !== (report.assessmentMode ?? "legacy")
+      || (check.taskContractMode ?? "compatibility") !== (report.taskContractMode ?? "compatibility")
+      || !samePersistedValue(check.taskContract, report.taskContract)
       || (check.reasoningStrategy ?? "standard") !== (report.reasoningStrategy ?? "standard")
       || !samePersistedValue(check.evidencePreparation, report.evidencePreparation)
     ) {
@@ -980,6 +1020,8 @@ async function validateTerminalSession(input: {
       || !samePersistedValue(artifact?.requestedBranchAnalysis, report.requestedBranchAnalysis)
       || !samePersistedValue(artifact?.requestedBranchValidation, report.requestedBranchValidation)
       || !samePersistedValue(artifact?.observedDecisions, report.observedDecisions)
+      || !samePersistedValue(artifact?.policySummaries, report.policySummaries)
+      || !samePersistedValue(runRecord.taskContract, report.taskContract)
     ) {
       throw new LocalAuthorizationRunnerError(`Persisted result does not match run artifact for ${sessionId}.`)
     }
@@ -1023,6 +1065,7 @@ async function inspectSession(sessionPath: string, sessionId: string): Promise<L
     ...(session.studyArm ? { studyArm: session.studyArm } : {}),
     reasoningStrategy: session.reasoningStrategy ?? "standard",
     assessmentMode: session.assessmentMode ?? "legacy",
+    ...(session.taskContractMode ? { taskContractMode: session.taskContractMode } : {}),
     ...(session.methodSelection ? { methodSelection: session.methodSelection as AuthorizationMethodSelection } : {}),
     ...(typeof session.wireVersion === "string" ? { wireVersion: session.wireVersion } : {}),
     ...(session.analysisProfile ? { analysisProfile: session.analysisProfile as LocalAnalysisProfile } : {}),
@@ -1115,6 +1158,12 @@ function parseAssessment(value: string | undefined): AuthorizationAssessmentMode
   throw new LocalAuthorizationRunnerError("assessment must be legacy or explicit-v1.")
 }
 
+function parseTaskContract(value: string | undefined): AuthorizationTaskContractMode {
+  if (value === undefined || value === "compatibility") return "compatibility"
+  if (value === "current-v1") return value
+  throw new LocalAuthorizationRunnerError("task-contract must be current-v1 or compatibility.")
+}
+
 function parseReasoning(value: string | undefined): AuthorizationReasoningStrategy {
   if (value === undefined || value === "standard") return "standard"
   if (value === "control-binding-v1") return value
@@ -1126,9 +1175,9 @@ function helpText(): string {
     "Authorization local assessment",
     "",
     "Commands:",
-    "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5|v6] [--assessment=legacy|explicit-v1] [--arm=N|B|D] [--reasoning=standard|control-binding-v1]",
-    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5|v6] [--assessment=legacy|explicit-v1] [--arm=N|B|D] [--reasoning=standard|control-binding-v1]",
-    "  compare --previous=<session> --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5|v6] [--assessment=legacy|explicit-v1] [--reasoning=standard|control-binding-v1]",
+    "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5|v6] [--assessment=legacy|explicit-v1] [--task-contract=current-v1] [--arm=N|B|D] [--reasoning=standard|control-binding-v1]",
+    "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5|v6] [--assessment=legacy|explicit-v1] [--task-contract=current-v1] [--arm=N|B|D] [--reasoning=standard|control-binding-v1]",
+    "  compare --previous=<session> --input=<assessment.json> [--method=plain|ledger|conditions] [--wire=legacy|v4|v5|v6] [--assessment=legacy|explicit-v1] [--task-contract=current-v1] [--reasoning=standard|control-binding-v1]",
     "  inspect --out=<output-root-or-session>",
     "",
     "Only run initializes a provider. Every run creates a new immutable session; inspect never resends it.",
@@ -1146,17 +1195,18 @@ export async function runLocalAuthorizationCli(
   const command = argv[0]!
   try {
     if (command === "compare") {
-      const options = parseOptions(argv.slice(1), new Set(["previous", "input", "method", "wire", "reasoning", "assessment"]))
+      const options = parseOptions(argv.slice(1), new Set(["previous", "input", "method", "wire", "reasoning", "assessment", "task-contract"]))
       const report = await compareAuthorizationInput(requireOption(options,"previous","compare"), requireOption(options,"input","compare"), {
         ...(options.method ? {method:parseMethod(options.method)} : {}), ...(options.wire ? {wireVersion:parseWire(options.wire)} : {}),
         ...(options.reasoning ? {reasoningStrategy:parseReasoning(options.reasoning)} : {}),
         ...(options.assessment ? {assessmentMode:parseAssessment(options.assessment)} : {}),
+        ...(options["task-contract"] ? {taskContractMode:parseTaskContract(options["task-contract"])} : {}),
       })
       dependencies.stdout(JSON.stringify(report,null,2))
       return report.status === "input-invalid" ? 1 : 0
     }
     if (command === "check") {
-      const options = parseOptions(argv.slice(1), new Set(["input", "arm", "method", "wire", "reasoning", "assessment"]))
+      const options = parseOptions(argv.slice(1), new Set(["input", "arm", "method", "wire", "reasoning", "assessment", "task-contract"]))
       const report = await checkLocalAuthorizationInput(
         requireOption(options, "input", "check"),
         parseArm(options.arm),
@@ -1164,12 +1214,13 @@ export async function runLocalAuthorizationCli(
         parseWire(options.wire),
         parseReasoning(options.reasoning),
         parseAssessment(options.assessment),
+        parseTaskContract(options["task-contract"]),
       )
       dependencies.stdout(JSON.stringify(report, null, 2))
       return report.status === "valid" ? 0 : 1
     }
     if (command === "run") {
-      const options = parseOptions(argv.slice(1), new Set(["input", "model", "out", "arm", "method", "wire", "reasoning", "assessment"]))
+      const options = parseOptions(argv.slice(1), new Set(["input", "model", "out", "arm", "method", "wire", "reasoning", "assessment", "task-contract"]))
       const report = await executeLocalAuthorizationRun({
         inputFile: requireOption(options, "input", "run"),
         model: requireOption(options, "model", "run"),
@@ -1179,6 +1230,7 @@ export async function runLocalAuthorizationCli(
         wireVersion: parseWire(options.wire),
         reasoningStrategy: parseReasoning(options.reasoning),
         assessmentMode: parseAssessment(options.assessment),
+        taskContract: parseTaskContract(options["task-contract"]),
         ...(dependencies.providerFactory ? { providerFactory: dependencies.providerFactory } : {}),
         ...(dependencies.env ? { env: dependencies.env } : {}),
       })

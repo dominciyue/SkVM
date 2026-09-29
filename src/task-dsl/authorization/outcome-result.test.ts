@@ -5,7 +5,7 @@ import { buildAuthorizationSourceCatalog } from "../../benchmarks/authorization-
 import { compileAuthorizationTask } from "./semantics.ts"
 import { assessmentConditionId } from "./assessment-contract.ts"
 import { compileAuthorizationAssessmentProgram } from "./assessment-program.ts"
-import { conclusionFromObservedDecision, normalizeOutcomeAuthorizationResult, outcomeAuthorizationSchema } from "./outcome-result.ts"
+import { conclusionFromObservedDecision, normalizeOutcomeAuthorizationResult, outcomeAuthorizationSchema, summarizeObservedPolicy } from "./outcome-result.ts"
 
 test("compares an observed effect with the authored expectation", () => {
   expect(conclusionFromObservedDecision("allow", "allow")).toBe("source_refuted")
@@ -14,6 +14,14 @@ test("compares an observed effect with the authored expectation", () => {
   expect(conclusionFromObservedDecision("deny", "allow")).toBe("source_supported_failure")
   expect(conclusionFromObservedDecision("allow", "unknown")).toBe("unknown")
   expect(conclusionFromObservedDecision("deny", "unknown")).toBe("unknown")
+})
+
+test("current policy summary covers four known comparisons and an unknown without changing model evidence", () => {
+  expect(summarizeObservedPolicy("allow", "allow").status).toBe("satisfied")
+  expect(summarizeObservedPolicy("deny", "deny").status).toBe("satisfied")
+  expect(summarizeObservedPolicy("allow", "deny").status).toBe("violated")
+  expect(summarizeObservedPolicy("deny", "allow").status).toBe("violated")
+  expect(summarizeObservedPolicy("deny", "unknown").status).toBe("undetermined")
 })
 
 async function fixture(expectation: "allow" | "deny" | "conditional" = "deny", withBranch = false) {
@@ -44,6 +52,17 @@ test("v6 uses observed decision for unconditional expectation and preserves its 
   expect(result.observedDecisions?.[0]?.observed).toBe("deny")
   wire.results[0]!.decision = { kind: "observed", observed: "allow" }
   expect(normalizeOutcomeAuthorizationResult({ ...args, input: wire }).result?.results[0]?.conclusion).toBe("source_supported_failure")
+})
+
+test("current contract records an explicit opposite model label while compatibility retains historical behavior", async () => {
+  const { wire, args } = await fixture()
+  wire.results[0]!.explanation = "source_supported_failure: the control blocks the operation."
+  expect(normalizeOutcomeAuthorizationResult({ ...args, input: wire }).status).toBe("valid")
+  const current = normalizeOutcomeAuthorizationResult({ ...args, input: wire, taskContract: "current-v1" })
+  expect(current.status).toBe("invalid")
+  expect(current.diagnostics.map(d => d.code)).toContain("policy-explanation-contradiction")
+  expect(current.wireResult?.results[0]?.explanation).toContain("source_supported_failure")
+  expect(current.policySummaries?.[0]?.status).toBe("satisfied")
 })
 
 test("v6 strict decision union rejects old conclusion and wrong kind for authored expectation", async () => {

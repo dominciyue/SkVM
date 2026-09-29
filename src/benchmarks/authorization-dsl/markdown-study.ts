@@ -25,6 +25,7 @@ export async function executeMarkdownStudyRun(input: Omit<Parameters<typeof exec
           || descriptor.inputSha256 !== hash(loaded.rawInput)
           || (descriptor.reasoningStrategy ?? "standard") !== (input.reasoningStrategy ?? "standard")
           || (descriptor.assessmentMode ?? "legacy") !== (input.assessmentMode ?? (loaded.status === "valid" && loaded.analysisContract ? "explicit-v1" : "legacy"))
+          || (descriptor.taskContractMode ?? "compatibility") !== (input.taskContract ?? "compatibility")
           || retained.sha256 !== hash(markdown.instructions)
           || retained.instructions !== markdown.instructions || retained.instructionOrigin !== markdown.instructionOrigin
           || retained.instructionPath !== markdown.instructionPath

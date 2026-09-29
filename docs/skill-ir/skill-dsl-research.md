@@ -1134,6 +1134,12 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 实现中的接口选择、红绿反例、真实结果及剩余问题继续追加本节。当前默认、历史结果和保护输入保持，AN1可按实际代码修正小接口并同步任务书。
 
+**AN0–AN1现场与接口。** 启动HEAD `3251ff0c`、`skill-ir-aot`干净；AN结果根已建独立status/journal。q06/q08/q16的归档真实DSL提示带旧`requiredAnalysis`返回标签，v6又要求`observed`；Memos原稿任务含未来政策，首稿`atEntry`为boolean，Paperless修订condition使用未声明的自然语言。这些是观察而非对全部质量错误的因果证明。新前端只表达当前单一政策和具名case，作用域内派生入口/条件引用到现有v2；普通入口固定`init --context --task --out`。无效稿只允许诊断登记的JSON Pointer局部修订，有效稿变更继续走edit/compose。新运行选项`--task-contract=current-v1`只支持plain/explicit-v1/v6并绑定session/compare；已知旧输出指令在协议边界迁移，未知冲突给诊断。具体工程及实验结果待红绿测试和真实运行。
+
+**AN2–AN7工程反例。** 合成重命名任务验证当前快照拒绝未来字段，具名政策变更要求逐case重审期待且不改原快照；新前端把case内的前提入口和条件引用机械展开到有效v2，缺政策、重复case、错误入口及跨case引用在分析前诊断。字段来源侧车按JSON Pointer区分明确给出的内容、模型作者内容和宿主引用。AM式boolean `atEntry`及自然语言condition可在原无效稿保留的前提下，只按已登记诊断叶子做一次局部修订；附带改政策/期待被拒。真实mock provider请求确认current-v1清掉已知旧返回要求，MD/DSL共用v6输出协议；未知自定义格式要求具名报错。宿主政策摘要和原模型解释分字段留存，明确相反标签沿原单次repair，不用正则代替一般语义评审。相关工程回归419 pass/1平台skip、2951断言，类型检查通过；真实16/12/12实验尚未派发，不能预判效果。
+
+**AN8零付费登记。** 已对四项固定AM新材料逐任务登记Markdown/DSL×compatibility/current-v1共16行，并从两个公开brief投影三路线原/变12当前快照，另登记12消费、24义务、来源绑定、统一模型/超时/修订次数和AM双维评价规则。原稿提示只含当前快照；Memos原版未来政策字符串不进入提示。16个真实质量参数组合经普通运行入口抵达mock provider，保存准确请求，均通过普通check，四臂每任务输入和源码包摘要一致；12个作者提示及其current-v1编译/check/reuse组合也零provider通过。预检先发现OWUI归档旧要求使用`exact input locations`，与其余三项`exact supplied-source locations`不同；添加这条确切迁移及红绿反例后重跑16/16通过。预检的mock发送不计付费模型观察；质量和作者真实行仍为0，后续不得把预检当效果。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

@@ -204,6 +204,8 @@ conditions只声明一次、branches引用同一作用域里的名称；名称�
 - [ ] 亲读作者/compose/workspace/render/outcome代码，固定前端schema、init参数、具名修订操作、task-contract开关和来源字段；同步研究§7.33和本书。
 - [ ] 以重命名的合成授权任务定义三个接口反例，不使用Memos/Paperless名称决定分支。
 
+**AN1接口定稿（2026-09-30）：** `authorization-task-authoring/v1`为单一当前政策加`cases[]`的结构化文件；每个case显式`name/entry/principal/resource/relation/operation/expectation/boundary`，premise只写`name/statement`，branch只写`name/assumptions`，条件在同case字典声明。编译器派生v2的principal/resource键、premise.atEntry、同case条件引用和canonical ID，输出字段来源，不从源码补政策。普通`init --context=<context.json> --task=<task.json> --out=<assessment.json>`独占写v2、entry seed和provenance；`--task`不得脱离`--context`。有效v2变更仍走现有`edit/compose`，非法作者稿的定向修订用独立`authorization-author-draft-repair/v1`，仅合并诊断允许的已登记JSON Pointer。普通分析选项定为`--task-contract=current-v1`，只接`plain/explicit-v1/v6`，进入session/compare身份；省略保持compatibility。原版研究brief投影只含当前字段，change-set随后具名改变政策/期待或premise；不能把整份历史brief直接送给原稿作者。
+
 ### AN2 当前任务投影
 
 - [ ] 写当前/变更隔离红例：给同时包含旧/新值的研究brief，original有效prompt中只出现当前政策和期待；changed通过显式变更得到新快照。

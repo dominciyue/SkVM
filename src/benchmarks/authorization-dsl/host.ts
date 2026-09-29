@@ -106,7 +106,7 @@ const ACTIONABLE_DIAGNOSTICS = new Set([
   "bounded-condition-analysis-has-unexamined",
   "incomplete-condition-analysis-has-no-unexamined",
   "incomplete-condition-analysis-missing-limitation",
-  "missing-requested-branch", "foreign-requested-branch", "duplicate-requested-branch", "requested-branch-assumption-mismatch", "decision-kind-mismatch",
+  "missing-requested-branch", "foreign-requested-branch", "duplicate-requested-branch", "requested-branch-assumption-mismatch", "decision-kind-mismatch", "policy-explanation-contradiction",
 ])
 
 type AuthorizationWireResult = AuthorizationWireResultV1 | AuthorizationWireResultV2 | AuthorizationWireResultV3 | CompactAuthorizationResult | PolicyAuthorizationResult | OutcomeAuthorizationResult
@@ -137,6 +137,7 @@ export interface AuthorizationGenerationArtifact {
   requestedBranchAnalysis?: AuthorizationConditionAnalysisResultV1
   requestedBranchValidation?: ConditionAnalysisValidation
   observedDecisions?: OutcomeAuthorizationNormalization["observedDecisions"]
+  policySummaries?: OutcomeAuthorizationNormalization["policySummaries"]
   rawResponse: string
   providerAttemptIds: string[]
   outputAttemptId: string
@@ -167,6 +168,7 @@ export interface AuthorizationTaskRun {
   analysisPlan?: AnalysisPlan
   conditionPlan?: ConditionAnalysisPlan
   assessmentProgram?: AuthorizationAssessmentProgram
+  taskContract?: RenderedAuthorizationTask["taskContract"]
   reasoningPlan?: AuthorizationReasoningPlan
   renderedPrompt: string
   promptSections?: RenderedAuthorizationTask["sections"]
@@ -355,6 +357,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
       ...(analysisPlan ? { analysisPlan } : {}),
       ...(conditionPlan ? { conditionPlan } : {}),
       ...(input.assessmentProgram ? { assessmentProgram: input.assessmentProgram } : {}),
+      ...(rendered.taskContract ? { taskContract: rendered.taskContract } : {}),
       ...(rendered.reasoningPlan ? { reasoningPlan: rendered.reasoningPlan } : {}),
       promptCharacters,
       attempts: telemetry.attempts,
@@ -411,7 +414,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
   }
 
   const normalizeWire = (wireInput: unknown): AuthorizationWireNormalizationResult => outcome
-    ? normalizeOutcomeAuthorizationResult({ compiled, sourceBundle: input.sourceBundle, method, analysisPlan, conditionPlan, program: input.assessmentProgram, input: wireInput })
+    ? normalizeOutcomeAuthorizationResult({ compiled, sourceBundle: input.sourceBundle, method, analysisPlan, conditionPlan, program: input.assessmentProgram, taskContract: input.renderOptions?.taskContract, input: wireInput })
     : policy
     ? normalizePolicyAuthorizationResult({ compiled, sourceBundle: input.sourceBundle, method, analysisPlan, conditionPlan, input: wireInput })
     : compact
@@ -470,7 +473,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
         coverageValidation: transport.normalization.normalizerVersion !== "authorization-wire-normalizer/v3" ? transport.normalization.coverageValidation : validateRelationCoverage(analysisPlan!, result, relationCoverage),
         conditionAnalysis,
         conditionValidation: transport.normalization.normalizerVersion !== "authorization-wire-normalizer/v3" ? transport.normalization.conditionValidation : validateConditionAnalysisResult(conditionPlan, result, conditionAnalysis),
-        ...(transport.normalization.normalizerVersion === "authorization-wire-normalizer/v6" ? { requestedBranchAnalysis: transport.normalization.requestedBranchAnalysis, requestedBranchValidation: transport.normalization.requestedBranchValidation, observedDecisions: transport.normalization.observedDecisions } : {}),
+        ...(transport.normalization.normalizerVersion === "authorization-wire-normalizer/v6" ? { requestedBranchAnalysis: transport.normalization.requestedBranchAnalysis, requestedBranchValidation: transport.normalization.requestedBranchValidation, observedDecisions: transport.normalization.observedDecisions, policySummaries: transport.normalization.policySummaries } : {}),
         rawResponse: transport.rawResponse,
         providerAttemptIds: transport.providerAttemptIds,
         outputAttemptId: transport.outputAttemptId,
@@ -488,7 +491,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
         normalization: transport.normalization,
         relationCoverage,
         coverageValidation: transport.normalization.normalizerVersion !== "authorization-wire-normalizer/v2" ? transport.normalization.coverageValidation : validateRelationCoverage(analysisPlan, result, relationCoverage),
-        ...(transport.normalization.normalizerVersion === "authorization-wire-normalizer/v6" ? { requestedBranchAnalysis: transport.normalization.requestedBranchAnalysis, requestedBranchValidation: transport.normalization.requestedBranchValidation, observedDecisions: transport.normalization.observedDecisions } : {}),
+        ...(transport.normalization.normalizerVersion === "authorization-wire-normalizer/v6" ? { requestedBranchAnalysis: transport.normalization.requestedBranchAnalysis, requestedBranchValidation: transport.normalization.requestedBranchValidation, observedDecisions: transport.normalization.observedDecisions, policySummaries: transport.normalization.policySummaries } : {}),
         rawResponse: transport.rawResponse,
         providerAttemptIds: transport.providerAttemptIds,
         outputAttemptId: transport.outputAttemptId,
@@ -503,7 +506,7 @@ export async function runAuthorizationTask(input: RunAuthorizationTaskInput): Pr
       providerAttemptIds: transport.providerAttemptIds,
       outputAttemptId: transport.outputAttemptId,
       validation,
-      ...(transport.normalization.normalizerVersion === "authorization-wire-normalizer/v6" ? { requestedBranchAnalysis: transport.normalization.requestedBranchAnalysis, requestedBranchValidation: transport.normalization.requestedBranchValidation, observedDecisions: transport.normalization.observedDecisions } : {}),
+      ...(transport.normalization.normalizerVersion === "authorization-wire-normalizer/v6" ? { requestedBranchAnalysis: transport.normalization.requestedBranchAnalysis, requestedBranchValidation: transport.normalization.requestedBranchValidation, observedDecisions: transport.normalization.observedDecisions, policySummaries: transport.normalization.policySummaries } : {}),
     }
   }
 
