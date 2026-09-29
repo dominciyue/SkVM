@@ -6,7 +6,7 @@ import { authorUnits, buildCurrentAuthorTasks, qualityUnits, ratingRules } from 
 import { checkDelivery, checkTaskFacts, checkV2Facts } from "./author-protocol.ts"
 import { compileAuthorizationTaskAuthoring } from "../../../../../src/benchmarks/authorization-dsl/authoring-task.ts"
 import { unresolvedClaim } from "./common.ts"
-import { consumerClaimState, sameSharedMaterial } from "./consumer-gate.ts"
+import { consumerClaimState, readOrCreateOfflineRecord, sameSharedMaterial } from "./consumer-gate.ts"
 
 const root = import.meta.dir
 const am = path.resolve(root, "../authorization-control-context-v1")
@@ -107,5 +107,20 @@ test("consumer claim before provider dispatch resumes preparation but dispatch c
     expect(await consumerClaimState(directory)).toBe("completion-unknown")
     await writeFile(path.join(directory, "report.json"), "{}")
     expect(await consumerClaimState(directory)).toBe("terminal")
+  } finally { await rm(directory, { recursive: true, force: true }) }
+})
+
+test("pre-dispatch recovery reuses an archived offline command without executing it again", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "authorization-an-offline-recovery-"))
+  try {
+    const archive = path.join(directory, "init-command.json")
+    await writeFile(archive, JSON.stringify({ exitCode: 0, report: { outputPath: "saved" } }))
+    let calls = 0
+    const reused = await readOrCreateOfflineRecord(archive, async () => { calls++; return { exitCode: 1, report: { outputPath: "wrong" } } })
+    expect(reused.report.outputPath).toBe("saved")
+    expect(calls).toBe(0)
+    const created = await readOrCreateOfflineRecord(path.join(directory, "reuse-command.json"), async () => { calls++; return { exitCode: 0 } })
+    expect(created.exitCode).toBe(0)
+    expect(calls).toBe(1)
   } finally { await rm(directory, { recursive: true, force: true }) }
 })

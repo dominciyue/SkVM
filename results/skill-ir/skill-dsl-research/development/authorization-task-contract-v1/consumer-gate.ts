@@ -1,4 +1,4 @@
-import { access } from "node:fs/promises"
+import { access, mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { isDeepStrictEqual } from "node:util"
 
@@ -22,4 +22,12 @@ export async function consumerClaimState(directory: string): Promise<"new" | "pr
   }
   if (terminal) return "terminal"
   return await exists(path.join(directory, "dispatch-claim.json")) ? "completion-unknown" : "pre-dispatch"
+}
+
+export async function readOrCreateOfflineRecord<T>(archive: string, run: () => Promise<T>): Promise<T> {
+  if (await exists(archive)) return JSON.parse(await readFile(archive, "utf8")) as T
+  const value = await run()
+  await mkdir(path.dirname(archive), { recursive: true })
+  await writeFile(archive, `${JSON.stringify(value, null, 2)}\n`, { encoding: "utf8", flag: "wx" })
+  return value
 }

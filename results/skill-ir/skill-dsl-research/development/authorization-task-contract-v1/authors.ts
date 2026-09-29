@@ -6,7 +6,7 @@ import { executeLocalAuthorizationRun } from "../../../../../src/benchmarks/auth
 import { executeMarkdownStudyRun } from "../../../../../src/benchmarks/authorization-dsl/markdown-study.ts"
 import { createTelemetryProvider } from "../../../../../src/benchmarks/authorization-dsl/telemetry.ts"
 import { authorPromptTask, checkDelivery, checkV2Facts, parseObject } from "./author-protocol.ts"
-import { consumerClaimState, sameSharedMaterial } from "./consumer-gate.ts"
+import { consumerClaimState, readOrCreateOfflineRecord, sameSharedMaterial } from "./consumer-gate.ts"
 import { root, repo, al, absolute, claim, cli, configureProvider, exists, hash, json, journal, paidPaused, paidRecordExists, provider, retainPaid, save, sessionAccount, aggregateUsage, unknownAccount, unresolvedClaim, updateStatus, verifyPlan } from "./common.ts"
 
 const mode = process.argv[2]
@@ -16,11 +16,13 @@ if (mode === "consume") {
   const freezeFile = path.join(root, "generation-freeze.json")
   const freezeBytes = await readFile(freezeFile)
   const freeze = JSON.parse(freezeBytes.toString())
-  const revision = await json(path.join(root, "generation-revision-1.json"))
+  const previousRevisionBytes = await readFile(path.join(root, "generation-revision-1.json"))
+  const revision = await json(path.join(root, "generation-revision-2.json"))
   const authorPath = "results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/authors.ts"
   const gatePath = "results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/consumer-gate.ts"
-  if (revision.schemaVersion !== "authorization-an-consumer-revision/v1" || revision.scope !== "consumer-only"
-    || revision.baseFreezeSha256 !== hash(freezeBytes) || revision.maxAffectedSessions !== 8
+  if (revision.schemaVersion !== "authorization-an-consumer-revision/v2" || revision.scope !== "consumer-only"
+    || revision.baseFreezeSha256 !== hash(freezeBytes) || revision.previousRevisionSha256 !== hash(previousRevisionBytes)
+    || revision.maxAffectedSessions !== 8
     || JSON.stringify(revision.changedFiles.map((item: any) => item.path).sort()) !== JSON.stringify([authorPath, gatePath].sort())) throw new Error("Consumer revision identity is invalid")
   for (const file of freeze.files) {
     const expected = file.path === authorPath ? revision.changedFiles.find((item: any) => item.path === authorPath).sha256 : file.sha256
@@ -217,22 +219,22 @@ if (mode === "setup") {
     const contextFile = path.join(authored, "context.json")
     if (row.route === "markdown") {
       inputFile = path.join(authored, `preflight-${row.version}.json`)
-      await save(path.join(directory, "host-scaffold.json"), { source: absolute(snapshotFor(row)[row.version]), compiler: "authorization init --context --task", hostFields: "all runnable v2 structure and public domain facts", modelFields: "reusable Markdown task instructions", providerCalls: 0 }, true)
+      await readOrCreateOfflineRecord(path.join(directory, "host-scaffold.json"), async () => ({ source: absolute(snapshotFor(row)[row.version]), compiler: "authorization init --context --task", hostFields: "all runnable v2 structure and public domain facts", modelFields: "reusable Markdown task instructions", providerCalls: 0 }))
     } else if (row.route === "task-authoring") {
       inputFile = path.join(authored, `${row.version}.selected.v2.json`)
-      const initialized = await cli(["init", `--context=${contextFile}`, `--task=${path.join(authored, `${row.version}.selected.json`)}`, "--field-origin=model-authored", `--out=${inputFile}`])
-      await save(path.join(directory, "init-command.json"), initialized, true)
+      const initialized = await readOrCreateOfflineRecord(path.join(directory, "init-command.json"), async () =>
+        await cli(["init", `--context=${contextFile}`, `--task=${path.join(authored, `${row.version}.selected.json`)}`, "--field-origin=model-authored", `--out=${inputFile}`]))
       if (initialized.exitCode) throw new Error(`Task-authoring init failed ${row.id}: ${JSON.stringify(initialized)}`)
     } else if (row.version === "original") inputFile = path.join(authored, "original.selected.json")
     else {
-      const edited = await cli(["edit", `--input=${path.join(authored, "original.selected.json")}`, `--edit=${path.join(authored, "changed.delivered.json")}`, `--out=${path.join(directory, "edited")}`])
-      await save(path.join(directory, "edit-command.json"), edited, true)
+      const edited = await readOrCreateOfflineRecord(path.join(directory, "edit-command.json"), async () =>
+        await cli(["edit", `--input=${path.join(authored, "original.selected.json")}`, `--edit=${path.join(authored, "changed.delivered.json")}`, `--out=${path.join(directory, "edited")}`]))
       if (edited.exitCode) throw new Error(`Ordinary edit failed ${row.id}: ${JSON.stringify(edited)}`)
       inputFile = edited.report.inputPath
     }
     const shared = absolute(snapshotFor(row).preparedInput)
-    const reused = await cli(["prepare", `--input=${inputFile}`, `--reuse=${shared}`, `--out=${path.join(directory, "material")}`])
-    await save(path.join(directory, "reuse-command.json"), reused, true)
+    const reused = await readOrCreateOfflineRecord(path.join(directory, "reuse-command.json"), async () =>
+      await cli(["prepare", `--input=${inputFile}`, `--reuse=${shared}`, `--out=${path.join(directory, "material")}`]))
     if (reused.exitCode) throw new Error(`Ordinary reuse failed ${row.id}: ${JSON.stringify(reused)}`)
     const actualReport = await json(path.join(directory, "material", "report.json")), sharedReport = await json(path.join(path.dirname(shared), "report.json"))
     if (!sameSharedMaterial(actualReport, sharedReport)) throw new Error(`Shared material/gaps changed ${row.id}`)
