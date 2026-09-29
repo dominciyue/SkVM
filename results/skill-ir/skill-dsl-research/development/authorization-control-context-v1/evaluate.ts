@@ -28,6 +28,8 @@ if (mode === "packets") {
     return packet
   }
   for (const unit of plan.units) packets.push(await material(path.join(root, "quality", unit.id), unit.id, "quality"))
+  const revisionFile = path.join(root, "shared-revision", "registration.json")
+  if (await exists(revisionFile)) for (const id of (await json(revisionFile)).analysisRows) packets.push(await material(path.join(root, "shared-revision", "quality", id), "r-" + id, "quality-revision"))
   for (const unit of plan.consumers) {
     const packet = await material(path.join(root, "consumers", unit.id), unit.id, "consumer")
     packet.fixedSourceRefs = plan.authorSourceFiles.filter((b: any) => b.path.includes(unit.packageId.startsWith("memos") ? "/memos/" : "/paperless/"))
@@ -55,21 +57,24 @@ if (mode === "packets") {
 } else {
   const ratings = (await json(path.join(root, "evaluation", "ratings.json"))).map((r: unknown) => RatingSchema.parse(r))
   const expectedQuality = plan.units.map((u: any) => u.id)
+  const revisionFile = path.join(root, "shared-revision", "registration.json")
+  const expectedRevision = await exists(revisionFile) ? (await json(revisionFile)).analysisRows.map((id: string) => "r-" + id) : []
   const briefs = await json(absolute(plan.authorBriefs))
   const expectedConsumers = plan.consumers.flatMap((u: any) => briefs.packages.find((b: any) => b.id === u.packageId).scenarios.map((s: any) => `${u.id}:${s.key}`))
   for (const phase of ["first", "final"]) {
-    const expected = [...expectedQuality, ...expectedConsumers].sort(), actual = ratings.filter((r: any) => r.phase === phase).map((r: any) => r.id).sort()
+    const expected = [...expectedQuality, ...expectedRevision, ...expectedConsumers].sort(), actual = ratings.filter((r: any) => r.phase === phase).map((r: any) => r.id).sort()
     if (JSON.stringify(expected) !== JSON.stringify(actual)) throw new Error("Rating denominator mismatch " + phase)
   }
   const authorRatings = await json(path.join(root, "evaluation", "author-ratings.json"))
   if (JSON.stringify(authorRatings.map((r: any) => r.id).sort()) !== JSON.stringify(plan.authors.map((u: any) => u.id).sort())) throw new Error("Author denominator mismatch")
   const quality = Object.fromEntries(["first", "final"].map(phase => [phase, summarizeRatings(ratings.filter((r: any) => r.phase === phase && expectedQuality.includes(r.id)))]))
   const consumers = Object.fromEntries(["first", "final"].map(phase => [phase, summarizeRatings(ratings.filter((r: any) => r.phase === phase && expectedConsumers.includes(r.id)))]))
+  const revision = Object.fromEntries(["first", "final"].map(phase => [phase, summarizeRatings(ratings.filter((r: any) => r.phase === phase && expectedRevision.includes(r.id)))]))
   const paired = plan.primaryIds.map((caseId: string) => ({ caseId, rows: plan.units.filter((u: any) => u.caseId === caseId).map((u: any) => ({ ...u, first: ratings.find((r: any) => r.id === u.id && r.phase === "first"), final: ratings.find((r: any) => r.id === u.id && r.phase === "final") })) }))
   const state = await json(path.join(root, "status.json"))
   const usage = aggregateUsage(state.paidRows.map((r: any) => r.account))
   const authors = { planned: 8, firstSemanticValid: authorRatings.filter((r: any) => r.first === "valid").length, finalSemanticValid: authorRatings.filter((r: any) => r.final === "valid").length, rows: authorRatings }
   const summary = { schemaVersion: "authorization-am-summary/v1", quality, consumers, authors, paired, usage, ratingsSha256: hash(await readFile(path.join(root, "evaluation", "ratings.json"))), authorRatingsSha256: hash(await readFile(path.join(root, "evaluation", "author-ratings.json"))), generationClosed: true, providerCallsThisCommand: 0, targetExecutions: 0, actualUsd: usage.totalActualUsd, humanMinutes: null }
-  await save(path.join(root, "summary.json"), summary)
+  await save(path.join(root, "summary.json"), { ...summary, revision })
   console.log(JSON.stringify({ quality, consumers, authors: { ...authors, rows: undefined }, usage, providerCallsThisCommand: 0 }))
 }

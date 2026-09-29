@@ -5,10 +5,11 @@ import { authorizationScopePreview } from "../../../../../src/benchmarks/authori
 import { executeLocalAuthorizationRun } from "../../../../../src/benchmarks/authorization-dsl/local-run.ts"
 import { executeMarkdownStudyRun } from "../../../../../src/benchmarks/authorization-dsl/markdown-study.ts"
 import { qualityUnits, authorUnits, ratingRules } from "./protocol.ts"
+import { markdownInput } from "./generation-options.ts"
 import { root, repo, al, absolute, bind, cli, claim, configureProvider, exists, hash, json, journal, save, sessionAccount, aggregateUsage, verifyStudy, updateStatus, proposalAccount, retainPaid, paidPaused } from "./common.ts"
 
 const mode = process.argv[2]
-if (!['register', 'freeze', 'check', 'pack', 'prepare', 'freeze-panel', 'panel', 'replay', 'close'].includes(mode ?? '')) throw new Error('Usage: study.ts register|freeze|check|pack|prepare|freeze-panel|panel|replay|close')
+if (!['register', 'freeze', 'check', 'pack', 'prepare', 'freeze-panel', 'panel', 'recover-panel', 'replay', 'close'].includes(mode ?? '')) throw new Error('Usage: study.ts register|freeze|check|pack|prepare|freeze-panel|panel|recover-panel|replay|close')
 const primaryIds = ["owui-file", "paperless-download", "memos-get-shared", "paperless-share-create"]
 if (mode === "register") {
   const manifest = await json(path.join(root, "input-manifest.json")), briefs = await json(absolute(manifest.authorBriefs))
@@ -94,21 +95,23 @@ if (mode === "register") {
     }
     await save(path.join(root, "panel-freeze.json"), { planSha256: hash(await readFile(path.join(root, "study-plan.json"))), implementationSha256: hash(await readFile(path.join(root, "implementation-freeze.json"))), units }, true)
     console.log(JSON.stringify({ planned: units.length, blocked: units.filter(u => u.blocked).length }))
-  } else if (mode === "panel") {
+  } else if (mode === "panel" || mode === "recover-panel") {
     const frozen = await json(path.join(root, "panel-freeze.json"))
     if (frozen.implementationSha256 !== hash(await readFile(path.join(root, "implementation-freeze.json")))) throw new Error("Panel implementation changed")
-    for (const unit of frozen.units) {
-      const dir = path.join(root, "quality", unit.id)
+    const registration = mode === "recover-panel" ? await json(path.join(root, "shared-revision", "registration.json")) : null
+    const units = registration ? frozen.units.filter((u: any) => registration.analysisRows.includes(u.id)) : frozen.units
+    for (const unit of units) {
+      const dir = mode === "recover-panel" ? path.join(root, "shared-revision", "quality", unit.id) : path.join(root, "quality", unit.id)
       if (await exists(path.join(dir, "claim.json"))) continue
       if (await paidPaused()) break
       await claim(dir, unit)
       if (unit.blocked) { await save(path.join(dir, "report.json"), { status: "preparation-blocked", unit }, true); await save(path.join(dir, "account.json"), { providerCalls: 0 }, true); continue }
       configureProvider(); const shared = { inputFile: absolute(unit.input), model: plan.model, outRoot: dir, executionOptions: plan.executionOptions, ...plan.analysis }
       console.log(JSON.stringify({ id: unit.id, caseId: unit.caseId, material: unit.material, arm: unit.arm, action: "analysis-start" }))
-      const report = unit.arm === "markdown" ? await executeMarkdownStudyRun({ ...shared, markdown: { instructions: await readFile(absolute(unit.markdown), "utf8"), instructionOrigin: "public-independent-development", instructionPath: unit.markdown.path } }) : await executeLocalAuthorizationRun(shared)
+      const report = unit.arm === "markdown" ? await executeMarkdownStudyRun({ ...shared, markdown: markdownInput(await readFile(absolute(unit.markdown), "utf8"), unit.markdown.path) }) : await executeLocalAuthorizationRun(shared)
       const account = await sessionAccount(dir, report)
       await save(path.join(dir, "report.json"), { unit, ...report }, true); await save(path.join(dir, "account.json"), account, true)
-      await retainPaid("quality:" + unit.id, report.status, account, ["provider-error", "transport-failed", "timeout-unknown"].includes(report.status))
+      await retainPaid((mode === "recover-panel" ? "quality-revision:" : "quality:") + unit.id, report.status, account, ["provider-error", "transport-failed", "timeout-unknown"].includes(report.status))
       await journal("AM10", { id: unit.id, status: report.status, calls: account.providerCalls })
       console.log(JSON.stringify({ id: unit.id, status: report.status, calls: account.providerCalls }))
     }

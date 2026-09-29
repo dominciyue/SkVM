@@ -7,6 +7,7 @@ import { loadLocalAuthorizationInput } from "../../../../../src/benchmarks/autho
 import { createTelemetryProvider } from "../../../../../src/benchmarks/authorization-dsl/telemetry.ts"
 import { executeLocalAuthorizationRun } from "../../../../../src/benchmarks/authorization-dsl/local-run.ts"
 import { executeMarkdownStudyRun } from "../../../../../src/benchmarks/authorization-dsl/markdown-study.ts"
+import { markdownInput, compareArgs } from "./generation-options.ts"
 import { root, repo, al, absolute, cli, claim, configureProvider, exists, hash, json, journal, save, sessionAccount, aggregateUsage, verifyStudy, proposalAccount, retainPaid, paidPaused, provider } from "./common.ts"
 
 const mode = process.argv[2]
@@ -173,13 +174,13 @@ if (mode === "setup") {
     if (JSON.stringify(actualReport.gaps) !== JSON.stringify(sharedReport.gaps) || JSON.stringify(actualReport.included) !== JSON.stringify(sharedReport.included)) throw new Error("Source/gap inheritance changed " + unit.id)
     configureProvider(); const execution = { inputFile: reuse.report.inputPath, model: plan.model, outRoot: dir, ...plan.analysis, executionOptions: plan.executionOptions }
     console.log(JSON.stringify({ id: unit.id, action: "consumer-start", gaps: actualReport.gaps.length }))
-    const report = unit.arm === "markdown" ? await executeMarkdownStudyRun({ ...execution, markdown: { instructions: await readFile(path.join(authored, unit.variant + ".selected.md"), "utf8"), instructionOrigin: "independent-am-author", instructionPath: path.relative(repo, path.join(authored, unit.variant + ".selected.md")).split(path.sep).join("/") } }) : await executeLocalAuthorizationRun(execution)
+    const report = unit.arm === "markdown" ? await executeMarkdownStudyRun({ ...execution, markdown: markdownInput(await readFile(path.join(authored, unit.variant + ".selected.md"), "utf8"), path.relative(repo, path.join(authored, unit.variant + ".selected.md")).split(path.sep).join("/")) }) : await executeLocalAuthorizationRun(execution)
     const account = await sessionAccount(dir, report)
     await save(path.join(dir, "report.json"), { unit, ...report }, true); await save(path.join(dir, "account.json"), account, true)
     await retainPaid("consumer:" + unit.id, report.status, account, ["provider-error", "transport-failed", "timeout-unknown"].includes(report.status))
     if (unit.variant === "changed") {
       const originalDir = path.join(root, "consumers", unit.id.replace(/changed$/, "original")), old = await json(path.join(originalDir, "report.json"))
-      if (old.sessionId) { const compare = await cli(["compare", "--input=" + reuse.report.inputPath, "--out=" + path.join(originalDir, "sessions", old.sessionId)]); await save(path.join(dir, "compare.json"), compare, true) }
+      if (old.sessionId) { const compare = await cli(compareArgs(path.join(originalDir, "sessions", old.sessionId), reuse.report.inputPath)); await save(path.join(dir, "compare.json"), compare, true) }
     }
     await journal("AM11-consumer", { id: unit.id, status: report.status, calls: account.providerCalls, preservedPendingGaps: actualReport.gaps.length })
     console.log(JSON.stringify({ id: unit.id, status: report.status, calls: account.providerCalls }))

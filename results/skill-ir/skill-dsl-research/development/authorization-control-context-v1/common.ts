@@ -31,7 +31,13 @@ export async function verifyStudy(requireFreeze = true) {
   const plan = await json(path.join(root, "study-plan.json"))
   await verify([...plan.cases.flatMap((c: any) => [c.input, c.seedRequest, c.markdown, ...c.sourceFiles, c.baseline.assessment, c.baseline.report, c.baseline.proposal]), plan.authorBriefs, ...plan.authorSourceFiles])
   if (requireFreeze) {
-    const frozen = await json(path.join(root, "implementation-freeze.json"))
+    const baselineFile = path.join(root, "implementation-freeze.json")
+    let frozen = await json(baselineFile)
+    const revisionFile = path.join(root, "shared-revision", "implementation-freeze.json")
+    if (await exists(revisionFile)) {
+      frozen = await json(revisionFile)
+      if (frozen.baselineFreezeSha256 !== hash(await readFile(baselineFile)) || frozen.registrationSha256 !== hash(await readFile(path.join(root, "shared-revision", "registration.json")))) throw new Error("Revision identity changed")
+    }
     if (frozen.planSha256 !== hash(await readFile(path.join(root, "study-plan.json")))) throw new Error("Registration changed")
     await verify(frozen.files)
   }

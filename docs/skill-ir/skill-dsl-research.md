@@ -1087,6 +1087,8 @@ fresh input430,812、完整prompt+output517,885 tokens。旧AK自动材料的14�
 
 **AM8冻结前验证与协议。** 相关回归455 pass/1平台skip、3004断言，主与AM脚本typecheck通过；追加的类发现验证9 pass/44断言，确认策略只显示相关方法且省略选项维持旧枚举。四seed普通CLI预检、两包四份真实init草稿和八proposal零模型packing通过。固定同proposal下OWUI源码从10,173增至17,498字节，Download从60,547至60,725；这只是机械材料对照，尚不代表模型或语义收益。四项新准备、16行当前实现下AL/AM×MD/DSL、两包8稿和8消费/16义务已按任务书登记；所有作者稿用生产renderer保持首稿/修订合同，DSL仅交付v2或edit，宿主生成seed。作者材料每包只准备一次，各消费走普通edit/reuse并逐项核对source/gaps，纯前提不改gap相关性。评价两维枚举及分母计数红例转绿，准确unknown和条件解决分开。实际USD和真人时间仍未知。
 
+**AM10具名入口修订。** 首四个AL/Markdown行因runner传入非普通合同的instructionOrigin而在provider之前invalid，四行调用为0、原报告保持。DSL q05/q06随后完成，暂停阻止其余派发。唯一共享修订区块修正研究入口metadata为已有independent-author，顺带把尚未使用的compare参数固定为普通--previous；生产host、源、公开问题、输出合同、模型和预算均不改。新增零provider入口反例确认Markdown到达普通provider边界和compare进入session校验。预登记只补四个已失败MD行，0额外prepare，原16分母与另列修订4行保持；尚未派发的既定行使用相同修正配置继续。此为具名工程错误恢复，不按模型低分重抽。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
