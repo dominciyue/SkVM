@@ -1,0 +1,715 @@
+{
+  "repository": "https://github.com/paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceMode": "fixed-context",
+  "isolation": "exact-allowlist",
+  "files": [
+    {
+      "relativePath": "src/documents/views.py",
+      "content": "class ResolvedRequestDocs(NamedTuple):\n    request_doc: Document\n    root_doc: Document\n\n\nclass PassUserMixin(GenericAPIView[Any]):\n    \"\"\"\n    Pass a user object to serializer\n    \"\"\"\n\n    def get_serializer(self, *args, **kwargs):\n        serializer_class = self.get_serializer_class()\n        if isinstance(serializer_class, type) and issubclass(\n            serializer_class,\n            SerializerWithPerms,\n        ):\n            kwargs.setdefault(\"user\", self.request.user)\n            try:\n                full_perms = get_boolean(\n                    str(self.request.query_params.get(\"full_perms\", \"false\")),\n                )\n            except ValueError:\n                full_perms = False\n            kwargs.setdefault(\n                \"full_perms\",\n                full_perms,\n            )\n        return super().get_serializer(*args, **kwargs)\n\n\nclass BulkPermissionMixin:\n    \"\"\"\n    Prefetch Django-Guardian permissions for a list before serialization, to avoid N+1 queries.\n    \"\"\"\n\n    def _get_object_perms(\n        self,\n        objects: list,\n        perm_codenames: list[str],\n        actor: Literal[\"users\", \"groups\"],\n    ) -> dict[int, dict[str, list[int]]]:\n        \"\"\"\n        Collect object-level permissions for either users or groups.\n        \"\"\"\n        model = self.queryset.model\n        obj_perm_model = (\n            get_user_obj_perms_model(model)\n            if actor == \"users\"\n            else get_group_obj_perms_model(model)\n        )\n        id_field = \"user_id\" if actor == \"users\" else \"group_id\"\n        ctype = ContentType.objects.get_for_model(model)\n        object_pks = [obj.pk for obj in objects]\n\n        perms_qs = obj_perm_model.objects.filter(\n            content_type=ctype,\n            object_pk__in=object_pks,\n            permission__codename__in=perm_codenames,\n        ).values_list(\"object_pk\", id_field, \"permission__codename\")\n\n        perms: dict[int, dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))\n        for object_pk, actor_id, codename in perms_qs:\n            perms[int(object_pk)][codename].append(actor_id)\n\n        # Ensure that all objects have all codenames, even if empty\n        for pk in object_pks:\n            for codename in perm_codenames:\n                perms[pk][codename]\n\n        return perms\n\n    def get_serializer_context(self):\n        \"\"\"\n        Get all permissions of the current list of objects at once and pass them to the serializer.\n        This avoid fetching permissions object by object in database.\n        \"\"\"\n        context = super().get_serializer_context()\n\n        if getattr(self, \"action\", None) != \"list\":\n            # Batching only pays off across a page of objects; for single-object\n            # actions (retrieve, update, ...) the per-object fallback in\n            # get_user_can_change()/_get_perms() is cheap and avoids scanning\n            # the whole queryset here.\n            return context\n\n        # Check which objects are being paginated\n        page = getattr(self, \"paginator\", None)\n        if page and hasattr(page, \"page\"):\n            queryset = page.page.object_list\n        elif hasattr(self, \"page\"):\n            queryset = self.page\n        else:\n            queryset = self.filter_queryset(self.get_queryset())\n\n        model_name = self.queryset.model.__name__.lower()\n        permission_name_view = f\"view_{model_name}\"\n        permission_name_change = f\"change_{model_name}\"\n\n        user_perms = self._get_object_perms(\n            objects=queryset,\n            perm_codenames=[permission_name_view, permission_name_change],\n            actor=\"users\",\n        )\n        group_perms = self._get_object_perms(\n            objects=queryset,\n            perm_codenames=[permission_name_view, permission_name_change],\n            actor=\"groups\",\n        )\n\n        context[\"users_view_perms\"] = {\n            pk: user_perms[pk][permission_name_view] for pk in user_perms\n        }\n        context[\"users_change_perms\"] = {\n            pk: user_perms[pk][permission_name_change] for pk in user_perms\n        }\n        context[\"groups_view_perms\"] = {\n            pk: group_perms[pk][permission_name_view] for pk in group_perms\n        }\n        context[\"groups_change_perms\"] = {\n            pk: group_perms[pk][permission_name_change] for pk in group_perms\n        }\n\n        return context\n\n\n    def perform_update(self, serializer):\n        old_parent = self.get_object().get_parent()\n        tag = serializer.save()\n        new_parent = tag.get_parent()\n        if new_parent and old_parent != new_parent:\n            update_document_parent_tags(tag, new_parent)\n\n\nclass DocumentViewSet(\n    BulkPermissionMixin,\n    PassUserMixin,\n    RetrieveModelMixin,\n    UpdateModelMixin,\n    DestroyModelMixin,\n    ListModelMixin,\n    GenericViewSet[Document],\n):\n    model = Document\n    queryset = Document.objects.all()\n    serializer_class = DocumentSerializer\n    pagination_class = StandardPagination\n    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n    filter_backends = (\n        DjangoFilterBackend,\n        SearchFilter,\n        DocumentsOrderingFilter,\n        PermittedObjectsFilter,\n    )\n    filterset_class = DocumentFilterSet\n    search_fields = (\"title\", \"correspondent__name\", \"effective_content\")\n    ordering_fields = (\n        \"id\",\n        \"title\",\n        \"correspondent__name\",\n        \"document_type__name\",\n        \"storage_path__name\",\n        \"created\",\n        \"modified\",\n        \"added\",\n        \"archive_serial_number\",\n        \"num_notes\",\n        \"owner\",\n        \"page_count\",\n        \"custom_field_\",\n    )\n\n    def _get_selection_data_for_queryset(self, queryset):\n        # Resolve once instead of once per model below. `queryset` can carry an\n        # arbitrarily expensive WHERE clause (user filters plus the permission\n        # filter); re-embedding it as a subquery inside 5 separate Count(...)\n        # calls forces the database to re-evaluate that whole thing 5 times, and\n        # -- for FK relations especially -- can defeat semi-join planning\n        # entirely at scale. A concrete id list is cheap to reuse.\n        # order_by() drops the default/user ordering -- irrelevant for a plain\n        # id list, but left in place it forces a sort over the full filtered\n        # set before the ids can even be collected.\n        document_ids = list(queryset.order_by().values_list(\"pk\", flat=True))\n\n        correspondents = Correspondent.objects.annotate(\n            document_count=Count(\n                \"documents\",\n                filter=Q(documents__id__in=document_ids),\n                distinct=True,\n            ),\n        )\n        document_types = DocumentType.objects.annotate(\n            document_count=Count(\n                \"documents\",\n                filter=Q(documents__id__in=document_ids),\n                distinct=True,\n            ),\n        )\n        storage_paths = StoragePath.objects.annotate(\n            document_count=Count(\n                \"documents\",\n                filter=Q(documents__id__in=document_ids),\n                distinct=True,\n            ),\n        )\n        # Tag and CustomField reach Document through an M2M/through-model table;\n        # a plain Count(filter=...) there is a much more expensive plan than the\n        # FK relations above once the bridge table is large -- see\n        # annotate_document_count_by_ids() for why.\n        tags = annotate_document_count_by_ids(\n            Tag.objects.all(),\n            through_model=Document.tags.through,\n            related_object_field=\"tag_id\",\n            document_ids=document_ids,\n        )\n        custom_fields = annotate_document_count_by_ids(\n            CustomField.objects.all(),\n            through_model=CustomFieldInstance,\n            related_object_field=\"field_id\",\n            document_ids=document_ids,\n        )\n        return {\n            \"selected_correspondents\": [\n                {\"id\": t.id, \"document_count\": t.document_count} for t in correspondents\n            ],\n            \"selected_tags\": [\n                {\"id\": t.id, \"document_count\": t.document_count} for t in tags\n            ],\n            \"selected_document_types\": [\n                {\"id\": t.id, \"document_count\": t.document_count} for t in document_types\n            ],\n            \"selected_storage_paths\": [\n                {\"id\": t.id, \"document_count\": t.document_count} for t in storage_paths\n            ],\n            \"selected_custom_fields\": [\n                {\"id\": t.id, \"document_count\": t.document_count} for t in custom_fields\n            ],\n        }\n\n    def _content_filter_params(cls) -> tuple[str, ...]:\n        \"\"\"\n        Query params whose filtering needs effective_content evaluated in SQL\n        against every candidate row -- see\n        _needs_effective_content_annotation(). Derived rather than\n        hand-maintained so a new content-filtering param counts automatically.\n        \"\"\"\n        params = [\n            name\n            for name, f in DocumentFilterSet.declared_filters.items()\n            if isinstance(f, (TitleContentFilter, EffectiveContentFilter))\n        ]\n        if \"effective_content\" in cls.search_fields:\n            params.append(SearchFilter().search_param)\n        return tuple(params)\n\n    def _needs_effective_content_annotation(self) -> bool:\n        # effective_content is a per-row correlated subquery resolving each\n        # document's latest version. Filtering *on* it forces the database to\n        # evaluate it for every candidate row before reaching the LIMIT, which\n        # the root_document_id self-join makes pathological on MariaDB\n        # specifically once real candidate counts get large; otherwise the\n        # \"versions\" prefetch + Document.get_effective_content() resolves only\n        # the page that survives pagination. Every param here is deprecated in\n        # favor of the Tantivy-backed search endpoint (see filters.py's\n        # TitleContentFilter/EffectiveContentFilter docs), so pay that cost\n        # only when one is actually used. Blank values don't count, matching\n        # how those filters themselves no-op on them -- an empty `?search=`\n        # applies no predicate.\n        params = self.request.query_params\n        return any(\n            params.get(param, \"\").strip() for param in self._content_filter_params()\n        )\n\n    def _requested_fields(self) -> list[str] | None:\n        # The sparse-fieldset `fields` param, as DynamicFieldsModelSerializer\n        # wants it: None means \"no restriction, serialize everything\", which\n        # a blank value means too. get_queryset() and get_serializer() both\n        # branch on this, and they have to read it identically -- a queryset\n        # that skips the content prefetch for a response that still\n        # serializes content reintroduces get_effective_content()'s\n        # per-instance fallback.\n        fields_param = self.request.query_params.get(\"fields\")\n        return fields_param.split(\",\") if fields_param else None\n\n    def _needs_effective_content_prefetch(self) -> bool:\n        # The prefetch spares get_effective_content() a per-instance fallback\n        # query, but only earns itself when content can reach the response.\n        fields = self._requested_fields()\n        return fields is None or \"content\" in fields\n\n    def get_queryset(self):\n        # A correlated subquery avoids the LEFT JOIN + Count() this used to\n        # be, which forced a GROUP BY aggregate over every matching document\n        # before the query could even be sorted or limited.\n        note_count = Subquery(\n            Note.objects.filter(document=OuterRef(\"pk\"))\n            .order_by()\n            .values(\"document\")\n            .annotate(count=Count(\"pk\"))\n            .values(\"count\"),\n            output_field=IntegerField(),\n        )\n        # No .distinct() here: nothing in this base queryset can produce\n        # duplicate document rows (select_related below is all FK-to-PK;\n        # permission filtering is a boolean id__in predicate, not a join).\n        # M2M-based filters that *do* introduce a join (e.g. tags__id__in)\n        # already call .distinct() themselves where they need it -- see\n        # ObjectFilter.filter(). A blanket .distinct() here forces the\n        # database to fully sort and dedupe every visible document before\n        # it can apply LIMIT, which is disastrous at scale.\n        prefetches = [\n            Prefetch(\n                \"versions\",\n                queryset=Document.objects.only(\n                    \"id\",\n                    \"added\",\n                    \"checksum\",\n                    \"version_label\",\n                    \"root_document_id\",\n                    \"version_index\",\n                ),\n            ),\n            \"tags\",\n            Prefetch(\n                \"custom_fields\",\n                queryset=CustomFieldInstance.objects.select_related(\"field\"),\n            ),\n            # NotesSerializer nests the author, this avoids query per note\n            Prefetch(\"notes\", queryset=Note.objects.select_related(\"user\")),\n        ]\n        if self._needs_effective_content_prefetch():\n            prefetches.append(latest_version_content_prefetch())\n        queryset = (\n            Document.objects.filter(root_document__isnull=True)\n            .order_by(\"-created\", \"-id\")\n            .annotate(num_notes=Coalesce(note_count, 0))\n            .select_related(\"correspondent\", \"storage_path\", \"document_type\", \"owner\")\n            .prefetch_related(*prefetches)\n        )\n        if self._needs_effective_content_annotation():\n            queryset = annotate_effective_content(queryset)\n        return queryset\n\n    def get_serializer(self, *args, **kwargs):\n        truncate_content = self.request.query_params.get(\"truncate_content\", \"False\")\n        kwargs.setdefault(\"context\", self.get_serializer_context())\n        kwargs.setdefault(\"fields\", self._requested_fields())\n        kwargs.setdefault(\"truncate_content\", truncate_content.lower() in [\"true\", \"1\"])\n        try:\n            full_perms = get_boolean(\n                str(self.request.query_params.get(\"full_perms\", \"false\")),\n            )\n        except ValueError:\n            full_perms = False\n        kwargs.setdefault(\n            \"full_perms\",\n            full_perms,\n        )\n        return super().get_serializer(*args, **kwargs)\n\n    def root(self, request, pk=None):\n        try:\n            doc = Document.global_objects.select_related(\n                \"owner\",\n                \"root_document\",\n            ).get(pk=pk)\n        except Document.DoesNotExist:\n            raise Http404\n\n        root_doc = get_root_document(doc)\n        if request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        ):\n            return HttpResponseForbidden(\"Insufficient permissions\")\n\n        return Response({\"root_id\": root_doc.id})\n\n    def retrieve(\n        self,\n        request: Request,\n        *args: Any,\n        **kwargs: Any,\n    ) -> Response:\n        response = super().retrieve(request, *args, **kwargs)\n        if (\n            \"version\" not in request.query_params\n            or not isinstance(response.data, dict)\n            or \"content\" not in response.data\n        ):\n            return response\n\n        root_doc = self.get_object()\n        content_doc = self._resolve_file_doc(root_doc, request)\n        response.data[\"content\"] = content_doc.content or \"\"\n        return response\n\n    def update(self, request, *args, **kwargs):\n        partial = kwargs.pop(\"partial\", False)\n        root_doc = self.get_object()\n        content_doc = (\n            self._resolve_file_doc(root_doc, request)\n            if \"version\" in request.query_params\n            else get_latest_version_for_root(root_doc)\n        )\n        content_updated = \"content\" in request.data\n        updated_content = request.data.get(\"content\") if content_updated else None\n\n        data = request.data.copy()\n        serializer_partial = partial\n        if content_updated and content_doc.id != root_doc.id:\n            if updated_content is None:\n                raise ValidationError({\"content\": [\"This field may not be null.\"]})\n            data.pop(\"content\", None)\n            serializer_partial = True\n\n        serializer = self.get_serializer(\n            root_doc,\n            data=data,\n            partial=serializer_partial,\n        )\n        serializer.is_valid(raise_exception=True)\n        self.perform_update(serializer)\n\n        if content_updated and content_doc.id != root_doc.id:\n            content_doc.content = (\n                str(updated_content) if updated_content is not None else \"\"\n            )\n            content_doc.save(update_fields=[\"content\", \"modified\"])\n\n        refreshed_doc = self.get_queryset().get(pk=root_doc.pk)\n        response_data = self.get_serializer(refreshed_doc).data\n        if \"version\" in request.query_params and \"content\" in response_data:\n            response_data[\"content\"] = content_doc.content\n        response = Response(response_data)\n\n        from documents.search import get_backend\n\n        get_backend().add_or_update(refreshed_doc)\n\n        document_updated.send(\n            sender=self.__class__,\n            document=refreshed_doc,\n        )\n\n        return response\n\n    def list(self, request, *args, **kwargs):\n        if not get_boolean(\n            str(request.query_params.get(\"include_selection_data\", \"false\")),\n        ):\n            return super().list(request, *args, **kwargs)\n\n        queryset = self.filter_queryset(self.get_queryset())\n        selection_data = self._get_selection_data_for_queryset(queryset)\n\n        page = self.paginate_queryset(queryset)\n        if page is not None:\n            serializer = self.get_serializer(page, many=True)\n            response = self.get_paginated_response(serializer.data)\n            response.data[\"selection_data\"] = selection_data\n            return response\n\n        serializer = self.get_serializer(queryset, many=True)\n        return Response({\"results\": serializer.data, \"selection_data\": selection_data})\n\n    def destroy(self, request, *args, **kwargs):\n        from documents.search import get_backend\n\n        get_backend().remove(self.get_object().pk)\n        try:\n            return super().destroy(request, *args, **kwargs)\n        except Exception as e:\n            if \"Data too long for column\" in str(e):\n                logger.warning(\n                    \"Detected a possible incompatible database column. See https://docs.paperless-ngx.com/troubleshooting/#convert-uuid-field\",\n                )\n            logger.error(f\"Error deleting document: {e!s}\")\n            return HttpResponseBadRequest(\n                \"Error deleting document, check logs for more detail.\",\n            )\n\n    def original_requested(request):\n        return (\n            \"original\" in request.query_params\n            and request.query_params[\"original\"] == \"true\"\n        )\n\n    def _resolve_file_doc(self, root_doc: Document, request):\n        version_requested = get_request_version_param(request) is not None\n        resolution = resolve_requested_version_for_root(\n            root_doc,\n            request,\n            include_deleted=version_requested,\n        )\n        if resolution.error == VersionResolutionError.INVALID:\n            raise NotFound(\"Invalid version parameter\")\n        if resolution.document is None:\n            raise Http404\n        return resolution.document\n\n    def _get_effective_file_doc(\n        self,\n        request_doc: Document,\n        root_doc: Document,\n        request: Request,\n    ) -> Document:\n        if (\n            request_doc.root_document_id is not None\n            and get_request_version_param(request) is None\n        ):\n            return request_doc\n        return self._resolve_file_doc(root_doc, request)\n\n    def _resolve_request_and_root_doc(\n        self,\n        pk,\n        request: Request,\n        *,\n        include_deleted: bool = False,\n    ) -> ResolvedRequestDocs | HttpResponseForbidden:\n        manager = Document.global_objects if include_deleted else Document.objects\n        try:\n            request_doc = manager.select_related(\n                \"owner\",\n                \"root_document\",\n            ).get(id=pk)\n        except Document.DoesNotExist:\n            raise Http404\n\n        root_doc = get_root_document(\n            request_doc,\n            include_deleted=include_deleted,\n        )\n        if request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        ):\n            return HttpResponseForbidden(\"Insufficient permissions\")\n        return ResolvedRequestDocs(request_doc=request_doc, root_doc=root_doc)\n\n    def file_response(self, pk, request, disposition):\n        resolved = self._resolve_request_and_root_doc(\n            pk,\n            request,\n            include_deleted=True,\n        )\n        if isinstance(resolved, HttpResponseForbidden):\n            return resolved\n        file_doc = self._get_effective_file_doc(\n            resolved.request_doc,\n            resolved.root_doc,\n            request,\n        )\n        return serve_file(\n            doc=file_doc,\n            use_archive=not self.original_requested(request)\n            and file_doc.has_archive_version,\n            disposition=disposition,\n            follow_formatting=request.query_params.get(\"follow_formatting\", False),\n        )\n\n    def get_metadata(self, file, mime_type):\n        if not Path(file).is_file():\n            return None\n\n        parser_class = get_parser_registry().get_parser_for_file(\n            mime_type,\n            Path(file).name,\n            Path(file),\n        )\n        if parser_class:\n            try:\n                with parser_class() as parser:\n                    return parser.extract_metadata(file, mime_type)\n            except Exception:  # pragma: no cover\n                logger.exception(f\"Issue getting metadata for {file}\")\n                return []\n        else:  # pragma: no cover\n            logger.warning(f\"No parser for {mime_type}\")\n            return []\n\n    def get_filesize(self, filename):\n        if Path(filename).is_file():\n            return Path(filename).stat().st_size\n        return None\n\n    def metadata(self, request, pk=None):\n        resolved = self._resolve_request_and_root_doc(pk, request)\n        if isinstance(resolved, HttpResponseForbidden):\n            return resolved\n\n        # Choose the effective document (newest version by default,\n        # or explicit via ?version=).\n        doc = self._get_effective_file_doc(\n            resolved.request_doc,\n            resolved.root_doc,\n            request,\n        )\n\n        document_cached_metadata = get_metadata_cache(doc.pk)\n\n        archive_metadata = None\n        archive_filesize = (\n            self.get_filesize(doc.archive_path) if doc.has_archive_version else None\n        )\n        if document_cached_metadata is not None:\n            original_metadata = document_cached_metadata.original_metadata\n            archive_metadata = document_cached_metadata.archive_metadata\n            refresh_metadata_cache(doc.pk)\n        else:\n            original_metadata = self.get_metadata(doc.source_path, doc.mime_type)\n\n            if doc.has_archive_version:\n                archive_metadata = self.get_metadata(\n                    doc.archive_path,\n                    \"application/pdf\",\n                )\n            set_metadata_cache(doc, original_metadata, archive_metadata)\n\n        meta = {\n            \"original_checksum\": doc.checksum,\n            \"original_size\": self.get_filesize(doc.source_path),\n            \"original_mime_type\": doc.mime_type,\n            \"media_filename\": doc.filename,\n            \"has_archive_version\": doc.has_archive_version,\n            \"original_metadata\": original_metadata,\n            \"archive_checksum\": doc.archive_checksum,\n            \"archive_media_filename\": doc.archive_filename,\n            \"original_filename\": doc.original_filename,\n            \"archive_size\": archive_filesize,\n            \"archive_metadata\": archive_metadata,\n        }\n\n        lang = \"en\"\n        try:\n            lang = detect(doc.content)\n        except Exception:\n            pass\n        meta[\"lang\"] = lang\n\n        return Response(meta)\n\n    def suggestions(self, request, pk=None):\n        doc = get_object_or_404(\n            Document.objects.select_related(\"owner\").prefetch_related(\"versions\"),\n            pk=pk,\n        )\n        if request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"change_document\",\n            doc,\n        ):\n            return HttpResponseForbidden(\"Insufficient permissions\")\n\n        document_suggestions = get_suggestion_cache(doc.pk)\n\n        if document_suggestions is not None:\n            refresh_suggestions_cache(doc.pk)\n            return Response(document_suggestions.suggestions)\n\n        classifier = load_classifier()\n\n        dates = []\n        if settings.NUMBER_OF_SUGGESTED_DATES > 0:\n            with get_date_parser() as date_parser:\n                gen = date_parser.parse(doc.filename, doc.content)\n                dates = sorted(\n                    {\n                        i\n                        for i in itertools.islice(\n                            gen,\n                            settings.NUMBER_OF_SUGGESTED_DATES,\n                        )\n                    },\n                )\n\n        resp_data = {\n            \"correspondents\": [\n                c.id for c in match_correspondents(doc, classifier, request.user)\n            ],\n            \"tags\": [t.id for t in match_tags(doc, classifier, request.user)],\n            \"document_types\": [\n                dt.id for dt in match_document_types(doc, classifier, request.user)\n            ],\n            \"storage_paths\": [\n                dt.id for dt in match_storage_paths(doc, classifier, request.user)\n            ],\n            \"dates\": [date.strftime(\"%Y-%m-%d\") for date in dates if date is not None],\n        }\n\n        # Cache the suggestions and the classifier hash for later\n        set_suggestions_cache(doc.pk, resp_data, classifier)\n\n        return Response(resp_data)\n\n    def ai_suggestions(self, request, pk=None):\n        doc = get_object_or_404(\n            Document.objects.select_related(\"owner\").prefetch_related(\"versions\"),\n            pk=pk,\n        )\n        if request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"change_document\",\n            doc,\n        ):\n            return HttpResponseForbidden(\"Insufficient permissions\")\n\n        ai_config = AIConfig()\n        if not ai_config.ai_enabled:\n            return HttpResponseBadRequest(\"AI is required for this feature\")\n\n        output_language = get_llm_output_language(\n            ai_config=ai_config,\n            user=request.user,\n        )\n        llm_cache_backend = \":\".join(\n            part\n            for part in (\n                ai_config.llm_backend,\n                ai_config.llm_model,\n                ai_config.llm_endpoint,\n                output_language,\n                f\"user={request.user.pk}\",\n            )\n            if part\n        )\n\n        cached_llm_suggestions = get_llm_suggestion_cache(\n            doc.pk,\n            backend=llm_cache_backend,\n        )\n\n        if cached_llm_suggestions:\n            # Only the raw model choices are cached, never resolved object\n            # ids. resolve_choice() below still runs permission filtering\n            # freshly for this requester on every request, cache hit or not,\n            # so a resolved id cached for one user's visibility can never be\n            # handed unfiltered to a second, less-privileged requester of\n            # the same (backend + user-keyed) cache entry.\n            refresh_llm_suggestions_cache(\n                doc.pk,\n                backend=llm_cache_backend,\n            )\n            llm_suggestions = cached_llm_suggestions.suggestions\n        else:\n            try:\n                llm_suggestions = get_ai_document_classification(\n                    doc,\n                    request.user,\n                    output_language,\n                )\n            except ValueError as exc:\n                logger.exception(\n                    \"Invalid AI configuration while generating suggestions for \"\n                    \"document %s: %s\",\n                    doc.pk,\n                    exc,\n                    exc_info=True,\n                )\n                raise ValidationError(\n                    {\"ai\": [_(\"Invalid AI configuration.\")]},\n                ) from exc\n            except LLMTimeoutError as exc:\n                logger.exception(\n                    \"AI backend timed out while generating suggestions for \"\n                    \"document %s: %s\",\n                    doc.pk,\n                    exc,\n                    exc_info=True,\n                )\n                return Response(\n                    {\"ai\": [_(\"AI backend request timed out.\")]},\n                    status=status.HTTP_503_SERVICE_UNAVAILABLE,\n                )\n            except LLMProviderError:\n                logger.exception(\n                    \"AI backend rejected the request for document %s\",\n                    doc.pk,\n                )\n                return Response(\n                    {\n                        \"ai\": [\n                            _(\n                                \"AI backend rejected the request. \"\n                                \"Check logs for details.\",\n                            ),\n                        ],\n                    },\n                    status=status.HTTP_502_BAD_GATEWAY,\n                )\n            set_llm_suggestions_cache(\n                doc.pk,\n                llm_suggestions,\n                backend=llm_cache_backend,\n            )\n\n        tags_choice: TaxonomyChoiceDict = llm_suggestions[\"tags\"]\n        correspondents_choice: TaxonomyChoiceDict = llm_suggestions[\"correspondents\"]\n        document_types_choice: TaxonomyChoiceDict = llm_suggestions[\"document_types\"]\n        storage_paths_choice: TaxonomyChoiceDict = llm_suggestions[\"storage_paths\"]\n\n        def resolve_choice(\n            choice: \"TaxonomyChoiceDict\",\n            resolve_ids: Callable[[list[int], User], list],\n            match_names: Callable[[list[str], User], list],\n        ) -> list:\n            \"\"\"The ids the model picked from the candidates it was shown, plus\n            name matches for the values it proposed as new. The schema allows\n            the same object to satisfy both an existing_id and a new_name in\n            one valid response, so results are deduplicated by pk (keeping\n            first-seen order) rather than trusting the two lookups to be\n            disjoint.\n            \"\"\"\n            matched = resolve_ids(choice[\"existing_ids\"], request.user) + match_names(\n                choice[\"new_names\"],\n                request.user,\n            )\n            seen_ids: set[int] = set()\n            deduped = []\n            for obj in matched:\n                if obj.pk in seen_ids:\n                    continue\n                seen_ids.add(obj.pk)\n                deduped.append(obj)\n            return deduped\n\n        matched_tags = resolve_choice(\n            tags_choice,\n            resolve_tag_ids,\n            match_tags_by_name,\n        )\n        matched_correspondents = resolve_choice(\n            correspondents_choice,\n            resolve_correspondent_ids,\n            match_correspondents_by_name,\n        )\n        matched_types = resolve_choice(\n            document_types_choice,\n            resolve_document_type_ids,\n            match_document_types_by_name,\n        )\n        matched_paths = resolve_choice(\n            storage_paths_choice,\n            resolve_storage_path_ids,\n            match_storage_paths_by_name,\n        )\n\n        resp_data = {\n            \"title\": llm_suggestions[\"title\"],\n            \"tags\": [t.id for t in matched_tags],\n            \"suggested_tags\": extract_unmatched_names(\n                tags_choice[\"new_names\"],\n                matched_tags,\n            ),\n            \"correspondents\": [c.id for c in matched_correspondents],\n            \"suggested_correspondents\": extract_unmatched_names(\n                correspondents_choice[\"new_names\"],\n                matched_correspondents,\n            ),\n            \"document_types\": [d.id for d in matched_types],\n            \"suggested_document_types\": extract_unmatched_names(\n                document_types_choice[\"new_names\"],\n                matched_types,\n            ),\n            \"storage_paths\": [s.id for s in matched_paths],\n            \"suggested_storage_paths\": extract_unmatched_names(\n                storage_paths_choice[\"new_names\"],\n                matched_paths,\n            ),\n            \"dates\": llm_suggestions[\"dates\"],\n        }\n\n        return Response(resp_data)\n\n    def preview(self, request, pk=None):\n        resolved = self._resolve_request_and_root_doc(pk, request, include_deleted=True)\n        if isinstance(resolved, HttpResponseForbidden):\n            return resolved\n\n        try:\n            file_doc = self._get_effective_file_doc(\n                resolved.request_doc,\n                resolved.root_doc,\n                request,\n            )\n\n            return serve_file(\n                doc=file_doc,\n                use_archive=not self.original_requested(request)\n                and file_doc.has_archive_version,\n                disposition=\"inline\",\n            )\n        except FileNotFoundError:\n            raise Http404\n\n    def thumb(self, request, pk=None):\n        resolved = self._resolve_request_and_root_doc(pk, request, include_deleted=True)\n        if isinstance(resolved, HttpResponseForbidden):\n            return resolved\n\n        try:\n            file_doc = self._get_effective_file_doc(\n                resolved.request_doc,\n                resolved.root_doc,\n                request,\n            )\n            handle = file_doc.thumbnail_file\n\n            return FileResponse(handle, content_type=\"image/webp\")\n        except FileNotFoundError:\n            raise Http404\n\n    @action(methods=[\"get\"], detail=True)\n    def download(self, request, pk=None):\n        try:\n            return self.file_response(pk, request, \"attachment\")\n        except (FileNotFoundError, Document.DoesNotExist):\n            raise Http404\n\n    def notes(self, request, pk=None):\n        currentUser = request.user\n        try:\n            doc = (\n                Document.objects.select_related(\"owner\")\n                .prefetch_related(\"notes\")\n                .only(\"pk\", \"owner__id\")\n                .get(pk=pk)\n            )\n            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,\n                \"view_document\",\n                doc,\n            ):\n                return HttpResponseForbidden(\"Insufficient permissions to view notes\")\n        except Document.DoesNotExist:\n            raise Http404\n\n        serializer = self.get_serializer(doc)\n\n        if request.method == \"GET\":\n            try:\n                notes = serializer.to_representation(doc).get(\"notes\")\n                return Response(notes)\n            except Exception as e:\n                logger.warning(f\"An error occurred retrieving notes: {e!s}\")\n                return Response(\n                    {\"error\": \"Error retrieving notes, check logs for more detail.\"},\n                )\n        elif request.method == \"POST\":\n            try:\n                if currentUser is not None and not has_perms_owner_aware(\n                    currentUser,\n                    \"change_document\",\n                    doc,\n                ):\n                    return HttpResponseForbidden(\n                        \"Insufficient permissions to create notes\",\n                    )\n\n                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],\n                    user=currentUser,\n                )\n                # If audit log is enabled make an entry in the log\n                # about this note change\n                if settings.AUDIT_LOG_ENABLED:\n                    LogEntry.objects.log_create(\n                        instance=doc,\n                        changes={\n                            \"Note Added\": [\"None\", c.id],\n                        },\n                        action=LogEntry.Action.UPDATE,\n                    )\n\n                doc.modified = timezone.now()\n                doc.save(update_fields=[\"modified\"])\n\n                from documents.search import get_backend\n\n                get_backend().add_or_update(doc)\n\n                notes = serializer.to_representation(doc).get(\"notes\")\n\n                return Response(notes)\n            except Exception as e:\n                logger.warning(f\"An error occurred saving note: {e!s}\")\n                return Response(\n                    {\n                        \"error\": \"Error saving note, check logs for more detail.\",\n                    },\n                )\n        elif request.method == \"DELETE\":\n            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,\n                \"change_document\",\n                doc,\n            ):\n                return HttpResponseForbidden(\"Insufficient permissions to delete notes\")\n\n            note_id = request.GET.get(\"id\")\n            if not note_id:\n                raise ValidationError({\"id\": \"This field is required.\"})\n            try:\n                note_id_int = int(note_id)\n            except ValueError:\n                raise ValidationError({\"id\": \"A valid integer is required.\"})\n            note = get_object_or_404(Note, id=note_id_int, document=doc)\n            if settings.AUDIT_LOG_ENABLED:\n                LogEntry.objects.log_create(\n                    instance=doc,\n                    changes={\n                        \"Note Deleted\": [note.id, \"None\"],\n                    },\n                    action=LogEntry.Action.UPDATE,\n                )\n\n            note.delete()\n\n            doc.modified = timezone.now()\n            doc.save(update_fields=[\"modified\"])\n\n            from documents.search import get_backend\n\n            get_backend().add_or_update(doc)\n\n            notes = serializer.to_representation(doc).get(\"notes\")\n\n            return Response(notes)\n\n        return Response(\n            {\n                \"error\": \"error\",\n            },\n        )\n\n    def share_links(self, request, pk=None):\n        currentUser = request.user\n        try:\n            doc = Document.objects.select_related(\"owner\").get(pk=pk)\n            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,\n                \"change_document\",\n                doc,\n            ):\n                return HttpResponseForbidden(\n                    \"Insufficient permissions to add share link\",\n                )\n        except Document.DoesNotExist:\n            raise Http404\n\n        if request.method == \"GET\":\n            now = timezone.now()\n            links = (\n                ShareLink.objects.filter(document=doc)\n                .select_related(\"document\")\n                .only(\n                    \"pk\",\n                    \"created\",\n                    \"expiration\",\n                    \"slug\",\n                    \"document__title\",\n                )\n                .exclude(expiration__lt=now)\n                .order_by(\"-created\")\n            )\n            serializer = ShareLinkSerializer(links, many=True)\n            return Response(serializer.data)\n\n    def history(self, request, pk=None):\n        if not settings.AUDIT_LOG_ENABLED:\n            return HttpResponseBadRequest(\"Audit log is disabled\")\n        try:\n            doc = Document.objects.get(pk=pk)\n            if not request.user.has_perm(\"auditlog.view_logentry\") or (\n                doc.owner is not None\n                and doc.owner != request.user\n                and not request.user.is_superuser\n            ):\n                return HttpResponseForbidden(\n                    \"Insufficient permissions\",\n                )\n        except Document.DoesNotExist:  # pragma: no cover\n            raise Http404\n\n        # documents\n        entries = [\n            {\n                \"id\": entry.id,\n                \"timestamp\": entry.timestamp,\n                \"action\": entry.get_action_display(),\n                \"changes\": entry.changes,\n                \"actor\": (\n                    {\"id\": entry.actor.id, \"username\": entry.actor.username}\n                    if entry.actor\n                    else None\n                ),\n            }\n            for entry in LogEntry.objects.get_for_object(doc).select_related(\n                \"actor\",\n            )\n        ]\n\n        # custom fields\n        for entry in LogEntry.objects.get_for_objects(\n            doc.custom_fields.all(),\n        ).select_related(\"actor\"):\n            entries.append(\n                {\n                    \"id\": entry.id,\n                    \"timestamp\": entry.timestamp,\n                    \"action\": entry.get_action_display(),\n                    \"changes\": {\n                        \"custom_fields\": {\n                            \"type\": \"custom_field\",\n                            \"field\": str(entry.object_repr).split(\":\")[0].strip(),\n                            \"value\": str(entry.object_repr).split(\":\")[1].strip(),\n                        },\n                    },\n                    \"actor\": (\n                        {\"id\": entry.actor.id, \"username\": entry.actor.username}\n                        if entry.actor\n                        else None\n                    ),\n                },\n            )\n\n        return Response(sorted(entries, key=lambda x: x[\"timestamp\"], reverse=True))\n\n    def email_document(self, request, pk=None):\n        request_data = request.data.copy()\n        request_data.setlist(\"documents\", [pk])\n        return self.email_documents(request, data=request_data)\n\n    def email_documents(self, request, data=None):\n        serializer = EmailSerializer(data=data or request.data)\n        serializer.is_valid(raise_exception=True)\n\n        validated_data = serializer.validated_data\n        document_ids = validated_data.get(\"documents\")\n        addresses = validated_data.get(\"addresses\").split(\",\")\n        addresses = [addr.strip() for addr in addresses]\n        subject = validated_data.get(\"subject\")\n        message = validated_data.get(\"message\")\n        use_archive_version = validated_data.get(\"use_archive_version\", True)\n\n        documents = Document.objects.filter(pk__in=document_ids)\n        if (\n            request.user is not None\n            and documents.exclude(\n                pk__in=permitted_document_ids(request.user),\n            ).exists()\n        ):\n            return HttpResponseForbidden(\"Insufficient permissions\")\n\n        try:\n            attachments: list[EmailAttachment] = []\n            for doc in documents:\n                attachment_path = (\n                    doc.archive_path\n                    if use_archive_version and doc.has_archive_version\n                    else doc.source_path\n                )\n                attachments.append(\n                    EmailAttachment(\n                        path=attachment_path,\n                        mime_type=doc.mime_type,\n                        friendly_name=doc.get_public_filename(\n                            archive=use_archive_version and doc.has_archive_version,\n                        ),\n                    ),\n                )\n\n            send_email(\n                subject=subject,\n                body=message,\n                to=addresses,\n                attachments=attachments,\n            )\n\n            logger.debug(\n                f\"Sent documents {[doc.id for doc in documents]} via email to {addresses}\",\n            )\n            return Response({\"message\": \"Email sent\"})\n        except Exception as e:\n            logger.warning(f\"An error occurred emailing documents: {e!s}\")\n            return HttpResponseServerError(\n                \"Error emailing documents, check logs for more detail.\",\n            )\n\n    def update_version(self, request, pk=None):\n        serializer = DocumentVersionSerializer(data=request.data)\n        serializer.is_valid(raise_exception=True)\n\n        try:\n            request_doc = Document.objects.select_related(\n                \"owner\",\n                \"root_document\",\n            ).get(pk=pk)\n            root_doc = get_root_document(request_doc)\n            if request.user is not None and (\n                not request.user.has_perm(\"documents.change_document\")\n                or not has_perms_owner_aware(\n                    request.user,\n                    \"change_document\",\n                    root_doc,\n                )\n            ):\n                return HttpResponseForbidden(\"Insufficient permissions\")\n        except Document.DoesNotExist:\n            raise Http404\n\n        try:\n            doc_name, doc_data = serializer.validated_data.get(\"document\")\n            version_label = serializer.validated_data.get(\"version_label\")\n\n            t = int(mktime(datetime.now().timetuple()))\n\n            settings.SCRATCH_DIR.mkdir(parents=True, exist_ok=True)\n\n            temp_file_path = Path(tempfile.mkdtemp(dir=settings.SCRATCH_DIR)) / Path(\n                pathvalidate.sanitize_filename(doc_name),\n            )\n\n            temp_file_path.write_bytes(doc_data)\n\n            os.utime(temp_file_path, times=(t, t))\n\n            input_doc = ConsumableDocument(\n                source=DocumentSource.ApiUpload,\n                original_file=temp_file_path,\n                root_document_id=root_doc.pk,\n            )\n\n            overrides = DocumentMetadataOverrides()\n            if version_label:\n                overrides.version_label = version_label.strip()\n            if request.user is not None:\n                overrides.owner_id = request.user.id\n                overrides.actor_id = request.user.id\n\n            async_task = consume_file.apply_async(\n                kwargs={\"input_doc\": input_doc, \"overrides\": overrides},\n                headers={\"trigger_source\": PaperlessTask.TriggerSource.WEB_UI},\n            )\n            logger.debug(\n                f\"Updated document {root_doc.id} with new version\",\n            )\n            return Response(async_task.id)\n        except Exception as e:\n            logger.warning(f\"An error occurred updating document: {e!s}\")\n            return HttpResponseServerError(\n                \"Error updating document, check logs for more detail.\",\n            )\n\n    def _get_root_doc_for_version_action(self, pk) -> Document:\n        try:\n            root_doc = Document.objects.select_related(\n                \"owner\",\n                \"root_document\",\n            ).get(pk=pk)\n        except Document.DoesNotExist:\n            raise Http404\n        return get_root_document(root_doc)\n\n    def _get_version_doc_for_root(self, root_doc: Document, version_id) -> Document:\n        try:\n            version_doc = Document.objects.select_related(\"owner\").get(\n                pk=version_id,\n            )\n        except Document.DoesNotExist:\n            raise Http404\n\n        if (\n            version_doc.id != root_doc.id\n            and version_doc.root_document_id != root_doc.id\n        ):\n            raise Http404\n        return version_doc\n\n    def delete_version(self, request, pk=None, version_id=None):\n        root_doc = self._get_root_doc_for_version_action(pk)\n\n        if request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"delete_document\",\n            root_doc,\n        ):\n            return HttpResponseForbidden(\"Insufficient permissions\")\n\n        version_doc = self._get_version_doc_for_root(root_doc, version_id)\n\n        if version_doc.id == root_doc.id:\n            return HttpResponseBadRequest(\n                \"Cannot delete the root/original version. Delete the document instead.\",\n            )\n\n        from documents.search import get_backend\n\n        _backend = get_backend()\n        _backend.remove(version_doc.pk)\n        version_doc_id = version_doc.id\n        version_doc.delete()\n        root_doc.modified = timezone.now()\n        Document.objects.filter(pk=root_doc.pk).update(modified=root_doc.modified)\n        _backend.add_or_update(root_doc)\n        if settings.AUDIT_LOG_ENABLED:\n            actor = (\n                request.user if request.user and request.user.is_authenticated else None\n            )\n            LogEntry.objects.log_create(\n                instance=root_doc,\n                changes={\n                    \"Version Deleted\": [\"None\", version_doc_id],\n                },\n                action=LogEntry.Action.UPDATE,\n                actor=actor,\n                additional_data={\n                    \"reason\": \"Version deleted\",\n                    \"version_id\": version_doc_id,\n                },\n            )\n\n        current = versions_newest_first(\n            Document.objects.filter(Q(id=root_doc.id) | Q(root_document=root_doc)),\n        ).first()\n\n        document_updated.send(\n            sender=self.__class__,\n            document=root_doc,\n        )\n        return Response(\n            {\n                \"result\": \"OK\",\n                \"current_version_id\": current.id if current else root_doc.id,\n            },\n        )\n\n    def update_version_label(self, request, pk=None, version_id=None):\n        serializer = DocumentVersionLabelSerializer(data=request.data)\n        serializer.is_valid(raise_exception=True)\n\n        root_doc = self._get_root_doc_for_version_action(pk)\n        if request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"change_document\",\n            root_doc,\n        ):\n            return HttpResponseForbidden(\"Insufficient permissions\")\n\n        version_doc = self._get_version_doc_for_root(root_doc, version_id)\n        old_label = version_doc.version_label\n        version_doc.version_label = serializer.validated_data[\"version_label\"]\n        version_doc.save(update_fields=[\"version_label\"])\n        root_doc.modified = timezone.now()\n        Document.objects.filter(pk=root_doc.pk).update(modified=root_doc.modified)\n\n        if settings.AUDIT_LOG_ENABLED and old_label != version_doc.version_label:\n            actor = (\n                request.user if request.user and request.user.is_authenticated else None\n            )\n            LogEntry.objects.log_create(\n                instance=root_doc,\n                changes={\n                    \"Version Label\": [old_label, version_doc.version_label],\n                },\n                action=LogEntry.Action.UPDATE,\n                actor=actor,\n                additional_data={\n                    \"reason\": \"Version label updated\",\n                    \"version_id\": version_doc.id,\n                },\n            )\n\n        document_updated.send(\n            sender=self.__class__,\n            document=root_doc,\n        )\n\n        return Response(\n            {\n                \"id\": version_doc.id,\n                \"added\": version_doc.added,\n                \"version_label\": version_doc.version_label,\n                \"checksum\": version_doc.checksum,\n                \"is_root\": version_doc.id == root_doc.id,\n            },\n        )\n\n\n    def paginate_queryset(self, queryset):\n        # v9: tasks endpoint was not paginated; preserve plain-list response\n        if self.request.version and int(self.request.version) < 10:\n            return None\n        return super().paginate_queryset(queryset)\n\n    def create(self, request, *args, **kwargs):\n        serializer = self.get_serializer(data=request.data)\n        serializer.is_valid(raise_exception=True)\n        document_ids = serializer.validated_data[\"document_ids\"]\n        documents_qs = Document.objects.filter(pk__in=document_ids).select_related(\n            \"owner\",\n        )\n        found_ids = set(documents_qs.values_list(\"pk\", flat=True))\n        missing = sorted(set(document_ids) - found_ids)\n        if missing:\n            raise ValidationError(\n                {\n                    \"document_ids\": _(\n                        \"Documents not found: %(ids)s\",\n                    )\n                    % {\"ids\": \", \".join(str(item) for item in missing)},\n                },\n            )\n\n        documents = list(documents_qs)\n        permitted_ids = set(permitted_document_ids(request.user))\n        for document in documents:\n            if document.pk not in permitted_ids:\n                raise ValidationError(\n                    {\n                        \"document_ids\": _(\n                            \"Insufficient permissions to share document %(id)s.\",\n                        )\n                        % {\"id\": document.pk},\n                    },\n                )\n\n        document_map = {document.pk: document for document in documents}\n        ordered_documents = [document_map[doc_id] for doc_id in document_ids]\n\n        bundle = serializer.save(\n            owner=request.user,\n            documents=ordered_documents,\n        )\n        bundle.remove_file()\n        bundle.status = ShareLinkBundle.Status.PENDING\n        bundle.last_error = None\n        bundle.size_bytes = None\n        bundle.built_at = None\n        bundle.file_path = \"\"\n        bundle.save(\n            update_fields=[\n                \"status\",\n                \"last_error\",\n                \"size_bytes\",\n                \"built_at\",\n                \"file_path\",\n            ],\n        )\n        build_share_link_bundle.apply_async(\n            kwargs={\"bundle_id\": bundle.pk},\n            headers={\"trigger_source\": PaperlessTask.TriggerSource.MANUAL},\n        )\n        bundle.document_total = len(ordered_documents)\n        response_serializer = self.get_serializer(bundle)\n        headers = self.get_success_headers(response_serializer.data)\n        return Response(\n            response_serializer.data,\n            status=status.HTTP_201_CREATED,\n            headers=headers,\n        )\n\ndef serve_file(\n    *,\n    doc: Document,\n    use_archive: bool,\n    disposition: str,\n    follow_formatting: bool = False,\n) -> FileResponse:\n    if use_archive:\n        if TYPE_CHECKING:\n            assert doc.archive_filename\n\n        file_handle = doc.archive_file\n        filename = (\n            doc.archive_filename\n            if follow_formatting\n            else doc.get_public_filename(archive=True)\n        )\n        mime_type = \"application/pdf\"\n    else:\n        if TYPE_CHECKING:\n            assert doc.filename\n\n        file_handle = doc.source_file\n        filename = doc.filename if follow_formatting else doc.get_public_filename()\n        mime_type = doc.mime_type\n        # Support browser previewing csv files by using text mime type\n        if mime_type in {\"application/csv\", \"text/csv\"} and disposition == \"inline\":\n            mime_type = \"text/plain\"\n        # Tell browsers to use UTF-8 for the text files we parse as UTF-8\n        if mime_type in {\"text/plain\", \"text/csv\", \"application/csv\"}:\n            mime_type = f\"{mime_type}; charset=utf-8\"\n\n    response = FileResponse(file_handle, content_type=mime_type)\n    # Firefox is not able to handle unicode characters in filename field\n    # RFC 5987 addresses this issue\n    # see https://datatracker.ietf.org/doc/html/rfc5987#section-4.2\n    # Chromium cannot handle commas in the filename\n    filename_normalized = (\n        normalize(\"NFKD\", filename.replace(\",\", \"_\"))\n        .encode(\n            \"ascii\",\n            \"ignore\",\n        )\n        .decode(\"ascii\")\n        .replace(\"\\\\\", \"_\")\n        .replace('\"', \"_\")\n    )\n    filename_encoded = quote(filename)\n    content_disposition = (\n        f\"{disposition}; \"\n        f'filename=\"{filename_normalized}\"; '\n        f\"filename*=utf-8''{filename_encoded}\"\n    )\n    response[\"Content-Disposition\"] = content_disposition\n    return response\n\n\n",
+      "sha256": "56ba6c72ec733cb5a200825de5791169a63d936b80bf9d4889c7b2c6abb5c31b",
+      "cropRange": {
+        "startLine": 361,
+        "endLine": 4997
+      },
+      "originalLocations": [
+        "src/documents/views.py:361-365",
+        "src/documents/views.py:406-525",
+        "src/documents/views.py:699-706",
+        "src/documents/views.py:1008-1112",
+        "src/documents/views.py:1114-1234",
+        "src/documents/views.py:1245-1367",
+        "src/documents/views.py:1369-1474",
+        "src/documents/views.py:1480-1535",
+        "src/documents/views.py:1544-1596",
+        "src/documents/views.py:1604-1782",
+        "src/documents/views.py:1788-1808",
+        "src/documents/views.py:1817-1840",
+        "src/documents/views.py:1848-1964",
+        "src/documents/views.py:1966-1998",
+        "src/documents/views.py:2000-2059",
+        "src/documents/views.py:2071-2075",
+        "src/documents/views.py:2083-2138",
+        "src/documents/views.py:2147-2236",
+        "src/documents/views.py:2259-2316",
+        "src/documents/views.py:2345-2396",
+        "src/documents/views.py:4509-4514",
+        "src/documents/views.py:4767-4833",
+        "src/documents/views.py:4941-4997"
+      ],
+      "segments": [
+        {
+          "originalStartLine": 361,
+          "originalEndLine": 365,
+          "snapshotStartLine": 1,
+          "snapshotEndLine": 5,
+          "origins": [
+            "locator:located-47"
+          ]
+        },
+        {
+          "originalStartLine": 406,
+          "originalEndLine": 525,
+          "snapshotStartLine": 6,
+          "snapshotEndLine": 125,
+          "origins": [
+            "locator:located-41",
+            "locator:located-42",
+            "locator:located-38",
+            "locator:located-39",
+            "locator:located-40"
+          ]
+        },
+        {
+          "originalStartLine": 699,
+          "originalEndLine": 706,
+          "snapshotStartLine": 126,
+          "snapshotEndLine": 133,
+          "origins": [
+            "locator:located-45"
+          ]
+        },
+        {
+          "originalStartLine": 1008,
+          "originalEndLine": 1112,
+          "snapshotStartLine": 134,
+          "snapshotEndLine": 238,
+          "origins": [
+            "model-proposal:dep-viewset-permissions",
+            "locator:located-1",
+            "locator:located-2",
+            "model-proposal:dep-download-viewset-permissions"
+          ]
+        },
+        {
+          "originalStartLine": 1114,
+          "originalEndLine": 1234,
+          "snapshotStartLine": 239,
+          "snapshotEndLine": 359,
+          "origins": [
+            "locator:located-3",
+            "locator:located-4",
+            "locator:located-5",
+            "locator:located-6",
+            "locator:located-7",
+            "locator:located-8"
+          ]
+        },
+        {
+          "originalStartLine": 1245,
+          "originalEndLine": 1367,
+          "snapshotStartLine": 360,
+          "snapshotEndLine": 482,
+          "origins": [
+            "locator:located-9",
+            "locator:located-10",
+            "locator:located-11",
+            "locator:located-12",
+            "locator:located-13",
+            "model-proposal:dep-root-action-permission-pattern"
+          ]
+        },
+        {
+          "originalStartLine": 1369,
+          "originalEndLine": 1474,
+          "snapshotStartLine": 483,
+          "snapshotEndLine": 588,
+          "origins": [
+            "locator:located-14",
+            "locator:located-15",
+            "locator:located-16",
+            "locator:located-17",
+            "locator:located-18",
+            "locator:located-19",
+            "locator:located-20",
+            "model-proposal:dep-download-file-response",
+            "model-proposal:dep-effective-version-selection",
+            "model-proposal:dep-version-resolution-helper",
+            "model-proposal:dep-version-selection-helper",
+            "model-proposal:dep-file-serving-helper"
+          ]
+        },
+        {
+          "originalStartLine": 1480,
+          "originalEndLine": 1535,
+          "snapshotStartLine": 589,
+          "snapshotEndLine": 644,
+          "origins": [
+            "locator:located-21"
+          ]
+        },
+        {
+          "originalStartLine": 1544,
+          "originalEndLine": 1596,
+          "snapshotStartLine": 645,
+          "snapshotEndLine": 697,
+          "origins": [
+            "locator:located-22"
+          ]
+        },
+        {
+          "originalStartLine": 1604,
+          "originalEndLine": 1782,
+          "snapshotStartLine": 698,
+          "snapshotEndLine": 876,
+          "origins": [
+            "locator:located-23",
+            "locator:located-24"
+          ]
+        },
+        {
+          "originalStartLine": 1788,
+          "originalEndLine": 1808,
+          "snapshotStartLine": 877,
+          "snapshotEndLine": 897,
+          "origins": [
+            "locator:located-25"
+          ]
+        },
+        {
+          "originalStartLine": 1817,
+          "originalEndLine": 1840,
+          "snapshotStartLine": 898,
+          "snapshotEndLine": 921,
+          "origins": [
+            "locator:located-26",
+            "entry:download",
+            "locator:located-27",
+            "model-proposal:dep-download-entry",
+            "model-proposal:dep-download-handler-entry"
+          ]
+        },
+        {
+          "originalStartLine": 1848,
+          "originalEndLine": 1964,
+          "snapshotStartLine": 922,
+          "snapshotEndLine": 1038,
+          "origins": [
+            "locator:located-28"
+          ]
+        },
+        {
+          "originalStartLine": 1966,
+          "originalEndLine": 1998,
+          "snapshotStartLine": 1039,
+          "snapshotEndLine": 1071,
+          "origins": [
+            "locator:located-29"
+          ]
+        },
+        {
+          "originalStartLine": 2000,
+          "originalEndLine": 2059,
+          "snapshotStartLine": 1072,
+          "snapshotEndLine": 1131,
+          "origins": [
+            "locator:located-30"
+          ]
+        },
+        {
+          "originalStartLine": 2071,
+          "originalEndLine": 2075,
+          "snapshotStartLine": 1132,
+          "snapshotEndLine": 1136,
+          "origins": [
+            "locator:located-31"
+          ]
+        },
+        {
+          "originalStartLine": 2083,
+          "originalEndLine": 2138,
+          "snapshotStartLine": 1137,
+          "snapshotEndLine": 1192,
+          "origins": [
+            "locator:located-32"
+          ]
+        },
+        {
+          "originalStartLine": 2147,
+          "originalEndLine": 2236,
+          "snapshotStartLine": 1193,
+          "snapshotEndLine": 1282,
+          "origins": [
+            "locator:located-33",
+            "locator:located-34",
+            "locator:located-35"
+          ]
+        },
+        {
+          "originalStartLine": 2259,
+          "originalEndLine": 2316,
+          "snapshotStartLine": 1283,
+          "snapshotEndLine": 1340,
+          "origins": [
+            "locator:located-36"
+          ]
+        },
+        {
+          "originalStartLine": 2345,
+          "originalEndLine": 2396,
+          "snapshotStartLine": 1341,
+          "snapshotEndLine": 1392,
+          "origins": [
+            "locator:located-37"
+          ]
+        },
+        {
+          "originalStartLine": 4509,
+          "originalEndLine": 4514,
+          "snapshotStartLine": 1393,
+          "snapshotEndLine": 1398,
+          "origins": [
+            "locator:located-46"
+          ]
+        },
+        {
+          "originalStartLine": 4767,
+          "originalEndLine": 4833,
+          "snapshotStartLine": 1399,
+          "snapshotEndLine": 1465,
+          "origins": [
+            "locator:located-49"
+          ]
+        },
+        {
+          "originalStartLine": 4941,
+          "originalEndLine": 4997,
+          "snapshotStartLine": 1466,
+          "snapshotEndLine": 1522,
+          "origins": [
+            "locator:located-48"
+          ]
+        }
+      ]
+    },
+    {
+      "relativePath": "src/documents/permissions.py",
+      "content": "def permitted_document_ids(\n    user: User | None,\n    *,\n    perm: str = \"view_document\",\n    include_deleted: bool = False,\n) -> QuerySet[int]:\n    \"\"\"\n    Document-specific convenience wrapper around ``permitted_object_ids``.\n    Return a queryset of document IDs the user has ``perm`` on (default\n    ``\"view_document\"``). By default limited to non-deleted documents; pass\n    ``include_deleted=True`` for callers that need to check permission on\n    soft-deleted documents (e.g. trash restore). This intentionally avoids\n    ``get_objects_for_user`` to keep the subquery small and index-friendly.\n    \"\"\"\n    return permitted_object_ids(user, Document, perm, include_deleted=include_deleted)\n\n\ndef annotate_document_count_by_ids(\n    queryset: QuerySet[Any],\n    through_model: Any,\n    related_object_field: str,\n    document_ids: Any,\n    target_field: str = \"document_id\",\n) -> QuerySet[Any]:\n    \"\"\"\n    Annotate a queryset with a document count for a relation to Document that\n    goes through an M2M/through-model table (e.g. Tag via\n    ``Document.tags.through``, or CustomField via ``CustomFieldInstance``),\n    for an explicit, already-resolved set of document ids.\n\n    Counts are computed via a single, independent GROUP BY over the relation\n    table -- with the id filter expressed as a plain ``WHERE`` rather than an\n    aggregate ``FILTER`` -- then injected via ``Case``/``When``. This\n    deliberately avoids two slower alternatives found while building this:\n\n    - A per-outer-row correlated subquery (one execution per row of the\n      annotated queryset): fine at a handful of rows, catastrophic once the\n      queryset has hundreds/thousands of rows.\n    - ``Count(..., filter=Q(id__in=document_ids), distinct=True)`` applied\n      directly to the M2M relation: Postgres can fail to plan the ``id__in``\n      check as a semi-join and instead re-checks subquery membership once per\n      row of the (much larger) M2M join -- worse than the correlated subquery.\n\n    Aggregation is restricted to rows whose ``related_object_field`` is one of\n    ``queryset``'s pks, so passing a subset (e.g. a handful of tag descendants)\n    doesn't pay the cost of counting for every row matching ``document_ids``.\n\n    Args:\n        queryset: base queryset to annotate (must contain pk)\n        through_model: model representing the relation (e.g., Document.tags.through\n                       or CustomFieldInstance)\n        related_object_field: field on the relation pointing back to queryset pk\n        document_ids: the document ids to count against -- a concrete list/set,\n                       or a simple (already resolved) queryset of ids. Callers\n                       that need this filtered by a complex condition (e.g. a\n                       permission check) should resolve it to a concrete list\n                       first if the same ids will be reused across multiple\n                       calls, rather than passing the complex queryset itself\n                       into each -- see ``_get_selection_data_for_queryset``.\n        target_field: field on the relation pointing to Document id\n    \"\"\"\n\n    counts = (\n        through_model.objects.filter(\n            **{\n                f\"{related_object_field}__in\": queryset.values(\"pk\"),\n                f\"{target_field}__in\": document_ids,\n            },\n        )\n        .values(related_object_field)\n        .annotate(c=Count(target_field, distinct=True))\n    )\n    counts_by_pk = {row[related_object_field]: row[\"c\"] for row in counts}\n\n    if not counts_by_pk:\n        return queryset.annotate(\n            document_count=Value(0, output_field=IntegerField()),\n        )\n\n    return queryset.annotate(\n        document_count=Case(\n            *(When(pk=pk, then=Value(count)) for pk, count in counts_by_pk.items()),\n            default=Value(0),\n            output_field=IntegerField(),\n        ),\n    )\n\n\ndef has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)\n\n\n",
+      "sha256": "5253690a937eb8ef4aceb51b19ea3b5a66db192dfa0b0840d40e6929a110e90d",
+      "cropRange": {
+        "startLine": 460,
+        "endLine": 637
+      },
+      "originalLocations": [
+        "src/documents/permissions.py:460-476",
+        "src/documents/permissions.py:497-567",
+        "src/documents/permissions.py:624-637"
+      ],
+      "segments": [
+        {
+          "originalStartLine": 460,
+          "originalEndLine": 476,
+          "snapshotStartLine": 1,
+          "snapshotEndLine": 17,
+          "origins": [
+            "locator:located-50"
+          ]
+        },
+        {
+          "originalStartLine": 497,
+          "originalEndLine": 567,
+          "snapshotStartLine": 18,
+          "snapshotEndLine": 88,
+          "origins": [
+            "locator:located-43"
+          ]
+        },
+        {
+          "originalStartLine": 624,
+          "originalEndLine": 637,
+          "snapshotStartLine": 89,
+          "snapshotEndLine": 102,
+          "origins": [
+            "locator:located-44"
+          ]
+        }
+      ]
+    }
+  ],
+  "evidencePreparation": {
+    "status": "partial",
+    "sourceIdentity": {
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+    "gaps": [
+      {
+        "id": "dep-owner-aware-root-check",
+        "entryKey": "download",
+        "reason": "depth-budget",
+        "attemptedPath": "src/documents/permissions.py"
+      },
+      {
+        "id": "dep-root-resolution",
+        "entryKey": "download",
+        "reason": "location-not-shown"
+      },
+      {
+        "id": "dep-owner-aware-permission-call",
+        "entryKey": "download",
+        "reason": "location-not-shown",
+        "attemptedPath": "src/documents/permissions.py"
+      },
+      {
+        "id": "dep-root-document-helper",
+        "entryKey": "$",
+        "reason": "unresolved-parent"
+      }
+    ],
+    "closureClaim": "declared-dependencies-only",
+    "schemaVersion": "authorization-evidence-report/v2",
+    "included": [
+      {
+        "path": "src/documents/views.py",
+        "originalPath": "src/documents/views.py",
+        "startLine": 361,
+        "endLine": 4997,
+        "origins": [
+          "locator:located-47",
+          "locator:located-41",
+          "locator:located-42",
+          "locator:located-38",
+          "locator:located-39",
+          "locator:located-40",
+          "locator:located-45",
+          "model-proposal:dep-viewset-permissions",
+          "locator:located-1",
+          "locator:located-2",
+          "model-proposal:dep-download-viewset-permissions",
+          "locator:located-3",
+          "locator:located-4",
+          "locator:located-5",
+          "locator:located-6",
+          "locator:located-7",
+          "locator:located-8",
+          "locator:located-9",
+          "locator:located-10",
+          "locator:located-11",
+          "locator:located-12",
+          "locator:located-13",
+          "model-proposal:dep-root-action-permission-pattern",
+          "locator:located-14",
+          "locator:located-15",
+          "locator:located-16",
+          "locator:located-17",
+          "locator:located-18",
+          "locator:located-19",
+          "locator:located-20",
+          "model-proposal:dep-download-file-response",
+          "model-proposal:dep-effective-version-selection",
+          "model-proposal:dep-version-resolution-helper",
+          "model-proposal:dep-version-selection-helper",
+          "model-proposal:dep-file-serving-helper",
+          "locator:located-21",
+          "locator:located-22",
+          "locator:located-23",
+          "locator:located-24",
+          "locator:located-25",
+          "locator:located-26",
+          "entry:download",
+          "locator:located-27",
+          "model-proposal:dep-download-entry",
+          "model-proposal:dep-download-handler-entry",
+          "locator:located-28",
+          "locator:located-29",
+          "locator:located-30",
+          "locator:located-31",
+          "locator:located-32",
+          "locator:located-33",
+          "locator:located-34",
+          "locator:located-35",
+          "locator:located-36",
+          "locator:located-37",
+          "locator:located-46",
+          "locator:located-49",
+          "locator:located-48"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 361,
+            "originalEndLine": 365,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 5,
+            "origins": [
+              "locator:located-47"
+            ]
+          },
+          {
+            "originalStartLine": 406,
+            "originalEndLine": 525,
+            "snapshotStartLine": 6,
+            "snapshotEndLine": 125,
+            "origins": [
+              "locator:located-41",
+              "locator:located-42",
+              "locator:located-38",
+              "locator:located-39",
+              "locator:located-40"
+            ]
+          },
+          {
+            "originalStartLine": 699,
+            "originalEndLine": 706,
+            "snapshotStartLine": 126,
+            "snapshotEndLine": 133,
+            "origins": [
+              "locator:located-45"
+            ]
+          },
+          {
+            "originalStartLine": 1008,
+            "originalEndLine": 1112,
+            "snapshotStartLine": 134,
+            "snapshotEndLine": 238,
+            "origins": [
+              "model-proposal:dep-viewset-permissions",
+              "locator:located-1",
+              "locator:located-2",
+              "model-proposal:dep-download-viewset-permissions"
+            ]
+          },
+          {
+            "originalStartLine": 1114,
+            "originalEndLine": 1234,
+            "snapshotStartLine": 239,
+            "snapshotEndLine": 359,
+            "origins": [
+              "locator:located-3",
+              "locator:located-4",
+              "locator:located-5",
+              "locator:located-6",
+              "locator:located-7",
+              "locator:located-8"
+            ]
+          },
+          {
+            "originalStartLine": 1245,
+            "originalEndLine": 1367,
+            "snapshotStartLine": 360,
+            "snapshotEndLine": 482,
+            "origins": [
+              "locator:located-9",
+              "locator:located-10",
+              "locator:located-11",
+              "locator:located-12",
+              "locator:located-13",
+              "model-proposal:dep-root-action-permission-pattern"
+            ]
+          },
+          {
+            "originalStartLine": 1369,
+            "originalEndLine": 1474,
+            "snapshotStartLine": 483,
+            "snapshotEndLine": 588,
+            "origins": [
+              "locator:located-14",
+              "locator:located-15",
+              "locator:located-16",
+              "locator:located-17",
+              "locator:located-18",
+              "locator:located-19",
+              "locator:located-20",
+              "model-proposal:dep-download-file-response",
+              "model-proposal:dep-effective-version-selection",
+              "model-proposal:dep-version-resolution-helper",
+              "model-proposal:dep-version-selection-helper",
+              "model-proposal:dep-file-serving-helper"
+            ]
+          },
+          {
+            "originalStartLine": 1480,
+            "originalEndLine": 1535,
+            "snapshotStartLine": 589,
+            "snapshotEndLine": 644,
+            "origins": [
+              "locator:located-21"
+            ]
+          },
+          {
+            "originalStartLine": 1544,
+            "originalEndLine": 1596,
+            "snapshotStartLine": 645,
+            "snapshotEndLine": 697,
+            "origins": [
+              "locator:located-22"
+            ]
+          },
+          {
+            "originalStartLine": 1604,
+            "originalEndLine": 1782,
+            "snapshotStartLine": 698,
+            "snapshotEndLine": 876,
+            "origins": [
+              "locator:located-23",
+              "locator:located-24"
+            ]
+          },
+          {
+            "originalStartLine": 1788,
+            "originalEndLine": 1808,
+            "snapshotStartLine": 877,
+            "snapshotEndLine": 897,
+            "origins": [
+              "locator:located-25"
+            ]
+          },
+          {
+            "originalStartLine": 1817,
+            "originalEndLine": 1840,
+            "snapshotStartLine": 898,
+            "snapshotEndLine": 921,
+            "origins": [
+              "locator:located-26",
+              "entry:download",
+              "locator:located-27",
+              "model-proposal:dep-download-entry",
+              "model-proposal:dep-download-handler-entry"
+            ]
+          },
+          {
+            "originalStartLine": 1848,
+            "originalEndLine": 1964,
+            "snapshotStartLine": 922,
+            "snapshotEndLine": 1038,
+            "origins": [
+              "locator:located-28"
+            ]
+          },
+          {
+            "originalStartLine": 1966,
+            "originalEndLine": 1998,
+            "snapshotStartLine": 1039,
+            "snapshotEndLine": 1071,
+            "origins": [
+              "locator:located-29"
+            ]
+          },
+          {
+            "originalStartLine": 2000,
+            "originalEndLine": 2059,
+            "snapshotStartLine": 1072,
+            "snapshotEndLine": 1131,
+            "origins": [
+              "locator:located-30"
+            ]
+          },
+          {
+            "originalStartLine": 2071,
+            "originalEndLine": 2075,
+            "snapshotStartLine": 1132,
+            "snapshotEndLine": 1136,
+            "origins": [
+              "locator:located-31"
+            ]
+          },
+          {
+            "originalStartLine": 2083,
+            "originalEndLine": 2138,
+            "snapshotStartLine": 1137,
+            "snapshotEndLine": 1192,
+            "origins": [
+              "locator:located-32"
+            ]
+          },
+          {
+            "originalStartLine": 2147,
+            "originalEndLine": 2236,
+            "snapshotStartLine": 1193,
+            "snapshotEndLine": 1282,
+            "origins": [
+              "locator:located-33",
+              "locator:located-34",
+              "locator:located-35"
+            ]
+          },
+          {
+            "originalStartLine": 2259,
+            "originalEndLine": 2316,
+            "snapshotStartLine": 1283,
+            "snapshotEndLine": 1340,
+            "origins": [
+              "locator:located-36"
+            ]
+          },
+          {
+            "originalStartLine": 2345,
+            "originalEndLine": 2396,
+            "snapshotStartLine": 1341,
+            "snapshotEndLine": 1392,
+            "origins": [
+              "locator:located-37"
+            ]
+          },
+          {
+            "originalStartLine": 4509,
+            "originalEndLine": 4514,
+            "snapshotStartLine": 1393,
+            "snapshotEndLine": 1398,
+            "origins": [
+              "locator:located-46"
+            ]
+          },
+          {
+            "originalStartLine": 4767,
+            "originalEndLine": 4833,
+            "snapshotStartLine": 1399,
+            "snapshotEndLine": 1465,
+            "origins": [
+              "locator:located-49"
+            ]
+          },
+          {
+            "originalStartLine": 4941,
+            "originalEndLine": 4997,
+            "snapshotStartLine": 1466,
+            "snapshotEndLine": 1522,
+            "origins": [
+              "locator:located-48"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "src/documents/permissions.py",
+        "originalPath": "src/documents/permissions.py",
+        "startLine": 460,
+        "endLine": 637,
+        "origins": [
+          "locator:located-50",
+          "locator:located-43",
+          "locator:located-44"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 460,
+            "originalEndLine": 476,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 17,
+            "origins": [
+              "locator:located-50"
+            ]
+          },
+          {
+            "originalStartLine": 497,
+            "originalEndLine": 567,
+            "snapshotStartLine": 18,
+            "snapshotEndLine": 88,
+            "origins": [
+              "locator:located-43"
+            ]
+          },
+          {
+            "originalStartLine": 624,
+            "originalEndLine": 637,
+            "snapshotStartLine": 89,
+            "snapshotEndLine": 102,
+            "origins": [
+              "locator:located-44"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

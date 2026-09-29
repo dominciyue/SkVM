@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "authorization-al-final-review/v1",
+  "reviewedImplementationCommit": "97bcb6bb24f54941d27013a6351dfb19a0ece1b5",
+  "finalCorrectionCommit": "4485772a068e2b6822afdf91ebed7fe7f0f304f4",
+  "mechanism": "Three independent default agents, clean fork_turns=none, read-only one-turn reviews; main verified findings and owned all edits.",
+  "reviews": [
+    {"agent": "/root/al_final_host_review", "scope": "Bounded selectors, safe read recovery, source/path identity, context/budgets, cancellation and shared multiline/duplicate-JSON fixes", "importantFindings": 1, "otherActionableFindings": 0},
+    {"agent": "/root/al_final_author_review", "scope": "Ordinary init/check/prepare diagnostics, v1/v2 compatibility, explicit owner premises and portable examples", "actionableFindings": 0},
+    {"agent": "/root/al_final_evidence_review", "scope": "Generation/evaluator isolation, implementation/source bindings, denominators, source reuse, stage costs and current result claims", "actionableFindings": 0}
+  ],
+  "dispositions": [
+    {
+      "severity": "important",
+      "issue": "Duplicate explicit read IDs collide with each other or generated IDs; CLI gap enrichment uses first matching outcome and can attach another read's selector.",
+      "verifiedAnchor": "src/cli/authorization-prepare.ts:85",
+      "beforeAnchor": "src/benchmarks/authorization-dsl/evidence-preparation/discovery.ts:249 at 97bcb6bb",
+      "status": "fixed",
+      "implementation": "discoveryReadRequestIds allocates unique outcome/gap IDs against earlier outcomes and the current batch; original request.id and source selection remain unchanged. Final-round unexecuted read gaps share the allocator.",
+      "verification": "Three tests red first: 32 pass/3 expected fail/186 assertions; focused green35 pass/193 assertions; full433 pass/1 platform skip/2903 assertions and both typechecks passed.",
+      "providerCallsAfterReview": 0
+    },
+    {
+      "severity": "unconfirmed-edge",
+      "issue": "Reviewer noted triple-quoted Python default may be a lexical indexing edge but supplied no reproduced fixture.",
+      "status": "no-material-defect-established",
+      "disposition": "No speculative rewrite or repeated research; existing lexical-index and declared-dependency completeness limits remain explicit."
+    }
+  ],
+  "openCritical": 0,
+  "openImportant": 0,
+  "paidStudyIdentity": "Original58 and research-revision59 freezes unchanged. Final host-only fix has separate verification-freeze and adds no model observation or quality replacement.",
+  "reviewerHostCost": "unknown",
+  "humanMinutes": "unknown",
+  "targetExecutions": 0
+}

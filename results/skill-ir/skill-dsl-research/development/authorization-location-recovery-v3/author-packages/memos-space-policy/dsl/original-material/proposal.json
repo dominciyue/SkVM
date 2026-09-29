@@ -1,0 +1,565 @@
+{
+  "schemaVersion": "authorization-dependency-proposal/v3",
+  "model": "xty/gpt-5.6-sol",
+  "dependencies": [
+    {
+      "id": "dep-delete-self-or-other-control",
+      "from": "delete-member",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 750,
+      "endLine": 755,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-administrator-check",
+      "from": "delete-member",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 54,
+      "endLine": 59,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-current-user-identity",
+      "from": "delete-member",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 19,
+      "endLine": 28,
+      "reason": "identity",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-resolved-membership-target",
+      "from": "delete-member",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 651,
+      "endLine": 662,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-active-member-definition",
+      "from": "located-8",
+      "path": "store/space.go",
+      "startLine": 64,
+      "endLine": 66,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-delete-target-effect",
+      "from": "delete-member",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 756,
+      "endLine": 760,
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "source-delete-self-other-branch",
+      "from": "delete-member",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 750,
+      "endLine": 755,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "source-caller-identity-resolution",
+      "from": "delete-member",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 19,
+      "endLine": 28,
+      "reason": "identity",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "source-target-membership-resolution",
+      "from": "delete-member",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 651,
+      "endLine": 662,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "source-active-member-role-definition",
+      "from": "source-target-membership-resolution",
+      "path": "store/space.go",
+      "startLine": 64,
+      "endLine": 66,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "source-administrator-authority-check",
+      "from": "source-delete-self-other-branch",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 54,
+      "endLine": 59,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "source-delete-target-effect",
+      "from": "delete-member",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 756,
+      "endLine": 760,
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "source-store-delete-member-forwarding",
+      "from": "source-delete-target-effect",
+      "path": "store/space.go",
+      "startLine": 274,
+      "endLine": 279,
+      "reason": "effect",
+      "basis": "model-proposal"
+    }
+  ],
+  "gaps": [],
+  "promptCharacters": 36057,
+  "responseCharacters": 4617,
+  "durationMs": 109083.92550000003,
+  "tokens": {
+    "input": 11585,
+    "output": 2098,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "actualCostUsd": null,
+  "account": {
+    "schemaVersion": "authorization-preparation-attempts/v1",
+    "model": "xty/gpt-5.6-sol",
+    "status": "completed",
+    "published": false,
+    "attempts": [
+      {
+        "id": "provider-attempt-1",
+        "phase": "initial",
+        "transport": "prompt-parse",
+        "status": "response",
+        "startedAt": "2026-09-29T08:08:19.885Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 21533,
+          "toolNames": [],
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false
+        },
+        "usage": {
+          "input": 7316,
+          "output": 1056,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "transportAttempts": "unknown",
+        "response": {
+          "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-delete-self-or-other-control\",\"from\":\"delete-member\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-ce39c453c8a090043bd2866c\",\"startLine\":750,\"endLine\":755},\"reason\":\"control\",\"description\":\"Source-visible authorization branch: compares the resolved target user with the caller, permitting the self case without an administrator check and requiring administrator validation for a different target.\"},{\"id\":\"dep-administrator-check\",\"from\":\"delete-member\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-df282dc27cd3744e95717952\",\"startLine\":54,\"endLine\":59},\"reason\":\"control\",\"description\":\"Accepted-policy comparison evidence for the different-member case: only an active administrator role passes the explicit administrator check.\"},{\"id\":\"dep-current-user-identity\",\"from\":\"delete-member\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-789df068559dbcda5ca4fb82\",\"startLine\":19,\"endLine\":28},\"reason\":\"identity\",\"description\":\"Establishes the authenticated caller identity used by the handler's self-versus-different-member comparison.\"},{\"id\":\"dep-resolved-membership-target\",\"from\":\"delete-member\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-1f416e213f433ea0231cf5d1\",\"startLine\":651,\"endLine\":662},\"reason\":\"resource-binding\",\"description\":\"Binds the requested target user and target membership to the resolved space and rejects a missing or inactive target membership.\"},{\"id\":\"dep-active-member-definition\",\"from\":\"located-8\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-da7cbf126576de1b62f8e05c\",\"startLine\":64,\"endLine\":66},\"reason\":\"resource-binding\",\"description\":\"Defines which membership roles count as active for the target-membership resolution used before the authorization branch.\"},{\"id\":\"dep-delete-target-effect\",\"from\":\"delete-member\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-2708cbf378058c3e6d6db007\",\"startLine\":756,\"endLine\":760},\"reason\":\"effect\",\"description\":\"Shows that, after the self/different-member authorization branch, deletion is applied to the resolved target membership and mutation errors are mapped.\"}],\"reads\":[{\"id\":\"read-store-delete-space-member\",\"from\":\"dep-delete-target-effect\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-b7584dffb029aa15078b5648\"},\"contextLines\":3}]}",
+          "toolCalls": [],
+          "tokens": {
+            "input": 7316,
+            "output": 1056,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "costUsd": null,
+          "durationMs": 59264.09030000001,
+          "stopReason": "end_turn"
+        },
+        "endedAt": "2026-09-29T08:09:19.150Z"
+      },
+      {
+        "id": "provider-attempt-2",
+        "phase": "initial",
+        "transport": "prompt-parse",
+        "status": "response",
+        "startedAt": "2026-09-29T08:09:19.157Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 14524,
+          "toolNames": [],
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false
+        },
+        "usage": {
+          "input": 4269,
+          "output": 1042,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "transportAttempts": "unknown",
+        "response": {
+          "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"source-delete-self-other-branch\",\"from\":\"delete-member\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-ce39c453c8a090043bd2866c\",\"startLine\":750,\"endLine\":755},\"reason\":\"control\",\"description\":\"Compares the resolved target user with the caller and requires administrator authority only for a different target.\"},{\"id\":\"source-caller-identity-resolution\",\"from\":\"delete-member\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-789df068559dbcda5ca4fb82\",\"startLine\":19,\"endLine\":28},\"reason\":\"identity\",\"description\":\"Resolves the authenticated caller used by the self-versus-other comparison.\"},{\"id\":\"source-target-membership-resolution\",\"from\":\"delete-member\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-1f416e213f433ea0231cf5d1\",\"startLine\":651,\"endLine\":662},\"reason\":\"resource-binding\",\"description\":\"Binds the requested target user to the space membership and requires an active target membership.\"},{\"id\":\"source-active-member-role-definition\",\"from\":\"source-target-membership-resolution\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-da7cbf126576de1b62f8e05c\",\"startLine\":64,\"endLine\":66},\"reason\":\"resource-binding\",\"description\":\"Defines which membership roles count as active members.\"},{\"id\":\"source-administrator-authority-check\",\"from\":\"source-delete-self-other-branch\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-df282dc27cd3744e95717952\",\"startLine\":54,\"endLine\":59},\"reason\":\"control\",\"description\":\"Checks whether the caller membership has administrator authority for removal of another member.\"},{\"id\":\"source-delete-target-effect\",\"from\":\"delete-member\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-ce39c453c8a090043bd2866c\",\"startLine\":756,\"endLine\":760},\"reason\":\"effect\",\"description\":\"Passes the resolved target membership identifiers and caller identity to the deletion operation.\"},{\"id\":\"source-store-delete-member-forwarding\",\"from\":\"source-delete-target-effect\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-f653da691a2ba6337a5a2ac2\",\"startLine\":274,\"endLine\":279},\"reason\":\"effect\",\"description\":\"Validates deletion identifiers and forwards the deletion request with the actor identity to the driver.\"}],\"reads\":[]}",
+          "toolCalls": [],
+          "tokens": {
+            "input": 4269,
+            "output": 1042,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "costUsd": null,
+          "durationMs": 49819.835200000016,
+          "stopReason": "end_turn"
+        },
+        "endedAt": "2026-09-29T08:10:08.977Z"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 2,
+      "respondedCalls": 2,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 2,
+      "knownTokens": {
+        "input": 11585,
+        "output": 2098,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    },
+    "rounds": [
+      {
+        "kind": "proposal",
+        "promptCharacters": 21533,
+        "promptBytes": 21533,
+        "metadataBytes": 13537,
+        "displayedBytes": 7996,
+        "uniqueSourceBytes": 7015,
+        "resentSourceBytes": 981,
+        "diagnostics": []
+      },
+      {
+        "kind": "supplement",
+        "promptCharacters": 14524,
+        "promptBytes": 14524,
+        "metadataBytes": 6155,
+        "displayedBytes": 8369,
+        "uniqueSourceBytes": 373,
+        "resentSourceBytes": 7996,
+        "diagnostics": []
+      }
+    ],
+    "diagnostics": [],
+    "readOutcomes": [
+      {
+        "requestId": "read-store-delete-space-member",
+        "request": {
+          "id": "read-store-delete-space-member",
+          "from": "dep-delete-target-effect",
+          "selector": {
+            "kind": "indexed-symbol",
+            "symbolId": "symbol-b7584dffb029aa15078b5648"
+          },
+          "contextLines": 3
+        },
+        "budget": {
+          "usedBytes": 7996,
+          "maxBytes": 65536
+        },
+        "status": "resolved",
+        "windowId": "window-f653da691a2ba6337a5a2ac2",
+        "path": "store/space.go",
+        "startLine": 274,
+        "endLine": 279,
+        "bytes": 373,
+        "newlyShown": true
+      }
+    ],
+    "selectionOutcomes": [
+      {
+        "id": "dep-delete-self-or-other-control",
+        "from": "delete-member",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-ce39c453c8a090043bd2866c",
+          "startLine": 750,
+          "endLine": 755
+        },
+        "description": "Source-visible authorization branch: compares the resolved target user with the caller, permitting the self case without an administrator check and requiring administrator validation for a different target.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-administrator-check",
+        "from": "delete-member",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-df282dc27cd3744e95717952",
+          "startLine": 54,
+          "endLine": 59
+        },
+        "description": "Accepted-policy comparison evidence for the different-member case: only an active administrator role passes the explicit administrator check.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-current-user-identity",
+        "from": "delete-member",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-789df068559dbcda5ca4fb82",
+          "startLine": 19,
+          "endLine": 28
+        },
+        "description": "Establishes the authenticated caller identity used by the handler's self-versus-different-member comparison.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-resolved-membership-target",
+        "from": "delete-member",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-1f416e213f433ea0231cf5d1",
+          "startLine": 651,
+          "endLine": 662
+        },
+        "description": "Binds the requested target user and target membership to the resolved space and rejects a missing or inactive target membership.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-active-member-definition",
+        "from": "located-8",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-da7cbf126576de1b62f8e05c",
+          "startLine": 64,
+          "endLine": 66
+        },
+        "description": "Defines which membership roles count as active for the target-membership resolution used before the authorization branch.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-delete-target-effect",
+        "from": "delete-member",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-2708cbf378058c3e6d6db007",
+          "startLine": 756,
+          "endLine": 760
+        },
+        "description": "Shows that, after the self/different-member authorization branch, deletion is applied to the resolved target membership and mutation errors are mapped.",
+        "status": "resolved"
+      },
+      {
+        "id": "source-delete-self-other-branch",
+        "from": "delete-member",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-ce39c453c8a090043bd2866c",
+          "startLine": 750,
+          "endLine": 755
+        },
+        "description": "Compares the resolved target user with the caller and requires administrator authority only for a different target.",
+        "status": "resolved"
+      },
+      {
+        "id": "source-caller-identity-resolution",
+        "from": "delete-member",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-789df068559dbcda5ca4fb82",
+          "startLine": 19,
+          "endLine": 28
+        },
+        "description": "Resolves the authenticated caller used by the self-versus-other comparison.",
+        "status": "resolved"
+      },
+      {
+        "id": "source-target-membership-resolution",
+        "from": "delete-member",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-1f416e213f433ea0231cf5d1",
+          "startLine": 651,
+          "endLine": 662
+        },
+        "description": "Binds the requested target user to the space membership and requires an active target membership.",
+        "status": "resolved"
+      },
+      {
+        "id": "source-active-member-role-definition",
+        "from": "source-target-membership-resolution",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-da7cbf126576de1b62f8e05c",
+          "startLine": 64,
+          "endLine": 66
+        },
+        "description": "Defines which membership roles count as active members.",
+        "status": "resolved"
+      },
+      {
+        "id": "source-administrator-authority-check",
+        "from": "source-delete-self-other-branch",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-df282dc27cd3744e95717952",
+          "startLine": 54,
+          "endLine": 59
+        },
+        "description": "Checks whether the caller membership has administrator authority for removal of another member.",
+        "status": "resolved"
+      },
+      {
+        "id": "source-delete-target-effect",
+        "from": "delete-member",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-ce39c453c8a090043bd2866c",
+          "startLine": 756,
+          "endLine": 760
+        },
+        "description": "Passes the resolved target membership identifiers and caller identity to the deletion operation.",
+        "status": "resolved"
+      },
+      {
+        "id": "source-store-delete-member-forwarding",
+        "from": "source-delete-target-effect",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-f653da691a2ba6337a5a2ac2",
+          "startLine": 274,
+          "endLine": 279
+        },
+        "description": "Validates deletion identifiers and forwards the deletion request with the actor identity to the driver.",
+        "status": "resolved"
+      }
+    ],
+    "acceptedDependencies": [
+      {
+        "id": "dep-delete-self-or-other-control",
+        "from": "delete-member",
+        "path": "server/api/v1/space_service.go",
+        "startLine": 750,
+        "endLine": 755,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-administrator-check",
+        "from": "delete-member",
+        "path": "server/api/v1/space_service.go",
+        "startLine": 54,
+        "endLine": 59,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-current-user-identity",
+        "from": "delete-member",
+        "path": "server/api/v1/space_service.go",
+        "startLine": 19,
+        "endLine": 28,
+        "reason": "identity",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-resolved-membership-target",
+        "from": "delete-member",
+        "path": "server/api/v1/space_service.go",
+        "startLine": 651,
+        "endLine": 662,
+        "reason": "resource-binding",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-active-member-definition",
+        "from": "located-8",
+        "path": "store/space.go",
+        "startLine": 64,
+        "endLine": 66,
+        "reason": "resource-binding",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-delete-target-effect",
+        "from": "delete-member",
+        "path": "server/api/v1/space_service.go",
+        "startLine": 756,
+        "endLine": 760,
+        "reason": "effect",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "source-delete-self-other-branch",
+        "from": "delete-member",
+        "path": "server/api/v1/space_service.go",
+        "startLine": 750,
+        "endLine": 755,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "source-caller-identity-resolution",
+        "from": "delete-member",
+        "path": "server/api/v1/space_service.go",
+        "startLine": 19,
+        "endLine": 28,
+        "reason": "identity",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "source-target-membership-resolution",
+        "from": "delete-member",
+        "path": "server/api/v1/space_service.go",
+        "startLine": 651,
+        "endLine": 662,
+        "reason": "resource-binding",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "source-active-member-role-definition",
+        "from": "source-target-membership-resolution",
+        "path": "store/space.go",
+        "startLine": 64,
+        "endLine": 66,
+        "reason": "resource-binding",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "source-administrator-authority-check",
+        "from": "source-delete-self-other-branch",
+        "path": "server/api/v1/space_service.go",
+        "startLine": 54,
+        "endLine": 59,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "source-delete-target-effect",
+        "from": "delete-member",
+        "path": "server/api/v1/space_service.go",
+        "startLine": 756,
+        "endLine": 760,
+        "reason": "effect",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "source-store-delete-member-forwarding",
+        "from": "source-delete-target-effect",
+        "path": "store/space.go",
+        "startLine": 274,
+        "endLine": 279,
+        "reason": "effect",
+        "basis": "model-proposal"
+      }
+    ],
+    "sourceDisplay": {
+      "totalBytes": 16365,
+      "uniqueSourceBytes": 7388,
+      "resentSourceBytes": 8977,
+      "maxBytes": 65536
+    },
+    "unknownCostReason": "provider did not report actual cost for every dispatched request"
+  }
+}

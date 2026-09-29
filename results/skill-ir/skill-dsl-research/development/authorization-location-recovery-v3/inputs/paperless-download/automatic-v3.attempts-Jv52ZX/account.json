@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "authorization-preparation-attempts/v1",
+  "model": "xty/gpt-5.6-sol",
+  "status": "completed",
+  "published": true,
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "prompt-parse",
+      "status": "response",
+      "startedAt": "2026-09-29T07:41:33.691Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 51636,
+        "toolNames": [],
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 20780,
+        "output": 570,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-download-entry-control\",\"from\":\"download\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-d75d26d6b6ef64204e79ebb0\",\"startLine\":1835,\"endLine\":1838},\"reason\":\"control\",\"description\":\"The download handler delegates serving to file_response and only handles file/document-not-found exceptions.\"},{\"id\":\"dep-file-response-control\",\"from\":\"located-1\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-4634e97f66c50d005ce6318f\",\"startLine\":1429,\"endLine\":1448},\"reason\":\"control\",\"description\":\"file_response resolves the requested and root documents, rejects an explicit forbidden result, selects the effective file document, and then serves it.\"}],\"reads\":[{\"id\":\"read-resolve-request-root\",\"from\":\"dep-file-response-control\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-b503ffb336439b607f090653\"},\"contextLines\":20},{\"id\":\"read-effective-file-doc\",\"from\":\"dep-file-response-control\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-f6a05607b91c7182b184aa11\"},\"contextLines\":20},{\"id\":\"read-owner-aware-permission-check\",\"from\":\"read-resolve-request-root\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-d50f36cbe040d6fab5ea55a5\"},\"contextLines\":20}],\"reads\":[]}",
+        "toolCalls": [],
+        "tokens": {
+          "input": 20780,
+          "output": 570,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 35451.33880000003,
+        "stopReason": "end_turn"
+      },
+      "endedAt": "2026-09-29T07:42:09.143Z"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 20780,
+      "output": 570,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  },
+  "rounds": [
+    {
+      "kind": "proposal",
+      "promptCharacters": 51636,
+      "promptBytes": 51636,
+      "metadataBytes": 49759,
+      "displayedBytes": 1877,
+      "uniqueSourceBytes": 1877,
+      "resentSourceBytes": 0,
+      "diagnostics": []
+    }
+  ],
+  "diagnostics": [],
+  "readOutcomes": [],
+  "selectionOutcomes": [
+    {
+      "id": "dep-download-entry-control",
+      "from": "download",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-d75d26d6b6ef64204e79ebb0",
+        "startLine": 1835,
+        "endLine": 1838
+      },
+      "description": "The download handler delegates serving to file_response and only handles file/document-not-found exceptions.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-file-response-control",
+      "from": "located-1",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-4634e97f66c50d005ce6318f",
+        "startLine": 1429,
+        "endLine": 1448
+      },
+      "description": "file_response resolves the requested and root documents, rejects an explicit forbidden result, selects the effective file document, and then serves it.",
+      "status": "resolved"
+    }
+  ],
+  "acceptedDependencies": [
+    {
+      "id": "dep-download-entry-control",
+      "from": "download",
+      "path": "src/documents/views.py",
+      "startLine": 1835,
+      "endLine": 1838,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-file-response-control",
+      "from": "located-1",
+      "path": "src/documents/views.py",
+      "startLine": 1429,
+      "endLine": 1448,
+      "reason": "control",
+      "basis": "model-proposal"
+    }
+  ],
+  "sourceDisplay": {
+    "totalBytes": 1877,
+    "uniqueSourceBytes": 1877,
+    "resentSourceBytes": 0,
+    "maxBytes": 65536
+  },
+  "unknownCostReason": "provider did not report actual cost for every dispatched request"
+}

@@ -1,0 +1,553 @@
+{
+  "schemaVersion": "authorization-dependency-proposal/v3",
+  "model": "xty/gpt-5.6-sol",
+  "dependencies": [
+    {
+      "id": "dep-sharelink-permissions-config",
+      "from": "share-create",
+      "path": "src/documents/views.py",
+      "startLine": 4696,
+      "endLine": 4717,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-user-passing-mixin",
+      "from": "share-create",
+      "path": "src/documents/views.py",
+      "startLine": 411,
+      "endLine": 428,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-share-create-permission-configuration",
+      "from": "share-create",
+      "path": "src/documents/views.py",
+      "startLine": 4706,
+      "endLine": 4714,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-share-create-post-permission-map",
+      "from": "dep-sharelink-permissions-config",
+      "path": "src/documents/permissions.py",
+      "startLine": 36,
+      "endLine": 43,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-share-create-object-permission-handler",
+      "from": "dep-sharelink-permissions-config",
+      "path": "src/documents/permissions.py",
+      "startLine": 46,
+      "endLine": 53,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-share-create-user-binding",
+      "from": "dep-user-passing-mixin",
+      "path": "src/documents/views.py",
+      "startLine": 411,
+      "endLine": 428,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-share-create-document-validation",
+      "from": "dep-sharelink-permissions-config",
+      "path": "src/documents/serialisers.py",
+      "startLine": 2869,
+      "endLine": 2886,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-share-create-owner-aware-check",
+      "from": "dep-share-create-document-validation",
+      "path": "src/documents/permissions.py",
+      "startLine": 624,
+      "endLine": 635,
+      "reason": "control",
+      "basis": "model-proposal"
+    }
+  ],
+  "gaps": [],
+  "promptCharacters": 120042,
+  "responseCharacters": 4192,
+  "durationMs": 68473.16389999993,
+  "tokens": {
+    "input": 45206,
+    "output": 1682,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "actualCostUsd": null,
+  "account": {
+    "schemaVersion": "authorization-preparation-attempts/v1",
+    "model": "xty/gpt-5.6-sol",
+    "status": "completed",
+    "published": false,
+    "attempts": [
+      {
+        "id": "provider-attempt-1",
+        "phase": "initial",
+        "transport": "prompt-parse",
+        "status": "response",
+        "startedAt": "2026-09-29T07:43:36.490Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 108217,
+          "toolNames": [],
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false
+        },
+        "usage": {
+          "input": 41867,
+          "output": 891,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "transportAttempts": "unknown",
+        "response": {
+          "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-sharelink-permissions-config\",\"from\":\"share-create\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-5709a124aedf20e3061cb02b\",\"startLine\":4696,\"endLine\":4717},\"reason\":\"control\",\"description\":\"ShareLinkViewSet uses IsAuthenticated and PaperlessObjectPermissions, and delegates creation to the configured ShareLinkSerializer.\"},{\"id\":\"dep-user-passing-mixin\",\"from\":\"share-create\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-820a252321441da5ca5cda82\",\"startLine\":411,\"endLine\":428},\"reason\":\"resource-binding\",\"description\":\"The serializer context may receive the authenticated request user, which can affect document-target validation.\"}],\"reads\":[{\"id\":\"read-paperless-object-permissions\",\"from\":\"dep-sharelink-permissions-config\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-05d5ab1bd3e9b2ba94659bfc\"},\"contextLines\":3},{\"id\":\"read-object-permission-check\",\"from\":\"read-paperless-object-permissions\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-bbeef5d481d74130182672e3\"},\"contextLines\":3},{\"id\":\"read-sharelink-serializer\",\"from\":\"dep-sharelink-permissions-config\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-7f3ddddb6390c3a44d4324aa\"},\"contextLines\":3},{\"id\":\"read-sharelink-serializer-create\",\"from\":\"read-sharelink-serializer\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-716a8ba8e9ce3d671e14156e\"},\"contextLines\":3},{\"id\":\"read-sharelink-document-validation\",\"from\":\"read-sharelink-serializer\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-abf3dbb70095f3343194b2da\"},\"contextLines\":3},{\"id\":\"read-owner-aware-permission-helper\",\"from\":\"read-sharelink-document-validation\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-d50f36cbe040d6fab5ea55a5\"},\"contextLines\":3},{\"id\":\"read-owner-aware-object-query\",\"from\":\"read-sharelink-document-validation\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-99fd10bbb884c96bfd9d81f5\"},\"contextLines\":3}]}",
+          "toolCalls": [],
+          "tokens": {
+            "input": 41867,
+            "output": 891,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "costUsd": null,
+          "durationMs": 51416.97179999994,
+          "stopReason": "end_turn"
+        },
+        "endedAt": "2026-09-29T07:44:27.911Z"
+      },
+      {
+        "id": "provider-attempt-2",
+        "phase": "initial",
+        "transport": "prompt-parse",
+        "status": "response",
+        "startedAt": "2026-09-29T07:44:27.930Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 11825,
+          "toolNames": [],
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false
+        },
+        "usage": {
+          "input": 3339,
+          "output": 791,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "transportAttempts": "unknown",
+        "response": {
+          "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-share-create-permission-configuration\",\"from\":\"share-create\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-5709a124aedf20e3061cb02b\",\"startLine\":4706,\"endLine\":4714},\"reason\":\"control\",\"description\":\"The ShareLinkViewSet uses PaperlessObjectPermissions, with object filtering configured for the share-link resource.\"},{\"id\":\"dep-share-create-post-permission-map\",\"from\":\"dep-sharelink-permissions-config\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-af4f19ab781b6d394241f26f\",\"startLine\":36,\"endLine\":43},\"reason\":\"control\",\"description\":\"POST requires the model add permission, while object permission handling is defined separately.\"},{\"id\":\"dep-share-create-object-permission-handler\",\"from\":\"dep-sharelink-permissions-config\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-af4f19ab781b6d394241f26f\",\"startLine\":46,\"endLine\":53},\"reason\":\"control\",\"description\":\"Object-level permission checks defer to the superclass for non-owners rather than treating a global grant as owner access.\"},{\"id\":\"dep-share-create-user-binding\",\"from\":\"dep-user-passing-mixin\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-820a252321441da5ca5cda82\",\"startLine\":411,\"endLine\":428},\"reason\":\"resource-binding\",\"description\":\"The request user is passed into serializers that support permission-aware validation.\"},{\"id\":\"dep-share-create-document-validation\",\"from\":\"dep-sharelink-permissions-config\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-f9fb22ea141d163a67b85798\",\"startLine\":2869,\"endLine\":2886},\"reason\":\"control\",\"description\":\"Share-link creation validates the referenced document and denies creation unless the user has the required global view permission and the owner-aware object check succeeds.\"},{\"id\":\"dep-share-create-owner-aware-check\",\"from\":\"dep-share-create-document-validation\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-c2c0c8541c89adff27371448\",\"startLine\":624,\"endLine\":635},\"reason\":\"control\",\"description\":\"The owner-aware helper permits the owner or an explicit object permission, rather than relying solely on the global permission.\"}],\"reads\":[]}",
+          "toolCalls": [],
+          "tokens": {
+            "input": 3339,
+            "output": 791,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "costUsd": null,
+          "durationMs": 17056.192099999986,
+          "stopReason": "end_turn"
+        },
+        "endedAt": "2026-09-29T07:44:44.987Z"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 2,
+      "respondedCalls": 2,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 2,
+      "knownTokens": {
+        "input": 45206,
+        "output": 1682,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    },
+    "rounds": [
+      {
+        "kind": "proposal",
+        "promptCharacters": 108217,
+        "promptBytes": 108217,
+        "metadataBytes": 106522,
+        "displayedBytes": 1695,
+        "uniqueSourceBytes": 1695,
+        "resentSourceBytes": 0,
+        "diagnostics": []
+      },
+      {
+        "kind": "supplement",
+        "promptCharacters": 11825,
+        "promptBytes": 11825,
+        "metadataBytes": 7006,
+        "displayedBytes": 4819,
+        "uniqueSourceBytes": 3124,
+        "resentSourceBytes": 1695,
+        "diagnostics": []
+      }
+    ],
+    "diagnostics": [],
+    "readOutcomes": [
+      {
+        "requestId": "read-paperless-object-permissions",
+        "request": {
+          "id": "read-paperless-object-permissions",
+          "from": "dep-sharelink-permissions-config",
+          "selector": {
+            "kind": "indexed-symbol",
+            "symbolId": "symbol-05d5ab1bd3e9b2ba94659bfc"
+          },
+          "contextLines": 3
+        },
+        "budget": {
+          "usedBytes": 1695,
+          "maxBytes": 65536
+        },
+        "status": "resolved",
+        "windowId": "window-af4f19ab781b6d394241f26f",
+        "path": "src/documents/permissions.py",
+        "startLine": 30,
+        "endLine": 55,
+        "bytes": 1044,
+        "newlyShown": true
+      },
+      {
+        "requestId": "read-object-permission-check",
+        "request": {
+          "id": "read-object-permission-check",
+          "from": "read-paperless-object-permissions",
+          "selector": {
+            "kind": "indexed-symbol",
+            "symbolId": "symbol-bbeef5d481d74130182672e3"
+          },
+          "contextLines": 3
+        },
+        "budget": {
+          "usedBytes": 2739,
+          "maxBytes": 65536
+        },
+        "status": "resolved",
+        "windowId": "window-af4f19ab781b6d394241f26f",
+        "path": "src/documents/permissions.py",
+        "startLine": 46,
+        "endLine": 55,
+        "bytes": 0,
+        "newlyShown": false
+      },
+      {
+        "requestId": "read-sharelink-serializer",
+        "request": {
+          "id": "read-sharelink-serializer",
+          "from": "dep-sharelink-permissions-config",
+          "selector": {
+            "kind": "indexed-symbol",
+            "symbolId": "symbol-7f3ddddb6390c3a44d4324aa"
+          },
+          "contextLines": 3
+        },
+        "budget": {
+          "usedBytes": 2739,
+          "maxBytes": 65536
+        },
+        "status": "resolved",
+        "windowId": "window-f9fb22ea141d163a67b85798",
+        "path": "src/documents/serialisers.py",
+        "startLine": 2851,
+        "endLine": 2888,
+        "bytes": 1223,
+        "newlyShown": true
+      },
+      {
+        "requestId": "read-sharelink-serializer-create",
+        "request": {
+          "id": "read-sharelink-serializer-create",
+          "from": "read-sharelink-serializer",
+          "selector": {
+            "kind": "indexed-symbol",
+            "symbolId": "symbol-716a8ba8e9ce3d671e14156e"
+          },
+          "contextLines": 3
+        },
+        "budget": {
+          "usedBytes": 3962,
+          "maxBytes": 65536
+        },
+        "status": "resolved",
+        "windowId": "window-f9fb22ea141d163a67b85798",
+        "path": "src/documents/serialisers.py",
+        "startLine": 2869,
+        "endLine": 2872,
+        "bytes": 0,
+        "newlyShown": false
+      },
+      {
+        "requestId": "read-sharelink-document-validation",
+        "request": {
+          "id": "read-sharelink-document-validation",
+          "from": "read-sharelink-serializer",
+          "selector": {
+            "kind": "indexed-symbol",
+            "symbolId": "symbol-abf3dbb70095f3343194b2da"
+          },
+          "contextLines": 3
+        },
+        "budget": {
+          "usedBytes": 3962,
+          "maxBytes": 65536
+        },
+        "status": "resolved",
+        "windowId": "window-f9fb22ea141d163a67b85798",
+        "path": "src/documents/serialisers.py",
+        "startLine": 2873,
+        "endLine": 2888,
+        "bytes": 0,
+        "newlyShown": false
+      },
+      {
+        "requestId": "read-owner-aware-permission-helper",
+        "request": {
+          "id": "read-owner-aware-permission-helper",
+          "from": "read-sharelink-document-validation",
+          "selector": {
+            "kind": "indexed-symbol",
+            "symbolId": "symbol-d50f36cbe040d6fab5ea55a5"
+          },
+          "contextLines": 3
+        },
+        "budget": {
+          "usedBytes": 3962,
+          "maxBytes": 65536
+        },
+        "status": "resolved",
+        "windowId": "window-c2c0c8541c89adff27371448",
+        "path": "src/documents/permissions.py",
+        "startLine": 624,
+        "endLine": 637,
+        "bytes": 674,
+        "newlyShown": true
+      },
+      {
+        "requestId": "read-owner-aware-object-query",
+        "request": {
+          "id": "read-owner-aware-object-query",
+          "from": "read-sharelink-document-validation",
+          "selector": {
+            "kind": "indexed-symbol",
+            "symbolId": "symbol-99fd10bbb884c96bfd9d81f5"
+          },
+          "contextLines": 3
+        },
+        "budget": {
+          "usedBytes": 4636,
+          "maxBytes": 65536
+        },
+        "status": "resolved",
+        "windowId": "window-bab0d165832c3c52b6d491dc",
+        "path": "src/documents/permissions.py",
+        "startLine": 589,
+        "endLine": 594,
+        "bytes": 183,
+        "newlyShown": true
+      }
+    ],
+    "selectionOutcomes": [
+      {
+        "id": "dep-sharelink-permissions-config",
+        "from": "share-create",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-5709a124aedf20e3061cb02b",
+          "startLine": 4696,
+          "endLine": 4717
+        },
+        "description": "ShareLinkViewSet uses IsAuthenticated and PaperlessObjectPermissions, and delegates creation to the configured ShareLinkSerializer.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-user-passing-mixin",
+        "from": "share-create",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-820a252321441da5ca5cda82",
+          "startLine": 411,
+          "endLine": 428
+        },
+        "description": "The serializer context may receive the authenticated request user, which can affect document-target validation.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-share-create-permission-configuration",
+        "from": "share-create",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-5709a124aedf20e3061cb02b",
+          "startLine": 4706,
+          "endLine": 4714
+        },
+        "description": "The ShareLinkViewSet uses PaperlessObjectPermissions, with object filtering configured for the share-link resource.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-share-create-post-permission-map",
+        "from": "dep-sharelink-permissions-config",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-af4f19ab781b6d394241f26f",
+          "startLine": 36,
+          "endLine": 43
+        },
+        "description": "POST requires the model add permission, while object permission handling is defined separately.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-share-create-object-permission-handler",
+        "from": "dep-sharelink-permissions-config",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-af4f19ab781b6d394241f26f",
+          "startLine": 46,
+          "endLine": 53
+        },
+        "description": "Object-level permission checks defer to the superclass for non-owners rather than treating a global grant as owner access.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-share-create-user-binding",
+        "from": "dep-user-passing-mixin",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-820a252321441da5ca5cda82",
+          "startLine": 411,
+          "endLine": 428
+        },
+        "description": "The request user is passed into serializers that support permission-aware validation.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-share-create-document-validation",
+        "from": "dep-sharelink-permissions-config",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-f9fb22ea141d163a67b85798",
+          "startLine": 2869,
+          "endLine": 2886
+        },
+        "description": "Share-link creation validates the referenced document and denies creation unless the user has the required global view permission and the owner-aware object check succeeds.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-share-create-owner-aware-check",
+        "from": "dep-share-create-document-validation",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-c2c0c8541c89adff27371448",
+          "startLine": 624,
+          "endLine": 635
+        },
+        "description": "The owner-aware helper permits the owner or an explicit object permission, rather than relying solely on the global permission.",
+        "status": "resolved"
+      }
+    ],
+    "acceptedDependencies": [
+      {
+        "id": "dep-sharelink-permissions-config",
+        "from": "share-create",
+        "path": "src/documents/views.py",
+        "startLine": 4696,
+        "endLine": 4717,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-user-passing-mixin",
+        "from": "share-create",
+        "path": "src/documents/views.py",
+        "startLine": 411,
+        "endLine": 428,
+        "reason": "resource-binding",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-share-create-permission-configuration",
+        "from": "share-create",
+        "path": "src/documents/views.py",
+        "startLine": 4706,
+        "endLine": 4714,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-share-create-post-permission-map",
+        "from": "dep-sharelink-permissions-config",
+        "path": "src/documents/permissions.py",
+        "startLine": 36,
+        "endLine": 43,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-share-create-object-permission-handler",
+        "from": "dep-sharelink-permissions-config",
+        "path": "src/documents/permissions.py",
+        "startLine": 46,
+        "endLine": 53,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-share-create-user-binding",
+        "from": "dep-user-passing-mixin",
+        "path": "src/documents/views.py",
+        "startLine": 411,
+        "endLine": 428,
+        "reason": "resource-binding",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-share-create-document-validation",
+        "from": "dep-sharelink-permissions-config",
+        "path": "src/documents/serialisers.py",
+        "startLine": 2869,
+        "endLine": 2886,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-share-create-owner-aware-check",
+        "from": "dep-share-create-document-validation",
+        "path": "src/documents/permissions.py",
+        "startLine": 624,
+        "endLine": 635,
+        "reason": "control",
+        "basis": "model-proposal"
+      }
+    ],
+    "sourceDisplay": {
+      "totalBytes": 6514,
+      "uniqueSourceBytes": 4819,
+      "resentSourceBytes": 1695,
+      "maxBytes": 65536
+    },
+    "unknownCostReason": "provider did not report actual cost for every dispatched request"
+  }
+}

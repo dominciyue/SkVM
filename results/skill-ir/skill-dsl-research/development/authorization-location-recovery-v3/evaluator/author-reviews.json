@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "authorization-al-author-semantic-reviews/v1",
+  "planned": 8,
+  "firstSemanticValid": 4,
+  "finalSemanticValid": 5,
+  "rows": [
+    {
+      "id": "memos-space-policy-markdown-original",
+      "firstSemanticValid": true,
+      "finalSemanticValid": true
+    },
+    {
+      "id": "memos-space-policy-markdown-changed",
+      "firstSemanticValid": true,
+      "finalSemanticValid": true
+    },
+    {
+      "id": "memos-space-policy-dsl-original",
+      "firstSemanticValid": true,
+      "finalSemanticValid": true
+    },
+    {
+      "id": "memos-space-policy-dsl-changed",
+      "firstSemanticValid": false,
+      "finalSemanticValid": false
+    },
+    {
+      "id": "paperless-note-premise-markdown-original",
+      "firstSemanticValid": false,
+      "finalSemanticValid": true
+    },
+    {
+      "id": "paperless-note-premise-markdown-changed",
+      "firstSemanticValid": true,
+      "finalSemanticValid": true
+    },
+    {
+      "id": "paperless-note-premise-dsl-original",
+      "firstSemanticValid": false,
+      "finalSemanticValid": false
+    },
+    {
+      "id": "paperless-note-premise-dsl-changed",
+      "firstSemanticValid": false,
+      "finalSemanticValid": false,
+      "status": "author-dependency-blocked"
+    }
+  ],
+  "evaluatorIdentity": "Two independent read-only default agents by package; no consumer answers read; main spot-check of exact retained-source policy and premise anchors.",
+  "findings": [
+    {
+      "unitId": "memos-space-policy-dsl-changed",
+      "issue": "Changed accepted policy text and scenario expectation are valid, but policy.reason and analysisContract.publicInstruction still call it the accepted original policy.",
+      "effect": "Strict semantic-faithfulness failure despite structural validity; preserve actual selected draft and its later consumer result. No domain repair by main agent.",
+      "anchors": [
+        "author-packages/memos-space-policy/dsl/changed.selected.json:19",
+        "author-packages/memos-space-policy/dsl/changed.selected.json:83"
+      ]
+    },
+    {
+      "unitId": "paperless-note-premise-markdown-original",
+      "issue": "First delivery failed ordinary/public-input validation; one revision retained original owner-unspecified premises and both requested absent/other-present counterfactuals.",
+      "anchors": [
+        "author-packages/paperless-note-premise/markdown/original.selected.md:48",
+        "author-packages/paperless-note-premise/markdown/original.selected.md:64",
+        "author-packages/paperless-note-premise/markdown/original.selected.md:112"
+      ]
+    },
+    {
+      "unitId": "paperless-note-premise-dsl-original",
+      "issue": "Both deliveries fail the requested assessment/evidenceRequest envelope; no complete declaration. Changed author and both consumers remain blocked.",
+      "anchors": [
+        "author-summary.json:125-136"
+      ]
+    }
+  ],
+  "costBoundary": "First-valid/final-valid from the host are reported separately. Semantic truth is not inferred from structure; developer/reviewer effort and human minutes unknown."
+}

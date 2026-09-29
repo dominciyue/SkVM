@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "authorization-al-review-packet/v1",
+  "anonymousId": "r-545cf27b8640",
+  "status": "preparation-blocked",
+  "first": null,
+  "final": {
+    "canonicalResult": null,
+    "wireResult": null,
+    "observedDecisions": null
+  },
+  "finalKind": null,
+  "actualTask": null,
+  "materialId": null,
+  "materialPath": null,
+  "sourceScope": "Only actually supplied fixed source is evidence; no target execution. Premises are assumptions; unspecified is not absent or other-present. Full conditional answers retain material branches. Distinguish external uncertainty from source gaps.",
+  "publicBrief": {
+    "id": "memos-get-shared",
+    "repository": "https://github.com/usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "entry": "server/api/v1/memo_share_service.go:170-213",
+    "acceptedPolicy": "GetSharedMemo needs no authentication; a current share token grants access to its exact memo only. Invalid or expired tokens and inaccessible memos yield NOT_FOUND.",
+    "currentQuestion": "At GetSharedMemo handler entry, can an anonymous caller retrieve the private, active, non-SPACE memo associated with a supplied share token when this task does not say whether the token exists or is unexpired? Assume the associated memo has a valid creator if the token resolves. State the source-visible branches and missing runtime facts.",
+    "boundary": "declared-entry",
+    "premises": [
+      "At GetSharedMemo entry, the caller is anonymous. If the token resolves, its associated memo is active, private, non-SPACE, and has a valid creator. Token existence and expiry are unspecified."
+    ],
+    "requiredResponseDetails": [
+      "Explain the valid token-associated memo and invalid/expired branches; do not invent token state, a separate requested memo identity, or deployment success."
+    ]
+  },
+  "rubric": {
+    "id": "memos-get-shared",
+    "scenarios": [
+      {
+        "key": "token-status-unspecified",
+        "expectedDecision": "conditional-policy:undetermined",
+        "expectedConclusion": "unknown"
+      }
+    ],
+    "decisiveEvidence": [
+      "server/api/v1/memo_share_service.go:170-189 resolves a token and reads the memo identified by ms.MemoID",
+      "server/api/v1/memo_share_service.go:221-229 rejects missing or expired token",
+      "core/access/memo.go:87-121 accepts a share for SharedMemoID matching that resolved memo",
+      "server/api/v1/memo_share_service.go:210-213 excludes relation graph access"
+    ],
+    "limits": "Token existence and expiry are deliberately unspecified, so no unconditional delivery claim is supported. The API request carries no separate target memo ID; a valid token selects its associated memo."
+  }
+}

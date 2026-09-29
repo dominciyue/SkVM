@@ -1,0 +1,170 @@
+{
+  "repository": "https://github.com/paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceMode": "fixed-context",
+  "isolation": "exact-allowlist",
+  "files": [
+    {
+      "relativePath": "src/documents/views.py",
+      "content": "    def original_requested(request):\n        return (\n            \"original\" in request.query_params\n            and request.query_params[\"original\"] == \"true\"\n        )\n\n    def _get_effective_file_doc(\n        self,\n        request_doc: Document,\n        root_doc: Document,\n        request: Request,\n    def _resolve_request_and_root_doc(\n        self,\n        pk,\n        request: Request,\n        *,\n        include_deleted: bool = False,\n    def file_response(self, pk, request, disposition):\n        resolved = self._resolve_request_and_root_doc(\n            pk,\n            request,\n            include_deleted=True,\n        )\n        if isinstance(resolved, HttpResponseForbidden):\n            return resolved\n        file_doc = self._get_effective_file_doc(\n            resolved.request_doc,\n            resolved.root_doc,\n            request,\n        )\n        return serve_file(\n            doc=file_doc,\n            use_archive=not self.original_requested(request)\n            and file_doc.has_archive_version,\n            disposition=disposition,\n            follow_formatting=request.query_params.get(\"follow_formatting\", False),\n        )\n\n    @action(methods=[\"get\"], detail=True)\n    def download(self, request, pk=None):\n        try:\n            return self.file_response(pk, request, \"attachment\")\n        except (FileNotFoundError, Document.DoesNotExist):\n            raise Http404\ndef serve_file(\n    *,\n    doc: Document,\n    use_archive: bool,\n    disposition: str,\n    follow_formatting: bool = False,\n",
+      "sha256": "1b8eed4d315334ff0bda307d3a163f3b257ad0b0f9784fc0018844eb71944fd4",
+      "cropRange": {
+        "startLine": 1369,
+        "endLine": 4946
+      },
+      "originalLocations": [
+        "src/documents/views.py:1369-1374",
+        "src/documents/views.py:1388-1392",
+        "src/documents/views.py:1401-1406",
+        "src/documents/views.py:1429-1449",
+        "src/documents/views.py:1834-1839",
+        "src/documents/views.py:4941-4946"
+      ],
+      "segments": [
+        {
+          "originalStartLine": 1369,
+          "originalEndLine": 1374,
+          "snapshotStartLine": 1,
+          "snapshotEndLine": 6,
+          "origins": [
+            "locator:located-5"
+          ]
+        },
+        {
+          "originalStartLine": 1388,
+          "originalEndLine": 1392,
+          "snapshotStartLine": 7,
+          "snapshotEndLine": 11,
+          "origins": [
+            "locator:located-3"
+          ]
+        },
+        {
+          "originalStartLine": 1401,
+          "originalEndLine": 1406,
+          "snapshotStartLine": 12,
+          "snapshotEndLine": 17,
+          "origins": [
+            "locator:located-2"
+          ]
+        },
+        {
+          "originalStartLine": 1429,
+          "originalEndLine": 1449,
+          "snapshotStartLine": 18,
+          "snapshotEndLine": 38,
+          "origins": [
+            "model-proposal:dep-file-response-control",
+            "locator:located-1"
+          ]
+        },
+        {
+          "originalStartLine": 1834,
+          "originalEndLine": 1839,
+          "snapshotStartLine": 39,
+          "snapshotEndLine": 44,
+          "origins": [
+            "entry:download",
+            "model-proposal:dep-download-entry-control"
+          ]
+        },
+        {
+          "originalStartLine": 4941,
+          "originalEndLine": 4946,
+          "snapshotStartLine": 45,
+          "snapshotEndLine": 50,
+          "origins": [
+            "locator:located-4"
+          ]
+        }
+      ]
+    }
+  ],
+  "evidencePreparation": {
+    "status": "ready",
+    "sourceIdentity": {
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+    "gaps": [],
+    "closureClaim": "declared-dependencies-only",
+    "schemaVersion": "authorization-evidence-report/v2",
+    "included": [
+      {
+        "path": "src/documents/views.py",
+        "originalPath": "src/documents/views.py",
+        "startLine": 1369,
+        "endLine": 4946,
+        "origins": [
+          "locator:located-5",
+          "locator:located-3",
+          "locator:located-2",
+          "model-proposal:dep-file-response-control",
+          "locator:located-1",
+          "entry:download",
+          "model-proposal:dep-download-entry-control",
+          "locator:located-4"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 1369,
+            "originalEndLine": 1374,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 6,
+            "origins": [
+              "locator:located-5"
+            ]
+          },
+          {
+            "originalStartLine": 1388,
+            "originalEndLine": 1392,
+            "snapshotStartLine": 7,
+            "snapshotEndLine": 11,
+            "origins": [
+              "locator:located-3"
+            ]
+          },
+          {
+            "originalStartLine": 1401,
+            "originalEndLine": 1406,
+            "snapshotStartLine": 12,
+            "snapshotEndLine": 17,
+            "origins": [
+              "locator:located-2"
+            ]
+          },
+          {
+            "originalStartLine": 1429,
+            "originalEndLine": 1449,
+            "snapshotStartLine": 18,
+            "snapshotEndLine": 38,
+            "origins": [
+              "model-proposal:dep-file-response-control",
+              "locator:located-1"
+            ]
+          },
+          {
+            "originalStartLine": 1834,
+            "originalEndLine": 1839,
+            "snapshotStartLine": 39,
+            "snapshotEndLine": 44,
+            "origins": [
+              "entry:download",
+              "model-proposal:dep-download-entry-control"
+            ]
+          },
+          {
+            "originalStartLine": 4941,
+            "originalEndLine": 4946,
+            "snapshotStartLine": 45,
+            "snapshotEndLine": 50,
+            "origins": [
+              "locator:located-4"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

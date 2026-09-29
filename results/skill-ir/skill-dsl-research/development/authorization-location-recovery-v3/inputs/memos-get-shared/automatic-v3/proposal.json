@@ -1,0 +1,708 @@
+{
+  "schemaVersion": "authorization-dependency-proposal/v3",
+  "model": "xty/gpt-5.6-sol",
+  "dependencies": [
+    {
+      "id": "dep-handler-token-resolution",
+      "from": "get-shared",
+      "path": "server/api/v1/memo_share_service.go",
+      "startLine": 170,
+      "endLine": 176,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-handler-memo-binding",
+      "from": "get-shared",
+      "path": "server/api/v1/memo_share_service.go",
+      "startLine": 178,
+      "endLine": 185,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-handler-read-check",
+      "from": "get-shared",
+      "path": "server/api/v1/memo_share_service.go",
+      "startLine": 186,
+      "endLine": 189,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-handler-success-effect",
+      "from": "get-shared",
+      "path": "server/api/v1/memo_share_service.go",
+      "startLine": 203,
+      "endLine": 213,
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-active-share-lookup",
+      "from": "dep-handler-token-resolution",
+      "path": "server/api/v1/memo_share_service.go",
+      "startLine": 221,
+      "endLine": 230,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-share-expiration-test",
+      "from": "dep-active-share-lookup",
+      "path": "server/api/v1/memo_share_service.go",
+      "startLine": 217,
+      "endLine": 219,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-share-store-boundary",
+      "from": "dep-active-share-lookup",
+      "path": "store/memo_share.go",
+      "startLine": 57,
+      "endLine": 59,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-anonymous-context-construction",
+      "from": "dep-handler-read-check",
+      "path": "server/api/v1/memo_access.go",
+      "startLine": 17,
+      "endLine": 30,
+      "reason": "identity",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-viewer-context-resolution",
+      "from": "dep-anonymous-context-construction",
+      "path": "server/api/v1/memo_access.go",
+      "startLine": 32,
+      "endLine": 41,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-read-context-resolver",
+      "from": "dep-viewer-context-resolution",
+      "path": "core/access/memo_resolve.go",
+      "startLine": 85,
+      "endLine": 91,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-read-structural-and-share-branch",
+      "from": "dep-handler-read-check",
+      "path": "core/access/memo.go",
+      "startLine": 92,
+      "endLine": 122,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-private-fallback-branch",
+      "from": "dep-handler-read-check",
+      "path": "core/access/memo.go",
+      "startLine": 124,
+      "endLine": 145,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-decision-allowed",
+      "from": "dep-handler-read-check",
+      "path": "core/access/memo.go",
+      "startLine": 51,
+      "endLine": 53,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-anonymous-identity-test",
+      "from": "dep-read-structural-and-share-branch",
+      "path": "core/access/memo.go",
+      "startLine": 57,
+      "endLine": 59,
+      "reason": "identity",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-creator-validity-resolution",
+      "from": "dep-read-context-resolver",
+      "path": "core/access/memo_resolve.go",
+      "startLine": 36,
+      "endLine": 42,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-read-context-population",
+      "from": "dep-viewer-context-resolution",
+      "path": "core/access/memo_resolve.go",
+      "startLine": 58,
+      "endLine": 68,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-anonymous-membership-skip",
+      "from": "dep-viewer-context-resolution",
+      "path": "core/access/memo_resolve.go",
+      "startLine": 70,
+      "endLine": 73,
+      "reason": "identity",
+      "basis": "model-proposal"
+    }
+  ],
+  "gaps": [],
+  "promptCharacters": 38413,
+  "responseCharacters": 5973,
+  "durationMs": 92259.12180000002,
+  "tokens": {
+    "input": 12181,
+    "output": 2835,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "actualCostUsd": null,
+  "account": {
+    "schemaVersion": "authorization-preparation-attempts/v1",
+    "model": "xty/gpt-5.6-sol",
+    "status": "completed",
+    "published": false,
+    "attempts": [
+      {
+        "id": "provider-attempt-1",
+        "phase": "initial",
+        "transport": "prompt-parse",
+        "status": "response",
+        "startedAt": "2026-09-29T07:39:01.312Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 20423,
+          "toolNames": [],
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false
+        },
+        "usage": {
+          "input": 6872,
+          "output": 1951,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "transportAttempts": "unknown",
+        "response": {
+          "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-handler-token-resolution\",\"from\":\"get-shared\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-38676861d1d9601ef06d3810\",\"startLine\":170,\"endLine\":176},\"reason\":\"control\",\"description\":\"Entry documents unauthenticated access and resolves the supplied share token through the active-share helper.\"},{\"id\":\"dep-handler-memo-binding\",\"from\":\"get-shared\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-38676861d1d9601ef06d3810\",\"startLine\":178,\"endLine\":185},\"reason\":\"resource-binding\",\"description\":\"Loads the exact memo identified by the resolved share and rejects missing, non-normal, or SPACE-audience memos.\"},{\"id\":\"dep-handler-read-check\",\"from\":\"get-shared\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-38676861d1d9601ef06d3810\",\"startLine\":186,\"endLine\":189},\"reason\":\"control\",\"description\":\"Builds a read context using the shared memo ID and maps context errors or access denial to NOT_FOUND.\"},{\"id\":\"dep-handler-success-effect\",\"from\":\"get-shared\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-38676861d1d9601ef06d3810\",\"startLine\":203,\"endLine\":213},\"reason\":\"effect\",\"description\":\"Converts and returns the memo, maps a missing creator to NOT_FOUND, and removes the surrounding relation graph.\"},{\"id\":\"dep-active-share-lookup\",\"from\":\"dep-handler-token-resolution\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-542b654283445199ff475ad4\",\"startLine\":221,\"endLine\":230},\"reason\":\"control\",\"description\":\"Looks up the supplied token and rejects absent or expired shares as NOT_FOUND; datastore errors are INTERNAL.\"},{\"id\":\"dep-share-expiration-test\",\"from\":\"dep-active-share-lookup\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-2b368ae74ec16506fb93ed51\",\"startLine\":217,\"endLine\":219},\"reason\":\"control\",\"description\":\"Defines expiration from ExpiresTs and the current Unix time.\"},{\"id\":\"dep-share-store-boundary\",\"from\":\"dep-active-share-lookup\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-916f96c2ddd78d8f31f139c8\",\"startLine\":57,\"endLine\":59},\"reason\":\"resource-binding\",\"description\":\"Shows that share existence and token resolution are delegated to the store driver using the supplied finder.\"},{\"id\":\"dep-anonymous-context-construction\",\"from\":\"dep-handler-read-check\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-0a0828eefac4fba0eeb243f9\",\"startLine\":17,\"endLine\":30},\"reason\":\"identity\",\"description\":\"Resolves the current viewer; for an anonymous caller it also reads instance anonymous-access policy before forwarding the shared memo ID.\"},{\"id\":\"dep-viewer-context-resolution\",\"from\":\"dep-anonymous-context-construction\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-707287e7f7d509d004d27357\",\"startLine\":32,\"endLine\":41},\"reason\":\"control\",\"description\":\"Delegates construction of memo access facts and preserves the shared memo ID.\"},{\"id\":\"dep-read-context-resolver\",\"from\":\"dep-viewer-context-resolution\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-6673e01b8e960d8925fd89ef\",\"startLine\":85,\"endLine\":91},\"reason\":\"control\",\"description\":\"Separates resource-fact resolution from viewer-specific context construction.\"},{\"id\":\"dep-read-structural-and-share-branch\",\"from\":\"dep-handler-read-check\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-67d01a17f593d1994d4bf45d\",\"startLine\":92,\"endLine\":122},\"reason\":\"control\",\"description\":\"Rejects invalid creator or structure, handles lifecycle checks, and grants when SharedMemoID exactly matches a non-SPACE memo.\"},{\"id\":\"dep-private-fallback-branch\",\"from\":\"dep-handler-read-check\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-67d01a17f593d1994d4bf45d\",\"startLine\":124,\"endLine\":145},\"reason\":\"control\",\"description\":\"Shows the ordinary visibility branches, including denial of a private memo to an inactive or anonymous viewer when the earlier share branch does not apply.\"},{\"id\":\"dep-decision-allowed\",\"from\":\"dep-handler-read-check\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-8fa8726f40646468efb8b8ed\",\"startLine\":51,\"endLine\":53},\"reason\":\"control\",\"description\":\"Defines the Allowed predicate used by the handler.\"},{\"id\":\"dep-anonymous-identity-test\",\"from\":\"dep-read-structural-and-share-branch\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-587c9772f1e9370769a4a4af\",\"startLine\":57,\"endLine\":59},\"reason\":\"identity\",\"description\":\"Defines an active viewer and establishes that a nil anonymous viewer is not active.\"}],\"reads\":[{\"id\":\"read-memo-fact-resolution\",\"from\":\"dep-read-context-resolver\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-67d8da6f904ff6d1ed52f0ae\"},\"contextLines\":3},{\"id\":\"read-viewer-context-population\",\"from\":\"dep-read-context-resolver\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-13fc862ab96a4fbbad218fc6\"},\"contextLines\":3}]}",
+          "toolCalls": [],
+          "tokens": {
+            "input": 6872,
+            "output": 1951,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "costUsd": null,
+          "durationMs": 37726.90969999999,
+          "stopReason": "end_turn"
+        },
+        "endedAt": "2026-09-29T07:39:39.039Z"
+      },
+      {
+        "id": "provider-attempt-2",
+        "phase": "initial",
+        "transport": "prompt-parse",
+        "status": "response",
+        "startedAt": "2026-09-29T07:39:39.048Z",
+        "request": {
+          "messageCount": 1,
+          "messageCharacters": 17990,
+          "toolNames": [],
+          "maxTokens": 6000,
+          "temperature": 0,
+          "executableTools": false
+        },
+        "usage": {
+          "input": 5309,
+          "output": 884,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "transportAttempts": "unknown",
+        "response": {
+          "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-creator-validity-resolution\",\"from\":\"dep-read-context-resolver\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-d488146359cbab060c159f6f\",\"startLine\":36,\"endLine\":42},\"reason\":\"control\",\"description\":\"The read decision depends on runtime resolution of the memo creator and whether the creator is valid.\"},{\"id\":\"dep-read-context-population\",\"from\":\"dep-viewer-context-resolution\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-8554e9b03cb62de4eb3c8277\",\"startLine\":58,\"endLine\":68},\"reason\":\"resource-binding\",\"description\":\"The resolved context carries the anonymous viewer, instance-level anonymous-access result, exact shared memo ID, and creator/space validity into the read decision.\"},{\"id\":\"dep-anonymous-membership-skip\",\"from\":\"dep-viewer-context-resolution\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-8554e9b03cb62de4eb3c8277\",\"startLine\":70,\"endLine\":73},\"reason\":\"identity\",\"description\":\"An anonymous viewer is inactive, so the space-membership lookup is skipped; this is relevant to the anonymous non-SPACE branch.\"}],\"reads\":[]}",
+          "toolCalls": [],
+          "tokens": {
+            "input": 5309,
+            "output": 884,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "costUsd": null,
+          "durationMs": 54532.21210000003,
+          "stopReason": "end_turn"
+        },
+        "endedAt": "2026-09-29T07:40:33.581Z"
+      }
+    ],
+    "telemetry": {
+      "providerCalls": 2,
+      "respondedCalls": 2,
+      "unknownUsageCalls": 0,
+      "unknownCostCalls": 2,
+      "knownTokens": {
+        "input": 12181,
+        "output": 2835,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "tokensStatus": "complete",
+      "knownActualUsdSubtotal": 0,
+      "totalActualUsd": null,
+      "actualUsdStatus": "unknown",
+      "transportAttempts": "unknown"
+    },
+    "rounds": [
+      {
+        "kind": "proposal",
+        "promptCharacters": 20423,
+        "promptBytes": 20425,
+        "metadataBytes": 12883,
+        "displayedBytes": 7542,
+        "uniqueSourceBytes": 7542,
+        "resentSourceBytes": 0,
+        "diagnostics": []
+      },
+      {
+        "kind": "supplement",
+        "promptCharacters": 17990,
+        "promptBytes": 17992,
+        "metadataBytes": 8533,
+        "displayedBytes": 9459,
+        "uniqueSourceBytes": 1917,
+        "resentSourceBytes": 7542,
+        "diagnostics": []
+      }
+    ],
+    "diagnostics": [],
+    "readOutcomes": [
+      {
+        "requestId": "read-memo-fact-resolution",
+        "request": {
+          "id": "read-memo-fact-resolution",
+          "from": "dep-read-context-resolver",
+          "selector": {
+            "kind": "indexed-symbol",
+            "symbolId": "symbol-67d8da6f904ff6d1ed52f0ae"
+          },
+          "contextLines": 3
+        },
+        "budget": {
+          "usedBytes": 7542,
+          "maxBytes": 65536
+        },
+        "status": "resolved",
+        "windowId": "window-d488146359cbab060c159f6f",
+        "path": "core/access/memo_resolve.go",
+        "startLine": 31,
+        "endLine": 53,
+        "bytes": 833,
+        "newlyShown": true
+      },
+      {
+        "requestId": "read-viewer-context-population",
+        "request": {
+          "id": "read-viewer-context-population",
+          "from": "dep-read-context-resolver",
+          "selector": {
+            "kind": "indexed-symbol",
+            "symbolId": "symbol-13fc862ab96a4fbbad218fc6"
+          },
+          "contextLines": 3
+        },
+        "budget": {
+          "usedBytes": 8375,
+          "maxBytes": 65536
+        },
+        "status": "resolved",
+        "windowId": "window-8554e9b03cb62de4eb3c8277",
+        "path": "core/access/memo_resolve.go",
+        "startLine": 58,
+        "endLine": 81,
+        "bytes": 1084,
+        "newlyShown": true
+      }
+    ],
+    "selectionOutcomes": [
+      {
+        "id": "dep-handler-token-resolution",
+        "from": "get-shared",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-38676861d1d9601ef06d3810",
+          "startLine": 170,
+          "endLine": 176
+        },
+        "description": "Entry documents unauthenticated access and resolves the supplied share token through the active-share helper.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-handler-memo-binding",
+        "from": "get-shared",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-38676861d1d9601ef06d3810",
+          "startLine": 178,
+          "endLine": 185
+        },
+        "description": "Loads the exact memo identified by the resolved share and rejects missing, non-normal, or SPACE-audience memos.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-handler-read-check",
+        "from": "get-shared",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-38676861d1d9601ef06d3810",
+          "startLine": 186,
+          "endLine": 189
+        },
+        "description": "Builds a read context using the shared memo ID and maps context errors or access denial to NOT_FOUND.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-handler-success-effect",
+        "from": "get-shared",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-38676861d1d9601ef06d3810",
+          "startLine": 203,
+          "endLine": 213
+        },
+        "description": "Converts and returns the memo, maps a missing creator to NOT_FOUND, and removes the surrounding relation graph.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-active-share-lookup",
+        "from": "dep-handler-token-resolution",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-542b654283445199ff475ad4",
+          "startLine": 221,
+          "endLine": 230
+        },
+        "description": "Looks up the supplied token and rejects absent or expired shares as NOT_FOUND; datastore errors are INTERNAL.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-share-expiration-test",
+        "from": "dep-active-share-lookup",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-2b368ae74ec16506fb93ed51",
+          "startLine": 217,
+          "endLine": 219
+        },
+        "description": "Defines expiration from ExpiresTs and the current Unix time.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-share-store-boundary",
+        "from": "dep-active-share-lookup",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-916f96c2ddd78d8f31f139c8",
+          "startLine": 57,
+          "endLine": 59
+        },
+        "description": "Shows that share existence and token resolution are delegated to the store driver using the supplied finder.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-anonymous-context-construction",
+        "from": "dep-handler-read-check",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-0a0828eefac4fba0eeb243f9",
+          "startLine": 17,
+          "endLine": 30
+        },
+        "description": "Resolves the current viewer; for an anonymous caller it also reads instance anonymous-access policy before forwarding the shared memo ID.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-viewer-context-resolution",
+        "from": "dep-anonymous-context-construction",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-707287e7f7d509d004d27357",
+          "startLine": 32,
+          "endLine": 41
+        },
+        "description": "Delegates construction of memo access facts and preserves the shared memo ID.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-read-context-resolver",
+        "from": "dep-viewer-context-resolution",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-6673e01b8e960d8925fd89ef",
+          "startLine": 85,
+          "endLine": 91
+        },
+        "description": "Separates resource-fact resolution from viewer-specific context construction.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-read-structural-and-share-branch",
+        "from": "dep-handler-read-check",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-67d01a17f593d1994d4bf45d",
+          "startLine": 92,
+          "endLine": 122
+        },
+        "description": "Rejects invalid creator or structure, handles lifecycle checks, and grants when SharedMemoID exactly matches a non-SPACE memo.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-private-fallback-branch",
+        "from": "dep-handler-read-check",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-67d01a17f593d1994d4bf45d",
+          "startLine": 124,
+          "endLine": 145
+        },
+        "description": "Shows the ordinary visibility branches, including denial of a private memo to an inactive or anonymous viewer when the earlier share branch does not apply.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-decision-allowed",
+        "from": "dep-handler-read-check",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-8fa8726f40646468efb8b8ed",
+          "startLine": 51,
+          "endLine": 53
+        },
+        "description": "Defines the Allowed predicate used by the handler.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-anonymous-identity-test",
+        "from": "dep-read-structural-and-share-branch",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-587c9772f1e9370769a4a4af",
+          "startLine": 57,
+          "endLine": 59
+        },
+        "description": "Defines an active viewer and establishes that a nil anonymous viewer is not active.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-creator-validity-resolution",
+        "from": "dep-read-context-resolver",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-d488146359cbab060c159f6f",
+          "startLine": 36,
+          "endLine": 42
+        },
+        "description": "The read decision depends on runtime resolution of the memo creator and whether the creator is valid.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-read-context-population",
+        "from": "dep-viewer-context-resolution",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-8554e9b03cb62de4eb3c8277",
+          "startLine": 58,
+          "endLine": 68
+        },
+        "description": "The resolved context carries the anonymous viewer, instance-level anonymous-access result, exact shared memo ID, and creator/space validity into the read decision.",
+        "status": "resolved"
+      },
+      {
+        "id": "dep-anonymous-membership-skip",
+        "from": "dep-viewer-context-resolution",
+        "selector": {
+          "kind": "shown-range",
+          "windowId": "window-8554e9b03cb62de4eb3c8277",
+          "startLine": 70,
+          "endLine": 73
+        },
+        "description": "An anonymous viewer is inactive, so the space-membership lookup is skipped; this is relevant to the anonymous non-SPACE branch.",
+        "status": "resolved"
+      }
+    ],
+    "acceptedDependencies": [
+      {
+        "id": "dep-handler-token-resolution",
+        "from": "get-shared",
+        "path": "server/api/v1/memo_share_service.go",
+        "startLine": 170,
+        "endLine": 176,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-handler-memo-binding",
+        "from": "get-shared",
+        "path": "server/api/v1/memo_share_service.go",
+        "startLine": 178,
+        "endLine": 185,
+        "reason": "resource-binding",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-handler-read-check",
+        "from": "get-shared",
+        "path": "server/api/v1/memo_share_service.go",
+        "startLine": 186,
+        "endLine": 189,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-handler-success-effect",
+        "from": "get-shared",
+        "path": "server/api/v1/memo_share_service.go",
+        "startLine": 203,
+        "endLine": 213,
+        "reason": "effect",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-active-share-lookup",
+        "from": "dep-handler-token-resolution",
+        "path": "server/api/v1/memo_share_service.go",
+        "startLine": 221,
+        "endLine": 230,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-share-expiration-test",
+        "from": "dep-active-share-lookup",
+        "path": "server/api/v1/memo_share_service.go",
+        "startLine": 217,
+        "endLine": 219,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-share-store-boundary",
+        "from": "dep-active-share-lookup",
+        "path": "store/memo_share.go",
+        "startLine": 57,
+        "endLine": 59,
+        "reason": "resource-binding",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-anonymous-context-construction",
+        "from": "dep-handler-read-check",
+        "path": "server/api/v1/memo_access.go",
+        "startLine": 17,
+        "endLine": 30,
+        "reason": "identity",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-viewer-context-resolution",
+        "from": "dep-anonymous-context-construction",
+        "path": "server/api/v1/memo_access.go",
+        "startLine": 32,
+        "endLine": 41,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-read-context-resolver",
+        "from": "dep-viewer-context-resolution",
+        "path": "core/access/memo_resolve.go",
+        "startLine": 85,
+        "endLine": 91,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-read-structural-and-share-branch",
+        "from": "dep-handler-read-check",
+        "path": "core/access/memo.go",
+        "startLine": 92,
+        "endLine": 122,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-private-fallback-branch",
+        "from": "dep-handler-read-check",
+        "path": "core/access/memo.go",
+        "startLine": 124,
+        "endLine": 145,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-decision-allowed",
+        "from": "dep-handler-read-check",
+        "path": "core/access/memo.go",
+        "startLine": 51,
+        "endLine": 53,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-anonymous-identity-test",
+        "from": "dep-read-structural-and-share-branch",
+        "path": "core/access/memo.go",
+        "startLine": 57,
+        "endLine": 59,
+        "reason": "identity",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-creator-validity-resolution",
+        "from": "dep-read-context-resolver",
+        "path": "core/access/memo_resolve.go",
+        "startLine": 36,
+        "endLine": 42,
+        "reason": "control",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-read-context-population",
+        "from": "dep-viewer-context-resolution",
+        "path": "core/access/memo_resolve.go",
+        "startLine": 58,
+        "endLine": 68,
+        "reason": "resource-binding",
+        "basis": "model-proposal"
+      },
+      {
+        "id": "dep-anonymous-membership-skip",
+        "from": "dep-viewer-context-resolution",
+        "path": "core/access/memo_resolve.go",
+        "startLine": 70,
+        "endLine": 73,
+        "reason": "identity",
+        "basis": "model-proposal"
+      }
+    ],
+    "sourceDisplay": {
+      "totalBytes": 17001,
+      "uniqueSourceBytes": 9459,
+      "resentSourceBytes": 7542,
+      "maxBytes": 65536
+    },
+    "unknownCostReason": "provider did not report actual cost for every dispatched request"
+  }
+}

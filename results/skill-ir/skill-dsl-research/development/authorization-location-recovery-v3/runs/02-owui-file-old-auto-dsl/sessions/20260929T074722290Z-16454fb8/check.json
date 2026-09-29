@@ -1,0 +1,182 @@
+{
+  "schemaVersion": "authorization-local-check/v1",
+  "status": "valid",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-bounded-preparation-v2\\inputs\\owui-file\\automatic-v2\\assessment.json",
+  "taskId": "owui-process-file-write",
+  "repository": "https://github.com/open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "sourceRoot": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-bounded-preparation-v2\\inputs\\owui-file\\automatic-v2\\source",
+  "sourceFiles": [
+    "backend/open_webui/routers/retrieval.py"
+  ],
+  "scopePreview": {
+    "analysisEntries": 1,
+    "declaredScenarios": 1,
+    "expandedObligations": 1,
+    "entries": [
+      {
+        "id": "entry:post-process-file",
+        "name": "POST /process/file -> process_file",
+        "locations": [
+          {
+            "path": "backend/open_webui/routers/retrieval.py",
+            "startLine": 1546,
+            "endLine": 1762
+          }
+        ],
+        "scenarioIds": [
+          "scenario:file-owner-without-destination-write-grant"
+        ]
+      }
+    ],
+    "supportDependencies": 1,
+    "supports": [
+      {
+        "id": "model-proposal:dep:process-file:collection-access-validation",
+        "from": null,
+        "path": "backend/open_webui/routers/retrieval.py",
+        "startLine": 2339,
+        "endLine": 2352,
+        "basis": "model-proposal"
+      }
+    ],
+    "scopeRule": "Only declared scenario-entry pairs are analyzed. Support does not add an entry; explicit multiple analysis entries are preserved."
+  },
+  "evidencePreparation": {
+    "status": "partial",
+    "sourceIdentity": {
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/owui",
+    "gaps": [
+      {
+        "id": "dep:process-file:ownership-lookup",
+        "entryKey": "post-process-file",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/open_webui/routers/retrieval.py"
+      },
+      {
+        "id": "dep:process-file:collection-input",
+        "entryKey": "post-process-file",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/open_webui/routers/retrieval.py"
+      },
+      {
+        "id": "dep:process-file:collection-branch",
+        "entryKey": "post-process-file",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/open_webui/routers/retrieval.py"
+      },
+      {
+        "id": "dep:process-file:content-source",
+        "entryKey": "post-process-file",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/open_webui/routers/retrieval.py"
+      },
+      {
+        "id": "dep:process-file:save-call",
+        "entryKey": "post-process-file",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/open_webui/routers/retrieval.py"
+      },
+      {
+        "id": "dep:process-file:success-binding",
+        "entryKey": "post-process-file",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/open_webui/routers/retrieval.py"
+      },
+      {
+        "id": "dep:process-file:error-path",
+        "entryKey": "post-process-file",
+        "reason": "ambiguous-location",
+        "attemptedPath": "backend/open_webui/routers/retrieval.py"
+      }
+    ],
+    "closureClaim": "declared-dependencies-only",
+    "schemaVersion": "authorization-evidence-report/v2",
+    "included": [
+      {
+        "path": "backend/open_webui/routers/retrieval.py",
+        "originalPath": "backend/open_webui/routers/retrieval.py",
+        "startLine": 1546,
+        "endLine": 2352,
+        "origins": [
+          "entry:post-process-file",
+          "model-proposal:dep:process-file:collection-access-validation"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 1546,
+            "originalEndLine": 1762,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 217,
+            "origins": [
+              "entry:post-process-file"
+            ]
+          },
+          {
+            "originalStartLine": 2339,
+            "originalEndLine": 2352,
+            "snapshotStartLine": 218,
+            "snapshotEndLine": 231,
+            "origins": [
+              "model-proposal:dep:process-file:collection-access-validation"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "arm": "B",
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "assessmentMode": "explicit-v1",
+  "assessmentProgram": {
+    "schemaVersion": "authorization-assessment-program/v1",
+    "entries": [
+      {
+        "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+        "authorObligationId": "scenario:file-owner-without-destination-write-grant",
+        "entryId": "entry:post-process-file",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At POST /process/file the verified non-admin owns the supplied file but has no ownership or write grant on the existing caller-selected destination collection.",
+            "atEntryId": "entry:post-process-file",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Identify the destination write sink and distinguish source-file ownership from destination write permission."
+        ]
+      }
+    ]
+  },
+  "reasoningStrategy": "standard",
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "requirementCount": 6,
+  "ledgerEntryCount": 0,
+  "preview": "<!-- analysis-profile: authorization-core-v1; origin: derived; study-arm: none; condition-analysis: disabled; assessment: explicit-v1 -->\n\n# Organized authorization assessment instruction (B)\n\nAnalyze each runnable obligation in the canonical declaration. Follow the declared required analysis, constraints, policy authority, and scope assurance. Explain the source-visible decision without assuming repository discovery or deployment facts. Address every supplied analysis question and report its coverage without inventing an answer.\n\n## Canonical declaration\nThis is task owui-process-file-write, expressed with source-authorization-assessment/v0. At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.\nAssess repository https://github.com/open-webui/open-webui at source ref 841c9045d789005145274955e7ef60b1b11a9be9 in fixed-context mode. Source discovery status is not-tested.\n\nThe accepted policy material is:\n- policy:destination-knowledge-write-policy is a explicit-task-requirement at inputs/owui-process-file-write/task.json#/normativeRequirement, revision authorization-case-input/v1@841c9045.\n  Policy text: Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.\n  Acceptance is accepted; accepting actor role: task-author; reason: The study task author supplied this bounded normative requirement for the comparison.\n\nThe principals are:\n- principal:verified-non-admin-file-owner has role verified non-administrator who owns the supplied source file. Author facts: [\"A signed-in non-admin whose file ownership is distinct from authorization on the destination knowledge base.\"]\n  Starting capabilities: authenticated-as-verified-user, owns-supplied-source-file, can-submit-process-file-form.\n\nThe resources are:\n- resource:existing-destination-knowledge-base is a knowledge-base-vector-collection. Author facts: [\"An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal.\"]\n\nThe declared source entries are:\n- entry:post-process-file names POST /process/file -> process_file.\n  Source location: backend/open_webui/routers/retrieval.py, startLine 1546, endLine 1762.\n\nThe authorization obligations are:\n- scenario:file-owner-without-destination-write-grant: principal principal:verified-non-admin-file-owner, resource resource:existing-destination-knowledge-base, relation owns-source-file-but-no-destination-write-grant, operation write-file-content-to-existing-knowledge-base, expected policy disposition deny.\n  Policy source: policy:destination-knowledge-write-policy. Declared entries: entry:post-process-file.\n  Condition caller-supplies-existing-collection-name: The natural task fixes a caller-selected existing knowledge-base collection.\n  Condition principal-is-not-admin: The task asks about a verified non-admin and the source exposes a separate admin branch.\n\nScope assurance: Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.\nRequired analysis:\n- Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.\n- identify the principal, operation, target resource relation, entry, and write sink\n- trace the user-controlled collection name through any target-specific authorization control\n- distinguish file ownership from destination knowledge-base write permission\n- return source_supported_failure, source_refuted, or unknown with exact input locations\nConstraints:\n- Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.\n- Use only the allowed case inputs.\n- Do not search for advisories, fixes, later versions, or deployment behavior.\n- Do not execute the project or propose a patch.\nAllowed decision kinds: observed for allow/deny expectations; conditional-policy for conditional expectations.\n\n## Public analysis questions\nDecide the current scenario at the stated boundary from the supplied fixed source and accepted policy. Treat listed premises as question assumptions at the named entry, not as source or deployment proof. Trace the decisive authorization control and protected effect with exact supplied-source locations. Answer every explicitly requested counterfactual branch separately, identifying its changed assumptions and any decisive unknown. Include only the response details requested below. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: Can a verified non-admin who owns the supplied file write its content to an existing caller-selected knowledge-base collection without a write grant through POST /process/file?\nAnalysis boundary: declared-entry.\nTask premise: At POST /process/file the verified non-admin owns the supplied file but has no ownership or write grant on the existing caller-selected destination collection.\nRequired response detail: Identify the destination write sink and distinguish source-file ownership from destination write permission.\n\n## Explicit assessment program\n- Current question scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file at entry:post-process-file; boundary: declared-entry.\n  Accepted task premises at this entry (not source citations): premise-1: At POST /process/file the verified non-admin owns the supplied file but has no ownership or write grant on the existing caller-selected destination collection..\n  Prove the decisive source path within the requested boundary; report a decisive missing binding only when that boundary requires it.\n  Required response details: Identify the destination write sink and distinguish source-file ownership from destination write permission..\n\n## Result contract\nUse compact wire/v6: top-level results only. Each item has obligationId, decision and branchResults, explanation, facts as an array of {id, kind, statement, citations}, decisiveMissingFacts and suggestedObservations. Fact IDs must be unique within each obligation. kind is entry/binding/control/effect/condition. The host fills all version/identity/scope metadata and groups facts; never output those fields. Include item-local coverage only when an analysis ledger is supplied, and item-local condition only when a condition request is supplied. Branches do not repeat obligationId.\nReturn exactly one result for every runnable expanded obligation. Do not output conclusion or policyStatus at the item level. For an authored allow/deny expectation, return decision {kind:\"observed\",observed:\"allow\"|\"deny\"|\"unknown\"} describing the source-visible behavior, independently of the normative expectation. The host compares that observed behavior with the authored expectation. For an authored conditional expectation, return decision {kind:\"conditional-policy\",policyStatus:\"satisfied\"|\"violated\"|\"undetermined\"}; the host uses this policy judgment without a binary observed comparison. Unknown requires decisiveMissingFacts and suggestedObservations. Do not infer observed behavior from the expectation or prose.\nEvery result includes branchResults, an empty array if no branch is requested. For each explicitly requested branch below, return its exact id and assumptions, a reachable/blocked/unknown effect, a causal explanation, same-obligation factIds for known effects, and decisive missingFacts for unknown effects. Counterfactual assumptions are hypotheses; they do not alter the current scenario or establish source/deployment facts. Extra or missing branches are invalid.\nExact requested branch IDs and assumptions (closed list):\n- (none)\nExact runnable obligation IDs (closed list):\n- scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file\nUse each exact expanded ID verbatim as obligationId. Do not substitute the authored obligation ID, omit an ID, or invent an additional ID.\nSupport the conclusion with separately identified entry, principal/identity binding, resource binding, strongest visible authorization control, protected effect, and condition facts. Every fact must cite one sourceId and a closed startLine/endLine range from the numbered exact source catalog. Do not copy paths or quotations; the host binds both from the selected source range. A range cannot cross sources. For unknown, also name each decisive missing fact and the minimum observation that would decide it. Treat source discovery as not-tested: never turn completed declared obligations or a fixed source crop into a whole-repository or all-entry completeness claim.\nAddress every public analysis question in the explanation and source-backed facts. No separate coverage ledger is required for this plain-method answer.\n\n## Fixed source context\nPreparation status: partial\n\nClosure claim: declared-dependencies-only\n\nPrepared from: https://github.com/open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9; root ../../../authorization-evidence-editing-v1/public-source/owui\n\nIncluded original ranges: backend/open_webui/routers/retrieval.py:1546-1762 [entry:post-process-file]; backend/open_webui/routers/retrieval.py:2339-2352 [model-proposal:dep:process-file:collection-access-validation]\n\nUnresolved gaps: dep:process-file:ownership-lookup: ambiguous-location (backend/open_webui/routers/retrieval.py); dep:process-file:collection-input: ambiguous-location (backend/open_webui/routers/retrieval.py); dep:process-file:collection-branch: ambiguous-location (backend/open_webui/routers/retrieval.py); dep:process-file:content-source: ambiguous-location (backend/open_webui/routers/retrieval.py); dep:process-file:save-call: ambiguous-location (backend/open_webui/routers/retrieval.py); dep:process-file:success-binding: ambiguous-location (backend/open_webui/routers/retrieval.py); dep:process-file:error-path: ambiguous-location (backend/open_webui/routers/retrieval.py)\n\n===== BEGIN ALLOWED INPUT: backend/open_webui/routers/retrieval.py =====\nSource ID: src-3ef7d3faaf41dffa\nLocation note: crop lines 1546-2352; original locations: backend/open_webui/routers/retrieval.py:1546-1762, backend/open_webui/routers/retrieval.py:2339-2352\nCitation contract: use original line numbers in one displayed segment; ranges cannot cross omitted intervals or sources.\n1546 | @router.post('/process/file')\n1547 | async def process_file(\n1548 |     request: Request,\n1549 |     form_data: ProcessFileForm,\n1550 |     user=Depends(get_verified_user),\n1551 |     db: AsyncSession = Depends(get_async_session),\n1552 | ):\n1553 |     \"\"\"\n1554 |     Process a file and save its content to the vector database.\n1555 |     Process a file and save its content to the vector database.\n1556 |     Note: granular session management is used to prevent connection pool exhaustion.\n1557 |     The session is committed before external API calls, and updates use a fresh session.\n1558 |     \"\"\"\n1559 |     if user.role == 'admin':\n1560 |         file = await Files.get_file_by_id(form_data.file_id, db=db)\n1561 |     else:\n1562 |         file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n1563 | \n1564 |     if file:\n1565 |         try:\n1566 |             collection_name = form_data.collection_name\n1567 | \n1568 |             if collection_name is None:\n1569 |                 collection_name = f'file-{file.id}'\n1570 | \n1571 |             if form_data.content:\n1572 |                 # Update the content in the file\n1573 |                 # Usage: /files/{file_id}/data/content/update, /files/ (audio file upload pipeline)\n1574 | \n1575 |                 try:\n1576 |                     # /files/{file_id}/data/content/update\n1577 |                     await ASYNC_VECTOR_DB_CLIENT.delete_collection(collection_name=f'file-{file.id}')\n1578 |                 except Exception:\n1579 |                     # Audio file upload pipeline\n1580 |                     pass\n1581 | \n1582 |                 docs = [\n1583 |                     Document(\n1584 |                         page_content=form_data.content.replace('<br/>', '\\n'),\n1585 |                         metadata={\n1586 |                             **file.meta,\n1587 |                             'name': file.filename,\n1588 |                             'created_by': file.user_id,\n1589 |                             'file_id': file.id,\n1590 |                             'source': file.filename,\n1591 |                         },\n1592 |                     )\n1593 |                 ]\n1594 | \n1595 |                 text_content = form_data.content\n1596 |             elif form_data.collection_name:\n1597 |                 # Check if the file has already been processed and save the content\n1598 |                 # Usage: /knowledge/{id}/file/add, /knowledge/{id}/file/update\n1599 | \n1600 |                 result = await ASYNC_VECTOR_DB_CLIENT.query(\n1601 |                     collection_name=f'file-{file.id}', filter={'file_id': file.id}\n1602 |                 )\n1603 | \n1604 |                 if result is not None and len(result.ids[0]) > 0:\n1605 |                     docs = [\n1606 |                         Document(\n1607 |                             page_content=result.documents[0][idx],\n1608 |                             metadata=result.metadatas[0][idx],\n1609 |                         )\n1610 |                         for idx, id in enumerate(result.ids[0])\n1611 |                     ]\n1612 |                 else:\n1613 |                     docs = [\n1614 |                         Document(\n1615 |                             page_content=file.data.get('content', ''),\n1616 |                             metadata={\n1617 |                                 **file.meta,\n1618 |                                 'name': file.filename,\n1619 |                                 'created_by': file.user_id,\n1620 |                                 'file_id': file.id,\n1621 |                                 'source': file.filename,\n1622 |                             },\n1623 |                         )\n1624 |                     ]\n1625 | \n1626 |                 text_content = file.data.get('content', '')\n1627 |             else:\n1628 |                 # Process the file and save the content\n1629 |                 # Usage: /files/\n1630 |                 file_path = file.path\n1631 |                 if file_path:\n1632 |                     file_path = await asyncio.to_thread(Storage.get_file, file_path)\n1633 |                     loader = build_loader_from_config(request)\n1634 |                     loader.user = user\n1635 |                     docs = await loader.aload(file.filename, file.meta.get('content_type'), file_path)\n1636 | \n1637 |                     docs = [\n1638 |                         Document(\n1639 |                             page_content=doc.page_content,\n1640 |                             metadata={\n1641 |                                 **filter_metadata(doc.metadata),\n1642 |                                 'name': file.filename,\n1643 |                                 'created_by': file.user_id,\n1644 |                                 'file_id': file.id,\n1645 |                                 'source': file.filename,\n1646 |                             },\n1647 |                         )\n1648 |                         for doc in docs\n1649 |                     ]\n1650 |                 else:\n1651 |                     docs = [\n1652 |                         Document(\n1653 |                             page_content=file.data.get('content', ''),\n1654 |                             metadata={\n1655 |                                 **file.meta,\n1656 |                                 'name': file.filename,\n1657 |                                 'created_by': file.user_id,\n1658 |                                 'file_id': file.id,\n1659 |                                 'source': file.filename,\n1660 |                             },\n1661 |                         )\n1662 |                     ]\n1663 |                 text_content = ' '.join([doc.page_content for doc in docs])\n1664 | \n1665 |             log.debug(f'text_content: {text_content}')\n1666 |             await Files.update_file_data_by_id(\n1667 |                 file.id,\n1668 |                 {'content': text_content},\n1669 |                 db=db,\n1670 |             )\n1671 |             hash = calculate_sha256_string(text_content)\n1672 | \n1673 |             if request.app.state.config.BYPASS_EMBEDDING_AND_RETRIEVAL:\n1674 |                 await Files.update_file_data_by_id(file.id, {'status': 'completed'}, db=db)\n1675 |                 await Files.update_file_hash_by_id(file.id, hash, db=db)\n1676 |                 return {\n1677 |                     'status': True,\n1678 |                     'collection_name': None,\n1679 |                     'filename': file.filename,\n1680 |                     'content': text_content,\n1681 |                 }\n1682 |             else:\n1683 |                 try:\n1684 |                     # Commit any pending changes before the slow embedding step.\n1685 |                     # Note: file is already a Pydantic model (not ORM), so no expunge needed.\n1686 |                     await db.commit()\n1687 | \n1688 |                     # External embedding API takes time (5-60s+).\n1689 |                     # Subsequent updates use fresh async sessions.\n1690 |                     # NOTE: save_docs_to_vector_db is a sync function that\n1691 |                     # calls asyncio.run_coroutine_threadsafe(..., main_loop).result()\n1692 |                     # which blocks the calling thread.  We MUST run it in a\n1693 |                     # worker thread to avoid deadlocking the event loop.\n1694 |                     result = await run_in_threadpool(\n1695 |                         save_docs_to_vector_db,\n1696 |                         request,\n1697 |                         docs=docs,\n1698 |                         collection_name=collection_name,\n1699 |                         metadata={\n1700 |                             'file_id': file.id,\n1701 |                             'name': file.filename,\n1702 |                             'hash': hash,\n1703 |                         },\n1704 |                         add=(True if form_data.collection_name else False),\n1705 |                         user=user,\n1706 |                     )\n1707 |                     log.info(f'added {len(docs)} items to collection {collection_name}')\n1708 | \n1709 |                     if result:\n1710 |                         # Fresh session for the final update.\n1711 |                         async with get_async_db() as session:\n1712 |                             await Files.update_file_metadata_by_id(\n1713 |                                 file.id,\n1714 |                                 {\n1715 |                                     'collection_name': collection_name,\n1716 |                                 },\n1717 |                                 db=session,\n1718 |                             )\n1719 | \n1720 |                             await Files.update_file_data_by_id(\n1721 |                                 file.id,\n1722 |                                 {'status': 'completed'},\n1723 |                                 db=session,\n1724 |                             )\n1725 |                             await Files.update_file_hash_by_id(file.id, hash, db=session)\n1726 | \n1727 |                             return {\n1728 |                                 'status': True,\n1729 |                                 'collection_name': collection_name,\n1730 |                                 'filename': file.filename,\n1731 |                                 'content': text_content,\n1732 |                             }\n1733 |                     else:\n1734 |                         raise Exception('Error saving document to vector database')\n1735 |                 except Exception as e:\n1736 |                     raise e\n1737 | \n1738 |         except Exception as e:\n1739 |             log.exception(e)\n1740 |             # Fresh session for error status update.\n1741 |             async with get_async_db() as session:\n1742 |                 await Files.update_file_data_by_id(\n1743 |                     file.id,\n1744 |                     {'status': 'failed'},\n1745 |                     db=session,\n1746 |                 )\n1747 |                 # Clear the hash so the file can be re-uploaded after fixing the issue\n1748 |                 await Files.update_file_hash_by_id(file.id, None, db=session)\n1749 | \n1750 |             if 'No pandoc was found' in str(e):\n1751 |                 raise HTTPException(\n1752 |                     status_code=status.HTTP_400_BAD_REQUEST,\n1753 |                     detail=ERROR_MESSAGES.PANDOC_NOT_INSTALLED,\n1754 |                 )\n1755 |             else:\n1756 |                 raise HTTPException(\n1757 |                     status_code=status.HTTP_400_BAD_REQUEST,\n1758 |                     detail=str(e),\n1759 |                 )\n1760 | \n1761 |     else:\n1762 |         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_MESSAGES.NOT_FOUND)\n[OMITTED original lines 1763-2338]\n2339 | async def _validate_collection_access(collection_names: list[str], user, access_type: str = 'read') -> None:\n2340 |     \"\"\"\n2341 |     Raise 403 if the user lacks access to any of the requested collections.\n2342 |     Delegates to the shared filter_accessible_collections utility so the\n2343 |     access rules stay in one place.\n2344 |     \"\"\"\n2345 |     requested = set(collection_names)\n2346 |     allowed = await filter_accessible_collections(requested, user, access_type=access_type)\n2347 |     denied = requested - allowed\n2348 |     if denied:\n2349 |         raise HTTPException(\n2350 |             status_code=status.HTTP_403_FORBIDDEN,\n2351 |             detail=ERROR_MESSAGES.ACCESS_PROHIBITED,\n2352 |         )\n===== END ALLOWED INPUT: backend/open_webui/routers/retrieval.py =====",
+  "promptCharacters": {
+    "instructions": 396,
+    "declaration": 3748,
+    "publicAnalysis": 1109,
+    "assessmentProgram": 662,
+    "source": 13136,
+    "outputContract": 2933,
+    "total": 22122,
+    "tokenMeasurement": "provider-reported-only"
+  },
+  "diagnostics": []
+}

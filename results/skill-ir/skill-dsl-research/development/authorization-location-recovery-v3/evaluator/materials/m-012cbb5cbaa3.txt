@@ -1,0 +1,189 @@
+Preparation status: ready
+
+Closure claim: declared-dependencies-only
+
+Prepared from: https://github.com/paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103; root ../../../../authorization-evidence-editing-v1/public-source/paperless
+
+Included original ranges: src/documents/views.py:1841-1913 [model-proposal:dep-notes-permission-class-source, model-proposal:dep-notes-permission-class, entry:notes-post, model-proposal:dep-notes-document-resolution, model-proposal:dep-notes-post-change-check, model-proposal:dep-notes-create-effect, model-proposal:dep-notes-document-resolution-source, model-proposal:dep-notes-post-change-check-source, model-proposal:dep-notes-create-effect-source]; src/documents/views.py:4767-4833 [locator:located-2]; src/documents/permissions.py:345-350 [locator:located-3]; src/documents/permissions.py:460-464 [locator:located-4]; src/documents/permissions.py:624-637 [locator:located-1, model-proposal:dep-owner-aware-permission-resolution, model-proposal:dep-owner-aware-permission-resolution-source]
+
+Unresolved gaps: none
+
+===== BEGIN ALLOWED INPUT: src/documents/permissions.py =====
+Source ID: src-d25697541f9e0b47
+Location note: crop lines 345-637; original locations: src/documents/permissions.py:345-350, src/documents/permissions.py:460-464, src/documents/permissions.py:624-637
+Citation contract: use original line numbers in one displayed segment; ranges cannot cross omitted intervals or sources.
+345 | def permitted_object_ids(
+346 |     user: User | None,
+347 |     model: type[Model],
+348 |     perm: str,
+349 |     *,
+350 |     include_deleted: bool = False,
+[OMITTED original lines 351-459]
+460 | def permitted_document_ids(
+461 |     user: User | None,
+462 |     *,
+463 |     perm: str = "view_document",
+464 |     include_deleted: bool = False,
+[OMITTED original lines 465-623]
+624 | def has_perms_owner_aware(user, perms, obj):
+625 |     """
+626 |     Legacy slow path (guardian-backed) single-object permission check.
+627 | 
+628 |     The queryset-filtering side of this migrated onto
+629 |     ``PermittedObjectsFilter``/``permitted_object_ids()``, but this
+630 |     single-object check still has many production callers. Several callers
+631 |     remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``
+632 |     -- grep for this function name before removing it.
+633 |     """
+634 |     checker = ObjectPermissionChecker(user)
+635 |     return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)
+636 | 
+637 | 
+===== END ALLOWED INPUT: src/documents/permissions.py =====
+
+===== BEGIN ALLOWED INPUT: src/documents/views.py =====
+Source ID: src-066628bd5db78a76
+Location note: crop lines 1841-4833; original locations: src/documents/views.py:1841-1913, src/documents/views.py:4767-4833
+Citation contract: use original line numbers in one displayed segment; ranges cannot cross omitted intervals or sources.
+1841 |     @action(
+1842 |         methods=["get", "post", "delete"],
+1843 |         detail=True,
+1844 |         permission_classes=[PaperlessNotePermissions],
+1845 |         pagination_class=None,
+1846 |         filter_backends=[],
+1847 |     )
+1848 |     def notes(self, request, pk=None):
+1849 |         currentUser = request.user
+1850 |         try:
+1851 |             doc = (
+1852 |                 Document.objects.select_related("owner")
+1853 |                 .prefetch_related("notes")
+1854 |                 .only("pk", "owner__id")
+1855 |                 .get(pk=pk)
+1856 |             )
+1857 |             if currentUser is not None and not has_perms_owner_aware(
+1858 |                 currentUser,
+1859 |                 "view_document",
+1860 |                 doc,
+1861 |             ):
+1862 |                 return HttpResponseForbidden("Insufficient permissions to view notes")
+1863 |         except Document.DoesNotExist:
+1864 |             raise Http404
+1865 | 
+1866 |         serializer = self.get_serializer(doc)
+1867 | 
+1868 |         if request.method == "GET":
+1869 |             try:
+1870 |                 notes = serializer.to_representation(doc).get("notes")
+1871 |                 return Response(notes)
+1872 |             except Exception as e:
+1873 |                 logger.warning(f"An error occurred retrieving notes: {e!s}")
+1874 |                 return Response(
+1875 |                     {"error": "Error retrieving notes, check logs for more detail."},
+1876 |                 )
+1877 |         elif request.method == "POST":
+1878 |             try:
+1879 |                 if currentUser is not None and not has_perms_owner_aware(
+1880 |                     currentUser,
+1881 |                     "change_document",
+1882 |                     doc,
+1883 |                 ):
+1884 |                     return HttpResponseForbidden(
+1885 |                         "Insufficient permissions to create notes",
+1886 |                     )
+1887 | 
+1888 |                 c = Note.objects.create(
+1889 |                     document=doc,
+1890 |                     note=request.data["note"],
+1891 |                     user=currentUser,
+1892 |                 )
+1893 |                 # If audit log is enabled make an entry in the log
+1894 |                 # about this note change
+1895 |                 if settings.AUDIT_LOG_ENABLED:
+1896 |                     LogEntry.objects.log_create(
+1897 |                         instance=doc,
+1898 |                         changes={
+1899 |                             "Note Added": ["None", c.id],
+1900 |                         },
+1901 |                         action=LogEntry.Action.UPDATE,
+1902 |                     )
+1903 | 
+1904 |                 doc.modified = timezone.now()
+1905 |                 doc.save(update_fields=["modified"])
+1906 | 
+1907 |                 from documents.search import get_backend
+1908 | 
+1909 |                 get_backend().add_or_update(doc)
+1910 | 
+1911 |                 notes = serializer.to_representation(doc).get("notes")
+1912 | 
+1913 |                 return Response(notes)
+[OMITTED original lines 1914-4766]
+4767 |     def create(self, request, *args, **kwargs):
+4768 |         serializer = self.get_serializer(data=request.data)
+4769 |         serializer.is_valid(raise_exception=True)
+4770 |         document_ids = serializer.validated_data["document_ids"]
+4771 |         documents_qs = Document.objects.filter(pk__in=document_ids).select_related(
+4772 |             "owner",
+4773 |         )
+4774 |         found_ids = set(documents_qs.values_list("pk", flat=True))
+4775 |         missing = sorted(set(document_ids) - found_ids)
+4776 |         if missing:
+4777 |             raise ValidationError(
+4778 |                 {
+4779 |                     "document_ids": _(
+4780 |                         "Documents not found: %(ids)s",
+4781 |                     )
+4782 |                     % {"ids": ", ".join(str(item) for item in missing)},
+4783 |                 },
+4784 |             )
+4785 | 
+4786 |         documents = list(documents_qs)
+4787 |         permitted_ids = set(permitted_document_ids(request.user))
+4788 |         for document in documents:
+4789 |             if document.pk not in permitted_ids:
+4790 |                 raise ValidationError(
+4791 |                     {
+4792 |                         "document_ids": _(
+4793 |                             "Insufficient permissions to share document %(id)s.",
+4794 |                         )
+4795 |                         % {"id": document.pk},
+4796 |                     },
+4797 |                 )
+4798 | 
+4799 |         document_map = {document.pk: document for document in documents}
+4800 |         ordered_documents = [document_map[doc_id] for doc_id in document_ids]
+4801 | 
+4802 |         bundle = serializer.save(
+4803 |             owner=request.user,
+4804 |             documents=ordered_documents,
+4805 |         )
+4806 |         bundle.remove_file()
+4807 |         bundle.status = ShareLinkBundle.Status.PENDING
+4808 |         bundle.last_error = None
+4809 |         bundle.size_bytes = None
+4810 |         bundle.built_at = None
+4811 |         bundle.file_path = ""
+4812 |         bundle.save(
+4813 |             update_fields=[
+4814 |                 "status",
+4815 |                 "last_error",
+4816 |                 "size_bytes",
+4817 |                 "built_at",
+4818 |                 "file_path",
+4819 |             ],
+4820 |         )
+4821 |         build_share_link_bundle.apply_async(
+4822 |             kwargs={"bundle_id": bundle.pk},
+4823 |             headers={"trigger_source": PaperlessTask.TriggerSource.MANUAL},
+4824 |         )
+4825 |         bundle.document_total = len(ordered_documents)
+4826 |         response_serializer = self.get_serializer(bundle)
+4827 |         headers = self.get_success_headers(response_serializer.data)
+4828 |         return Response(
+4829 |             response_serializer.data,
+4830 |             status=status.HTTP_201_CREATED,
+4831 |             headers=headers,
+4832 |         )
+4833 | 
+===== END ALLOWED INPUT: src/documents/views.py =====

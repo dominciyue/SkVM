@@ -1,0 +1,38 @@
+Preparation status: partial
+
+Closure claim: declared-dependencies-only
+
+Prepared from: https://github.com/fastapi/full-stack-fastapi-template@cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7; root ../../../authorization-evidence-editing-v1/public-source/fastapi
+
+Included original ranges: backend/app/api/routes/items.py:48-58 [entry:read-item, model-proposal:dep-read-item-resource-lookup, model-proposal:dep-read-item-owner-control]; backend/app/api/deps.py:41-46 [model-proposal:dep-read-item-authenticated-active-user]
+
+Unresolved gaps: read:read-current-user-reference: read-ambiguous (backend/app/api/routes/items.py)
+
+===== BEGIN ALLOWED INPUT: backend/app/api/deps.py =====
+Source ID: src-178390b4832c836c
+Location note: crop lines 41-46; original locations: backend/app/api/deps.py:41-46
+Citation contract: use original line numbers in one displayed segment; ranges cannot cross omitted intervals or sources.
+41 |     user = session.get(User, token_data.sub)
+42 |     if not user:
+43 |         raise HTTPException(status_code=404, detail="User not found")
+44 |     if not user.is_active:
+45 |         raise HTTPException(status_code=400, detail="Inactive user")
+46 |     return user
+===== END ALLOWED INPUT: backend/app/api/deps.py =====
+
+===== BEGIN ALLOWED INPUT: backend/app/api/routes/items.py =====
+Source ID: src-04aefae392982ba0
+Location note: crop lines 48-58; original locations: backend/app/api/routes/items.py:48-58
+Citation contract: use original line numbers in one displayed segment; ranges cannot cross omitted intervals or sources.
+48 | @router.get("/{id}", response_model=ItemPublic)
+49 | def read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:
+50 |     """
+51 |     Get item by ID.
+52 |     """
+53 |     item = session.get(Item, id)
+54 |     if not item:
+55 |         raise HTTPException(status_code=404, detail="Item not found")
+56 |     if not current_user.is_superuser and (item.owner_id != current_user.id):
+57 |         raise HTTPException(status_code=403, detail="Not enough permissions")
+58 |     return item
+===== END ALLOWED INPUT: backend/app/api/routes/items.py =====

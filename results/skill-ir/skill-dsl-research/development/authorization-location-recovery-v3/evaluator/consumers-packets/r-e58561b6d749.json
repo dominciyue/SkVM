@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "authorization-al-review-packet/v1",
+  "anonymousId": "r-e58561b6d749",
+  "status": "author-or-preparation-blocked",
+  "first": null,
+  "final": {
+    "canonicalResult": null,
+    "wireResult": null,
+    "observedDecisions": null
+  },
+  "finalKind": null,
+  "actualTask": null,
+  "materialId": null,
+  "materialPath": null,
+  "sourceScope": "Only actually supplied fixed source is evidence; no target execution. Premises are assumptions; unspecified is not absent or other-present. Full conditional answers retain material branches. Distinguish external uncertainty from source gaps.",
+  "publicBrief": {
+    "id": "paperless-note-premise",
+    "kind": "premise-change",
+    "taskId": "al-use-paperless-note",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "originalSourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "changedSourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "originalSourceRoot": "../authorization-evidence-editing-v1/public-source/paperless",
+    "changedSourceRoot": "../authorization-evidence-editing-v1/public-source/paperless",
+    "allowedFiles": [
+      "src/documents/views.py",
+      "src/documents/permissions.py"
+    ],
+    "entry": {
+      "entryKey": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 1841,
+      "endLine": 1913
+    },
+    "question": "At notes POST handler entry assess both scenarios. The caller is not the document owner. The owner's presence is unspecified in the original task: distinguish absent from other-present where it changes authorization. Both callers have all stated global permissions and can view the document. Separate source-visible authorization from accepted-policy comparison.",
+    "originalPolicy": "Creating a note requires the stated global permissions and either document ownership or an object change_document grant; an object view grant alone is insufficient.",
+    "changedPolicy": "Creating a note requires the stated global permissions and either document ownership or an object change_document grant; an object view grant alone is insufficient.",
+    "scenarios": [
+      {
+        "key": "view-only",
+        "principal": "authenticated user with the stated global permissions",
+        "relation": "not-owner-view-only",
+        "operation": "create a note on the document",
+        "premiseId": "object-relation",
+        "premise": "At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has no object change_document grant. Owner presence is unspecified: it may be absent or owned by a different user.",
+        "changedPremise": "At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has no object change_document grant. Owner is other-present: a different user owns the document."
+      },
+      {
+        "key": "change-granted",
+        "principal": "authenticated user with the stated global permissions",
+        "relation": "not-owner-change-granted",
+        "operation": "create a note on the document",
+        "premiseId": "object-relation",
+        "premise": "At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has an object change_document grant. Owner presence is unspecified: it may be absent or owned by a different user.",
+        "changedPremise": "At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has an object change_document grant. Owner is other-present: a different user owns the document."
+      }
+    ],
+    "originalExpectations": {
+      "view-only": "deny",
+      "change-granted": "allow"
+    },
+    "changedExpectations": {
+      "view-only": "deny",
+      "change-granted": "allow"
+    },
+    "changeRequest": "Change only both object-relation premise statements to their changedPremise values. Preserve source bytes/ref, task ID, policy, expectations, identities, relations, conditions and requested counterfactuals. Do not infer another task change.",
+    "supportRole": "Declare only the requested handler as an analysis entry. Helpers belong in evidence-request dependencies; an empty dependency list with discover=true is supported. Do not author all helper positions.",
+    "policyLocationOriginal": "author-briefs.json#/paperless-note-premise/originalPolicy",
+    "policyLocationChanged": "author-briefs.json#/paperless-note-premise/originalPolicy"
+  },
+  "variant": "changed",
+  "rubric": {
+    "packageId": "paperless-note-premise",
+    "source": [
+      "src/documents/views.py:1877-1892",
+      "src/documents/permissions.py:624-635"
+    ],
+    "original": {
+      "view-only": "conditional: absent allow/failure; other-present deny/enforced; current unknown",
+      "change-granted": "allow/source_refuted under both owner branches"
+    },
+    "changed": {
+      "view-only": "deny/source_refuted",
+      "change-granted": "allow/source_refuted"
+    },
+    "completeness": "Requested absent/other-present counterfactuals remain explicit; no post-hoc nonnull premise."
+  },
+  "declaredObligations": [
+    "scenario:change-granted",
+    "scenario:view-only"
+  ]
+}

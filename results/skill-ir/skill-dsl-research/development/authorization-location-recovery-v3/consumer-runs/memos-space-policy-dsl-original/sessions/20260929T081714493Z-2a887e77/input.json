@@ -1,0 +1,379 @@
+{
+  "schemaVersion": "authorization-assessment-input/v1",
+  "sourceIdentity": {
+    "repository": "https://github.com/usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4"
+  },
+  "sourceRoot": "source",
+  "sources": [
+    "server/api/v1/space_service.go",
+    "store/space.go"
+  ],
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "al-use-memos-members",
+    "request": "At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.",
+    "repository": "https://github.com/usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:space-member-removal",
+        "kind": "explicit-task-requirement",
+        "text": "An active space member may delete their own membership to leave. Removing a different active member requires space administrator authority.",
+        "location": "author-briefs.json#/memos-space-policy/originalPolicy",
+        "revision": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "This is the accepted original policy supplied by the task author."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:ordinary-member",
+        "role": "active ordinary non-administrator space member",
+        "description": "Author facts: [\"Authenticated\",\"Active\",\"Not a space administrator\"]",
+        "startingCapabilities": [
+          "authenticated",
+          "active-space-member"
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:space",
+        "type": "space",
+        "description": "Author facts: [\"Selected space with an active membership target\",\"Resource resolution succeeds\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:delete-member",
+        "name": "DeleteSpaceMember",
+        "locations": [
+          {
+            "path": "server/api/v1/space_service.go",
+            "startLine": 740,
+            "endLine": 763
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:other-member",
+        "principalId": "principal:ordinary-member",
+        "resourceId": "resource:space",
+        "relation": "caller-is-not-target-member-and-not-admin",
+        "operation": "delete another active membership",
+        "expectation": "deny",
+        "conditions": [],
+        "policySourceId": "policy:space-member-removal",
+        "entryIds": [
+          "entry:delete-member"
+        ]
+      },
+      {
+        "id": "scenario:self-leave",
+        "principalId": "principal:ordinary-member",
+        "resourceId": "resource:space",
+        "relation": "caller-is-target-member",
+        "operation": "delete own membership",
+        "expectation": "allow",
+        "conditions": [],
+        "policySourceId": "policy:space-member-removal",
+        "entryIds": [
+          "entry:delete-member"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts."
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery."
+    ]
+  },
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "analysisRequirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:other-member",
+        "scenario:self-leave"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:other-member",
+        "scenario:self-leave"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:other-member",
+        "scenario:self-leave"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:other-member",
+        "scenario:self-leave"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:other-member",
+        "scenario:self-leave"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:other-member",
+        "scenario:self-leave"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Analyze the source-visible authorization at the declared handler entry separately from comparison with the accepted original policy. Do not infer deployment facts or alter the supplied identities, relations, premise text, source bytes, or task ID.",
+    "scenarios": [
+      {
+        "obligationId": "scenario:other-member",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "target-relation",
+            "statement": "At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds.",
+            "atEntryId": "entry:delete-member",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Report the source-visible authorization result.",
+          "Report the comparison with the accepted original policy separately."
+        ]
+      },
+      {
+        "obligationId": "scenario:self-leave",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "target-relation",
+            "statement": "At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds.",
+            "atEntryId": "entry:delete-member",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Report the source-visible authorization result.",
+          "Report the comparison with the accepted original policy separately."
+        ]
+      }
+    ]
+  },
+  "evidencePreparation": {
+    "schemaVersion": "authorization-evidence-report/v2",
+    "status": "ready",
+    "sourceIdentity": {
+      "repository": "https://github.com/usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4"
+    },
+    "sourceRoot": "../../../../authorization-evidence-editing-v1/public-source/memos",
+    "included": [
+      {
+        "path": "server/api/v1/space_service.go",
+        "originalPath": "server/api/v1/space_service.go",
+        "startLine": 19,
+        "endLine": 764,
+        "origins": [
+          "locator:located-1",
+          "model-proposal:dep-current-user-identity",
+          "model-proposal:source-caller-identity-resolution",
+          "locator:located-6",
+          "locator:located-3",
+          "model-proposal:dep-administrator-check",
+          "model-proposal:source-administrator-authority-check",
+          "locator:located-5",
+          "locator:located-9",
+          "locator:located-2",
+          "model-proposal:dep-resolved-membership-target",
+          "model-proposal:source-target-membership-resolution",
+          "locator:located-7",
+          "entry:delete-member",
+          "locator:located-4",
+          "model-proposal:dep-delete-self-or-other-control",
+          "model-proposal:dep-delete-target-effect",
+          "model-proposal:source-delete-self-other-branch",
+          "model-proposal:source-delete-target-effect"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 19,
+            "originalEndLine": 28,
+            "origins": [
+              "locator:located-1",
+              "model-proposal:dep-current-user-identity",
+              "model-proposal:source-caller-identity-resolution"
+            ],
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 10
+          },
+          {
+            "originalStartLine": 30,
+            "originalEndLine": 52,
+            "origins": [
+              "locator:located-6"
+            ],
+            "snapshotStartLine": 11,
+            "snapshotEndLine": 33
+          },
+          {
+            "originalStartLine": 54,
+            "originalEndLine": 59,
+            "origins": [
+              "locator:located-3",
+              "model-proposal:dep-administrator-check",
+              "model-proposal:source-administrator-authority-check"
+            ],
+            "snapshotStartLine": 34,
+            "snapshotEndLine": 39
+          },
+          {
+            "originalStartLine": 61,
+            "originalEndLine": 84,
+            "origins": [
+              "locator:located-5"
+            ],
+            "snapshotStartLine": 40,
+            "snapshotEndLine": 63
+          },
+          {
+            "originalStartLine": 167,
+            "originalEndLine": 177,
+            "origins": [
+              "locator:located-9"
+            ],
+            "snapshotStartLine": 64,
+            "snapshotEndLine": 74
+          },
+          {
+            "originalStartLine": 632,
+            "originalEndLine": 663,
+            "origins": [
+              "locator:located-2",
+              "model-proposal:dep-resolved-membership-target",
+              "model-proposal:source-target-membership-resolution"
+            ],
+            "snapshotStartLine": 75,
+            "snapshotEndLine": 106
+          },
+          {
+            "originalStartLine": 666,
+            "originalEndLine": 676,
+            "origins": [
+              "locator:located-7"
+            ],
+            "snapshotStartLine": 107,
+            "snapshotEndLine": 117
+          },
+          {
+            "originalStartLine": 740,
+            "originalEndLine": 764,
+            "origins": [
+              "entry:delete-member",
+              "locator:located-4",
+              "model-proposal:dep-delete-self-or-other-control",
+              "model-proposal:dep-delete-target-effect",
+              "model-proposal:source-delete-self-other-branch",
+              "model-proposal:source-delete-target-effect"
+            ],
+            "snapshotStartLine": 118,
+            "snapshotEndLine": 142
+          }
+        ]
+      },
+      {
+        "path": "store/space.go",
+        "originalPath": "store/space.go",
+        "startLine": 64,
+        "endLine": 279,
+        "origins": [
+          "locator:located-8",
+          "model-proposal:dep-active-member-definition",
+          "model-proposal:source-active-member-role-definition",
+          "model-proposal:source-store-delete-member-forwarding"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 64,
+            "originalEndLine": 66,
+            "origins": [
+              "locator:located-8",
+              "model-proposal:dep-active-member-definition",
+              "model-proposal:source-active-member-role-definition"
+            ],
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 3
+          },
+          {
+            "originalStartLine": 274,
+            "originalEndLine": 279,
+            "origins": [
+              "model-proposal:source-store-delete-member-forwarding"
+            ],
+            "snapshotStartLine": 4,
+            "snapshotEndLine": 9
+          }
+        ]
+      }
+    ],
+    "gaps": [],
+    "closureClaim": "declared-dependencies-only"
+  }
+}

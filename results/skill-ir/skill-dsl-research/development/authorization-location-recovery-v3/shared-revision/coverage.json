@@ -1,0 +1,122 @@
+{
+  "planned": 2,
+  "rows": [
+    {
+      "id": "owui-file",
+      "published": true,
+      "status": "ready",
+      "controls": [
+        {
+          "evidence": "backend/open_webui/routers/retrieval.py:1559-1563 checks source-file ownership",
+          "requiredLines": 5,
+          "suppliedLines": 5,
+          "supplied": true,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "backend/open_webui/routers/retrieval.py:1566-1569 accepts caller collection_name",
+          "requiredLines": 4,
+          "suppliedLines": 4,
+          "supplied": true,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "backend/open_webui/routers/retrieval.py:1694-1705 forwards selected collection without destination permission check",
+          "requiredLines": 12,
+          "suppliedLines": 12,
+          "supplied": true,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "backend/open_webui/routers/retrieval.py:1458-1534 helper can insert into existing collection without checking the caller's destination write grant",
+          "requiredLines": 77,
+          "suppliedLines": 18,
+          "supplied": false,
+          "insideAllowed": true
+        }
+      ],
+      "allDeclaredCriterionRangesSupplied": false,
+      "finalSourceBytes": 10173,
+      "sourceFiles": 1,
+      "sourceDisplay": {
+        "totalBytes": 31241,
+        "uniqueSourceBytes": 20459,
+        "resentSourceBytes": 10782,
+        "maxBytes": 65536
+      },
+      "indexReadBytes": 121813,
+      "gaps": []
+    },
+    {
+      "id": "paperless-download",
+      "published": true,
+      "status": "partial",
+      "controls": [
+        {
+          "evidence": "src/documents/views.py:1834-1839 routes download through file_response",
+          "requiredLines": 6,
+          "suppliedLines": 6,
+          "supplied": true,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "src/documents/views.py:1401-1427 checks view_document against root_doc",
+          "requiredLines": 27,
+          "suppliedLines": 27,
+          "supplied": true,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "src/documents/permissions.py:624-635 permits an unowned, owned or object-granted document",
+          "requiredLines": 12,
+          "suppliedLines": 12,
+          "supplied": true,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "src/documents/views.py:1429-1448 would serve the selected file_doc only after the root check",
+          "requiredLines": 20,
+          "suppliedLines": 20,
+          "supplied": true,
+          "insideAllowed": true
+        }
+      ],
+      "allDeclaredCriterionRangesSupplied": true,
+      "finalSourceBytes": 60547,
+      "sourceFiles": 2,
+      "sourceDisplay": {
+        "totalBytes": 49667,
+        "uniqueSourceBytes": 33089,
+        "resentSourceBytes": 16578,
+        "maxBytes": 65536
+      },
+      "indexReadBytes": 238545,
+      "gaps": [
+        {
+          "id": "dep-owner-aware-root-check",
+          "entryKey": "download",
+          "reason": "depth-budget",
+          "attemptedPath": "src/documents/permissions.py"
+        },
+        {
+          "id": "dep-root-resolution",
+          "entryKey": "download",
+          "reason": "location-not-shown"
+        },
+        {
+          "id": "dep-owner-aware-permission-call",
+          "entryKey": "download",
+          "reason": "location-not-shown",
+          "attemptedPath": "src/documents/permissions.py"
+        },
+        {
+          "id": "dep-root-document-helper",
+          "entryKey": "$",
+          "reason": "unresolved-parent"
+        }
+      ]
+    }
+  ],
+  "evaluatorOnly": true,
+  "providerCalls": 0
+}

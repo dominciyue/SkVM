@@ -1,0 +1,514 @@
+{
+  "caseId": "fastapi-superuser-read",
+  "exitCode": 0,
+  "report": {
+    "schemaVersion": "authorization-evidence-report/v2",
+    "status": "partial",
+    "sourceIdentity": {
+      "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+      "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/fastapi",
+    "included": [
+      {
+        "path": "backend/app/api/routes/items.py",
+        "originalPath": "backend/app/api/routes/items.py",
+        "startLine": 48,
+        "endLine": 58,
+        "origins": [
+          "entry:read-item",
+          "model-proposal:dep-read-item-resource-lookup",
+          "model-proposal:dep-read-item-owner-control"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 48,
+            "originalEndLine": 58,
+            "origins": [
+              "entry:read-item",
+              "model-proposal:dep-read-item-resource-lookup",
+              "model-proposal:dep-read-item-owner-control"
+            ],
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 11
+          }
+        ]
+      },
+      {
+        "path": "backend/app/api/deps.py",
+        "originalPath": "backend/app/api/deps.py",
+        "startLine": 41,
+        "endLine": 46,
+        "origins": [
+          "model-proposal:dep-read-item-authenticated-active-user"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 41,
+            "originalEndLine": 46,
+            "origins": [
+              "model-proposal:dep-read-item-authenticated-active-user"
+            ],
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 6
+          }
+        ]
+      }
+    ],
+    "gaps": [
+      {
+        "id": "read:read-current-user-reference",
+        "entryKey": "read-item",
+        "reason": "read-ambiguous",
+        "attemptedPath": "backend/app/api/routes/items.py",
+        "requestId": "read-current-user-reference",
+        "selector": {
+          "kind": "literal-search",
+          "path": "backend/app/api/routes/items.py",
+          "literal": "CurrentUser"
+        },
+        "candidates": [
+          {
+            "path": "backend/app/api/routes/items.py",
+            "startLine": 7,
+            "endLine": 7
+          },
+          {
+            "path": "backend/app/api/routes/items.py",
+            "startLine": 15,
+            "endLine": 15
+          },
+          {
+            "path": "backend/app/api/routes/items.py",
+            "startLine": 49,
+            "endLine": 49
+          },
+          {
+            "path": "backend/app/api/routes/items.py",
+            "startLine": 63,
+            "endLine": 63
+          },
+          {
+            "path": "backend/app/api/routes/items.py",
+            "startLine": 79,
+            "endLine": 79
+          },
+          {
+            "path": "backend/app/api/routes/items.py",
+            "startLine": 101,
+            "endLine": 101
+          }
+        ],
+        "budget": {
+          "usedBytes": 1558,
+          "maxBytes": 65536
+        },
+        "next": "Choose one candidate with an exact source range."
+      }
+    ],
+    "closureClaim": "declared-dependencies-only",
+    "scopePreview": {
+      "analysisEntries": 1,
+      "declaredScenarios": 1,
+      "expandedObligations": 1,
+      "entries": [
+        {
+          "id": "entry:read-item",
+          "name": "read_item",
+          "locations": [
+            {
+              "path": "backend/app/api/routes/items.py",
+              "startLine": 48,
+              "endLine": 58
+            }
+          ],
+          "scenarioIds": [
+            "scenario:read-item"
+          ]
+        }
+      ],
+      "supportDependencies": 3,
+      "supports": [
+        {
+          "id": "dep-read-item-resource-lookup",
+          "from": "read-item",
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 53,
+          "endLine": 55,
+          "basis": "model-proposal"
+        },
+        {
+          "id": "dep-read-item-owner-control",
+          "from": "read-item",
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 56,
+          "endLine": 57,
+          "basis": "model-proposal"
+        },
+        {
+          "id": "dep-read-item-authenticated-active-user",
+          "from": "read-item",
+          "path": "backend/app/api/deps.py",
+          "startLine": 41,
+          "endLine": 46,
+          "basis": "model-proposal"
+        }
+      ],
+      "scopeRule": "Only declared scenario-entry pairs are analyzed. Support does not add an entry; explicit multiple analysis entries are preserved."
+    },
+    "discoveryPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-location-recovery-v3\\inputs\\fastapi-superuser-read\\automatic-v3\\discovery.json",
+    "proposal": {
+      "schemaVersion": "authorization-dependency-proposal/v3",
+      "model": "xty/gpt-5.6-sol",
+      "dependencies": [
+        {
+          "id": "dep-read-item-resource-lookup",
+          "from": "read-item",
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 53,
+          "endLine": 55,
+          "reason": "resource-binding",
+          "basis": "model-proposal"
+        },
+        {
+          "id": "dep-read-item-owner-control",
+          "from": "read-item",
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 56,
+          "endLine": 57,
+          "reason": "control",
+          "basis": "model-proposal"
+        },
+        {
+          "id": "dep-read-item-authenticated-active-user",
+          "from": "read-item",
+          "path": "backend/app/api/deps.py",
+          "startLine": 41,
+          "endLine": 46,
+          "reason": "identity",
+          "basis": "model-proposal"
+        }
+      ],
+      "gaps": [
+        {
+          "id": "read:read-current-user-reference",
+          "entryKey": "read-item",
+          "reason": "read-ambiguous",
+          "attemptedPath": "backend/app/api/routes/items.py"
+        }
+      ],
+      "promptCharacters": 10570,
+      "responseCharacters": 1557,
+      "durationMs": 52453.77129999999,
+      "tokens": {
+        "input": 3449,
+        "output": 1135,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "actualCostUsd": null,
+      "account": {
+        "schemaVersion": "authorization-preparation-attempts/v1",
+        "model": "xty/gpt-5.6-sol",
+        "status": "completed",
+        "published": true,
+        "attempts": [
+          {
+            "id": "provider-attempt-1",
+            "phase": "initial",
+            "transport": "prompt-parse",
+            "status": "response",
+            "startedAt": "2026-09-29T07:36:58.363Z",
+            "request": {
+              "messageCount": 1,
+              "messageCharacters": 4570,
+              "toolNames": [],
+              "maxTokens": 6000,
+              "temperature": 0,
+              "executableTools": false
+            },
+            "usage": {
+              "input": 1652,
+              "output": 684,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "costUsd": null,
+            "transportAttempts": "unknown",
+            "response": {
+              "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-read-item-resource-lookup\",\"from\":\"read-item\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-5eedb6a0604b63811fcad6cf\",\"startLine\":53,\"endLine\":55},\"reason\":\"resource-binding\",\"description\":\"Loads the requested Item by the path ID and handles the not-found case.\"},{\"id\":\"dep-read-item-owner-control\",\"from\":\"read-item\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-5eedb6a0604b63811fcad6cf\",\"startLine\":56,\"endLine\":57},\"reason\":\"control\",\"description\":\"Applies the ownership/superuser authorization condition before returning the item.\"}],\"reads\":[{\"id\":\"read-current-user-dependency\",\"from\":\"read-item\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-699e4b4d07f3307b893f00fa\"},\"contextLines\":4},{\"id\":\"read-active-superuser-dependency\",\"from\":\"read-item\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-df2b16a2c17526026caec383\"},\"contextLines\":4},{\"id\":\"read-current-user-reference\",\"from\":\"read-item\",\"selector\":{\"kind\":\"literal-search\",\"path\":\"backend/app/api/routes/items.py\",\"literal\":\"CurrentUser\"},\"contextLines\":4}]}",
+              "toolCalls": [],
+              "tokens": {
+                "input": 1652,
+                "output": 684,
+                "cacheRead": 0,
+                "cacheWrite": 0
+              },
+              "costUsd": null,
+              "durationMs": 15879.77029999999,
+              "stopReason": "end_turn"
+            },
+            "endedAt": "2026-09-29T07:37:14.243Z"
+          },
+          {
+            "id": "provider-attempt-2",
+            "phase": "initial",
+            "transport": "prompt-parse",
+            "status": "response",
+            "startedAt": "2026-09-29T07:37:14.247Z",
+            "request": {
+              "messageCount": 1,
+              "messageCharacters": 6000,
+              "toolNames": [],
+              "maxTokens": 6000,
+              "temperature": 0,
+              "executableTools": false
+            },
+            "usage": {
+              "input": 1797,
+              "output": 451,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "costUsd": null,
+            "transportAttempts": "unknown",
+            "response": {
+              "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-read-item-authenticated-active-user\",\"from\":\"read-item\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-c93fcfae099f1fba8ba7ef74\",\"startLine\":41,\"endLine\":46},\"reason\":\"identity\",\"description\":\"Resolves the token subject to a user, rejects missing users, and rejects inactive users before the route uses current_user.\"}],\"reads\":[]}",
+              "toolCalls": [],
+              "tokens": {
+                "input": 1797,
+                "output": 451,
+                "cacheRead": 0,
+                "cacheWrite": 0
+              },
+              "costUsd": null,
+              "durationMs": 36574.001000000004,
+              "stopReason": "end_turn"
+            },
+            "endedAt": "2026-09-29T07:37:50.822Z"
+          }
+        ],
+        "telemetry": {
+          "providerCalls": 2,
+          "respondedCalls": 2,
+          "unknownUsageCalls": 0,
+          "unknownCostCalls": 2,
+          "knownTokens": {
+            "input": 3449,
+            "output": 1135,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "tokensStatus": "complete",
+          "knownActualUsdSubtotal": 0,
+          "totalActualUsd": null,
+          "actualUsdStatus": "unknown",
+          "transportAttempts": "unknown"
+        },
+        "rounds": [
+          {
+            "kind": "proposal",
+            "promptCharacters": 4570,
+            "promptBytes": 4570,
+            "metadataBytes": 4055,
+            "displayedBytes": 515,
+            "uniqueSourceBytes": 515,
+            "resentSourceBytes": 0,
+            "diagnostics": []
+          },
+          {
+            "kind": "supplement",
+            "promptCharacters": 6000,
+            "promptBytes": 6000,
+            "metadataBytes": 4442,
+            "displayedBytes": 1558,
+            "uniqueSourceBytes": 1043,
+            "resentSourceBytes": 515,
+            "diagnostics": []
+          }
+        ],
+        "diagnostics": [],
+        "readOutcomes": [
+          {
+            "requestId": "read-current-user-dependency",
+            "request": {
+              "id": "read-current-user-dependency",
+              "from": "read-item",
+              "selector": {
+                "kind": "indexed-symbol",
+                "symbolId": "symbol-699e4b4d07f3307b893f00fa"
+              },
+              "contextLines": 4
+            },
+            "budget": {
+              "usedBytes": 515,
+              "maxBytes": 65536
+            },
+            "status": "resolved",
+            "windowId": "window-c93fcfae099f1fba8ba7ef74",
+            "path": "backend/app/api/deps.py",
+            "startLine": 30,
+            "endLine": 48,
+            "bytes": 765,
+            "newlyShown": true
+          },
+          {
+            "requestId": "read-active-superuser-dependency",
+            "request": {
+              "id": "read-active-superuser-dependency",
+              "from": "read-item",
+              "selector": {
+                "kind": "indexed-symbol",
+                "symbolId": "symbol-df2b16a2c17526026caec383"
+              },
+              "contextLines": 4
+            },
+            "budget": {
+              "usedBytes": 1280,
+              "maxBytes": 65536
+            },
+            "status": "resolved",
+            "windowId": "window-b2433e2d32affe4187653fa7",
+            "path": "backend/app/api/deps.py",
+            "startLine": 52,
+            "endLine": 57,
+            "bytes": 278,
+            "newlyShown": true
+          },
+          {
+            "requestId": "read-current-user-reference",
+            "request": {
+              "id": "read-current-user-reference",
+              "from": "read-item",
+              "selector": {
+                "kind": "literal-search",
+                "path": "backend/app/api/routes/items.py",
+                "literal": "CurrentUser"
+              },
+              "contextLines": 4
+            },
+            "budget": {
+              "usedBytes": 1558,
+              "maxBytes": 65536
+            },
+            "status": "unresolved",
+            "code": "ambiguous",
+            "candidates": [
+              {
+                "path": "backend/app/api/routes/items.py",
+                "startLine": 7,
+                "endLine": 7
+              },
+              {
+                "path": "backend/app/api/routes/items.py",
+                "startLine": 15,
+                "endLine": 15
+              },
+              {
+                "path": "backend/app/api/routes/items.py",
+                "startLine": 49,
+                "endLine": 49
+              },
+              {
+                "path": "backend/app/api/routes/items.py",
+                "startLine": 63,
+                "endLine": 63
+              },
+              {
+                "path": "backend/app/api/routes/items.py",
+                "startLine": 79,
+                "endLine": 79
+              },
+              {
+                "path": "backend/app/api/routes/items.py",
+                "startLine": 101,
+                "endLine": 101
+              }
+            ]
+          }
+        ],
+        "selectionOutcomes": [
+          {
+            "id": "dep-read-item-resource-lookup",
+            "from": "read-item",
+            "selector": {
+              "kind": "shown-range",
+              "windowId": "window-5eedb6a0604b63811fcad6cf",
+              "startLine": 53,
+              "endLine": 55
+            },
+            "description": "Loads the requested Item by the path ID and handles the not-found case.",
+            "status": "resolved"
+          },
+          {
+            "id": "dep-read-item-owner-control",
+            "from": "read-item",
+            "selector": {
+              "kind": "shown-range",
+              "windowId": "window-5eedb6a0604b63811fcad6cf",
+              "startLine": 56,
+              "endLine": 57
+            },
+            "description": "Applies the ownership/superuser authorization condition before returning the item.",
+            "status": "resolved"
+          },
+          {
+            "id": "dep-read-item-authenticated-active-user",
+            "from": "read-item",
+            "selector": {
+              "kind": "shown-range",
+              "windowId": "window-c93fcfae099f1fba8ba7ef74",
+              "startLine": 41,
+              "endLine": 46
+            },
+            "description": "Resolves the token subject to a user, rejects missing users, and rejects inactive users before the route uses current_user.",
+            "status": "resolved"
+          }
+        ],
+        "acceptedDependencies": [
+          {
+            "id": "dep-read-item-resource-lookup",
+            "from": "read-item",
+            "path": "backend/app/api/routes/items.py",
+            "startLine": 53,
+            "endLine": 55,
+            "reason": "resource-binding",
+            "basis": "model-proposal"
+          },
+          {
+            "id": "dep-read-item-owner-control",
+            "from": "read-item",
+            "path": "backend/app/api/routes/items.py",
+            "startLine": 56,
+            "endLine": 57,
+            "reason": "control",
+            "basis": "model-proposal"
+          },
+          {
+            "id": "dep-read-item-authenticated-active-user",
+            "from": "read-item",
+            "path": "backend/app/api/deps.py",
+            "startLine": 41,
+            "endLine": 46,
+            "reason": "identity",
+            "basis": "model-proposal"
+          }
+        ],
+        "sourceDisplay": {
+          "totalBytes": 2073,
+          "uniqueSourceBytes": 1558,
+          "resentSourceBytes": 515,
+          "maxBytes": 65536
+        },
+        "unknownCostReason": "provider did not report actual cost for every dispatched request"
+      }
+    },
+    "attemptPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-location-recovery-v3\\inputs\\fastapi-superuser-read\\automatic-v3.attempts-ubqFrQ",
+    "outputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-location-recovery-v3\\inputs\\fastapi-superuser-read\\automatic-v3",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-location-recovery-v3\\inputs\\fastapi-superuser-read\\automatic-v3\\assessment.json"
+  },
+  "errors": [],
+  "output": [
+    "{\n  \"schemaVersion\": \"authorization-evidence-report/v2\",\n  \"status\": \"partial\",\n  \"sourceIdentity\": {\n    \"repository\": \"https://github.com/fastapi/full-stack-fastapi-template\",\n    \"sourceRef\": \"cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7\"\n  },\n  \"sourceRoot\": \"../../../authorization-evidence-editing-v1/public-source/fastapi\",\n  \"included\": [\n    {\n      \"path\": \"backend/app/api/routes/items.py\",\n      \"originalPath\": \"backend/app/api/routes/items.py\",\n      \"startLine\": 48,\n      \"endLine\": 58,\n      \"origins\": [\n        \"entry:read-item\",\n        \"model-proposal:dep-read-item-resource-lookup\",\n        \"model-proposal:dep-read-item-owner-control\"\n      ],\n      \"segments\": [\n        {\n          \"originalStartLine\": 48,\n          \"originalEndLine\": 58,\n          \"origins\": [\n            \"entry:read-item\",\n            \"model-proposal:dep-read-item-resource-lookup\",\n            \"model-proposal:dep-read-item-owner-control\"\n          ],\n          \"snapshotStartLine\": 1,\n          \"snapshotEndLine\": 11\n        }\n      ]\n    },\n    {\n      \"path\": \"backend/app/api/deps.py\",\n      \"originalPath\": \"backend/app/api/deps.py\",\n      \"startLine\": 41,\n      \"endLine\": 46,\n      \"origins\": [\n        \"model-proposal:dep-read-item-authenticated-active-user\"\n      ],\n      \"segments\": [\n        {\n          \"originalStartLine\": 41,\n          \"originalEndLine\": 46,\n          \"origins\": [\n            \"model-proposal:dep-read-item-authenticated-active-user\"\n          ],\n          \"snapshotStartLine\": 1,\n          \"snapshotEndLine\": 6\n        }\n      ]\n    }\n  ],\n  \"gaps\": [\n    {\n      \"id\": \"read:read-current-user-reference\",\n      \"entryKey\": \"read-item\",\n      \"reason\": \"read-ambiguous\",\n      \"attemptedPath\": \"backend/app/api/routes/items.py\",\n      \"requestId\": \"read-current-user-reference\",\n      \"selector\": {\n        \"kind\": \"literal-search\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"literal\": \"CurrentUser\"\n      },\n      \"candidates\": [\n        {\n          \"path\": \"backend/app/api/routes/items.py\",\n          \"startLine\": 7,\n          \"endLine\": 7\n        },\n        {\n          \"path\": \"backend/app/api/routes/items.py\",\n          \"startLine\": 15,\n          \"endLine\": 15\n        },\n        {\n          \"path\": \"backend/app/api/routes/items.py\",\n          \"startLine\": 49,\n          \"endLine\": 49\n        },\n        {\n          \"path\": \"backend/app/api/routes/items.py\",\n          \"startLine\": 63,\n          \"endLine\": 63\n        },\n        {\n          \"path\": \"backend/app/api/routes/items.py\",\n          \"startLine\": 79,\n          \"endLine\": 79\n        },\n        {\n          \"path\": \"backend/app/api/routes/items.py\",\n          \"startLine\": 101,\n          \"endLine\": 101\n        }\n      ],\n      \"budget\": {\n        \"usedBytes\": 1558,\n        \"maxBytes\": 65536\n      },\n      \"next\": \"Choose one candidate with an exact source range.\"\n    }\n  ],\n  \"closureClaim\": \"declared-dependencies-only\",\n  \"scopePreview\": {\n    \"analysisEntries\": 1,\n    \"declaredScenarios\": 1,\n    \"expandedObligations\": 1,\n    \"entries\": [\n      {\n        \"id\": \"entry:read-item\",\n        \"name\": \"read_item\",\n        \"locations\": [\n          {\n            \"path\": \"backend/app/api/routes/items.py\",\n            \"startLine\": 48,\n            \"endLine\": 58\n          }\n        ],\n        \"scenarioIds\": [\n          \"scenario:read-item\"\n        ]\n      }\n    ],\n    \"supportDependencies\": 3,\n    \"supports\": [\n      {\n        \"id\": \"dep-read-item-resource-lookup\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"startLine\": 53,\n        \"endLine\": 55,\n        \"basis\": \"model-proposal\"\n      },\n      {\n        \"id\": \"dep-read-item-owner-control\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"startLine\": 56,\n        \"endLine\": 57,\n        \"basis\": \"model-proposal\"\n      },\n      {\n        \"id\": \"dep-read-item-authenticated-active-user\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/deps.py\",\n        \"startLine\": 41,\n        \"endLine\": 46,\n        \"basis\": \"model-proposal\"\n      }\n    ],\n    \"scopeRule\": \"Only declared scenario-entry pairs are analyzed. Support does not add an entry; explicit multiple analysis entries are preserved.\"\n  },\n  \"discoveryPath\": \"D:\\\\skill优化\\\\SkVM\\\\results\\\\skill-ir\\\\skill-dsl-research\\\\development\\\\authorization-location-recovery-v3\\\\inputs\\\\fastapi-superuser-read\\\\automatic-v3\\\\discovery.json\",\n  \"proposal\": {\n    \"schemaVersion\": \"authorization-dependency-proposal/v3\",\n    \"model\": \"xty/gpt-5.6-sol\",\n    \"dependencies\": [\n      {\n        \"id\": \"dep-read-item-resource-lookup\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"startLine\": 53,\n        \"endLine\": 55,\n        \"reason\": \"resource-binding\",\n        \"basis\": \"model-proposal\"\n      },\n      {\n        \"id\": \"dep-read-item-owner-control\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/routes/items.py\",\n        \"startLine\": 56,\n        \"endLine\": 57,\n        \"reason\": \"control\",\n        \"basis\": \"model-proposal\"\n      },\n      {\n        \"id\": \"dep-read-item-authenticated-active-user\",\n        \"from\": \"read-item\",\n        \"path\": \"backend/app/api/deps.py\",\n        \"startLine\": 41,\n        \"endLine\": 46,\n        \"reason\": \"identity\",\n        \"basis\": \"model-proposal\"\n      }\n    ],\n    \"gaps\": [\n      {\n        \"id\": \"read:read-current-user-reference\",\n        \"entryKey\": \"read-item\",\n        \"reason\": \"read-ambiguous\",\n        \"attemptedPath\": \"backend/app/api/routes/items.py\"\n      }\n    ],\n    \"promptCharacters\": 10570,\n    \"responseCharacters\": 1557,\n    \"durationMs\": 52453.77129999999,\n    \"tokens\": {\n      \"input\": 3449,\n      \"output\": 1135,\n      \"cacheRead\": 0,\n      \"cacheWrite\": 0\n    },\n    \"actualCostUsd\": null,\n    \"account\": {\n      \"schemaVersion\": \"authorization-preparation-attempts/v1\",\n      \"model\": \"xty/gpt-5.6-sol\",\n      \"status\": \"completed\",\n      \"published\": true,\n      \"attempts\": [\n        {\n          \"id\": \"provider-attempt-1\",\n          \"phase\": \"initial\",\n          \"transport\": \"prompt-parse\",\n          \"status\": \"response\",\n          \"startedAt\": \"2026-09-29T07:36:58.363Z\",\n          \"request\": {\n            \"messageCount\": 1,\n            \"messageCharacters\": 4570,\n            \"toolNames\": [],\n            \"maxTokens\": 6000,\n            \"temperature\": 0,\n            \"executableTools\": false\n          },\n          \"usage\": {\n            \"input\": 1652,\n            \"output\": 684,\n            \"cacheRead\": 0,\n            \"cacheWrite\": 0\n          },\n          \"costUsd\": null,\n          \"transportAttempts\": \"unknown\",\n          \"response\": {\n            \"text\": \"{\\\"schemaVersion\\\":\\\"authorization-dependency-selection/v3\\\",\\\"dependencies\\\":[{\\\"id\\\":\\\"dep-read-item-resource-lookup\\\",\\\"from\\\":\\\"read-item\\\",\\\"selector\\\":{\\\"kind\\\":\\\"shown-range\\\",\\\"windowId\\\":\\\"window-5eedb6a0604b63811fcad6cf\\\",\\\"startLine\\\":53,\\\"endLine\\\":55},\\\"reason\\\":\\\"resource-binding\\\",\\\"description\\\":\\\"Loads the requested Item by the path ID and handles the not-found case.\\\"},{\\\"id\\\":\\\"dep-read-item-owner-control\\\",\\\"from\\\":\\\"read-item\\\",\\\"selector\\\":{\\\"kind\\\":\\\"shown-range\\\",\\\"windowId\\\":\\\"window-5eedb6a0604b63811fcad6cf\\\",\\\"startLine\\\":56,\\\"endLine\\\":57},\\\"reason\\\":\\\"control\\\",\\\"description\\\":\\\"Applies the ownership/superuser authorization condition before returning the item.\\\"}],\\\"reads\\\":[{\\\"id\\\":\\\"read-current-user-dependency\\\",\\\"from\\\":\\\"read-item\\\",\\\"selector\\\":{\\\"kind\\\":\\\"indexed-symbol\\\",\\\"symbolId\\\":\\\"symbol-699e4b4d07f3307b893f00fa\\\"},\\\"contextLines\\\":4},{\\\"id\\\":\\\"read-active-superuser-dependency\\\",\\\"from\\\":\\\"read-item\\\",\\\"selector\\\":{\\\"kind\\\":\\\"indexed-symbol\\\",\\\"symbolId\\\":\\\"symbol-df2b16a2c17526026caec383\\\"},\\\"contextLines\\\":4},{\\\"id\\\":\\\"read-current-user-reference\\\",\\\"from\\\":\\\"read-item\\\",\\\"selector\\\":{\\\"kind\\\":\\\"literal-search\\\",\\\"path\\\":\\\"backend/app/api/routes/items.py\\\",\\\"literal\\\":\\\"CurrentUser\\\"},\\\"contextLines\\\":4}]}\",\n            \"toolCalls\": [],\n            \"tokens\": {\n              \"input\": 1652,\n              \"output\": 684,\n              \"cacheRead\": 0,\n              \"cacheWrite\": 0\n            },\n            \"costUsd\": null,\n            \"durationMs\": 15879.77029999999,\n            \"stopReason\": \"end_turn\"\n          },\n          \"endedAt\": \"2026-09-29T07:37:14.243Z\"\n        },\n        {\n          \"id\": \"provider-attempt-2\",\n          \"phase\": \"initial\",\n          \"transport\": \"prompt-parse\",\n          \"status\": \"response\",\n          \"startedAt\": \"2026-09-29T07:37:14.247Z\",\n          \"request\": {\n            \"messageCount\": 1,\n            \"messageCharacters\": 6000,\n            \"toolNames\": [],\n            \"maxTokens\": 6000,\n            \"temperature\": 0,\n            \"executableTools\": false\n          },\n          \"usage\": {\n            \"input\": 1797,\n            \"output\": 451,\n            \"cacheRead\": 0,\n            \"cacheWrite\": 0\n          },\n          \"costUsd\": null,\n          \"transportAttempts\": \"unknown\",\n          \"response\": {\n            \"text\": \"{\\\"schemaVersion\\\":\\\"authorization-dependency-selection/v3\\\",\\\"dependencies\\\":[{\\\"id\\\":\\\"dep-read-item-authenticated-active-user\\\",\\\"from\\\":\\\"read-item\\\",\\\"selector\\\":{\\\"kind\\\":\\\"shown-range\\\",\\\"windowId\\\":\\\"window-c93fcfae099f1fba8ba7ef74\\\",\\\"startLine\\\":41,\\\"endLine\\\":46},\\\"reason\\\":\\\"identity\\\",\\\"description\\\":\\\"Resolves the token subject to a user, rejects missing users, and rejects inactive users before the route uses current_user.\\\"}],\\\"reads\\\":[]}\",\n            \"toolCalls\": [],\n            \"tokens\": {\n              \"input\": 1797,\n              \"output\": 451,\n              \"cacheRead\": 0,\n              \"cacheWrite\": 0\n            },\n            \"costUsd\": null,\n            \"durationMs\": 36574.001000000004,\n            \"stopReason\": \"end_turn\"\n          },\n          \"endedAt\": \"2026-09-29T07:37:50.822Z\"\n        }\n      ],\n      \"telemetry\": {\n        \"providerCalls\": 2,\n        \"respondedCalls\": 2,\n        \"unknownUsageCalls\": 0,\n        \"unknownCostCalls\": 2,\n        \"knownTokens\": {\n          \"input\": 3449,\n          \"output\": 1135,\n          \"cacheRead\": 0,\n          \"cacheWrite\": 0\n        },\n        \"tokensStatus\": \"complete\",\n        \"knownActualUsdSubtotal\": 0,\n        \"totalActualUsd\": null,\n        \"actualUsdStatus\": \"unknown\",\n        \"transportAttempts\": \"unknown\"\n      },\n      \"rounds\": [\n        {\n          \"kind\": \"proposal\",\n          \"promptCharacters\": 4570,\n          \"promptBytes\": 4570,\n          \"metadataBytes\": 4055,\n          \"displayedBytes\": 515,\n          \"uniqueSourceBytes\": 515,\n          \"resentSourceBytes\": 0,\n          \"diagnostics\": []\n        },\n        {\n          \"kind\": \"supplement\",\n          \"promptCharacters\": 6000,\n          \"promptBytes\": 6000,\n          \"metadataBytes\": 4442,\n          \"displayedBytes\": 1558,\n          \"uniqueSourceBytes\": 1043,\n          \"resentSourceBytes\": 515,\n          \"diagnostics\": []\n        }\n      ],\n      \"diagnostics\": [],\n      \"readOutcomes\": [\n        {\n          \"requestId\": \"read-current-user-dependency\",\n          \"request\": {\n            \"id\": \"read-current-user-dependency\",\n            \"from\": \"read-item\",\n            \"selector\": {\n              \"kind\": \"indexed-symbol\",\n              \"symbolId\": \"symbol-699e4b4d07f3307b893f00fa\"\n            },\n            \"contextLines\": 4\n          },\n          \"budget\": {\n            \"usedBytes\": 515,\n            \"maxBytes\": 65536\n          },\n          \"status\": \"resolved\",\n          \"windowId\": \"window-c93fcfae099f1fba8ba7ef74\",\n          \"path\": \"backend/app/api/deps.py\",\n          \"startLine\": 30,\n          \"endLine\": 48,\n          \"bytes\": 765,\n          \"newlyShown\": true\n        },\n        {\n          \"requestId\": \"read-active-superuser-dependency\",\n          \"request\": {\n            \"id\": \"read-active-superuser-dependency\",\n            \"from\": \"read-item\",\n            \"selector\": {\n              \"kind\": \"indexed-symbol\",\n              \"symbolId\": \"symbol-df2b16a2c17526026caec383\"\n            },\n            \"contextLines\": 4\n          },\n          \"budget\": {\n            \"usedBytes\": 1280,\n            \"maxBytes\": 65536\n          },\n          \"status\": \"resolved\",\n          \"windowId\": \"window-b2433e2d32affe4187653fa7\",\n          \"path\": \"backend/app/api/deps.py\",\n          \"startLine\": 52,\n          \"endLine\": 57,\n          \"bytes\": 278,\n          \"newlyShown\": true\n        },\n        {\n          \"requestId\": \"read-current-user-reference\",\n          \"request\": {\n            \"id\": \"read-current-user-reference\",\n            \"from\": \"read-item\",\n            \"selector\": {\n              \"kind\": \"literal-search\",\n              \"path\": \"backend/app/api/routes/items.py\",\n              \"literal\": \"CurrentUser\"\n            },\n            \"contextLines\": 4\n          },\n          \"budget\": {\n            \"usedBytes\": 1558,\n            \"maxBytes\": 65536\n          },\n          \"status\": \"unresolved\",\n          \"code\": \"ambiguous\",\n          \"candidates\": [\n            {\n              \"path\": \"backend/app/api/routes/items.py\",\n              \"startLine\": 7,\n              \"endLine\": 7\n            },\n            {\n              \"path\": \"backend/app/api/routes/items.py\",\n              \"startLine\": 15,\n              \"endLine\": 15\n            },\n            {\n              \"path\": \"backend/app/api/routes/items.py\",\n              \"startLine\": 49,\n              \"endLine\": 49\n            },\n            {\n              \"path\": \"backend/app/api/routes/items.py\",\n              \"startLine\": 63,\n              \"endLine\": 63\n            },\n            {\n              \"path\": \"backend/app/api/routes/items.py\",\n              \"startLine\": 79,\n              \"endLine\": 79\n            },\n            {\n              \"path\": \"backend/app/api/routes/items.py\",\n              \"startLine\": 101,\n              \"endLine\": 101\n            }\n          ]\n        }\n      ],\n      \"selectionOutcomes\": [\n        {\n          \"id\": \"dep-read-item-resource-lookup\",\n          \"from\": \"read-item\",\n          \"selector\": {\n            \"kind\": \"shown-range\",\n            \"windowId\": \"window-5eedb6a0604b63811fcad6cf\",\n            \"startLine\": 53,\n            \"endLine\": 55\n          },\n          \"description\": \"Loads the requested Item by the path ID and handles the not-found case.\",\n          \"status\": \"resolved\"\n        },\n        {\n          \"id\": \"dep-read-item-owner-control\",\n          \"from\": \"read-item\",\n          \"selector\": {\n            \"kind\": \"shown-range\",\n            \"windowId\": \"window-5eedb6a0604b63811fcad6cf\",\n            \"startLine\": 56,\n            \"endLine\": 57\n          },\n          \"description\": \"Applies the ownership/superuser authorization condition before returning the item.\",\n          \"status\": \"resolved\"\n        },\n        {\n          \"id\": \"dep-read-item-authenticated-active-user\",\n          \"from\": \"read-item\",\n          \"selector\": {\n            \"kind\": \"shown-range\",\n            \"windowId\": \"window-c93fcfae099f1fba8ba7ef74\",\n            \"startLine\": 41,\n            \"endLine\": 46\n          },\n          \"description\": \"Resolves the token subject to a user, rejects missing users, and rejects inactive users before the route uses current_user.\",\n          \"status\": \"resolved\"\n        }\n      ],\n      \"acceptedDependencies\": [\n        {\n          \"id\": \"dep-read-item-resource-lookup\",\n          \"from\": \"read-item\",\n          \"path\": \"backend/app/api/routes/items.py\",\n          \"startLine\": 53,\n          \"endLine\": 55,\n          \"reason\": \"resource-binding\",\n          \"basis\": \"model-proposal\"\n        },\n        {\n          \"id\": \"dep-read-item-owner-control\",\n          \"from\": \"read-item\",\n          \"path\": \"backend/app/api/routes/items.py\",\n          \"startLine\": 56,\n          \"endLine\": 57,\n          \"reason\": \"control\",\n          \"basis\": \"model-proposal\"\n        },\n        {\n          \"id\": \"dep-read-item-authenticated-active-user\",\n          \"from\": \"read-item\",\n          \"path\": \"backend/app/api/deps.py\",\n          \"startLine\": 41,\n          \"endLine\": 46,\n          \"reason\": \"identity\",\n          \"basis\": \"model-proposal\"\n        }\n      ],\n      \"sourceDisplay\": {\n        \"totalBytes\": 2073,\n        \"uniqueSourceBytes\": 1558,\n        \"resentSourceBytes\": 515,\n        \"maxBytes\": 65536\n      },\n      \"unknownCostReason\": \"provider did not report actual cost for every dispatched request\"\n    }\n  },\n  \"attemptPath\": \"D:\\\\skill优化\\\\SkVM\\\\results\\\\skill-ir\\\\skill-dsl-research\\\\development\\\\authorization-location-recovery-v3\\\\inputs\\\\fastapi-superuser-read\\\\automatic-v3.attempts-ubqFrQ\",\n  \"outputPath\": \"D:\\\\skill优化\\\\SkVM\\\\results\\\\skill-ir\\\\skill-dsl-research\\\\development\\\\authorization-location-recovery-v3\\\\inputs\\\\fastapi-superuser-read\\\\automatic-v3\",\n  \"inputPath\": \"D:\\\\skill优化\\\\SkVM\\\\results\\\\skill-ir\\\\skill-dsl-research\\\\development\\\\authorization-location-recovery-v3\\\\inputs\\\\fastapi-superuser-read\\\\automatic-v3\\\\assessment.json\"\n}"
+  ]
+}

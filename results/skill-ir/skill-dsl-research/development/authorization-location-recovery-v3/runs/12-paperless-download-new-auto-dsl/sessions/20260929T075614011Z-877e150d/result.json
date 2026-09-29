@@ -1,0 +1,346 @@
+{
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "assessmentMode": "explicit-v1",
+  "reasoningStrategy": "standard",
+  "evidencePreparation": {
+    "status": "ready",
+    "sourceIdentity": {
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+    "gaps": [],
+    "closureClaim": "declared-dependencies-only",
+    "schemaVersion": "authorization-evidence-report/v2",
+    "included": [
+      {
+        "path": "src/documents/views.py",
+        "originalPath": "src/documents/views.py",
+        "startLine": 1369,
+        "endLine": 4946,
+        "origins": [
+          "locator:located-5",
+          "locator:located-3",
+          "locator:located-2",
+          "model-proposal:dep-file-response-control",
+          "locator:located-1",
+          "entry:download",
+          "model-proposal:dep-download-entry-control",
+          "locator:located-4"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 1369,
+            "originalEndLine": 1374,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 6,
+            "origins": [
+              "locator:located-5"
+            ]
+          },
+          {
+            "originalStartLine": 1388,
+            "originalEndLine": 1392,
+            "snapshotStartLine": 7,
+            "snapshotEndLine": 11,
+            "origins": [
+              "locator:located-3"
+            ]
+          },
+          {
+            "originalStartLine": 1401,
+            "originalEndLine": 1406,
+            "snapshotStartLine": 12,
+            "snapshotEndLine": 17,
+            "origins": [
+              "locator:located-2"
+            ]
+          },
+          {
+            "originalStartLine": 1429,
+            "originalEndLine": 1449,
+            "snapshotStartLine": 18,
+            "snapshotEndLine": 38,
+            "origins": [
+              "model-proposal:dep-file-response-control",
+              "locator:located-1"
+            ]
+          },
+          {
+            "originalStartLine": 1834,
+            "originalEndLine": 1839,
+            "snapshotStartLine": 39,
+            "snapshotEndLine": 44,
+            "origins": [
+              "entry:download",
+              "model-proposal:dep-download-entry-control"
+            ]
+          },
+          {
+            "originalStartLine": 4941,
+            "originalEndLine": 4946,
+            "snapshotStartLine": 45,
+            "snapshotEndLine": 50,
+            "origins": [
+              "locator:located-4"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "schemaVersion": "authorization-local-result/v1",
+  "sessionId": "20260929T075614011Z-877e150d",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-location-recovery-v3\\runs\\12-paperless-download-new-auto-dsl\\sessions\\20260929T075614011Z-877e150d",
+  "createdAt": "2026-09-29T07:56:14.011Z",
+  "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-location-recovery-v3\\inputs\\paperless-download\\automatic-v3\\assessment.json",
+  "taskId": "paperless-version-download-root",
+  "repository": "https://github.com/paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "promptCharacters": {
+    "initial": {
+      "instructions": 396,
+      "declaration": 2984,
+      "publicAnalysis": 1185,
+      "assessmentProgram": 709,
+      "source": 3276,
+      "outputContract": 2908,
+      "total": 11596,
+      "tokenMeasurement": "provider-reported-only"
+    }
+  },
+  "artifacts": {
+    "session": "session.json",
+    "check": "check.json",
+    "input": "input.json",
+    "normalizedInput": "normalized-input.json",
+    "fieldProvenance": "field-provenance.json",
+    "executionDependencies": "execution-dependencies.json",
+    "evidencePreparation": "evidence-preparation.json",
+    "task": "task.json",
+    "sourceBundle": "source-bundle.json",
+    "analysisRequirements": "analysis-requirements.json",
+    "preview": "preview.md",
+    "events": "events.jsonl",
+    "result": "result.json",
+    "summary": "summary.txt",
+    "dispatch": "dispatch.json",
+    "run": "run.json"
+  },
+  "status": "completed",
+  "finalKind": "initial",
+  "canonicalResult": {
+    "schemaVersion": "source-authorization-assessment-result/v0",
+    "taskId": "paperless-version-download-root",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "results": [
+      {
+        "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+        "conclusion": "unknown",
+        "explanation": "At the declared download entry, the handler delegates to file_response(pk, request, \"attachment\"). The supplied source shows file_response resolving a request document and root document, returning the resolver's HttpResponseForbidden unchanged, then selecting an effective file document and passing that file_doc to serve_file. Thus the protected authorization object is the resolved root/document relationship, while the protected effect is serving the selected effective file for download; version ownership must not be substituted for root authorization. However, the supplied crop does not include the implementation of _resolve_request_and_root_doc or _get_effective_file_doc, so it does not source-prove that the resolver performs the accepted owner-aware view_document check on the root, nor exactly which concrete version/file object is selected. The source-visible result is therefore unknown rather than an inferred deny or allow. The decisive missing observation is the resolver's authorization and binding behavior: whether it checks the existing root against the caller's owner-aware view permission and returns HttpResponseForbidden when the caller lacks root access, and how it binds the requested version to the root and effective file. This addresses the entry, identity/resource binding, strongest visible control, protected effect, and missing-runtime/source fact questions without claiming repository-wide or deployment discovery.",
+        "facts": {
+          "entry": [
+            {
+              "statement": "DocumentViewSet.download delegates the requested download to file_response with attachment disposition.",
+              "citations": [
+                {
+                  "path": "src/documents/views.py",
+                  "startLine": 1834,
+                  "endLine": 1839,
+                  "quote": "    @action(methods=[\"get\"], detail=True)\n    def download(self, request, pk=None):\n        try:\n            return self.file_response(pk, request, \"attachment\")\n        except (FileNotFoundError, Document.DoesNotExist):\n            raise Http404"
+                }
+              ]
+            }
+          ],
+          "binding": [
+            {
+              "statement": "file_response invokes _resolve_request_and_root_doc with the requested pk and request, producing a request document/root-document resolution used by the download path.",
+              "citations": [
+                {
+                  "path": "src/documents/views.py",
+                  "startLine": 1429,
+                  "endLine": 1434,
+                  "quote": "    def file_response(self, pk, request, disposition):\n        resolved = self._resolve_request_and_root_doc(\n            pk,\n            request,\n            include_deleted=True,\n        )"
+                }
+              ]
+            }
+          ],
+          "control": [
+            {
+              "statement": "The visible control boundary rejects the result when resolution returns HttpResponseForbidden; the supplied range does not show the resolver's owner-aware authorization predicate.",
+              "citations": [
+                {
+                  "path": "src/documents/views.py",
+                  "startLine": 1430,
+                  "endLine": 1437,
+                  "quote": "        resolved = self._resolve_request_and_root_doc(\n            pk,\n            request,\n            include_deleted=True,\n        )\n        if isinstance(resolved, HttpResponseForbidden):\n            return resolved\n        file_doc = self._get_effective_file_doc("
+                }
+              ]
+            }
+          ],
+          "effect": [
+            {
+              "statement": "After resolution, the path obtains an effective file document and passes it to serve_file, which is the protected file-serving effect.",
+              "citations": [
+                {
+                  "path": "src/documents/views.py",
+                  "startLine": 1437,
+                  "endLine": 1448,
+                  "quote": "        file_doc = self._get_effective_file_doc(\n            resolved.request_doc,\n            resolved.root_doc,\n            request,\n        )\n        return serve_file(\n            doc=file_doc,\n            use_archive=not self.original_requested(request)\n            and file_doc.has_archive_version,\n            disposition=disposition,\n            follow_formatting=request.query_params.get(\"follow_formatting\", False),\n        )"
+                }
+              ]
+            }
+          ],
+          "condition": [
+            {
+              "statement": "The selected file may use an archive version based on the effective file document and the request's original flag; the supplied source does not establish which version/file is selected for this premise.",
+              "citations": [
+                {
+                  "path": "src/documents/views.py",
+                  "startLine": 1442,
+                  "endLine": 1448,
+                  "quote": "        return serve_file(\n            doc=file_doc,\n            use_archive=not self.original_requested(request)\n            and file_doc.has_archive_version,\n            disposition=disposition,\n            follow_formatting=request.query_params.get(\"follow_formatting\", False),\n        )"
+                }
+              ]
+            }
+          ]
+        },
+        "decisiveMissingFacts": [
+          "The implementation of _resolve_request_and_root_doc and its owner-aware view_document check on the resolved root is not supplied.",
+          "The runtime binding of the requested version, root document, and effective file_doc is not supplied, so the concrete file object that would be served cannot be established from this crop."
+        ],
+        "suggestedObservations": [
+          "Provide or observe the fixed-ref implementation of _resolve_request_and_root_doc for the supplied caller, requested version, and root, including its authorization result.",
+          "Observe the resolver output and _get_effective_file_doc result for the supplied request to identify whether access is forbidden and which file object is passed to serve_file."
+        ]
+      }
+    ],
+    "scopeClaim": {
+      "kind": "declared-obligations-only",
+      "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+    }
+  },
+  "wireResult": {
+    "results": [
+      {
+        "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+        "explanation": "At the declared download entry, the handler delegates to file_response(pk, request, \"attachment\"). The supplied source shows file_response resolving a request document and root document, returning the resolver's HttpResponseForbidden unchanged, then selecting an effective file document and passing that file_doc to serve_file. Thus the protected authorization object is the resolved root/document relationship, while the protected effect is serving the selected effective file for download; version ownership must not be substituted for root authorization. However, the supplied crop does not include the implementation of _resolve_request_and_root_doc or _get_effective_file_doc, so it does not source-prove that the resolver performs the accepted owner-aware view_document check on the root, nor exactly which concrete version/file object is selected. The source-visible result is therefore unknown rather than an inferred deny or allow. The decisive missing observation is the resolver's authorization and binding behavior: whether it checks the existing root against the caller's owner-aware view permission and returns HttpResponseForbidden when the caller lacks root access, and how it binds the requested version to the root and effective file. This addresses the entry, identity/resource binding, strongest visible control, protected effect, and missing-runtime/source fact questions without claiming repository-wide or deployment discovery.",
+        "facts": [
+          {
+            "id": "f-entry",
+            "kind": "entry",
+            "statement": "DocumentViewSet.download delegates the requested download to file_response with attachment disposition.",
+            "citations": [
+              {
+                "sourceId": "src-0afda2bcf1b0e4f8",
+                "startLine": 1834,
+                "endLine": 1839
+              }
+            ]
+          },
+          {
+            "id": "f-binding",
+            "kind": "binding",
+            "statement": "file_response invokes _resolve_request_and_root_doc with the requested pk and request, producing a request document/root-document resolution used by the download path.",
+            "citations": [
+              {
+                "sourceId": "src-0afda2bcf1b0e4f8",
+                "startLine": 1429,
+                "endLine": 1434
+              }
+            ]
+          },
+          {
+            "id": "f-control",
+            "kind": "control",
+            "statement": "The visible control boundary rejects the result when resolution returns HttpResponseForbidden; the supplied range does not show the resolver's owner-aware authorization predicate.",
+            "citations": [
+              {
+                "sourceId": "src-0afda2bcf1b0e4f8",
+                "startLine": 1430,
+                "endLine": 1437
+              }
+            ]
+          },
+          {
+            "id": "f-effect",
+            "kind": "effect",
+            "statement": "After resolution, the path obtains an effective file document and passes it to serve_file, which is the protected file-serving effect.",
+            "citations": [
+              {
+                "sourceId": "src-0afda2bcf1b0e4f8",
+                "startLine": 1437,
+                "endLine": 1448
+              }
+            ]
+          },
+          {
+            "id": "f-condition",
+            "kind": "condition",
+            "statement": "The selected file may use an archive version based on the effective file document and the request's original flag; the supplied source does not establish which version/file is selected for this premise.",
+            "citations": [
+              {
+                "sourceId": "src-0afda2bcf1b0e4f8",
+                "startLine": 1442,
+                "endLine": 1448
+              }
+            ]
+          }
+        ],
+        "decisiveMissingFacts": [
+          "The implementation of _resolve_request_and_root_doc and its owner-aware view_document check on the resolved root is not supplied.",
+          "The runtime binding of the requested version, root document, and effective file_doc is not supplied, so the concrete file object that would be served cannot be established from this crop."
+        ],
+        "suggestedObservations": [
+          "Provide or observe the fixed-ref implementation of _resolve_request_and_root_doc for the supplied caller, requested version, and root, including its authorization result.",
+          "Observe the resolver output and _get_effective_file_doc result for the supplied request to identify whether access is forbidden and which file object is passed to serve_file."
+        ],
+        "decision": {
+          "kind": "observed",
+          "observed": "unknown"
+        },
+        "branchResults": []
+      }
+    ]
+  },
+  "normalizerVersion": "authorization-wire-normalizer/v6",
+  "relationCoverage": [],
+  "observedDecisions": [
+    {
+      "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+      "expectation": "deny",
+      "observed": "unknown",
+      "derivedConclusion": "unknown"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 3011,
+      "output": 1027,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  }
+}

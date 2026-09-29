@@ -1,0 +1,103 @@
+{
+  "repository": "https://github.com/paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceMode": "fixed-context",
+  "isolation": "exact-allowlist",
+  "files": [
+    {
+      "relativePath": "src/documents/views.py",
+      "content": "class PassUserMixin(GenericAPIView[Any]):\n    \"\"\"\n    Pass a user object to serializer\n    \"\"\"\n\n    def get_serializer(self, *args, **kwargs):\n        serializer_class = self.get_serializer_class()\n        if isinstance(serializer_class, type) and issubclass(\n            serializer_class,\n            SerializerWithPerms,\n        ):\n            kwargs.setdefault(\"user\", self.request.user)\n            try:\n                full_perms = get_boolean(\n                    str(self.request.query_params.get(\"full_perms\", \"false\")),\n                )\n            except ValueError:\n                full_perms = False\n            kwargs.setdefault(\n                \"full_perms\",\n                full_perms,\n            )\n        return super().get_serializer(*args, **kwargs)\n\n\nclass ShareLinkViewSet(\n    PassUserMixin,\n    CreateModelMixin,\n    RetrieveModelMixin,\n    DestroyModelMixin,\n    ListModelMixin,\n    GenericViewSet,\n):\n    model = ShareLink\n\n    queryset = ShareLink.objects.select_related(\"document\")\n\n    serializer_class = ShareLinkSerializer\n    pagination_class = StandardPagination\n    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n    filter_backends = (\n        DjangoFilterBackend,\n        OrderingFilter,\n        PermittedObjectsFilter,\n    )\n    filterset_class = ShareLinkFilterSet\n    ordering_fields = (\"created\", \"expiration\", \"document__title\")\n",
+      "sha256": "b30bb8a2c8613149aea2fde16eedda582c3e39bf5ef04a004b46e4f02e23c5b7",
+      "cropRange": {
+        "startLine": 406,
+        "endLine": 4717
+      },
+      "originalLocations": [
+        "src/documents/views.py:406-430",
+        "src/documents/views.py:4696-4717"
+      ],
+      "segments": [
+        {
+          "originalStartLine": 406,
+          "originalEndLine": 430,
+          "snapshotStartLine": 1,
+          "snapshotEndLine": 25,
+          "origins": [
+            "locator:located-2",
+            "locator:located-3"
+          ]
+        },
+        {
+          "originalStartLine": 4696,
+          "originalEndLine": 4717,
+          "snapshotStartLine": 26,
+          "snapshotEndLine": 47,
+          "origins": [
+            "locator:located-1",
+            "entry:share-create"
+          ]
+        }
+      ]
+    }
+  ],
+  "evidencePreparation": {
+    "status": "partial",
+    "sourceIdentity": {
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+    "gaps": [
+      {
+        "id": "dep-1",
+        "entryKey": "share-create",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/serialisers.py"
+      },
+      {
+        "id": "dep-2",
+        "entryKey": "share-create",
+        "reason": "ambiguous-location",
+        "attemptedPath": "src/documents/permissions.py"
+      }
+    ],
+    "closureClaim": "declared-dependencies-only",
+    "schemaVersion": "authorization-evidence-report/v2",
+    "included": [
+      {
+        "path": "src/documents/views.py",
+        "originalPath": "src/documents/views.py",
+        "startLine": 406,
+        "endLine": 4717,
+        "origins": [
+          "locator:located-2",
+          "locator:located-3",
+          "locator:located-1",
+          "entry:share-create"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 406,
+            "originalEndLine": 430,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 25,
+            "origins": [
+              "locator:located-2",
+              "locator:located-3"
+            ]
+          },
+          {
+            "originalStartLine": 4696,
+            "originalEndLine": 4717,
+            "snapshotStartLine": 26,
+            "snapshotEndLine": 47,
+            "origins": [
+              "locator:located-1",
+              "entry:share-create"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

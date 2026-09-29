@@ -1,0 +1,192 @@
+{
+  "schemaVersion": "authorization-preparation-attempts/v1",
+  "model": "xty/gpt-5.6-sol",
+  "status": "completed",
+  "published": true,
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "prompt-parse",
+      "status": "response",
+      "startedAt": "2026-09-29T07:37:50.925Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 22200,
+        "toolNames": [],
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 7821,
+        "output": 1225,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-create-share-auth-controls\",\"from\":\"create-share\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-c80f362914733108ecd21897\",\"startLine\":25,\"endLine\":56},\"reason\":\"control\",\"description\":\"Handler authentication, memo lookup, active-memo requirement, memo-management authorization, and SPACE-audience exclusion.\"},{\"id\":\"dep-can-manage-memo\",\"from\":\"located-2\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-0101d84861884c7f3c779115\",\"startLine\":73,\"endLine\":75},\"reason\":\"control\",\"description\":\"Defines memo-management authorization as ownership or administration of the memo.\"},{\"id\":\"dep-owner-or-admin\",\"from\":\"located-8\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-ddf789ce7b023d5f34f9f56e\",\"startLine\":83,\"endLine\":85},\"reason\":\"control\",\"description\":\"Allows an active user when the user owns the memo or has the instance-admin role.\"},{\"id\":\"dep-active-user\",\"from\":\"located-9\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-587c9772f1e9370769a4a4af\",\"startLine\":57,\"endLine\":59},\"reason\":\"identity\",\"description\":\"Establishes that the actor must be an active user before ownership or administrator authorization applies.\"},{\"id\":\"dep-existing-memo-resolution\",\"from\":\"located-1\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-338ea75262035de388cf83f5\",\"startLine\":232,\"endLine\":243},\"reason\":\"resource-binding\",\"description\":\"Resolves the requested memo resource before the handler evaluates its lifecycle, authorization, and visibility.\"}],\"reads\":[]}",
+        "toolCalls": [],
+        "tokens": {
+          "input": 7821,
+          "output": 1225,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 70264.2452,
+        "stopReason": "end_turn"
+      },
+      "endedAt": "2026-09-29T07:39:01.189Z"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 1,
+    "respondedCalls": 1,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 1,
+    "knownTokens": {
+      "input": 7821,
+      "output": 1225,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  },
+  "rounds": [
+    {
+      "kind": "proposal",
+      "promptCharacters": 22200,
+      "promptBytes": 22200,
+      "metadataBytes": 15073,
+      "displayedBytes": 7127,
+      "uniqueSourceBytes": 4819,
+      "resentSourceBytes": 2308,
+      "diagnostics": []
+    }
+  ],
+  "diagnostics": [],
+  "readOutcomes": [],
+  "selectionOutcomes": [
+    {
+      "id": "dep-create-share-auth-controls",
+      "from": "create-share",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-c80f362914733108ecd21897",
+        "startLine": 25,
+        "endLine": 56
+      },
+      "description": "Handler authentication, memo lookup, active-memo requirement, memo-management authorization, and SPACE-audience exclusion.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-can-manage-memo",
+      "from": "located-2",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-0101d84861884c7f3c779115",
+        "startLine": 73,
+        "endLine": 75
+      },
+      "description": "Defines memo-management authorization as ownership or administration of the memo.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-owner-or-admin",
+      "from": "located-8",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-ddf789ce7b023d5f34f9f56e",
+        "startLine": 83,
+        "endLine": 85
+      },
+      "description": "Allows an active user when the user owns the memo or has the instance-admin role.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-active-user",
+      "from": "located-9",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-587c9772f1e9370769a4a4af",
+        "startLine": 57,
+        "endLine": 59
+      },
+      "description": "Establishes that the actor must be an active user before ownership or administrator authorization applies.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-existing-memo-resolution",
+      "from": "located-1",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-338ea75262035de388cf83f5",
+        "startLine": 232,
+        "endLine": 243
+      },
+      "description": "Resolves the requested memo resource before the handler evaluates its lifecycle, authorization, and visibility.",
+      "status": "resolved"
+    }
+  ],
+  "acceptedDependencies": [
+    {
+      "id": "dep-create-share-auth-controls",
+      "from": "create-share",
+      "path": "server/api/v1/memo_share_service.go",
+      "startLine": 25,
+      "endLine": 56,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-can-manage-memo",
+      "from": "located-2",
+      "path": "core/access/memo.go",
+      "startLine": 73,
+      "endLine": 75,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-owner-or-admin",
+      "from": "located-8",
+      "path": "core/access/memo.go",
+      "startLine": 83,
+      "endLine": 85,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-active-user",
+      "from": "located-9",
+      "path": "core/access/memo.go",
+      "startLine": 57,
+      "endLine": 59,
+      "reason": "identity",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-existing-memo-resolution",
+      "from": "located-1",
+      "path": "store/memo.go",
+      "startLine": 232,
+      "endLine": 243,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    }
+  ],
+  "sourceDisplay": {
+    "totalBytes": 7127,
+    "uniqueSourceBytes": 4819,
+    "resentSourceBytes": 2308,
+    "maxBytes": 65536
+  },
+  "unknownCostReason": "provider did not report actual cost for every dispatched request"
+}

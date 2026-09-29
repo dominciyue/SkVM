@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "authorization-assessment-authoring/v2",
+  "taskId": "al-use-memos-members",
+  "request": "At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.",
+  "repository": "https://github.com/usememos/memos",
+  "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+  "sourceRoot": "../../../../../authorization-evidence-editing-v1/public-source/memos",
+  "sources": [
+    "server/api/v1/space_service.go",
+    "store/space.go"
+  ],
+  "policies": {
+    "space-member-removal": {
+      "text": "An active space member may delete their own membership and may remove a different active member of the same space without space administrator authority.",
+      "location": "author-briefs.json#/memos-space-policy/changedPolicy",
+      "revision": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "acceptance": "accepted",
+      "reason": "This is the accepted original policy supplied by the task author."
+    }
+  },
+  "principals": {
+    "ordinary-member": {
+      "role": "active ordinary non-administrator space member",
+      "facts": [
+        "Authenticated",
+        "Active",
+        "Not a space administrator"
+      ],
+      "capabilities": [
+        "authenticated",
+        "active-space-member"
+      ]
+    }
+  },
+  "resources": {
+    "space": {
+      "type": "space",
+      "facts": [
+        "Selected space with an active membership target",
+        "Resource resolution succeeds"
+      ]
+    }
+  },
+  "entries": {
+    "delete-member": {
+      "name": "DeleteSpaceMember",
+      "locations": [
+        {
+          "path": "server/api/v1/space_service.go",
+          "startLine": 740,
+          "endLine": 763
+        }
+      ]
+    }
+  },
+  "scenarios": {
+    "self-leave": {
+      "principal": "ordinary-member",
+      "resource": "space",
+      "policy": "space-member-removal",
+      "entries": [
+        "delete-member"
+      ],
+      "relation": "caller-is-target-member",
+      "operation": "delete own membership",
+      "expectation": "allow"
+    },
+    "other-member": {
+      "principal": "ordinary-member",
+      "resource": "space",
+      "policy": "space-member-removal",
+      "entries": [
+        "delete-member"
+      ],
+      "relation": "caller-is-not-target-member-and-not-admin",
+      "operation": "delete another active membership",
+      "expectation": "allow"
+    }
+  },
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Analyze the source-visible authorization at the declared handler entry separately from comparison with the accepted original policy. Do not infer deployment facts or alter the supplied identities, relations, premise text, source bytes, or task ID.",
+    "scenarios": {
+      "self-leave": {
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "target-relation",
+            "statement": "At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds.",
+            "atEntry": "delete-member",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Report the source-visible authorization result.",
+          "Report the comparison with the accepted original policy separately."
+        ]
+      },
+      "other-member": {
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "target-relation",
+            "statement": "At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds.",
+            "atEntry": "delete-member",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Report the source-visible authorization result.",
+          "Report the comparison with the accepted original policy separately."
+        ]
+      }
+    }
+  }
+}

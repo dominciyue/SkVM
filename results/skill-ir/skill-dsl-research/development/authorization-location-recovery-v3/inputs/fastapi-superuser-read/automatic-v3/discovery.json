@@ -1,0 +1,275 @@
+{
+  "schemaVersion": "authorization-bounded-discovery/v1",
+  "sourceIdentity": {
+    "repository": "https://github.com/fastapi/full-stack-fastapi-template",
+    "sourceRef": "cb740b656d7a0a6c5e12c7bf8e50343ec94ee9c7"
+  },
+  "request": {
+    "schemaVersion": "authorization-evidence-request/v2",
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/fastapi",
+    "allowedFiles": [
+      "backend/app/api/routes/items.py",
+      "backend/app/api/deps.py"
+    ],
+    "entries": [
+      {
+        "entryKey": "read-item",
+        "path": "backend/app/api/routes/items.py",
+        "startLine": 48,
+        "endLine": 58
+      }
+    ],
+    "dependencies": [],
+    "limits": {
+      "maxFiles": 12,
+      "maxBytes": 65536,
+      "maxDepth": 3
+    }
+  },
+  "files": [
+    {
+      "path": "backend/app/api/routes/items.py",
+      "sha256": "7f0fa55d1f7b02188c4abd4f88aa6db92fe03de38258b765ed050ec72032b410",
+      "bytes": 3446,
+      "lineCount": 113
+    },
+    {
+      "path": "backend/app/api/deps.py",
+      "sha256": "84c30966b3b862c643009c14146d1924dec50be5b0efb9f56798e2fda5189daa",
+      "bytes": 1711,
+      "lineCount": 57
+    }
+  ],
+  "symbols": [
+    {
+      "id": "symbol-6af8f27775c76644164e762e",
+      "path": "backend/app/api/routes/items.py",
+      "name": "read_items",
+      "kind": "function",
+      "startLine": 14,
+      "endLine": 15,
+      "sha256": "7f0fa55d1f7b02188c4abd4f88aa6db92fe03de38258b765ed050ec72032b410"
+    },
+    {
+      "id": "symbol-ffa14fbf84eed7ce6d270ea6",
+      "path": "backend/app/api/routes/items.py",
+      "name": "read_item",
+      "kind": "function",
+      "startLine": 49,
+      "endLine": 60,
+      "sha256": "7f0fa55d1f7b02188c4abd4f88aa6db92fe03de38258b765ed050ec72032b410"
+    },
+    {
+      "id": "symbol-3d85107dfe3f46fdaf033bb7",
+      "path": "backend/app/api/routes/items.py",
+      "name": "create_item",
+      "kind": "function",
+      "startLine": 62,
+      "endLine": 63,
+      "sha256": "7f0fa55d1f7b02188c4abd4f88aa6db92fe03de38258b765ed050ec72032b410"
+    },
+    {
+      "id": "symbol-95969c2062eef8daabb040f3",
+      "path": "backend/app/api/routes/items.py",
+      "name": "update_item",
+      "kind": "function",
+      "startLine": 76,
+      "endLine": 81,
+      "sha256": "7f0fa55d1f7b02188c4abd4f88aa6db92fe03de38258b765ed050ec72032b410"
+    },
+    {
+      "id": "symbol-86b9882b4c8fe5ee057ab91d",
+      "path": "backend/app/api/routes/items.py",
+      "name": "delete_item",
+      "kind": "function",
+      "startLine": 100,
+      "endLine": 101,
+      "sha256": "7f0fa55d1f7b02188c4abd4f88aa6db92fe03de38258b765ed050ec72032b410"
+    },
+    {
+      "id": "symbol-9effc79fa7be41255c9f873d",
+      "path": "backend/app/api/deps.py",
+      "name": "get_db",
+      "kind": "function",
+      "startLine": 21,
+      "endLine": 25,
+      "sha256": "84c30966b3b862c643009c14146d1924dec50be5b0efb9f56798e2fda5189daa"
+    },
+    {
+      "id": "symbol-699e4b4d07f3307b893f00fa",
+      "path": "backend/app/api/deps.py",
+      "name": "get_current_user",
+      "kind": "function",
+      "startLine": 30,
+      "endLine": 48,
+      "sha256": "84c30966b3b862c643009c14146d1924dec50be5b0efb9f56798e2fda5189daa"
+    },
+    {
+      "id": "symbol-df2b16a2c17526026caec383",
+      "path": "backend/app/api/deps.py",
+      "name": "get_current_active_superuser",
+      "kind": "function",
+      "startLine": 52,
+      "endLine": 57,
+      "sha256": "84c30966b3b862c643009c14146d1924dec50be5b0efb9f56798e2fda5189daa"
+    }
+  ],
+  "windows": [
+    {
+      "path": "backend/app/api/routes/items.py",
+      "startLine": 48,
+      "endLine": 58,
+      "sha256": "7f0fa55d1f7b02188c4abd4f88aa6db92fe03de38258b765ed050ec72032b410",
+      "id": "window-5eedb6a0604b63811fcad6cf",
+      "text": "48 | @router.get(\"/{id}\", response_model=ItemPublic)\n49 | def read_item(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:\n50 |     \"\"\"\n51 |     Get item by ID.\n52 |     \"\"\"\n53 |     item = session.get(Item, id)\n54 |     if not item:\n55 |         raise HTTPException(status_code=404, detail=\"Item not found\")\n56 |     if not current_user.is_superuser and (item.owner_id != current_user.id):\n57 |         raise HTTPException(status_code=403, detail=\"Not enough permissions\")\n58 |     return item\n",
+      "bytes": 515,
+      "origin": "read-item"
+    },
+    {
+      "path": "backend/app/api/deps.py",
+      "startLine": 30,
+      "endLine": 48,
+      "sha256": "84c30966b3b862c643009c14146d1924dec50be5b0efb9f56798e2fda5189daa",
+      "id": "window-c93fcfae099f1fba8ba7ef74",
+      "text": "30 | def get_current_user(session: SessionDep, token: TokenDep) -> User:\n31 |     try:\n32 |         payload = jwt.decode(\n33 |             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]\n34 |         )\n35 |         token_data = TokenPayload(**payload)\n36 |     except InvalidTokenError, ValidationError:\n37 |         raise HTTPException(\n38 |             status_code=status.HTTP_403_FORBIDDEN,\n39 |             detail=\"Could not validate credentials\",\n40 |         )\n41 |     user = session.get(User, token_data.sub)\n42 |     if not user:\n43 |         raise HTTPException(status_code=404, detail=\"User not found\")\n44 |     if not user.is_active:\n45 |         raise HTTPException(status_code=400, detail=\"Inactive user\")\n46 |     return user\n47 | \n48 | \n",
+      "bytes": 765,
+      "origin": "model-read"
+    },
+    {
+      "path": "backend/app/api/deps.py",
+      "startLine": 52,
+      "endLine": 57,
+      "sha256": "84c30966b3b862c643009c14146d1924dec50be5b0efb9f56798e2fda5189daa",
+      "id": "window-b2433e2d32affe4187653fa7",
+      "text": "52 | def get_current_active_superuser(current_user: CurrentUser) -> User:\n53 |     if not current_user.is_superuser:\n54 |         raise HTTPException(\n55 |             status_code=403, detail=\"The user doesn't have enough privileges\"\n56 |         )\n57 |     return current_user\n",
+      "bytes": 278,
+      "origin": "model-read"
+    }
+  ],
+  "diagnostics": [
+    {
+      "reason": "unresolved-reference",
+      "symbol": "get",
+      "from": "read-item"
+    },
+    {
+      "reason": "unresolved-reference",
+      "symbol": "HTTPException",
+      "from": "read-item"
+    },
+    {
+      "reason": "unresolved-reference",
+      "symbol": "and",
+      "from": "read-item"
+    },
+    {
+      "reason": "ambiguous",
+      "from": "read-current-user-reference"
+    }
+  ],
+  "readBytes": 5157,
+  "displayBytes": 2073,
+  "uniqueSourceBytes": 1558,
+  "resentSourceBytes": 515,
+  "readOutcomes": [
+    {
+      "requestId": "read-current-user-dependency",
+      "request": {
+        "id": "read-current-user-dependency",
+        "from": "read-item",
+        "selector": {
+          "kind": "indexed-symbol",
+          "symbolId": "symbol-699e4b4d07f3307b893f00fa"
+        },
+        "contextLines": 4
+      },
+      "budget": {
+        "usedBytes": 515,
+        "maxBytes": 65536
+      },
+      "status": "resolved",
+      "windowId": "window-c93fcfae099f1fba8ba7ef74",
+      "path": "backend/app/api/deps.py",
+      "startLine": 30,
+      "endLine": 48,
+      "bytes": 765,
+      "newlyShown": true
+    },
+    {
+      "requestId": "read-active-superuser-dependency",
+      "request": {
+        "id": "read-active-superuser-dependency",
+        "from": "read-item",
+        "selector": {
+          "kind": "indexed-symbol",
+          "symbolId": "symbol-df2b16a2c17526026caec383"
+        },
+        "contextLines": 4
+      },
+      "budget": {
+        "usedBytes": 1280,
+        "maxBytes": 65536
+      },
+      "status": "resolved",
+      "windowId": "window-b2433e2d32affe4187653fa7",
+      "path": "backend/app/api/deps.py",
+      "startLine": 52,
+      "endLine": 57,
+      "bytes": 278,
+      "newlyShown": true
+    },
+    {
+      "requestId": "read-current-user-reference",
+      "request": {
+        "id": "read-current-user-reference",
+        "from": "read-item",
+        "selector": {
+          "kind": "literal-search",
+          "path": "backend/app/api/routes/items.py",
+          "literal": "CurrentUser"
+        },
+        "contextLines": 4
+      },
+      "budget": {
+        "usedBytes": 1558,
+        "maxBytes": 65536
+      },
+      "status": "unresolved",
+      "code": "ambiguous",
+      "candidates": [
+        {
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 7,
+          "endLine": 7
+        },
+        {
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 15,
+          "endLine": 15
+        },
+        {
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 49,
+          "endLine": 49
+        },
+        {
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 63,
+          "endLine": 63
+        },
+        {
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 79,
+          "endLine": 79
+        },
+        {
+          "path": "backend/app/api/routes/items.py",
+          "startLine": 101,
+          "endLine": 101
+        }
+      ]
+    }
+  ],
+  "maxDisplayBytes": 65536,
+  "locator": "lexical-reference-candidates; not a semantic call graph"
+}

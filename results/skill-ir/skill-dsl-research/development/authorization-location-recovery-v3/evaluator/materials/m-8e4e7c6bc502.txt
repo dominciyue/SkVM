@@ -1,0 +1,88 @@
+Preparation status: partial
+
+Closure claim: declared-dependencies-only
+
+Prepared from: https://github.com/paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103; root ../../../authorization-evidence-editing-v1/public-source/paperless
+
+Included original ranges: src/documents/views.py:1369-1374 [locator:located-5]; src/documents/views.py:1388-1392 [locator:located-3]; src/documents/views.py:1401-1406 [locator:located-2]; src/documents/views.py:1429-1449 [locator:located-1]; src/documents/views.py:1834-1839 [entry:download, model-proposal:dep-1]; src/documents/views.py:4941-4946 [locator:located-4]; src/documents/permissions.py:624-635 [model-proposal:dep-8]
+
+Unresolved gaps: dep-2: ambiguous-location (src/documents/views.py); dep-3: ambiguous-location (src/documents/views.py); dep-4: ambiguous-location (src/documents/views.py); dep-5: ambiguous-location (src/documents/views.py); dep-6: ambiguous-location (src/documents/views.py); dep-7: ambiguous-location (src/documents/views.py); dep-9: ambiguous-location (src/documents/views.py); dep-10: ambiguous-location (src/documents/views.py)
+
+===== BEGIN ALLOWED INPUT: src/documents/permissions.py =====
+Source ID: src-f2a0e88f6daf179f
+Location note: crop lines 624-635; original locations: src/documents/permissions.py:624-635
+Citation contract: use original line numbers in one displayed segment; ranges cannot cross omitted intervals or sources.
+624 | def has_perms_owner_aware(user, perms, obj):
+625 |     """
+626 |     Legacy slow path (guardian-backed) single-object permission check.
+627 | 
+628 |     The queryset-filtering side of this migrated onto
+629 |     ``PermittedObjectsFilter``/``permitted_object_ids()``, but this
+630 |     single-object check still has many production callers. Several callers
+631 |     remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``
+632 |     -- grep for this function name before removing it.
+633 |     """
+634 |     checker = ObjectPermissionChecker(user)
+635 |     return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)
+===== END ALLOWED INPUT: src/documents/permissions.py =====
+
+===== BEGIN ALLOWED INPUT: src/documents/views.py =====
+Source ID: src-ac52f72da9c75c94
+Location note: crop lines 1369-4946; original locations: src/documents/views.py:1369-1374, src/documents/views.py:1388-1392, src/documents/views.py:1401-1406, src/documents/views.py:1429-1449, src/documents/views.py:1834-1839, src/documents/views.py:4941-4946
+Citation contract: use original line numbers in one displayed segment; ranges cannot cross omitted intervals or sources.
+1369 |     def original_requested(request):
+1370 |         return (
+1371 |             "original" in request.query_params
+1372 |             and request.query_params["original"] == "true"
+1373 |         )
+1374 | 
+[OMITTED original lines 1375-1387]
+1388 |     def _get_effective_file_doc(
+1389 |         self,
+1390 |         request_doc: Document,
+1391 |         root_doc: Document,
+1392 |         request: Request,
+[OMITTED original lines 1393-1400]
+1401 |     def _resolve_request_and_root_doc(
+1402 |         self,
+1403 |         pk,
+1404 |         request: Request,
+1405 |         *,
+1406 |         include_deleted: bool = False,
+[OMITTED original lines 1407-1428]
+1429 |     def file_response(self, pk, request, disposition):
+1430 |         resolved = self._resolve_request_and_root_doc(
+1431 |             pk,
+1432 |             request,
+1433 |             include_deleted=True,
+1434 |         )
+1435 |         if isinstance(resolved, HttpResponseForbidden):
+1436 |             return resolved
+1437 |         file_doc = self._get_effective_file_doc(
+1438 |             resolved.request_doc,
+1439 |             resolved.root_doc,
+1440 |             request,
+1441 |         )
+1442 |         return serve_file(
+1443 |             doc=file_doc,
+1444 |             use_archive=not self.original_requested(request)
+1445 |             and file_doc.has_archive_version,
+1446 |             disposition=disposition,
+1447 |             follow_formatting=request.query_params.get("follow_formatting", False),
+1448 |         )
+1449 | 
+[OMITTED original lines 1450-1833]
+1834 |     @action(methods=["get"], detail=True)
+1835 |     def download(self, request, pk=None):
+1836 |         try:
+1837 |             return self.file_response(pk, request, "attachment")
+1838 |         except (FileNotFoundError, Document.DoesNotExist):
+1839 |             raise Http404
+[OMITTED original lines 1840-4940]
+4941 | def serve_file(
+4942 |     *,
+4943 |     doc: Document,
+4944 |     use_archive: bool,
+4945 |     disposition: str,
+4946 |     follow_formatting: bool = False,
+===== END ALLOWED INPUT: src/documents/views.py =====

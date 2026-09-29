@@ -1,0 +1,433 @@
+{
+  "schemaVersion": "authorization-preparation-attempts/v1",
+  "model": "xty/gpt-5.6-sol",
+  "status": "completed",
+  "published": true,
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "prompt-parse",
+      "status": "response",
+      "startedAt": "2026-09-29T08:23:49.000Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 23463,
+        "toolNames": [],
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 6856,
+        "output": 712,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-process-file-file-ownership-gate\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1559,\"endLine\":1566},\"reason\":\"identity\",\"description\":\"Determines how the authenticated user's access to the source file is checked and obtains the file before processing.\"},{\"id\":\"dep-process-file-collection-selection\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1595,\"endLine\":1626},\"reason\":\"resource-binding\",\"description\":\"Binds supplied collection_name to the processing path and constructs the source documents/content that may be written.\"},{\"id\":\"dep-process-file-vector-write-call\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1683,\"endLine\":1707},\"reason\":\"effect\",\"description\":\"Invokes save_docs_to_vector_db with the user, selected collection_name, documents, and add flag; this is the primary downstream write boundary.\"},{\"id\":\"dep-process-file-result-metadata-update\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1709,\"endLine\":1732},\"reason\":\"effect\",\"description\":\"Records the selected collection_name and completed status after the vector-database operation succeeds.\"}],\"reads\":[{\"id\":\"read-save-docs-to-vector-db\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-e2cecd47ed4a9e8b9693e061\"},\"contextLines\":0},{\"id\":\"read-process-file-form\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-c14560e177c01d2430edcfd8\"},\"contextLines\":0}]}",
+        "toolCalls": [],
+        "tokens": {
+          "input": 6856,
+          "output": 712,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 41748.124200000006,
+        "stopReason": "end_turn"
+      },
+      "endedAt": "2026-09-29T08:24:30.752Z"
+    },
+    {
+      "id": "provider-attempt-2",
+      "phase": "initial",
+      "transport": "prompt-parse",
+      "status": "response",
+      "startedAt": "2026-09-29T08:24:30.766Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 24968,
+        "toolNames": [],
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 5835,
+        "output": 1069,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-process-file-user-scoped-file-lookup\",\"from\":\"dep-process-file-file-ownership-gate\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1559,\"endLine\":1564},\"reason\":\"identity\",\"description\":\"Non-admin requests resolve the file through the user-scoped lookup, establishing the source-file ownership gate.\"},{\"id\":\"dep-process-file-client-selected-collection-field\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-d817ab115e3bbac87c314b5c\",\"startLine\":1540,\"endLine\":1543},\"reason\":\"resource-binding\",\"description\":\"The request form exposes collection_name as a caller-supplied optional field.\"},{\"id\":\"dep-process-file-request-collection-binding\",\"from\":\"dep-process-file-collection-selection\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1564,\"endLine\":1569},\"reason\":\"resource-binding\",\"description\":\"The supplied collection name is assigned directly, with a default used only when it is absent.\"},{\"id\":\"dep-process-file-existing-collection-content-path\",\"from\":\"dep-process-file-collection-selection\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1595,\"endLine\":1626},\"reason\":\"control\",\"description\":\"When collection_name is supplied, the handler obtains the file content and prepares documents for the selected collection.\"},{\"id\":\"dep-save-docs-existing-collection-add-control\",\"from\":\"dep-process-file-vector-write-call\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-44220fdd8141c1c8cd146401\",\"startLine\":1458,\"endLine\":1467},\"reason\":\"control\",\"description\":\"An existing collection is retained for insertion when add is true; this control path contains no user ownership or write-grant check.\"},{\"id\":\"dep-process-file-add-enabled-vector-write\",\"from\":\"dep-process-file-vector-write-call\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1694,\"endLine\":1706},\"reason\":\"effect\",\"description\":\"The handler passes the caller-selected collection_name and sets add to true whenever collection_name was supplied, forwarding the verified user to the vector-save operation.\"},{\"id\":\"dep-save-docs-collection-insert\",\"from\":\"dep-process-file-add-enabled-vector-write\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-44220fdd8141c1c8cd146401\",\"startLine\":1527,\"endLine\":1534},\"reason\":\"effect\",\"description\":\"The vector-save operation inserts the prepared items into the selected collection and reports success.\"},{\"id\":\"dep-process-file-successful-collection-record\",\"from\":\"dep-process-file-result-metadata-update\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1709,\"endLine\":1732},\"reason\":\"effect\",\"description\":\"After a successful vector write, the selected collection name is recorded on the file and the completed response is returned.\"}],\"reads\":[]}",
+        "toolCalls": [],
+        "tokens": {
+          "input": 5835,
+          "output": 1069,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 58783.6899,
+        "stopReason": "end_turn"
+      },
+      "endedAt": "2026-09-29T08:25:29.550Z"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 2,
+    "respondedCalls": 2,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 2,
+    "knownTokens": {
+      "input": 12691,
+      "output": 1781,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  },
+  "rounds": [
+    {
+      "kind": "proposal",
+      "promptCharacters": 23463,
+      "promptBytes": 23463,
+      "metadataBytes": 12681,
+      "displayedBytes": 10782,
+      "uniqueSourceBytes": 10782,
+      "resentSourceBytes": 0,
+      "diagnostics": []
+    },
+    {
+      "kind": "supplement",
+      "promptCharacters": 24968,
+      "promptBytes": 24968,
+      "metadataBytes": 4509,
+      "displayedBytes": 20459,
+      "uniqueSourceBytes": 9677,
+      "resentSourceBytes": 10782,
+      "diagnostics": []
+    }
+  ],
+  "diagnostics": [],
+  "readOutcomes": [
+    {
+      "requestId": "read-save-docs-to-vector-db",
+      "request": {
+        "id": "read-save-docs-to-vector-db",
+        "from": "post-process-file",
+        "selector": {
+          "kind": "indexed-symbol",
+          "symbolId": "symbol-e2cecd47ed4a9e8b9693e061"
+        },
+        "contextLines": 0
+      },
+      "budget": {
+        "usedBytes": 10782,
+        "maxBytes": 65536
+      },
+      "status": "resolved",
+      "windowId": "window-44220fdd8141c1c8cd146401",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1340,
+      "endLine": 1539,
+      "bytes": 9506,
+      "newlyShown": true
+    },
+    {
+      "requestId": "read-process-file-form",
+      "request": {
+        "id": "read-process-file-form",
+        "from": "post-process-file",
+        "selector": {
+          "kind": "indexed-symbol",
+          "symbolId": "symbol-c14560e177c01d2430edcfd8"
+        },
+        "contextLines": 0
+      },
+      "budget": {
+        "usedBytes": 20288,
+        "maxBytes": 65536
+      },
+      "status": "resolved",
+      "windowId": "window-d817ab115e3bbac87c314b5c",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1540,
+      "endLine": 1545,
+      "bytes": 171,
+      "newlyShown": true
+    }
+  ],
+  "selectionOutcomes": [
+    {
+      "id": "dep-process-file-file-ownership-gate",
+      "from": "post-process-file",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1559,
+        "endLine": 1566
+      },
+      "description": "Determines how the authenticated user's access to the source file is checked and obtains the file before processing.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-collection-selection",
+      "from": "post-process-file",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1595,
+        "endLine": 1626
+      },
+      "description": "Binds supplied collection_name to the processing path and constructs the source documents/content that may be written.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-vector-write-call",
+      "from": "post-process-file",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1683,
+        "endLine": 1707
+      },
+      "description": "Invokes save_docs_to_vector_db with the user, selected collection_name, documents, and add flag; this is the primary downstream write boundary.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-result-metadata-update",
+      "from": "post-process-file",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1709,
+        "endLine": 1732
+      },
+      "description": "Records the selected collection_name and completed status after the vector-database operation succeeds.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-user-scoped-file-lookup",
+      "from": "dep-process-file-file-ownership-gate",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1559,
+        "endLine": 1564
+      },
+      "description": "Non-admin requests resolve the file through the user-scoped lookup, establishing the source-file ownership gate.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-client-selected-collection-field",
+      "from": "post-process-file",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-d817ab115e3bbac87c314b5c",
+        "startLine": 1540,
+        "endLine": 1543
+      },
+      "description": "The request form exposes collection_name as a caller-supplied optional field.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-request-collection-binding",
+      "from": "dep-process-file-collection-selection",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1564,
+        "endLine": 1569
+      },
+      "description": "The supplied collection name is assigned directly, with a default used only when it is absent.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-existing-collection-content-path",
+      "from": "dep-process-file-collection-selection",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1595,
+        "endLine": 1626
+      },
+      "description": "When collection_name is supplied, the handler obtains the file content and prepares documents for the selected collection.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-save-docs-existing-collection-add-control",
+      "from": "dep-process-file-vector-write-call",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-44220fdd8141c1c8cd146401",
+        "startLine": 1458,
+        "endLine": 1467
+      },
+      "description": "An existing collection is retained for insertion when add is true; this control path contains no user ownership or write-grant check.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-add-enabled-vector-write",
+      "from": "dep-process-file-vector-write-call",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1694,
+        "endLine": 1706
+      },
+      "description": "The handler passes the caller-selected collection_name and sets add to true whenever collection_name was supplied, forwarding the verified user to the vector-save operation.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-save-docs-collection-insert",
+      "from": "dep-process-file-add-enabled-vector-write",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-44220fdd8141c1c8cd146401",
+        "startLine": 1527,
+        "endLine": 1534
+      },
+      "description": "The vector-save operation inserts the prepared items into the selected collection and reports success.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-successful-collection-record",
+      "from": "dep-process-file-result-metadata-update",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1709,
+        "endLine": 1732
+      },
+      "description": "After a successful vector write, the selected collection name is recorded on the file and the completed response is returned.",
+      "status": "resolved"
+    }
+  ],
+  "acceptedDependencies": [
+    {
+      "id": "dep-process-file-file-ownership-gate",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1559,
+      "endLine": 1566,
+      "reason": "identity",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-collection-selection",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1595,
+      "endLine": 1626,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-vector-write-call",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1683,
+      "endLine": 1707,
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-result-metadata-update",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1709,
+      "endLine": 1732,
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-user-scoped-file-lookup",
+      "from": "dep-process-file-file-ownership-gate",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1559,
+      "endLine": 1564,
+      "reason": "identity",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-client-selected-collection-field",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1540,
+      "endLine": 1543,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-request-collection-binding",
+      "from": "dep-process-file-collection-selection",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1564,
+      "endLine": 1569,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-existing-collection-content-path",
+      "from": "dep-process-file-collection-selection",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1595,
+      "endLine": 1626,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-save-docs-existing-collection-add-control",
+      "from": "dep-process-file-vector-write-call",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1458,
+      "endLine": 1467,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-add-enabled-vector-write",
+      "from": "dep-process-file-vector-write-call",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1694,
+      "endLine": 1706,
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-save-docs-collection-insert",
+      "from": "dep-process-file-add-enabled-vector-write",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1527,
+      "endLine": 1534,
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-successful-collection-record",
+      "from": "dep-process-file-result-metadata-update",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1709,
+      "endLine": 1732,
+      "reason": "effect",
+      "basis": "model-proposal"
+    }
+  ],
+  "sourceDisplay": {
+    "totalBytes": 31241,
+    "uniqueSourceBytes": 20459,
+    "resentSourceBytes": 10782,
+    "maxBytes": 65536
+  },
+  "unknownCostReason": "provider did not report actual cost for every dispatched request"
+}

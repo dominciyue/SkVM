@@ -53,3 +53,24 @@ retain legacy behavior, or select `--assessment=legacy --wire=v4` explicitly.
 No evaluator, oracle, study manifest or stored answer is required for this
 example. `sourceRef` names the synthetic snapshot; it is not a remote
 verification claim.
+
+`owner-premises.json` uses the same ordinary interface for a nullable owner.
+`unspecified` means the task does not supply a value. `absent` means source null;
+`other-present` means a different owner exists; `self-present` means the caller
+owns the record. No owner field is added to the DSL. Explicit conditions and
+requested branches make these different questions visible to the model.
+
+```powershell
+bun ./src/index.ts authorization check --input=./examples/authorization-assessment/task-semantics/owner-premises.json --method=plain --assessment=explicit-v1 --wire=v6
+bun ./src/index.ts authorization edit --input=./examples/authorization-assessment/task-semantics/owner-premises.json --edit=./examples/authorization-assessment/task-semantics/owner-other-present-edit.json --out=./owner-other-present
+bun ./src/index.ts authorization check --input=./owner-other-present/assessment.json --method=plain --assessment=explicit-v1 --wire=v6
+```
+
+This edit changes only the current premise; policy, source and counterfactuals
+stay the same. The original expectation is a conditional policy, so it remains
+conditional in the declaration even when the current premise is known. Use
+ordinary `run`, `inspect` and `compare` as shown above with these input paths.
+Compare requires a fresh review because premise bytes affect the analysis
+program and prompt. Structure checking cannot certify the truth of prose
+premises. Copy the whole example directory to preserve relative source paths;
+choose an unused output directory for each publication.

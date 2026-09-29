@@ -1,0 +1,404 @@
+{
+  "schemaVersion": "authorization-al-coverage/v1",
+  "planned": 8,
+  "rows": [
+    {
+      "id": "owui-file",
+      "published": true,
+      "status": "ready",
+      "controls": [
+        {
+          "evidence": "backend/open_webui/routers/retrieval.py:1559-1563 checks source-file ownership",
+          "supplied": true,
+          "suppliedLines": 5,
+          "requiredLines": 5,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "backend/open_webui/routers/retrieval.py:1566-1569 accepts caller collection_name",
+          "supplied": true,
+          "suppliedLines": 4,
+          "requiredLines": 4,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "backend/open_webui/routers/retrieval.py:1694-1705 forwards selected collection without destination permission check",
+          "supplied": true,
+          "suppliedLines": 12,
+          "requiredLines": 12,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "backend/open_webui/routers/retrieval.py:1458-1534 helper can insert into existing collection without checking the caller's destination write grant",
+          "supplied": false,
+          "suppliedLines": 0,
+          "requiredLines": 77,
+          "insideAllowed": true
+        }
+      ],
+      "allDeclaredCriterionRangesSupplied": false,
+      "finalSourceBytes": 9390,
+      "sourceFiles": 1,
+      "actualObligations": 1,
+      "gaps": [],
+      "note": "Mechanical original-line coverage; independent semantic review judges control completeness."
+    },
+    {
+      "id": "fastapi-superuser-read",
+      "published": true,
+      "status": "partial",
+      "controls": [
+        {
+          "evidence": "backend/app/api/routes/items.py:48-58 gets the item and denies a different owner only when current_user is not superuser",
+          "supplied": true,
+          "suppliedLines": 11,
+          "requiredLines": 11,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "backend/app/api/deps.py:30-49 binds CurrentUser upstream, but the task explicitly assumes an active authenticated superuser at handler entry",
+          "supplied": false,
+          "suppliedLines": 6,
+          "requiredLines": 20,
+          "insideAllowed": true
+        }
+      ],
+      "allDeclaredCriterionRangesSupplied": false,
+      "finalSourceBytes": 704,
+      "sourceFiles": 2,
+      "actualObligations": 1,
+      "gaps": [
+        {
+          "id": "read:read-current-user-reference",
+          "entryKey": "read-item",
+          "reason": "read-ambiguous",
+          "attemptedPath": "backend/app/api/routes/items.py",
+          "requestId": "read-current-user-reference",
+          "selector": {
+            "kind": "literal-search",
+            "path": "backend/app/api/routes/items.py",
+            "literal": "CurrentUser"
+          },
+          "candidates": [
+            {
+              "path": "backend/app/api/routes/items.py",
+              "startLine": 7,
+              "endLine": 7
+            },
+            {
+              "path": "backend/app/api/routes/items.py",
+              "startLine": 15,
+              "endLine": 15
+            },
+            {
+              "path": "backend/app/api/routes/items.py",
+              "startLine": 49,
+              "endLine": 49
+            },
+            {
+              "path": "backend/app/api/routes/items.py",
+              "startLine": 63,
+              "endLine": 63
+            },
+            {
+              "path": "backend/app/api/routes/items.py",
+              "startLine": 79,
+              "endLine": 79
+            },
+            {
+              "path": "backend/app/api/routes/items.py",
+              "startLine": 101,
+              "endLine": 101
+            }
+          ],
+          "budget": {
+            "usedBytes": 1558,
+            "maxBytes": 65536
+          },
+          "next": "Choose one candidate with an exact source range."
+        }
+      ],
+      "note": "Mechanical original-line coverage; independent semantic review judges control completeness."
+    },
+    {
+      "id": "memos-create-share",
+      "published": true,
+      "status": "partial",
+      "controls": [
+        {
+          "evidence": "server/api/v1/memo_share_service.go:25-55 authenticates, resolves the active memo, invokes CanManageMemo, excludes SPACE",
+          "supplied": true,
+          "suppliedLines": 31,
+          "requiredLines": 31,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "core/access/memo.go:61-85 accepts an active instance ADMIN for author-level operations",
+          "supplied": false,
+          "suppliedLines": 6,
+          "requiredLines": 25,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "server/api/v1/memo_share_service.go:66-80 builds a write policy and invokes Store.CreateMemoShare",
+          "supplied": true,
+          "suppliedLines": 15,
+          "requiredLines": 15,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "store/memo.go:285-296 preserves the admin exception in snapshot authorization",
+          "supplied": false,
+          "suppliedLines": 0,
+          "requiredLines": 12,
+          "insideAllowed": true
+        }
+      ],
+      "allDeclaredCriterionRangesSupplied": false,
+      "finalSourceBytes": 4203,
+      "sourceFiles": 4,
+      "actualObligations": 1,
+      "gaps": [
+        {
+          "id": "dep-active-user",
+          "entryKey": "create-share",
+          "reason": "depth-budget",
+          "attemptedPath": "core/access/memo.go"
+        }
+      ],
+      "note": "Mechanical original-line coverage; independent semantic review judges control completeness."
+    },
+    {
+      "id": "memos-get-shared",
+      "published": true,
+      "status": "partial",
+      "controls": [
+        {
+          "evidence": "server/api/v1/memo_share_service.go:170-189 resolves a token and reads the memo identified by ms.MemoID",
+          "supplied": true,
+          "suppliedLines": 20,
+          "requiredLines": 20,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "server/api/v1/memo_share_service.go:221-229 rejects missing or expired token",
+          "supplied": true,
+          "suppliedLines": 9,
+          "requiredLines": 9,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "core/access/memo.go:87-121 accepts a share for SharedMemoID matching that resolved memo",
+          "supplied": false,
+          "suppliedLines": 30,
+          "requiredLines": 35,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "server/api/v1/memo_share_service.go:210-213 excludes relation graph access",
+          "supplied": true,
+          "suppliedLines": 4,
+          "requiredLines": 4,
+          "insideAllowed": true
+        }
+      ],
+      "allDeclaredCriterionRangesSupplied": false,
+      "finalSourceBytes": 6597,
+      "sourceFiles": 5,
+      "actualObligations": 1,
+      "gaps": [
+        {
+          "id": "dep-read-context-resolver",
+          "entryKey": "get-shared",
+          "reason": "depth-budget",
+          "attemptedPath": "core/access/memo_resolve.go"
+        },
+        {
+          "id": "dep-creator-validity-resolution",
+          "entryKey": "get-shared",
+          "reason": "depth-budget",
+          "attemptedPath": "core/access/memo_resolve.go"
+        },
+        {
+          "id": "dep-read-context-population",
+          "entryKey": "get-shared",
+          "reason": "depth-budget",
+          "attemptedPath": "core/access/memo_resolve.go"
+        },
+        {
+          "id": "dep-anonymous-membership-skip",
+          "entryKey": "get-shared",
+          "reason": "depth-budget",
+          "attemptedPath": "core/access/memo_resolve.go"
+        }
+      ],
+      "note": "Mechanical original-line coverage; independent semantic review judges control completeness."
+    },
+    {
+      "id": "memos-member-leave",
+      "published": true,
+      "status": "ready",
+      "controls": [
+        {
+          "evidence": "server/api/v1/space_service.go:632-662 resolves an active caller/target membership in the same space",
+          "supplied": true,
+          "suppliedLines": 31,
+          "requiredLines": 31,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "server/api/v1/space_service.go:750-755 skips administrator check for self and applies it for another target",
+          "supplied": true,
+          "suppliedLines": 6,
+          "requiredLines": 6,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "server/api/v1/space_service.go:54-58 requires administrator role",
+          "supplied": true,
+          "suppliedLines": 5,
+          "requiredLines": 5,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "server/api/v1/space_service.go:756-763 passes the resolved target IDs to Store.DeleteSpaceMember",
+          "supplied": true,
+          "suppliedLines": 8,
+          "requiredLines": 8,
+          "insideAllowed": true
+        }
+      ],
+      "allDeclaredCriterionRangesSupplied": true,
+      "finalSourceBytes": 6211,
+      "sourceFiles": 2,
+      "actualObligations": 2,
+      "gaps": [],
+      "note": "Mechanical original-line coverage; independent semantic review judges control completeness."
+    },
+    {
+      "id": "paperless-download",
+      "published": true,
+      "status": "ready",
+      "controls": [
+        {
+          "evidence": "src/documents/views.py:1834-1839 routes download through file_response",
+          "supplied": true,
+          "suppliedLines": 6,
+          "requiredLines": 6,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "src/documents/views.py:1401-1427 checks view_document against root_doc",
+          "supplied": false,
+          "suppliedLines": 6,
+          "requiredLines": 27,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "src/documents/permissions.py:624-635 permits an unowned, owned or object-granted document",
+          "supplied": false,
+          "suppliedLines": 0,
+          "requiredLines": 12,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "src/documents/views.py:1429-1448 would serve the selected file_doc only after the root check",
+          "supplied": true,
+          "suppliedLines": 20,
+          "requiredLines": 20,
+          "insideAllowed": true
+        }
+      ],
+      "allDeclaredCriterionRangesSupplied": false,
+      "finalSourceBytes": 1527,
+      "sourceFiles": 1,
+      "actualObligations": 1,
+      "gaps": [],
+      "note": "Mechanical original-line coverage; independent semantic review judges control completeness."
+    },
+    {
+      "id": "paperless-note-post",
+      "published": true,
+      "status": "ready",
+      "controls": [
+        {
+          "evidence": "src/documents/permissions.py:673-699 gives POST a global add_note/view_document/change_document gate",
+          "supplied": true,
+          "suppliedLines": 27,
+          "requiredLines": 27,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "src/documents/views.py:1857-1863 checks object view",
+          "supplied": true,
+          "suppliedLines": 7,
+          "requiredLines": 7,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "src/documents/views.py:1877-1892 checks object change before Note.objects.create",
+          "supplied": true,
+          "suppliedLines": 16,
+          "requiredLines": 16,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "src/documents/permissions.py:624-635 implements owner-aware object grant",
+          "supplied": true,
+          "suppliedLines": 12,
+          "requiredLines": 12,
+          "insideAllowed": true
+        }
+      ],
+      "allDeclaredCriterionRangesSupplied": true,
+      "finalSourceBytes": 6723,
+      "sourceFiles": 2,
+      "actualObligations": 1,
+      "gaps": [],
+      "note": "Mechanical original-line coverage; independent semantic review judges control completeness."
+    },
+    {
+      "id": "paperless-share-create",
+      "published": true,
+      "status": "ready",
+      "controls": [
+        {
+          "evidence": "src/documents/views.py:4696-4717 selects ShareLinkSerializer with IsAuthenticated and PaperlessObjectPermissions",
+          "supplied": true,
+          "suppliedLines": 22,
+          "requiredLines": 22,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "src/documents/permissions.py:30-53 maps POST to global add_sharelink",
+          "supplied": false,
+          "suppliedLines": 16,
+          "requiredLines": 24,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "src/documents/views.py:406-425 passes user to permission-aware serializer",
+          "supplied": true,
+          "suppliedLines": 20,
+          "requiredLines": 20,
+          "insideAllowed": true
+        },
+        {
+          "evidence": "src/documents/serialisers.py:2869-2886 validates global and owner-aware view_document for the referenced document before creation",
+          "supplied": true,
+          "suppliedLines": 18,
+          "requiredLines": 18,
+          "insideAllowed": true
+        }
+      ],
+      "allDeclaredCriterionRangesSupplied": false,
+      "finalSourceBytes": 3275,
+      "sourceFiles": 3,
+      "actualObligations": 1,
+      "gaps": [],
+      "note": "Mechanical original-line coverage; independent semantic review judges control completeness."
+    }
+  ],
+  "evaluatorOnly": true,
+  "providerCalls": 0
+}

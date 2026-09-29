@@ -6,6 +6,23 @@ initially accepts an owner-only policy. The source permits an authenticated
 owner and an authenticated supervisor acting on another owner's record. The
 example never executes that target code or asserts deployment behavior.
 
+The recoverable v2 request deliberately places a bad literal between two valid
+dependencies. Both valid ranges survive; `explanation-is-not-source` remains a
+named gap. A description is never a fuzzy source match. To correct it, supply an
+exact literal/range or keep the gap explicit; `request-ready-v2.json` is the
+separate authored request with verified positions.
+
+```powershell
+bun ./src/index.ts authorization prepare --input="$demo/base.json" --request="$demo/request-recovery-v2.json" --out="$demo/recovered-partial"
+bun ./src/index.ts authorization check --input="$demo/recovered-partial/assessment.json" --method=plain --assessment=explicit-v1 --wire=v6
+```
+
+Run these after the copy step below. Partial remains runnable and retains its
+gap. Unsafe paths or changed source identity still refuse publication. Automatic
+proposals select host windows/symbols or exact literals; safe read misses return
+individual diagnostics, while old source resent in the second call consumes the
+same 64KiB display budget. These positions do not certify semantic correctness.
+
 From the SkVM checkout root, copy the example into a fresh directory so each
 publication has an unused output path. The commands below also work if the
 example is moved elsewhere and `$demo` points to that copy.
