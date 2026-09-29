@@ -1118,6 +1118,22 @@ OWUI最终保留retrieval.py:1340–1539的完整save_docs_to_vector_db，host-c
 
 **AM14–AM15收尾边界。** 唯一共享研究修订关闭后，普通字段指引补明atEntry为入口字符串、condition为同场景字典key；这项生成后的说明没有追加请求，未测模型收益。原base/shared-revision实现freeze和首轮失败保留，独立verification freeze绑定原生成freeze、generation-closed及43次调用。首答评分包仅附已有deliveryComplete，未改评价枚举或阈值。一次只读代码核验的sourceRoot身份疑问已按可搬移字节绑定合同裁定，增加新根读字节的反例并同步usage/spec。最终相关回归459 pass/1平台skip、0 fail、3013断言/63文件，主与研究typecheck通过；12项文档测试、链接/目录和五项零provider检查重放通过。AM归档保留原字节，Git格式属性只精确允许source末尾空行、numbered preview行尾空格及manifest/journal CRLF，工程代码/文档仍检查；冻结材料不为格式检查而修剪。暂存Git blob与691份原字节材料、63项当前freeze核对无差异，凭据扫描零命中；首次完整发布已核对用户origin。当前小函数上下文、宿主元数据与缺口继承适合入口/白名单可限定的源码任务；新策略保持opt-in，普通分析默认不迁移。剩余限制是可靠词法边界、未纳入依赖、作者语义/引用错误和解释政策方向一致性；本轮不追加低分样本或泛化/部署安全主张。
 
+### 7.33 AN 当前任务合同与领域声明展开
+
+2026-09-30，用户在AM父任务复核后要求编写任务书并派发`gpt-6-sol / max`。[AN0–AN16](../superpowers/plans/2026-09-30-authorization-task-contract-and-authoring.md)已授权、待启动，工程和效果结果尚未产生。继续当前任务类，重点从寻找更多源码转向减少重复编写和输出合同冲突；已有v2/v6、控制上下文及gap复用继续作为基础。
+
+**复核事实。** AM最终头`af6a2cd0`与origin一致，工作区干净；父任务分组复跑交付459 pass/1平台skip、3013断言，另补study.test.ts的2项/12断言，typecheck和零provider评分重算通过。主16终答9有据且解决、3解释错误、4研究入口阻塞；修订4/4另列。AM验证记录的protocol.test.ts路径未匹配现有计数测试study.test.ts，后者本次已实际补跑，历史记录不覆盖。
+
+**新的具体定位。** q06/q08/q16实际run.json的DSL提示仍含requiredAnalysis要求返回source_supported_failure/source_refuted，后面的v6却要求observed decision且由宿主比较。对应Markdown提示无该旧要求。render收集旧requiredAnalysis，v6只移除allowedConclusions，未迁移旧格式指令。三例源码行为和宿主映射正确、解释反转，提示冲突是已确认干扰；其对全部错误的因果作用待新对照。AL/AM四对DSL的领域request/policy/主体/资源/obligations逐字段一致，未发现材料对照偷偷更换政策。
+
+AM作者original prompt同时含原政策、未来政策、两组expectations及changeRequest，Memos修订用了未来版本。Paperless的错误引用则说明模型仍在跨scenarios/premises/branches转写同一事实；生成时guide没有收尾后新增的atEntry字符串/同场景condition说明，因此尚不能把最终guide称作已验证改善。已确认的工程缺口是当前任务隔离和机械展开不足，模型随机性与领域语义能力仍须通过真实运行判断。
+
+**本轮方法。** 普通作者前端把一个case的主体、资源、操作、政策期待、入口、前提和分支放在同一作用域，编译到现有v2并保存来源映射。当前快照与具名变更分别提供；缺失领域事实保留诊断，有界纠错不顺带换政策。已有workspace/compose/local-edit优先复用。新合同模式只迁移已知输出格式要求，领域义务、source和未知自定义内容保留；实际provider请求验证唯一适用协议。政策摘要复用已有host比较，原模型解释与矛盾保持可见，conditional保持模型分析责任。
+
+**验证安排。** 固定AM四份材料作Markdown/DSL×旧兼容/新统一合同16个fresh质量session；两包Markdown/完整v2/新前端三路线原/变共12作者稿、12消费和24计划义务。三路线使用相同当前brief，旧v2同样获得最新版普通指南；所有宿主代填字段、机械展开和模型创作贡献在派发前登记。结构、公开事实、语义等价和消费分别评价，合理命名不因隐藏固定key被拒。回答有据与任务解决沿AM双维口径，原始回答与最终交付分开；全部失败、修订和未知费用保留。
+
+实现中的接口选择、红绿反例、真实结果及剩余问题继续追加本节。当前默认、历史结果和保护输入保持，AN1可按实际代码修正小接口并同步任务书。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

@@ -2,13 +2,27 @@
 
 - 更新日期：2026-09-30
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AM0–AM16工程、生成、独立评价、有限验证和首次完整交付已完成；首次交付头`f7e0b205`与用户origin一致，最终完成记录随后发布。开发任务为`gpt-6-sol / max`，被测provider为`xty/gpt-5.6-sol`；AL完成于`5426a0e6`，旧关闭流及证据保留。
+- 状态：AM完成于`af6a2cd0`，AN0–AN16已授权、待启动。开发任务为`gpt-6-sol / max`，被测provider沿用`xty/gpt-5.6-sol`；AM/AL旧关闭流及证据保留。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
-- 当前任务书：[AM0–AM16](../superpowers/plans/2026-09-29-authorization-control-context-and-reuse.md)
-- 当前设计：[研究§7.32](skill-dsl-research.md#732-am-控制上下文与作者复用)；AK/AL证据保留在§7.30–7.31。
+- 当前任务书：[AN0–AN16](../superpowers/plans/2026-09-30-authorization-task-contract-and-authoring.md)
+- 当前设计：[研究§7.33](skill-dsl-research.md#733-an-当前任务合同与领域声明展开)；AM证据保留在§7.32。
 
 分类继续服务于范围，DSL价值包含编写、修改、质量与效率。AB同包/schema/核心可处理两项目八状态；Markdown 8/8 full、DSL 6/8 full，后者两项标签错误，必要控制与解释均正确。DSL整体收益未建立，准备/修改/运行负担及限制见研究§7.25。
+
+## AN 已授权队列
+
+继续同一任务类，优先减少DSL作者的重复转写和模型提示中的协议冲突。复用v2 lowerer、既有compose/workspace/local-edit及AM材料准备；当前任务前端是可选的领域编写入口，编译结果继续由既有host运行。
+
+| 阶段 | 工作 | 验收 |
+|---|---|---|
+| AN0–AN2 | 归档反例、接口定稿、当前/变更隔离 | original和修订只含当前事实，来源及变更明确 |
+| AN3–AN5 | 领域声明展开、普通init/edit、有界草稿修订 | 入口/条件引用由作用域产生，修引用不附带改政策 |
+| AN6–AN8 | 唯一输出合同、宿主政策摘要、真实入口预检 | 实际请求无新旧格式冲突，原解释不被隐藏 |
+| AN9–AN11 | 固定材料16质量、三路线12稿/12消费 | 两维质量、作者结构/语义、24计划义务分账 |
+| AN12–AN16 | 有界修订、普通示例、归因、验证和发布 | 可用普通命令、完整成本和用户origin同步 |
+
+质量60%/编写复用40%分别评价。三作者路线为Markdown、当前完整v2与新领域前端，共用隔离后的brief和公开事实，已有v2也使用最新版普通指南。新旧合同四臂固定同一AM源码/gaps和当前分析实现；不重做发现面板，不为低分扩样。下一轮结果尚未产生，常规步骤连续执行，细节和一次修订边界见AN任务书。
 
 ## AM 工程与研究结果
 
