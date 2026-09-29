@@ -1,0 +1,402 @@
+{
+  "providerCalls": 1,
+  "respondedCalls": 1,
+  "unknownUsageCalls": 0,
+  "unknownCostCalls": 1,
+  "knownTokens": {
+    "input": 3625,
+    "output": 988,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "tokensStatus": "complete",
+  "knownActualUsdSubtotal": 0,
+  "totalActualUsd": null,
+  "actualUsdStatus": "unknown",
+  "transportAttempts": "unknown",
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "status": "response",
+      "startedAt": "2026-09-29T19:16:33.415Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 13995,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false,
+        "toolSchemas": [
+          {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "obligationId": {
+                      "type": "string"
+                    },
+                    "explanation": {
+                      "type": "string"
+                    },
+                    "facts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "entry",
+                              "binding",
+                              "control",
+                              "effect",
+                              "condition"
+                            ]
+                          },
+                          "statement": {
+                            "type": "string"
+                          },
+                          "citations": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "sourceId": {
+                                  "type": "string"
+                                },
+                                "startLine": {
+                                  "type": "number"
+                                },
+                                "endLine": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "sourceId",
+                                "startLine",
+                                "endLine"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "statement",
+                          "citations"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "decisiveMissingFacts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestedObservations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "decision": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "observed"
+                            },
+                            "observed": {
+                              "type": "string",
+                              "enum": [
+                                "allow",
+                                "deny",
+                                "unknown"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "observed"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "conditional-policy"
+                            },
+                            "policyStatus": {
+                              "type": "string",
+                              "enum": [
+                                "satisfied",
+                                "violated",
+                                "undetermined"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "policyStatus"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "branchResults": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "assumptions": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "conditionId": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "enum": [
+                                    "true",
+                                    "false",
+                                    "unknown"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "conditionId",
+                                "value"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "effect": {
+                            "type": "string",
+                            "enum": [
+                              "reachable",
+                              "blocked",
+                              "unknown"
+                            ]
+                          },
+                          "explanation": {
+                            "type": "string"
+                          },
+                          "missingFacts": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "factIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "assumptions",
+                          "effect",
+                          "explanation",
+                          "missingFacts",
+                          "factIds"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "obligationId",
+                    "explanation",
+                    "facts",
+                    "decisiveMissingFacts",
+                    "suggestedObservations",
+                    "decision",
+                    "branchResults"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "results"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "usage": {
+        "input": 3625,
+        "output": 988,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "",
+        "toolCalls": [
+          {
+            "id": "call_BU8SvbVmuINJdssId3WLQ8Dk",
+            "name": "submit_authorization_result",
+            "arguments": {
+              "results": [
+                {
+                  "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+                  "decision": {
+                    "kind": "observed",
+                    "observed": "deny"
+                  },
+                  "branchResults": [],
+                  "explanation": "At the declared ShareLinkViewSet.create entry, the viewset applies IsAuthenticated and PaperlessObjectPermissions, and its POST permission map requires add_sharelink for the ShareLink model. That governs authorization to create the share-link object, not by itself authorization to view the referenced document. The create flow uses PassUserMixin, which supplies request.user to SerializerWithPerms serializers. ShareLinkSerializer.validate_document then requires both the global documents.view_document permission and has_perms_owner_aware(user, \"view_document\", document). The latter permits an owner or an object-level permission; for a document owned by another user with no object-level grant, it is false. Therefore the global view_document grant does not substitute for the owner-aware target-document check, validation raises PermissionDenied, and the share-link creation is denied under the supplied premises.",
+                  "facts": [
+                    {
+                      "id": "entry-share-create",
+                      "kind": "entry",
+                      "statement": "ShareLinkViewSet is the declared create entry and uses IsAuthenticated together with PaperlessObjectPermissions.",
+                      "citations": [
+                        {
+                          "sourceId": "src-b740d736ac7a1cf1",
+                          "startLine": 4696,
+                          "endLine": 4710
+                        }
+                      ]
+                    },
+                    {
+                      "id": "share-create-permission-binding",
+                      "kind": "binding",
+                      "statement": "The POST permission mapping for PaperlessObjectPermissions requires add_sharelink for creation of the ShareLink model.",
+                      "citations": [
+                        {
+                          "sourceId": "src-07683b2578aff9f7",
+                          "startLine": 36,
+                          "endLine": 43
+                        }
+                      ]
+                    },
+                    {
+                      "id": "principal-to-serializer-binding",
+                      "kind": "binding",
+                      "statement": "PassUserMixin passes request.user into serializers that subclass SerializerWithPerms.",
+                      "citations": [
+                        {
+                          "sourceId": "src-b740d736ac7a1cf1",
+                          "startLine": 411,
+                          "endLine": 418
+                        }
+                      ]
+                    },
+                    {
+                      "id": "target-document-resource",
+                      "kind": "binding",
+                      "statement": "ShareLinkViewSet binds the ShareLink serializer and its queryset selects the referenced document.",
+                      "citations": [
+                        {
+                          "sourceId": "src-b740d736ac7a1cf1",
+                          "startLine": 4704,
+                          "endLine": 4708
+                        }
+                      ]
+                    },
+                    {
+                      "id": "target-document-authorization-control",
+                      "kind": "control",
+                      "statement": "Document validation requires the global documents.view_document permission and the owner-aware has_perms_owner_aware check; otherwise it raises PermissionDenied.",
+                      "citations": [
+                        {
+                          "sourceId": "src-d74dd1895d260a60",
+                          "startLine": 2873,
+                          "endLine": 2886
+                        }
+                      ]
+                    },
+                    {
+                      "id": "owner-aware-object-check",
+                      "kind": "control",
+                      "statement": "The owner-aware check allows an owner or an object-level permission reported by ObjectPermissionChecker, and otherwise returns false.",
+                      "citations": [
+                        {
+                          "sourceId": "src-07683b2578aff9f7",
+                          "startLine": 624,
+                          "endLine": 635
+                        }
+                      ]
+                    },
+                    {
+                      "id": "share-link-effect",
+                      "kind": "effect",
+                      "statement": "The referenced document must pass serializer validation before the ShareLink serializer creates the share-link object.",
+                      "citations": [
+                        {
+                          "sourceId": "src-d74dd1895d260a60",
+                          "startLine": 2869,
+                          "endLine": 2886
+                        }
+                      ]
+                    },
+                    {
+                      "id": "missing-object-view-condition",
+                      "kind": "condition",
+                      "statement": "Under the stated premises, the caller is not the document owner and has no object-level view_document grant, so the owner-aware target-document condition is unsatisfied despite the global view_document grant.",
+                      "citations": [
+                        {
+                          "sourceId": "src-07683b2578aff9f7",
+                          "startLine": 634,
+                          "endLine": 635
+                        }
+                      ]
+                    }
+                  ],
+                  "decisiveMissingFacts": [],
+                  "suggestedObservations": []
+                }
+              ]
+            }
+          }
+        ],
+        "tokens": {
+          "input": 3625,
+          "output": 988,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 24609.217500000028,
+        "stopReason": "tool_use"
+      },
+      "schemaValidation": {
+        "valid": true,
+        "diagnostics": []
+      },
+      "endedAt": "2026-09-29T19:16:58.025Z"
+    }
+  ],
+  "knownDurationMs": 24609.217500000028,
+  "repairCalls": 0,
+  "fallbackCalls": 0
+}

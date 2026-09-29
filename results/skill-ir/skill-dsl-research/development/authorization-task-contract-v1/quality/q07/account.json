@@ -1,0 +1,400 @@
+{
+  "providerCalls": 1,
+  "respondedCalls": 1,
+  "unknownUsageCalls": 0,
+  "unknownCostCalls": 1,
+  "knownTokens": {
+    "input": 270,
+    "output": 975,
+    "cacheRead": 4480,
+    "cacheWrite": 0
+  },
+  "tokensStatus": "complete",
+  "knownActualUsdSubtotal": 0,
+  "totalActualUsd": null,
+  "actualUsdStatus": "unknown",
+  "transportAttempts": "unknown",
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "status": "response",
+      "startedAt": "2026-09-29T19:09:02.602Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 18171,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false,
+        "toolSchemas": [
+          {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "obligationId": {
+                      "type": "string"
+                    },
+                    "explanation": {
+                      "type": "string"
+                    },
+                    "facts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "entry",
+                              "binding",
+                              "control",
+                              "effect",
+                              "condition"
+                            ]
+                          },
+                          "statement": {
+                            "type": "string"
+                          },
+                          "citations": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "sourceId": {
+                                  "type": "string"
+                                },
+                                "startLine": {
+                                  "type": "number"
+                                },
+                                "endLine": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "sourceId",
+                                "startLine",
+                                "endLine"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "statement",
+                          "citations"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "decisiveMissingFacts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestedObservations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "decision": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "observed"
+                            },
+                            "observed": {
+                              "type": "string",
+                              "enum": [
+                                "allow",
+                                "deny",
+                                "unknown"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "observed"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "conditional-policy"
+                            },
+                            "policyStatus": {
+                              "type": "string",
+                              "enum": [
+                                "satisfied",
+                                "violated",
+                                "undetermined"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "policyStatus"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "branchResults": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "assumptions": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "conditionId": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "enum": [
+                                    "true",
+                                    "false",
+                                    "unknown"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "conditionId",
+                                "value"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "effect": {
+                            "type": "string",
+                            "enum": [
+                              "reachable",
+                              "blocked",
+                              "unknown"
+                            ]
+                          },
+                          "explanation": {
+                            "type": "string"
+                          },
+                          "missingFacts": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "factIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "assumptions",
+                          "effect",
+                          "explanation",
+                          "missingFacts",
+                          "factIds"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "obligationId",
+                    "explanation",
+                    "facts",
+                    "decisiveMissingFacts",
+                    "suggestedObservations",
+                    "decision",
+                    "branchResults"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "results"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "usage": {
+        "input": 270,
+        "output": 975,
+        "cacheRead": 4480,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "",
+        "toolCalls": [
+          {
+            "id": "call_3fuE6qgFIgexfHECjYZveGkx",
+            "name": "submit_authorization_result",
+            "arguments": {
+              "results": [
+                {
+                  "obligationId": "scenario%3Aversion-owner-no-root-view::entry%3Adownload",
+                  "decision": {
+                    "kind": "observed",
+                    "observed": "deny"
+                  },
+                  "branchResults": [],
+                  "explanation": "At the declared-entry boundary, download dispatches to file_response. That path resolves the requested pk to request_doc and root_doc, then applies the owner-aware view_document check to root_doc, not to the requested version document. Under the stated premises, the root is owned by another user and the caller has neither root ownership nor an object view grant, so the check fails and file_response returns HttpResponseForbidden before file selection or serving. If that gate were passed, the requested version would be resolved from the root and used as file_doc; its ownership is distinct from authorization on the root. The fixed source therefore shows denial under the supplied premises and accepted policy, without relying on facts outside the declared-entry source.",
+                  "facts": [
+                    {
+                      "id": "f-entry",
+                      "kind": "entry",
+                      "statement": "DocumentViewSet.download calls file_response for the requested pk with attachment disposition.",
+                      "citations": [
+                        {
+                          "sourceId": "src-7632cecb669d34e1",
+                          "startLine": 1834,
+                          "endLine": 1839
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-resource-binding",
+                      "kind": "binding",
+                      "statement": "The authorization path resolves request_doc and root_doc, derives the root document, and passes root_doc to the permission check.",
+                      "citations": [
+                        {
+                          "sourceId": "src-7632cecb669d34e1",
+                          "startLine": 1401,
+                          "endLine": 1427
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-authorization-control",
+                      "kind": "control",
+                      "statement": "The visible owner-aware view_document check permits when the checked object is unowned, owned by the caller, or has the requested object permission; otherwise the caller is forbidden.",
+                      "citations": [
+                        {
+                          "sourceId": "src-18b8f193a13de576",
+                          "startLine": 624,
+                          "endLine": 635
+                        },
+                        {
+                          "sourceId": "src-7632cecb669d34e1",
+                          "startLine": 1421,
+                          "endLine": 1427
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-condition",
+                      "kind": "condition",
+                      "statement": "The stated scenario supplies a different owner for the existing root and no object view grant on that root; therefore, for the root object checked by the source-visible gate, the owner-aware condition is false.",
+                      "citations": [
+                        {
+                          "sourceId": "src-18b8f193a13de576",
+                          "startLine": 634,
+                          "endLine": 635
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-protected-effect",
+                      "kind": "effect",
+                      "statement": "When the root authorization gate passes, the handler selects file_doc and calls serve_file with that object; when the gate fails, it returns HttpResponseForbidden before that effect.",
+                      "citations": [
+                        {
+                          "sourceId": "src-7632cecb669d34e1",
+                          "startLine": 1421,
+                          "endLine": 1448
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-version-selection",
+                      "kind": "binding",
+                      "statement": "A requested version is resolved for the root and the resulting document is returned as the effective file document; this selected version is the object that would be served if authorization proceeded.",
+                      "citations": [
+                        {
+                          "sourceId": "src-7632cecb669d34e1",
+                          "startLine": 1375,
+                          "endLine": 1399
+                        },
+                        {
+                          "sourceId": "src-7632cecb669d34e1",
+                          "startLine": 1437,
+                          "endLine": 1448
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-serving",
+                      "kind": "effect",
+                      "statement": "serve_file reads the selected doc's archive_file or source_file and constructs the file response.",
+                      "citations": [
+                        {
+                          "sourceId": "src-7632cecb669d34e1",
+                          "startLine": 4941,
+                          "endLine": 4965
+                        }
+                      ]
+                    }
+                  ],
+                  "decisiveMissingFacts": [],
+                  "suggestedObservations": []
+                }
+              ]
+            }
+          }
+        ],
+        "tokens": {
+          "input": 270,
+          "output": 975,
+          "cacheRead": 4480,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 24553.6869,
+        "stopReason": "tool_use"
+      },
+      "schemaValidation": {
+        "valid": true,
+        "diagnostics": []
+      },
+      "endedAt": "2026-09-29T19:09:27.157Z"
+    }
+  ],
+  "knownDurationMs": 24553.6869,
+  "repairCalls": 0,
+  "fallbackCalls": 0
+}

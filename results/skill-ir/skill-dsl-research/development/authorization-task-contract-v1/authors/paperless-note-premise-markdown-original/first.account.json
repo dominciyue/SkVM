@@ -1,0 +1,57 @@
+{
+  "providerCalls": 1,
+  "respondedCalls": 1,
+  "unknownUsageCalls": 0,
+  "unknownCostCalls": 1,
+  "knownTokens": {
+    "input": 2012,
+    "output": 1062,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "tokensStatus": "complete",
+  "knownActualUsdSubtotal": 0,
+  "totalActualUsd": null,
+  "actualUsdStatus": "unknown",
+  "transportAttempts": "unknown",
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "prompt-parse",
+      "status": "response",
+      "startedAt": "2026-09-29T19:21:45.817Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 8473,
+        "toolNames": [],
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 2012,
+        "output": 1062,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "# Authorization Assessment Task\n\nAssess authorization at the `notes-post` handler entry for creating a note on a document.\n\n## Source identity and entry\n\n- **Repository:** https://github.com/paperless-ngx/paperless-ngx\n- **Source revision:** `126ec414a8b65158368653a2604ae58415e43103`\n- **Allowed files:**\n  - `src/documents/views.py`\n  - `src/documents/permissions.py`\n- **Entry:** `notes-post`\n- **Location:** `src/documents/views.py`, lines 1841–1913\n- **Assessment boundary:** Declared handler entry\n- **Task:** Trace the decisive source-visible authorization control and effect without inventing runtime facts. Report source behavior separately from comparison with the accepted policy.\n\n## Current accepted policy\n\n> Creating a note requires the stated global permissions and either document ownership or an object `change_document` grant; an object view grant alone is insufficient.\n\n- **Policy location:** `author-briefs.json#/paperless-note-premise/originalPolicy`\n- **Policy revision:** `paperless-note-premise-original`\n- **Status:** Accepted\n\n## General premises\n\nFor both scenarios:\n\n- The principal is an authenticated user with the stated global permissions.\n- The operation is creating a note on a document.\n- At handler entry, the caller has global `add_note`, `view_document`, and `change_document` permissions.\n- The caller has an object view grant.\n- The caller is not the document owner.\n- The owner's presence is unspecified in the original task. Assess both requested counterfactual branches:\n  - **Owner absent:** no owner is present.\n  - **Other owner present:** a different user is the owner.\n- Do not treat unspecified owner presence as equivalent to absent owner presence.\n- Source-external store failure is not authorization.\n\n## Scenario 1: View-only object relation\n\n- **Scenario name:** `view-only`\n- **Entry:** `notes-post`\n- **Relation:** `not-owner-view-only`\n- **Expectation:** **Deny**\n- **Object permissions:**\n  - Object view grant: present\n  - Object `change_document` grant: absent\n- **Premise:** At handler entry, the caller has global `add_note`, `view_document`, and `change_document` permissions and an object view grant, is not the document owner, and has no object `change_document` grant. Owner presence is unspecified: it may be absent or the document may be owned by a different user.\n\nAssess both branches:\n\n1. **Owner absent**\n   - Assumption: `owner-present: false`\n2. **Other owner present**\n   - Assumption: `owner-present: true`\n   - The owner is a different user; the caller remains not the owner.\n\nFor each branch:\n\n- Identify the source-visible authorization behavior at the declared entry.\n- Compare that behavior with the accepted policy.\n- State whether the expected policy result is deny.\n- Keep source behavior and policy comparison separate.\n\n## Scenario 2: Object change grant\n\n- **Scenario name:** `change-granted`\n- **Entry:** `notes-post`\n- **Relation:** `not-owner-change-granted`\n- **Expectation:** **Allow**\n- **Object permissions:**\n  - Object view grant: present\n  - Object `change_document` grant: present\n- **Premise:** At handler entry, the caller has global `add_note`, `view_document`, and `change_document` permissions and an object view grant, is not the document owner, and has an object `change_document` grant. Owner presence is unspecified: it may be absent or the document may be owned by a different user.\n\nAssess both branches:\n\n1. **Owner absent**\n   - Assumption: `owner-present: false`\n2. **Other owner present**\n   - Assumption: `owner-present: true`\n   - The owner is a different user; the caller remains not the owner.\n\nFor each branch:\n\n- Identify the source-visible authorization behavior at the declared entry.\n- Compare that behavior with the accepted policy.\n- State whether the expected policy result is allow.\n- Keep source behavior and policy comparison separate.\n\n## Reporting requirements\n\n- Trace only the decisive authorization control and resulting effect visible from the permitted source.\n- Address both scenarios and both owner-presence branches.\n- Distinguish:\n  - caller is not the owner,\n  - owner is absent,\n  - a different owner is present,\n  - object view permission,\n  - object `change_document` permission,\n  - global permissions.\n- Do not infer runtime facts beyond the stated premises.\n- Do not replace the requested absent-owner branch with the unspecified premise.\n- Do not treat object view permission alone as an object change grant.\n- Do not treat failures external to authorization, such as store failures, as authorization decisions.\n- Report **source-visible authorization** and **accepted-policy comparison** as separate parts of the assessment.",
+        "toolCalls": [],
+        "tokens": {
+          "input": 2012,
+          "output": 1062,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 22876.52800000002,
+        "stopReason": "end_turn"
+      },
+      "endedAt": "2026-09-29T19:22:08.694Z"
+    }
+  ],
+  "knownDurationMs": 22876.52800000002
+}

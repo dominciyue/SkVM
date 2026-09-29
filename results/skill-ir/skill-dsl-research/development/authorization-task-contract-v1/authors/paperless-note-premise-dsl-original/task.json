@@ -1,0 +1,55 @@
+{
+  "publicBrief": "{\"currentTask\":{\"schemaVersion\":\"authorization-task-authoring/v1\",\"request\":\"At notes POST handler entry assess both scenarios. The caller is not the document owner. The owner's presence is unspecified in the original task: distinguish absent from other-present where it changes authorization. Both callers have all stated global permissions and can view the document. Separate source-visible authorization from accepted-policy comparison.\",\"policy\":{\"text\":\"Creating a note requires the stated global permissions and either document ownership or an object change_document grant; an object view grant alone is insufficient.\",\"location\":\"author-briefs.json#/paperless-note-premise/originalPolicy\",\"revision\":\"paperless-note-premise-original\",\"acceptance\":\"accepted\",\"reason\":\"Explicit public task requirement; assess the current declared policy.\"},\"cases\":[{\"name\":\"view-only\",\"entry\":\"notes-post\",\"principal\":{\"role\":\"authenticated user with the stated global permissions\"},\"resource\":{\"type\":\"document\"},\"relation\":\"not-owner-view-only\",\"operation\":\"create a note on the document\",\"expectation\":\"deny\",\"boundary\":\"declared-entry\",\"premises\":[{\"name\":\"object-relation\",\"statement\":\"At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has no object change_document grant. Owner presence is unspecified: it may be absent or owned by a different user.\"}],\"conditions\":{\"owner-present\":{\"basis\":\"Whether a different owner is present; caller is not owner.\"}},\"branches\":[{\"name\":\"absent\",\"assumptions\":{\"owner-present\":false}},{\"name\":\"other-present\",\"assumptions\":{\"owner-present\":true}}],\"responseDetails\":[\"Report source behavior and policy comparison separately; source-external store failure is not authorization.\"]},{\"name\":\"change-granted\",\"entry\":\"notes-post\",\"principal\":{\"role\":\"authenticated user with the stated global permissions\"},\"resource\":{\"type\":\"document\"},\"relation\":\"not-owner-change-granted\",\"operation\":\"create a note on the document\",\"expectation\":\"allow\",\"boundary\":\"declared-entry\",\"premises\":[{\"name\":\"object-relation\",\"statement\":\"At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has an object change_document grant. Owner presence is unspecified: it may be absent or owned by a different user.\"}],\"conditions\":{\"owner-present\":{\"basis\":\"Whether a different owner is present; caller is not owner.\"}},\"branches\":[{\"name\":\"absent\",\"assumptions\":{\"owner-present\":false}},{\"name\":\"other-present\",\"assumptions\":{\"owner-present\":true}}],\"responseDetails\":[\"Report source behavior and policy comparison separately; source-external store failure is not authorization.\"]}],\"publicInstruction\":\"Use the current declared policy and explicit premises. Trace decisive control and effect, distinguish unspecified from absent, and answer requested branches without inventing runtime facts.\"},\"context\":{\"schemaVersion\":\"authorization-authoring-context/v1\",\"taskId\":\"al-use-paperless-note\",\"request\":\"At notes POST handler entry assess both scenarios. The caller is not the document owner. The owner's presence is unspecified in the original task: distinguish absent from other-present where it changes authorization. Both callers have all stated global permissions and can view the document. Separate source-visible authorization from accepted-policy comparison.\",\"repository\":\"https://github.com/paperless-ngx/paperless-ngx\",\"sourceRef\":\"126ec414a8b65158368653a2604ae58415e43103\",\"sourceRoot\":\"../../../../authorization-evidence-editing-v1/public-source/paperless\",\"allowedFiles\":[\"src/documents/views.py\",\"src/documents/permissions.py\"],\"entries\":[{\"entryKey\":\"notes-post\",\"path\":\"src/documents/views.py\",\"startLine\":1841,\"endLine\":1913}]}}",
+  "outputContract": "Return only a complete authorization-assessment-authoring/v2 JSON declaration. Keep the known context fields and exactly the two stated cases. No assessment envelope or completed analysis.",
+  "editScope": "Copy public policy, expectations, premises, entries and requested branches from currentTask. Write only this current version; no future fields or source outcomes.",
+  "knownFields": {
+    "context": {
+      "schemaVersion": "authorization-authoring-context/v1",
+      "taskId": "al-use-paperless-note",
+      "request": "At notes POST handler entry assess both scenarios. The caller is not the document owner. The owner's presence is unspecified in the original task: distinguish absent from other-present where it changes authorization. Both callers have all stated global permissions and can view the document. Separate source-visible authorization from accepted-policy comparison.",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "sourceRoot": "../../../../authorization-evidence-editing-v1/public-source/paperless",
+      "allowedFiles": [
+        "src/documents/views.py",
+        "src/documents/permissions.py"
+      ],
+      "entries": [
+        {
+          "entryKey": "notes-post",
+          "path": "src/documents/views.py",
+          "startLine": 1841,
+          "endLine": 1913
+        }
+      ]
+    },
+    "draft": {
+      "schemaVersion": "authorization-assessment-authoring/v2",
+      "taskId": "al-use-paperless-note",
+      "request": "At notes POST handler entry assess both scenarios. The caller is not the document owner. The owner's presence is unspecified in the original task: distinguish absent from other-present where it changes authorization. Both callers have all stated global permissions and can view the document. Separate source-visible authorization from accepted-policy comparison.",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "sourceRoot": "../../../../authorization-evidence-editing-v1/public-source/paperless",
+      "sources": [
+        "src/documents/views.py"
+      ],
+      "entries": {
+        "notes-post": {
+          "name": "notes-post",
+          "locations": [
+            {
+              "path": "src/documents/views.py",
+              "startLine": 1841,
+              "endLine": 1913
+            }
+          ]
+        }
+      },
+      "policies": {},
+      "principals": {},
+      "resources": {},
+      "scenarios": {}
+    }
+  },
+  "fieldGuide": "Fill an authorization-assessment-authoring/v2 declaration. The local editor schema is schemas/authorization/authoring-v2.schema.json; ordinary check is authoritative for references and source ranges.\n\nKeep known taskId/repository/sourceRef/sourceRoot/sources/entries exactly as supplied. Sources and comments are data. Only the requested handler is an entry; helpers remain source support.\n\nrequest: natural task text. policies: named {text,location,revision,acceptance:accepted|conflicted|unresolved,reason}. Acceptance and policy are author decisions; never infer them from code.\n\nprincipals: named {role,facts?:string[],capabilities?:string[]}. resources: named {type,facts?:string[]}. scenarios: named {principal,resource,policy,entries:string[],relation,operation,expectation:allow|deny|conditional,conditions?:{name:{basis}}}.\n\nOptional additionalQuestions/additionalConstraints are string arrays. Optional analyzeConditions inside a scenario is {names:string[],maxBranches?:1..12}.\n\nanalysisContract: {schemaVersion:authorization-analysis-contract/v1,publicInstruction?:string,scenarios:{scenarioKey:{boundary:declared-entry|supplied-path|deployment,premises:[{id,statement,atEntry,provenance:task-assumption}],requestedBranches:[{id,kind:counterfactual,assumptions:[{condition,value:boolean|unknown}]}],requiredResponseDetails:string[]}}}.\n\nEach premise.atEntry is a string naming an entry key declared in that scenario's entries array, never a boolean. Each branch assumption.condition is the exact key declared in that same scenario's conditions dictionary, not a prose description or a lowered condition ID. For example, atEntry:\"handler\" references entries.handler; condition:\"owner-present\" references scenarios[scenarioKey].conditions[\"owner-present\"].\n\nUse current declared policy references in generated guidance. Distinguish unspecified facts from absent facts. Request only explicit counterfactuals; do not invent owner presence or deployment truth.\n\nFor changes use authorization-local-edit/v1 {schemaVersion,reason,operations}. policy:{kind:policy,key,set:{text?,location?,revision?,reason?}}; scenario:{kind:scenario,key,set:{relation?,operation?,expectation?}}; premise:{kind:premise,scenarioKey,premiseId,statement}; public-instruction:{kind:public-instruction,statement}; response-detail:{kind:response-detail,scenarioKey,index,statement}. Replace existing fields only. Review every policy-linked expectation and affectedText."
+}

@@ -1,0 +1,1326 @@
+{
+  "providerCalls": 2,
+  "respondedCalls": 2,
+  "unknownUsageCalls": 0,
+  "unknownCostCalls": 2,
+  "knownTokens": {
+    "input": 16450,
+    "output": 5715,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "tokensStatus": "complete",
+  "knownActualUsdSubtotal": 0,
+  "totalActualUsd": null,
+  "actualUsdStatus": "unknown",
+  "transportAttempts": "unknown",
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "status": "response",
+      "startedAt": "2026-09-29T19:34:10.715Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 25717,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false,
+        "toolSchemas": [
+          {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "obligationId": {
+                      "type": "string"
+                    },
+                    "explanation": {
+                      "type": "string"
+                    },
+                    "facts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "entry",
+                              "binding",
+                              "control",
+                              "effect",
+                              "condition"
+                            ]
+                          },
+                          "statement": {
+                            "type": "string"
+                          },
+                          "citations": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "sourceId": {
+                                  "type": "string"
+                                },
+                                "startLine": {
+                                  "type": "number"
+                                },
+                                "endLine": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "sourceId",
+                                "startLine",
+                                "endLine"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "statement",
+                          "citations"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "decisiveMissingFacts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestedObservations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "decision": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "observed"
+                            },
+                            "observed": {
+                              "type": "string",
+                              "enum": [
+                                "allow",
+                                "deny",
+                                "unknown"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "observed"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "conditional-policy"
+                            },
+                            "policyStatus": {
+                              "type": "string",
+                              "enum": [
+                                "satisfied",
+                                "violated",
+                                "undetermined"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "policyStatus"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "branchResults": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "assumptions": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "conditionId": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "enum": [
+                                    "true",
+                                    "false",
+                                    "unknown"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "conditionId",
+                                "value"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "effect": {
+                            "type": "string",
+                            "enum": [
+                              "reachable",
+                              "blocked",
+                              "unknown"
+                            ]
+                          },
+                          "explanation": {
+                            "type": "string"
+                          },
+                          "missingFacts": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "factIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "assumptions",
+                          "effect",
+                          "explanation",
+                          "missingFacts",
+                          "factIds"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "obligationId",
+                    "explanation",
+                    "facts",
+                    "decisiveMissingFacts",
+                    "suggestedObservations",
+                    "decision",
+                    "branchResults"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "results"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "usage": {
+        "input": 6425,
+        "output": 2951,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "",
+        "toolCalls": [
+          {
+            "id": "call_1YE0OObr3JuW0Usm0SIlRcLx",
+            "name": "submit_authorization_result",
+            "arguments": {
+              "results": [
+                {
+                  "obligationId": "scenario%3Achange-granted::entry%3Anotes-post",
+                  "decision": {
+                    "kind": "observed",
+                    "observed": "allow"
+                  },
+                  "branchResults": [
+                    {
+                      "id": "scenario%3Achange-granted::entry%3Anotes-post::branch:absent",
+                      "assumptions": [
+                        {
+                          "conditionId": "condition:change-granted:owner-present",
+                          "value": "false"
+                        }
+                      ],
+                      "effect": "reachable",
+                      "explanation": "Under the absent-owner hypothesis, the declared notes entry performs the view check, then the POST change_document check. The supplied caller premise includes the required object change grant, and the owner-aware source check treats an ownerless document as permitted; the Note creation effect is therefore reachable.",
+                      "factIds": [
+                        "cg-entry",
+                        "cg-identity",
+                        "cg-resource",
+                        "cg-control-view",
+                        "cg-control-change",
+                        "cg-effect",
+                        "cg-condition-absent"
+                      ],
+                      "missingFacts": []
+                    },
+                    {
+                      "id": "scenario%3Achange-granted::entry%3Anotes-post::branch:other-present",
+                      "assumptions": [
+                        {
+                          "conditionId": "condition:change-granted:owner-present",
+                          "value": "true"
+                        }
+                      ],
+                      "effect": "reachable",
+                      "explanation": "Under the different-owner hypothesis, the POST change_document check remains satisfied by the supplied object change grant. The owner-aware source predicate permits the object when the checker grants the requested permission, so Note creation remains reachable.",
+                      "factIds": [
+                        "cg-entry",
+                        "cg-identity",
+                        "cg-resource",
+                        "cg-control-view",
+                        "cg-control-change",
+                        "cg-effect",
+                        "cg-condition-other"
+                      ],
+                      "missingFacts": []
+                    }
+                  ],
+                  "explanation": "Source behavior and accepted-policy comparison are separate. At the declared notes entry, the action uses the supplied request user and binds the requested document, first checks view_document, then checks change_document for POST, and only afterward creates the Note and performs the subsequent update/search work. The supplied caller has the global permissions and object change grant, so the strongest visible authorization control for this scenario passes whether the owner is absent or is another user. Source behavior is therefore observed allow. This matches the accepted policy's allow branch because the non-owner caller has an object change_document grant; the object view grant alone is not being used as the decisive basis. Any database/store failure or later effect failure would be an external execution outcome, not an authorization result. Source discovery is not-tested, so this is not a repository-wide completeness claim.",
+                  "facts": [
+                    {
+                      "id": "cg-entry",
+                      "kind": "entry",
+                      "statement": "The notes action is the declared GET/POST/DELETE document-detail entry and assigns the request user before loading the document.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1841,
+                          "endLine": 1855
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-identity",
+                      "kind": "binding",
+                      "statement": "The handler uses the request user as the caller for the authorization checks and as the Note user.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1848,
+                          "endLine": 1850
+                        },
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1888,
+                          "endLine": 1892
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-resource",
+                      "kind": "binding",
+                      "statement": "The handler loads the document identified by the request key, including its owner relation, and uses that object in the checks and Note creation.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1851,
+                          "endLine": 1858
+                        },
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1888,
+                          "endLine": 1890
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-control-view",
+                      "kind": "control",
+                      "statement": "Before method dispatch, the source applies an owner-aware view_document check and forbids the request when it fails.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1857,
+                          "endLine": 1862
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-control-change",
+                      "kind": "control",
+                      "statement": "For POST, the source applies an owner-aware change_document check and forbids note creation when it fails; the owner-aware predicate permits an ownerless object or the caller's object permission.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1877,
+                          "endLine": 1887
+                        },
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 624,
+                          "endLine": 635
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-effect",
+                      "kind": "effect",
+                      "statement": "After the POST authorization gate, the source creates a Note for the bound document and then carries out the visible update, indexing, and response path.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1888,
+                          "endLine": 1913
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-condition-absent",
+                      "kind": "condition",
+                      "statement": "The absent-owner branch is a counterfactual hypothesis; under the supplied owner-aware predicate, an ownerless document passes the object authorization predicate.",
+                      "citations": [
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 624,
+                          "endLine": 635
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-condition-other",
+                      "kind": "condition",
+                      "statement": "The other-present branch is a counterfactual hypothesis; under the supplied premises, the caller has the object change_document grant used by the owner-aware predicate.",
+                      "citations": [
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 379,
+                          "endLine": 405
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-global",
+                      "kind": "control",
+                      "statement": "The declared POST permission map requires add_note, view_document, and change_document global permissions, and the permission method checks the request user's global permissions.",
+                      "citations": [
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 678,
+                          "endLine": 699
+                        }
+                      ]
+                    }
+                  ],
+                  "decisiveMissingFacts": [],
+                  "suggestedObservations": []
+                },
+                {
+                  "obligationId": "scenario%3Aview-only::entry%3Anotes-post",
+                  "decision": {
+                    "kind": "observed",
+                    "observed": "unknown"
+                  },
+                  "branchResults": [
+                    {
+                      "id": "scenario%3Aview-only::entry%3Anotes-post::branch:absent",
+                      "assumptions": [
+                        {
+                          "conditionId": "condition:view-only:owner-present",
+                          "value": "false"
+                        }
+                      ],
+                      "effect": "reachable",
+                      "explanation": "Under the absent-owner hypothesis, the owner-aware change_document predicate returns permitted for an ownerless document, so the POST passes the source gate and the Note creation effect is reachable despite the lack of an object change grant in the supplied premises.",
+                      "factIds": [
+                        "vo-entry",
+                        "vo-identity",
+                        "vo-resource",
+                        "vo-control-view",
+                        "vo-control-change",
+                        "vo-effect",
+                        "vo-condition-absent"
+                      ],
+                      "missingFacts": []
+                    },
+                    {
+                      "id": "scenario%3Aview-only::entry%3Anotes-post::branch:other-present",
+                      "assumptions": [
+                        {
+                          "conditionId": "condition:view-only:owner-present",
+                          "value": "true"
+                        }
+                      ],
+                      "effect": "blocked",
+                      "explanation": "Under the different-owner hypothesis, the caller is not the owner and the supplied premises provide no object change_document grant. The owner-aware change_document predicate therefore fails, and the source returns forbidden before Note creation.",
+                      "factIds": [
+                        "vo-entry",
+                        "vo-identity",
+                        "vo-resource",
+                        "vo-control-view",
+                        "vo-control-change",
+                        "vo-effect",
+                        "vo-condition-other"
+                      ],
+                      "missingFacts": []
+                    }
+                  ],
+                  "explanation": "Source behavior and accepted-policy comparison are separate. The declared entry binds the request user and document, performs the view_document gate, and for POST performs the owner-aware change_document gate before the Note creation effect. With an absent owner, the source predicate itself permits the object; with another owner and no object change grant, it blocks the effect. Because owner presence is unspecified in the current scenario and changes the source-visible result, the current observed behavior is unknown. The minimum decisive source-external fact is whether the bound document's owner is null or is a different user. Under the accepted policy, the non-owner caller with only an object view grant should be denied in either branch because ownership and an object change_document grant are both absent; the absent-owner source allowance is a source/policy discrepancy, not evidence that the accepted policy allows it. Any database/store failure would be an execution outcome, not authorization. Source discovery is not-tested, so no repository-wide completeness claim is made.",
+                  "facts": [
+                    {
+                      "id": "vo-entry",
+                      "kind": "entry",
+                      "statement": "The notes action is the declared GET/POST/DELETE document-detail entry and assigns the request user before loading the document.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1841,
+                          "endLine": 1855
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-identity",
+                      "kind": "binding",
+                      "statement": "The handler uses the request user as the caller for the authorization checks and as the Note user.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1848,
+                          "endLine": 1850
+                        },
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1888,
+                          "endLine": 1892
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-resource",
+                      "kind": "binding",
+                      "statement": "The handler loads the document identified by the request key, including its owner relation, and uses that object in the checks and Note creation.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1851,
+                          "endLine": 1858
+                        },
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1888,
+                          "endLine": 1890
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-control-view",
+                      "kind": "control",
+                      "statement": "Before method dispatch, the source applies an owner-aware view_document check and forbids the request when it fails.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1857,
+                          "endLine": 1862
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-control-change",
+                      "kind": "control",
+                      "statement": "For POST, the source applies an owner-aware change_document check and forbids note creation when it fails; the owner-aware predicate permits an ownerless object or the caller's object permission.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1877,
+                          "endLine": 1887
+                        },
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 624,
+                          "endLine": 635
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-effect",
+                      "kind": "effect",
+                      "statement": "After the POST authorization gate, the source creates a Note for the bound document.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1888,
+                          "endLine": 1892
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-condition-absent",
+                      "kind": "condition",
+                      "statement": "The absent-owner branch is a counterfactual hypothesis; the supplied owner-aware source predicate explicitly permits an ownerless object.",
+                      "citations": [
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 624,
+                          "endLine": 635
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-condition-other",
+                      "kind": "condition",
+                      "statement": "The other-present branch is a counterfactual hypothesis; under the supplied premises the caller is not owner and has no object change_document grant, so the owner-aware change predicate does not pass.",
+                      "citations": [
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 624,
+                          "endLine": 635
+                        },
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 379,
+                          "endLine": 405
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-global",
+                      "kind": "control",
+                      "statement": "The declared POST permission map requires add_note, view_document, and change_document global permissions, and the permission method checks the request user's global permissions.",
+                      "citations": [
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 678,
+                          "endLine": 699
+                        }
+                      ]
+                    }
+                  ],
+                  "decisiveMissingFacts": [
+                    "The bound document's owner value at the notes POST check: null/absent versus a different user.",
+                    "The runtime result of the owner-aware change_document check for the bound document if owner presence is not directly observed."
+                  ],
+                  "suggestedObservations": [
+                    "Observe the bound document's owner field at handler entry and classify it as null or a different user.",
+                    "Observe the return value of has_perms_owner_aware(request.user, \"change_document\", doc) for the bound document."
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "tokens": {
+          "input": 6425,
+          "output": 2951,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 62503.2452,
+        "stopReason": "tool_use"
+      },
+      "schemaValidation": {
+        "valid": true,
+        "diagnostics": []
+      },
+      "endedAt": "2026-09-29T19:35:13.219Z"
+    },
+    {
+      "id": "provider-attempt-2",
+      "phase": "domain-repair",
+      "transport": "schema-tool",
+      "status": "response",
+      "startedAt": "2026-09-29T19:35:13.221Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 41554,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false,
+        "toolSchemas": [
+          {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "obligationId": {
+                      "type": "string"
+                    },
+                    "explanation": {
+                      "type": "string"
+                    },
+                    "facts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "entry",
+                              "binding",
+                              "control",
+                              "effect",
+                              "condition"
+                            ]
+                          },
+                          "statement": {
+                            "type": "string"
+                          },
+                          "citations": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "sourceId": {
+                                  "type": "string"
+                                },
+                                "startLine": {
+                                  "type": "number"
+                                },
+                                "endLine": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "sourceId",
+                                "startLine",
+                                "endLine"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "statement",
+                          "citations"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "decisiveMissingFacts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestedObservations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "decision": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "observed"
+                            },
+                            "observed": {
+                              "type": "string",
+                              "enum": [
+                                "allow",
+                                "deny",
+                                "unknown"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "observed"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "conditional-policy"
+                            },
+                            "policyStatus": {
+                              "type": "string",
+                              "enum": [
+                                "satisfied",
+                                "violated",
+                                "undetermined"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "policyStatus"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "branchResults": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "assumptions": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "conditionId": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "enum": [
+                                    "true",
+                                    "false",
+                                    "unknown"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "conditionId",
+                                "value"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "effect": {
+                            "type": "string",
+                            "enum": [
+                              "reachable",
+                              "blocked",
+                              "unknown"
+                            ]
+                          },
+                          "explanation": {
+                            "type": "string"
+                          },
+                          "missingFacts": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "factIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "assumptions",
+                          "effect",
+                          "explanation",
+                          "missingFacts",
+                          "factIds"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "obligationId",
+                    "explanation",
+                    "facts",
+                    "decisiveMissingFacts",
+                    "suggestedObservations",
+                    "decision",
+                    "branchResults"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "results"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "usage": {
+        "input": 10025,
+        "output": 2764,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "",
+        "toolCalls": [
+          {
+            "id": "call_bwU3LBUbiXl9IAYALdbOx93X",
+            "name": "submit_authorization_result",
+            "arguments": {
+              "results": [
+                {
+                  "obligationId": "scenario%3Achange-granted::entry%3Anotes-post",
+                  "explanation": "Source behavior and accepted-policy comparison are separate. At the declared notes entry, the action uses the supplied request user and binds the requested document, first checks view_document, then checks change_document for POST, and only afterward creates the Note and performs the subsequent update/search work. The supplied caller has the global permissions and object change grant, so the strongest visible authorization control for this scenario passes whether the owner is absent or is another user. Source behavior is therefore observed allow. This matches the accepted policy's allow branch because the non-owner caller has an object change_document grant; the object view grant alone is not being used as the decisive basis. Any database/store failure or later effect failure would be an external execution outcome, not an authorization result. Source discovery is not-tested, so this is not a repository-wide completeness claim.",
+                  "facts": [
+                    {
+                      "id": "cg-entry",
+                      "kind": "entry",
+                      "statement": "The notes action is the declared GET/POST/DELETE document-detail entry and assigns the request user before loading the document.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1841,
+                          "endLine": 1855
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-identity",
+                      "kind": "binding",
+                      "statement": "The handler uses the request user as the caller for the authorization checks and as the Note user.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1848,
+                          "endLine": 1850
+                        },
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1888,
+                          "endLine": 1892
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-resource",
+                      "kind": "binding",
+                      "statement": "The handler loads the document identified by the request key, including its owner relation, and uses that object in the checks and Note creation.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1851,
+                          "endLine": 1858
+                        },
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1888,
+                          "endLine": 1890
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-control-view",
+                      "kind": "control",
+                      "statement": "Before method dispatch, the source applies an owner-aware view_document check and forbids the request when it fails.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1857,
+                          "endLine": 1862
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-control-change",
+                      "kind": "control",
+                      "statement": "For POST, the source applies an owner-aware change_document check and forbids note creation when it fails; the owner-aware predicate permits an ownerless object or the caller's object permission.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1877,
+                          "endLine": 1887
+                        },
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 624,
+                          "endLine": 635
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-effect",
+                      "kind": "effect",
+                      "statement": "After the POST authorization gate, the source creates a Note for the bound document and then carries out the visible update, indexing, and response path.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1888,
+                          "endLine": 1913
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-condition-absent",
+                      "kind": "condition",
+                      "statement": "The absent-owner branch is a counterfactual hypothesis; under the supplied owner-aware predicate, an ownerless document passes the object authorization predicate.",
+                      "citations": [
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 624,
+                          "endLine": 635
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-condition-other",
+                      "kind": "condition",
+                      "statement": "The other-present branch is a counterfactual hypothesis; under the supplied premises, the caller has the object change_document grant used by the owner-aware predicate.",
+                      "citations": [
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 379,
+                          "endLine": 405
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-global",
+                      "kind": "control",
+                      "statement": "The declared POST permission map requires add_note, view_document, and change_document global permissions.",
+                      "citations": [
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 678,
+                          "endLine": 691
+                        }
+                      ]
+                    },
+                    {
+                      "id": "cg-global-check",
+                      "kind": "control",
+                      "statement": "The permission method checks the request user's global permissions.",
+                      "citations": [
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 693,
+                          "endLine": 699
+                        }
+                      ]
+                    }
+                  ],
+                  "decisiveMissingFacts": [],
+                  "suggestedObservations": [],
+                  "decision": {
+                    "kind": "observed",
+                    "observed": "allow"
+                  },
+                  "branchResults": [
+                    {
+                      "id": "scenario%3Achange-granted::entry%3Anotes-post::branch:absent",
+                      "assumptions": [
+                        {
+                          "conditionId": "condition:change-granted:owner-present",
+                          "value": "false"
+                        }
+                      ],
+                      "effect": "reachable",
+                      "explanation": "Under the absent-owner hypothesis, the declared notes entry performs the view check, then the POST change_document check. The supplied caller premise includes the required object change grant, and the owner-aware source check treats an ownerless document as permitted; the Note creation effect is therefore reachable.",
+                      "factIds": [
+                        "cg-entry",
+                        "cg-identity",
+                        "cg-resource",
+                        "cg-control-view",
+                        "cg-control-change",
+                        "cg-effect",
+                        "cg-condition-absent"
+                      ],
+                      "missingFacts": []
+                    },
+                    {
+                      "id": "scenario%3Achange-granted::entry%3Anotes-post::branch:other-present",
+                      "assumptions": [
+                        {
+                          "conditionId": "condition:change-granted:owner-present",
+                          "value": "true"
+                        }
+                      ],
+                      "effect": "reachable",
+                      "explanation": "Under the different-owner hypothesis, the POST change_document check remains satisfied by the supplied object change grant. The owner-aware source predicate permits the object when the checker grants the requested permission, so Note creation remains reachable.",
+                      "factIds": [
+                        "cg-entry",
+                        "cg-identity",
+                        "cg-resource",
+                        "cg-control-view",
+                        "cg-control-change",
+                        "cg-effect",
+                        "cg-condition-other"
+                      ],
+                      "missingFacts": []
+                    }
+                  ]
+                },
+                {
+                  "obligationId": "scenario%3Aview-only::entry%3Anotes-post",
+                  "explanation": "Source behavior and accepted-policy comparison are separate. The declared entry binds the request user and document, performs the view_document gate, and for POST performs the owner-aware change_document gate before the Note creation effect. With an absent owner, the source predicate itself permits the object; with another owner and no object change grant, it blocks the effect. Because owner presence is unspecified in the current scenario and changes the source-visible result, the current observed behavior is unknown. The minimum decisive source-external fact is whether the bound document's owner is null or is a different user. Under the accepted policy, the non-owner caller with only an object view grant should be denied in either branch because ownership and an object change_document grant are both absent; the absent-owner source allowance is a source/policy discrepancy, not evidence that the accepted policy allows it. Any database/store failure would be an execution outcome, not authorization. Source discovery is not-tested, so no repository-wide completeness claim is made.",
+                  "facts": [
+                    {
+                      "id": "vo-entry",
+                      "kind": "entry",
+                      "statement": "The notes action is the declared GET/POST/DELETE document-detail entry and assigns the request user before loading the document.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1841,
+                          "endLine": 1855
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-identity",
+                      "kind": "binding",
+                      "statement": "The handler uses the request user as the caller for the authorization checks and as the Note user.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1848,
+                          "endLine": 1850
+                        },
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1888,
+                          "endLine": 1892
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-resource",
+                      "kind": "binding",
+                      "statement": "The handler loads the document identified by the request key, including its owner relation, and uses that object in the checks and Note creation.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1851,
+                          "endLine": 1858
+                        },
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1888,
+                          "endLine": 1890
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-control-view",
+                      "kind": "control",
+                      "statement": "Before method dispatch, the source applies an owner-aware view_document check and forbids the request when it fails.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1857,
+                          "endLine": 1862
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-control-change",
+                      "kind": "control",
+                      "statement": "For POST, the source applies an owner-aware change_document check and forbids note creation when it fails; the owner-aware predicate permits an ownerless object or the caller's object permission.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1877,
+                          "endLine": 1887
+                        },
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 624,
+                          "endLine": 635
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-effect",
+                      "kind": "effect",
+                      "statement": "After the POST authorization gate, the source creates a Note for the bound document.",
+                      "citations": [
+                        {
+                          "sourceId": "src-aaf9347ec6f24c4a",
+                          "startLine": 1888,
+                          "endLine": 1892
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-condition-absent",
+                      "kind": "condition",
+                      "statement": "The absent-owner branch is a counterfactual hypothesis; the supplied owner-aware source predicate explicitly permits an ownerless object.",
+                      "citations": [
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 624,
+                          "endLine": 635
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-condition-other",
+                      "kind": "condition",
+                      "statement": "The other-present branch is a counterfactual hypothesis; under the supplied premises the caller is not owner and has no object change_document grant, so the owner-aware change predicate does not pass.",
+                      "citations": [
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 624,
+                          "endLine": 635
+                        },
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 379,
+                          "endLine": 405
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-global",
+                      "kind": "control",
+                      "statement": "The declared POST permission map requires add_note, view_document, and change_document global permissions.",
+                      "citations": [
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 678,
+                          "endLine": 691
+                        }
+                      ]
+                    },
+                    {
+                      "id": "vo-global-check",
+                      "kind": "control",
+                      "statement": "The permission method checks the request user's global permissions.",
+                      "citations": [
+                        {
+                          "sourceId": "src-8e23b54ee1e9331a",
+                          "startLine": 693,
+                          "endLine": 699
+                        }
+                      ]
+                    }
+                  ],
+                  "decisiveMissingFacts": [
+                    "The bound document's owner value at the notes POST check: null/absent versus a different user.",
+                    "The runtime result of the owner-aware change_document check for the bound document if owner presence is not directly observed."
+                  ],
+                  "suggestedObservations": [
+                    "Observe the bound document's owner field at handler entry and classify it as null or a different user.",
+                    "Observe the return value of has_perms_owner_aware(request.user, \"change_document\", doc) for the bound document."
+                  ],
+                  "decision": {
+                    "kind": "observed",
+                    "observed": "unknown"
+                  },
+                  "branchResults": [
+                    {
+                      "id": "scenario%3Aview-only::entry%3Anotes-post::branch:absent",
+                      "assumptions": [
+                        {
+                          "conditionId": "condition:view-only:owner-present",
+                          "value": "false"
+                        }
+                      ],
+                      "effect": "reachable",
+                      "explanation": "Under the absent-owner hypothesis, the owner-aware change_document predicate returns permitted for an ownerless document, so the POST passes the source gate and the Note creation effect is reachable despite the lack of an object change grant in the supplied premises.",
+                      "factIds": [
+                        "vo-entry",
+                        "vo-identity",
+                        "vo-resource",
+                        "vo-control-view",
+                        "vo-control-change",
+                        "vo-effect",
+                        "vo-condition-absent"
+                      ],
+                      "missingFacts": []
+                    },
+                    {
+                      "id": "scenario%3Aview-only::entry%3Anotes-post::branch:other-present",
+                      "assumptions": [
+                        {
+                          "conditionId": "condition:view-only:owner-present",
+                          "value": "true"
+                        }
+                      ],
+                      "effect": "blocked",
+                      "explanation": "Under the different-owner hypothesis, the caller is not the owner and the supplied premises provide no object change_document grant. The owner-aware change_document predicate therefore fails, and the source returns forbidden before Note creation.",
+                      "factIds": [
+                        "vo-entry",
+                        "vo-identity",
+                        "vo-resource",
+                        "vo-control-view",
+                        "vo-control-change",
+                        "vo-effect",
+                        "vo-condition-other"
+                      ],
+                      "missingFacts": []
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "tokens": {
+          "input": 10025,
+          "output": 2764,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 51509.14110000001,
+        "stopReason": "tool_use"
+      },
+      "schemaValidation": {
+        "valid": true,
+        "diagnostics": []
+      },
+      "endedAt": "2026-09-29T19:36:04.731Z"
+    }
+  ],
+  "knownDurationMs": 114012.38630000001,
+  "repairCalls": 1,
+  "fallbackCalls": 0
+}

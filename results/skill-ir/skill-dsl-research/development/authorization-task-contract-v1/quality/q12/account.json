@@ -1,0 +1,802 @@
+{
+  "providerCalls": 2,
+  "respondedCalls": 2,
+  "unknownUsageCalls": 0,
+  "unknownCostCalls": 2,
+  "knownTokens": {
+    "input": 12402,
+    "output": 2296,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "tokensStatus": "complete",
+  "knownActualUsdSubtotal": 0,
+  "totalActualUsd": null,
+  "actualUsdStatus": "unknown",
+  "transportAttempts": "unknown",
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "status": "response",
+      "startedAt": "2026-09-29T19:14:05.685Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 20426,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false,
+        "toolSchemas": [
+          {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "obligationId": {
+                      "type": "string"
+                    },
+                    "explanation": {
+                      "type": "string"
+                    },
+                    "facts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "entry",
+                              "binding",
+                              "control",
+                              "effect",
+                              "condition"
+                            ]
+                          },
+                          "statement": {
+                            "type": "string"
+                          },
+                          "citations": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "sourceId": {
+                                  "type": "string"
+                                },
+                                "startLine": {
+                                  "type": "number"
+                                },
+                                "endLine": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "sourceId",
+                                "startLine",
+                                "endLine"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "statement",
+                          "citations"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "decisiveMissingFacts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestedObservations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "decision": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "observed"
+                            },
+                            "observed": {
+                              "type": "string",
+                              "enum": [
+                                "allow",
+                                "deny",
+                                "unknown"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "observed"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "conditional-policy"
+                            },
+                            "policyStatus": {
+                              "type": "string",
+                              "enum": [
+                                "satisfied",
+                                "violated",
+                                "undetermined"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "policyStatus"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "branchResults": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "assumptions": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "conditionId": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "enum": [
+                                    "true",
+                                    "false",
+                                    "unknown"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "conditionId",
+                                "value"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "effect": {
+                            "type": "string",
+                            "enum": [
+                              "reachable",
+                              "blocked",
+                              "unknown"
+                            ]
+                          },
+                          "explanation": {
+                            "type": "string"
+                          },
+                          "missingFacts": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "factIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "assumptions",
+                          "effect",
+                          "explanation",
+                          "missingFacts",
+                          "factIds"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "obligationId",
+                    "explanation",
+                    "facts",
+                    "decisiveMissingFacts",
+                    "suggestedObservations",
+                    "decision",
+                    "branchResults"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "results"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "usage": {
+        "input": 5604,
+        "output": 1030,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "",
+        "toolCalls": [
+          {
+            "id": "call_Z6NXCT5C6eEXUaIwxcpOEmMb",
+            "name": "submit_authorization_result",
+            "arguments": {
+              "results": [
+                {
+                  "obligationId": "scenario%3Atoken-status-unspecified::entry%3Aget-shared",
+                  "decision": {
+                    "kind": "conditional-policy",
+                    "policyStatus": "undetermined"
+                  },
+                  "branchResults": [],
+                  "explanation": "At the declared GetSharedMemo entry, the anonymous caller presents a share token and there is no separate requested memo identifier. The handler first resolves an active share by the supplied token. If no share is found or the share is expired, the source-visible branch returns NOT_FOUND. If the share is found and current, the handler binds the memo lookup to the share's MemoID, rejects missing, non-normal, or SPACE memos with NOT_FOUND, and then builds a read context carrying that same shared memo ID. The strongest visible authorization control is CheckMemoReadContext: when the shared ID matches the memo and the memo is not SPACE, it returns an allowed private classification before the ordinary private-memo anonymous denial path. Thus, under the stated premise that a resolving memo is active, private, non-SPACE, and has a valid creator, the valid-token branch can retrieve that exact token-associated memo and returns it after conversion; it does not grant access to a separate memo or surrounding relations. The current policy judgment is undetermined because token existence and expiry are not supplied runtime facts. Source discovery is not-tested, so this is only the declared-entry, supplied-source assessment.",
+                  "facts": [
+                    {
+                      "id": "f-entry",
+                      "kind": "entry",
+                      "statement": "GetSharedMemo requires no authentication and begins by resolving an active memo share from the request share token.",
+                      "citations": [
+                        {
+                          "sourceId": "src-e4f8cd24172048ad",
+                          "startLine": 170,
+                          "endLine": 173
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-identity-binding",
+                      "kind": "binding",
+                      "statement": "The source does not require an authenticated viewer for this operation; the share token is the operative caller-supplied access credential.",
+                      "citations": [
+                        {
+                          "sourceId": "src-e4f8cd24172048ad",
+                          "startLine": 170,
+                          "endLine": 173
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-resource-binding",
+                      "kind": "binding",
+                      "statement": "After a successful share lookup, the handler retrieves the memo by the share's MemoID and passes that same ID into read-context construction.",
+                      "citations": [
+                        {
+                          "sourceId": "src-e4f8cd24172048ad",
+                          "startLine": 178,
+                          "endLine": 186
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-token-condition",
+                      "kind": "condition",
+                      "statement": "A missing share or an expired share produces NOT_FOUND; expiration is determined from the share expiration timestamp when present.",
+                      "citations": [
+                        {
+                          "sourceId": "src-e4f8cd24172048ad",
+                          "startLine": 217,
+                          "endLine": 227
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-memo-condition",
+                      "kind": "condition",
+                      "statement": "A missing, non-normal, or SPACE memo is rejected with NOT_FOUND before the read authorization check.",
+                      "citations": [
+                        {
+                          "sourceId": "src-e4f8cd24172048ad",
+                          "startLine": 182,
+                          "endLine": 184
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-control",
+                      "kind": "control",
+                      "statement": "The shared-memo authorization condition applies only when the context shared ID equals the memo ID and the memo is not SPACE; when it applies, the read decision is allowed as a private classification.",
+                      "citations": [
+                        {
+                          "sourceId": "src-5680870821a0e984",
+                          "startLine": 119,
+                          "endLine": 122
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-effect",
+                      "kind": "effect",
+                      "statement": "When read authorization succeeds, the handler converts and returns the token-associated memo, clears its Parent field, and therefore exposes only that memo rather than surrounding relations.",
+                      "citations": [
+                        {
+                          "sourceId": "src-e4f8cd24172048ad",
+                          "startLine": 186,
+                          "endLine": 213
+                        }
+                      ]
+                    }
+                  ],
+                  "decisiveMissingFacts": [
+                    "Whether the supplied share token resolves to a share record.",
+                    "Whether the resolved share is unexpired at evaluation time.",
+                    "Whether the store lookup or subsequent memo/read-context/conversion operations encounter an error, if runtime success is needed to observe the return."
+                  ],
+                  "suggestedObservations": [
+                    "Observe the result of GetMemoShare for the supplied token, including whether a share record exists and its ExpiresTs relative to the evaluation time.",
+                    "If a share resolves, observe the associated MemoID and the memo/read-context/conversion results through the handler boundary."
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "tokens": {
+          "input": 5604,
+          "output": 1030,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 30538.454399999988,
+        "stopReason": "tool_use"
+      },
+      "schemaValidation": {
+        "valid": true,
+        "diagnostics": []
+      },
+      "endedAt": "2026-09-29T19:14:36.224Z"
+    },
+    {
+      "id": "provider-attempt-2",
+      "phase": "domain-repair",
+      "transport": "schema-tool",
+      "status": "response",
+      "startedAt": "2026-09-29T19:14:36.225Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 25799,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false,
+        "toolSchemas": [
+          {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "obligationId": {
+                      "type": "string"
+                    },
+                    "explanation": {
+                      "type": "string"
+                    },
+                    "facts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "entry",
+                              "binding",
+                              "control",
+                              "effect",
+                              "condition"
+                            ]
+                          },
+                          "statement": {
+                            "type": "string"
+                          },
+                          "citations": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "sourceId": {
+                                  "type": "string"
+                                },
+                                "startLine": {
+                                  "type": "number"
+                                },
+                                "endLine": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "sourceId",
+                                "startLine",
+                                "endLine"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "statement",
+                          "citations"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "decisiveMissingFacts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestedObservations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "decision": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "observed"
+                            },
+                            "observed": {
+                              "type": "string",
+                              "enum": [
+                                "allow",
+                                "deny",
+                                "unknown"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "observed"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "conditional-policy"
+                            },
+                            "policyStatus": {
+                              "type": "string",
+                              "enum": [
+                                "satisfied",
+                                "violated",
+                                "undetermined"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "policyStatus"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "branchResults": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "assumptions": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "conditionId": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "enum": [
+                                    "true",
+                                    "false",
+                                    "unknown"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "conditionId",
+                                "value"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "effect": {
+                            "type": "string",
+                            "enum": [
+                              "reachable",
+                              "blocked",
+                              "unknown"
+                            ]
+                          },
+                          "explanation": {
+                            "type": "string"
+                          },
+                          "missingFacts": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "factIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "assumptions",
+                          "effect",
+                          "explanation",
+                          "missingFacts",
+                          "factIds"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "obligationId",
+                    "explanation",
+                    "facts",
+                    "decisiveMissingFacts",
+                    "suggestedObservations",
+                    "decision",
+                    "branchResults"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "results"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "usage": {
+        "input": 6798,
+        "output": 1266,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "",
+        "toolCalls": [
+          {
+            "id": "call_JRXR3jUAR3KxwapHKhxeS3DM",
+            "name": "submit_authorization_result",
+            "arguments": {
+              "results": [
+                {
+                  "obligationId": "scenario%3Atoken-status-unspecified::entry%3Aget-shared",
+                  "decision": {
+                    "kind": "conditional-policy",
+                    "policyStatus": "undetermined"
+                  },
+                  "branchResults": [],
+                  "explanation": "At the declared GetSharedMemo entry, the anonymous caller supplies a share token. The handler first resolves the token to an active share: a missing share or an expired share returns NOT_FOUND. If the share resolves and is current, the handler binds the resource to that share's MemoID, retrieves that exact memo, and rejects a missing, non-normal, or SPACE memo with NOT_FOUND. It then constructs read context with the same shared memo ID. The strongest visible authorization control is the shared-ID check in CheckMemoReadContext: when the context shared ID equals the memo ID and the memo is not SPACE, the decision is allowed as a private classification, before the ordinary private-memo anonymous denial path. Under the task premise that a resolving memo is active, private, non-SPACE, and has a valid creator, the valid-token path can retrieve and return that exact token-associated memo; the response clears Parent and does not grant access to surrounding relations. If the token is missing or expired, the source-visible result is NOT_FOUND. Because token existence and expiry are unspecified runtime facts, the accepted conditional policy judgment is undetermined. This assessment is limited to the declared entry and supplied fixed source; source discovery is not-tested.",
+                  "facts": [
+                    {
+                      "id": "f-entry",
+                      "kind": "entry",
+                      "statement": "GetSharedMemo requires no authentication and begins by resolving an active memo share from the request share token.",
+                      "citations": [
+                        {
+                          "sourceId": "src-e4f8cd24172048ad",
+                          "startLine": 170,
+                          "endLine": 173
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-identity-binding",
+                      "kind": "binding",
+                      "statement": "The operation's source-visible access mechanism is the supplied share token rather than an authenticated viewer.",
+                      "citations": [
+                        {
+                          "sourceId": "src-e4f8cd24172048ad",
+                          "startLine": 170,
+                          "endLine": 173
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-resource-binding",
+                      "kind": "binding",
+                      "statement": "After a successful share lookup, the handler retrieves the memo by the share's MemoID and passes that same ID into read-context construction.",
+                      "citations": [
+                        {
+                          "sourceId": "src-e4f8cd24172048ad",
+                          "startLine": 178,
+                          "endLine": 186
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-token-missing",
+                      "kind": "condition",
+                      "statement": "If the share lookup returns no share, the handler returns NOT_FOUND.",
+                      "citations": [
+                        {
+                          "sourceId": "src-e4f8cd24172048ad",
+                          "startLine": 221,
+                          "endLine": 227
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-token-expiry",
+                      "kind": "condition",
+                      "statement": "A share is expired when it has an expiration timestamp earlier than the current Unix time, and an expired share returns NOT_FOUND.",
+                      "citations": [
+                        {
+                          "sourceId": "src-e4f8cd24172048ad",
+                          "startLine": 217,
+                          "endLine": 219
+                        },
+                        {
+                          "sourceId": "src-e4f8cd24172048ad",
+                          "startLine": 221,
+                          "endLine": 227
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-memo-condition",
+                      "kind": "condition",
+                      "statement": "A missing, non-normal, or SPACE memo is rejected with NOT_FOUND before the read authorization check.",
+                      "citations": [
+                        {
+                          "sourceId": "src-e4f8cd24172048ad",
+                          "startLine": 182,
+                          "endLine": 188
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-control",
+                      "kind": "control",
+                      "statement": "The shared-memo authorization condition applies when the context shared ID equals the memo ID and the memo is not SPACE; when it applies, the read decision is allowed as a private classification.",
+                      "citations": [
+                        {
+                          "sourceId": "src-5680870821a0e984",
+                          "startLine": 119,
+                          "endLine": 122
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-creator-control",
+                      "kind": "control",
+                      "statement": "The read decision rejects a missing memo or invalid creator before applying visibility and sharing rules.",
+                      "citations": [
+                        {
+                          "sourceId": "src-5680870821a0e984",
+                          "startLine": 92,
+                          "endLine": 99
+                        }
+                      ]
+                    },
+                    {
+                      "id": "f-effect",
+                      "kind": "effect",
+                      "statement": "When read authorization succeeds, the handler converts and returns the token-associated memo and clears its Parent field, limiting the response to that memo rather than surrounding relations.",
+                      "citations": [
+                        {
+                          "sourceId": "src-e4f8cd24172048ad",
+                          "startLine": 186,
+                          "endLine": 213
+                        }
+                      ]
+                    }
+                  ],
+                  "decisiveMissingFacts": [
+                    "Whether the supplied share token resolves to a share record.",
+                    "If a share record resolves, whether its expiration timestamp is absent or is not earlier than the evaluation time.",
+                    "If a token resolves, whether the handler's store, read-context, reaction, attachment, or conversion operations complete without runtime error, if an observed successful response is required."
+                  ],
+                  "suggestedObservations": [
+                    "Observe GetMemoShare for the supplied token, including whether a share record exists.",
+                    "If a share exists, observe its ExpiresTs relative to the evaluation time.",
+                    "If the share is current, observe the associated MemoID, memo/read-decision result, and handler conversion result."
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "tokens": {
+          "input": 6798,
+          "output": 1266,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 117155.11830000009,
+        "stopReason": "tool_use"
+      },
+      "schemaValidation": {
+        "valid": true,
+        "diagnostics": []
+      },
+      "endedAt": "2026-09-29T19:16:33.380Z"
+    }
+  ],
+  "knownDurationMs": 147693.57270000008,
+  "repairCalls": 1,
+  "fallbackCalls": 0
+}

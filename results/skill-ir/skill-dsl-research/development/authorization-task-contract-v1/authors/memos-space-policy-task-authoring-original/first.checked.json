@@ -1,0 +1,262 @@
+{
+  "valid": true,
+  "diagnostics": [],
+  "value": {
+    "schemaVersion": "authorization-task-authoring/v1",
+    "request": "At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.",
+    "policy": {
+      "text": "An active space member may delete their own membership to leave. Removing a different active member requires space administrator authority.",
+      "location": "author-briefs.json#/memos-space-policy/originalPolicy",
+      "revision": "memos-space-policy-original",
+      "acceptance": "accepted",
+      "reason": "Explicit public task requirement; assess the current declared policy."
+    },
+    "cases": [
+      {
+        "name": "self-leave",
+        "entry": "delete-member",
+        "principal": {
+          "role": "authenticated active ordinary non-administrator member"
+        },
+        "resource": {
+          "type": "space membership"
+        },
+        "relation": "caller-is-target-member",
+        "operation": "delete own membership",
+        "expectation": "allow",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "name": "target-relation",
+            "statement": "At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds."
+          }
+        ],
+        "branches": [],
+        "responseDetails": [
+          "Report source behavior and policy comparison separately; source-external store failure is not authorization."
+        ]
+      },
+      {
+        "name": "other-member",
+        "entry": "delete-member",
+        "principal": {
+          "role": "authenticated active ordinary non-administrator member"
+        },
+        "resource": {
+          "type": "space membership"
+        },
+        "relation": "caller-is-not-target-member-and-not-admin",
+        "operation": "delete another active membership",
+        "expectation": "deny",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "name": "target-relation",
+            "statement": "At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds."
+          }
+        ],
+        "branches": [],
+        "responseDetails": [
+          "Report source behavior and policy comparison separately; source-external store failure is not authorization."
+        ]
+      }
+    ],
+    "publicInstruction": "Use the current declared policy and explicit premises. Trace decisive control and effect, distinguish unspecified from absent, and answer requested branches without inventing runtime facts."
+  },
+  "compiled": {
+    "status": "ready",
+    "authoring": {
+      "schemaVersion": "authorization-assessment-authoring/v2",
+      "taskId": "al-use-memos-members",
+      "request": "At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.",
+      "repository": "https://github.com/usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../../../authorization-evidence-editing-v1/public-source/memos",
+      "sources": [
+        "server/api/v1/space_service.go"
+      ],
+      "policies": {
+        "current": {
+          "text": "An active space member may delete their own membership to leave. Removing a different active member requires space administrator authority.",
+          "location": "author-briefs.json#/memos-space-policy/originalPolicy",
+          "revision": "memos-space-policy-original",
+          "acceptance": "accepted",
+          "reason": "Explicit public task requirement; assess the current declared policy."
+        }
+      },
+      "principals": {
+        "principal-self-leave": {
+          "role": "authenticated active ordinary non-administrator member"
+        },
+        "principal-other-member": {
+          "role": "authenticated active ordinary non-administrator member"
+        }
+      },
+      "resources": {
+        "resource-self-leave": {
+          "type": "space membership"
+        },
+        "resource-other-member": {
+          "type": "space membership"
+        }
+      },
+      "entries": {
+        "delete-member": {
+          "name": "delete-member",
+          "locations": [
+            {
+              "path": "server/api/v1/space_service.go",
+              "startLine": 740,
+              "endLine": 763
+            }
+          ]
+        }
+      },
+      "scenarios": {
+        "self-leave": {
+          "principal": "principal-self-leave",
+          "resource": "resource-self-leave",
+          "policy": "current",
+          "entries": [
+            "delete-member"
+          ],
+          "relation": "caller-is-target-member",
+          "operation": "delete own membership",
+          "expectation": "allow"
+        },
+        "other-member": {
+          "principal": "principal-other-member",
+          "resource": "resource-other-member",
+          "policy": "current",
+          "entries": [
+            "delete-member"
+          ],
+          "relation": "caller-is-not-target-member-and-not-admin",
+          "operation": "delete another active membership",
+          "expectation": "deny"
+        }
+      },
+      "analysisContract": {
+        "schemaVersion": "authorization-analysis-contract/v1",
+        "publicInstruction": "Use the current declared policy and explicit premises. Trace decisive control and effect, distinguish unspecified from absent, and answer requested branches without inventing runtime facts.",
+        "scenarios": {
+          "self-leave": {
+            "boundary": "declared-entry",
+            "premises": [
+              {
+                "id": "target-relation",
+                "statement": "At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds.",
+                "atEntry": "delete-member",
+                "provenance": "task-assumption"
+              }
+            ],
+            "requestedBranches": [],
+            "requiredResponseDetails": [
+              "Report source behavior and policy comparison separately; source-external store failure is not authorization."
+            ]
+          },
+          "other-member": {
+            "boundary": "declared-entry",
+            "premises": [
+              {
+                "id": "target-relation",
+                "statement": "At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds.",
+                "atEntry": "delete-member",
+                "provenance": "task-assumption"
+              }
+            ],
+            "requestedBranches": [],
+            "requiredResponseDetails": [
+              "Report source behavior and policy comparison separately; source-external store failure is not authorization."
+            ]
+          }
+        }
+      }
+    },
+    "entrySeed": {
+      "schemaVersion": "authorization-evidence-request/v2",
+      "sourceRoot": "../../../../authorization-evidence-editing-v1/public-source/memos",
+      "allowedFiles": [
+        "server/api/v1/space_service.go",
+        "store/space.go"
+      ],
+      "entries": [
+        {
+          "entryKey": "delete-member",
+          "path": "server/api/v1/space_service.go",
+          "startLine": 740,
+          "endLine": 763
+        }
+      ],
+      "dependencies": [],
+      "limits": {
+        "maxFiles": 12,
+        "maxBytes": 65536,
+        "maxDepth": 3
+      }
+    },
+    "diagnostics": [],
+    "provenance": {
+      "fieldOrigin": "model-authored",
+      "userExplicit": [],
+      "modelAuthored": [
+        "request",
+        "policy",
+        "cases",
+        "publicInstruction",
+        "additionalQuestions",
+        "additionalConstraints"
+      ],
+      "hostDerived": [
+        "context metadata",
+        "entry seed",
+        "case-local principal/resource keys",
+        "premise entry references",
+        "branch condition references",
+        "canonical IDs by existing v2 lowerer"
+      ],
+      "fieldSources": {
+        "/request": "model-authored",
+        "/analysisContract/publicInstruction": "model-authored",
+        "/policies/current/text": "model-authored",
+        "/policies/current/location": "model-authored",
+        "/policies/current/revision": "model-authored",
+        "/policies/current/acceptance": "model-authored",
+        "/policies/current/reason": "model-authored",
+        "/scenarios/self-leave/relation": "model-authored",
+        "/scenarios/self-leave/operation": "model-authored",
+        "/scenarios/self-leave/expectation": "model-authored",
+        "/scenarios/self-leave/principal": "host-derived",
+        "/scenarios/self-leave/resource": "host-derived",
+        "/scenarios/self-leave/policy": "host-derived",
+        "/scenarios/self-leave/entries": "host-derived",
+        "/principals/principal-self-leave/role": "model-authored",
+        "/resources/resource-self-leave/type": "model-authored",
+        "/analysisContract/scenarios/self-leave/boundary": "model-authored",
+        "/analysisContract/scenarios/self-leave/premises/0/id": "model-authored",
+        "/analysisContract/scenarios/self-leave/premises/0/statement": "model-authored",
+        "/analysisContract/scenarios/self-leave/premises/0/atEntry": "host-derived",
+        "/analysisContract/scenarios/self-leave/premises/0/provenance": "host-derived",
+        "/analysisContract/scenarios/self-leave/requiredResponseDetails/0": "model-authored",
+        "/scenarios/other-member/relation": "model-authored",
+        "/scenarios/other-member/operation": "model-authored",
+        "/scenarios/other-member/expectation": "model-authored",
+        "/scenarios/other-member/principal": "host-derived",
+        "/scenarios/other-member/resource": "host-derived",
+        "/scenarios/other-member/policy": "host-derived",
+        "/scenarios/other-member/entries": "host-derived",
+        "/principals/principal-other-member/role": "model-authored",
+        "/resources/resource-other-member/type": "model-authored",
+        "/analysisContract/scenarios/other-member/boundary": "model-authored",
+        "/analysisContract/scenarios/other-member/premises/0/id": "model-authored",
+        "/analysisContract/scenarios/other-member/premises/0/statement": "model-authored",
+        "/analysisContract/scenarios/other-member/premises/0/atEntry": "host-derived",
+        "/analysisContract/scenarios/other-member/premises/0/provenance": "host-derived",
+        "/analysisContract/scenarios/other-member/requiredResponseDetails/0": "model-authored",
+        "/entries": "host-derived",
+        "/sources": "host-derived",
+        "/sourceRoot": "host-derived"
+      }
+    }
+  }
+}

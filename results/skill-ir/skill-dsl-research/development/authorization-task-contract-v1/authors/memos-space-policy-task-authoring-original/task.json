@@ -1,0 +1,90 @@
+{
+  "publicBrief": "{\"currentTask\":{\"schemaVersion\":\"authorization-task-authoring/v1\",\"request\":\"At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.\",\"policy\":{\"text\":\"An active space member may delete their own membership to leave. Removing a different active member requires space administrator authority.\",\"location\":\"author-briefs.json#/memos-space-policy/originalPolicy\",\"revision\":\"memos-space-policy-original\",\"acceptance\":\"accepted\",\"reason\":\"Explicit public task requirement; assess the current declared policy.\"},\"cases\":[{\"name\":\"self-leave\",\"entry\":\"delete-member\",\"principal\":{\"role\":\"authenticated active ordinary non-administrator member\"},\"resource\":{\"type\":\"space membership\"},\"relation\":\"caller-is-target-member\",\"operation\":\"delete own membership\",\"expectation\":\"allow\",\"boundary\":\"declared-entry\",\"premises\":[{\"name\":\"target-relation\",\"statement\":\"At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds.\"}],\"branches\":[],\"responseDetails\":[\"Report source behavior and policy comparison separately; source-external store failure is not authorization.\"]},{\"name\":\"other-member\",\"entry\":\"delete-member\",\"principal\":{\"role\":\"authenticated active ordinary non-administrator member\"},\"resource\":{\"type\":\"space membership\"},\"relation\":\"caller-is-not-target-member-and-not-admin\",\"operation\":\"delete another active membership\",\"expectation\":\"deny\",\"boundary\":\"declared-entry\",\"premises\":[{\"name\":\"target-relation\",\"statement\":\"At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds.\"}],\"branches\":[],\"responseDetails\":[\"Report source behavior and policy comparison separately; source-external store failure is not authorization.\"]}],\"publicInstruction\":\"Use the current declared policy and explicit premises. Trace decisive control and effect, distinguish unspecified from absent, and answer requested branches without inventing runtime facts.\"},\"context\":{\"schemaVersion\":\"authorization-authoring-context/v1\",\"taskId\":\"al-use-memos-members\",\"request\":\"At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.\",\"repository\":\"https://github.com/usememos/memos\",\"sourceRef\":\"cb42e326ba9cc266a6a9570c53e0fe04c62793f4\",\"sourceRoot\":\"../../../../authorization-evidence-editing-v1/public-source/memos\",\"allowedFiles\":[\"server/api/v1/space_service.go\",\"store/space.go\"],\"entries\":[{\"entryKey\":\"delete-member\",\"path\":\"server/api/v1/space_service.go\",\"startLine\":740,\"endLine\":763}]}}",
+  "outputContract": "Return only authorization-task-authoring/v1 JSON for the supplied current task. Each case declares its own entry, premise statements, condition dictionary and requested branch assumptions. Do not output scenarios/analysisContract or completed analysis.",
+  "editScope": "Copy public policy, expectations, premises, entries and requested branches from currentTask. Write only this current version; no future fields or source outcomes.",
+  "knownFields": {
+    "context": {
+      "schemaVersion": "authorization-authoring-context/v1",
+      "taskId": "al-use-memos-members",
+      "request": "At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.",
+      "repository": "https://github.com/usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../../../authorization-evidence-editing-v1/public-source/memos",
+      "allowedFiles": [
+        "server/api/v1/space_service.go",
+        "store/space.go"
+      ],
+      "entries": [
+        {
+          "entryKey": "delete-member",
+          "path": "server/api/v1/space_service.go",
+          "startLine": 740,
+          "endLine": 763
+        }
+      ]
+    },
+    "currentTask": {
+      "schemaVersion": "authorization-task-authoring/v1",
+      "request": "At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.",
+      "policy": {
+        "text": "An active space member may delete their own membership to leave. Removing a different active member requires space administrator authority.",
+        "location": "author-briefs.json#/memos-space-policy/originalPolicy",
+        "revision": "memos-space-policy-original",
+        "acceptance": "accepted",
+        "reason": "Explicit public task requirement; assess the current declared policy."
+      },
+      "cases": [
+        {
+          "name": "self-leave",
+          "entry": "delete-member",
+          "principal": {
+            "role": "authenticated active ordinary non-administrator member"
+          },
+          "resource": {
+            "type": "space membership"
+          },
+          "relation": "caller-is-target-member",
+          "operation": "delete own membership",
+          "expectation": "allow",
+          "boundary": "declared-entry",
+          "premises": [
+            {
+              "name": "target-relation",
+              "statement": "At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds."
+            }
+          ],
+          "branches": [],
+          "responseDetails": [
+            "Report source behavior and policy comparison separately; source-external store failure is not authorization."
+          ]
+        },
+        {
+          "name": "other-member",
+          "entry": "delete-member",
+          "principal": {
+            "role": "authenticated active ordinary non-administrator member"
+          },
+          "resource": {
+            "type": "space membership"
+          },
+          "relation": "caller-is-not-target-member-and-not-admin",
+          "operation": "delete another active membership",
+          "expectation": "deny",
+          "boundary": "declared-entry",
+          "premises": [
+            {
+              "name": "target-relation",
+              "statement": "At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds."
+            }
+          ],
+          "branches": [],
+          "responseDetails": [
+            "Report source behavior and policy comparison separately; source-external store failure is not authorization."
+          ]
+        }
+      ],
+      "publicInstruction": "Use the current declared policy and explicit premises. Trace decisive control and effect, distinguish unspecified from absent, and answer requested branches without inventing runtime facts."
+    }
+  },
+  "fieldGuide": "Current task schema: {schemaVersion:'authorization-task-authoring/v1',request,policy:{text,location,revision,acceptance,reason},cases:[{name,entry,principal:{role},resource:{type},relation,operation,expectation,boundary,premises:[{name,statement}],conditions?:{name:{basis}},branches:[{name,assumptions:{conditionName:boolean|'unknown'}}],responseDetails:[string]}],publicInstruction?}. Named changes use authorization-task-change/v1 with reason, optional policy/request and cases:[{name,expectation?,premises?:[{name,statement}]}]."
+}

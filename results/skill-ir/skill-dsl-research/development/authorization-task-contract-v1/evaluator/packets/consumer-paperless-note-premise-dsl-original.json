@@ -1,0 +1,2929 @@
+{
+  "schemaVersion": "authorization-an-review-packet/v1",
+  "id": "consumer:paperless-note-premise-dsl-original",
+  "kind": "consumers",
+  "row": {
+    "id": "paperless-note-premise-dsl-original",
+    "packageId": "paperless-note-premise",
+    "route": "dsl",
+    "version": "original"
+  },
+  "status": "completed",
+  "first": {
+    "deliveryComplete": false,
+    "canonicalResult": null,
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Achange-granted::entry%3Anotes-post",
+          "explanation": "Source behavior and accepted-policy comparison are separate. At the declared notes entry, the action uses the supplied request user and binds the requested document, first checks view_document, then checks change_document for POST, and only afterward creates the Note and performs the subsequent update/search work. The supplied caller has the global permissions and object change grant, so the strongest visible authorization control for this scenario passes whether the owner is absent or is another user. Source behavior is therefore observed allow. This matches the accepted policy's allow branch because the non-owner caller has an object change_document grant; the object view grant alone is not being used as the decisive basis. Any database/store failure or later effect failure would be an external execution outcome, not an authorization result. Source discovery is not-tested, so this is not a repository-wide completeness claim.",
+          "facts": [
+            {
+              "id": "cg-entry",
+              "kind": "entry",
+              "statement": "The notes action is the declared GET/POST/DELETE document-detail entry and assigns the request user before loading the document.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1841,
+                  "endLine": 1855
+                }
+              ]
+            },
+            {
+              "id": "cg-identity",
+              "kind": "binding",
+              "statement": "The handler uses the request user as the caller for the authorization checks and as the Note user.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1848,
+                  "endLine": 1850
+                },
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1888,
+                  "endLine": 1892
+                }
+              ]
+            },
+            {
+              "id": "cg-resource",
+              "kind": "binding",
+              "statement": "The handler loads the document identified by the request key, including its owner relation, and uses that object in the checks and Note creation.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1851,
+                  "endLine": 1858
+                },
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1888,
+                  "endLine": 1890
+                }
+              ]
+            },
+            {
+              "id": "cg-control-view",
+              "kind": "control",
+              "statement": "Before method dispatch, the source applies an owner-aware view_document check and forbids the request when it fails.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1857,
+                  "endLine": 1862
+                }
+              ]
+            },
+            {
+              "id": "cg-control-change",
+              "kind": "control",
+              "statement": "For POST, the source applies an owner-aware change_document check and forbids note creation when it fails; the owner-aware predicate permits an ownerless object or the caller's object permission.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1877,
+                  "endLine": 1887
+                },
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "cg-effect",
+              "kind": "effect",
+              "statement": "After the POST authorization gate, the source creates a Note for the bound document and then carries out the visible update, indexing, and response path.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1888,
+                  "endLine": 1913
+                }
+              ]
+            },
+            {
+              "id": "cg-condition-absent",
+              "kind": "condition",
+              "statement": "The absent-owner branch is a counterfactual hypothesis; under the supplied owner-aware predicate, an ownerless document passes the object authorization predicate.",
+              "citations": [
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "cg-condition-other",
+              "kind": "condition",
+              "statement": "The other-present branch is a counterfactual hypothesis; under the supplied premises, the caller has the object change_document grant used by the owner-aware predicate.",
+              "citations": [
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 379,
+                  "endLine": 405
+                }
+              ]
+            },
+            {
+              "id": "cg-global",
+              "kind": "control",
+              "statement": "The declared POST permission map requires add_note, view_document, and change_document global permissions, and the permission method checks the request user's global permissions.",
+              "citations": [
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 678,
+                  "endLine": 699
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "allow"
+          },
+          "branchResults": [
+            {
+              "id": "scenario%3Achange-granted::entry%3Anotes-post::branch:absent",
+              "assumptions": [
+                {
+                  "conditionId": "condition:change-granted:owner-present",
+                  "value": "false"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "Under the absent-owner hypothesis, the declared notes entry performs the view check, then the POST change_document check. The supplied caller premise includes the required object change grant, and the owner-aware source check treats an ownerless document as permitted; the Note creation effect is therefore reachable.",
+              "missingFacts": [],
+              "factIds": [
+                "cg-entry",
+                "cg-identity",
+                "cg-resource",
+                "cg-control-view",
+                "cg-control-change",
+                "cg-effect",
+                "cg-condition-absent"
+              ]
+            },
+            {
+              "id": "scenario%3Achange-granted::entry%3Anotes-post::branch:other-present",
+              "assumptions": [
+                {
+                  "conditionId": "condition:change-granted:owner-present",
+                  "value": "true"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "Under the different-owner hypothesis, the POST change_document check remains satisfied by the supplied object change grant. The owner-aware source predicate permits the object when the checker grants the requested permission, so Note creation remains reachable.",
+              "missingFacts": [],
+              "factIds": [
+                "cg-entry",
+                "cg-identity",
+                "cg-resource",
+                "cg-control-view",
+                "cg-control-change",
+                "cg-effect",
+                "cg-condition-other"
+              ]
+            }
+          ]
+        },
+        {
+          "obligationId": "scenario%3Aview-only::entry%3Anotes-post",
+          "explanation": "Source behavior and accepted-policy comparison are separate. The declared entry binds the request user and document, performs the view_document gate, and for POST performs the owner-aware change_document gate before the Note creation effect. With an absent owner, the source predicate itself permits the object; with another owner and no object change grant, it blocks the effect. Because owner presence is unspecified in the current scenario and changes the source-visible result, the current observed behavior is unknown. The minimum decisive source-external fact is whether the bound document's owner is null or is a different user. Under the accepted policy, the non-owner caller with only an object view grant should be denied in either branch because ownership and an object change_document grant are both absent; the absent-owner source allowance is a source/policy discrepancy, not evidence that the accepted policy allows it. Any database/store failure would be an execution outcome, not authorization. Source discovery is not-tested, so no repository-wide completeness claim is made.",
+          "facts": [
+            {
+              "id": "vo-entry",
+              "kind": "entry",
+              "statement": "The notes action is the declared GET/POST/DELETE document-detail entry and assigns the request user before loading the document.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1841,
+                  "endLine": 1855
+                }
+              ]
+            },
+            {
+              "id": "vo-identity",
+              "kind": "binding",
+              "statement": "The handler uses the request user as the caller for the authorization checks and as the Note user.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1848,
+                  "endLine": 1850
+                },
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1888,
+                  "endLine": 1892
+                }
+              ]
+            },
+            {
+              "id": "vo-resource",
+              "kind": "binding",
+              "statement": "The handler loads the document identified by the request key, including its owner relation, and uses that object in the checks and Note creation.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1851,
+                  "endLine": 1858
+                },
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1888,
+                  "endLine": 1890
+                }
+              ]
+            },
+            {
+              "id": "vo-control-view",
+              "kind": "control",
+              "statement": "Before method dispatch, the source applies an owner-aware view_document check and forbids the request when it fails.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1857,
+                  "endLine": 1862
+                }
+              ]
+            },
+            {
+              "id": "vo-control-change",
+              "kind": "control",
+              "statement": "For POST, the source applies an owner-aware change_document check and forbids note creation when it fails; the owner-aware predicate permits an ownerless object or the caller's object permission.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1877,
+                  "endLine": 1887
+                },
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "vo-effect",
+              "kind": "effect",
+              "statement": "After the POST authorization gate, the source creates a Note for the bound document.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1888,
+                  "endLine": 1892
+                }
+              ]
+            },
+            {
+              "id": "vo-condition-absent",
+              "kind": "condition",
+              "statement": "The absent-owner branch is a counterfactual hypothesis; the supplied owner-aware source predicate explicitly permits an ownerless object.",
+              "citations": [
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "vo-condition-other",
+              "kind": "condition",
+              "statement": "The other-present branch is a counterfactual hypothesis; under the supplied premises the caller is not owner and has no object change_document grant, so the owner-aware change predicate does not pass.",
+              "citations": [
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 624,
+                  "endLine": 635
+                },
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 379,
+                  "endLine": 405
+                }
+              ]
+            },
+            {
+              "id": "vo-global",
+              "kind": "control",
+              "statement": "The declared POST permission map requires add_note, view_document, and change_document global permissions, and the permission method checks the request user's global permissions.",
+              "citations": [
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 678,
+                  "endLine": 699
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [
+            "The bound document's owner value at the notes POST check: null/absent versus a different user.",
+            "The runtime result of the owner-aware change_document check for the bound document if owner presence is not directly observed."
+          ],
+          "suggestedObservations": [
+            "Observe the bound document's owner field at handler entry and classify it as null or a different user.",
+            "Observe the return value of has_perms_owner_aware(request.user, \"change_document\", doc) for the bound document."
+          ],
+          "decision": {
+            "kind": "observed",
+            "observed": "unknown"
+          },
+          "branchResults": [
+            {
+              "id": "scenario%3Aview-only::entry%3Anotes-post::branch:absent",
+              "assumptions": [
+                {
+                  "conditionId": "condition:view-only:owner-present",
+                  "value": "false"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "Under the absent-owner hypothesis, the owner-aware change_document predicate returns permitted for an ownerless document, so the POST passes the source gate and the Note creation effect is reachable despite the lack of an object change grant in the supplied premises.",
+              "missingFacts": [],
+              "factIds": [
+                "vo-entry",
+                "vo-identity",
+                "vo-resource",
+                "vo-control-view",
+                "vo-control-change",
+                "vo-effect",
+                "vo-condition-absent"
+              ]
+            },
+            {
+              "id": "scenario%3Aview-only::entry%3Anotes-post::branch:other-present",
+              "assumptions": [
+                {
+                  "conditionId": "condition:view-only:owner-present",
+                  "value": "true"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "Under the different-owner hypothesis, the caller is not the owner and the supplied premises provide no object change_document grant. The owner-aware change_document predicate therefore fails, and the source returns forbidden before Note creation.",
+              "missingFacts": [],
+              "factIds": [
+                "vo-entry",
+                "vo-identity",
+                "vo-resource",
+                "vo-control-view",
+                "vo-control-change",
+                "vo-effect",
+                "vo-condition-other"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "validation": {
+      "canonicalResultVersion": "source-authorization-assessment-result/v0",
+      "status": "invalid",
+      "diagnostics": [
+        {
+          "code": "citation-out-of-range",
+          "message": "Citation range 678-699 is outside source src-8e23b54ee1e9331a crop 345-701; a citation cannot cross sources.",
+          "path": "results.0.facts.8.citations.0.src-8e23b54ee1e9331a:678-699",
+          "severity": "error"
+        },
+        {
+          "code": "citation-out-of-range",
+          "message": "Citation range 678-699 is outside source src-8e23b54ee1e9331a crop 345-701; a citation cannot cross sources.",
+          "path": "results.1.facts.8.citations.0.src-8e23b54ee1e9331a:678-699",
+          "severity": "error"
+        }
+      ],
+      "sourceCatalog": {
+        "schemaVersion": "authorization-source-catalog/v1",
+        "repository": "https://github.com/paperless-ngx/paperless-ngx",
+        "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+        "sources": [
+          {
+            "sourceId": "src-8e23b54ee1e9331a",
+            "relativePath": "src/documents/permissions.py",
+            "sha256": "4438e808c644c0e171ecc457395176b9cc48ba05db7e72d44d7927f99a123bc2",
+            "cropRange": {
+              "startLine": 345,
+              "endLine": 701
+            },
+            "originalLocations": [
+              "src/documents/permissions.py:345-407",
+              "src/documents/permissions.py:460-476",
+              "src/documents/permissions.py:624-637",
+              "src/documents/permissions.py:678-691",
+              "src/documents/permissions.py:693-701"
+            ],
+            "segments": [
+              {
+                "originalStartLine": 345,
+                "originalEndLine": 407,
+                "snapshotStartLine": 1,
+                "snapshotEndLine": 63,
+                "origins": [
+                  "locator:located-6",
+                  "host-context:symbol-eb1cc3a5ccb526fe7951cf85"
+                ]
+              },
+              {
+                "originalStartLine": 460,
+                "originalEndLine": 476,
+                "snapshotStartLine": 64,
+                "snapshotEndLine": 80,
+                "origins": [
+                  "locator:located-7",
+                  "host-context:symbol-0353073a301a66f562966793"
+                ]
+              },
+              {
+                "originalStartLine": 624,
+                "originalEndLine": 637,
+                "snapshotStartLine": 81,
+                "snapshotEndLine": 94,
+                "origins": [
+                  "locator:located-2",
+                  "model-proposal:dep-owner-aware-decision",
+                  "host-context:symbol-d50f36cbe040d6fab5ea55a5"
+                ]
+              },
+              {
+                "originalStartLine": 678,
+                "originalEndLine": 691,
+                "snapshotStartLine": 95,
+                "snapshotEndLine": 108,
+                "origins": [
+                  "model-proposal:dep-notes-post-global-permissions-map"
+                ]
+              },
+              {
+                "originalStartLine": 693,
+                "originalEndLine": 701,
+                "snapshotStartLine": 109,
+                "snapshotEndLine": 117,
+                "origins": [
+                  "model-proposal:dep-notes-global-permission-check",
+                  "host-context:symbol-2128309ca7535c841e0ef0c8"
+                ]
+              }
+            ],
+            "lines": [
+              {
+                "lineNumber": 345,
+                "text": "def permitted_object_ids("
+              },
+              {
+                "lineNumber": 346,
+                "text": "    user: User | None,"
+              },
+              {
+                "lineNumber": 347,
+                "text": "    model: type[Model],"
+              },
+              {
+                "lineNumber": 348,
+                "text": "    perm: str,"
+              },
+              {
+                "lineNumber": 349,
+                "text": "    *,"
+              },
+              {
+                "lineNumber": 350,
+                "text": "    include_deleted: bool = False,"
+              },
+              {
+                "lineNumber": 351,
+                "text": ") -> QuerySet[int]:"
+              },
+              {
+                "lineNumber": 352,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 353,
+                "text": "    Generic version of ``permitted_document_ids`` for any model with an"
+              },
+              {
+                "lineNumber": 354,
+                "text": "    ``owner`` field and guardian object-level permissions. ``include_deleted``"
+              },
+              {
+                "lineNumber": 355,
+                "text": "    only has an effect for models exposing a ``global_objects``/``deleted_at``"
+              },
+              {
+                "lineNumber": 356,
+                "text": "    soft-delete pattern (currently only ``Document``); for every other model"
+              },
+              {
+                "lineNumber": 357,
+                "text": "    it is accepted but has no effect, since those models have no soft-delete"
+              },
+              {
+                "lineNumber": 358,
+                "text": "    concept."
+              },
+              {
+                "lineNumber": 359,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 360,
+                "text": "    has_soft_delete = hasattr(model, \"global_objects\")"
+              },
+              {
+                "lineNumber": 361,
+                "text": "    manager = ("
+              },
+              {
+                "lineNumber": 362,
+                "text": "        model.global_objects if include_deleted and has_soft_delete else model.objects"
+              },
+              {
+                "lineNumber": 363,
+                "text": "    )"
+              },
+              {
+                "lineNumber": 364,
+                "text": "    base_qs = manager.all().only(\"id\", \"owner\")"
+              },
+              {
+                "lineNumber": 365,
+                "text": ""
+              },
+              {
+                "lineNumber": 366,
+                "text": "    if user is None or not getattr(user, \"is_authenticated\", False):"
+              },
+              {
+                "lineNumber": 367,
+                "text": "        return base_qs.filter(owner__isnull=True).values_list(\"id\", flat=True)"
+              },
+              {
+                "lineNumber": 368,
+                "text": ""
+              },
+              {
+                "lineNumber": 369,
+                "text": "    # Deactivated users get nothing, deactivated superusers included, so this"
+              },
+              {
+                "lineNumber": 370,
+                "text": "    # has to come before the superuser shortcut. guardian's"
+              },
+              {
+                "lineNumber": 371,
+                "text": "    # ObjectPermissionChecker denies inactive users, but get_objects_for_user"
+              },
+              {
+                "lineNumber": 372,
+                "text": "    # (the pattern this replaces) does not, so it would not be inherited."
+              },
+              {
+                "lineNumber": 373,
+                "text": "    if not getattr(user, \"is_active\", False):"
+              },
+              {
+                "lineNumber": 374,
+                "text": "        return base_qs.none().values_list(\"id\", flat=True)"
+              },
+              {
+                "lineNumber": 375,
+                "text": ""
+              },
+              {
+                "lineNumber": 376,
+                "text": "    if getattr(user, \"is_superuser\", False):"
+              },
+              {
+                "lineNumber": 377,
+                "text": "        return base_qs.values_list(\"id\", flat=True)"
+              },
+              {
+                "lineNumber": 378,
+                "text": ""
+              },
+              {
+                "lineNumber": 379,
+                "text": "    # Guardian's UserObjectPermission/GroupObjectPermission always store a bare"
+              },
+              {
+                "lineNumber": 380,
+                "text": "    # codename, but has_perm()-style callers commonly pass the qualified"
+              },
+              {
+                "lineNumber": 381,
+                "text": "    # \"app_label.codename\" form. content_type already disambiguates the"
+              },
+              {
+                "lineNumber": 382,
+                "text": "    # codename, so just drop any prefix rather than silently under-permitting."
+              },
+              {
+                "lineNumber": 383,
+                "text": "    perm = perm.rsplit(\".\", 1)[-1]"
+              },
+              {
+                "lineNumber": 384,
+                "text": ""
+              },
+              {
+                "lineNumber": 385,
+                "text": "    content_type = ContentType.objects.get_for_model(model)"
+              },
+              {
+                "lineNumber": 386,
+                "text": "    perm_filter = {"
+              },
+              {
+                "lineNumber": 387,
+                "text": "        \"permission__codename\": perm,"
+              },
+              {
+                "lineNumber": 388,
+                "text": "        \"permission__content_type\": content_type,"
+              },
+              {
+                "lineNumber": 389,
+                "text": "    }"
+              },
+              {
+                "lineNumber": 390,
+                "text": ""
+              },
+              {
+                "lineNumber": 391,
+                "text": "    user_perm_ids = ("
+              },
+              {
+                "lineNumber": 392,
+                "text": "        UserObjectPermission.objects.filter(user=user, **perm_filter)"
+              },
+              {
+                "lineNumber": 393,
+                "text": "        .annotate(object_pk_int=Cast(\"object_pk\", IntegerField()))"
+              },
+              {
+                "lineNumber": 394,
+                "text": "        .values_list(\"object_pk_int\", flat=True)"
+              },
+              {
+                "lineNumber": 395,
+                "text": "    )"
+              },
+              {
+                "lineNumber": 396,
+                "text": "    group_perm_ids = ("
+              },
+              {
+                "lineNumber": 397,
+                "text": "        GroupObjectPermission.objects.filter(group__user=user, **perm_filter)"
+              },
+              {
+                "lineNumber": 398,
+                "text": "        .annotate(object_pk_int=Cast(\"object_pk\", IntegerField()))"
+              },
+              {
+                "lineNumber": 399,
+                "text": "        .values_list(\"object_pk_int\", flat=True)"
+              },
+              {
+                "lineNumber": 400,
+                "text": "    )"
+              },
+              {
+                "lineNumber": 401,
+                "text": "    permitted_ids = user_perm_ids.union(group_perm_ids)"
+              },
+              {
+                "lineNumber": 402,
+                "text": ""
+              },
+              {
+                "lineNumber": 403,
+                "text": "    return base_qs.filter("
+              },
+              {
+                "lineNumber": 404,
+                "text": "        Q(owner=user) | Q(owner__isnull=True) | Q(id__in=permitted_ids),"
+              },
+              {
+                "lineNumber": 405,
+                "text": "    ).values_list(\"id\", flat=True)"
+              },
+              {
+                "lineNumber": 406,
+                "text": ""
+              },
+              {
+                "lineNumber": 407,
+                "text": ""
+              },
+              {
+                "lineNumber": 460,
+                "text": "def permitted_document_ids("
+              },
+              {
+                "lineNumber": 461,
+                "text": "    user: User | None,"
+              },
+              {
+                "lineNumber": 462,
+                "text": "    *,"
+              },
+              {
+                "lineNumber": 463,
+                "text": "    perm: str = \"view_document\","
+              },
+              {
+                "lineNumber": 464,
+                "text": "    include_deleted: bool = False,"
+              },
+              {
+                "lineNumber": 465,
+                "text": ") -> QuerySet[int]:"
+              },
+              {
+                "lineNumber": 466,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 467,
+                "text": "    Document-specific convenience wrapper around ``permitted_object_ids``."
+              },
+              {
+                "lineNumber": 468,
+                "text": "    Return a queryset of document IDs the user has ``perm`` on (default"
+              },
+              {
+                "lineNumber": 469,
+                "text": "    ``\"view_document\"``). By default limited to non-deleted documents; pass"
+              },
+              {
+                "lineNumber": 470,
+                "text": "    ``include_deleted=True`` for callers that need to check permission on"
+              },
+              {
+                "lineNumber": 471,
+                "text": "    soft-deleted documents (e.g. trash restore). This intentionally avoids"
+              },
+              {
+                "lineNumber": 472,
+                "text": "    ``get_objects_for_user`` to keep the subquery small and index-friendly."
+              },
+              {
+                "lineNumber": 473,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 474,
+                "text": "    return permitted_object_ids(user, Document, perm, include_deleted=include_deleted)"
+              },
+              {
+                "lineNumber": 475,
+                "text": ""
+              },
+              {
+                "lineNumber": 476,
+                "text": ""
+              },
+              {
+                "lineNumber": 624,
+                "text": "def has_perms_owner_aware(user, perms, obj):"
+              },
+              {
+                "lineNumber": 625,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 626,
+                "text": "    Legacy slow path (guardian-backed) single-object permission check."
+              },
+              {
+                "lineNumber": 627,
+                "text": ""
+              },
+              {
+                "lineNumber": 628,
+                "text": "    The queryset-filtering side of this migrated onto"
+              },
+              {
+                "lineNumber": 629,
+                "text": "    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this"
+              },
+              {
+                "lineNumber": 630,
+                "text": "    single-object check still has many production callers. Several callers"
+              },
+              {
+                "lineNumber": 631,
+                "text": "    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``"
+              },
+              {
+                "lineNumber": 632,
+                "text": "    -- grep for this function name before removing it."
+              },
+              {
+                "lineNumber": 633,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 634,
+                "text": "    checker = ObjectPermissionChecker(user)"
+              },
+              {
+                "lineNumber": 635,
+                "text": "    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+              },
+              {
+                "lineNumber": 636,
+                "text": ""
+              },
+              {
+                "lineNumber": 637,
+                "text": ""
+              },
+              {
+                "lineNumber": 678,
+                "text": "    perms_map = {"
+              },
+              {
+                "lineNumber": 679,
+                "text": "        \"OPTIONS\": [\"documents.view_note\", \"documents.view_document\"],"
+              },
+              {
+                "lineNumber": 680,
+                "text": "        \"GET\": [\"documents.view_note\", \"documents.view_document\"],"
+              },
+              {
+                "lineNumber": 681,
+                "text": "        \"POST\": ["
+              },
+              {
+                "lineNumber": 682,
+                "text": "            \"documents.add_note\","
+              },
+              {
+                "lineNumber": 683,
+                "text": "            \"documents.view_document\","
+              },
+              {
+                "lineNumber": 684,
+                "text": "            \"documents.change_document\","
+              },
+              {
+                "lineNumber": 685,
+                "text": "        ],"
+              },
+              {
+                "lineNumber": 686,
+                "text": "        \"DELETE\": ["
+              },
+              {
+                "lineNumber": 687,
+                "text": "            \"documents.delete_note\","
+              },
+              {
+                "lineNumber": 688,
+                "text": "            \"documents.view_document\","
+              },
+              {
+                "lineNumber": 689,
+                "text": "            \"documents.change_document\","
+              },
+              {
+                "lineNumber": 690,
+                "text": "        ],"
+              },
+              {
+                "lineNumber": 691,
+                "text": "    }"
+              },
+              {
+                "lineNumber": 693,
+                "text": "    def has_permission(self, request, view):"
+              },
+              {
+                "lineNumber": 694,
+                "text": "        if not request.user or (not request.user.is_authenticated):  # pragma: no cover"
+              },
+              {
+                "lineNumber": 695,
+                "text": "            return False"
+              },
+              {
+                "lineNumber": 696,
+                "text": ""
+              },
+              {
+                "lineNumber": 697,
+                "text": "        perms = self.perms_map[request.method]"
+              },
+              {
+                "lineNumber": 698,
+                "text": ""
+              },
+              {
+                "lineNumber": 699,
+                "text": "        return request.user.has_perms(perms)"
+              },
+              {
+                "lineNumber": 700,
+                "text": ""
+              },
+              {
+                "lineNumber": 701,
+                "text": ""
+              }
+            ]
+          },
+          {
+            "sourceId": "src-aaf9347ec6f24c4a",
+            "relativePath": "src/documents/views.py",
+            "sha256": "3bd4ac4ed9ac21cb138975c0cdd7dfaecf92f768e3b7ccc7c8c95fdb7ab8a22e",
+            "cropRange": {
+              "startLine": 406,
+              "endLine": 4833
+            },
+            "originalLocations": [
+              "src/documents/views.py:406-410",
+              "src/documents/views.py:431-435",
+              "src/documents/views.py:1008-1045",
+              "src/documents/views.py:1841-1913",
+              "src/documents/views.py:4767-4833"
+            ],
+            "segments": [
+              {
+                "originalStartLine": 406,
+                "originalEndLine": 410,
+                "snapshotStartLine": 1,
+                "snapshotEndLine": 5,
+                "origins": [
+                  "locator:located-5"
+                ]
+              },
+              {
+                "originalStartLine": 431,
+                "originalEndLine": 435,
+                "snapshotStartLine": 6,
+                "snapshotEndLine": 10,
+                "origins": [
+                  "locator:located-4"
+                ]
+              },
+              {
+                "originalStartLine": 1008,
+                "originalEndLine": 1045,
+                "snapshotStartLine": 11,
+                "snapshotEndLine": 48,
+                "origins": [
+                  "model-proposal:dep-document-viewset-default-permissions",
+                  "locator:located-1"
+                ]
+              },
+              {
+                "originalStartLine": 1841,
+                "originalEndLine": 1913,
+                "snapshotStartLine": 49,
+                "snapshotEndLine": 121,
+                "origins": [
+                  "model-proposal:dep-notes-action-permissions",
+                  "entry:notes-post",
+                  "model-proposal:dep-notes-caller-identity",
+                  "model-proposal:dep-notes-document-owner-binding",
+                  "model-proposal:dep-notes-view-gate",
+                  "model-proposal:dep-notes-post-change-gate",
+                  "model-proposal:dep-notes-create-effect"
+                ]
+              },
+              {
+                "originalStartLine": 4767,
+                "originalEndLine": 4833,
+                "snapshotStartLine": 122,
+                "snapshotEndLine": 188,
+                "origins": [
+                  "locator:located-3",
+                  "host-context:symbol-14fa67f5ad9c0c69d8e39c6c"
+                ]
+              }
+            ],
+            "lines": [
+              {
+                "lineNumber": 406,
+                "text": "class PassUserMixin(GenericAPIView[Any]):"
+              },
+              {
+                "lineNumber": 407,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 408,
+                "text": "    Pass a user object to serializer"
+              },
+              {
+                "lineNumber": 409,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 410,
+                "text": ""
+              },
+              {
+                "lineNumber": 431,
+                "text": "class BulkPermissionMixin:"
+              },
+              {
+                "lineNumber": 432,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 433,
+                "text": "    Prefetch Django-Guardian permissions for a list before serialization, to avoid N+1 queries."
+              },
+              {
+                "lineNumber": 434,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 435,
+                "text": ""
+              },
+              {
+                "lineNumber": 1008,
+                "text": "class DocumentViewSet("
+              },
+              {
+                "lineNumber": 1009,
+                "text": "    BulkPermissionMixin,"
+              },
+              {
+                "lineNumber": 1010,
+                "text": "    PassUserMixin,"
+              },
+              {
+                "lineNumber": 1011,
+                "text": "    RetrieveModelMixin,"
+              },
+              {
+                "lineNumber": 1012,
+                "text": "    UpdateModelMixin,"
+              },
+              {
+                "lineNumber": 1013,
+                "text": "    DestroyModelMixin,"
+              },
+              {
+                "lineNumber": 1014,
+                "text": "    ListModelMixin,"
+              },
+              {
+                "lineNumber": 1015,
+                "text": "    GenericViewSet[Document],"
+              },
+              {
+                "lineNumber": 1016,
+                "text": "):"
+              },
+              {
+                "lineNumber": 1017,
+                "text": "    model = Document"
+              },
+              {
+                "lineNumber": 1018,
+                "text": "    queryset = Document.objects.all()"
+              },
+              {
+                "lineNumber": 1019,
+                "text": "    serializer_class = DocumentSerializer"
+              },
+              {
+                "lineNumber": 1020,
+                "text": "    pagination_class = StandardPagination"
+              },
+              {
+                "lineNumber": 1021,
+                "text": "    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)"
+              },
+              {
+                "lineNumber": 1022,
+                "text": "    filter_backends = ("
+              },
+              {
+                "lineNumber": 1023,
+                "text": "        DjangoFilterBackend,"
+              },
+              {
+                "lineNumber": 1024,
+                "text": "        SearchFilter,"
+              },
+              {
+                "lineNumber": 1025,
+                "text": "        DocumentsOrderingFilter,"
+              },
+              {
+                "lineNumber": 1026,
+                "text": "        PermittedObjectsFilter,"
+              },
+              {
+                "lineNumber": 1027,
+                "text": "    )"
+              },
+              {
+                "lineNumber": 1028,
+                "text": "    filterset_class = DocumentFilterSet"
+              },
+              {
+                "lineNumber": 1029,
+                "text": "    search_fields = (\"title\", \"correspondent__name\", \"effective_content\")"
+              },
+              {
+                "lineNumber": 1030,
+                "text": "    ordering_fields = ("
+              },
+              {
+                "lineNumber": 1031,
+                "text": "        \"id\","
+              },
+              {
+                "lineNumber": 1032,
+                "text": "        \"title\","
+              },
+              {
+                "lineNumber": 1033,
+                "text": "        \"correspondent__name\","
+              },
+              {
+                "lineNumber": 1034,
+                "text": "        \"document_type__name\","
+              },
+              {
+                "lineNumber": 1035,
+                "text": "        \"storage_path__name\","
+              },
+              {
+                "lineNumber": 1036,
+                "text": "        \"created\","
+              },
+              {
+                "lineNumber": 1037,
+                "text": "        \"modified\","
+              },
+              {
+                "lineNumber": 1038,
+                "text": "        \"added\","
+              },
+              {
+                "lineNumber": 1039,
+                "text": "        \"archive_serial_number\","
+              },
+              {
+                "lineNumber": 1040,
+                "text": "        \"num_notes\","
+              },
+              {
+                "lineNumber": 1041,
+                "text": "        \"owner\","
+              },
+              {
+                "lineNumber": 1042,
+                "text": "        \"page_count\","
+              },
+              {
+                "lineNumber": 1043,
+                "text": "        \"custom_field_\","
+              },
+              {
+                "lineNumber": 1044,
+                "text": "    )"
+              },
+              {
+                "lineNumber": 1045,
+                "text": ""
+              },
+              {
+                "lineNumber": 1841,
+                "text": "    @action("
+              },
+              {
+                "lineNumber": 1842,
+                "text": "        methods=[\"get\", \"post\", \"delete\"],"
+              },
+              {
+                "lineNumber": 1843,
+                "text": "        detail=True,"
+              },
+              {
+                "lineNumber": 1844,
+                "text": "        permission_classes=[PaperlessNotePermissions],"
+              },
+              {
+                "lineNumber": 1845,
+                "text": "        pagination_class=None,"
+              },
+              {
+                "lineNumber": 1846,
+                "text": "        filter_backends=[],"
+              },
+              {
+                "lineNumber": 1847,
+                "text": "    )"
+              },
+              {
+                "lineNumber": 1848,
+                "text": "    def notes(self, request, pk=None):"
+              },
+              {
+                "lineNumber": 1849,
+                "text": "        currentUser = request.user"
+              },
+              {
+                "lineNumber": 1850,
+                "text": "        try:"
+              },
+              {
+                "lineNumber": 1851,
+                "text": "            doc = ("
+              },
+              {
+                "lineNumber": 1852,
+                "text": "                Document.objects.select_related(\"owner\")"
+              },
+              {
+                "lineNumber": 1853,
+                "text": "                .prefetch_related(\"notes\")"
+              },
+              {
+                "lineNumber": 1854,
+                "text": "                .only(\"pk\", \"owner__id\")"
+              },
+              {
+                "lineNumber": 1855,
+                "text": "                .get(pk=pk)"
+              },
+              {
+                "lineNumber": 1856,
+                "text": "            )"
+              },
+              {
+                "lineNumber": 1857,
+                "text": "            if currentUser is not None and not has_perms_owner_aware("
+              },
+              {
+                "lineNumber": 1858,
+                "text": "                currentUser,"
+              },
+              {
+                "lineNumber": 1859,
+                "text": "                \"view_document\","
+              },
+              {
+                "lineNumber": 1860,
+                "text": "                doc,"
+              },
+              {
+                "lineNumber": 1861,
+                "text": "            ):"
+              },
+              {
+                "lineNumber": 1862,
+                "text": "                return HttpResponseForbidden(\"Insufficient permissions to view notes\")"
+              },
+              {
+                "lineNumber": 1863,
+                "text": "        except Document.DoesNotExist:"
+              },
+              {
+                "lineNumber": 1864,
+                "text": "            raise Http404"
+              },
+              {
+                "lineNumber": 1865,
+                "text": ""
+              },
+              {
+                "lineNumber": 1866,
+                "text": "        serializer = self.get_serializer(doc)"
+              },
+              {
+                "lineNumber": 1867,
+                "text": ""
+              },
+              {
+                "lineNumber": 1868,
+                "text": "        if request.method == \"GET\":"
+              },
+              {
+                "lineNumber": 1869,
+                "text": "            try:"
+              },
+              {
+                "lineNumber": 1870,
+                "text": "                notes = serializer.to_representation(doc).get(\"notes\")"
+              },
+              {
+                "lineNumber": 1871,
+                "text": "                return Response(notes)"
+              },
+              {
+                "lineNumber": 1872,
+                "text": "            except Exception as e:"
+              },
+              {
+                "lineNumber": 1873,
+                "text": "                logger.warning(f\"An error occurred retrieving notes: {e!s}\")"
+              },
+              {
+                "lineNumber": 1874,
+                "text": "                return Response("
+              },
+              {
+                "lineNumber": 1875,
+                "text": "                    {\"error\": \"Error retrieving notes, check logs for more detail.\"},"
+              },
+              {
+                "lineNumber": 1876,
+                "text": "                )"
+              },
+              {
+                "lineNumber": 1877,
+                "text": "        elif request.method == \"POST\":"
+              },
+              {
+                "lineNumber": 1878,
+                "text": "            try:"
+              },
+              {
+                "lineNumber": 1879,
+                "text": "                if currentUser is not None and not has_perms_owner_aware("
+              },
+              {
+                "lineNumber": 1880,
+                "text": "                    currentUser,"
+              },
+              {
+                "lineNumber": 1881,
+                "text": "                    \"change_document\","
+              },
+              {
+                "lineNumber": 1882,
+                "text": "                    doc,"
+              },
+              {
+                "lineNumber": 1883,
+                "text": "                ):"
+              },
+              {
+                "lineNumber": 1884,
+                "text": "                    return HttpResponseForbidden("
+              },
+              {
+                "lineNumber": 1885,
+                "text": "                        \"Insufficient permissions to create notes\","
+              },
+              {
+                "lineNumber": 1886,
+                "text": "                    )"
+              },
+              {
+                "lineNumber": 1887,
+                "text": ""
+              },
+              {
+                "lineNumber": 1888,
+                "text": "                c = Note.objects.create("
+              },
+              {
+                "lineNumber": 1889,
+                "text": "                    document=doc,"
+              },
+              {
+                "lineNumber": 1890,
+                "text": "                    note=request.data[\"note\"],"
+              },
+              {
+                "lineNumber": 1891,
+                "text": "                    user=currentUser,"
+              },
+              {
+                "lineNumber": 1892,
+                "text": "                )"
+              },
+              {
+                "lineNumber": 1893,
+                "text": "                # If audit log is enabled make an entry in the log"
+              },
+              {
+                "lineNumber": 1894,
+                "text": "                # about this note change"
+              },
+              {
+                "lineNumber": 1895,
+                "text": "                if settings.AUDIT_LOG_ENABLED:"
+              },
+              {
+                "lineNumber": 1896,
+                "text": "                    LogEntry.objects.log_create("
+              },
+              {
+                "lineNumber": 1897,
+                "text": "                        instance=doc,"
+              },
+              {
+                "lineNumber": 1898,
+                "text": "                        changes={"
+              },
+              {
+                "lineNumber": 1899,
+                "text": "                            \"Note Added\": [\"None\", c.id],"
+              },
+              {
+                "lineNumber": 1900,
+                "text": "                        },"
+              },
+              {
+                "lineNumber": 1901,
+                "text": "                        action=LogEntry.Action.UPDATE,"
+              },
+              {
+                "lineNumber": 1902,
+                "text": "                    )"
+              },
+              {
+                "lineNumber": 1903,
+                "text": ""
+              },
+              {
+                "lineNumber": 1904,
+                "text": "                doc.modified = timezone.now()"
+              },
+              {
+                "lineNumber": 1905,
+                "text": "                doc.save(update_fields=[\"modified\"])"
+              },
+              {
+                "lineNumber": 1906,
+                "text": ""
+              },
+              {
+                "lineNumber": 1907,
+                "text": "                from documents.search import get_backend"
+              },
+              {
+                "lineNumber": 1908,
+                "text": ""
+              },
+              {
+                "lineNumber": 1909,
+                "text": "                get_backend().add_or_update(doc)"
+              },
+              {
+                "lineNumber": 1910,
+                "text": ""
+              },
+              {
+                "lineNumber": 1911,
+                "text": "                notes = serializer.to_representation(doc).get(\"notes\")"
+              },
+              {
+                "lineNumber": 1912,
+                "text": ""
+              },
+              {
+                "lineNumber": 1913,
+                "text": "                return Response(notes)"
+              },
+              {
+                "lineNumber": 4767,
+                "text": "    def create(self, request, *args, **kwargs):"
+              },
+              {
+                "lineNumber": 4768,
+                "text": "        serializer = self.get_serializer(data=request.data)"
+              },
+              {
+                "lineNumber": 4769,
+                "text": "        serializer.is_valid(raise_exception=True)"
+              },
+              {
+                "lineNumber": 4770,
+                "text": "        document_ids = serializer.validated_data[\"document_ids\"]"
+              },
+              {
+                "lineNumber": 4771,
+                "text": "        documents_qs = Document.objects.filter(pk__in=document_ids).select_related("
+              },
+              {
+                "lineNumber": 4772,
+                "text": "            \"owner\","
+              },
+              {
+                "lineNumber": 4773,
+                "text": "        )"
+              },
+              {
+                "lineNumber": 4774,
+                "text": "        found_ids = set(documents_qs.values_list(\"pk\", flat=True))"
+              },
+              {
+                "lineNumber": 4775,
+                "text": "        missing = sorted(set(document_ids) - found_ids)"
+              },
+              {
+                "lineNumber": 4776,
+                "text": "        if missing:"
+              },
+              {
+                "lineNumber": 4777,
+                "text": "            raise ValidationError("
+              },
+              {
+                "lineNumber": 4778,
+                "text": "                {"
+              },
+              {
+                "lineNumber": 4779,
+                "text": "                    \"document_ids\": _("
+              },
+              {
+                "lineNumber": 4780,
+                "text": "                        \"Documents not found: %(ids)s\","
+              },
+              {
+                "lineNumber": 4781,
+                "text": "                    )"
+              },
+              {
+                "lineNumber": 4782,
+                "text": "                    % {\"ids\": \", \".join(str(item) for item in missing)},"
+              },
+              {
+                "lineNumber": 4783,
+                "text": "                },"
+              },
+              {
+                "lineNumber": 4784,
+                "text": "            )"
+              },
+              {
+                "lineNumber": 4785,
+                "text": ""
+              },
+              {
+                "lineNumber": 4786,
+                "text": "        documents = list(documents_qs)"
+              },
+              {
+                "lineNumber": 4787,
+                "text": "        permitted_ids = set(permitted_document_ids(request.user))"
+              },
+              {
+                "lineNumber": 4788,
+                "text": "        for document in documents:"
+              },
+              {
+                "lineNumber": 4789,
+                "text": "            if document.pk not in permitted_ids:"
+              },
+              {
+                "lineNumber": 4790,
+                "text": "                raise ValidationError("
+              },
+              {
+                "lineNumber": 4791,
+                "text": "                    {"
+              },
+              {
+                "lineNumber": 4792,
+                "text": "                        \"document_ids\": _("
+              },
+              {
+                "lineNumber": 4793,
+                "text": "                            \"Insufficient permissions to share document %(id)s.\","
+              },
+              {
+                "lineNumber": 4794,
+                "text": "                        )"
+              },
+              {
+                "lineNumber": 4795,
+                "text": "                        % {\"id\": document.pk},"
+              },
+              {
+                "lineNumber": 4796,
+                "text": "                    },"
+              },
+              {
+                "lineNumber": 4797,
+                "text": "                )"
+              },
+              {
+                "lineNumber": 4798,
+                "text": ""
+              },
+              {
+                "lineNumber": 4799,
+                "text": "        document_map = {document.pk: document for document in documents}"
+              },
+              {
+                "lineNumber": 4800,
+                "text": "        ordered_documents = [document_map[doc_id] for doc_id in document_ids]"
+              },
+              {
+                "lineNumber": 4801,
+                "text": ""
+              },
+              {
+                "lineNumber": 4802,
+                "text": "        bundle = serializer.save("
+              },
+              {
+                "lineNumber": 4803,
+                "text": "            owner=request.user,"
+              },
+              {
+                "lineNumber": 4804,
+                "text": "            documents=ordered_documents,"
+              },
+              {
+                "lineNumber": 4805,
+                "text": "        )"
+              },
+              {
+                "lineNumber": 4806,
+                "text": "        bundle.remove_file()"
+              },
+              {
+                "lineNumber": 4807,
+                "text": "        bundle.status = ShareLinkBundle.Status.PENDING"
+              },
+              {
+                "lineNumber": 4808,
+                "text": "        bundle.last_error = None"
+              },
+              {
+                "lineNumber": 4809,
+                "text": "        bundle.size_bytes = None"
+              },
+              {
+                "lineNumber": 4810,
+                "text": "        bundle.built_at = None"
+              },
+              {
+                "lineNumber": 4811,
+                "text": "        bundle.file_path = \"\""
+              },
+              {
+                "lineNumber": 4812,
+                "text": "        bundle.save("
+              },
+              {
+                "lineNumber": 4813,
+                "text": "            update_fields=["
+              },
+              {
+                "lineNumber": 4814,
+                "text": "                \"status\","
+              },
+              {
+                "lineNumber": 4815,
+                "text": "                \"last_error\","
+              },
+              {
+                "lineNumber": 4816,
+                "text": "                \"size_bytes\","
+              },
+              {
+                "lineNumber": 4817,
+                "text": "                \"built_at\","
+              },
+              {
+                "lineNumber": 4818,
+                "text": "                \"file_path\","
+              },
+              {
+                "lineNumber": 4819,
+                "text": "            ],"
+              },
+              {
+                "lineNumber": 4820,
+                "text": "        )"
+              },
+              {
+                "lineNumber": 4821,
+                "text": "        build_share_link_bundle.apply_async("
+              },
+              {
+                "lineNumber": 4822,
+                "text": "            kwargs={\"bundle_id\": bundle.pk},"
+              },
+              {
+                "lineNumber": 4823,
+                "text": "            headers={\"trigger_source\": PaperlessTask.TriggerSource.MANUAL},"
+              },
+              {
+                "lineNumber": 4824,
+                "text": "        )"
+              },
+              {
+                "lineNumber": 4825,
+                "text": "        bundle.document_total = len(ordered_documents)"
+              },
+              {
+                "lineNumber": 4826,
+                "text": "        response_serializer = self.get_serializer(bundle)"
+              },
+              {
+                "lineNumber": 4827,
+                "text": "        headers = self.get_success_headers(response_serializer.data)"
+              },
+              {
+                "lineNumber": 4828,
+                "text": "        return Response("
+              },
+              {
+                "lineNumber": 4829,
+                "text": "            response_serializer.data,"
+              },
+              {
+                "lineNumber": 4830,
+                "text": "            status=status.HTTP_201_CREATED,"
+              },
+              {
+                "lineNumber": 4831,
+                "text": "            headers=headers,"
+              },
+              {
+                "lineNumber": 4832,
+                "text": "        )"
+              },
+              {
+                "lineNumber": 4833,
+                "text": ""
+              }
+            ]
+          }
+        ]
+      },
+      "normalizerVersion": "authorization-wire-normalizer/v6",
+      "wireResult": {
+        "results": [
+          {
+            "obligationId": "scenario%3Achange-granted::entry%3Anotes-post",
+            "explanation": "Source behavior and accepted-policy comparison are separate. At the declared notes entry, the action uses the supplied request user and binds the requested document, first checks view_document, then checks change_document for POST, and only afterward creates the Note and performs the subsequent update/search work. The supplied caller has the global permissions and object change grant, so the strongest visible authorization control for this scenario passes whether the owner is absent or is another user. Source behavior is therefore observed allow. This matches the accepted policy's allow branch because the non-owner caller has an object change_document grant; the object view grant alone is not being used as the decisive basis. Any database/store failure or later effect failure would be an external execution outcome, not an authorization result. Source discovery is not-tested, so this is not a repository-wide completeness claim.",
+            "facts": [
+              {
+                "id": "cg-entry",
+                "kind": "entry",
+                "statement": "The notes action is the declared GET/POST/DELETE document-detail entry and assigns the request user before loading the document.",
+                "citations": [
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1841,
+                    "endLine": 1855
+                  }
+                ]
+              },
+              {
+                "id": "cg-identity",
+                "kind": "binding",
+                "statement": "The handler uses the request user as the caller for the authorization checks and as the Note user.",
+                "citations": [
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1848,
+                    "endLine": 1850
+                  },
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1888,
+                    "endLine": 1892
+                  }
+                ]
+              },
+              {
+                "id": "cg-resource",
+                "kind": "binding",
+                "statement": "The handler loads the document identified by the request key, including its owner relation, and uses that object in the checks and Note creation.",
+                "citations": [
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1851,
+                    "endLine": 1858
+                  },
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1888,
+                    "endLine": 1890
+                  }
+                ]
+              },
+              {
+                "id": "cg-control-view",
+                "kind": "control",
+                "statement": "Before method dispatch, the source applies an owner-aware view_document check and forbids the request when it fails.",
+                "citations": [
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1857,
+                    "endLine": 1862
+                  }
+                ]
+              },
+              {
+                "id": "cg-control-change",
+                "kind": "control",
+                "statement": "For POST, the source applies an owner-aware change_document check and forbids note creation when it fails; the owner-aware predicate permits an ownerless object or the caller's object permission.",
+                "citations": [
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1877,
+                    "endLine": 1887
+                  },
+                  {
+                    "sourceId": "src-8e23b54ee1e9331a",
+                    "startLine": 624,
+                    "endLine": 635
+                  }
+                ]
+              },
+              {
+                "id": "cg-effect",
+                "kind": "effect",
+                "statement": "After the POST authorization gate, the source creates a Note for the bound document and then carries out the visible update, indexing, and response path.",
+                "citations": [
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1888,
+                    "endLine": 1913
+                  }
+                ]
+              },
+              {
+                "id": "cg-condition-absent",
+                "kind": "condition",
+                "statement": "The absent-owner branch is a counterfactual hypothesis; under the supplied owner-aware predicate, an ownerless document passes the object authorization predicate.",
+                "citations": [
+                  {
+                    "sourceId": "src-8e23b54ee1e9331a",
+                    "startLine": 624,
+                    "endLine": 635
+                  }
+                ]
+              },
+              {
+                "id": "cg-condition-other",
+                "kind": "condition",
+                "statement": "The other-present branch is a counterfactual hypothesis; under the supplied premises, the caller has the object change_document grant used by the owner-aware predicate.",
+                "citations": [
+                  {
+                    "sourceId": "src-8e23b54ee1e9331a",
+                    "startLine": 379,
+                    "endLine": 405
+                  }
+                ]
+              },
+              {
+                "id": "cg-global",
+                "kind": "control",
+                "statement": "The declared POST permission map requires add_note, view_document, and change_document global permissions, and the permission method checks the request user's global permissions.",
+                "citations": [
+                  {
+                    "sourceId": "src-8e23b54ee1e9331a",
+                    "startLine": 678,
+                    "endLine": 699
+                  }
+                ]
+              }
+            ],
+            "decisiveMissingFacts": [],
+            "suggestedObservations": [],
+            "decision": {
+              "kind": "observed",
+              "observed": "allow"
+            },
+            "branchResults": [
+              {
+                "id": "scenario%3Achange-granted::entry%3Anotes-post::branch:absent",
+                "assumptions": [
+                  {
+                    "conditionId": "condition:change-granted:owner-present",
+                    "value": "false"
+                  }
+                ],
+                "effect": "reachable",
+                "explanation": "Under the absent-owner hypothesis, the declared notes entry performs the view check, then the POST change_document check. The supplied caller premise includes the required object change grant, and the owner-aware source check treats an ownerless document as permitted; the Note creation effect is therefore reachable.",
+                "missingFacts": [],
+                "factIds": [
+                  "cg-entry",
+                  "cg-identity",
+                  "cg-resource",
+                  "cg-control-view",
+                  "cg-control-change",
+                  "cg-effect",
+                  "cg-condition-absent"
+                ]
+              },
+              {
+                "id": "scenario%3Achange-granted::entry%3Anotes-post::branch:other-present",
+                "assumptions": [
+                  {
+                    "conditionId": "condition:change-granted:owner-present",
+                    "value": "true"
+                  }
+                ],
+                "effect": "reachable",
+                "explanation": "Under the different-owner hypothesis, the POST change_document check remains satisfied by the supplied object change grant. The owner-aware source predicate permits the object when the checker grants the requested permission, so Note creation remains reachable.",
+                "missingFacts": [],
+                "factIds": [
+                  "cg-entry",
+                  "cg-identity",
+                  "cg-resource",
+                  "cg-control-view",
+                  "cg-control-change",
+                  "cg-effect",
+                  "cg-condition-other"
+                ]
+              }
+            ]
+          },
+          {
+            "obligationId": "scenario%3Aview-only::entry%3Anotes-post",
+            "explanation": "Source behavior and accepted-policy comparison are separate. The declared entry binds the request user and document, performs the view_document gate, and for POST performs the owner-aware change_document gate before the Note creation effect. With an absent owner, the source predicate itself permits the object; with another owner and no object change grant, it blocks the effect. Because owner presence is unspecified in the current scenario and changes the source-visible result, the current observed behavior is unknown. The minimum decisive source-external fact is whether the bound document's owner is null or is a different user. Under the accepted policy, the non-owner caller with only an object view grant should be denied in either branch because ownership and an object change_document grant are both absent; the absent-owner source allowance is a source/policy discrepancy, not evidence that the accepted policy allows it. Any database/store failure would be an execution outcome, not authorization. Source discovery is not-tested, so no repository-wide completeness claim is made.",
+            "facts": [
+              {
+                "id": "vo-entry",
+                "kind": "entry",
+                "statement": "The notes action is the declared GET/POST/DELETE document-detail entry and assigns the request user before loading the document.",
+                "citations": [
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1841,
+                    "endLine": 1855
+                  }
+                ]
+              },
+              {
+                "id": "vo-identity",
+                "kind": "binding",
+                "statement": "The handler uses the request user as the caller for the authorization checks and as the Note user.",
+                "citations": [
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1848,
+                    "endLine": 1850
+                  },
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1888,
+                    "endLine": 1892
+                  }
+                ]
+              },
+              {
+                "id": "vo-resource",
+                "kind": "binding",
+                "statement": "The handler loads the document identified by the request key, including its owner relation, and uses that object in the checks and Note creation.",
+                "citations": [
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1851,
+                    "endLine": 1858
+                  },
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1888,
+                    "endLine": 1890
+                  }
+                ]
+              },
+              {
+                "id": "vo-control-view",
+                "kind": "control",
+                "statement": "Before method dispatch, the source applies an owner-aware view_document check and forbids the request when it fails.",
+                "citations": [
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1857,
+                    "endLine": 1862
+                  }
+                ]
+              },
+              {
+                "id": "vo-control-change",
+                "kind": "control",
+                "statement": "For POST, the source applies an owner-aware change_document check and forbids note creation when it fails; the owner-aware predicate permits an ownerless object or the caller's object permission.",
+                "citations": [
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1877,
+                    "endLine": 1887
+                  },
+                  {
+                    "sourceId": "src-8e23b54ee1e9331a",
+                    "startLine": 624,
+                    "endLine": 635
+                  }
+                ]
+              },
+              {
+                "id": "vo-effect",
+                "kind": "effect",
+                "statement": "After the POST authorization gate, the source creates a Note for the bound document.",
+                "citations": [
+                  {
+                    "sourceId": "src-aaf9347ec6f24c4a",
+                    "startLine": 1888,
+                    "endLine": 1892
+                  }
+                ]
+              },
+              {
+                "id": "vo-condition-absent",
+                "kind": "condition",
+                "statement": "The absent-owner branch is a counterfactual hypothesis; the supplied owner-aware source predicate explicitly permits an ownerless object.",
+                "citations": [
+                  {
+                    "sourceId": "src-8e23b54ee1e9331a",
+                    "startLine": 624,
+                    "endLine": 635
+                  }
+                ]
+              },
+              {
+                "id": "vo-condition-other",
+                "kind": "condition",
+                "statement": "The other-present branch is a counterfactual hypothesis; under the supplied premises the caller is not owner and has no object change_document grant, so the owner-aware change predicate does not pass.",
+                "citations": [
+                  {
+                    "sourceId": "src-8e23b54ee1e9331a",
+                    "startLine": 624,
+                    "endLine": 635
+                  },
+                  {
+                    "sourceId": "src-8e23b54ee1e9331a",
+                    "startLine": 379,
+                    "endLine": 405
+                  }
+                ]
+              },
+              {
+                "id": "vo-global",
+                "kind": "control",
+                "statement": "The declared POST permission map requires add_note, view_document, and change_document global permissions, and the permission method checks the request user's global permissions.",
+                "citations": [
+                  {
+                    "sourceId": "src-8e23b54ee1e9331a",
+                    "startLine": 678,
+                    "endLine": 699
+                  }
+                ]
+              }
+            ],
+            "decisiveMissingFacts": [
+              "The bound document's owner value at the notes POST check: null/absent versus a different user.",
+              "The runtime result of the owner-aware change_document check for the bound document if owner presence is not directly observed."
+            ],
+            "suggestedObservations": [
+              "Observe the bound document's owner field at handler entry and classify it as null or a different user.",
+              "Observe the return value of has_perms_owner_aware(request.user, \"change_document\", doc) for the bound document."
+            ],
+            "decision": {
+              "kind": "observed",
+              "observed": "unknown"
+            },
+            "branchResults": [
+              {
+                "id": "scenario%3Aview-only::entry%3Anotes-post::branch:absent",
+                "assumptions": [
+                  {
+                    "conditionId": "condition:view-only:owner-present",
+                    "value": "false"
+                  }
+                ],
+                "effect": "reachable",
+                "explanation": "Under the absent-owner hypothesis, the owner-aware change_document predicate returns permitted for an ownerless document, so the POST passes the source gate and the Note creation effect is reachable despite the lack of an object change grant in the supplied premises.",
+                "missingFacts": [],
+                "factIds": [
+                  "vo-entry",
+                  "vo-identity",
+                  "vo-resource",
+                  "vo-control-view",
+                  "vo-control-change",
+                  "vo-effect",
+                  "vo-condition-absent"
+                ]
+              },
+              {
+                "id": "scenario%3Aview-only::entry%3Anotes-post::branch:other-present",
+                "assumptions": [
+                  {
+                    "conditionId": "condition:view-only:owner-present",
+                    "value": "true"
+                  }
+                ],
+                "effect": "blocked",
+                "explanation": "Under the different-owner hypothesis, the caller is not the owner and the supplied premises provide no object change_document grant. The owner-aware change_document predicate therefore fails, and the source returns forbidden before Note creation.",
+                "missingFacts": [],
+                "factIds": [
+                  "vo-entry",
+                  "vo-identity",
+                  "vo-resource",
+                  "vo-control-view",
+                  "vo-control-change",
+                  "vo-effect",
+                  "vo-condition-other"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "observedDecisions": [
+        {
+          "obligationId": "scenario%3Achange-granted::entry%3Anotes-post",
+          "expectation": "allow",
+          "observed": "allow",
+          "derivedConclusion": "source_refuted"
+        },
+        {
+          "obligationId": "scenario%3Aview-only::entry%3Anotes-post",
+          "expectation": "deny",
+          "observed": "unknown",
+          "derivedConclusion": "unknown"
+        }
+      ],
+      "policySummaries": [
+        {
+          "obligationId": "scenario%3Achange-granted::entry%3Anotes-post",
+          "expectation": "allow",
+          "observed": "allow",
+          "status": "satisfied",
+          "text": "Declared policy expects allow; supplied source behavior is allow; policy comparison is satisfied.",
+          "modelExplanation": "Source behavior and accepted-policy comparison are separate. At the declared notes entry, the action uses the supplied request user and binds the requested document, first checks view_document, then checks change_document for POST, and only afterward creates the Note and performs the subsequent update/search work. The supplied caller has the global permissions and object change grant, so the strongest visible authorization control for this scenario passes whether the owner is absent or is another user. Source behavior is therefore observed allow. This matches the accepted policy's allow branch because the non-owner caller has an object change_document grant; the object view grant alone is not being used as the decisive basis. Any database/store failure or later effect failure would be an external execution outcome, not an authorization result. Source discovery is not-tested, so this is not a repository-wide completeness claim."
+        },
+        {
+          "obligationId": "scenario%3Aview-only::entry%3Anotes-post",
+          "expectation": "deny",
+          "observed": "unknown",
+          "status": "undetermined",
+          "text": "Declared policy expects deny; supplied source behavior is unknown; policy comparison is undetermined.",
+          "modelExplanation": "Source behavior and accepted-policy comparison are separate. The declared entry binds the request user and document, performs the view_document gate, and for POST performs the owner-aware change_document gate before the Note creation effect. With an absent owner, the source predicate itself permits the object; with another owner and no object change grant, it blocks the effect. Because owner presence is unspecified in the current scenario and changes the source-visible result, the current observed behavior is unknown. The minimum decisive source-external fact is whether the bound document's owner is null or is a different user. Under the accepted policy, the non-owner caller with only an object view grant should be denied in either branch because ownership and an object change_document grant are both absent; the absent-owner source allowance is a source/policy discrepancy, not evidence that the accepted policy allows it. Any database/store failure would be an execution outcome, not authorization. Source discovery is not-tested, so no repository-wide completeness claim is made."
+        }
+      ]
+    }
+  },
+  "final": {
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "al-use-paperless-note",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "results": [
+        {
+          "obligationId": "scenario%3Achange-granted::entry%3Anotes-post",
+          "conclusion": "source_refuted",
+          "explanation": "Source behavior and accepted-policy comparison are separate. At the declared notes entry, the action uses the supplied request user and binds the requested document, first checks view_document, then checks change_document for POST, and only afterward creates the Note and performs the subsequent update/search work. The supplied caller has the global permissions and object change grant, so the strongest visible authorization control for this scenario passes whether the owner is absent or is another user. Source behavior is therefore observed allow. This matches the accepted policy's allow branch because the non-owner caller has an object change_document grant; the object view grant alone is not being used as the decisive basis. Any database/store failure or later effect failure would be an external execution outcome, not an authorization result. Source discovery is not-tested, so this is not a repository-wide completeness claim.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The notes action is the declared GET/POST/DELETE document-detail entry and assigns the request user before loading the document.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1841,
+                    "endLine": 1855,
+                    "quote": "    @action(\n        methods=[\"get\", \"post\", \"delete\"],\n        detail=True,\n        permission_classes=[PaperlessNotePermissions],\n        pagination_class=None,\n        filter_backends=[],\n    )\n    def notes(self, request, pk=None):\n        currentUser = request.user\n        try:\n            doc = (\n                Document.objects.select_related(\"owner\")\n                .prefetch_related(\"notes\")\n                .only(\"pk\", \"owner__id\")\n                .get(pk=pk)"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The handler uses the request user as the caller for the authorization checks and as the Note user.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1848,
+                    "endLine": 1850,
+                    "quote": "    def notes(self, request, pk=None):\n        currentUser = request.user\n        try:"
+                  },
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1888,
+                    "endLine": 1892,
+                    "quote": "                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],\n                    user=currentUser,\n                )"
+                  }
+                ]
+              },
+              {
+                "statement": "The handler loads the document identified by the request key, including its owner relation, and uses that object in the checks and Note creation.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1851,
+                    "endLine": 1858,
+                    "quote": "            doc = (\n                Document.objects.select_related(\"owner\")\n                .prefetch_related(\"notes\")\n                .only(\"pk\", \"owner__id\")\n                .get(pk=pk)\n            )\n            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,"
+                  },
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1888,
+                    "endLine": 1890,
+                    "quote": "                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "For POST, the source applies an owner-aware change_document check and forbids note creation when it fails; the owner-aware predicate permits an ownerless object or the caller's object permission.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1877,
+                    "endLine": 1887,
+                    "quote": "        elif request.method == \"POST\":\n            try:\n                if currentUser is not None and not has_perms_owner_aware(\n                    currentUser,\n                    \"change_document\",\n                    doc,\n                ):\n                    return HttpResponseForbidden(\n                        \"Insufficient permissions to create notes\",\n                    )\n"
+                  },
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  }
+                ]
+              },
+              {
+                "statement": "Before method dispatch, the source applies an owner-aware view_document check and forbids the request when it fails.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1857,
+                    "endLine": 1862,
+                    "quote": "            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,\n                \"view_document\",\n                doc,\n            ):\n                return HttpResponseForbidden(\"Insufficient permissions to view notes\")"
+                  }
+                ]
+              },
+              {
+                "statement": "The declared POST permission map requires add_note, view_document, and change_document global permissions.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 678,
+                    "endLine": 691,
+                    "quote": "    perms_map = {\n        \"OPTIONS\": [\"documents.view_note\", \"documents.view_document\"],\n        \"GET\": [\"documents.view_note\", \"documents.view_document\"],\n        \"POST\": [\n            \"documents.add_note\",\n            \"documents.view_document\",\n            \"documents.change_document\",\n        ],\n        \"DELETE\": [\n            \"documents.delete_note\",\n            \"documents.view_document\",\n            \"documents.change_document\",\n        ],\n    }"
+                  }
+                ]
+              },
+              {
+                "statement": "The permission method checks the request user's global permissions.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 693,
+                    "endLine": 699,
+                    "quote": "    def has_permission(self, request, view):\n        if not request.user or (not request.user.is_authenticated):  # pragma: no cover\n            return False\n\n        perms = self.perms_map[request.method]\n\n        return request.user.has_perms(perms)"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "After the POST authorization gate, the source creates a Note for the bound document and then carries out the visible update, indexing, and response path.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1888,
+                    "endLine": 1913,
+                    "quote": "                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],\n                    user=currentUser,\n                )\n                # If audit log is enabled make an entry in the log\n                # about this note change\n                if settings.AUDIT_LOG_ENABLED:\n                    LogEntry.objects.log_create(\n                        instance=doc,\n                        changes={\n                            \"Note Added\": [\"None\", c.id],\n                        },\n                        action=LogEntry.Action.UPDATE,\n                    )\n\n                doc.modified = timezone.now()\n                doc.save(update_fields=[\"modified\"])\n\n                from documents.search import get_backend\n\n                get_backend().add_or_update(doc)\n\n                notes = serializer.to_representation(doc).get(\"notes\")\n\n                return Response(notes)"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The absent-owner branch is a counterfactual hypothesis; under the supplied owner-aware predicate, an ownerless document passes the object authorization predicate.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  }
+                ]
+              },
+              {
+                "statement": "The other-present branch is a counterfactual hypothesis; under the supplied premises, the caller has the object change_document grant used by the owner-aware predicate.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 379,
+                    "endLine": 405,
+                    "quote": "    # Guardian's UserObjectPermission/GroupObjectPermission always store a bare\n    # codename, but has_perm()-style callers commonly pass the qualified\n    # \"app_label.codename\" form. content_type already disambiguates the\n    # codename, so just drop any prefix rather than silently under-permitting.\n    perm = perm.rsplit(\".\", 1)[-1]\n\n    content_type = ContentType.objects.get_for_model(model)\n    perm_filter = {\n        \"permission__codename\": perm,\n        \"permission__content_type\": content_type,\n    }\n\n    user_perm_ids = (\n        UserObjectPermission.objects.filter(user=user, **perm_filter)\n        .annotate(object_pk_int=Cast(\"object_pk\", IntegerField()))\n        .values_list(\"object_pk_int\", flat=True)\n    )\n    group_perm_ids = (\n        GroupObjectPermission.objects.filter(group__user=user, **perm_filter)\n        .annotate(object_pk_int=Cast(\"object_pk\", IntegerField()))\n        .values_list(\"object_pk_int\", flat=True)\n    )\n    permitted_ids = user_perm_ids.union(group_perm_ids)\n\n    return base_qs.filter(\n        Q(owner=user) | Q(owner__isnull=True) | Q(id__in=permitted_ids),\n    ).values_list(\"id\", flat=True)"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        },
+        {
+          "obligationId": "scenario%3Aview-only::entry%3Anotes-post",
+          "conclusion": "unknown",
+          "explanation": "Source behavior and accepted-policy comparison are separate. The declared entry binds the request user and document, performs the view_document gate, and for POST performs the owner-aware change_document gate before the Note creation effect. With an absent owner, the source predicate itself permits the object; with another owner and no object change grant, it blocks the effect. Because owner presence is unspecified in the current scenario and changes the source-visible result, the current observed behavior is unknown. The minimum decisive source-external fact is whether the bound document's owner is null or is a different user. Under the accepted policy, the non-owner caller with only an object view grant should be denied in either branch because ownership and an object change_document grant are both absent; the absent-owner source allowance is a source/policy discrepancy, not evidence that the accepted policy allows it. Any database/store failure would be an execution outcome, not authorization. Source discovery is not-tested, so no repository-wide completeness claim is made.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "The notes action is the declared GET/POST/DELETE document-detail entry and assigns the request user before loading the document.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1841,
+                    "endLine": 1855,
+                    "quote": "    @action(\n        methods=[\"get\", \"post\", \"delete\"],\n        detail=True,\n        permission_classes=[PaperlessNotePermissions],\n        pagination_class=None,\n        filter_backends=[],\n    )\n    def notes(self, request, pk=None):\n        currentUser = request.user\n        try:\n            doc = (\n                Document.objects.select_related(\"owner\")\n                .prefetch_related(\"notes\")\n                .only(\"pk\", \"owner__id\")\n                .get(pk=pk)"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "The handler uses the request user as the caller for the authorization checks and as the Note user.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1848,
+                    "endLine": 1850,
+                    "quote": "    def notes(self, request, pk=None):\n        currentUser = request.user\n        try:"
+                  },
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1888,
+                    "endLine": 1892,
+                    "quote": "                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],\n                    user=currentUser,\n                )"
+                  }
+                ]
+              },
+              {
+                "statement": "The handler loads the document identified by the request key, including its owner relation, and uses that object in the checks and Note creation.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1851,
+                    "endLine": 1858,
+                    "quote": "            doc = (\n                Document.objects.select_related(\"owner\")\n                .prefetch_related(\"notes\")\n                .only(\"pk\", \"owner__id\")\n                .get(pk=pk)\n            )\n            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,"
+                  },
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1888,
+                    "endLine": 1890,
+                    "quote": "                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "For POST, the source applies an owner-aware change_document check and forbids note creation when it fails; the owner-aware predicate permits an ownerless object or the caller's object permission.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1877,
+                    "endLine": 1887,
+                    "quote": "        elif request.method == \"POST\":\n            try:\n                if currentUser is not None and not has_perms_owner_aware(\n                    currentUser,\n                    \"change_document\",\n                    doc,\n                ):\n                    return HttpResponseForbidden(\n                        \"Insufficient permissions to create notes\",\n                    )\n"
+                  },
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  }
+                ]
+              },
+              {
+                "statement": "Before method dispatch, the source applies an owner-aware view_document check and forbids the request when it fails.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1857,
+                    "endLine": 1862,
+                    "quote": "            if currentUser is not None and not has_perms_owner_aware(\n                currentUser,\n                \"view_document\",\n                doc,\n            ):\n                return HttpResponseForbidden(\"Insufficient permissions to view notes\")"
+                  }
+                ]
+              },
+              {
+                "statement": "The declared POST permission map requires add_note, view_document, and change_document global permissions.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 678,
+                    "endLine": 691,
+                    "quote": "    perms_map = {\n        \"OPTIONS\": [\"documents.view_note\", \"documents.view_document\"],\n        \"GET\": [\"documents.view_note\", \"documents.view_document\"],\n        \"POST\": [\n            \"documents.add_note\",\n            \"documents.view_document\",\n            \"documents.change_document\",\n        ],\n        \"DELETE\": [\n            \"documents.delete_note\",\n            \"documents.view_document\",\n            \"documents.change_document\",\n        ],\n    }"
+                  }
+                ]
+              },
+              {
+                "statement": "The permission method checks the request user's global permissions.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 693,
+                    "endLine": 699,
+                    "quote": "    def has_permission(self, request, view):\n        if not request.user or (not request.user.is_authenticated):  # pragma: no cover\n            return False\n\n        perms = self.perms_map[request.method]\n\n        return request.user.has_perms(perms)"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "After the POST authorization gate, the source creates a Note for the bound document.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 1888,
+                    "endLine": 1892,
+                    "quote": "                c = Note.objects.create(\n                    document=doc,\n                    note=request.data[\"note\"],\n                    user=currentUser,\n                )"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The absent-owner branch is a counterfactual hypothesis; the supplied owner-aware source predicate explicitly permits an ownerless object.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  }
+                ]
+              },
+              {
+                "statement": "The other-present branch is a counterfactual hypothesis; under the supplied premises the caller is not owner and has no object change_document grant, so the owner-aware change predicate does not pass.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  },
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 379,
+                    "endLine": 405,
+                    "quote": "    # Guardian's UserObjectPermission/GroupObjectPermission always store a bare\n    # codename, but has_perm()-style callers commonly pass the qualified\n    # \"app_label.codename\" form. content_type already disambiguates the\n    # codename, so just drop any prefix rather than silently under-permitting.\n    perm = perm.rsplit(\".\", 1)[-1]\n\n    content_type = ContentType.objects.get_for_model(model)\n    perm_filter = {\n        \"permission__codename\": perm,\n        \"permission__content_type\": content_type,\n    }\n\n    user_perm_ids = (\n        UserObjectPermission.objects.filter(user=user, **perm_filter)\n        .annotate(object_pk_int=Cast(\"object_pk\", IntegerField()))\n        .values_list(\"object_pk_int\", flat=True)\n    )\n    group_perm_ids = (\n        GroupObjectPermission.objects.filter(group__user=user, **perm_filter)\n        .annotate(object_pk_int=Cast(\"object_pk\", IntegerField()))\n        .values_list(\"object_pk_int\", flat=True)\n    )\n    permitted_ids = user_perm_ids.union(group_perm_ids)\n\n    return base_qs.filter(\n        Q(owner=user) | Q(owner__isnull=True) | Q(id__in=permitted_ids),\n    ).values_list(\"id\", flat=True)"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [
+            "The bound document's owner value at the notes POST check: null/absent versus a different user.",
+            "The runtime result of the owner-aware change_document check for the bound document if owner presence is not directly observed."
+          ],
+          "suggestedObservations": [
+            "Observe the bound document's owner field at handler entry and classify it as null or a different user.",
+            "Observe the return value of has_perms_owner_aware(request.user, \"change_document\", doc) for the bound document."
+          ]
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Achange-granted::entry%3Anotes-post",
+          "explanation": "Source behavior and accepted-policy comparison are separate. At the declared notes entry, the action uses the supplied request user and binds the requested document, first checks view_document, then checks change_document for POST, and only afterward creates the Note and performs the subsequent update/search work. The supplied caller has the global permissions and object change grant, so the strongest visible authorization control for this scenario passes whether the owner is absent or is another user. Source behavior is therefore observed allow. This matches the accepted policy's allow branch because the non-owner caller has an object change_document grant; the object view grant alone is not being used as the decisive basis. Any database/store failure or later effect failure would be an external execution outcome, not an authorization result. Source discovery is not-tested, so this is not a repository-wide completeness claim.",
+          "facts": [
+            {
+              "id": "cg-entry",
+              "kind": "entry",
+              "statement": "The notes action is the declared GET/POST/DELETE document-detail entry and assigns the request user before loading the document.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1841,
+                  "endLine": 1855
+                }
+              ]
+            },
+            {
+              "id": "cg-identity",
+              "kind": "binding",
+              "statement": "The handler uses the request user as the caller for the authorization checks and as the Note user.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1848,
+                  "endLine": 1850
+                },
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1888,
+                  "endLine": 1892
+                }
+              ]
+            },
+            {
+              "id": "cg-resource",
+              "kind": "binding",
+              "statement": "The handler loads the document identified by the request key, including its owner relation, and uses that object in the checks and Note creation.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1851,
+                  "endLine": 1858
+                },
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1888,
+                  "endLine": 1890
+                }
+              ]
+            },
+            {
+              "id": "cg-control-view",
+              "kind": "control",
+              "statement": "Before method dispatch, the source applies an owner-aware view_document check and forbids the request when it fails.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1857,
+                  "endLine": 1862
+                }
+              ]
+            },
+            {
+              "id": "cg-control-change",
+              "kind": "control",
+              "statement": "For POST, the source applies an owner-aware change_document check and forbids note creation when it fails; the owner-aware predicate permits an ownerless object or the caller's object permission.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1877,
+                  "endLine": 1887
+                },
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "cg-effect",
+              "kind": "effect",
+              "statement": "After the POST authorization gate, the source creates a Note for the bound document and then carries out the visible update, indexing, and response path.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1888,
+                  "endLine": 1913
+                }
+              ]
+            },
+            {
+              "id": "cg-condition-absent",
+              "kind": "condition",
+              "statement": "The absent-owner branch is a counterfactual hypothesis; under the supplied owner-aware predicate, an ownerless document passes the object authorization predicate.",
+              "citations": [
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "cg-condition-other",
+              "kind": "condition",
+              "statement": "The other-present branch is a counterfactual hypothesis; under the supplied premises, the caller has the object change_document grant used by the owner-aware predicate.",
+              "citations": [
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 379,
+                  "endLine": 405
+                }
+              ]
+            },
+            {
+              "id": "cg-global",
+              "kind": "control",
+              "statement": "The declared POST permission map requires add_note, view_document, and change_document global permissions.",
+              "citations": [
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 678,
+                  "endLine": 691
+                }
+              ]
+            },
+            {
+              "id": "cg-global-check",
+              "kind": "control",
+              "statement": "The permission method checks the request user's global permissions.",
+              "citations": [
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 693,
+                  "endLine": 699
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "allow"
+          },
+          "branchResults": [
+            {
+              "id": "scenario%3Achange-granted::entry%3Anotes-post::branch:absent",
+              "assumptions": [
+                {
+                  "conditionId": "condition:change-granted:owner-present",
+                  "value": "false"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "Under the absent-owner hypothesis, the declared notes entry performs the view check, then the POST change_document check. The supplied caller premise includes the required object change grant, and the owner-aware source check treats an ownerless document as permitted; the Note creation effect is therefore reachable.",
+              "missingFacts": [],
+              "factIds": [
+                "cg-entry",
+                "cg-identity",
+                "cg-resource",
+                "cg-control-view",
+                "cg-control-change",
+                "cg-effect",
+                "cg-condition-absent"
+              ]
+            },
+            {
+              "id": "scenario%3Achange-granted::entry%3Anotes-post::branch:other-present",
+              "assumptions": [
+                {
+                  "conditionId": "condition:change-granted:owner-present",
+                  "value": "true"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "Under the different-owner hypothesis, the POST change_document check remains satisfied by the supplied object change grant. The owner-aware source predicate permits the object when the checker grants the requested permission, so Note creation remains reachable.",
+              "missingFacts": [],
+              "factIds": [
+                "cg-entry",
+                "cg-identity",
+                "cg-resource",
+                "cg-control-view",
+                "cg-control-change",
+                "cg-effect",
+                "cg-condition-other"
+              ]
+            }
+          ]
+        },
+        {
+          "obligationId": "scenario%3Aview-only::entry%3Anotes-post",
+          "explanation": "Source behavior and accepted-policy comparison are separate. The declared entry binds the request user and document, performs the view_document gate, and for POST performs the owner-aware change_document gate before the Note creation effect. With an absent owner, the source predicate itself permits the object; with another owner and no object change grant, it blocks the effect. Because owner presence is unspecified in the current scenario and changes the source-visible result, the current observed behavior is unknown. The minimum decisive source-external fact is whether the bound document's owner is null or is a different user. Under the accepted policy, the non-owner caller with only an object view grant should be denied in either branch because ownership and an object change_document grant are both absent; the absent-owner source allowance is a source/policy discrepancy, not evidence that the accepted policy allows it. Any database/store failure would be an execution outcome, not authorization. Source discovery is not-tested, so no repository-wide completeness claim is made.",
+          "facts": [
+            {
+              "id": "vo-entry",
+              "kind": "entry",
+              "statement": "The notes action is the declared GET/POST/DELETE document-detail entry and assigns the request user before loading the document.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1841,
+                  "endLine": 1855
+                }
+              ]
+            },
+            {
+              "id": "vo-identity",
+              "kind": "binding",
+              "statement": "The handler uses the request user as the caller for the authorization checks and as the Note user.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1848,
+                  "endLine": 1850
+                },
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1888,
+                  "endLine": 1892
+                }
+              ]
+            },
+            {
+              "id": "vo-resource",
+              "kind": "binding",
+              "statement": "The handler loads the document identified by the request key, including its owner relation, and uses that object in the checks and Note creation.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1851,
+                  "endLine": 1858
+                },
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1888,
+                  "endLine": 1890
+                }
+              ]
+            },
+            {
+              "id": "vo-control-view",
+              "kind": "control",
+              "statement": "Before method dispatch, the source applies an owner-aware view_document check and forbids the request when it fails.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1857,
+                  "endLine": 1862
+                }
+              ]
+            },
+            {
+              "id": "vo-control-change",
+              "kind": "control",
+              "statement": "For POST, the source applies an owner-aware change_document check and forbids note creation when it fails; the owner-aware predicate permits an ownerless object or the caller's object permission.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1877,
+                  "endLine": 1887
+                },
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "vo-effect",
+              "kind": "effect",
+              "statement": "After the POST authorization gate, the source creates a Note for the bound document.",
+              "citations": [
+                {
+                  "sourceId": "src-aaf9347ec6f24c4a",
+                  "startLine": 1888,
+                  "endLine": 1892
+                }
+              ]
+            },
+            {
+              "id": "vo-condition-absent",
+              "kind": "condition",
+              "statement": "The absent-owner branch is a counterfactual hypothesis; the supplied owner-aware source predicate explicitly permits an ownerless object.",
+              "citations": [
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "vo-condition-other",
+              "kind": "condition",
+              "statement": "The other-present branch is a counterfactual hypothesis; under the supplied premises the caller is not owner and has no object change_document grant, so the owner-aware change predicate does not pass.",
+              "citations": [
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 624,
+                  "endLine": 635
+                },
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 379,
+                  "endLine": 405
+                }
+              ]
+            },
+            {
+              "id": "vo-global",
+              "kind": "control",
+              "statement": "The declared POST permission map requires add_note, view_document, and change_document global permissions.",
+              "citations": [
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 678,
+                  "endLine": 691
+                }
+              ]
+            },
+            {
+              "id": "vo-global-check",
+              "kind": "control",
+              "statement": "The permission method checks the request user's global permissions.",
+              "citations": [
+                {
+                  "sourceId": "src-8e23b54ee1e9331a",
+                  "startLine": 693,
+                  "endLine": 699
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [
+            "The bound document's owner value at the notes POST check: null/absent versus a different user.",
+            "The runtime result of the owner-aware change_document check for the bound document if owner presence is not directly observed."
+          ],
+          "suggestedObservations": [
+            "Observe the bound document's owner field at handler entry and classify it as null or a different user.",
+            "Observe the return value of has_perms_owner_aware(request.user, \"change_document\", doc) for the bound document."
+          ],
+          "decision": {
+            "kind": "observed",
+            "observed": "unknown"
+          },
+          "branchResults": [
+            {
+              "id": "scenario%3Aview-only::entry%3Anotes-post::branch:absent",
+              "assumptions": [
+                {
+                  "conditionId": "condition:view-only:owner-present",
+                  "value": "false"
+                }
+              ],
+              "effect": "reachable",
+              "explanation": "Under the absent-owner hypothesis, the owner-aware change_document predicate returns permitted for an ownerless document, so the POST passes the source gate and the Note creation effect is reachable despite the lack of an object change grant in the supplied premises.",
+              "missingFacts": [],
+              "factIds": [
+                "vo-entry",
+                "vo-identity",
+                "vo-resource",
+                "vo-control-view",
+                "vo-control-change",
+                "vo-effect",
+                "vo-condition-absent"
+              ]
+            },
+            {
+              "id": "scenario%3Aview-only::entry%3Anotes-post::branch:other-present",
+              "assumptions": [
+                {
+                  "conditionId": "condition:view-only:owner-present",
+                  "value": "true"
+                }
+              ],
+              "effect": "blocked",
+              "explanation": "Under the different-owner hypothesis, the caller is not the owner and the supplied premises provide no object change_document grant. The owner-aware change_document predicate therefore fails, and the source returns forbidden before Note creation.",
+              "missingFacts": [],
+              "factIds": [
+                "vo-entry",
+                "vo-identity",
+                "vo-resource",
+                "vo-control-view",
+                "vo-control-change",
+                "vo-effect",
+                "vo-condition-other"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Achange-granted::entry%3Anotes-post",
+        "expectation": "allow",
+        "observed": "allow",
+        "derivedConclusion": "source_refuted"
+      },
+      {
+        "obligationId": "scenario%3Aview-only::entry%3Anotes-post",
+        "expectation": "deny",
+        "observed": "unknown",
+        "derivedConclusion": "unknown"
+      }
+    ],
+    "finalKind": "repair"
+  },
+  "reportSha256": "d406011bddd816d0efa26544cdb7844cdff5e570830a6e77a3cc59198af36260",
+  "runSha256": "e2e871a8539a1fd369176e9ce0e523e8d838104ddc80f111d5b0b4551001b239",
+  "sourceScope": "Fixed supplied public source and current public task only; no target execution or source discovery claim.",
+  "ratingRules": {
+    "supported": "All material claims follow supplied source and public premises; accurate bounded unknown is supported only when every requested causal explanation is addressed.",
+    "incomplete": "No decisive false claim, but a necessary control, requested branch, policy comparison or explanation is missing.",
+    "unsupported": "A material source, premise, observed decision or policy comparison claim contradicts the public task or fixed source.",
+    "determinate": "The actual scenario and necessary explanation are answered with supported decisions.",
+    "conditional": "Every requested relevant branch is causally supported and unspecified actual truth remains explicit.",
+    "unresolved": "The requested outcome or required branch cannot be answered, even if uncertainty is faithful.",
+    "blocked": "No valid delivered analysis, including author, preparation, transport and completion-unknown dependencies; retains the planned denominator.",
+    "firstFinal": "Rate the archived first raw answer and final delivered artifact separately. A host summary never erases a wrong raw explanation.",
+    "isolation": "The evaluator oracle and ratings are read only after generation closes; no answer, rating or evaluator criterion enters a generation prompt."
+  }
+}

@@ -1,0 +1,1040 @@
+{
+  "schemaVersion": "authorization-an-review-packet/v1",
+  "id": "quality:q14",
+  "kind": "quality",
+  "row": {
+    "id": "q14",
+    "caseId": "paperless-share-create",
+    "route": "dsl",
+    "taskContract": "compatibility",
+    "input": {
+      "path": "results/skill-ir/skill-dsl-research/development/authorization-control-context-v1/inputs/paperless-share-create/callable-v1/assessment.json",
+      "sha256": "f6cb0fb5987fc0e132ec253cfdaf2ecc169e6c6b61fb3750ca574b69f5cd70fa"
+    },
+    "materialReport": {
+      "path": "results/skill-ir/skill-dsl-research/development/authorization-control-context-v1/inputs/paperless-share-create/callable-v1/report.json",
+      "sha256": "ab1ff0468886db000dc181274cba09b059214279764b4a2a5c3b56f07c4c6229"
+    },
+    "markdown": {
+      "path": "results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/inputs/paperless-share-create/independent.md",
+      "sha256": "160bf421e9746913d7df6211a01bb82b4fe2ed7b31037efba3651272f970ab69"
+    },
+    "originalSourceFiles": [
+      {
+        "path": "results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/public-source/paperless/src/documents/views.py",
+        "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+      },
+      {
+        "path": "results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/public-source/paperless/src/documents/permissions.py",
+        "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+      },
+      {
+        "path": "results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/public-source/paperless/src/documents/serialisers.py",
+        "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266"
+      }
+    ]
+  },
+  "status": "completed",
+  "first": {
+    "deliveryComplete": false,
+    "canonicalResult": null,
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+          "explanation": "At the declared ShareLinkViewSet.create boundary, the viewset is authenticated and uses PaperlessObjectPermissions, while PassUserMixin supplies the authenticated request user to the serializer. The viewset's permission class and ShareLink queryset concern the share-link endpoint/object; they do not by themselves establish view access to the referenced Document. During serializer validation, the referenced document must satisfy both the caller's global documents.view_document permission and has_perms_owner_aware(..., \"view_document\", document). That owner-aware check permits the owner or an object-level grant, otherwise it returns false. Under the stated premises, the global permission is present but the caller is neither the owner nor an object-view grantee, so validate_document raises PermissionDenied before ShareLinkSerializer.create can create the new share link. The source-visible result is deny. No decisive source-external runtime fact is needed beyond the accepted task premises; source discovery remains not-tested and no repository-wide completeness is claimed.",
+          "facts": [
+            {
+              "id": "f-entry",
+              "kind": "entry",
+              "statement": "ShareLinkViewSet is the declared share-link handler, uses ShareLinkSerializer, and declares IsAuthenticated plus PaperlessObjectPermissions.",
+              "citations": [
+                {
+                  "sourceId": "src-b740d736ac7a1cf1",
+                  "startLine": 4696,
+                  "endLine": 4710
+                }
+              ]
+            },
+            {
+              "id": "f-identity-binding",
+              "kind": "binding",
+              "statement": "The PassUserMixin passes request.user into serializers that support the user parameter.",
+              "citations": [
+                {
+                  "sourceId": "src-b740d736ac7a1cf1",
+                  "startLine": 406,
+                  "endLine": 418
+                }
+              ]
+            },
+            {
+              "id": "f-resource-binding",
+              "kind": "binding",
+              "statement": "Serializer validation receives the referenced document and applies the document-specific permission check to that object.",
+              "citations": [
+                {
+                  "sourceId": "src-d74dd1895d260a60",
+                  "startLine": 2873,
+                  "endLine": 2881
+                }
+              ]
+            },
+            {
+              "id": "f-global-condition",
+              "kind": "condition",
+              "statement": "Document validation requires the caller to have the global documents.view_document permission.",
+              "citations": [
+                {
+                  "sourceId": "src-d74dd1895d260a60",
+                  "startLine": 2873,
+                  "endLine": 2877
+                }
+              ]
+            },
+            {
+              "id": "f-object-condition",
+              "kind": "condition",
+              "statement": "Document validation also requires the owner-aware view_document check on the referenced document; that check allows the owner or an object-level permission and otherwise delegates to the object-permission checker.",
+              "citations": [
+                {
+                  "sourceId": "src-d74dd1895d260a60",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "f-strongest-control",
+              "kind": "control",
+              "statement": "The decisive target-document authorization control is validate_document: it returns the document only when both global and owner-aware object access checks succeed, and otherwise raises PermissionDenied.",
+              "citations": [
+                {
+                  "sourceId": "src-d74dd1895d260a60",
+                  "startLine": 2873,
+                  "endLine": 2886
+                }
+              ]
+            },
+            {
+              "id": "f-protected-effect",
+              "kind": "effect",
+              "statement": "Share-link creation would assign a random slug and invoke the serializer's creation operation, but this effect is not reached when document validation raises PermissionDenied.",
+              "citations": [
+                {
+                  "sourceId": "src-d74dd1895d260a60",
+                  "startLine": 2869,
+                  "endLine": 2871
+                },
+                {
+                  "sourceId": "src-d74dd1895d260a60",
+                  "startLine": 2882,
+                  "endLine": 2886
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "deny"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "validation": {
+      "canonicalResultVersion": "source-authorization-assessment-result/v0",
+      "status": "invalid",
+      "diagnostics": [
+        {
+          "code": "citation-out-of-range",
+          "message": "Citation range 624-635 is outside source src-d74dd1895d260a60 crop 2869-2886; a citation cannot cross sources.",
+          "path": "results.0.facts.4.citations.0.src-d74dd1895d260a60:624-635",
+          "severity": "error"
+        }
+      ],
+      "sourceCatalog": {
+        "schemaVersion": "authorization-source-catalog/v1",
+        "repository": "https://github.com/paperless-ngx/paperless-ngx",
+        "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+        "sources": [
+          {
+            "sourceId": "src-07683b2578aff9f7",
+            "relativePath": "src/documents/permissions.py",
+            "sha256": "e0a2942814c535a815811e560696e3b32b72de5afa4b78d81158965b04a40635",
+            "cropRange": {
+              "startLine": 30,
+              "endLine": 637
+            },
+            "originalLocations": [
+              "src/documents/permissions.py:30-53",
+              "src/documents/permissions.py:624-637"
+            ],
+            "segments": [
+              {
+                "originalStartLine": 30,
+                "originalEndLine": 53,
+                "snapshotStartLine": 1,
+                "snapshotEndLine": 24,
+                "origins": [
+                  "model-proposal:dep-share-create-http-permission-map"
+                ]
+              },
+              {
+                "originalStartLine": 624,
+                "originalEndLine": 637,
+                "snapshotStartLine": 25,
+                "snapshotEndLine": 38,
+                "origins": [
+                  "model-proposal:dep-share-create-owner-aware-check",
+                  "host-context:symbol-d50f36cbe040d6fab5ea55a5"
+                ]
+              }
+            ],
+            "lines": [
+              {
+                "lineNumber": 30,
+                "text": "class PaperlessObjectPermissions(DjangoObjectPermissions):"
+              },
+              {
+                "lineNumber": 31,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 32,
+                "text": "    A permissions backend that checks for object-level permissions"
+              },
+              {
+                "lineNumber": 33,
+                "text": "    or for ownership."
+              },
+              {
+                "lineNumber": 34,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 35,
+                "text": ""
+              },
+              {
+                "lineNumber": 36,
+                "text": "    perms_map = {"
+              },
+              {
+                "lineNumber": 37,
+                "text": "        \"GET\": [\"%(app_label)s.view_%(model_name)s\"],"
+              },
+              {
+                "lineNumber": 38,
+                "text": "        \"OPTIONS\": [\"%(app_label)s.view_%(model_name)s\"],"
+              },
+              {
+                "lineNumber": 39,
+                "text": "        \"HEAD\": [\"%(app_label)s.view_%(model_name)s\"],"
+              },
+              {
+                "lineNumber": 40,
+                "text": "        \"POST\": [\"%(app_label)s.add_%(model_name)s\"],"
+              },
+              {
+                "lineNumber": 41,
+                "text": "        \"PUT\": [\"%(app_label)s.change_%(model_name)s\"],"
+              },
+              {
+                "lineNumber": 42,
+                "text": "        \"PATCH\": [\"%(app_label)s.change_%(model_name)s\"],"
+              },
+              {
+                "lineNumber": 43,
+                "text": "        \"DELETE\": [\"%(app_label)s.delete_%(model_name)s\"],"
+              },
+              {
+                "lineNumber": 44,
+                "text": "    }"
+              },
+              {
+                "lineNumber": 45,
+                "text": ""
+              },
+              {
+                "lineNumber": 46,
+                "text": "    def has_object_permission(self, request, view, obj):"
+              },
+              {
+                "lineNumber": 47,
+                "text": "        if hasattr(obj, \"owner\") and obj.owner is not None:"
+              },
+              {
+                "lineNumber": 48,
+                "text": "            if request.user == obj.owner:"
+              },
+              {
+                "lineNumber": 49,
+                "text": "                return True"
+              },
+              {
+                "lineNumber": 50,
+                "text": "            else:"
+              },
+              {
+                "lineNumber": 51,
+                "text": "                return super().has_object_permission(request, view, obj)"
+              },
+              {
+                "lineNumber": 52,
+                "text": "        else:"
+              },
+              {
+                "lineNumber": 53,
+                "text": "            return True  # no owner"
+              },
+              {
+                "lineNumber": 624,
+                "text": "def has_perms_owner_aware(user, perms, obj):"
+              },
+              {
+                "lineNumber": 625,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 626,
+                "text": "    Legacy slow path (guardian-backed) single-object permission check."
+              },
+              {
+                "lineNumber": 627,
+                "text": ""
+              },
+              {
+                "lineNumber": 628,
+                "text": "    The queryset-filtering side of this migrated onto"
+              },
+              {
+                "lineNumber": 629,
+                "text": "    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this"
+              },
+              {
+                "lineNumber": 630,
+                "text": "    single-object check still has many production callers. Several callers"
+              },
+              {
+                "lineNumber": 631,
+                "text": "    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``"
+              },
+              {
+                "lineNumber": 632,
+                "text": "    -- grep for this function name before removing it."
+              },
+              {
+                "lineNumber": 633,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 634,
+                "text": "    checker = ObjectPermissionChecker(user)"
+              },
+              {
+                "lineNumber": 635,
+                "text": "    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+              },
+              {
+                "lineNumber": 636,
+                "text": ""
+              },
+              {
+                "lineNumber": 637,
+                "text": ""
+              }
+            ]
+          },
+          {
+            "sourceId": "src-d74dd1895d260a60",
+            "relativePath": "src/documents/serialisers.py",
+            "sha256": "48bf4ad24115a583919803f85cbfa094bda2132e70abaf75ef00574b50a7effa",
+            "cropRange": {
+              "startLine": 2869,
+              "endLine": 2886
+            },
+            "originalLocations": [
+              "src/documents/serialisers.py:2869-2886"
+            ],
+            "segments": [
+              {
+                "originalStartLine": 2869,
+                "originalEndLine": 2886,
+                "snapshotStartLine": 1,
+                "snapshotEndLine": 18,
+                "origins": [
+                  "model-proposal:dep-share-create-document-validation"
+                ]
+              }
+            ],
+            "lines": [
+              {
+                "lineNumber": 2869,
+                "text": "    def create(self, validated_data):"
+              },
+              {
+                "lineNumber": 2870,
+                "text": "        validated_data[\"slug\"] = get_random_string(50)"
+              },
+              {
+                "lineNumber": 2871,
+                "text": "        return super().create(validated_data)"
+              },
+              {
+                "lineNumber": 2872,
+                "text": ""
+              },
+              {
+                "lineNumber": 2873,
+                "text": "    def validate_document(self, document):"
+              },
+              {
+                "lineNumber": 2874,
+                "text": "        if ("
+              },
+              {
+                "lineNumber": 2875,
+                "text": "            self.user is not None"
+              },
+              {
+                "lineNumber": 2876,
+                "text": "            and self.user.has_perm(\"documents.view_document\")"
+              },
+              {
+                "lineNumber": 2877,
+                "text": "            and has_perms_owner_aware("
+              },
+              {
+                "lineNumber": 2878,
+                "text": "                self.user,"
+              },
+              {
+                "lineNumber": 2879,
+                "text": "                \"view_document\","
+              },
+              {
+                "lineNumber": 2880,
+                "text": "                document,"
+              },
+              {
+                "lineNumber": 2881,
+                "text": "            )"
+              },
+              {
+                "lineNumber": 2882,
+                "text": "        ):"
+              },
+              {
+                "lineNumber": 2883,
+                "text": "            return document"
+              },
+              {
+                "lineNumber": 2884,
+                "text": "        raise PermissionDenied("
+              },
+              {
+                "lineNumber": 2885,
+                "text": "            _(\"Insufficient permissions.\"),"
+              },
+              {
+                "lineNumber": 2886,
+                "text": "        )"
+              }
+            ]
+          },
+          {
+            "sourceId": "src-b740d736ac7a1cf1",
+            "relativePath": "src/documents/views.py",
+            "sha256": "a7c397ac62f52180616d00d9c324bfec7af2a08d59110af2c115fd961dcbc68d",
+            "cropRange": {
+              "startLine": 406,
+              "endLine": 4719
+            },
+            "originalLocations": [
+              "src/documents/views.py:406-428",
+              "src/documents/views.py:4696-4719"
+            ],
+            "segments": [
+              {
+                "originalStartLine": 406,
+                "originalEndLine": 428,
+                "snapshotStartLine": 1,
+                "snapshotEndLine": 23,
+                "origins": [
+                  "locator:located-2",
+                  "model-proposal:dep-share-create-user-context"
+                ]
+              },
+              {
+                "originalStartLine": 4696,
+                "originalEndLine": 4719,
+                "snapshotStartLine": 24,
+                "snapshotEndLine": 47,
+                "origins": [
+                  "model-proposal:dep-share-viewset-composition",
+                  "entry:share-create",
+                  "locator:located-1",
+                  "model-proposal:dep-share-serializer-binding",
+                  "model-proposal:dep-share-permission-binding"
+                ]
+              }
+            ],
+            "lines": [
+              {
+                "lineNumber": 406,
+                "text": "class PassUserMixin(GenericAPIView[Any]):"
+              },
+              {
+                "lineNumber": 407,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 408,
+                "text": "    Pass a user object to serializer"
+              },
+              {
+                "lineNumber": 409,
+                "text": "    \"\"\""
+              },
+              {
+                "lineNumber": 410,
+                "text": ""
+              },
+              {
+                "lineNumber": 411,
+                "text": "    def get_serializer(self, *args, **kwargs):"
+              },
+              {
+                "lineNumber": 412,
+                "text": "        serializer_class = self.get_serializer_class()"
+              },
+              {
+                "lineNumber": 413,
+                "text": "        if isinstance(serializer_class, type) and issubclass("
+              },
+              {
+                "lineNumber": 414,
+                "text": "            serializer_class,"
+              },
+              {
+                "lineNumber": 415,
+                "text": "            SerializerWithPerms,"
+              },
+              {
+                "lineNumber": 416,
+                "text": "        ):"
+              },
+              {
+                "lineNumber": 417,
+                "text": "            kwargs.setdefault(\"user\", self.request.user)"
+              },
+              {
+                "lineNumber": 418,
+                "text": "            try:"
+              },
+              {
+                "lineNumber": 419,
+                "text": "                full_perms = get_boolean("
+              },
+              {
+                "lineNumber": 420,
+                "text": "                    str(self.request.query_params.get(\"full_perms\", \"false\")),"
+              },
+              {
+                "lineNumber": 421,
+                "text": "                )"
+              },
+              {
+                "lineNumber": 422,
+                "text": "            except ValueError:"
+              },
+              {
+                "lineNumber": 423,
+                "text": "                full_perms = False"
+              },
+              {
+                "lineNumber": 424,
+                "text": "            kwargs.setdefault("
+              },
+              {
+                "lineNumber": 425,
+                "text": "                \"full_perms\","
+              },
+              {
+                "lineNumber": 426,
+                "text": "                full_perms,"
+              },
+              {
+                "lineNumber": 427,
+                "text": "            )"
+              },
+              {
+                "lineNumber": 428,
+                "text": "        return super().get_serializer(*args, **kwargs)"
+              },
+              {
+                "lineNumber": 4696,
+                "text": "class ShareLinkViewSet("
+              },
+              {
+                "lineNumber": 4697,
+                "text": "    PassUserMixin,"
+              },
+              {
+                "lineNumber": 4698,
+                "text": "    CreateModelMixin,"
+              },
+              {
+                "lineNumber": 4699,
+                "text": "    RetrieveModelMixin,"
+              },
+              {
+                "lineNumber": 4700,
+                "text": "    DestroyModelMixin,"
+              },
+              {
+                "lineNumber": 4701,
+                "text": "    ListModelMixin,"
+              },
+              {
+                "lineNumber": 4702,
+                "text": "    GenericViewSet,"
+              },
+              {
+                "lineNumber": 4703,
+                "text": "):"
+              },
+              {
+                "lineNumber": 4704,
+                "text": "    model = ShareLink"
+              },
+              {
+                "lineNumber": 4705,
+                "text": ""
+              },
+              {
+                "lineNumber": 4706,
+                "text": "    queryset = ShareLink.objects.select_related(\"document\")"
+              },
+              {
+                "lineNumber": 4707,
+                "text": ""
+              },
+              {
+                "lineNumber": 4708,
+                "text": "    serializer_class = ShareLinkSerializer"
+              },
+              {
+                "lineNumber": 4709,
+                "text": "    pagination_class = StandardPagination"
+              },
+              {
+                "lineNumber": 4710,
+                "text": "    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)"
+              },
+              {
+                "lineNumber": 4711,
+                "text": "    filter_backends = ("
+              },
+              {
+                "lineNumber": 4712,
+                "text": "        DjangoFilterBackend,"
+              },
+              {
+                "lineNumber": 4713,
+                "text": "        OrderingFilter,"
+              },
+              {
+                "lineNumber": 4714,
+                "text": "        PermittedObjectsFilter,"
+              },
+              {
+                "lineNumber": 4715,
+                "text": "    )"
+              },
+              {
+                "lineNumber": 4716,
+                "text": "    filterset_class = ShareLinkFilterSet"
+              },
+              {
+                "lineNumber": 4717,
+                "text": "    ordering_fields = (\"created\", \"expiration\", \"document__title\")"
+              },
+              {
+                "lineNumber": 4718,
+                "text": ""
+              },
+              {
+                "lineNumber": 4719,
+                "text": ""
+              }
+            ]
+          }
+        ]
+      },
+      "normalizerVersion": "authorization-wire-normalizer/v6",
+      "wireResult": {
+        "results": [
+          {
+            "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+            "explanation": "At the declared ShareLinkViewSet.create boundary, the viewset is authenticated and uses PaperlessObjectPermissions, while PassUserMixin supplies the authenticated request user to the serializer. The viewset's permission class and ShareLink queryset concern the share-link endpoint/object; they do not by themselves establish view access to the referenced Document. During serializer validation, the referenced document must satisfy both the caller's global documents.view_document permission and has_perms_owner_aware(..., \"view_document\", document). That owner-aware check permits the owner or an object-level grant, otherwise it returns false. Under the stated premises, the global permission is present but the caller is neither the owner nor an object-view grantee, so validate_document raises PermissionDenied before ShareLinkSerializer.create can create the new share link. The source-visible result is deny. No decisive source-external runtime fact is needed beyond the accepted task premises; source discovery remains not-tested and no repository-wide completeness is claimed.",
+            "facts": [
+              {
+                "id": "f-entry",
+                "kind": "entry",
+                "statement": "ShareLinkViewSet is the declared share-link handler, uses ShareLinkSerializer, and declares IsAuthenticated plus PaperlessObjectPermissions.",
+                "citations": [
+                  {
+                    "sourceId": "src-b740d736ac7a1cf1",
+                    "startLine": 4696,
+                    "endLine": 4710
+                  }
+                ]
+              },
+              {
+                "id": "f-identity-binding",
+                "kind": "binding",
+                "statement": "The PassUserMixin passes request.user into serializers that support the user parameter.",
+                "citations": [
+                  {
+                    "sourceId": "src-b740d736ac7a1cf1",
+                    "startLine": 406,
+                    "endLine": 418
+                  }
+                ]
+              },
+              {
+                "id": "f-resource-binding",
+                "kind": "binding",
+                "statement": "Serializer validation receives the referenced document and applies the document-specific permission check to that object.",
+                "citations": [
+                  {
+                    "sourceId": "src-d74dd1895d260a60",
+                    "startLine": 2873,
+                    "endLine": 2881
+                  }
+                ]
+              },
+              {
+                "id": "f-global-condition",
+                "kind": "condition",
+                "statement": "Document validation requires the caller to have the global documents.view_document permission.",
+                "citations": [
+                  {
+                    "sourceId": "src-d74dd1895d260a60",
+                    "startLine": 2873,
+                    "endLine": 2877
+                  }
+                ]
+              },
+              {
+                "id": "f-object-condition",
+                "kind": "condition",
+                "statement": "Document validation also requires the owner-aware view_document check on the referenced document; that check allows the owner or an object-level permission and otherwise delegates to the object-permission checker.",
+                "citations": [
+                  {
+                    "sourceId": "src-d74dd1895d260a60",
+                    "startLine": 624,
+                    "endLine": 635
+                  }
+                ]
+              },
+              {
+                "id": "f-strongest-control",
+                "kind": "control",
+                "statement": "The decisive target-document authorization control is validate_document: it returns the document only when both global and owner-aware object access checks succeed, and otherwise raises PermissionDenied.",
+                "citations": [
+                  {
+                    "sourceId": "src-d74dd1895d260a60",
+                    "startLine": 2873,
+                    "endLine": 2886
+                  }
+                ]
+              },
+              {
+                "id": "f-protected-effect",
+                "kind": "effect",
+                "statement": "Share-link creation would assign a random slug and invoke the serializer's creation operation, but this effect is not reached when document validation raises PermissionDenied.",
+                "citations": [
+                  {
+                    "sourceId": "src-d74dd1895d260a60",
+                    "startLine": 2869,
+                    "endLine": 2871
+                  },
+                  {
+                    "sourceId": "src-d74dd1895d260a60",
+                    "startLine": 2882,
+                    "endLine": 2886
+                  }
+                ]
+              }
+            ],
+            "decisiveMissingFacts": [],
+            "suggestedObservations": [],
+            "decision": {
+              "kind": "observed",
+              "observed": "deny"
+            },
+            "branchResults": []
+          }
+        ]
+      },
+      "observedDecisions": [
+        {
+          "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+          "expectation": "deny",
+          "observed": "deny",
+          "derivedConclusion": "source_refuted"
+        }
+      ]
+    }
+  },
+  "final": {
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "paperless-share-create-document-view",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "results": [
+        {
+          "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+          "conclusion": "source_refuted",
+          "explanation": "At the declared ShareLinkViewSet.create boundary, the viewset requires authentication and declares PaperlessObjectPermissions, while PassUserMixin supplies request.user to the serializer. Those viewset permissions concern entry and the share-link endpoint/object; they do not by themselves establish view access to the referenced Document. Serializer validation of the referenced document requires both the caller's global documents.view_document permission and has_perms_owner_aware(..., \"view_document\", document). That owner-aware check permits the owner or an object-level grant, otherwise it returns false. Under the accepted premises, the global permission is present but the caller is not the document owner and has no object-view grant, so validate_document raises PermissionDenied before the protected new share-link effect is reached. The source-visible result is deny. No decisive source-external runtime fact is needed beyond the accepted task premises; source discovery remains not-tested and no repository-wide completeness is claimed.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "ShareLinkViewSet is the declared share-link handler, uses ShareLinkSerializer, and declares IsAuthenticated plus PaperlessObjectPermissions.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 4696,
+                    "endLine": 4710,
+                    "quote": "class ShareLinkViewSet(\n    PassUserMixin,\n    CreateModelMixin,\n    RetrieveModelMixin,\n    DestroyModelMixin,\n    ListModelMixin,\n    GenericViewSet,\n):\n    model = ShareLink\n\n    queryset = ShareLink.objects.select_related(\"document\")\n\n    serializer_class = ShareLinkSerializer\n    pagination_class = StandardPagination\n    permission_classes = (IsAuthenticated, PaperlessObjectPermissions)"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "PassUserMixin passes request.user into serializers that support the user parameter.",
+                "citations": [
+                  {
+                    "path": "src/documents/views.py",
+                    "startLine": 406,
+                    "endLine": 418,
+                    "quote": "class PassUserMixin(GenericAPIView[Any]):\n    \"\"\"\n    Pass a user object to serializer\n    \"\"\"\n\n    def get_serializer(self, *args, **kwargs):\n        serializer_class = self.get_serializer_class()\n        if isinstance(serializer_class, type) and issubclass(\n            serializer_class,\n            SerializerWithPerms,\n        ):\n            kwargs.setdefault(\"user\", self.request.user)\n            try:"
+                  }
+                ]
+              },
+              {
+                "statement": "Serializer validation receives the referenced document and applies the document-specific permission check to that object.",
+                "citations": [
+                  {
+                    "path": "src/documents/serialisers.py",
+                    "startLine": 2873,
+                    "endLine": 2881,
+                    "quote": "    def validate_document(self, document):\n        if (\n            self.user is not None\n            and self.user.has_perm(\"documents.view_document\")\n            and has_perms_owner_aware(\n                self.user,\n                \"view_document\",\n                document,\n            )"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "The decisive target-document authorization control is validate_document: it returns the document only when both global and owner-aware object access checks succeed, and otherwise raises PermissionDenied.",
+                "citations": [
+                  {
+                    "path": "src/documents/serialisers.py",
+                    "startLine": 2873,
+                    "endLine": 2886,
+                    "quote": "    def validate_document(self, document):\n        if (\n            self.user is not None\n            and self.user.has_perm(\"documents.view_document\")\n            and has_perms_owner_aware(\n                self.user,\n                \"view_document\",\n                document,\n            )\n        ):\n            return document\n        raise PermissionDenied(\n            _(\"Insufficient permissions.\"),\n        )"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "Share-link creation assigns a random slug and invokes the serializer creation operation, but that effect is not reached when document validation raises PermissionDenied.",
+                "citations": [
+                  {
+                    "path": "src/documents/serialisers.py",
+                    "startLine": 2869,
+                    "endLine": 2871,
+                    "quote": "    def create(self, validated_data):\n        validated_data[\"slug\"] = get_random_string(50)\n        return super().create(validated_data)"
+                  },
+                  {
+                    "path": "src/documents/serialisers.py",
+                    "startLine": 2882,
+                    "endLine": 2886,
+                    "quote": "        ):\n            return document\n        raise PermissionDenied(\n            _(\"Insufficient permissions.\"),\n        )"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "Document validation requires the caller to have the global documents.view_document permission.",
+                "citations": [
+                  {
+                    "path": "src/documents/serialisers.py",
+                    "startLine": 2873,
+                    "endLine": 2877,
+                    "quote": "    def validate_document(self, document):\n        if (\n            self.user is not None\n            and self.user.has_perm(\"documents.view_document\")\n            and has_perms_owner_aware("
+                  }
+                ]
+              },
+              {
+                "statement": "The owner-aware view_document check allows the owner or an object-level permission on the referenced document; otherwise its object-permission check must grant access.",
+                "citations": [
+                  {
+                    "path": "src/documents/permissions.py",
+                    "startLine": 624,
+                    "endLine": 635,
+                    "quote": "def has_perms_owner_aware(user, perms, obj):\n    \"\"\"\n    Legacy slow path (guardian-backed) single-object permission check.\n\n    The queryset-filtering side of this migrated onto\n    ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n    single-object check still has many production callers. Several callers\n    remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n    -- grep for this function name before removing it.\n    \"\"\"\n    checker = ObjectPermissionChecker(user)\n    return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+          "explanation": "At the declared ShareLinkViewSet.create boundary, the viewset requires authentication and declares PaperlessObjectPermissions, while PassUserMixin supplies request.user to the serializer. Those viewset permissions concern entry and the share-link endpoint/object; they do not by themselves establish view access to the referenced Document. Serializer validation of the referenced document requires both the caller's global documents.view_document permission and has_perms_owner_aware(..., \"view_document\", document). That owner-aware check permits the owner or an object-level grant, otherwise it returns false. Under the accepted premises, the global permission is present but the caller is not the document owner and has no object-view grant, so validate_document raises PermissionDenied before the protected new share-link effect is reached. The source-visible result is deny. No decisive source-external runtime fact is needed beyond the accepted task premises; source discovery remains not-tested and no repository-wide completeness is claimed.",
+          "facts": [
+            {
+              "id": "f-entry",
+              "kind": "entry",
+              "statement": "ShareLinkViewSet is the declared share-link handler, uses ShareLinkSerializer, and declares IsAuthenticated plus PaperlessObjectPermissions.",
+              "citations": [
+                {
+                  "sourceId": "src-b740d736ac7a1cf1",
+                  "startLine": 4696,
+                  "endLine": 4710
+                }
+              ]
+            },
+            {
+              "id": "f-identity-binding",
+              "kind": "binding",
+              "statement": "PassUserMixin passes request.user into serializers that support the user parameter.",
+              "citations": [
+                {
+                  "sourceId": "src-b740d736ac7a1cf1",
+                  "startLine": 406,
+                  "endLine": 418
+                }
+              ]
+            },
+            {
+              "id": "f-resource-binding",
+              "kind": "binding",
+              "statement": "Serializer validation receives the referenced document and applies the document-specific permission check to that object.",
+              "citations": [
+                {
+                  "sourceId": "src-d74dd1895d260a60",
+                  "startLine": 2873,
+                  "endLine": 2881
+                }
+              ]
+            },
+            {
+              "id": "f-global-condition",
+              "kind": "condition",
+              "statement": "Document validation requires the caller to have the global documents.view_document permission.",
+              "citations": [
+                {
+                  "sourceId": "src-d74dd1895d260a60",
+                  "startLine": 2873,
+                  "endLine": 2877
+                }
+              ]
+            },
+            {
+              "id": "f-object-condition",
+              "kind": "condition",
+              "statement": "The owner-aware view_document check allows the owner or an object-level permission on the referenced document; otherwise its object-permission check must grant access.",
+              "citations": [
+                {
+                  "sourceId": "src-07683b2578aff9f7",
+                  "startLine": 624,
+                  "endLine": 635
+                }
+              ]
+            },
+            {
+              "id": "f-strongest-control",
+              "kind": "control",
+              "statement": "The decisive target-document authorization control is validate_document: it returns the document only when both global and owner-aware object access checks succeed, and otherwise raises PermissionDenied.",
+              "citations": [
+                {
+                  "sourceId": "src-d74dd1895d260a60",
+                  "startLine": 2873,
+                  "endLine": 2886
+                }
+              ]
+            },
+            {
+              "id": "f-protected-effect",
+              "kind": "effect",
+              "statement": "Share-link creation assigns a random slug and invokes the serializer creation operation, but that effect is not reached when document validation raises PermissionDenied.",
+              "citations": [
+                {
+                  "sourceId": "src-d74dd1895d260a60",
+                  "startLine": 2869,
+                  "endLine": 2871
+                },
+                {
+                  "sourceId": "src-d74dd1895d260a60",
+                  "startLine": 2882,
+                  "endLine": 2886
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "deny"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Aglobal-only-no-document-view::entry%3Ashare-create",
+        "expectation": "deny",
+        "observed": "deny",
+        "derivedConclusion": "source_refuted"
+      }
+    ],
+    "finalKind": "repair"
+  },
+  "reportSha256": "33932dd1e772c0278f2c5786b5a8daabab6e3f753e9a5f938dd367694d5c1681",
+  "runSha256": "37681d8557e6a8aafbdee838d49a5bff1ae89b063ab1015ced0e0009c3b347db",
+  "sourceScope": "Fixed supplied public source and current public task only; no target execution or source discovery claim.",
+  "ratingRules": {
+    "supported": "All material claims follow supplied source and public premises; accurate bounded unknown is supported only when every requested causal explanation is addressed.",
+    "incomplete": "No decisive false claim, but a necessary control, requested branch, policy comparison or explanation is missing.",
+    "unsupported": "A material source, premise, observed decision or policy comparison claim contradicts the public task or fixed source.",
+    "determinate": "The actual scenario and necessary explanation are answered with supported decisions.",
+    "conditional": "Every requested relevant branch is causally supported and unspecified actual truth remains explicit.",
+    "unresolved": "The requested outcome or required branch cannot be answered, even if uncertainty is faithful.",
+    "blocked": "No valid delivered analysis, including author, preparation, transport and completion-unknown dependencies; retains the planned denominator.",
+    "firstFinal": "Rate the archived first raw answer and final delivered artifact separately. A host summary never erases a wrong raw explanation.",
+    "isolation": "The evaluator oracle and ratings are read only after generation closes; no answer, rating or evaluator criterion enters a generation prompt."
+  }
+}

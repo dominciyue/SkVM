@@ -1,0 +1,38 @@
+{
+  "valid": false,
+  "diagnostics": [
+    {
+      "path": "markdown",
+      "message": "Retain this public current fact: al-use-memos-members"
+    },
+    {
+      "path": "markdown",
+      "message": "Retain this public current fact: self-leave"
+    },
+    {
+      "path": "markdown",
+      "message": "Retain this public current fact: caller-is-target-member"
+    },
+    {
+      "path": "markdown",
+      "message": "Retain this public current fact: delete own membership"
+    },
+    {
+      "path": "markdown",
+      "message": "Retain this public current fact: other-member"
+    },
+    {
+      "path": "markdown",
+      "message": "Retain this public current fact: caller-is-not-target-member-and-not-admin"
+    },
+    {
+      "path": "markdown",
+      "message": "Retain this public current fact: delete another active membership"
+    },
+    {
+      "path": "markdown",
+      "message": "Retain this public current fact: deny"
+    }
+  ],
+  "value": "# Authorization Task: Compare Self-Leave and Removing Another Member\n\n## Request\n\nAt the `DeleteSpaceMember` handler entry, compare:\n\n1. An active ordinary member deleting their own active membership to leave the space.\n2. An active ordinary member deleting a different active member’s membership in the same space.\n\nAssume `resolveSpaceMemberResource` succeeds. Report **source-visible authorization** and the **accepted-policy comparison** separately. Do not infer or invent runtime facts beyond the stated premises.\n\n## Source Identity and Entry\n\n- **Repository:** https://github.com/usememos/memos\n- **Source revision:** `cb42e326ba9cc266a6a9570c53e0fe04c62793f4`\n- **Relevant entry:** `delete-member`\n- **File:** `server/api/v1/space_service.go`\n- **Entry lines:** 740–763\n- **Related allowed file:** `store/space.go`\n\n## Current Accepted Policy\n\n> An active space member may delete their own membership to leave. Removing a different active member requires space administrator authority.\n\n- **Policy location:** `author-briefs.json#/memos-space-policy/originalPolicy`\n- **Policy revision:** `memos-space-policy-original`\n- **Policy status:** accepted\n\n## Required Comparison\n\n### Scenario 1: Self-leave\n\n- **Entry:** `delete-member`\n- **Principal:** Authenticated active ordinary non-administrator member\n- **Resource:** Space membership\n- **Relation:** Caller is the target member\n- **Operation:** Delete the caller’s own membership\n- **Expected policy result:** Allow\n- **Evaluation boundary:** Declared handler entry\n- **Premise:** At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and `resolveSpaceMemberResource` succeeds.\n\nReport separately:\n\n- What authorization behavior is visible from the source at the declared entry.\n- Whether that source-visible behavior agrees with the accepted policy.\n- The decisive control path and any relevant effect, without adding unsupported runtime assumptions.\n\n### Scenario 2: Other-member removal\n\n- **Entry:** `delete-member`\n- **Principal:** Authenticated active ordinary non-administrator member\n- **Resource:** Space membership\n- **Relation:** Caller is not the target member and is not an administrator\n- **Operation:** Delete another active member’s membership\n- **Expected policy result:** Deny\n- **Evaluation boundary:** Declared handler entry\n- **Premise:** At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and `resolveSpaceMemberResource` succeeds.\n\nReport separately:\n\n- What authorization behavior is visible from the source at the declared entry.\n- Whether that source-visible behavior agrees with the accepted policy.\n- The decisive control path and any relevant effect, without adding unsupported runtime assumptions.\n\n## Reporting Requirements\n\n- Compare the two requested branches explicitly.\n- Keep **source behavior** distinct from the **accepted-policy expectation**.\n- Treat the stated target relations and successful resource resolution as premises.\n- Distinguish an unspecified condition from an absent condition.\n- Do not assume whether an actual owner or administrator exists beyond the stated scenarios.\n- Source-external store failure is not an authorization result; do not use it to characterize authorization.\n- Do not add future cases, unrequested branches, or unsupported runtime facts."
+}

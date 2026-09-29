@@ -1,0 +1,824 @@
+{
+  "schemaVersion": "authorization-an-review-packet/v1",
+  "id": "quality:q02",
+  "kind": "quality",
+  "row": {
+    "id": "q02",
+    "caseId": "owui-file",
+    "route": "dsl",
+    "taskContract": "compatibility",
+    "input": {
+      "path": "results/skill-ir/skill-dsl-research/development/authorization-control-context-v1/inputs/owui-file/callable-v1/assessment.json",
+      "sha256": "f6b5064a2902603841c83047a65964488553b1a1c412b5c4702934c2d5328c68"
+    },
+    "materialReport": {
+      "path": "results/skill-ir/skill-dsl-research/development/authorization-control-context-v1/inputs/owui-file/callable-v1/report.json",
+      "sha256": "dbc9c7bd792dc10ed8bbefda26bfcdc5b543a00c53a13d24b102bbcc9f9c605b"
+    },
+    "markdown": {
+      "path": "results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/inputs/owui-file/independent.md",
+      "sha256": "d6bba8a1a37ad0e3eb8ecc58e9510e3997b184658cc790c970ef78e261551597"
+    },
+    "originalSourceFiles": [
+      {
+        "path": "results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/public-source/owui/backend/open_webui/routers/retrieval.py",
+        "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72"
+      }
+    ]
+  },
+  "status": "completed",
+  "first": {
+    "deliveryComplete": true,
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "owui-process-file-write",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "results": [
+        {
+          "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+          "conclusion": "source_supported_failure",
+          "explanation": "source_supported_failure: At the declared POST /process/file entry, the non-admin path binds the supplied file to the authenticated user, while the supplied collection_name is carried into the vector-database save call. The source-visible path does not invoke the separately declared collection-access validator or show any destination ownership/write-grant check before the write sink. For an existing collection, add=True is supplied and the save helper inserts items into the named collection. Thus the source supports that a verified non-admin file owner can cause the file content to be written to the caller-selected existing collection without a destination write grant. File ownership is enforced only for retrieval of the source file; it is distinct from permission to write the destination knowledge-base collection. This is bounded to the supplied declared entry and source crop, not a repository-wide or deployment claim.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "POST /process/file dispatches to process_file.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1546,
+                    "endLine": 1552,
+                    "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),\n):"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "A non-admin caller's file lookup is constrained by the authenticated user's identifier; the admin branch is separate.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1559,
+                    "endLine": 1564,
+                    "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:"
+                  }
+                ]
+              },
+              {
+                "statement": "The caller-supplied collection_name is selected directly, with a file-derived default only when it is absent, and is passed as the collection_name argument to the save operation.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1566,
+                    "endLine": 1569,
+                    "quote": "            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                  },
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1694,
+                    "endLine": 1705,
+                    "quote": "                    result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "Within the shown process_file path, no destination ownership or write-grant check is performed before the named collection is passed to the save helper; the separately shown collection validator is not part of this declared call path.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1566,
+                    "endLine": 1705,
+                    "quote": "            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'\n\n            if form_data.content:\n                # Update the content in the file\n                # Usage: /files/{file_id}/data/content/update, /files/ (audio file upload pipeline)\n\n                try:\n                    # /files/{file_id}/data/content/update\n                    await ASYNC_VECTOR_DB_CLIENT.delete_collection(collection_name=f'file-{file.id}')\n                except Exception:\n                    # Audio file upload pipeline\n                    pass\n\n                docs = [\n                    Document(\n                        page_content=form_data.content.replace('<br/>', '\\n'),\n                        metadata={\n                            **file.meta,\n                            'name': file.filename,\n                            'created_by': file.user_id,\n                            'file_id': file.id,\n                            'source': file.filename,\n                        },\n                    )\n                ]\n\n                text_content = form_data.content\n            elif form_data.collection_name:\n                # Check if the file has already been processed and save the content\n                # Usage: /knowledge/{id}/file/add, /knowledge/{id}/file/update\n\n                result = await ASYNC_VECTOR_DB_CLIENT.query(\n                    collection_name=f'file-{file.id}', filter={'file_id': file.id}\n                )\n\n                if result is not None and len(result.ids[0]) > 0:\n                    docs = [\n                        Document(\n                            page_content=result.documents[0][idx],\n                            metadata=result.metadatas[0][idx],\n                        )\n                        for idx, id in enumerate(result.ids[0])\n                    ]\n                else:\n                    docs = [\n                        Document(\n                            page_content=file.data.get('content', ''),\n                            metadata={\n                                **file.meta,\n                                'name': file.filename,\n                                'created_by': file.user_id,\n                                'file_id': file.id,\n                                'source': file.filename,\n                            },\n                        )\n                    ]\n\n                text_content = file.data.get('content', '')\n            else:\n                # Process the file and save the content\n                # Usage: /files/\n                file_path = file.path\n                if file_path:\n                    file_path = await asyncio.to_thread(Storage.get_file, file_path)\n                    loader = build_loader_from_config(request)\n                    loader.user = user\n                    docs = await loader.aload(file.filename, file.meta.get('content_type'), file_path)\n\n                    docs = [\n                        Document(\n                            page_content=doc.page_content,\n                            metadata={\n                                **filter_metadata(doc.metadata),\n                                'name': file.filename,\n                                'created_by': file.user_id,\n                                'file_id': file.id,\n                                'source': file.filename,\n                            },\n                        )\n                        for doc in docs\n                    ]\n                else:\n                    docs = [\n                        Document(\n                            page_content=file.data.get('content', ''),\n                            metadata={\n                                **file.meta,\n                                'name': file.filename,\n                                'created_by': file.user_id,\n                                'file_id': file.id,\n                                'source': file.filename,\n                            },\n                        )\n                    ]\n                text_content = ' '.join([doc.page_content for doc in docs])\n\n            log.debug(f'text_content: {text_content}')\n            await Files.update_file_data_by_id(\n                file.id,\n                {'content': text_content},\n                db=db,\n            )\n            hash = calculate_sha256_string(text_content)\n\n            if request.app.state.config.BYPASS_EMBEDDING_AND_RETRIEVAL:\n                await Files.update_file_data_by_id(file.id, {'status': 'completed'}, db=db)\n                await Files.update_file_hash_by_id(file.id, hash, db=db)\n                return {\n                    'status': True,\n                    'collection_name': None,\n                    'filename': file.filename,\n                    'content': text_content,\n                }\n            else:\n                try:\n                    # Commit any pending changes before the slow embedding step.\n                    # Note: file is already a Pydantic model (not ORM), so no expunge needed.\n                    await db.commit()\n\n                    # External embedding API takes time (5-60s+).\n                    # Subsequent updates use fresh async sessions.\n                    # NOTE: save_docs_to_vector_db is a sync function that\n                    # calls asyncio.run_coroutine_threadsafe(..., main_loop).result()\n                    # which blocks the calling thread.  We MUST run it in a\n                    # worker thread to avoid deadlocking the event loop.\n                    result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,"
+                  },
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 2339,
+                    "endLine": 2348,
+                    "quote": "async def _validate_collection_access(collection_names: list[str], user, access_type: str = 'read') -> None:\n    \"\"\"\n    Raise 403 if the user lacks access to any of the requested collections.\n    Delegates to the shared filter_accessible_collections utility so the\n    access rules stay in one place.\n    \"\"\"\n    requested = set(collection_names)\n    allowed = await filter_accessible_collections(requested, user, access_type=access_type)\n    denied = requested - allowed\n    if denied:"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The protected destination write is the vector database insertion into the named collection.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1527,
+                    "endLine": 1533,
+                    "quote": "        log.info(f'adding to collection {collection_name}')\n        VECTOR_DB_CLIENT.insert(\n            collection_name=collection_name,\n            items=items,\n        )\n\n        log.info(f'added {len(items)} items to collection {collection_name}')"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The existing-collection branch is reached with add enabled when a collection name was supplied, so an existing destination is not rejected merely because it already exists.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1458,
+                    "endLine": 1467,
+                    "quote": "    try:\n        if VECTOR_DB_CLIENT.has_collection(collection_name=collection_name):\n            log.info(f'collection {collection_name} already exists')\n\n            if overwrite:\n                VECTOR_DB_CLIENT.delete_collection(collection_name=collection_name)\n                log.info(f'deleting existing collection {collection_name}')\n            elif add is False:\n                log.info(f'collection {collection_name} already exists, overwrite is False and add is False')\n                return True"
+                  },
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1694,
+                    "endLine": 1705,
+                    "quote": "                    result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+          "explanation": "source_supported_failure: At the declared POST /process/file entry, the non-admin path binds the supplied file to the authenticated user, while the supplied collection_name is carried into the vector-database save call. The source-visible path does not invoke the separately declared collection-access validator or show any destination ownership/write-grant check before the write sink. For an existing collection, add=True is supplied and the save helper inserts items into the named collection. Thus the source supports that a verified non-admin file owner can cause the file content to be written to the caller-selected existing collection without a destination write grant. File ownership is enforced only for retrieval of the source file; it is distinct from permission to write the destination knowledge-base collection. This is bounded to the supplied declared entry and source crop, not a repository-wide or deployment claim.",
+          "facts": [
+            {
+              "id": "f-entry",
+              "kind": "entry",
+              "statement": "POST /process/file dispatches to process_file.",
+              "citations": [
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1546,
+                  "endLine": 1552
+                }
+              ]
+            },
+            {
+              "id": "f-principal-binding",
+              "kind": "binding",
+              "statement": "A non-admin caller's file lookup is constrained by the authenticated user's identifier; the admin branch is separate.",
+              "citations": [
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1559,
+                  "endLine": 1564
+                }
+              ]
+            },
+            {
+              "id": "f-resource-binding",
+              "kind": "binding",
+              "statement": "The caller-supplied collection_name is selected directly, with a file-derived default only when it is absent, and is passed as the collection_name argument to the save operation.",
+              "citations": [
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1566,
+                  "endLine": 1569
+                },
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1694,
+                  "endLine": 1705
+                }
+              ]
+            },
+            {
+              "id": "f-control",
+              "kind": "control",
+              "statement": "Within the shown process_file path, no destination ownership or write-grant check is performed before the named collection is passed to the save helper; the separately shown collection validator is not part of this declared call path.",
+              "citations": [
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1566,
+                  "endLine": 1705
+                },
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 2339,
+                  "endLine": 2348
+                }
+              ]
+            },
+            {
+              "id": "f-condition",
+              "kind": "condition",
+              "statement": "The existing-collection branch is reached with add enabled when a collection name was supplied, so an existing destination is not rejected merely because it already exists.",
+              "citations": [
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1458,
+                  "endLine": 1467
+                },
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1694,
+                  "endLine": 1705
+                }
+              ]
+            },
+            {
+              "id": "f-effect",
+              "kind": "effect",
+              "statement": "The protected destination write is the vector database insertion into the named collection.",
+              "citations": [
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1527,
+                  "endLine": 1533
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "allow"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "validation": {
+      "parsedResult": {
+        "schemaVersion": "source-authorization-assessment-result/v0",
+        "taskId": "owui-process-file-write",
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "results": [
+          {
+            "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+            "conclusion": "source_supported_failure",
+            "explanation": "source_supported_failure: At the declared POST /process/file entry, the non-admin path binds the supplied file to the authenticated user, while the supplied collection_name is carried into the vector-database save call. The source-visible path does not invoke the separately declared collection-access validator or show any destination ownership/write-grant check before the write sink. For an existing collection, add=True is supplied and the save helper inserts items into the named collection. Thus the source supports that a verified non-admin file owner can cause the file content to be written to the caller-selected existing collection without a destination write grant. File ownership is enforced only for retrieval of the source file; it is distinct from permission to write the destination knowledge-base collection. This is bounded to the supplied declared entry and source crop, not a repository-wide or deployment claim.",
+            "facts": {
+              "entry": [
+                {
+                  "statement": "POST /process/file dispatches to process_file.",
+                  "citations": [
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 1546,
+                      "endLine": 1552,
+                      "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),\n):"
+                    }
+                  ]
+                }
+              ],
+              "binding": [
+                {
+                  "statement": "A non-admin caller's file lookup is constrained by the authenticated user's identifier; the admin branch is separate.",
+                  "citations": [
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 1559,
+                      "endLine": 1564,
+                      "quote": "if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:"
+                    }
+                  ]
+                },
+                {
+                  "statement": "The caller-supplied collection_name is selected directly, with a file-derived default only when it is absent, and is passed as the collection_name argument to the save operation.",
+                  "citations": [
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 1566,
+                      "endLine": 1569,
+                      "quote": "collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                    },
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 1694,
+                      "endLine": 1705,
+                      "quote": "result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,"
+                    }
+                  ]
+                }
+              ],
+              "control": [
+                {
+                  "statement": "Within the shown process_file path, no destination ownership or write-grant check is performed before the named collection is passed to the save helper; the separately shown collection validator is not part of this declared call path.",
+                  "citations": [
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 1566,
+                      "endLine": 1705,
+                      "quote": "collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'\n\n            if form_data.content:\n                # Update the content in the file\n                # Usage: /files/{file_id}/data/content/update, /files/ (audio file upload pipeline)\n\n                try:\n                    # /files/{file_id}/data/content/update\n                    await ASYNC_VECTOR_DB_CLIENT.delete_collection(collection_name=f'file-{file.id}')\n                except Exception:\n                    # Audio file upload pipeline\n                    pass\n\n                docs = [\n                    Document(\n                        page_content=form_data.content.replace('<br/>', '\\n'),\n                        metadata={\n                            **file.meta,\n                            'name': file.filename,\n                            'created_by': file.user_id,\n                            'file_id': file.id,\n                            'source': file.filename,\n                        },\n                    )\n                ]\n\n                text_content = form_data.content\n            elif form_data.collection_name:\n                # Check if the file has already been processed and save the content\n                # Usage: /knowledge/{id}/file/add, /knowledge/{id}/file/update\n\n                result = await ASYNC_VECTOR_DB_CLIENT.query(\n                    collection_name=f'file-{file.id}', filter={'file_id': file.id}\n                )\n\n                if result is not None and len(result.ids[0]) > 0:\n                    docs = [\n                        Document(\n                            page_content=result.documents[0][idx],\n                            metadata=result.metadatas[0][idx],\n                        )\n                        for idx, id in enumerate(result.ids[0])\n                    ]\n                else:\n                    docs = [\n                        Document(\n                            page_content=file.data.get('content', ''),\n                            metadata={\n                                **file.meta,\n                                'name': file.filename,\n                                'created_by': file.user_id,\n                                'file_id': file.id,\n                                'source': file.filename,\n                            },\n                        )\n                    ]\n\n                text_content = file.data.get('content', '')\n            else:\n                # Process the file and save the content\n                # Usage: /files/\n                file_path = file.path\n                if file_path:\n                    file_path = await asyncio.to_thread(Storage.get_file, file_path)\n                    loader = build_loader_from_config(request)\n                    loader.user = user\n                    docs = await loader.aload(file.filename, file.meta.get('content_type'), file_path)\n\n                    docs = [\n                        Document(\n                            page_content=doc.page_content,\n                            metadata={\n                                **filter_metadata(doc.metadata),\n                                'name': file.filename,\n                                'created_by': file.user_id,\n                                'file_id': file.id,\n                                'source': file.filename,\n                            },\n                        )\n                        for doc in docs\n                    ]\n                else:\n                    docs = [\n                        Document(\n                            page_content=file.data.get('content', ''),\n                            metadata={\n                                **file.meta,\n                                'name': file.filename,\n                                'created_by': file.user_id,\n                                'file_id': file.id,\n                                'source': file.filename,\n                            },\n                        )\n                    ]\n                text_content = ' '.join([doc.page_content for doc in docs])\n\n            log.debug(f'text_content: {text_content}')\n            await Files.update_file_data_by_id(\n                file.id,\n                {'content': text_content},\n                db=db,\n            )\n            hash = calculate_sha256_string(text_content)\n\n            if request.app.state.config.BYPASS_EMBEDDING_AND_RETRIEVAL:\n                await Files.update_file_data_by_id(file.id, {'status': 'completed'}, db=db)\n                await Files.update_file_hash_by_id(file.id, hash, db=db)\n                return {\n                    'status': True,\n                    'collection_name': None,\n                    'filename': file.filename,\n                    'content': text_content,\n                }\n            else:\n                try:\n                    # Commit any pending changes before the slow embedding step.\n                    # Note: file is already a Pydantic model (not ORM), so no expunge needed.\n                    await db.commit()\n\n                    # External embedding API takes time (5-60s+).\n                    # Subsequent updates use fresh async sessions.\n                    # NOTE: save_docs_to_vector_db is a sync function that\n                    # calls asyncio.run_coroutine_threadsafe(..., main_loop).result()\n                    # which blocks the calling thread.  We MUST run it in a\n                    # worker thread to avoid deadlocking the event loop.\n                    result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,"
+                    },
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 2339,
+                      "endLine": 2348,
+                      "quote": "async def _validate_collection_access(collection_names: list[str], user, access_type: str = 'read') -> None:\n    \"\"\"\n    Raise 403 if the user lacks access to any of the requested collections.\n    Delegates to the shared filter_accessible_collections utility so the\n    access rules stay in one place.\n    \"\"\"\n    requested = set(collection_names)\n    allowed = await filter_accessible_collections(requested, user, access_type=access_type)\n    denied = requested - allowed\n    if denied:"
+                    }
+                  ]
+                }
+              ],
+              "effect": [
+                {
+                  "statement": "The protected destination write is the vector database insertion into the named collection.",
+                  "citations": [
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 1527,
+                      "endLine": 1533,
+                      "quote": "log.info(f'adding to collection {collection_name}')\n        VECTOR_DB_CLIENT.insert(\n            collection_name=collection_name,\n            items=items,\n        )\n\n        log.info(f'added {len(items)} items to collection {collection_name}')"
+                    }
+                  ]
+                }
+              ],
+              "condition": [
+                {
+                  "statement": "The existing-collection branch is reached with add enabled when a collection name was supplied, so an existing destination is not rejected merely because it already exists.",
+                  "citations": [
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 1458,
+                      "endLine": 1467,
+                      "quote": "try:\n        if VECTOR_DB_CLIENT.has_collection(collection_name=collection_name):\n            log.info(f'collection {collection_name} already exists')\n\n            if overwrite:\n                VECTOR_DB_CLIENT.delete_collection(collection_name=collection_name)\n                log.info(f'deleting existing collection {collection_name}')\n            elif add is False:\n                log.info(f'collection {collection_name} already exists, overwrite is False and add is False')\n                return True"
+                    },
+                    {
+                      "path": "backend/open_webui/routers/retrieval.py",
+                      "startLine": 1694,
+                      "endLine": 1705,
+                      "quote": "result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,"
+                    }
+                  ]
+                }
+              ]
+            },
+            "decisiveMissingFacts": [],
+            "suggestedObservations": []
+          }
+        ],
+        "scopeClaim": {
+          "kind": "declared-obligations-only",
+          "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+        }
+      },
+      "structure": {
+        "status": "valid",
+        "diagnostics": []
+      },
+      "declared": {
+        "total": 1,
+        "disposed": 1,
+        "pending": 0,
+        "blocked": 0,
+        "invalid": 0,
+        "status": "all-disposed",
+        "completionPercent": 100
+      },
+      "discovery": {
+        "status": "not-tested",
+        "claimLimit": "declared-obligations-only"
+      },
+      "evidencePresence": [
+        {
+          "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+          "status": "present"
+        }
+      ],
+      "evidenceSupport": [
+        {
+          "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+          "status": "unreviewed"
+        }
+      ],
+      "completeness": {
+        "status": "accepted",
+        "kind": "declared-obligations-only"
+      },
+      "dependencySnapshot": {
+        "schemaVersion": "authorization-task-dependencies/v1",
+        "task": {
+          "schemaVersion": "source-authorization-assessment/v0",
+          "taskId": "owui-process-file-write",
+          "request": "At this fixed source ref, determine whether a verified non-admin user who owns the supplied file can cause that file's content to be written to an existing knowledge-base collection for which the user has no write permission by supplying that collection name to POST /process/file.",
+          "repository": "https://github.com/open-webui/open-webui",
+          "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+          "sourceMode": "fixed-context",
+          "policySources": [
+            {
+              "id": "policy:destination-knowledge-write-policy",
+              "kind": "explicit-task-requirement",
+              "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+              "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+              "revision": "authorization-case-input/v1@841c9045",
+              "acceptance": {
+                "status": "accepted",
+                "actorRole": "task-author",
+                "reason": "The study task author supplied this bounded normative requirement for the comparison."
+              }
+            }
+          ],
+          "principals": [
+            {
+              "id": "principal:verified-non-admin-file-owner",
+              "role": "verified non-administrator who owns the supplied source file",
+              "description": "Author facts: [\"A signed-in non-admin whose file ownership is distinct from authorization on the destination knowledge base.\"]",
+              "startingCapabilities": [
+                "authenticated-as-verified-user",
+                "owns-supplied-source-file",
+                "can-submit-process-file-form"
+              ]
+            }
+          ],
+          "resources": [
+            {
+              "id": "resource:existing-destination-knowledge-base",
+              "type": "knowledge-base-vector-collection",
+              "description": "Author facts: [\"An existing knowledge-base collection selected by the caller and not owned by or write-granted to the principal.\"]"
+            }
+          ],
+          "entries": [
+            {
+              "id": "entry:post-process-file",
+              "name": "POST /process/file -> process_file",
+              "locations": [
+                {
+                  "path": "backend/open_webui/routers/retrieval.py",
+                  "startLine": 1546,
+                  "endLine": 1762
+                }
+              ]
+            }
+          ],
+          "obligations": [
+            {
+              "id": "scenario:file-owner-without-destination-write-grant",
+              "principalId": "principal:verified-non-admin-file-owner",
+              "resourceId": "resource:existing-destination-knowledge-base",
+              "relation": "owns-source-file-but-no-destination-write-grant",
+              "operation": "write-file-content-to-existing-knowledge-base",
+              "expectation": "deny",
+              "conditions": [
+                {
+                  "name": "caller-supplies-existing-collection-name",
+                  "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+                },
+                {
+                  "name": "principal-is-not-admin",
+                  "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+                }
+              ],
+              "policySourceId": "policy:destination-knowledge-write-policy",
+              "entryIds": [
+                "entry:post-process-file"
+              ]
+            }
+          ],
+          "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+          "requiredAnalysis": [
+            "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+            "identify the principal, operation, target resource relation, entry, and write sink",
+            "trace the user-controlled collection name through any target-specific authorization control",
+            "distinguish file ownership from destination knowledge-base write permission",
+            "return source_supported_failure, source_refuted, or unknown with exact input locations"
+          ],
+          "constraints": [
+            "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+            "Use only the allowed case inputs.",
+            "Do not search for advisories, fixes, later versions, or deployment behavior.",
+            "Do not execute the project or propose a patch."
+          ]
+        },
+        "repository": "https://github.com/open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+        "sourceFiles": [
+          {
+            "path": "backend/open_webui/routers/retrieval.py",
+            "sha256": "f83378c20fa6249245ad108e0647473849f94b51d68ef9fb402a4c30c40dd802",
+            "segments": [
+              {
+                "originalStartLine": 1340,
+                "originalEndLine": 1543,
+                "snapshotStartLine": 1,
+                "snapshotEndLine": 204,
+                "origins": [
+                  "host-context:symbol-e2cecd47ed4a9e8b9693e061",
+                  "model-proposal:dep-vector-save-duplicate-content-check",
+                  "model-proposal:dep-vector-save-existing-collection-control",
+                  "model-proposal:dep-vector-save-insert-effect",
+                  "model-proposal:dep-process-file-form-client-collection-name"
+                ]
+              },
+              {
+                "originalStartLine": 1546,
+                "originalEndLine": 1764,
+                "snapshotStartLine": 205,
+                "snapshotEndLine": 423,
+                "origins": [
+                  "model-proposal:dep-process-file-auth-source-binding",
+                  "entry:post-process-file",
+                  "model-proposal:dep-process-file-destination-binding",
+                  "model-proposal:dep-process-file-existing-content-path",
+                  "model-proposal:dep-process-file-retrieval-bypass",
+                  "model-proposal:dep-process-file-vector-write-call",
+                  "model-proposal:dep-process-file-success-result",
+                  "host-context:symbol-eca905a6724b9af45b4ebf5b"
+                ]
+              },
+              {
+                "originalStartLine": 2339,
+                "originalEndLine": 2354,
+                "snapshotStartLine": 424,
+                "snapshotEndLine": 439,
+                "origins": [
+                  "model-proposal:dep-collection-write-access-validator",
+                  "host-context:symbol-22cc9876de142e84e839b8bb"
+                ]
+              }
+            ]
+          }
+        ],
+        "policies": [
+          {
+            "id": "policy:destination-knowledge-write-policy",
+            "revision": "authorization-case-input/v1@841c9045",
+            "location": "inputs/owui-process-file-write/task.json#/normativeRequirement",
+            "text": "Owning the source file does not authorize writing to an unrelated knowledge base. A verified non-admin may write to an existing knowledge-base collection only when the user owns it or has an explicit write grant.",
+            "acceptanceStatus": "accepted"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "scenario:file-owner-without-destination-write-grant",
+            "principalId": "principal:verified-non-admin-file-owner",
+            "resourceId": "resource:existing-destination-knowledge-base",
+            "relation": "owns-source-file-but-no-destination-write-grant",
+            "operation": "write-file-content-to-existing-knowledge-base",
+            "expectation": "deny",
+            "conditions": [
+              {
+                "name": "caller-supplies-existing-collection-name",
+                "basis": "The natural task fixes a caller-selected existing knowledge-base collection."
+              },
+              {
+                "name": "principal-is-not-admin",
+                "basis": "The task asks about a verified non-admin and the source exposes a separate admin branch."
+              }
+            ],
+            "policySourceId": "policy:destination-knowledge-write-policy",
+            "entryIds": [
+              "entry:post-process-file"
+            ]
+          }
+        ]
+      },
+      "diagnostics": []
+    }
+  },
+  "final": {
+    "canonicalResult": {
+      "schemaVersion": "source-authorization-assessment-result/v0",
+      "taskId": "owui-process-file-write",
+      "repository": "https://github.com/open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "results": [
+        {
+          "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+          "conclusion": "source_supported_failure",
+          "explanation": "source_supported_failure: At the declared POST /process/file entry, the non-admin path binds the supplied file to the authenticated user, while the supplied collection_name is carried into the vector-database save call. The source-visible path does not invoke the separately declared collection-access validator or show any destination ownership/write-grant check before the write sink. For an existing collection, add=True is supplied and the save helper inserts items into the named collection. Thus the source supports that a verified non-admin file owner can cause the file content to be written to the caller-selected existing collection without a destination write grant. File ownership is enforced only for retrieval of the source file; it is distinct from permission to write the destination knowledge-base collection. This is bounded to the supplied declared entry and source crop, not a repository-wide or deployment claim.",
+          "facts": {
+            "entry": [
+              {
+                "statement": "POST /process/file dispatches to process_file.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1546,
+                    "endLine": 1552,
+                    "quote": "@router.post('/process/file')\nasync def process_file(\n    request: Request,\n    form_data: ProcessFileForm,\n    user=Depends(get_verified_user),\n    db: AsyncSession = Depends(get_async_session),\n):"
+                  }
+                ]
+              }
+            ],
+            "binding": [
+              {
+                "statement": "A non-admin caller's file lookup is constrained by the authenticated user's identifier; the admin branch is separate.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1559,
+                    "endLine": 1564,
+                    "quote": "    if user.role == 'admin':\n        file = await Files.get_file_by_id(form_data.file_id, db=db)\n    else:\n        file = await Files.get_file_by_id_and_user_id(form_data.file_id, user.id, db=db)\n\n    if file:"
+                  }
+                ]
+              },
+              {
+                "statement": "The caller-supplied collection_name is selected directly, with a file-derived default only when it is absent, and is passed as the collection_name argument to the save operation.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1566,
+                    "endLine": 1569,
+                    "quote": "            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'"
+                  },
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1694,
+                    "endLine": 1705,
+                    "quote": "                    result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,"
+                  }
+                ]
+              }
+            ],
+            "control": [
+              {
+                "statement": "Within the shown process_file path, no destination ownership or write-grant check is performed before the named collection is passed to the save helper; the separately shown collection validator is not part of this declared call path.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1566,
+                    "endLine": 1705,
+                    "quote": "            collection_name = form_data.collection_name\n\n            if collection_name is None:\n                collection_name = f'file-{file.id}'\n\n            if form_data.content:\n                # Update the content in the file\n                # Usage: /files/{file_id}/data/content/update, /files/ (audio file upload pipeline)\n\n                try:\n                    # /files/{file_id}/data/content/update\n                    await ASYNC_VECTOR_DB_CLIENT.delete_collection(collection_name=f'file-{file.id}')\n                except Exception:\n                    # Audio file upload pipeline\n                    pass\n\n                docs = [\n                    Document(\n                        page_content=form_data.content.replace('<br/>', '\\n'),\n                        metadata={\n                            **file.meta,\n                            'name': file.filename,\n                            'created_by': file.user_id,\n                            'file_id': file.id,\n                            'source': file.filename,\n                        },\n                    )\n                ]\n\n                text_content = form_data.content\n            elif form_data.collection_name:\n                # Check if the file has already been processed and save the content\n                # Usage: /knowledge/{id}/file/add, /knowledge/{id}/file/update\n\n                result = await ASYNC_VECTOR_DB_CLIENT.query(\n                    collection_name=f'file-{file.id}', filter={'file_id': file.id}\n                )\n\n                if result is not None and len(result.ids[0]) > 0:\n                    docs = [\n                        Document(\n                            page_content=result.documents[0][idx],\n                            metadata=result.metadatas[0][idx],\n                        )\n                        for idx, id in enumerate(result.ids[0])\n                    ]\n                else:\n                    docs = [\n                        Document(\n                            page_content=file.data.get('content', ''),\n                            metadata={\n                                **file.meta,\n                                'name': file.filename,\n                                'created_by': file.user_id,\n                                'file_id': file.id,\n                                'source': file.filename,\n                            },\n                        )\n                    ]\n\n                text_content = file.data.get('content', '')\n            else:\n                # Process the file and save the content\n                # Usage: /files/\n                file_path = file.path\n                if file_path:\n                    file_path = await asyncio.to_thread(Storage.get_file, file_path)\n                    loader = build_loader_from_config(request)\n                    loader.user = user\n                    docs = await loader.aload(file.filename, file.meta.get('content_type'), file_path)\n\n                    docs = [\n                        Document(\n                            page_content=doc.page_content,\n                            metadata={\n                                **filter_metadata(doc.metadata),\n                                'name': file.filename,\n                                'created_by': file.user_id,\n                                'file_id': file.id,\n                                'source': file.filename,\n                            },\n                        )\n                        for doc in docs\n                    ]\n                else:\n                    docs = [\n                        Document(\n                            page_content=file.data.get('content', ''),\n                            metadata={\n                                **file.meta,\n                                'name': file.filename,\n                                'created_by': file.user_id,\n                                'file_id': file.id,\n                                'source': file.filename,\n                            },\n                        )\n                    ]\n                text_content = ' '.join([doc.page_content for doc in docs])\n\n            log.debug(f'text_content: {text_content}')\n            await Files.update_file_data_by_id(\n                file.id,\n                {'content': text_content},\n                db=db,\n            )\n            hash = calculate_sha256_string(text_content)\n\n            if request.app.state.config.BYPASS_EMBEDDING_AND_RETRIEVAL:\n                await Files.update_file_data_by_id(file.id, {'status': 'completed'}, db=db)\n                await Files.update_file_hash_by_id(file.id, hash, db=db)\n                return {\n                    'status': True,\n                    'collection_name': None,\n                    'filename': file.filename,\n                    'content': text_content,\n                }\n            else:\n                try:\n                    # Commit any pending changes before the slow embedding step.\n                    # Note: file is already a Pydantic model (not ORM), so no expunge needed.\n                    await db.commit()\n\n                    # External embedding API takes time (5-60s+).\n                    # Subsequent updates use fresh async sessions.\n                    # NOTE: save_docs_to_vector_db is a sync function that\n                    # calls asyncio.run_coroutine_threadsafe(..., main_loop).result()\n                    # which blocks the calling thread.  We MUST run it in a\n                    # worker thread to avoid deadlocking the event loop.\n                    result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,"
+                  },
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 2339,
+                    "endLine": 2348,
+                    "quote": "async def _validate_collection_access(collection_names: list[str], user, access_type: str = 'read') -> None:\n    \"\"\"\n    Raise 403 if the user lacks access to any of the requested collections.\n    Delegates to the shared filter_accessible_collections utility so the\n    access rules stay in one place.\n    \"\"\"\n    requested = set(collection_names)\n    allowed = await filter_accessible_collections(requested, user, access_type=access_type)\n    denied = requested - allowed\n    if denied:"
+                  }
+                ]
+              }
+            ],
+            "effect": [
+              {
+                "statement": "The protected destination write is the vector database insertion into the named collection.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1527,
+                    "endLine": 1533,
+                    "quote": "        log.info(f'adding to collection {collection_name}')\n        VECTOR_DB_CLIENT.insert(\n            collection_name=collection_name,\n            items=items,\n        )\n\n        log.info(f'added {len(items)} items to collection {collection_name}')"
+                  }
+                ]
+              }
+            ],
+            "condition": [
+              {
+                "statement": "The existing-collection branch is reached with add enabled when a collection name was supplied, so an existing destination is not rejected merely because it already exists.",
+                "citations": [
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1458,
+                    "endLine": 1467,
+                    "quote": "    try:\n        if VECTOR_DB_CLIENT.has_collection(collection_name=collection_name):\n            log.info(f'collection {collection_name} already exists')\n\n            if overwrite:\n                VECTOR_DB_CLIENT.delete_collection(collection_name=collection_name)\n                log.info(f'deleting existing collection {collection_name}')\n            elif add is False:\n                log.info(f'collection {collection_name} already exists, overwrite is False and add is False')\n                return True"
+                  },
+                  {
+                    "path": "backend/open_webui/routers/retrieval.py",
+                    "startLine": 1694,
+                    "endLine": 1705,
+                    "quote": "                    result = await run_in_threadpool(\n                        save_docs_to_vector_db,\n                        request,\n                        docs=docs,\n                        collection_name=collection_name,\n                        metadata={\n                            'file_id': file.id,\n                            'name': file.filename,\n                            'hash': hash,\n                        },\n                        add=(True if form_data.collection_name else False),\n                        user=user,"
+                  }
+                ]
+              }
+            ]
+          },
+          "decisiveMissingFacts": [],
+          "suggestedObservations": []
+        }
+      ],
+      "scopeClaim": {
+        "kind": "declared-obligations-only",
+        "statement": "Only declared obligations and supplied fixed source are assessed; discovery is not tested."
+      }
+    },
+    "wireResult": {
+      "results": [
+        {
+          "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+          "explanation": "source_supported_failure: At the declared POST /process/file entry, the non-admin path binds the supplied file to the authenticated user, while the supplied collection_name is carried into the vector-database save call. The source-visible path does not invoke the separately declared collection-access validator or show any destination ownership/write-grant check before the write sink. For an existing collection, add=True is supplied and the save helper inserts items into the named collection. Thus the source supports that a verified non-admin file owner can cause the file content to be written to the caller-selected existing collection without a destination write grant. File ownership is enforced only for retrieval of the source file; it is distinct from permission to write the destination knowledge-base collection. This is bounded to the supplied declared entry and source crop, not a repository-wide or deployment claim.",
+          "facts": [
+            {
+              "id": "f-entry",
+              "kind": "entry",
+              "statement": "POST /process/file dispatches to process_file.",
+              "citations": [
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1546,
+                  "endLine": 1552
+                }
+              ]
+            },
+            {
+              "id": "f-principal-binding",
+              "kind": "binding",
+              "statement": "A non-admin caller's file lookup is constrained by the authenticated user's identifier; the admin branch is separate.",
+              "citations": [
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1559,
+                  "endLine": 1564
+                }
+              ]
+            },
+            {
+              "id": "f-resource-binding",
+              "kind": "binding",
+              "statement": "The caller-supplied collection_name is selected directly, with a file-derived default only when it is absent, and is passed as the collection_name argument to the save operation.",
+              "citations": [
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1566,
+                  "endLine": 1569
+                },
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1694,
+                  "endLine": 1705
+                }
+              ]
+            },
+            {
+              "id": "f-control",
+              "kind": "control",
+              "statement": "Within the shown process_file path, no destination ownership or write-grant check is performed before the named collection is passed to the save helper; the separately shown collection validator is not part of this declared call path.",
+              "citations": [
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1566,
+                  "endLine": 1705
+                },
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 2339,
+                  "endLine": 2348
+                }
+              ]
+            },
+            {
+              "id": "f-condition",
+              "kind": "condition",
+              "statement": "The existing-collection branch is reached with add enabled when a collection name was supplied, so an existing destination is not rejected merely because it already exists.",
+              "citations": [
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1458,
+                  "endLine": 1467
+                },
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1694,
+                  "endLine": 1705
+                }
+              ]
+            },
+            {
+              "id": "f-effect",
+              "kind": "effect",
+              "statement": "The protected destination write is the vector database insertion into the named collection.",
+              "citations": [
+                {
+                  "sourceId": "src-eaa1fec9716aeb48",
+                  "startLine": 1527,
+                  "endLine": 1533
+                }
+              ]
+            }
+          ],
+          "decisiveMissingFacts": [],
+          "suggestedObservations": [],
+          "decision": {
+            "kind": "observed",
+            "observed": "allow"
+          },
+          "branchResults": []
+        }
+      ]
+    },
+    "observedDecisions": [
+      {
+        "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+        "expectation": "deny",
+        "observed": "allow",
+        "derivedConclusion": "source_supported_failure"
+      }
+    ],
+    "finalKind": "initial"
+  },
+  "reportSha256": "0d2213ee56346897fde3355509afa766d10b60d72f69bef03ea2d4471021789e",
+  "runSha256": "1b6f0e37960efc84e046c95af4c3aabffb8ee0305068c40bb0445b432fd4d305",
+  "sourceScope": "Fixed supplied public source and current public task only; no target execution or source discovery claim.",
+  "ratingRules": {
+    "supported": "All material claims follow supplied source and public premises; accurate bounded unknown is supported only when every requested causal explanation is addressed.",
+    "incomplete": "No decisive false claim, but a necessary control, requested branch, policy comparison or explanation is missing.",
+    "unsupported": "A material source, premise, observed decision or policy comparison claim contradicts the public task or fixed source.",
+    "determinate": "The actual scenario and necessary explanation are answered with supported decisions.",
+    "conditional": "Every requested relevant branch is causally supported and unspecified actual truth remains explicit.",
+    "unresolved": "The requested outcome or required branch cannot be answered, even if uncertainty is faithful.",
+    "blocked": "No valid delivered analysis, including author, preparation, transport and completion-unknown dependencies; retains the planned denominator.",
+    "firstFinal": "Rate the archived first raw answer and final delivered artifact separately. A host summary never erases a wrong raw explanation.",
+    "isolation": "The evaluator oracle and ratings are read only after generation closes; no answer, rating or evaluator criterion enters a generation prompt."
+  }
+}
