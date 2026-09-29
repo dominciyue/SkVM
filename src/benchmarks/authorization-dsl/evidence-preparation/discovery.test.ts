@@ -139,3 +139,15 @@ test("read identities distinguish duplicate explicit, generated and later-batch 
     expect(later.outcomes[0]!.request.id).toBe("same")
   } finally { await rm(f.root, { recursive: true, force: true }) }
 })
+
+test("callable discovery keeps referenced class members without enumerating unrelated methods", async () => {
+  const f = await fixture({ "entry.ts": "function update() {\n return Guards().check()\n}\n", "helper.py": "class Guards:\n    def check(self):\n        return True\n    def unrelated(self):\n        return False\n" })
+  try {
+    const legacy = await discoverAuthorizationEvidence(f)
+    const callable = await discoverAuthorizationEvidence({ ...f, contextStrategy: "callable-v1" })
+    expect(legacy.windows.some(w => w.text.includes("def unrelated"))).toBe(true)
+    expect(callable.windows.some(w => w.text.includes("def unrelated"))).toBe(false)
+    expect(callable.windows.some(w => w.text.includes("def check"))).toBe(true)
+    expect(callable.request.entries).toEqual(f.request.entries)
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})

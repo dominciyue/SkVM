@@ -1,6 +1,7 @@
 import { appendFile, lstat, mkdir, mkdtemp, readFile, realpath, rename, rm, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { prepareAuthorizationEvidence } from "../benchmarks/authorization-dsl/evidence-preparation/prepare.ts"
+import { reusePreparedMaterial } from "../benchmarks/authorization-dsl/evidence-preparation/material-reuse.ts"
 import { AuthorizationDependencyProposalError, proposeAuthorizationDependencies, proposeBoundedAuthorizationDependencies, type AuthorizationProposalAccount } from "../benchmarks/authorization-dsl/evidence-preparation/proposal.ts"
 import { discoverAuthorizationEvidence, type AuthorizationDiscovery } from "../benchmarks/authorization-dsl/evidence-preparation/discovery.ts"
 import { authorizationScopePreview } from "../benchmarks/authorization-dsl/evidence-preparation/scope.ts"
@@ -10,17 +11,20 @@ import type { LocalAuthorizationCliDependencies } from "../benchmarks/authorizat
 function optionsFor(args: string[]) {
   const options: Record<string, string> = {}
   for (const arg of args) {
-    const matched = /^--(input|request|out|check-only|proposal-model|discover|proposal-timeout-ms)=(.+)$/.exec(arg)
+    const matched = /^--(input|request|reuse|out|check-only|proposal-model|discover|proposal-timeout-ms|context)=(.+)$/.exec(arg)
     if (!matched || options[matched[1]!] !== undefined) throw new Error(`Invalid or duplicate prepare option: ${arg}`)
     options[matched[1]!] = matched[2]!
   }
-  for (const key of ["input", "request", "out"]) if (!options[key]) throw new Error(`prepare requires --${key}=<path>.`)
+  for (const key of ["input", "out"]) if (!options[key]) throw new Error(`prepare requires --${key}=<path>.`)
+  if (!!options.request === !!options.reuse) throw new Error("prepare requires exactly one of --request or --reuse.")
+  if (options.reuse && (options["proposal-model"] || options.discover || options.context)) throw new Error("--reuse retains existing context and calls no provider; omit proposal, discover and context options.")
   if (options["check-only"] && options["check-only"] !== "true" && options["check-only"] !== "false") throw new Error("--check-only must be true or false.")
   if (options["check-only"] === "true" && options["proposal-model"]) throw new Error("--proposal-model requires publication; check-only does not call a provider.")
   if (options.discover && !["true", "false"].includes(options.discover)) throw new Error("--discover must be true or false.")
+  if (options.context && options.context !== "callable-v1") throw new Error("--context must be callable-v1 or omitted.")
   const timeoutMs = Number(options["proposal-timeout-ms"] ?? 300000)
   if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 300000) throw new Error("--proposal-timeout-ms must be 1..300000.")
-  return { inputFile: path.resolve(options.input!), requestFile: path.resolve(options.request!), outDir: path.resolve(options.out!), checkOnly: options["check-only"] === "true", proposalModel: options["proposal-model"], discover: options.discover === "true", timeoutMs }
+  return { inputFile: path.resolve(options.input!), requestFile: options.request ? path.resolve(options.request) : undefined, reuseFile: options.reuse ? path.resolve(options.reuse) : undefined, outDir: path.resolve(options.out!), checkOnly: options["check-only"] === "true", proposalModel: options["proposal-model"], discover: options.discover === "true", timeoutMs, contextStrategy: options.context as "callable-v1" | undefined }
 }
 
 /** Publish ordinary input and source snapshots; opt-in discovery uses at most two position rounds and one format revision. */
@@ -34,22 +38,24 @@ export async function runAuthorizationPrepareCli(args: string[], dependencies: L
   try {
     const options = optionsFor(args)
     outputPath = options.outDir
-    let request = JSON.parse(await readFile(options.requestFile, "utf8"))
-    let prepared = await prepareAuthorizationEvidence({ inputFile: options.inputFile, outDir: options.outDir, request })
+    let request = options.requestFile ? JSON.parse(await readFile(options.requestFile, "utf8")) : undefined
+    const reused = options.reuseFile ? await reusePreparedMaterial({ inputFile: options.inputFile, previousInputFile: options.reuseFile, outDir: options.outDir }) : undefined
+    let prepared = reused ?? await prepareAuthorizationEvidence({ inputFile: options.inputFile, outDir: options.outDir, request, contextStrategy: options.contextStrategy })
     if (prepared.report.status === "invalid" || !prepared.preparedInput) {
-      dependencies.stdout(JSON.stringify({ ...prepared.report, ...(prepared.diagnostics ? { diagnostics: prepared.diagnostics } : {}), outputPath: null }, null, 2))
+      dependencies.stdout(JSON.stringify({ ...prepared.report, ...(reused ? { reuse: reused.reuse } : {}), ...(prepared.diagnostics ? { diagnostics: prepared.diagnostics } : {}), outputPath: null }, null, 2))
       return 1
     }
+    if (reused) request = prepared.report.materialBinding!.request
     let discovery: AuthorizationDiscovery | undefined
     if (options.discover) {
-      discovery = await discoverAuthorizationEvidence({ inputFile: options.inputFile, request })
+      discovery = await discoverAuthorizationEvidence({ inputFile: options.inputFile, request, contextStrategy: options.contextStrategy })
       request = discovery.request
-      prepared = await prepareAuthorizationEvidence({ inputFile: options.inputFile, outDir: options.outDir, request })
+      prepared = await prepareAuthorizationEvidence({ inputFile: options.inputFile, outDir: options.outDir, request, contextStrategy: options.contextStrategy })
       if (!prepared.preparedInput) { dependencies.stdout(JSON.stringify({ ...prepared.report, discovery, outputPath: null }, null, 2)); return 1 }
     }
     const scopePreview = () => authorizationScopePreview(prepared.preparedInput!.task, request)
     if (options.checkOnly) {
-      dependencies.stdout(JSON.stringify({ ...prepared.report, scopePreview: scopePreview(), ...(discovery ? { discovery } : {}), outputPath: null }, null, 2))
+      dependencies.stdout(JSON.stringify({ ...prepared.report, scopePreview: scopePreview(), ...(reused ? { reuse: reused.reuse } : {}), ...(discovery ? { discovery } : {}), outputPath: null }, null, 2))
       return 0
     }
     try { await lstat(options.outDir); throw new Error(`Output already exists: ${options.outDir}`) }
@@ -73,7 +79,7 @@ export async function runAuthorizationPrepareCli(args: string[], dependencies: L
       account = proposal.account
       await writeFile(path.join(attemptPath, "account.json"), `${JSON.stringify(account, null, 2)}\n`, "utf8")
       request = { ...request, dependencies: [...request.dependencies, ...proposal.dependencies] }
-      prepared = await prepareAuthorizationEvidence({ inputFile: options.inputFile, outDir: options.outDir, request, ...(discovery ? { expectedSourceDigests: Object.fromEntries(discovery.files.map(file => [file.path, file.sha256])) } : {}) })
+      prepared = await prepareAuthorizationEvidence({ inputFile: options.inputFile, outDir: options.outDir, request, contextStrategy: options.contextStrategy, ...(discovery ? { expectedSourceDigests: Object.fromEntries(discovery.files.map(file => [file.path, file.sha256])) } : {}) })
       if (prepared.report.status === "invalid" || !prepared.preparedInput) {
         account.status = "rejected"
         account.diagnostics = prepared.report.gaps.map(gap => `${gap.id}: ${gap.reason}`)
@@ -95,6 +101,7 @@ export async function runAuthorizationPrepareCli(args: string[], dependencies: L
     }
     await writeFile(path.join(staging, "assessment.json"), `${JSON.stringify(prepared.preparedInput, null, 2)}\n`, { encoding: "utf8", flag: "wx" })
     await writeFile(path.join(staging, "report.json"), `${JSON.stringify(prepared.report, null, 2)}\n`, { encoding: "utf8", flag: "wx" })
+    if (reused) await writeFile(path.join(staging, "reuse.json"), `${JSON.stringify(reused.reuse, null, 2)}\n`, { encoding: "utf8", flag: "wx" })
     if (proposal) await writeFile(path.join(staging, "proposal.json"), `${JSON.stringify(proposal, null, 2)}\n`, { encoding: "utf8", flag: "wx" })
     if (discovery) await writeFile(path.join(staging, "discovery.json"), `${JSON.stringify(discovery, null, 2)}\n`, { encoding: "utf8", flag: "wx" })
     const checked = await loadLocalAuthorizationInput(path.join(staging, "assessment.json"))
@@ -105,7 +112,7 @@ export async function runAuthorizationPrepareCli(args: string[], dependencies: L
       account.published = true
       await writeFile(path.join(attemptPath, "account.json"), `${JSON.stringify(account, null, 2)}\n`, "utf8")
     }
-    dependencies.stdout(JSON.stringify({ ...prepared.report, scopePreview: scopePreview(), ...(discovery ? { discoveryPath: path.join(options.outDir, "discovery.json") } : {}), ...(proposal ? { proposal, attemptPath } : {}), outputPath: options.outDir, inputPath: path.join(options.outDir, "assessment.json") }, null, 2))
+    dependencies.stdout(JSON.stringify({ ...prepared.report, scopePreview: scopePreview(), ...(reused ? { reuse: reused.reuse } : {}), ...(discovery ? { discoveryPath: path.join(options.outDir, "discovery.json") } : {}), ...(proposal ? { proposal, attemptPath } : {}), outputPath: options.outDir, inputPath: path.join(options.outDir, "assessment.json") }, null, 2))
     return 0
   } catch (error) {
     if (error instanceof AuthorizationDependencyProposalError) account = error.account

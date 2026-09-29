@@ -1,10 +1,11 @@
+import { createHash } from "node:crypto"
 import { loadLocalAuthorizationInput } from "../local-input.ts"
 import { loadPortableSourceBundle } from "../inputs.ts"
 import { AuthorizationEvidenceRequestSchema, type AuthorizationEvidenceRequest } from "./schema.ts"
 import { physicalSourceLines } from "./segments.ts"
 import { evidenceLocationId, selectEvidenceLocation, type EvidenceLocationContext, type EvidenceLocationOutcome, type EvidenceLocationSelector } from "./location-selection.ts"
 
-export interface DiscoverySymbol { id: string; sha256: string; path: string; name: string; kind: "class" | "function"; startLine: number; endLine: number; parent?: string }
+export interface DiscoverySymbol { id: string; sha256: string; path: string; name: string; kind: "class" | "function"; startLine: number; endLine: number; parent?: string; boundary?: "complete" | "uncertain" }
 export interface DiscoveryWindow { id: string; sha256: string; path: string; startLine: number; endLine: number; text: string; bytes: number; origin: string }
 export interface DiscoveryDiagnostic { reason: string; path?: string; symbol?: string; from?: string }
 export interface AuthorizationDiscovery {
@@ -42,32 +43,61 @@ const retainedSources = new WeakMap<AuthorizationDiscovery, RetainedDiscovery>()
 const portable = (file: string) => !!file && !file.includes("\\") && !file.includes("\0") && !/^(?:[A-Za-z]:|\/)/.test(file) && file.split("/").every(p => p && p !== "." && p !== "..")
 const cleanLine = (line: string) => line.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`[^`]*`/g, "\"\"").replace(/\/\/.*$/, "")
 
+function pythonCodeLines(lines: string[]): { code: string[]; uncertainFrom?: number } {
+  let quote = "", openedAt = 0
+  const code = lines.map((line, lineIndex) => {
+    let output = ""
+    for (let i = 0; i < line.length; i++) {
+      if (quote) {
+        if (line[i] === "\\") { i++; continue }
+        if (line.startsWith(quote, i)) { i += quote.length - 1; quote = "" }
+        continue
+      }
+      if (line[i] === "#") break
+      if (line[i] === '"' || line[i] === "'") {
+        quote = line.startsWith(line[i]!.repeat(3), i) ? line[i]!.repeat(3) : line[i]!
+        openedAt = lineIndex; output += '""'; i += quote.length - 1; continue
+      }
+      output += line[i]
+    }
+    return output
+  })
+  return { code, ...(quote ? { uncertainFrom: openedAt } : {}) }
+}
+
 function indexSymbols(file: string, physical: string[]): Array<Omit<DiscoverySymbol, "sha256">> {
   const lines = physical.map(line => line.replace(/\r?\n$/, "")), output: Array<Omit<DiscoverySymbol, "sha256">> = []
   const python = file.endsWith(".py")
+  const lexical = python ? pythonCodeLines(lines) : undefined
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]!
+    const line = lexical?.code[i] ?? lines[i]!
     const py = /^([ \t]*)(?:async\s+)?(def|class)\s+(\w+)/.exec(line)
     const other = /\b(?:function|class)\s+(\w+)|^\s*func\s+(?:\([^)]*\)\s*)?(\w+)\s*\(/.exec(line)
     if (!(python ? py : other)) continue
     const name = python ? py![3]! : (other![1] ?? other![2])!
     const kind = python ? py![2] === "class" ? "class" : "function" : /\bclass\s/.test(line) ? "class" : "function"
-    let end = i
+    let end = i, boundary: "complete" | "uncertain" = "uncertain"
     if (python) {
       const indent = py![1]!.length
       // A dedented closing parenthesis still belongs to a multiline declaration.
       // Strip quoted defaults/comments before balancing its logical header.
       let brackets = 0
       for (let j = i; j < lines.length; j++) {
-        const header = lines[j]!.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, "\"\"").replace(/#.*$/, "")
+        const header = lexical!.code[j]!
         brackets += (header.match(/[([{]/g) ?? []).length - (header.match(/[)\]}]/g) ?? []).length
         end = j
-        if (brackets <= 0 && !header.trimEnd().endsWith("\\")) break
+        if (brackets <= 0 && !header.trimEnd().endsWith("\\")) { boundary = header.trimEnd().endsWith(":") ? "complete" : "uncertain"; break }
       }
+      let bodyDepth = 0, continued = false, bodySeen = false
       for (let j = end + 1; j < lines.length; j++) {
-        if (lines[j]!.trim() && !lines[j]!.trim().startsWith("#") && (lines[j]!.match(/^\s*/)?.[0].length ?? 0) <= indent) break
+        const body = lexical!.code[j]!
+        if (!bodyDepth && !continued && body.trim() && (body.match(/^\s*/)?.[0].length ?? 0) <= indent) break
+        if (body.trim()) bodySeen = true
+        bodyDepth += (body.match(/[([{]/g) ?? []).length - (body.match(/[)\]}]/g) ?? []).length
+        continued = body.trimEnd().endsWith("\\")
         end = j
       }
+      if (!bodySeen || bodyDepth !== 0 || continued || (lexical!.uncertainFrom !== undefined && lexical!.uncertainFrom <= end)) boundary = "uncertain"
     } else {
       let depth = 0, began = false
       for (let j = i; j < lines.length; j++) {
@@ -75,17 +105,33 @@ function indexSymbols(file: string, physical: string[]): Array<Omit<DiscoverySym
         const opens = (text.match(/\{/g) ?? []).length, closes = (text.match(/\}/g) ?? []).length
         if (opens) began = true
         depth += opens - closes; end = j
-        if (began && depth <= 0) break
+        if (began && depth === 0) { boundary = "complete"; break }
         if (j - i > 1000) break
       }
     }
-    output.push({ id: `symbol:${file}:${i + 1}:${name}`, path: file, name, kind, startLine: i + 1, endLine: end + 1 })
+    output.push({ id: `symbol:${file}:${i + 1}:${name}`, path: file, name, kind, startLine: i + 1, endLine: end + 1, boundary })
   }
   for (const symbol of output) {
     const parent = output.filter(s => s.kind === "class" && s.startLine < symbol.startLine && s.endLine >= symbol.endLine).sort((a, b) => b.startLine - a.startLine)[0]
     if (parent) symbol.parent = parent.id
   }
   return output
+}
+
+/** The same bounded lexical index supplies host context; a complete bound is not a semantic proof. */
+export function indexAuthorizationSymbols(file: string, content: string, identity: AuthorizationDiscovery["sourceIdentity"]): DiscoverySymbol[] {
+  const sha256 = createHash("sha256").update(content).digest("hex")
+  const physical = physicalSourceLines(content), indexed = indexSymbols(file, physical)
+  if (file.endsWith(".py")) for (const symbol of indexed) {
+    const indent = physical[symbol.startLine - 1]!.match(/^[ \t]*/)?.[0] ?? ""
+    while (symbol.startLine > 1) {
+      const previous = physical[symbol.startLine - 2]!.replace(/\r?\n$/, "")
+      if (!previous.startsWith(`${indent}@`) || /[()[\]{}]/.test(previous.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, "").replace(/^.*?@/, "").replace(/\([^()]*\)/g, ""))) break
+      symbol.startLine--
+    }
+  }
+  const ids = new Map(indexed.map(s => [s.id, evidenceLocationId("symbol", identity, { ...s, sha256 })]))
+  return indexed.map(s => ({ ...s, id: ids.get(s.id)!, sha256, ...(s.parent ? { parent: ids.get(s.parent)! } : {}) }))
 }
 
 function references(content: string): string[] {
@@ -146,7 +192,7 @@ function registerWindows(discovery: AuthorizationDiscovery, windows: DiscoveryWi
 }
 
 /** Reads only the authored file universe. Candidate positions are lexical evidence, never authorization answers. */
-export async function discoverAuthorizationEvidence(input: { inputFile: string; request: AuthorizationEvidenceRequest; maxReadBytes?: number; maxDisplayBytes?: number }): Promise<AuthorizationDiscovery> {
+export async function discoverAuthorizationEvidence(input: { inputFile: string; request: AuthorizationEvidenceRequest; maxReadBytes?: number; maxDisplayBytes?: number; contextStrategy?: "callable-v1" }): Promise<AuthorizationDiscovery> {
   const request = AuthorizationEvidenceRequestSchema.parse(input.request)
   const loaded = await loadLocalAuthorizationInput(input.inputFile)
   if (loaded.status !== "valid" || request.sourceRoot !== loaded.normalizedInput.sourceRoot) throw new Error("Discovery requires valid input and matching sourceRoot")
@@ -200,7 +246,7 @@ export async function discoverAuthorizationEvidence(input: { inputFile: string; 
     result.request.dependencies.push({ id, from: parent.from, path: symbol.path, startLine: symbol.startLine, endLine: end, reason: "other", basis: "locator" })
     queue.push({ path: symbol.path, start: symbol.startLine, end, from: id, depth: parent.depth + 1, trail: [...parent.trail, symbol.id] })
     // Class bodies expose methods as candidates. Each method remains support and cannot add an obligation.
-    if (symbol.kind === "class") for (const method of result.symbols.filter(s => s.parent === symbol.id)) {
+    if (symbol.kind === "class" && !input.contextStrategy) for (const method of result.symbols.filter(s => s.parent === symbol.id)) {
       if (selected.has(method.id)) continue
       if (parent.depth + 2 > Math.min(request.limits.maxDepth, 3)) { result.diagnostics.push({ reason: "depth-budget", symbol: method.name, from: id }); continue }
       const methodId = newId()

@@ -13,6 +13,12 @@
 
 ### 1.1 授权 DSL 开发原型
 
+AM共享模块：`control-context.ts::buildControlContext`对实际源摘要、宿主符号ID及范围做纯检查，完整单元按增量UTF-8字节和源码位置分配预算；原选择先保留，可靠小函数扩展单列host-context，大/不可靠单元给省略或range-uncertain。`indexAuthorizationSymbols`复用发现器词法边界，处理Python多行声明、字符串、续行和可确定的单行装饰器；复杂语法仍不是AST/语义调用图。普通prepare的`--context=callable-v1`只支持v2，索引12文件/1MiB、最终64KiB；显式启用时关闭整类成员枚举。报告v2可选controlContext不改变source映射/入口/义务，引用继续不能跨省略。
+
+`authoring-assist.ts`提供`AuthorizationAuthoringContextSchema`、`createAuthorizationAuthoringDraft`、紧凑字段指引和`renderAuthoringTask`。init context生成已知v2元数据/entry seed/guide；领域字典为空，needs-input而非虚构可运行稿。首稿/修订使用同一个publicBrief/outputContract/editScope/knownFields，修订只附candidate/diagnostics。context位置是作者提供，sourceRef仍authored。local edit扩展public-instruction和response-detail，仅替换已有字段并返回affectedText；文本一致性仍由作者/评审决定。
+
+`material-reuse.ts::reusePreparedMaterial`读取旧prepared input与新普通输入，验证完整raw源绑定、ref/入口、快照拼接，再原样继承report和pending gaps；不写文件/调用provider。普通prepare的`--reuse`独占发布新assessment/source/report/reuse记录，拒绝与request/discover/proposal/context并用。`transitionPreparedGaps`保留缺口原件与退休理由；resolved需current中新纳入、previous未保留的同路径范围，not-relevant需明确任务scope/premise JSON Pointer的变化和理由。纯前提实验不提交gapChanges；旧无materialBinding报告具名失效，不能默默清空缺口。修改这条链运行control-context/material-reuse/authoring-assist/local-edit-text、普通CLI相关测试及typecheck；普通usage给出字段与命令。
+
 [V0–V10 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9 任务书](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)、[X0–X13 任务书](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)、[Y0–Y14 任务书](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)和[研究 §7.19–7.22](skill-dsl-research.md#719-v-开发合同与持续复盘)描述已实现接口及当前扩展。它处理单 repository/ref、fixed-context、source-visible authorization obligation。领域代码位于 `src/task-dsl/authorization/`，实验代码位于 `src/benchmarks/authorization-dsl/`。
 
 公开边界如下：

@@ -1,10 +1,13 @@
 import path from "node:path"
+import { createHash } from "node:crypto"
 import { loadLocalAuthorizationInput } from "../local-input.ts"
 import { loadPortableSourceBundle } from "../inputs.ts"
 import { locateAuthorizationSource } from "../source-location.ts"
 import type { LocalAuthorizationInput } from "../local-input.ts"
 import { AuthorizationEvidenceRequestSchema, type AuthorizationEvidenceReport, type AuthorizationEvidenceRequest } from "./schema.ts"
 import { mergeSourceRanges, packSourceSegments, physicalSourceLines, type OriginalSourceRange } from "./segments.ts"
+import { buildControlContext } from "./control-context.ts"
+import { indexAuthorizationSymbols } from "./discovery.ts"
 
 export interface AuthorizationPreparedSnapshot { path: string; content: string }
 export interface AuthorizationEvidencePreparation {
@@ -30,6 +33,7 @@ export async function prepareAuthorizationEvidence(input: {
   outDir: string
   request: AuthorizationEvidenceRequest
   expectedSourceDigests?: Record<string, string>
+  contextStrategy?: "callable-v1"
 }): Promise<AuthorizationEvidencePreparation> {
   const parsed = AuthorizationEvidenceRequestSchema.safeParse(input.request)
   const loaded = await loadLocalAuthorizationInput(input.inputFile)
@@ -38,6 +42,8 @@ export async function prepareAuthorizationEvidence(input: {
     ...(loaded.status !== "valid" ? loaded.diagnostics : []),
   ] }
   const request = parsed.data
+  if (input.contextStrategy && request.schemaVersion !== "authorization-evidence-request/v2") return { report: emptyReport(input.inputFile, input.request), snapshots: [], diagnostics: [{ code: "context-request-version", message: "callable-v1 requires request/v2." }] }
+  if (input.contextStrategy && request.allowedFiles.length > 12) return { report: emptyReport(input.inputFile, input.request), snapshots: [], diagnostics: [{ code: "context-file-budget", message: "callable-v1 indexes at most 12 allowed files." }] }
   const report: AuthorizationEvidenceReport = { schemaVersion: request.schemaVersion === "authorization-evidence-request/v2" ? "authorization-evidence-report/v2" : "authorization-evidence-report/v1", status: "invalid",
     sourceIdentity: { repository: loaded.task.repository, sourceRef: loaded.task.sourceRef }, sourceRoot: request.sourceRoot,
     included: [], gaps: [], closureClaim: "declared-dependencies-only" }
@@ -169,6 +175,32 @@ export async function prepareAuthorizationEvidence(input: {
     const full: Selection = { ...selection, ranges: [{ originalStartLine: 1, originalEndLine: source.lines.length, origins: selection.ranges.flatMap(range => range.origins) }] }
     const current = [...selected.values()].reduce((sum, item) => sum + bytes(item, cache.get(item.path)!), 0)
     if (current - bytes(selection, source) + bytes(full, source) <= request.limits.maxBytes) selected.set(sourcePath, full)
+  }
+  const boundSources = [...cache.entries()].flatMap(([path, source]) => source ? [{ path, content: source.content, sha256: createHash("sha256").update(source.content).digest("hex") }] : [])
+  report.materialBinding = { request: structuredClone(request), sources: [...cache.entries()].map(([path, source]) => ({ path, sha256: source ? createHash("sha256").update(source.content).digest("hex") : null })) }
+  if (input.contextStrategy && report.schemaVersion === "authorization-evidence-report/v2") {
+    let indexBytes = 0
+    const omittedFiles: string[] = []
+    const units = boundSources.flatMap(s => {
+      const bytes = Buffer.byteLength(s.content)
+      if (indexBytes + bytes > 1048576) { omittedFiles.push(s.path); return [] }
+      indexBytes += bytes
+      return indexAuthorizationSymbols(s.path, s.content, report.sourceIdentity)
+    })
+    const context = buildControlContext({ sourceIdentity: report.sourceIdentity, allowedFiles: request.allowedFiles, maxBytes: Math.min(65536, request.limits.maxBytes), sources: boundSources,
+      units,
+      selected: [...selected.values()].flatMap(s => s.ranges.map(r => ({ path: s.path, startLine: r.originalStartLine, endLine: r.originalEndLine, origins: r.origins }))),
+    })
+    selected.clear()
+    for (const range of context.ranges) {
+      const value = selected.get(range.path) ?? { path: range.path, ranges: [] }
+      value.ranges.push({ originalStartLine: range.startLine, originalEndLine: range.endLine, origins: range.origins })
+      selected.set(range.path, value)
+    }
+    report.controlContext = context.report
+    report.controlContext.indexBudget = { usedBytes: indexBytes, maxBytes: 1048576, omittedFiles }
+    for (const unit of context.report.units) if (unit.status !== "unit-complete") report.gaps.push({ id: `context:${unit.id}`, entryKey: "$", reason: unit.status, attemptedPath: unit.path,
+      ...(unit.omitted.length ? { candidates: unit.omitted } : {}), next: "Supply an explicit reliable range or prepare the omitted unit within the byte budget." })
   }
   const packed = [...selected.values()].map(selection => ({ path: selection.path, ...packSourceSegments(cache.get(selection.path)!.content, selection.ranges) }))
   const snapshots = packed.map(({ path, content }) => ({ path, content }))

@@ -146,19 +146,25 @@ MD/DSL作者获得同一公开brief、已知源身份/入口材料和相同事�
 
 ### AM0 启动、基线与真实路径
 
-- [ ] 核对分支、工作区、规划提交和当前任务归属，创建新结果根`status.json`和追加journal；记录nextAction、恢复命令、失败状态，禁止重跑已完成paid行。
-- [ ] 定位AL四项基线材料和两包原/变稿，记实际路径/来源/已有运行身份；只验证本轮会用的文件，不重审全部历史。
-- [ ] 保存本轮作者与分析输入隔离约定；保护原raw/cache、旧临时副本及其他线程修改。
+- [x] 核对分支、工作区、规划提交和当前任务归属，创建新结果根`status.json`和追加journal；记录nextAction、恢复命令、失败状态，禁止重跑已完成paid行。
+- [x] 定位AL四项基线材料和两包原/变稿，记实际路径/来源/已有运行身份；只验证本轮会用的文件，不重审全部历史。
+- [x] 保存本轮作者与分析输入隔离约定；保护原raw/cache、旧临时副本及其他线程修改。
 
 ### AM1 四个反例与接口定稿
 
-- [ ] 将OWUI“头尾入包/中段遗漏”、Paperless修订丢包络、Memos说明残留、Paperless复用丢gaps做最小化fixture，保留原证据定位。
-- [ ] 亲读要改的代码，固定context策略、init context、文本edit和reuse的公共参数/返回字段；能复用的已有类型不另造。记录于本书与研究§7.32。
-- [ ] 固定各层责任：host元数据/字节；作者政策/前提；模型分析；评审决定性控制。尚缺领域事实的草稿保持needs-input。
+- [x] 将OWUI“头尾入包/中段遗漏”、Paperless修订丢包络、Memos说明残留、Paperless复用丢gaps做最小化fixture，保留原证据定位。
+- [x] 亲读要改的代码，固定context策略、init context、文本edit和reuse的公共参数/返回字段；能复用的已有类型不另造。记录于本书与研究§7.32。
+- [x] 固定各层责任：host元数据/字节；作者政策/前提；模型分析；评审决定性控制。尚缺领域事实的草稿保持needs-input。
+
+AM1接口定稿（2026-09-29）：普通prepare采用`--context=callable-v1`，只适用于request/v2；省略保留原路径。最终prepare从实际读取的源码复用词法索引，对已纳入片段的唯一最小可调用单元扩展，按增量字节/源码位置分配预算；不猜控制块，大单元保留原选择并报告省略。发现器在该策略下仅保留相关类头与被引用方法，不枚举全部成员。报告v2增加可选`controlContext`及`materialBinding`，来源`host-context`与原选择分列。
+
+init采用`--context=<context.json> --out=<draft.json>`；context版本为`authorization-authoring-context/v1`，含taskId、可选request、repository/sourceRef/sourceRoot、allowedFiles及entries（entryKey/path/startLine/endLine）。输出同目录`<stem>.entry-seed.json`和`<stem>.authoring-guide.md`，draft领域字典为空并给needs-input诊断。生产`renderAuthoringTask`使用同一publicBrief/outputContract/editScope/knownFields/fieldGuide，修订仅追加candidate/diagnostics。
+
+local edit增加`public-instruction`（statement）和`response-detail`（scenarioKey/index/statement），只替换已有文本；policy.reason仍走policy操作。affectedText列受影响reason、instruction、responseDetails，提示不阻止正常应用。prepare采用`--reuse=<previous-assessment.json>`代替request，零provider验证当前完整源摘要与旧绑定、保留原快照/成功依赖/pending gaps，并要求fresh analysis；旧报告无完整源绑定时具名失效、需重新prepare。共享gap生命周期函数接受具名新证据或明确前提/范围变化理由，默认保持pending；纯前提主实验不提交gap变更。
 
 ### AM2 完整可调用单元与机械状态
 
-- [ ] 写控制上下文纯函数测试，建议新接口行为如下；`unit`由既有索引产生，不能来自oracle：
+- [x] 写控制上下文纯函数测试，建议新接口行为如下；`unit`由既有索引产生，不能来自oracle：
 
 ```ts
 const packed = buildControlContext({
@@ -171,34 +177,34 @@ expect(packed.units[0].status).toBe("unit-complete");
 expect(packed.expansions[0].origin).toBe("host-context");
 ```
 
-- [ ] 加入函数重命名、多行声明、同名重复、无法确定边界的红例，边界不确定时给出range-uncertain，不能任取第一个符号。
-- [ ] 实现共享索引适配与范围策略；原selector、原行号/CRLF行为不退化。
+- [x] 加入函数重命名、多行声明、同名重复、无法确定边界的红例，边界不确定时给出range-uncertain，不能任取第一个符号。
+- [x] 实现共享索引适配与范围策略；原selector、原行号/CRLF行为不退化。
 - [ ] 运行新`control-context.test.ts`及`location-selection.test.ts`，确认反例转绿。
 
 ### AM3 预算、类方法与关键省略
 
-- [ ] 先测选择类中一个方法时不自动纳入全部无关方法；嵌套作用域与外层控制范围只在可靠索引下扩展。
-- [ ] 先测超预算保留合法已选范围并输出partial/omission，不能标unit-complete；重叠去重、重发字节分账，unsafe路径/ref漂移仍拒绝。
-- [ ] 实现稳定的范围排序和预算分配；不要用项目名、期望答案或评价行号排序。保存每项纳入/省略原因。
-- [ ] 运行 `bun test ./src/benchmarks/authorization-dsl/evidence-preparation`，确认新增support不改变声明入口数。
+- [x] 先测选择类中一个方法时不自动纳入全部无关方法；嵌套作用域与外层控制范围只在可靠索引下扩展。
+- [x] 先测超预算保留合法已选范围并输出partial/omission，不能标unit-complete；重叠去重、重发字节分账，unsafe路径/ref漂移仍拒绝。
+- [x] 实现稳定的范围排序和预算分配；不要用项目名、期望答案或评价行号排序。保存每项纳入/省略原因。
+- [x] 运行 `bun test ./src/benchmarks/authorization-dsl/evidence-preparation`，确认新增support不改变声明入口数。
 
 ### AM4 普通prepare接通控制上下文
 
-- [ ] CLI测试省略新选项完全沿旧行为，新策略能形成含host-context的可引用材料，报告区分模型选择与宿主扩展。
-- [ ] 接通proposal→context→prepare→check/run；最终新增正文通过实际来源验证，不能混淆“给定位模型展示”与“给分析模型展示”。
-- [ ] 测试同一source存在省略时跨缺口引用拒绝；ready仍标declared-dependencies-only，机械完整状态不升级为语义充分。
-- [ ] 运行 `bun test ./src/cli/authorization-prepare.test.ts ./src/benchmarks/authorization-dsl/evidence-preparation`。
+- [x] CLI测试省略新选项完全沿旧行为，新策略能形成含host-context的可引用材料，报告区分模型选择与宿主扩展。
+- [x] 接通proposal→context→prepare→check/run；最终新增正文通过实际来源验证，不能混淆“给定位模型展示”与“给分析模型展示”。
+- [x] 测试同一source存在省略时跨缺口引用拒绝；ready仍标declared-dependencies-only，机械完整状态不升级为语义充分。
+- [x] 运行 `bun test ./src/cli/authorization-prepare.test.ts ./src/benchmarks/authorization-dsl/evidence-preparation`。
 
 ### AM5 宿主作者草稿与普通init
 
-- [ ] 先测context已给repo/ref/入口时精确填入草稿与entry seed；缺政策/期待时列needs-input，不调用provider、不生成accepted事实。
-- [ ] 新`authoring-assist.ts`用现有schema/normalizer生成known-fields及缺字段指引；正常完成后的声明仍走现有authoring/v2。
-- [ ] init新可选context接线并输出前述三个文件；冲突、路径问题在写出前拒绝，旧template命令保持。
-- [ ] 运行 `bun test ./src/benchmarks/authorization-dsl/authoring-assist.test.ts ./src/benchmarks/authorization-dsl/authoring-v2.test.ts ./src/cli/authorization.test.ts`。
+- [x] 先测context已给repo/ref/入口时精确填入草稿与entry seed；缺政策/期待时列needs-input，不调用provider、不生成accepted事实。
+- [x] 新`authoring-assist.ts`用现有schema/normalizer生成known-fields及缺字段指引；正常完成后的声明仍走现有authoring/v2。
+- [x] init新可选context接线并输出前述三个文件；冲突、路径问题在写出前拒绝，旧template命令保持。
+- [x] 运行 `bun test ./src/benchmarks/authorization-dsl/authoring-assist.test.ts ./src/benchmarks/authorization-dsl/authoring-v2.test.ts ./src/cli/authorization.test.ts`。
 
 ### AM6 相同任务合同下的修订
 
-- [ ] 将作者输入组织为一个共用任务对象；首稿/修订由同一renderer产生，修订只追加candidate和diagnostics。测试核心断言：
+- [x] 将作者输入组织为一个共用任务对象；首稿/修订由同一renderer产生，修订只追加candidate和diagnostics。测试核心断言：
 
 ```ts
 const first = renderAuthoringTask(task);
@@ -209,20 +215,20 @@ for (const required of [task.publicBrief, task.outputContract, task.editScope]) 
 }
 ```
 
-- [ ] 归档缺包络旧例做回归，但新作者普通任务只产出规定的声明/edit，宿主entry seed不要求模型重写。
-- [ ] 共用提示生成放生产支持模块；研究runner只负责派发/存档，不维护另一套隐藏schema或答案提示。
-- [ ] 测试诊断不带evaluator oracle，不因修订扩大源码或政策修改权限；原稿/修订费用可分别重算。
+- [x] 归档缺包络旧例做回归，但新作者普通任务只产出规定的声明/edit，宿主entry seed不要求模型重写。
+- [x] 共用提示生成放生产支持模块；研究runner只负责派发/存档，不维护另一套隐藏schema或答案提示。
+- [x] 测试诊断不带evaluator oracle，不因修订扩大源码或政策修改权限；原稿/修订费用可分别重算。
 
 ### AM7 政策与前提修改的说明一致性
 
-- [ ] 给现有local-edit增加具名text操作，覆盖publicInstruction/requiredResponseDetails；保留reason、policy/scenario/premise现有操作。
-- [ ] 先测policy+expectation+reason+instruction能一次修改，未指定字段和源码不变；未知字段、越界索引、冲突操作拒绝。
-- [ ] 输出affected-text字段清单与复核提示；不自动把自由文本里的original全部替换。host生成新指引引用当前政策，减少重复版本描述。
-- [ ] 作者allowed edits与评审要求使用同一公开合同；运行local-edit、CLI edit和owner-premise聚焦tests。
+- [x] 给现有local-edit增加具名text操作，覆盖publicInstruction/requiredResponseDetails；保留reason、policy/scenario/premise现有操作。
+- [x] 先测policy+expectation+reason+instruction能一次修改，未指定字段和源码不变；未知字段、越界索引、冲突操作拒绝。
+- [x] 输出affected-text字段清单与复核提示；不自动把自由文本里的original全部替换。host生成新指引引用当前政策，减少重复版本描述。
+- [x] 作者allowed edits与评审要求使用同一公开合同；运行local-edit、CLI edit和owner-premise聚焦tests。
 
 ### AM8 材料缺口生命周期与评价协议
 
-- [ ] 先测相同源/纯前提变化保留success dependencies和原pending gaps；不会因没有再运行proposal而清空缺口。拟新增接口行为：
+- [x] 先测相同源/纯前提变化保留success dependencies和原pending gaps；不会因没有再运行proposal而清空缺口。拟新增接口行为：
 
 ```ts
 const reused = reusePreparedMaterial(previous, changedTask, verifiedSources);
@@ -231,9 +237,9 @@ expect(reused.pendingGaps).toEqual(previous.pendingGaps);
 expect(reused.requiresAnalysis).toBe(true);
 ```
 
-- [ ] 测试源字节/ref变化使复用失效；解决缺口需新证据，任务不再相关需显式理由，未知旧版本能拒绝而不丢记录。实现普通prepare的reuse路径。
-- [ ] 建立独立评价枚举与汇总测试：准确unknown不被算成确定解决；完整条件答案可resolved；blocking仍进计划分母；评分重算不访问provider。
-- [ ] 固定四项准备、16质量行、8稿/8消费、16义务及可执行修订规则。旧评分不覆写；必要时只增一份零调用双口径说明。
+- [x] 测试源字节/ref变化使复用失效；解决缺口需新证据，任务不再相关需显式理由，未知旧版本能拒绝而不丢记录。实现普通prepare的reuse路径。
+- [x] 建立独立评价枚举与汇总测试：准确unknown不被算成确定解决；完整条件答案可resolved；blocking仍进计划分母；评分重算不访问provider。
+- [x] 固定四项准备、16质量行、8稿/8消费、16义务及可执行修订规则。旧评分不覆写；必要时只增一份零调用双口径说明。
 - [ ] 提交工程和本轮协议，登记一次实现身份、预算与输入路径。研究driver的`check/replay`命令在status中给出完整可执行写法。
 
 ### AM9 离线八任务和四项真实准备

@@ -26,20 +26,34 @@ export const PreparedSourceSegmentSchema = z.object({
 }).strict()
 export type PreparedSourceSegment = z.infer<typeof PreparedSourceSegmentSchema>
 const IncludedSourceSchema = z.object({ path: Text, originalPath: Text, startLine: Line, endLine: Line, origins: z.array(Text).min(1) }).strict()
+const ContextRange = z.object({ path: Text, startLine: Line, endLine: Line }).strict()
+export const AuthorizationControlContextReportSchema = z.object({
+  strategy: z.literal("callable-v1"),
+  selected: z.array(ContextRange.extend({ origins: z.array(Text).min(1) })),
+  units: z.array(ContextRange.extend({ id: Text, status: z.enum(["unit-complete", "unit-partial", "range-uncertain"]), triggers: z.array(ContextRange), omitted: z.array(ContextRange) }).strict()),
+  expansions: z.array(ContextRange.extend({ unitId: Text, origin: z.literal("host-context") }).strict()),
+  finalBytes: z.number().int().nonnegative(), maxBytes: z.number().int().positive().max(65536),
+  indexBudget: z.object({ usedBytes: z.number().int().nonnegative().max(1048576), maxBytes: z.literal(1048576), omittedFiles: z.array(Text) }).strict().optional(),
+}).strict()
+export type AuthorizationControlContextReport = z.infer<typeof AuthorizationControlContextReportSchema>
+export const AuthorizationEvidenceGapSchema = z.object({ id: Text, entryKey: Text, reason: Text, attemptedPath: Text.optional(), requestId: Text.optional(),
+  selector: EvidenceLocationSelectorSchema.optional(), candidates: z.array(ContextRange).optional(),
+  budget: z.object({ usedBytes: z.number().int().nonnegative(), maxBytes: z.number().int().nonnegative(), requestedBytes: z.number().int().nonnegative().optional() }).strict().optional(), next: Text.optional(),
+}).strict()
 const ReportFields = {
   status: z.enum(["ready", "partial", "invalid"]),
   sourceIdentity: z.object({ repository: Text, sourceRef: Text }).strict(),
   sourceRoot: Text,
-  gaps: z.array(z.object({ id: Text, entryKey: Text, reason: Text, attemptedPath: Text.optional(), requestId: Text.optional(),
-    selector: EvidenceLocationSelectorSchema.optional(), candidates: z.array(z.object({ path: Text, startLine: Line, endLine: Line }).strict()).optional(),
-    budget: z.object({ usedBytes: z.number().int().nonnegative(), maxBytes: z.number().int().nonnegative(), requestedBytes: z.number().int().nonnegative().optional() }).strict().optional(),
-    next: Text.optional(),
-  }).strict()),
+  gaps: z.array(AuthorizationEvidenceGapSchema),
+  materialBinding: z.object({ request: AuthorizationEvidenceRequestSchema, sources: z.array(z.object({ path: Text, sha256: z.string().regex(/^[a-f0-9]{64}$/).nullable() }).strict()).min(1) }).strict().optional(),
+  gapHistory: z.array(z.object({ gap: AuthorizationEvidenceGapSchema, status: z.enum(["resolved", "not-relevant"]), reason: Text,
+    evidence: z.array(ContextRange).optional(), taskChange: Text.optional(),
+  }).strict()).optional(),
   closureClaim: z.literal("declared-dependencies-only"),
 }
 export const AuthorizationEvidenceReportSchema = z.discriminatedUnion("schemaVersion", [
   z.object({ ...ReportFields, schemaVersion: z.literal("authorization-evidence-report/v1"), included: z.array(IncludedSourceSchema) }).strict(),
-  z.object({ ...ReportFields, schemaVersion: z.literal("authorization-evidence-report/v2"), included: z.array(IncludedSourceSchema.extend({ segments: z.array(PreparedSourceSegmentSchema).min(1) }).strict()) }).strict(),
+  z.object({ ...ReportFields, schemaVersion: z.literal("authorization-evidence-report/v2"), controlContext: AuthorizationControlContextReportSchema.optional(), included: z.array(IncludedSourceSchema.extend({ segments: z.array(PreparedSourceSegmentSchema).min(1) }).strict()) }).strict(),
 ])
 
 export type AuthorizationEvidenceReport = z.infer<typeof AuthorizationEvidenceReportSchema>

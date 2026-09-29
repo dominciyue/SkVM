@@ -1,9 +1,10 @@
-import { readFile, writeFile } from "node:fs/promises"
+import { readFile, writeFile, lstat, open, unlink } from "node:fs/promises"
 import path from "node:path"
 import syntheticAssessment from "../../examples/authorization-assessment/assessment.json" with { type: "json" }
 import syntheticAuthoringV2 from "../../examples/authorization-assessment/authoring-v2.json" with { type: "json" }
 import { normalizeAuthorizationAuthoringInput } from "../benchmarks/authorization-dsl/authoring.ts"
 import { authoringEditorGuidance } from "../benchmarks/authorization-dsl/editor-support/schema.ts"
+import { createAuthorizationAuthoringDraft } from "../benchmarks/authorization-dsl/authoring-assist.ts"
 import { locateAuthorizationSource } from "../benchmarks/authorization-dsl/source-location.ts"
 import {
   runLocalAuthorizationCli,
@@ -62,10 +63,39 @@ async function initializeAuthorizationInput(
   args: string[],
   dependencies: AuthorizationCliDependencies,
 ): Promise<number> {
-  const options = parseOptions(args, new Set(["out", "from", "format"]))
+  const options = parseOptions(args, new Set(["out", "from", "format", "context"]))
   if (options.format && options.format !== "authoring-v2") throw new AuthorizationCliError("format must be authoring-v2 or omitted.", 2)
   if (options.format && options.from) throw new AuthorizationCliError("Use --format for a template or --from for normalization, not both.", 2)
   const outputPath = path.resolve(requireOption(options, "out"))
+  if (options.context) {
+    if (options.from || options.format) throw new AuthorizationCliError("--context generates a domain draft; use it without --from or --format.", 2)
+    const contextPath = path.resolve(options.context), context = JSON.parse(await readFile(contextPath, "utf8"))
+    if (typeof context.sourceRoot !== "string" || path.isAbsolute(context.sourceRoot) || path.win32.isAbsolute(context.sourceRoot)) throw new AuthorizationCliError("Context sourceRoot must be relative to its file.", 1)
+    const root = path.resolve(path.dirname(contextPath), context.sourceRoot)
+    const sourceRoot = path.relative(path.dirname(outputPath), root).split(path.sep).join("/") || "."
+    if (path.isAbsolute(sourceRoot) || path.win32.isAbsolute(sourceRoot)) throw new AuthorizationCliError("Context and draft must share a filesystem volume.", 1)
+    const result = createAuthorizationAuthoringDraft({ ...context, sourceRoot })
+    const stem = outputPath.replace(/\.json$/i, "")
+    const entrySeedPath = `${stem}.entry-seed.json`, guidePath = `${stem}.authoring-guide.md`
+    const outputs = [{ path: outputPath, content: `${JSON.stringify(result.draft, null, 2)}\n` }, { path: entrySeedPath, content: `${JSON.stringify(result.entrySeed, null, 2)}\n` }, { path: guidePath, content: result.guide }]
+    // Check the complete file group before claiming any path; wx also protects concurrent creation.
+    for (const file of outputs) {
+      try { await lstat(file.path); throw new AuthorizationCliError(`Authorization output already exists: ${file.path}`, 1) }
+      catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error }
+    }
+    const claimed: Array<{ path: string; handle: Awaited<ReturnType<typeof open>> }> = []
+    try {
+      for (const file of outputs) claimed.push({ path: file.path, handle: await open(file.path, "wx") })
+      for (const [i, file] of outputs.entries()) await claimed[i]!.handle.writeFile(file.content, "utf8")
+    } catch (error) {
+      for (const file of claimed) { await file.handle.close(); await unlink(file.path) }
+      throw error
+    }
+    for (const file of claimed) await file.handle.close()
+    dependencies.stdout(JSON.stringify({ schemaVersion: "authorization-cli-init/v1", status: "created", mode: "context-draft", draftStatus: result.status, outputPath, entrySeedPath, guidePath,
+      synthetic: false, sourceRefVerification: "authored", knownFields: result.knownFields, diagnostics: result.diagnostics, authoringSupport: authoringEditorGuidance() }, null, 2))
+    return 0
+  }
   let value: unknown = structuredClone(options.format ? syntheticAuthoringV2 : syntheticAssessment)
   let mode: "synthetic-template" | "normalized-authoring" = "synthetic-template"
   let provenance: unknown
@@ -114,9 +144,9 @@ export function authorizationCliHelp(): string {
     "",
     "Commands:",
     "  locate --root=<project> --file=<relative-path> --match=<literal-text> [--limit=20]",
-    "  init --out=<assessment.json> [--from=<authoring.json> | --format=authoring-v2]",
+    "  init --out=<assessment.json> [--from=<authoring.json> | --format=authoring-v2 | --context=<context.json>]",
     "  compose --workspace=<workspace.json> --out=<new-directory> [--check-only]",
-    "  prepare --input=<assessment.json> --request=<request.json> --out=<new-directory> [--check-only=true] [--discover=true] [--proposal-model=<provider/model>] [--proposal-timeout-ms=300000]",
+    "  prepare --input=<assessment.json> (--request=<request.json> | --reuse=<previous-assessment.json>) --out=<new-directory> [--context=callable-v1] [--check-only=true] [--discover=true] [--proposal-model=<provider/model>] [--proposal-timeout-ms=300000]",
     "  edit --input=<authoring-v2.json> --edit=<patch.json> --out=<new-directory> [--check-only=true]",
     "  check --input=<assessment.json> [--method=plain|ledger|conditions] [--arm=N|B|D] [--wire=legacy|v4|v5|v6] [--assessment=legacy|explicit-v1] [--reasoning=standard|control-binding-v1]",
     "  run --input=<assessment.json> --model=<provider/model> --out=<output-root> [--method=plain|ledger|conditions] [--arm=N|B|D] [--wire=legacy|v4|v5|v6] [--assessment=legacy|explicit-v1] [--reasoning=standard|control-binding-v1]",
