@@ -997,13 +997,21 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 ### 7.31 AL 源码定位恢复与普通作者闭环
 
-2026-09-29，用户确认AK复核后的方向，要求派发`gpt-6-sol / max`执行[AL0–AL16](../superpowers/plans/2026-09-29-authorization-location-recovery-and-authoring.md)。状态为planned-not-started；下述为已核实问题和开发设计，尚无AL真实效果结果。
+2026-09-29，用户确认AK复核后的方向，要求派发`gpt-6-sol / max`执行[AL0–AL16](../superpowers/plans/2026-09-29-authorization-location-recovery-and-authoring.md)。AL已开始；下述包含离线反例和接口决定，尚无AL真实效果结果。
 
 **复核依据。** 父任务在`c0604c5c`验证402 pass/1平台skip、2735断言、typecheck及三项零调用重放。Git与用户origin一致。八项同请求v2准备的源码合计216,952→47,701字节，原要求范围得到保留。自动准备的确定性回答损失仍集中在OWUI、下载及分享授权缺口，GetShared准备未发布；源码充分性与完整unknown分开报告。
 
 **具体机制问题。** 对七份AK自动proposal的34个可选match作离线核对，25个没有原文字面命中、3个在声明范围内唯一但全文件重复、6个全文件唯一。该分母是定位字段，不是必要控制数，部分与已有入口重叠。模型把说明/省略号写进match，而prepare先要求全文件唯一，再检查所给范围。GetShared带路径和范围的解释式补读失败会抛出整个job；第二轮fresh请求只给新窗口和旧ID，未给必要的旧源码与依赖摘要。作者的完整schema和结构诊断改进主要位于AK研究driver；Paperless则另有owner为空与前提未指定的语义问题。
 
 **选择的方法。** 沿用当前领域声明和分析host。宿主给窗口/符号标识，模型选择位置和补读需求；原文校验与理由分开。安全的补读缺口逐项诊断，保留验证通过的入口/依赖，缺必要材料时保持partial或invalid。第二轮携带预算内相关旧上下文及新窗口，重发字节/token单列。作者通过现有init/check获得结构建议，通过已有conditions/assumptions/branches说明前提；不把“未知”写成null或非空，不自动接受政策。
+
+**AL1接口定稿。** [归档零调用重放](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/archived-reproduction.json)复现34字段=25无字面命中、3范围内唯一/范围外重复、6全局唯一；GetShared的3项补读在第一项解释式literal失败时整批终止。内部提议采用显式v3 selector：shown-range绑定仓库/ref/源码digest及真实连续窗口，indexed-symbol提供待补读位置，literal-search保留精确字面与范围消歧。自然说明使用独立description，不降级或删除错literal。公开request/v1保持旧语义，request/v2使用所声明范围消歧；补读逐项返回resolved/unresolved与候选和预算，不将安全缺口升级为整批失败。二轮沿用12文件/1MiB索引读取、累计64KiB展示/最终64KiB、深度3、两轮定位加一次纯格式修订，重发源码计入展示预算；元数据、完整prompt及provider用量另记。
+
+**AL2–AL5离线工程。** 红例先证实v2范围唯一被拒、safe read整批抛错、失败父节点仍纳入子项、二轮无旧上下文、取消后未dispatch窗口被记为展示、CLI丢失read gap和索引后源码变化未拒绝。纯selector、逐项恢复、父链处理、v3二轮及普通发布接线后，50项聚焦测试/236断言通过。GetShared旧3个错literal现在各返回not-found，既不删除literal也不伪造补窗；真实新准备仍须重新生成位置。相同旧响应重放只是机制证据，不能充当新模型观测或质量提升。入口/义务计数保持，paid failure、格式修订、timeout unknown和publication failure继续使用原telemetry；所有实际费用未知与已知用量分开。
+
+**AL6普通作者接口。** AK缺字段首稿的最小反例先只得到版本错误，现由已有local schema提供适用结构诊断；init/check/prepare复用同一normalizer/loader路径，缺版本仍invalid，不进入引用/源码的连锁报错或provider。明确v2与高置信v2形状可获schemaPath/fix，不明输入和显式未知版本不套v2；v1/normalized兼容。33项相关测试/751断言通过。它降低了诊断获取的程序性负担，真实作者首稿和一次修订成功率仍由AL11新观测决定。
+
+**AL7前提决定。** 既有premise/conditions/requestedBranches足以清楚表达unspecified、absent、other-present和self，不增加泛型owner字段或项目特例。14项测试/88断言确认：不补非空前提、仅显式分支展开、相反结构化赋值具名拒绝、premise编辑只改目标声明并使ordinary preview/program/compare依赖变化、源码不变。共享模型上下文的compare仍保守影响全部运行场景；自然语言冲突不由host猜测。AL11的Paperless原/变brief会在生成前冻结owner未指定→other-present，不能事后补非空假设改变主评分。
 
 **验收与解释。** 先用归档响应及重命名/重复符号等synthetic测试验证共性，再从AK八个seed各真实准备一次。四个主缺口做旧归档自动材料/新自动材料×MD/DSL的16计划行，两个sentinel新材料补4行；旧GetShared无输入的两行保留blocked。分析采用同一当前实现fresh消费，旧回答不拼入新配对。两包8作者稿和8次原/变消费检验普通诊断与条件表达。按确定解决、条件完整、过度弃答、真实外部未知、作者前提缺失和可补源码缺口报告，并计入准备/修复全成本。真实调用前登记输入和评价规则；后续实现问题、修复与结果继续追加本节。
 

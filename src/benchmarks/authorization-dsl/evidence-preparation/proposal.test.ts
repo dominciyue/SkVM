@@ -32,6 +32,9 @@ export const responseProvider = (text: string): LLMProvider => ({ name: "mock", 
   text, toolCalls: [], tokens: { input: 123, output: 7, cacheRead: 0, cacheWrite: 0 }, costUsd: .001, durationMs: 1, stopReason: "end_turn",
 }), completeWithToolResults: async () => { throw new Error("No executable continuation") } })
 
+const selectionResponse = (dependencies: unknown[] = [], reads: unknown[] = []) => JSON.stringify({ schemaVersion: "authorization-dependency-selection/v3", dependencies, reads })
+const shownSelector = (discovery: Awaited<ReturnType<typeof discoverAuthorizationEvidence>>, file: string, startLine: number, endLine: number) => ({ kind: "shown-range", windowId: discovery.windows.find(w => w.path === file && w.startLine <= startLine && w.endLine >= endLine)!.id, startLine, endLine })
+
 for (const [kind, text] of [
   ["invalid JSON", "not json"], ["schema rejection", '{"dependencies":"bad"}'],
   ["position rejection", JSON.stringify({ dependencies: [{ id: "guard", from: "update", path: "src/guard.ts", startLine: 900, endLine: 902, reason: "control" }] })],
@@ -87,7 +90,7 @@ test("bounded proposal reads a hidden literal window then accepts only displayed
       calls++
       if (calls === 1) expect(params.messages[0]?.content).not.toContain("151 | function unusedGuard")
       else expect(params.messages[0]?.content).toContain("151 | function unusedGuard")
-      return responseProvider(JSON.stringify(calls === 1 ? { dependencies: [], reads: [{ path: "src/guard.ts", match: "function unusedGuard", contextLines: 2 }] } : { dependencies: [{ id: "read-guard", from: "update", path: "src/guard.ts", startLine: 151, endLine: 153, reason: "control" }] })).complete(params)
+      return responseProvider(calls === 1 ? selectionResponse([], [{ id: "body", selector: { kind: "indexed-symbol", symbolId: discovery.symbols.find(s => s.name === "unusedGuard")!.id } }]) : selectionResponse([{ id: "read-guard", from: "update", selector: shownSelector(discovery, "src/guard.ts", 151, 153), reason: "control" }])).complete(params)
     }
     const result = await proposeBoundedAuthorizationDependencies({ ...f, discovery, model: "test/mock", provider })
     expect(calls).toBe(2)
@@ -133,17 +136,127 @@ test("legacy proposal display counts Unicode UTF-8 bytes rather than characters"
   } finally { await rm(f.root, { recursive: true, force: true }) }
 })
 
-test("bounded proposal rejects an indexed but unseen body and retains its usage", async () => {
+test("bounded proposal leaves an indexed but unseen body as a named gap and retains usage", async () => {
   const f = await proposalFixture()
   try {
     await writeFile(path.join(f.root, "project", "src", "guard.ts"), `${"// filler\n".repeat(150)}function unusedGuard() { return true }\n`)
     f.request.schemaVersion = "authorization-evidence-request/v2"
     const discovery = await discoverAuthorizationEvidence(f)
+    const result = await proposeBoundedAuthorizationDependencies({ ...f, discovery, model: "test/mock", provider: responseProvider(selectionResponse([{ id: "unseen", from: "update", selector: { kind: "indexed-symbol", symbolId: discovery.symbols.find(s => s.name === "unusedGuard")!.id }, reason: "control" }])) })
+    expect(result.dependencies).toHaveLength(0)
+    expect(result.gaps).toContainEqual(expect.objectContaining({ id: "unseen", reason: "location-not-shown" }))
+    expect(result.account.telemetry.providerCalls).toBe(1)
+    expect(result.account.telemetry.knownTokens.input).toBe(123)
+    expect(result.account.published).toBe(false)
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
+
+test("the second fresh call retains task, policy, verified support and bounded old source with charged resends", async () => {
+  const f = await proposalFixture()
+  try {
+    f.request.schemaVersion = "authorization-evidence-request/v2"
+    await writeFile(path.join(f.root, "project", "src/guard.ts"), "function hidden() {\n return item\n}\n")
+    const discovery = await discoverAuthorizationEvidence(f)
+    let calls = 0
+    const prompts: string[] = []
+    const provider = responseProvider(""); provider.complete = async params => {
+      calls++; prompts.push(params.messages[0]!.content as string)
+      return responseProvider(calls === 1
+        ? selectionResponse([{ id: "entry-copy", from: "update", selector: shownSelector(discovery, "src/entry.ts", 1, 3), reason: "control", description: "return ... authorize; explanation is not a literal" }], [
+          { id: "good", from: "entry-copy", selector: { kind: "indexed-symbol", symbolId: discovery.symbols.find(s => s.name === "hidden")!.id } },
+          { id: "bad", from: "update", selector: { kind: "literal-search", path: "src/guard.ts", literal: "not an exact source literal" } },
+        ])
+        : selectionResponse([{ id: "new-guard", from: "entry-copy", selector: shownSelector(discovery, "src/guard.ts", 1, 3), reason: "control" }])).complete(params)
+    }
+    const result = await proposeBoundedAuthorizationDependencies({ ...f, discovery, model: "test/mock", provider })
+    expect(calls).toBe(2)
+    expect(prompts[1]).toContain("Accepted policy sources")
+    expect(prompts[1]).toContain("Only owners update.")
+    expect(prompts[1]).toContain("1 | export function update")
+    expect(prompts[1]).toContain("1 | function hidden")
+    expect(prompts[1]).toContain("entry-copy")
+    expect(result.dependencies).toHaveLength(2)
+    expect(result.gaps).toContainEqual(expect.objectContaining({ id: "read:bad", reason: "read-not-found" }))
+    expect(result.account.readOutcomes).toHaveLength(2)
+    expect(result.account.sourceDisplay?.resentSourceBytes).toBeGreaterThan(0)
+    expect(result.account.sourceDisplay?.totalBytes).toBe((result.account.sourceDisplay?.uniqueSourceBytes ?? 0) + (result.account.sourceDisplay?.resentSourceBytes ?? 0))
+    expect(result.account.rounds![1]!.displayedBytes).toBeGreaterThan(discovery.windows.find(w => w.path === "src/guard.ts")!.bytes)
+    expect(result.account.rounds!.every(r => r.promptBytes! >= r.displayedBytes && r.metadataBytes! === r.promptBytes! - r.displayedBytes)).toBe(true)
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
+
+test("no new source information stops after one call and a failed parent cannot admit its child", async () => {
+  const f = await proposalFixture()
+  try {
+    f.request.schemaVersion = "authorization-evidence-request/v2"
+    const discovery = await discoverAuthorizationEvidence(f)
+    const selector = shownSelector(discovery, "src/entry.ts", 1, 3)
+    let calls = 0
+    const provider = responseProvider(""); provider.complete = async params => {
+      calls++
+      return responseProvider(selectionResponse([
+        { id: "bad-parent", from: "update", selector: { ...selector, windowId: "unknown-window" }, reason: "control" },
+        { id: "child", from: "bad-parent", selector, reason: "effect" },
+        { id: "valid", from: "update", selector, reason: "effect" },
+      ], [{ id: "already", selector }, { id: "missing", selector: { kind: "literal-search", path: "src/guard.ts", literal: "missing" } }])).complete(params)
+    }
+    const result = await proposeBoundedAuthorizationDependencies({ ...f, discovery, model: "test/mock", provider })
+    expect(calls).toBe(1)
+    expect(result.dependencies.map(d => d.id)).toEqual(["valid"])
+    expect(result.gaps).toContainEqual(expect.objectContaining({ id: "child", reason: "unresolved-parent" }))
+    expect(result.account.diagnostics).toContain("no-new-source-information")
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
+
+test("unsafe selector paths reject the job with the returned cost retained", async () => {
+  const f = await proposalFixture()
+  try {
+    f.request.schemaVersion = "authorization-evidence-request/v2"
+    const discovery = await discoverAuthorizationEvidence(f)
     let caught: any
-    try { await proposeBoundedAuthorizationDependencies({ ...f, discovery, model: "test/mock", provider: responseProvider(JSON.stringify({ dependencies: [{ id: "unseen", from: "update", path: "src/guard.ts", startLine: 151, endLine: 151, reason: "control" }] })) }) } catch (error) { caught = error }
-    expect(caught.message).toContain("not shown")
+    try { await proposeBoundedAuthorizationDependencies({ ...f, discovery, model: "test/mock", provider: responseProvider(selectionResponse([], [{ selector: { kind: "literal-search", path: "../secret", literal: "x" } }])) }) } catch (error) { caught = error }
+    expect(caught.message).toContain("allowlist")
+    expect(caught.account.telemetry.totalActualUsd).toBe(.001)
     expect(caught.account.telemetry.providerCalls).toBe(1)
-    expect(caught.account.telemetry.knownTokens.input).toBe(123)
-    expect(caught.account.published).toBe(false)
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
+
+test("cancellation after a response stops dispatch and counts only source sent to the provider", async () => {
+  const f = await proposalFixture()
+  try {
+    f.request.schemaVersion = "authorization-evidence-request/v2"
+    await writeFile(path.join(f.root, "project", "src/guard.ts"), "function hidden() { return true }\n")
+    const discovery = await discoverAuthorizationEvidence(f), initialBytes = discovery.displayBytes
+    const controller = new AbortController()
+    let calls = 0, caught: any
+    const provider = responseProvider(""); provider.complete = async params => {
+      calls++; controller.abort()
+      return responseProvider(selectionResponse([], [{ selector: { kind: "indexed-symbol", symbolId: discovery.symbols.find(s => s.name === "hidden")!.id } }])).complete(params)
+    }
+    try { await proposeBoundedAuthorizationDependencies({ ...f, discovery, model: "test/mock", provider, signal: controller.signal }) } catch (error) { caught = error }
+    expect(calls).toBe(1)
+    expect(caught.account.status).toBe("cancelled")
+    expect(caught.account.sourceDisplay.totalBytes).toBe(initialBytes)
+    expect(caught.account.telemetry.totalActualUsd).toBe(.001)
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
+
+for (const text of [selectionResponse(), "invalid JSON"]) test(`cancellation while returning ${text === "invalid JSON" ? "invalid" : "final"} response retains usage without completion or repair`, async () => {
+  const f = await proposalFixture()
+  try {
+    f.request.schemaVersion = "authorization-evidence-request/v2"
+    const discovery = await discoverAuthorizationEvidence(f)
+    const controller = new AbortController()
+    let calls = 0, caught: any
+    const provider = responseProvider(""); provider.complete = async params => {
+      calls++; controller.abort()
+      return responseProvider(text).complete(params)
+    }
+    try { await proposeBoundedAuthorizationDependencies({ ...f, discovery, model: "test/mock", provider, signal: controller.signal }) } catch (error) { caught = error }
+    expect(calls).toBe(1)
+    expect(caught?.account.status).toBe("cancelled")
+    expect(caught?.account.attempts[0].response.text).toBe(text)
+    expect(caught?.account.telemetry.totalActualUsd).toBe(.001)
+    expect(caught?.account.published).toBe(false)
   } finally { await rm(f.root, { recursive: true, force: true }) }
 })

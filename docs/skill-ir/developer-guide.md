@@ -95,6 +95,14 @@ AK在同一组件加入显式request/report v2。`segments.ts`合并重叠/相�
 
 AK实际8job/14准备调用中7发布、1失败；40质量计划单元36完成、4阻塞，36full含12合理unknown。同材料M/D最终一致；不以ready、少token或引用存在代替决定性源码闭合。8fresh作者消费保持16义务，主口径12/16full，owner非空附加假设仅为14/16敏感性。作者首稿5有效、正常修订后6，两次另记的完整schema诊断纠正后8；这项研究driver接口偏离保留首稿/首修，不能视为共享分析器修复。结果与裁定见[AK合并摘要](../../results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/summary.json)和[研究§7.30](skill-dsl-research.md#730-ak-有界依赖准备与源码片段)。本轮总74次provider调用、actual USD及真人时间未知。生成driver不读oracle，评价包仅在所有单元关闭后构建。
 
+AL的`location-selection.ts`提供纯`selectEvidenceLocation(context,selector,purpose)`和`evidenceLocationId`。窗口/符号ID绑定repository/ref/path/digest/真实片段，shown-range不能跨省略或使用未知窗口，indexed-symbol可读未展示正文但不能将其直接纳入证据；literal-search在显式范围内消歧，错literal保留失败。内部模型协议为`authorization-dependency-selection/v3`，说明只进description，最终仍转为普通request/v2坐标；旧request/v1规则不改。`readDiscoveryWindows`返回每项resolved/unresolved、候选、request identity和预算，安全缺口不抛整批；retained host context、unsafe path和源码digest不一致仍fail closed。prepare按父依赖结果处理子项并保留独立有效位置。
+
+二轮位置提示包含同任务/政策、已验证依赖摘要、必要旧窗口和新窗口；`recordDiscoveryDisplay`将每次编号源码展示计入累计64KiB，并拆分unique/resent。account的sourceDisplay只统计实际dispatch轮次，round另记promptBytes/metadataBytes；取消后的未发窗口不冒充模型展示。没有新增源码信息不追加位置调用，二轮再求补读留下round-limit gap。普通CLI合并具名read缺口，在最终prepare重读时比对索引digest，并用原loader核验发布快照；partial可运行而invalid无可运行发布。修改时运行location-selection、discovery、proposal、prepare和CLI prepare测试，连同共有引用/run回归与typecheck。AL3–AL5聚焦50 tests/236 assertions通过，真实质量结果尚待登记运行。
+
+AL6将`editor-support/schema.ts`的`authoringEditorDiagnostics`接入versioned normalizer及普通loader。显式v2或无版本但至少三项task metadata/两项命名字典且无task envelope的声明可获v2结构建议，未知版本/不明形状仍只给version诊断。Ajv结构失败先返回，不进入source/reference/provider；runtime Zod及引用refinement仍为后续权威。既有点路径保持，新增schemaPath给精确JSON Pointer（包括unknown property），fix要求作者明确版本/政策/期待。init模板报告`authoringEditorGuidance`的本地schema/required fields；prepare无效输入也保留同诊断。不插入版本、不修改政策接受、不用v2 schema解析v1或normalized。编辑支持/authoring/CLI的33 tests/751 assertions通过。
+
+AL7复用现有premise statement、scenario relation/expectation、conditions和requestedBranches表达owner unspecified/absent/other-present/self；未增领域状态字段。`owner-premise.test.ts`核对既有local-edit、普通preview/program与`createExecutionDependencies`均保留精确声明；单premise变化会进入assessmentContract/program/prompt摘要，源码及未编辑场景字节不改。compare因共享模型上下文保守复查所有运行场景，不能将局部作者字段修改误称为局部答案复用。未声明facts仍not-declared；仅显式branch展开，重复/相反条件赋值沿已有contract validator报具体路径，不解析自然语言矛盾。14项相关测试/88断言通过；未写项目名或函数名特例。
+
 从仓根执行以下复算均不初始化provider，也不执行目标；不重跑创建目录或真实run命令：
 
 ```powershell

@@ -47,6 +47,44 @@ test("diagnostics identify missing and unknown fields including escaped dictiona
   expect(result.diagnostics.every(d => d.message.length > 0)).toBe(true)
 })
 
+test("ordinary author normalization gives shared structure advice for a recognizable v2 draft without accepting a version", () => {
+  const value: any = createStructuralFixtures()[0]!.value
+  delete value.schemaVersion; delete value.request; delete value.policies
+  const before = JSON.stringify(value)
+  const result = normalizeAuthorizationAuthoringInput(value)
+  expect(result.status).toBe("needs-input")
+  expect(result.diagnostics.map(d => d.schemaPath)).toEqual(expect.arrayContaining(["/schemaVersion", "/request", "/policies"]))
+  expect(result.diagnostics).toHaveLength(3)
+  expect(result.diagnostics.every(d => d.fix.length > 0)).toBe(true)
+  expect(JSON.stringify(value)).toBe(before)
+  expect(normalizeAuthorizationAuthoringInput({ arbitrary: true }).diagnostics).toHaveLength(1)
+  expect(normalizeAuthorizationAuthoringInput({ ...value, schemaVersion: "unsupported" }).diagnostics).toHaveLength(1)
+})
+
+test("init, check and prepare surface the same concrete structural gaps before any provider", async () => {
+  const root = await mkdtemp(path.join(resultsRoot, "ordinary-diagnostic-"))
+  try {
+    const value: any = createStructuralFixtures()[0]!.value
+    delete value.schemaVersion; delete value.request; delete value.policies
+    const input = path.join(root, "authoring.json"), out = path.join(root, "normalized.json"), output: string[] = []
+    await writeFile(input, JSON.stringify(value))
+    let factories = 0
+    const deps = { stdout: (s: string) => output.push(s), stderr: (s: string) => output.push(s), providerFactory: () => { factories++; throw new Error("Invalid drafts must not reach providers") } }
+    expect(await runAuthorizationCli(["init", `--from=${input}`, `--out=${out}`], deps)).toBe(1)
+    expect(JSON.parse(output.at(-1)!).diagnostics.map((d: any) => d.schemaPath)).toContain("/policies")
+    expect(existsSync(out)).toBe(false)
+    expect(await runAuthorizationCli(["check", `--input=${input}`], deps)).toBe(1)
+    expect(JSON.parse(output.at(-1)!).diagnostics.map((d: any) => d.schemaPath)).toContain("/request")
+    const requestFile = path.join(root, "request.json")
+    await writeFile(requestFile, JSON.stringify({ schemaVersion: "authorization-evidence-request/v2", sourceRoot: "project", allowedFiles: ["src/record.ts"], entries: [{ entryKey: "archive", path: "src/record.ts", startLine: 1, endLine: 1 }], dependencies: [], limits: { maxFiles: 12, maxBytes: 65536, maxDepth: 3 } }))
+    expect(await runAuthorizationCli(["prepare", `--input=${input}`, `--request=${requestFile}`, `--out=${path.join(root, "prepared")}`, "--proposal-model=test/mock", "--discover=true"], deps)).toBe(1)
+    expect(JSON.parse(output.at(-1)!).diagnostics.map((d: any) => d.schemaPath)).toContain("/schemaVersion")
+    expect(factories).toBe(0)
+    expect(await runAuthorizationCli(["init", "--format=authoring-v2", `--out=${path.join(root, "template.json")}`], deps)).toBe(0)
+    expect(JSON.parse(output.at(-1)!).authoringSupport.requiredFields).toContain("policies")
+  } finally { await rm(root, { recursive: true, force: true }) }
+})
+
 test("field coverage follows nested runtime objects, required keys and structure", () => {
   expect(findStructuralDrift(loadAuthoringEditorSchema())).toEqual([])
   const changed: any = loadAuthoringEditorSchema()

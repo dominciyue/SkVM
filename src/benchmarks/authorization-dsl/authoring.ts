@@ -1,5 +1,6 @@
 import { z, type ZodIssue } from "zod"
 import { lowerAuthorizationAuthoringV2, type AuthorizationAuthoringInputV2 } from "./authoring-v2.ts"
+import { authoringEditorDiagnostics } from "./editor-support/schema.ts"
 import {
   AnalysisRequirementsSchema,
   compileAnalysisRequirements,
@@ -54,6 +55,7 @@ export interface AuthorizationAuthoringDiagnostic {
   message: string
   path: string
   fix: string
+  schemaPath?: string
 }
 
 export interface AuthorizationAuthoringProvenance {
@@ -198,6 +200,8 @@ export function normalizeAuthorizationAuthoringInput(
   input: unknown,
 ): AuthorizationAuthoringNormalization {
   const version = typeof input === "object" && input !== null && "schemaVersion" in input ? input.schemaVersion : undefined
+  const structure = authoringEditorDiagnostics(input)
+  if (structure?.length) return { status: "needs-input", diagnostics: structure }
   if (version === "authorization-assessment-authoring/v2") return lowerAuthorizationAuthoringV2(input, normalizeAuthorizationAuthoringInput)
   if (version !== "authorization-assessment-authoring/v1") return { status: "needs-input", diagnostics: [diagnostic("author-version-invalid", "Missing or unsupported authoring schemaVersion.", "schemaVersion", "Use authorization-assessment-authoring/v1 or authorization-assessment-authoring/v2.")] }
   const diagnostics: AuthorizationAuthoringDiagnostic[] = []

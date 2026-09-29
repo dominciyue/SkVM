@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-29
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AL0–AL16已获授权、待执行，开发任务为`gpt-6-sol / max`；AK已完成，基线`c0604c5c`与origin对齐、工作区干净。
+- 状态：AL0–AL7工程完成，AL8登记与零调用验证中，AL9–AL16继续执行；开发任务为`gpt-6-sol / max`，被测provider为`xty/gpt-5.6-sol`。真实效果尚未产生。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AL0–AL16](../superpowers/plans/2026-09-29-authorization-location-recovery-and-authoring.md)
@@ -22,7 +22,7 @@
 | AL8–AL11 | 八任务准备、20质量计划行、两包8次消费 | 区分确定解决、条件完整、各类unknown及原/变失败 |
 | AL12–AL16 | 可搬移例子、方法归因、文档验证与发布 | 普通入口可用、完整成本、研究重放和用户origin同步 |
 
-先用AK归档响应与synthetic定位变体完成零调用反例；真实面板集中在四个已知缺口，辅以两个sentinel。旧材料与新材料由同一当前分析实现fresh消费，MD/DSL共享准备材料。作者首稿各最多一次诊断修订；不把手修稿混作自动交付。完整规模、失败恢复与允许调整由AL任务书规定，AL尚无效果结果。
+AK归档34字段分类与GetShared逐项失败已零调用重现，synthetic定位、取消与前提变更测试已通过。八个seed、20质量行及两包八次原/变消费在生成前登记；真实面板集中在四个已知缺口，辅以两个sentinel。旧材料与新材料由同一当前分析实现fresh消费，MD/DSL共享准备材料。作者首稿各最多一次诊断修订，不把手修稿混作自动交付。Paperless仅改变owner前提，Memos仅改变政策与期待；完整规模、失败恢复与允许调整由AL任务书规定。
 
 ## AK 已完成队列
 

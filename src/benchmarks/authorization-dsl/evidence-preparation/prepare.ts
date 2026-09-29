@@ -11,6 +11,7 @@ export interface AuthorizationEvidencePreparation {
   report: AuthorizationEvidenceReport
   snapshots: AuthorizationPreparedSnapshot[]
   preparedInput?: LocalAuthorizationInput & { evidencePreparation: AuthorizationEvidenceReport }
+  diagnostics?: Array<{ code: string; path?: string; message: string; fix?: string; schemaPath?: string }>
 }
 
 const portable = (value: string) => value.length > 0 && !value.includes("\\") && !value.includes("\0")
@@ -28,10 +29,14 @@ export async function prepareAuthorizationEvidence(input: {
   inputFile: string
   outDir: string
   request: AuthorizationEvidenceRequest
+  expectedSourceDigests?: Record<string, string>
 }): Promise<AuthorizationEvidencePreparation> {
   const parsed = AuthorizationEvidenceRequestSchema.safeParse(input.request)
   const loaded = await loadLocalAuthorizationInput(input.inputFile)
-  if (!parsed.success || loaded.status !== "valid") return { report: emptyReport(input.inputFile, input.request), snapshots: [] }
+  if (!parsed.success || loaded.status !== "valid") return { report: emptyReport(input.inputFile, input.request), snapshots: [], diagnostics: [
+    ...(!parsed.success ? parsed.error.issues.map(issue => ({ code: "evidence-request-invalid", path: issue.path.join(".") || "$", message: issue.message })) : []),
+    ...(loaded.status !== "valid" ? loaded.diagnostics : []),
+  ] }
   const request = parsed.data
   const report: AuthorizationEvidenceReport = { schemaVersion: request.schemaVersion === "authorization-evidence-request/v2" ? "authorization-evidence-report/v2" : "authorization-evidence-report/v1", status: "invalid",
     sourceIdentity: { repository: loaded.task.repository, sourceRef: loaded.task.sourceRef }, sourceRoot: request.sourceRoot,
@@ -67,6 +72,7 @@ export async function prepareAuthorizationEvidence(input: {
       cache.set(sourcePath, null)
       return null
     }
+    if (input.expectedSourceDigests?.[sourcePath] !== undefined && input.expectedSourceDigests[sourcePath] !== result.bundle.files[0]!.sha256) throw new Error(`source-digest-mismatch:${sourcePath}`)
     const content = result.bundle.files[0]!.content
     const value = { content, lines: physicalSourceLines(content) }
     cache.set(sourcePath, value)
@@ -96,7 +102,7 @@ export async function prepareAuthorizationEvidence(input: {
     const failure = await assign(entry.path, entry.startLine, entry.endLine, `entry:${entry.entryKey}`, true)
     if (failure) return invalid(entry.entryKey, entry.entryKey, failure, entry.path)
   }
-  const ids = new Set<string>()
+  const ids = new Set(request.entries.map(entry => entry.entryKey))
   const byId = new Map(request.dependencies.map(dependency => [dependency.id, dependency]))
   const resolveOrigin = (id: string, visiting = new Set<string>()): { entryKey: string; depth: number } | null => {
     if (request.entries.some(entry => entry.entryKey === id)) return { entryKey: id, depth: 0 }
@@ -111,23 +117,50 @@ export async function prepareAuthorizationEvidence(input: {
     if (ids.has(dependency.id)) return invalid(dependency.id, "$", "duplicate-dependency-id")
     ids.add(dependency.id)
     if (!portable(dependency.path) || !allowed.has(dependency.path)) return invalid(dependency.id, "$", "dependency-outside-allowlist", dependency.path)
+  }
+  const outcomes = new Map<string, boolean>()
+  let fatal: { id: string; entryKey: string; reason: string; path: string } | undefined
+  const processDependency = async (dependency: AuthorizationEvidenceRequest["dependencies"][number]): Promise<boolean> => {
+    if (outcomes.has(dependency.id)) return outcomes.get(dependency.id)!
+    const gap = (entryKey: string, reason: string) => {
+      report.gaps.push({ id: dependency.id, entryKey, reason, attemptedPath: dependency.path })
+      outcomes.set(dependency.id, false)
+      return false
+    }
     const origin = resolveOrigin(dependency.from)
-    if (!origin) { report.gaps.push({ id: dependency.id, entryKey: "$", reason: "unresolved-or-cyclic-parent", attemptedPath: dependency.path }); continue }
-    if (origin.depth + 1 > request.limits.maxDepth) { report.gaps.push({ id: dependency.id, entryKey: origin.entryKey, reason: "depth-budget", attemptedPath: dependency.path }); continue }
-    if (dependency.unresolvedReason) { report.gaps.push({ id: dependency.id, entryKey: origin.entryKey, reason: dependency.unresolvedReason, attemptedPath: dependency.path }); continue }
-    if (dependency.startLine === undefined || dependency.endLine === undefined) { report.gaps.push({ id: dependency.id, entryKey: origin.entryKey, reason: "range-required", attemptedPath: dependency.path }); continue }
+    if (!origin) return gap("$", "unresolved-or-cyclic-parent")
+    if (origin.depth + 1 > request.limits.maxDepth) return gap(origin.entryKey, "depth-budget")
+    const parent = byId.get(dependency.from)
+    if (parent && !await processDependency(parent)) return gap(origin.entryKey, "unresolved-parent")
+    if (dependency.unresolvedReason) return gap(origin.entryKey, dependency.unresolvedReason)
+    if (dependency.startLine === undefined || dependency.endLine === undefined) return gap(origin.entryKey, "range-required")
     if (dependency.match) {
-      const located = await locateAuthorizationSource({ root: sourceRoot, file: dependency.path, match: dependency.match })
-      if (located.status !== "unique" || located.truncated || located.matches[0]!.line < dependency.startLine || located.matches[0]!.line > dependency.endLine) {
-        report.gaps.push({ id: dependency.id, entryKey: origin.entryKey, reason: "ambiguous-location", attemptedPath: dependency.path })
-        continue
+      try {
+        // Reuse the source read for v2; v1 retains its historical global-literal contract.
+        const scoped = request.schemaVersion === "authorization-evidence-request/v2"
+          ? (await readSource(dependency.path))?.lines.slice(dependency.startLine - 1, dependency.endLine).filter(line => line.includes(dependency.match!)).length === 1
+          : await (async () => {
+            const located = await locateAuthorizationSource({ root: sourceRoot, file: dependency.path, match: dependency.match! })
+            if (located.diagnostics.some(d => d.code !== "missing-input")) throw new Error(located.diagnostics.map(d => d.code).join(","))
+            return located.status === "unique" && !located.truncated && located.matches[0]!.line >= dependency.startLine! && located.matches[0]!.line <= dependency.endLine!
+          })()
+        if (!scoped) return gap(origin.entryKey, "ambiguous-location")
+      } catch (error) {
+        fatal = { id: dependency.id, entryKey: origin.entryKey, reason: `invalid-source:${String(error)}`, path: dependency.path }
+        outcomes.set(dependency.id, false); return false
       }
     }
     const failure = await assign(dependency.path, dependency.startLine, dependency.endLine, `${dependency.basis}:${dependency.id}`, false)
     if (failure) {
-      if (failure.startsWith("invalid-source:")) return invalid(dependency.id, origin.entryKey, failure, dependency.path)
-      report.gaps.push({ id: dependency.id, entryKey: origin.entryKey, reason: failure, attemptedPath: dependency.path })
+      if (failure.startsWith("invalid-source:")) fatal = { id: dependency.id, entryKey: origin.entryKey, reason: failure, path: dependency.path }
+      return gap(origin.entryKey, failure)
     }
+    outcomes.set(dependency.id, true)
+    return true
+  }
+  for (const dependency of request.dependencies) {
+    await processDependency(dependency)
+    if (fatal) return invalid(fatal.id, fatal.entryKey, fatal.reason, fatal.path)
   }
   // Reserve every declared range before spending spare bytes on complete files.
   for (const [sourcePath, selection] of request.schemaVersion === "authorization-evidence-request/v1" ? selected : []) {

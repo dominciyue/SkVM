@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、Ajv、既有 portable source reader、provider 生命周期与 token-accounting、SkVM CLI、Python 文档检查。
 
-- 日期：2026-09-29；状态：`planned-not-started`。执行任务从 AL0 创建自己的机器状态，本文规划完成不代表工程完成。
+- 日期：2026-09-29；状态：`in-progress`，AL0–AL7已完成，AL8登记与冻结中。执行状态见新结果根status；真实效果尚待AL9–AL11。
 - 基线：`c0604c5c5dcd55bd323af5f3a20a237e4c15cf60` 加本轮规划提交。
 - 工作目录：`D:/skill优化/SkVM`；直接使用 `skill-ir-aot`，仅推用户 origin，不建分支或 worktree，不推 upstream。
 - 开发任务：`gpt-6-sol / max`。被测 provider 沿用 `xty/gpt-5.6-sol`；开发代理、准备、作者、分析和评审开销分别记录。
@@ -162,50 +162,50 @@ Paperless共同brief在生成前明确原任务owner状态是未指定，需要�
 
 ### AL0 基线与执行状态
 
-- [ ] 核对本书规划提交、当前分支和Git差异；创建AL `status.json`与追加journal，记录唯一写者和下一命令。
-- [ ] 保存已完成AK基线；不重跑历史全仓审计，不清理旧策略拒绝目录或历史raw/cache。
+- [x] 核对本书规划提交、当前分支和Git差异；创建AL `status.json`与追加journal，记录唯一写者和下一命令。
+- [x] 保存已完成AK基线；不重跑历史全仓审计，不清理旧策略拒绝目录或历史raw/cache。
 
 ### AL1 反例、接口与版本定稿
 
-- [ ] 从AK七份proposal与GetShared账户复现34字段诊断，结果存新目录；逐项核对原文和范围。
-- [ ] 亲读代码表；固定内部v3/旧v1-v2兼容、read结果和上下文预算；同步研究§7.31。
-- [ ] 新增小fixture：文件中两个`return item`，指定范围只含一个；描述`return ... item`没有原文；新窗口ID越界。预期分别resolved/not-found/not-shown。
+- [x] 从AK七份proposal与GetShared账户复现34字段诊断，结果存新目录；逐项核对原文和范围。
+- [x] 亲读代码表；固定内部v3/旧v1-v2兼容、read结果和上下文预算；同步研究§7.31。
+- [x] 新增小fixture：文件中两个`return item`，指定范围只含一个；描述`return ... item`没有原文；新窗口ID越界。预期分别resolved/not-found/not-shown。
 
 ### AL2 宿主位置选择与范围消歧
 
-- [ ] 新建纯函数和对应测试；先覆盖范围内唯一、范围内重复、范围冲突、未知window/symbol、CRLF/Unicode、跨片段缺口。
-- [ ] 新提议只接受host ID或实际展示范围；解释字段不进入literal校验。旧v1与v2准确范围测试保持。
-- [ ] 运行 `bun test ./src/benchmarks/authorization-dsl/evidence-preparation/location-selection.test.ts ./src/benchmarks/authorization-dsl/evidence-preparation/prepare.test.ts`；全部转绿。
+- [x] 新建纯函数和对应测试；先覆盖范围内唯一、范围内重复、范围冲突、未知window/symbol、CRLF/Unicode、跨片段缺口。
+- [x] 新提议只接受host ID或实际展示范围；解释字段不进入literal校验。旧v1与v2准确范围测试保持。
+- [x] 运行 `bun test ./src/benchmarks/authorization-dsl/evidence-preparation/location-selection.test.ts ./src/benchmarks/authorization-dsl/evidence-preparation/prepare.test.ts`；全部转绿。
 
 ### AL3 补读逐项诊断与部分恢复
 
-- [ ] 测试read列表为valid/missing/valid时两项有效都保留；ambiguous返回候选；预算不足保留前面合法片段；unsafe路径仍使job拒绝。
-- [ ] 测试父依赖拒绝后子依赖具名诊断，无悬空from；入口缺失不发布ready，辅助缺失可partial。
-- [ ] 接通discovery→proposal→prepare账户与输出，保留原失败用量和每项结果。
+- [x] 测试read列表为valid/missing/valid时两项有效都保留；ambiguous返回候选；预算不足保留前面合法片段；unsafe路径仍使job拒绝。
+- [x] 测试父依赖拒绝后子依赖具名诊断，无悬空from；入口缺失不发布ready，辅助缺失可partial。
+- [x] 接通discovery→proposal→prepare账户与输出，保留原失败用量和每项结果。
 
 ### AL4 第二轮上下文与预算
 
-- [ ] mock捕获两个实际provider请求，断言第二轮包含同政策、入口、已验证依赖摘要、必要旧片段和新片段。
-- [ ] 测试旧源码重发计费、去重后unique计数、总展示预算、无新信息不追加调用；不传旧模型分析答案。
-- [ ] 全部轮次复用现有telemetry，取消/超时/格式修订/发布失败仍可恢复计数。
+- [x] mock捕获两个实际provider请求，断言第二轮包含同政策、入口、已验证依赖摘要、必要旧片段和新片段。
+- [x] 测试旧源码重发计费、去重后unique计数、总展示预算、无新信息不追加调用；不传旧模型分析答案。
+- [x] 全部轮次复用现有telemetry，取消/超时/格式修订/发布失败仍可恢复计数。
 
 ### AL5 普通prepare接线
 
-- [ ] CLI check-only零provider；有效partial可check/run，invalid不发布可运行输入；报告能指出具体未解决read与下一步信息。
-- [ ] 测试同一输入添加support不增加义务；搬移后原行引用正确，跨省略区间仍拒绝。
-- [ ] 运行 `bun test ./src/cli/authorization-prepare.test.ts ./src/benchmarks/authorization-dsl/evidence-preparation`。
+- [x] CLI check-only零provider；有效partial可check/run，invalid不发布可运行输入；报告能指出具体未解决read与下一步信息。
+- [x] 测试同一输入添加support不增加义务；搬移后原行引用正确，跨省略区间仍拒绝。
+- [x] 运行 `bun test ./src/cli/authorization-prepare.test.ts ./src/benchmarks/authorization-dsl/evidence-preparation`。
 
 ### AL6 普通作者结构诊断
 
-- [ ] 用AK两份缺字段首稿的最小化fixture测试：缺版本时能看到适用的结构建议，缺request/policies获得具体路径，无provider。
-- [ ] 将共有提示和诊断从实验driver职责提升至现有init/check调用链；v1/normalized input正常路径不套错schema。
-- [ ] 运行 `bun test ./src/benchmarks/authorization-dsl/editor-support ./src/benchmarks/authorization-dsl/authoring.test.ts ./src/benchmarks/authorization-dsl/authoring-v2.test.ts ./src/cli/authorization.test.ts`。
+- [x] 用AK两份缺字段首稿的最小化fixture测试：缺版本时能看到适用的结构建议，缺request/policies获得具体路径，无provider。
+- [x] 将共有提示和诊断从实验driver职责提升至现有init/check调用链；v1/normalized input正常路径不套错schema。
+- [x] 运行 `bun test ./src/benchmarks/authorization-dsl/editor-support ./src/benchmarks/authorization-dsl/authoring.test.ts ./src/benchmarks/authorization-dsl/authoring-v2.test.ts ./src/cli/authorization.test.ts`。
 
 ### AL7 前提、分支与变化表达
 
-- [ ] 用现有task-semantics/workspace表达owner未指定与other-present，保留absent分支；结构化前提不同则prompt和compare依赖改变。
-- [ ] 测试未声明owner不被补为非空，明确前提与冲突可定位、无关场景不变；仅显式请求的分支展开。
-- [ ] 共用MD/DSL公开事实；生产代码里不写Paperless、Memos或特定函数名成功分支。
+- [x] 用现有task-semantics/workspace表达owner未指定与other-present，保留absent分支；结构化前提不同则prompt和compare依赖改变。
+- [x] 测试未声明owner不被补为非空，明确前提与冲突可定位、无关场景不变；仅显式请求的分支展开。
+- [x] 共用MD/DSL公开事实；生产代码里不写Paperless、Memos或特定函数名成功分支。
 
 ### AL8 全八任务离线核验与计划固定
 

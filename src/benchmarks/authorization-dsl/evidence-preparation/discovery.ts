@@ -2,12 +2,14 @@ import { loadLocalAuthorizationInput } from "../local-input.ts"
 import { loadPortableSourceBundle } from "../inputs.ts"
 import { AuthorizationEvidenceRequestSchema, type AuthorizationEvidenceRequest } from "./schema.ts"
 import { physicalSourceLines } from "./segments.ts"
+import { evidenceLocationId, selectEvidenceLocation, type EvidenceLocationContext, type EvidenceLocationOutcome, type EvidenceLocationSelector } from "./location-selection.ts"
 
-export interface DiscoverySymbol { id: string; path: string; name: string; kind: "class" | "function"; startLine: number; endLine: number; parent?: string }
-export interface DiscoveryWindow { path: string; startLine: number; endLine: number; text: string; bytes: number; origin: string }
+export interface DiscoverySymbol { id: string; sha256: string; path: string; name: string; kind: "class" | "function"; startLine: number; endLine: number; parent?: string }
+export interface DiscoveryWindow { id: string; sha256: string; path: string; startLine: number; endLine: number; text: string; bytes: number; origin: string }
 export interface DiscoveryDiagnostic { reason: string; path?: string; symbol?: string; from?: string }
 export interface AuthorizationDiscovery {
   schemaVersion: "authorization-bounded-discovery/v1"
+  sourceIdentity: { repository: string; sourceRef: string }
   request: AuthorizationEvidenceRequest
   files: Array<{ path: string; sha256: string; bytes: number; lineCount: number }>
   symbols: DiscoverySymbol[]
@@ -15,16 +17,33 @@ export interface AuthorizationDiscovery {
   diagnostics: DiscoveryDiagnostic[]
   readBytes: number
   displayBytes: number
+  uniqueSourceBytes: number
+  resentSourceBytes: number
+  readOutcomes: DiscoveryReadOutcome[]
   maxDisplayBytes: number
   locator: "lexical-reference-candidates; not a semantic call graph"
 }
-export interface DiscoveryRead { path: string; startLine?: number; endLine?: number; match?: string; contextLines?: number }
-const retainedSources = new WeakMap<AuthorizationDiscovery, Map<string, string[]>>()
+export interface DiscoveryRead { id?: string; from?: string; selector?: EvidenceLocationSelector; path?: string; startLine?: number; endLine?: number; match?: string; contextLines?: number }
+export type DiscoveryReadOutcome = { requestId: string; request: DiscoveryRead; budget: { usedBytes: number; maxBytes: number; requestedBytes?: number } } & (
+  | { status: "resolved"; windowId: string; path: string; startLine: number; endLine: number; bytes: number; newlyShown: boolean }
+  | { status: "unresolved"; code: Extract<EvidenceLocationOutcome, { status: "unresolved" }>["code"] | "file-unavailable" | "display-budget" | "range-required"; candidates: Array<{ path: string; startLine: number; endLine: number }> }
+)
+interface RetainedDiscovery {
+  sources: Map<string, string[]>
+  identity: AuthorizationDiscovery["sourceIdentity"]
+  allowedFiles: string[]
+  files: AuthorizationDiscovery["files"]
+  symbols: DiscoverySymbol[]
+  windows: DiscoveryWindow[]
+  shownLines: Set<string>
+  displayBytes: number
+}
+const retainedSources = new WeakMap<AuthorizationDiscovery, RetainedDiscovery>()
 const portable = (file: string) => !!file && !file.includes("\\") && !file.includes("\0") && !/^(?:[A-Za-z]:|\/)/.test(file) && file.split("/").every(p => p && p !== "." && p !== "..")
 const cleanLine = (line: string) => line.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`[^`]*`/g, "\"\"").replace(/\/\/.*$/, "")
 
-function indexSymbols(file: string, physical: string[]): DiscoverySymbol[] {
-  const lines = physical.map(line => line.replace(/\r?\n$/, "")), output: DiscoverySymbol[] = []
+function indexSymbols(file: string, physical: string[]): Array<Omit<DiscoverySymbol, "sha256">> {
+  const lines = physical.map(line => line.replace(/\r?\n$/, "")), output: Array<Omit<DiscoverySymbol, "sha256">> = []
   const python = file.endsWith(".py")
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!
@@ -68,12 +87,53 @@ function references(content: string): string[] {
   return [...new Set([...calls, ...bases])].filter(name => !["if", "for", "while", "switch", "catch", "return", "function", "func", "def", "class"].includes(name))
 }
 
-function makeWindow(sources: Map<string, string[]>, file: string, start: number, end: number, origin: string): DiscoveryWindow {
-  const lines = sources.get(file)
+function makeWindow(state: RetainedDiscovery, file: string, start: number, end: number, origin: string): DiscoveryWindow {
+  const lines = state.sources.get(file)
   if (!lines) throw new Error(`Requested file is not readable in the allowlist: ${file}`)
   if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < start || end > lines.length) throw new Error(`Read outside source range: ${file}:${start}-${end}`)
-  const text = lines.slice(start - 1, end).map((line, i) => `${start + i} | ${line.replace(/\r?\n$/, "")}`).join("\n")
-  return { path: file, startLine: start, endLine: end, text, bytes: Buffer.byteLength(text, "utf8"), origin }
+  const text = lines.slice(start - 1, end).map((line, i) => `${start + i} | ${line.replace(/\r?\n$/, "")}\n`).join("")
+  const value = { path: file, startLine: start, endLine: end, sha256: state.files.find(f => f.path === file)!.sha256 }
+  return { ...value, id: evidenceLocationId("window", state.identity, value), text, bytes: Buffer.byteLength(text, "utf8"), origin }
+}
+
+function retained(discovery: AuthorizationDiscovery): RetainedDiscovery {
+  const state = retainedSources.get(discovery)
+  if (!state) throw new Error("Discovery read context unavailable; do not resume a dispatched unknown request")
+  if (JSON.stringify(state.identity) !== JSON.stringify(discovery.sourceIdentity) || JSON.stringify(state.allowedFiles) !== JSON.stringify(discovery.request.allowedFiles)
+    || JSON.stringify(state.files) !== JSON.stringify(discovery.files) || JSON.stringify(state.symbols) !== JSON.stringify(discovery.symbols)
+    || JSON.stringify(state.windows) !== JSON.stringify(discovery.windows) || state.displayBytes !== discovery.displayBytes) throw new Error("Discovery snapshot integrity mismatch")
+  return state
+}
+
+export function discoveryLocationContext(discovery: AuthorizationDiscovery): EvidenceLocationContext {
+  const state = retained(discovery)
+  return { sourceIdentity: { ...state.identity }, sources: state.files.map(f => ({ path: f.path, sha256: f.sha256, content: state.sources.get(f.path)!.join("") })), windows: structuredClone(state.windows), symbols: structuredClone(state.symbols) }
+}
+
+/** Every rendered UTF-8 source line counts on every dispatch, including previously shown context. */
+export function recordDiscoveryDisplay(discovery: AuthorizationDiscovery, windows: DiscoveryWindow[]): void {
+  const state = retained(discovery)
+  const bytes = windows.reduce((sum, w) => sum + w.bytes, 0)
+  if (discovery.displayBytes + bytes > Math.min(65536, discovery.maxDisplayBytes)) throw new Error("Cumulative source display budget exhausted")
+  for (const window of windows) {
+    const actual = makeWindow(state, window.path, window.startLine, window.endLine, window.origin)
+    if (JSON.stringify(actual) !== JSON.stringify(window)) throw new Error("Discovery window integrity mismatch")
+    for (let line = window.startLine; line <= window.endLine; line++) {
+      const key = `${window.path}\0${line}`
+      const lineBytes = Buffer.byteLength(`${line} | ${state.sources.get(window.path)![line - 1]!.replace(/\r?\n$/, "")}\n`, "utf8")
+      if (state.shownLines.has(key)) discovery.resentSourceBytes += lineBytes
+      else { state.shownLines.add(key); discovery.uniqueSourceBytes += lineBytes }
+    }
+  }
+  discovery.displayBytes += bytes; state.displayBytes += bytes
+}
+
+function registerWindows(discovery: AuthorizationDiscovery, windows: DiscoveryWindow[]) {
+  const state = retained(discovery)
+  recordDiscoveryDisplay(discovery, windows)
+  for (const window of windows) if (!state.windows.some(w => w.id === window.id)) {
+    discovery.windows.push(window); state.windows.push(structuredClone(window))
+  }
 }
 
 /** Reads only the authored file universe. Candidate positions are lexical evidence, never authorization answers. */
@@ -84,7 +144,7 @@ export async function discoverAuthorizationEvidence(input: { inputFile: string; 
   if (request.schemaVersion !== "authorization-evidence-request/v2") throw new Error("Discovery requires explicit request/v2")
   if (request.allowedFiles.some(file => !portable(file)) || new Set(request.allowedFiles).size !== request.allowedFiles.length || request.entries.some(entry => !request.allowedFiles.includes(entry.path))) throw new Error("Unsafe discovery allowlist")
   if (request.allowedFiles.length > 12) throw new Error("Discovery candidate-file budget is 12")
-  const result: AuthorizationDiscovery = { schemaVersion: "authorization-bounded-discovery/v1", request: structuredClone(request), files: [], symbols: [], windows: [], diagnostics: [], readBytes: 0, displayBytes: 0, maxDisplayBytes: Math.min(input.maxDisplayBytes ?? 65536, 65536), locator: "lexical-reference-candidates; not a semantic call graph" }
+  const result: AuthorizationDiscovery = { schemaVersion: "authorization-bounded-discovery/v1", sourceIdentity: { repository: loaded.task.repository, sourceRef: loaded.task.sourceRef }, request: structuredClone(request), files: [], symbols: [], windows: [], diagnostics: [], readBytes: 0, displayBytes: 0, uniqueSourceBytes: 0, resentSourceBytes: 0, readOutcomes: [], maxDisplayBytes: Math.min(input.maxDisplayBytes ?? 65536, 65536), locator: "lexical-reference-candidates; not a semantic call graph" }
   const sources = new Map<string, string[]>()
   for (const file of request.allowedFiles) {
     const read = await loadPortableSourceBundle({ sourceRoot: loaded.sourceRoot, repository: loaded.task.repository, sourceRef: loaded.task.sourceRef, sourceFiles: [file], maxBytes: Math.max(0, Math.min(input.maxReadBytes ?? 1048576, 1048576) - result.readBytes) })
@@ -96,15 +156,18 @@ export async function discoverAuthorizationEvidence(input: { inputFile: string; 
     const source = read.bundle.files[0]!, lines = physicalSourceLines(source.content), bytes = Buffer.byteLength(source.content)
     sources.set(file, lines); result.readBytes += bytes
     result.files.push({ path: file, sha256: source.sha256, bytes, lineCount: lines.length })
-    result.symbols.push(...indexSymbols(file, lines))
+    const indexed = indexSymbols(file, lines)
+    const ids = new Map(indexed.map(s => [s.id, evidenceLocationId("symbol", result.sourceIdentity, { ...s, sha256: source.sha256 })]))
+    result.symbols.push(...indexed.map(s => ({ ...s, id: ids.get(s.id)!, sha256: source.sha256, ...(s.parent ? { parent: ids.get(s.parent)! } : {}) })))
   }
-  retainedSources.set(result, sources)
+  const state: RetainedDiscovery = { sources, identity: structuredClone(result.sourceIdentity), allowedFiles: request.allowedFiles.slice(), files: structuredClone(result.files), symbols: structuredClone(result.symbols), windows: [], shownLines: new Set(), displayBytes: 0 }
+  retainedSources.set(result, state)
   const addWindow = (file: string, start: number, end: number, origin: string) => {
     if (result.windows.some(w => w.path === file && w.startLine <= start && w.endLine >= end)) return
-    const window = makeWindow(sources, file, start, end, origin)
+    const window = makeWindow(state, file, start, end, origin)
     // Reserve half of the cumulative model display budget for bounded supplementary reads.
     if (result.displayBytes + window.bytes > Math.floor(result.maxDisplayBytes / 2)) { result.diagnostics.push({ reason: "display-budget", path: file, from: origin }); return }
-    result.windows.push(window); result.displayBytes += window.bytes
+    registerWindows(result, [window])
   }
   type Pending = { path: string; start: number; end: number; from: string; depth: number; trail: string[] }
   const queue: Pending[] = request.entries.map(entry => ({ path: entry.path, start: entry.startLine, end: entry.endLine, from: entry.entryKey, depth: 0, trail: [] }))
@@ -159,29 +222,44 @@ export async function discoverAuthorizationEvidence(input: { inputFile: string; 
   return result
 }
 
-/** Supplementary requests are only literal/range reads against bytes already indexed under the read budget. */
-export async function readDiscoveryWindows(discovery: AuthorizationDiscovery, reads: DiscoveryRead[]): Promise<{ windows: DiscoveryWindow[]; bytes: number }> {
-  const sources = retainedSources.get(discovery)
-  if (!sources) throw new Error("Discovery read context unavailable; do not resume a dispatched unknown request")
-  const windows: DiscoveryWindow[] = []
-  let bytes = 0
-  for (const read of reads) {
-    if (!discovery.request.allowedFiles.includes(read.path) || !portable(read.path)) throw new Error("Supplementary path is outside the allowlist")
-    const lines = sources.get(read.path)
-    if (!lines) throw new Error("Supplementary file was not read under budget")
-    let start = read.startLine, end = read.endLine
-    if (read.match !== undefined) {
-      const hits = lines.flatMap((line, i) => line.includes(read.match!) ? [i + 1] : [])
-      if (hits.length !== 1) throw new Error(`Supplementary literal is missing or ambiguous: ${read.path}`)
-      const context = Math.min(80, Math.max(0, read.contextLines ?? 20))
-      start = Math.max(1, hits[0]! - context); end = Math.min(lines.length, hits[0]! + context)
-    }
-    if (start === undefined || end === undefined) throw new Error("Supplementary read requires a literal or exact range")
-    const window = makeWindow(sources, read.path, start, end, "model-read")
-    if (windows.some(w => w.path === window.path && w.startLine === window.startLine && w.endLine === window.endLine)) continue
-    if (discovery.displayBytes + bytes + window.bytes > discovery.maxDisplayBytes) throw new Error("Cumulative supplementary display budget exhausted")
-    windows.push(window); bytes += window.bytes
+/** Safe read failures are gaps; unsafe paths and changed host snapshots still reject the job. */
+export async function readDiscoveryWindows(discovery: AuthorizationDiscovery, reads: DiscoveryRead[], options: { reserveDisplayBytes?: number } = {}): Promise<{ windows: DiscoveryWindow[]; bytes: number; outcomes: DiscoveryReadOutcome[] }> {
+  const state = retained(discovery), context = discoveryLocationContext(discovery)
+  const selectors = reads.map(read => read.selector ?? (read.match !== undefined && read.path ? { kind: "literal-search" as const, path: read.path, literal: read.match, ...(read.startLine === undefined ? {} : { startLine: read.startLine }), ...(read.endLine === undefined ? {} : { endLine: read.endLine }) } : undefined))
+  for (const [i, read] of reads.entries()) {
+    const selector = selectors[i]
+    const file = selector?.kind === "literal-search" ? selector.path : read.path
+    if (file !== undefined && (!discovery.request.allowedFiles.includes(file) || !portable(file))) throw new Error("Supplementary path is outside the allowlist")
   }
-  discovery.windows.push(...windows); discovery.displayBytes += bytes
-  return { windows, bytes }
+  const windows: DiscoveryWindow[] = []
+  const outcomes: DiscoveryReadOutcome[] = []
+  let bytes = 0
+  for (const [i, read] of reads.entries()) {
+    const selector = selectors[i]
+    const file = selector?.kind === "literal-search" ? selector.path : read.path
+    const base = { requestId: read.id ?? `read-${i + 1}`, request: structuredClone(read), budget: { usedBytes: discovery.displayBytes + bytes, maxBytes: Math.min(65536, discovery.maxDisplayBytes) } }
+    if (file && !state.sources.has(file)) { outcomes.push({ ...base, status: "unresolved", code: "file-unavailable", candidates: [] }); continue }
+    let location: EvidenceLocationOutcome
+    if (selector) location = selectEvidenceLocation(context, selector, "read")
+    else if (file && read.startLine !== undefined && read.endLine !== undefined) {
+      const lineCount = state.sources.get(file)?.length ?? 0
+      location = read.startLine >= 1 && read.endLine >= read.startLine && read.endLine <= lineCount ? { status: "resolved", path: file, startLine: read.startLine, endLine: read.endLine } : { status: "unresolved", code: "range-conflict", candidates: [] }
+    } else { outcomes.push({ ...base, status: "unresolved", code: "range-required", candidates: [] }); continue }
+    if (location.status === "unresolved") { outcomes.push({ ...base, ...location }); continue }
+    let { startLine: start, endLine: end } = location
+    if (selector?.kind === "literal-search" && selector.startLine === undefined) {
+      const margin = Math.min(80, Math.max(0, read.contextLines ?? 20))
+      start = Math.max(1, start - margin); end = Math.min(state.sources.get(location.path)!.length, end + margin)
+    }
+    const existing = [...discovery.windows, ...windows].find(w => w.path === location.path && w.startLine <= start && w.endLine >= end)
+    if (existing) { outcomes.push({ ...base, status: "resolved", windowId: existing.id, path: location.path, startLine: start, endLine: end, bytes: 0, newlyShown: false }); continue }
+    const window = makeWindow(state, location.path, start, end, "model-read")
+    if (discovery.displayBytes + bytes + window.bytes + (options.reserveDisplayBytes ?? 0) > base.budget.maxBytes) { outcomes.push({ ...base, budget: { ...base.budget, requestedBytes: window.bytes }, status: "unresolved", code: "display-budget", candidates: [{ path: location.path, startLine: start, endLine: end }] }); continue }
+    windows.push(window); bytes += window.bytes
+    outcomes.push({ ...base, status: "resolved", windowId: window.id, path: location.path, startLine: start, endLine: end, bytes: window.bytes, newlyShown: true })
+  }
+  registerWindows(discovery, windows)
+  discovery.readOutcomes.push(...outcomes)
+  discovery.diagnostics.push(...outcomes.filter(o => o.status === "unresolved").map(o => ({ reason: o.status === "unresolved" ? o.code : "", ...(o.request.path ? { path: o.request.path } : {}), from: o.requestId })))
+  return { windows, bytes, outcomes }
 }

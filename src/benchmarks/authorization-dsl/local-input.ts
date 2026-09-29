@@ -23,6 +23,7 @@ import { compileAuthorizationAssessmentProgram, type AuthorizationAssessmentProg
 import { loadPortableSourceBundle, sourceRangeText, type SourceBundle } from "./inputs.ts"
 import { AuthorizationEvidenceReportSchema } from "./evidence-preparation/schema.ts"
 import { validateSourceSegments } from "./evidence-preparation/segments.ts"
+import { isAuthoringV2Candidate } from "./editor-support/schema.ts"
 import type { AuthorizationAuthoringProvenance } from "./authoring.ts"
 
 const NonEmptyString = z.string().trim().min(1)
@@ -155,7 +156,7 @@ export async function loadLocalAuthorizationInputValue(
 
   let provenance: AuthorizationAuthoringProvenance | { normalizerVersion: string } = { normalizerVersion: "normalized-input/v1" }
   const version = typeof inputValue === "object" && inputValue !== null && "schemaVersion" in inputValue ? inputValue.schemaVersion : undefined
-  if (version === "authorization-assessment-authoring/v1" || version === "authorization-assessment-authoring/v2") {
+  if (version === "authorization-assessment-authoring/v1" || version === "authorization-assessment-authoring/v2" || isAuthoringV2Candidate(inputValue)) {
     const { normalizeAuthorizationAuthoringInput } = await import("./authoring.ts")
     const normalized = normalizeAuthorizationAuthoringInput(inputValue)
     if (normalized.status !== "ready") return { status: "invalid", inputPath, diagnostics: normalized.diagnostics }

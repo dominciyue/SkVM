@@ -187,3 +187,42 @@ test("v2 auxiliary byte overflow remains partial with only the mandatory entry r
     expect(result.preparedInput).toBeDefined()
   } finally { await rm(f.root, { recursive: true, force: true }) }
 })
+
+test("v2 literal matching scopes to the exact range while v1 keeps its historical global contract", async () => {
+  const f = await fixture("one\ntwo\nthree\n", { "helper.ts": "return item\nseparator\nreturn item\n" })
+  try {
+    const dependencies: AuthorizationEvidenceRequest["dependencies"] = [{ id: "one-hit", from: "archive", path: "src/helper.ts", startLine: 3, endLine: 3, match: "return item", reason: "control", basis: "author" }]
+    const old = await prepareAuthorizationEvidence({ ...f, request: request({ dependencies }) })
+    expect(old.report.status).toBe("partial")
+    const current = await prepareAuthorizationEvidence({ ...f, request: request({ schemaVersion: "authorization-evidence-request/v2", dependencies }) })
+    expect(current.report.status).toBe("ready")
+    expect(current.snapshots.find(s => s.path === "src/helper.ts")?.content).toBe("return item\n")
+    const bad = await prepareAuthorizationEvidence({ ...f, request: request({ schemaVersion: "authorization-evidence-request/v2", dependencies: [{ ...dependencies[0]!, match: "return ... item" }] }) })
+    expect(bad.report.status).toBe("partial")
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
+
+test("a rejected parent leaves a named child gap and independent valid support survives", async () => {
+  const f = await fixture("one\ntwo\nthree\n", { "helper.ts": "guard\neffect\n" })
+  try {
+    const result = await prepareAuthorizationEvidence({ ...f, request: request({ schemaVersion: "authorization-evidence-request/v2", dependencies: [
+      { id: "child", from: "missing-parent", path: "src/helper.ts", startLine: 2, endLine: 2, reason: "effect", basis: "model-proposal" },
+      { id: "missing-parent", from: "archive", path: "src/helper.ts", startLine: 1, endLine: 1, match: "explanation ...", reason: "control", basis: "model-proposal" },
+      { id: "independent", from: "archive", path: "src/helper.ts", startLine: 1, endLine: 1, reason: "control", basis: "author" },
+    ] }) })
+    expect(result.report.status).toBe("partial")
+    expect(result.report.gaps).toContainEqual(expect.objectContaining({ id: "child", reason: "unresolved-parent" }))
+    expect(result.snapshots.find(s => s.path === "src/helper.ts")?.content).toBe("guard\n")
+    expect(result.report.included.flatMap(s => s.origins)).not.toContain("model-proposal:child")
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
+
+test("a changed indexed source digest invalidates the preparation rather than publishing new bytes", async () => {
+  const f = await fixture("one\ntwo\nthree\n")
+  try {
+    const result = await prepareAuthorizationEvidence({ ...f, request: request({ allowedFiles: ["src/record.ts"] }), expectedSourceDigests: { "src/record.ts": "different-digest" } })
+    expect(result.report.status).toBe("invalid")
+    expect(result.preparedInput).toBeUndefined()
+    expect(result.report.gaps[0]?.reason).toContain("digest")
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})

@@ -55,6 +55,52 @@ test("definition names do not create support and generated IDs cannot shadow aut
     expect(new Set(ids).size).toBe(ids.length)
     await expect(readDiscoveryWindows(result, [{ path: "helper.ts", startLine: 1, endLine: 1 }])).resolves.toBeDefined()
     result.maxDisplayBytes = result.displayBytes
-    await expect(readDiscoveryWindows(result, [{ path: "helper.ts", startLine: 1, endLine: 1 }])).rejects.toThrow("budget")
+    const repeated = await readDiscoveryWindows(result, [{ path: "helper.ts", startLine: 1, endLine: 1 }])
+    expect(repeated.bytes).toBe(0)
+    expect(repeated.outcomes[0]).toMatchObject({ status: "resolved", newlyShown: false })
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
+
+test("safe supplementary failures are individual outcomes and do not discard later valid reads", async () => {
+  const f = await fixture({ "entry.ts": "function update() {\n return true\n}\n", "helper.ts": "first\nreturn item\nlast\nreturn item\n" })
+  f.request.allowedFiles.push("missing.ts")
+  try {
+    const d = await discoverAuthorizationEvidence(f)
+    const result = await readDiscoveryWindows(d, [
+      { id: "first", path: "helper.ts", startLine: 1, endLine: 1 },
+      { id: "missing", path: "missing.ts", startLine: 1, endLine: 1 },
+      { id: "last", path: "helper.ts", startLine: 3, endLine: 3 },
+      { id: "ambiguous", path: "helper.ts", match: "return item" },
+      { id: "scope", path: "helper.ts", match: "return item", startLine: 4, endLine: 4 },
+    ])
+    expect(result.windows.map(w => w.startLine)).toEqual([1, 3, 4])
+    expect(result.outcomes.map(o => [o.requestId, o.status])).toEqual([["first", "resolved"], ["missing", "unresolved"], ["last", "resolved"], ["ambiguous", "unresolved"], ["scope", "resolved"]])
+    expect(result.outcomes[1]).toMatchObject({ code: "file-unavailable" })
+    expect(result.outcomes[3]).toMatchObject({ code: "ambiguous", candidates: [{ path: "helper.ts", startLine: 2, endLine: 2 }, { path: "helper.ts", startLine: 4, endLine: 4 }] })
+    expect(d.readOutcomes).toHaveLength(5)
+    const before = d.displayBytes
+    await expect(readDiscoveryWindows(d, [{ path: "helper.ts", startLine: 1, endLine: 1 }, { path: "../secret", startLine: 1, endLine: 1 }])).rejects.toThrow("allowlist")
+    expect(d.displayBytes).toBe(before)
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
+
+test("display exhaustion retains affordable windows with named budget outcomes", async () => {
+  const f = await fixture({ "entry.ts": "function update() {\n return true\n}\n", "helper.ts": "small\n" + "large".repeat(100) + "\nend\n" })
+  try {
+    const d = await discoverAuthorizationEvidence(f)
+    d.maxDisplayBytes = d.displayBytes + 40
+    const result = await readDiscoveryWindows(d, [{ id: "ok", path: "helper.ts", startLine: 1, endLine: 1 }, { id: "too-large", path: "helper.ts", startLine: 2, endLine: 2 }, { id: "after", path: "helper.ts", startLine: 3, endLine: 3 }])
+    expect(result.windows.map(w => w.startLine)).toEqual([1, 3])
+    expect(result.outcomes[1]).toMatchObject({ requestId: "too-large", status: "unresolved", code: "display-budget" })
+    expect(d.displayBytes).toBeLessThanOrEqual(d.maxDisplayBytes)
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
+
+test("host context rejects public discovery snapshot tampering", async () => {
+  const f = await fixture({ "entry.ts": "function update() {\n return true\n}\n" })
+  try {
+    const d = await discoverAuthorizationEvidence(f)
+    d.windows[0]!.endLine = 900
+    await expect(readDiscoveryWindows(d, [{ path: "entry.ts", startLine: 1, endLine: 1 }])).rejects.toThrow("integrity")
   } finally { await rm(f.root, { recursive: true, force: true }) }
 })

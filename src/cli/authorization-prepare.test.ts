@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { mkdtemp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises"
+import { cp, mkdtemp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { runAuthorizationCli } from "./authorization.ts"
@@ -153,5 +153,58 @@ test("ordinary discover v2 starts with entry seeds, preserves scene count, and c
     expect(loaded.task.obligations).toHaveLength(2)
     expect(loaded.sourceBundle.files.some(file => file.relativePath === "src/guard.ts")).toBe(true)
     expect(JSON.parse(stdout.at(-1)!).scopePreview).toMatchObject({ analysisEntries: 1, declaredScenarios: 2, expandedObligations: 2 })
+  } finally { await rm(root, { recursive: true, force: true }) }
+})
+
+test("ordinary discovered preparation publishes a valid partial input with individual read diagnostics", async () => {
+  const demo = path.resolve("examples/authorization-assessment/evidence-editing"), root = await mkdtemp(path.join(os.tmpdir(), "authorization-partial-recovery-"))
+  try {
+    const request = JSON.parse(await readFile(path.join(demo, "request-ready.json"), "utf8"))
+    request.schemaVersion = "authorization-evidence-request/v2"; request.dependencies = []; request.allowedFiles.push("src/unavailable.ts")
+    const requestFile = path.join(root, "request.json"); await writeFile(requestFile, JSON.stringify(request))
+    const out = path.join(root, "out"), stdout: string[] = [], stderr: string[] = []
+    let calls = 0
+    const code = await runAuthorizationCli(["prepare", `--input=${path.join(demo, "base.json")}`, `--request=${requestFile}`, `--out=${out}`, "--discover=true", "--proposal-model=test/mock"], {
+      stdout: s => stdout.push(s), stderr: s => stderr.push(s), providerFactory: () => ({ name: "mock", complete: async () => {
+        calls++
+        return { text: JSON.stringify({ schemaVersion: "authorization-dependency-selection/v3", dependencies: [], reads: [{ id: "missing-helper", from: request.entries[0].entryKey, selector: { kind: "literal-search", path: "src/unavailable.ts", literal: "guard" } }] }), toolCalls: [], tokens: { input: 123, output: 7, cacheRead: 0, cacheWrite: 0 }, costUsd: .001, durationMs: 1, stopReason: "end_turn" }
+      }, completeWithToolResults: async () => { throw new Error("No target tools") } }),
+    })
+    expect(code).toBe(0)
+    expect(calls).toBe(1)
+    const report = JSON.parse(await readFile(path.join(out, "report.json"), "utf8"))
+    expect(report.status).toBe("partial")
+    expect(report.gaps).toContainEqual(expect.objectContaining({ id: "read:missing-helper", reason: "read-file-unavailable", requestId: "missing-helper" }))
+    const loaded = await loadLocalAuthorizationInput(path.join(out, "assessment.json"))
+    expect(loaded.status).toBe("valid")
+    if (loaded.status === "valid") expect(loaded.task.obligations).toHaveLength(2)
+    const account = JSON.parse(await readFile(path.join(JSON.parse(stdout.at(-1)!).attemptPath, "account.json"), "utf8"))
+    expect(account.published).toBe(true)
+    expect(account.readOutcomes[0].code).toBe("file-unavailable")
+    expect(account.telemetry.totalActualUsd).toBe(.001)
+  } finally { await rm(root, { recursive: true, force: true }) }
+})
+
+test("source changed during a paid proposal is rejected and returned usage is archived", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "authorization-discovery-tamper-"))
+  try {
+    const demo = path.join(root, "example"); await cp(path.resolve("examples/authorization-assessment/evidence-editing"), demo, { recursive: true })
+    const request = JSON.parse(await readFile(path.join(demo, "request-ready.json"), "utf8"))
+    request.schemaVersion = "authorization-evidence-request/v2"; request.dependencies = []
+    const requestFile = path.join(root, "request.json"); await writeFile(requestFile, JSON.stringify(request))
+    const out = path.join(root, "out"), stdout: string[] = []
+    const code = await runAuthorizationCli(["prepare", `--input=${path.join(demo, "base.json")}`, `--request=${requestFile}`, `--out=${out}`, "--discover=true", "--proposal-model=test/mock"], {
+      stdout: s => stdout.push(s), stderr: () => {}, providerFactory: () => ({ name: "mock", complete: async () => {
+        const file = path.join(demo, "project", request.entries[0].path)
+        await writeFile(file, (await readFile(file, "utf8")) + "// changed while proposing\n")
+        return { text: '{"schemaVersion":"authorization-dependency-selection/v3","dependencies":[],"reads":[]}', toolCalls: [], tokens: { input: 123, output: 7, cacheRead: 0, cacheWrite: 0 }, costUsd: .001, durationMs: 1, stopReason: "end_turn" }
+      }, completeWithToolResults: async () => { throw new Error("No tools") } }),
+    })
+    expect(code).toBe(1)
+    await expect(stat(out)).rejects.toThrow()
+    const account = JSON.parse(await readFile(path.join(JSON.parse(stdout.at(-1)!).attemptPath, "account.json"), "utf8"))
+    expect(account.published).toBe(false)
+    expect(account.telemetry.totalActualUsd).toBe(.001)
+    expect(account.diagnostics.some((d: string) => d.includes("digest"))).toBe(true)
   } finally { await rm(root, { recursive: true, force: true }) }
 })

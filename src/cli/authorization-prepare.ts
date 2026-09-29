@@ -37,7 +37,7 @@ export async function runAuthorizationPrepareCli(args: string[], dependencies: L
     let request = JSON.parse(await readFile(options.requestFile, "utf8"))
     let prepared = await prepareAuthorizationEvidence({ inputFile: options.inputFile, outDir: options.outDir, request })
     if (prepared.report.status === "invalid" || !prepared.preparedInput) {
-      dependencies.stdout(JSON.stringify({ ...prepared.report, outputPath: null }, null, 2))
+      dependencies.stdout(JSON.stringify({ ...prepared.report, ...(prepared.diagnostics ? { diagnostics: prepared.diagnostics } : {}), outputPath: null }, null, 2))
       return 1
     }
     let discovery: AuthorizationDiscovery | undefined
@@ -69,11 +69,11 @@ export async function runAuthorizationPrepareCli(args: string[], dependencies: L
         : await (await import("../providers/registry.ts")).createProviderForModel(options.proposalModel)
       const proposalOptions = { inputFile: options.inputFile, model: options.proposalModel, provider, timeoutMs: options.timeoutMs,
         onEvent: (event: import("../benchmarks/authorization-dsl/telemetry.ts").AuthorizationLifecycleEvent) => appendFile(path.join(attemptPath!, "events.jsonl"), `${JSON.stringify(event)}\n`, "utf8") }
-      proposal = discovery ? await proposeBoundedAuthorizationDependencies({ ...proposalOptions, discovery }) : await proposeAuthorizationDependencies({ ...proposalOptions, request })
+      proposal = discovery ? await proposeBoundedAuthorizationDependencies({ ...proposalOptions, discovery, preparedReport: prepared.report }) : await proposeAuthorizationDependencies({ ...proposalOptions, request })
       account = proposal.account
       await writeFile(path.join(attemptPath, "account.json"), `${JSON.stringify(account, null, 2)}\n`, "utf8")
       request = { ...request, dependencies: [...request.dependencies, ...proposal.dependencies] }
-      prepared = await prepareAuthorizationEvidence({ inputFile: options.inputFile, outDir: options.outDir, request })
+      prepared = await prepareAuthorizationEvidence({ inputFile: options.inputFile, outDir: options.outDir, request, ...(discovery ? { expectedSourceDigests: Object.fromEntries(discovery.files.map(file => [file.path, file.sha256])) } : {}) })
       if (prepared.report.status === "invalid" || !prepared.preparedInput) {
         account.status = "rejected"
         account.diagnostics = prepared.report.gaps.map(gap => `${gap.id}: ${gap.reason}`)
@@ -81,6 +81,12 @@ export async function runAuthorizationPrepareCli(args: string[], dependencies: L
         dependencies.stdout(JSON.stringify({ ...prepared.report, proposal, attemptPath, outputPath: null }, null, 2))
         return 1
       }
+      for (const gap of proposal.gaps ?? []) {
+        const read = proposal.account.readOutcomes?.find(outcome => gap.id === `read:${outcome.requestId}` && outcome.status === "unresolved")
+        prepared.report.gaps.push({ ...gap, ...(read && read.status === "unresolved" ? { requestId: read.requestId, ...(read.request.selector ? { selector: read.request.selector } : {}), candidates: read.candidates, budget: read.budget,
+          next: read.code === "ambiguous" ? "Choose one candidate with an exact source range." : read.code === "display-budget" ? "Reduce the requested range within the shared display budget." : "Supply a readable source location or keep this evidence gap explicit." } : {}) })
+      }
+      if (prepared.report.gaps.length) prepared.report.status = "partial"
     }
     for (const snapshot of prepared.snapshots) {
       const target = path.join(staging, "source", ...snapshot.path.split("/"))

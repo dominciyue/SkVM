@@ -3,6 +3,7 @@ import path from "node:path"
 import syntheticAssessment from "../../examples/authorization-assessment/assessment.json" with { type: "json" }
 import syntheticAuthoringV2 from "../../examples/authorization-assessment/authoring-v2.json" with { type: "json" }
 import { normalizeAuthorizationAuthoringInput } from "../benchmarks/authorization-dsl/authoring.ts"
+import { authoringEditorGuidance } from "../benchmarks/authorization-dsl/editor-support/schema.ts"
 import { locateAuthorizationSource } from "../benchmarks/authorization-dsl/source-location.ts"
 import {
   runLocalAuthorizationCli,
@@ -102,6 +103,7 @@ async function initializeAuthorizationInput(
     synthetic: mode === "synthetic-template",
     sourceRefVerification: "authored",
     ...(provenance ? { provenance } : {}),
+    ...(options.format === "authoring-v2" ? { authoringSupport: authoringEditorGuidance() } : {}),
   }, null, 2))
   return 0
 }

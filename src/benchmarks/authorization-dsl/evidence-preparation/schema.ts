@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { EvidenceLocationSelectorSchema } from "./location-selection.ts"
 
 const Text = z.string().trim().min(1)
 const Line = z.number().int().positive()
@@ -29,7 +30,11 @@ const ReportFields = {
   status: z.enum(["ready", "partial", "invalid"]),
   sourceIdentity: z.object({ repository: Text, sourceRef: Text }).strict(),
   sourceRoot: Text,
-  gaps: z.array(z.object({ id: Text, entryKey: Text, reason: Text, attemptedPath: Text.optional() }).strict()),
+  gaps: z.array(z.object({ id: Text, entryKey: Text, reason: Text, attemptedPath: Text.optional(), requestId: Text.optional(),
+    selector: EvidenceLocationSelectorSchema.optional(), candidates: z.array(z.object({ path: Text, startLine: Line, endLine: Line }).strict()).optional(),
+    budget: z.object({ usedBytes: z.number().int().nonnegative(), maxBytes: z.number().int().nonnegative(), requestedBytes: z.number().int().nonnegative().optional() }).strict().optional(),
+    next: Text.optional(),
+  }).strict()),
   closureClaim: z.literal("declared-dependencies-only"),
 }
 export const AuthorizationEvidenceReportSchema = z.discriminatedUnion("schemaVersion", [
