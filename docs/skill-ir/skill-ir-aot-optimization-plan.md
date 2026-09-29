@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-30
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AM工程、生成、独立评价和有限验证已关闭，正在完成AM16发布。开发任务为`gpt-6-sol / max`，被测provider为`xty/gpt-5.6-sol`；AL完成于`5426a0e6`，旧关闭流及证据保留。
+- 状态：AM0–AM16工程、生成、独立评价、有限验证和首次完整交付已完成；首次交付头`f7e0b205`与用户origin一致，最终完成记录随后发布。开发任务为`gpt-6-sol / max`，被测provider为`xty/gpt-5.6-sol`；AL完成于`5426a0e6`，旧关闭流及证据保留。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AM0–AM16](../superpowers/plans/2026-09-29-authorization-control-context-and-reuse.md)

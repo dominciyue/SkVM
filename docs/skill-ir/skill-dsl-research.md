@@ -1067,7 +1067,7 @@ fresh input430,812、完整prompt+output517,885 tokens。旧AK自动材料的14�
 
 ### 7.32 AM 控制上下文与作者复用
 
-2026-09-29，用户在AL复核后要求编写下一轮任务书并派发`gpt-6-sol / max`。[AM0–AM16](../superpowers/plans/2026-09-29-authorization-control-context-and-reuse.md)继续同一源码可见授权任务类，优先改共享生产路径和普通使用。至2026-09-30，工程、43次真实调用、匿名源码评审、主代理裁定和有限验证已关闭，正在发布到用户origin。以下保留设计、失败和修订过程，实际结果以本轮[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-control-context-v1/summary.json)为准。
+2026-09-29，用户在AL复核后要求编写下一轮任务书并派发`gpt-6-sol / max`。[AM0–AM16](../superpowers/plans/2026-09-29-authorization-control-context-and-reuse.md)继续同一源码可见授权任务类，优先改共享生产路径和普通使用。至2026-09-30，工程、43次真实调用、匿名源码评审、主代理裁定和有限验证已关闭，首次完整交付头`f7e0b2050f7d452320554d485b4128ad941e7070`已与用户origin核对，最终完成记录随后发布。以下保留设计、失败和修订过程，实际结果以本轮[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-control-context-v1/summary.json)为准。
 
 **AL复核定位。** 基线`5426a0e6`与用户origin一致、工作区干净；父任务新鲜回归433 pass/1平台skip、2903断言，typecheck与零provider评价重放通过。OWUI完整helper已经给定位模型读取，最终只保留18/77评价范围行；最终10,173字节，仍有预算。Download补材料后两臂完整，同时增长至60,547字节。接下来的问题是有界控制上下文选择及无关材料膨胀，现有indexed-symbol已经支持完整符号，无须另造全仓索引框架。
 
@@ -1116,7 +1116,7 @@ OWUI最终保留retrieval.py:1340–1539的完整save_docs_to_vector_db，host-c
 
 全部43/43调用响应，fresh input315,021、cache-read16,768、cache-write0，完整prompt331,789、output60,919、合计392,708 tokens；阶段成本见[成本与复用](../../results/skill-ir/skill-dsl-research/development/authorization-control-context-v1/cost-and-reuse-summary.json)。主准备7调用/完整prompt98,066，主质量13/83,674，修订分析5/40,086，作者共享准备4/41,597，作者8/23,797，消费6/44,569。已知provider累计响应耗时1,801,197.5ms，不能当真人或端到端工时。每包准备实际被2次有效消费使用，完整prompt分摊Memos6,004.5、Paperless14,794 tokens/次；阻塞DSL臂所留准备成本未扣除，未把4计划消费当实际分母。43次actualUSD均未知，宿主开发/评审模型用量、隐藏transport retries与真人分钟也未知，不用标价估算冒充实测。
 
-**AM14–AM15收尾边界。** 唯一共享研究修订关闭后，普通字段指引补明atEntry为入口字符串、condition为同场景字典key；这项生成后的说明没有追加请求，未测模型收益。原base/shared-revision实现freeze和首轮失败保留，独立verification freeze绑定原生成freeze、generation-closed及43次调用。首答评分包仅附已有deliveryComplete，未改评价枚举或阈值。一次只读代码核验的sourceRoot身份疑问已按可搬移字节绑定合同裁定，增加新根读字节的反例并同步usage/spec。最终相关回归459 pass/1平台skip、0 fail、3013断言/63文件，主与研究typecheck通过；12项文档测试、链接/目录和五项零provider检查重放通过。AM归档保留原字节，Git格式属性只精确允许source末尾空行、numbered preview行尾空格及manifest/journal CRLF，工程代码/文档仍检查；冻结材料不为格式检查而修剪。暂存凭据及字节核对和发布由AM15–AM16收尾。当前小函数上下文、宿主元数据与缺口继承适合入口/白名单可限定的源码任务；新策略保持opt-in，普通分析默认不迁移。剩余限制是可靠词法边界、未纳入依赖、作者语义/引用错误和解释政策方向一致性；本轮不追加低分样本或泛化/部署安全主张。
+**AM14–AM15收尾边界。** 唯一共享研究修订关闭后，普通字段指引补明atEntry为入口字符串、condition为同场景字典key；这项生成后的说明没有追加请求，未测模型收益。原base/shared-revision实现freeze和首轮失败保留，独立verification freeze绑定原生成freeze、generation-closed及43次调用。首答评分包仅附已有deliveryComplete，未改评价枚举或阈值。一次只读代码核验的sourceRoot身份疑问已按可搬移字节绑定合同裁定，增加新根读字节的反例并同步usage/spec。最终相关回归459 pass/1平台skip、0 fail、3013断言/63文件，主与研究typecheck通过；12项文档测试、链接/目录和五项零provider检查重放通过。AM归档保留原字节，Git格式属性只精确允许source末尾空行、numbered preview行尾空格及manifest/journal CRLF，工程代码/文档仍检查；冻结材料不为格式检查而修剪。暂存Git blob与691份原字节材料、63项当前freeze核对无差异，凭据扫描零命中；首次完整发布已核对用户origin。当前小函数上下文、宿主元数据与缺口继承适合入口/白名单可限定的源码任务；新策略保持opt-in，普通分析默认不迁移。剩余限制是可靠词法边界、未纳入依赖、作者语义/引用错误和解释政策方向一致性；本轮不追加低分样本或泛化/部署安全主张。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
