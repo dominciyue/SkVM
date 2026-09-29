@@ -3,7 +3,7 @@ import { mkdtemp } from "node:fs/promises"
 import path from "node:path"
 import os from "node:os"
 import { executeMarkdownStudyRun } from "../../../../../src/benchmarks/authorization-dsl/markdown-study.ts"
-import { markdownInput, compareArgs, sameValue } from "./generation-options.ts"
+import { markdownInput, compareArgs, sameValue, assertVerificationIdentity } from "./generation-options.ts"
 import { cli, root, al } from "./common.ts"
 
 test("shared Markdown metadata reaches ordinary provider boundary without a paid dispatch", async () => {
@@ -29,4 +29,13 @@ test("schema key reordering preserves material identity but changed gaps and ran
   expect(sameValue(before, after)).toBe(true)
   expect(sameValue(before, { ...after, gaps: [] })).toBe(false)
   expect(sameValue(before, { ...after, included: [{ ...after.included[0], endLine: 2 }] })).toBe(false)
+})
+
+test("post-generation verification retains generation identity and forbids later paid calls", () => {
+  const identity = { generationFreezeSha256: "generation", generationClosedSha256: "closed", providerCalls: 43 }
+  const frozen = { ...identity, purpose: "post-generation-verification", noAdditionalGeneration: true }
+  expect(() => assertVerificationIdentity(frozen, identity)).not.toThrow()
+  expect(() => assertVerificationIdentity(frozen, { ...identity, providerCalls: 44 })).toThrow("Verification identity changed")
+  expect(() => assertVerificationIdentity(frozen, { ...identity, generationClosedSha256: "open" })).toThrow("Verification identity changed")
+  expect(() => assertVerificationIdentity({ ...frozen, purpose: "generation" }, identity)).toThrow("Verification identity changed")
 })

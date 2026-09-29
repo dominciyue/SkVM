@@ -56,6 +56,28 @@ test("a changed raw byte outside the retained crop invalidates reuse and preserv
   } finally { await rm(f.root, { recursive: true, force: true }) }
 })
 
+test("portable input relocation verifies the newly selected raw root and retains all gaps", async () => {
+  const f = await fixture()
+  try {
+    const moved = path.join(f.root, "moved")
+    await mkdir(moved)
+    await cp(path.join(f.root, "project"), path.join(moved, "copy"), { recursive: true })
+    const inputFile = path.join(moved, "changed.json")
+    await writeFile(inputFile, JSON.stringify({ ...f.base, sourceRoot: "copy" }))
+    const options = { inputFile, previousInputFile: f.previousInputFile, outDir: path.join(moved, "prepared") }
+    const same = await reusePreparedMaterial(options)
+    expect(same.report.status).toBe("partial")
+    expect(same.report.materialBinding).toEqual(f.report.materialBinding)
+    expect(same.report.gaps).toEqual(f.report.gaps)
+    const changedSource = path.join(moved, "copy", "src", "record.ts")
+    await writeFile(changedSource, (await readFile(changedSource, "utf8")) + "\n// changed selected raw tree\n")
+    const changed = await reusePreparedMaterial(options)
+    expect(changed.report.status).toBe("invalid")
+    expect(changed.preparedInput).toBeUndefined()
+    expect(changed.report.gaps.at(-1)?.reason).toBe("source-bytes-changed")
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
+
 const report = (): AuthorizationEvidenceReport => ({ schemaVersion: "authorization-evidence-report/v2", status: "partial", sourceIdentity: { repository: "repo", sourceRef: "r1" }, sourceRoot: "project", included: [{ path: "entry.py", originalPath: "entry.py", startLine: 1, endLine: 3, origins: ["entry:update"], segments: [{ originalStartLine: 1, originalEndLine: 3, snapshotStartLine: 1, snapshotEndLine: 3, origins: ["entry:update"] }] }], gaps: [{ id: "helper", entryKey: "update", reason: "range-required", attemptedPath: "entry.py" }], closureClaim: "declared-dependencies-only" })
 
 test("clearing a gap requires new included evidence; current evidence and explanation alone cannot resolve it", () => {

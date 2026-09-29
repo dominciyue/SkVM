@@ -125,7 +125,45 @@ is unknown when the provider does not report it. Do not resend a dispatched
 request merely because its completion is unknown. Runnable partial material
 still carries its gaps into analysis.
 
-For a policy-only edit, unchanged source snapshots may be reused while rebuilding
-the task and dependency identity; compare the old session and run the changed
-task fresh. Changed source or locator ranges need rechecking and preparation,
-with a sourceRef identifying the actual new bytes. The example remains synthetic.
+Start a draft from the machine-known context after making the portable copy:
+
+```powershell
+bun ./src/index.ts authorization init --context="$demo/context.json" --out="$demo/draft.json"
+bun ./src/index.ts authorization check --input="$demo/draft.json"
+```
+
+The draft intentionally reports `needs-input`; it has no accepted policy,
+principal, resource or scenario. Fill those fields yourself. For this synthetic
+walkthrough, the explicit public task facts are already in `base.json`. Copy
+only those authored sections into the generated draft:
+
+```powershell
+$draft = Get-Content -LiteralPath "$demo/draft.json" -Raw | ConvertFrom-Json
+$facts = Get-Content -LiteralPath "$demo/base.json" -Raw | ConvertFrom-Json
+foreach ($field in @('policies','principals','resources','scenarios','analysisContract')) {
+  $draft.$field = $facts.$field
+}
+[System.IO.File]::WriteAllText("$demo/filled.json", ($draft | ConvertTo-Json -Depth 30), [System.Text.UTF8Encoding]::new($false))
+bun ./src/index.ts authorization check --input="$demo/filled.json" --method=plain --assessment=explicit-v1 --wire=v6
+bun ./src/index.ts authorization prepare --input="$demo/filled.json" --request="$demo/request-recovery-v2.json" --context=callable-v1 --out="$demo/callable"
+bun ./src/index.ts authorization edit --input="$demo/filled.json" --edit="$demo/policy-change.json" --out="$demo/callable-edit"
+bun ./src/index.ts authorization prepare --input="$demo/callable-edit/assessment.json" --reuse="$demo/callable/assessment.json" --out="$demo/callable-reused"
+bun ./src/index.ts authorization check --input="$demo/callable-reused/assessment.json" --method=plain --assessment=explicit-v1 --wire=v6
+```
+
+These steps make zero provider calls. `callable/report.json` separates selected
+spans from verified `host-context` additions and still retains the deliberately
+bad `explanation-is-not-source` gap. Reuse preserves that gap, successful
+dependencies and exact original source ranges. It validates complete bytes of
+every bound raw file, including lines absent from the snapshot, by reading the
+new input's selected source root. Byte-identical copies can be relocated; a
+bound-file byte/ref change requires new preparation. This is a recorded-file
+binding, not whole-repository equality. The edit supplies policy reason and targeted
+instruction/response detail text; other prose remains unchanged.
+
+For real answers, use the paid `run` command shown above with
+`callable/assessment.json`, save its printed session path, compare it with
+`callable-reused/assessment.json`, then run the reused input fresh. `compare`
+uses `--previous=<session-path>` and makes zero calls. Reuse carries evidence,
+while changed policy still needs a new analysis. No logs, hashes, grading
+protocol or research driver are required. The example remains synthetic.

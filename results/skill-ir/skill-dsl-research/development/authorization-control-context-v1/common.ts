@@ -4,6 +4,7 @@ import path from "node:path"
 import { runAuthorizationCli } from "../../../../../src/cli/authorization.ts"
 import { createProviderForModel } from "../../../../../src/providers/registry.ts"
 import { reconcileAuthorizationAttemptsFromEvents, summarizeAuthorizationAttempts } from "../../../../../src/benchmarks/authorization-dsl/telemetry.ts"
+import { assertVerificationIdentity } from "./generation-options.ts"
 
 export const root = import.meta.dir, repo = path.resolve(root, "../../../../..")
 export const prefix = path.relative(repo, root).split(path.sep).join("/")
@@ -32,11 +33,19 @@ export async function verifyStudy(requireFreeze = true) {
   await verify([...plan.cases.flatMap((c: any) => [c.input, c.seedRequest, c.markdown, ...c.sourceFiles, c.baseline.assessment, c.baseline.report, c.baseline.proposal]), plan.authorBriefs, ...plan.authorSourceFiles])
   if (requireFreeze) {
     const baselineFile = path.join(root, "implementation-freeze.json")
+    let generationFile = baselineFile
     let frozen = await json(baselineFile)
     const revisionFile = path.join(root, "shared-revision", "implementation-freeze.json")
     if (await exists(revisionFile)) {
       frozen = await json(revisionFile)
+      generationFile = revisionFile
       if (frozen.baselineFreezeSha256 !== hash(await readFile(baselineFile)) || frozen.registrationSha256 !== hash(await readFile(path.join(root, "shared-revision", "registration.json")))) throw new Error("Revision identity changed")
+    }
+    const verificationFile = path.join(root, "verification-freeze.json")
+    if (await exists(verificationFile)) {
+      frozen = await json(verificationFile)
+      assertVerificationIdentity(frozen, { generationFreezeSha256: hash(await readFile(generationFile)),
+        generationClosedSha256: hash(await readFile(path.join(root, "generation-closed.json"))), providerCalls: (await json(path.join(root, "status.json"))).providerCalls })
     }
     if (frozen.planSha256 !== hash(await readFile(path.join(root, "study-plan.json")))) throw new Error("Registration changed")
     await verify(frozen.files)
@@ -75,7 +84,7 @@ export async function retainPaid(id: string, status: string, account: any, infra
   await updateStatus({ paidRows, providerCalls: aggregateUsage(paidRows.map(r => r.account)).providerCalls,
     consecutiveInfrastructureFailures, ...(consecutiveInfrastructureFailures >= 2 ? { paidPaused: true, failureState: { kind: "two-consecutive-infrastructure-failures", id } } : {}) })
 }
-export async function paidPaused() { return !!(await json(path.join(root, "status.json"))).paidPaused }
+export async function paidPaused() { return await exists(path.join(root, "generation-closed.json")) || !!(await json(path.join(root, "status.json"))).paidPaused }
 export async function proposalAccount(report: any) {
   const account = report?.proposal?.account ?? (report?.attemptPath && await exists(path.join(report.attemptPath, "account.json")) ? await json(path.join(report.attemptPath, "account.json")) : null)
   return account ? { ...account.telemetry, status: account.status, attempts: account.attempts, sourceDisplay: account.sourceDisplay,

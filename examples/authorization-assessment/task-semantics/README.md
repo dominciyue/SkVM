@@ -74,3 +74,24 @@ Compare requires a fresh review because premise bytes affect the analysis
 program and prompt. Structure checking cannot certify the truth of prose
 premises. Copy the whole example directory to preserve relative source paths;
 choose an unused output directory for each publication.
+
+For a premise-only change, prepare once with bounded callable context, then
+reuse the same material and pending gaps. Run these from a portable copy whose
+path is stored in `$demo`:
+
+```powershell
+bun ./src/index.ts authorization prepare --input="$demo/owner-premises.json" --request="$demo/entry-seed-owner-v2.json" --context=callable-v1 --out="$demo/owner-material"
+bun ./src/index.ts authorization edit --input="$demo/owner-premises.json" --edit="$demo/owner-other-present-edit.json" --out="$demo/owner-edit"
+bun ./src/index.ts authorization prepare --input="$demo/owner-edit/assessment.json" --reuse="$demo/owner-material/assessment.json" --out="$demo/owner-reused"
+bun ./src/index.ts authorization check --input="$demo/owner-reused/assessment.json" --method=plain --assessment=explicit-v1 --wire=v6
+```
+
+All four commands are provider-free. `external-route-binding` remains pending
+in both reports; it concerns unavailable upstream middleware, while this task
+asks about the stated handler-entry premise. Its presence does not itself
+make that requested entry outcome unknowable. Reuse keeps the exact source,
+conditional policy and three counterfactuals, and only the explicitly edited
+premise changes. For paid assessment, run `owner-material/assessment.json`,
+compare its saved session with `owner-reused/assessment.json`, then run the
+changed input fresh using the ordinary commands above. Source/ref changes
+invalidate this reuse instead of silently clearing old gaps.

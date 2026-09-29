@@ -20,7 +20,8 @@ if (mode === "packets") {
     }
     const first = run?.attempts?.find((a: any) => a.phase === "initial")
     const packet = { blindId, type, task, sourceBundle, status: report.status,
-      first: first ? { status: first.status, schemaValidation: first.schemaValidation, response: first.response } : null,
+      first: first ? { status: first.status, schemaValidation: first.schemaValidation, delivery: run.firstResponse,
+        domainDiagnostics: run.initial?.validation?.diagnostics, response: first.response } : null,
       final: { canonicalResult: report.canonicalResult, requestedBranchAnalysis: report.requestedBranchAnalysis, observedDecisions: report.observedDecisions, coverageValidation: report.coverageValidation, requestedBranchValidation: report.requestedBranchValidation, finalKind: report.finalKind, error: report.error },
       pendingGaps: report.evidencePreparation?.gaps ?? [], fixedSourceRefs: plan.cases.filter((c: any) => c.id === report.unit?.caseId).flatMap((c: any) => c.sourceFiles),
       declaredObligations: type === "consumer" ? 2 : null }
@@ -49,7 +50,7 @@ if (mode === "packets") {
   for (let group = 0; group < 4; group++) {
     await save(path.join(root, "evaluation", `packets-${group + 1}.json`), { schemaVersion: "authorization-am-review-packet/v1", group: group + 1, ratingRules,
       oracle: plan.evaluation.oracleBinding, authorBriefs: plan.authorBriefs,
-      instructions: "Read fixed public source anchors and assess first/final independently. Return RatingSchema rows using blindId; consumer rows use blindId:scenario-key for both declared scenarios. Accurate unknown is not automatically resolved. Author judgments are independent of consumer correctness. Cite file:line and key text for unsupported/incomplete claims. No edits, execution, model calls or resampling.",
+      instructions: "Read fixed public source anchors and assess first/final independently. Return RatingSchema rows using blindId; consumer rows use blindId:scenario-key for both declared scenarios. first.delivery.deliveryComplete=false records no valid delivered first analysis and is blocked under the registered rule, regardless of raw text. Accurate unknown is not automatically resolved. Author judgments are independent of consumer correctness. Cite file:line and key text for unsupported/incomplete claims. No edits, execution, model calls or resampling.",
       answers: packets.filter((_, i) => i % 4 === group), authors: authorPackets.filter((_, i) => i % 4 === group) }, true)
   }
   await save(path.join(root, "evaluation", "blind-mapping.json"), mapping, true)

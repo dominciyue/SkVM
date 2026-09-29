@@ -2,8 +2,10 @@
   "schemaVersion": "authorization-local-edit/v1",
   "reason": "The task author now accepts supervisor access in addition to owner access.",
   "operations": [
-    { "kind": "policy", "key": "archive", "set": { "text": "The authenticated record owner or an authenticated supervisor may archive a record.", "location": "policy-change.json#/operations/0", "revision": "owner-or-supervisor-v2" } },
+    { "kind": "policy", "key": "archive", "set": { "text": "The authenticated record owner or an authenticated supervisor may archive a record.", "location": "policy-change.json#/operations/0", "revision": "owner-or-supervisor-v2", "reason": "The task author explicitly accepts the current owner-or-supervisor rule." } },
     { "kind": "scenario", "key": "owner", "set": { "expectation": "allow" } },
-    { "kind": "scenario", "key": "supervisor-foreign", "set": { "expectation": "allow" } }
+    { "kind": "scenario", "key": "supervisor-foreign", "set": { "expectation": "allow" } },
+    { "kind": "public-instruction", "statement": "Use the current declared policy and entry premises. Identify source control and protected effect with citations, and keep source behavior separate from policy comparison and deployment truth." },
+    { "kind": "response-detail", "scenarioKey": "supervisor-foreign", "index": 0, "statement": "Compare observed source behavior against the current declared policy expectation." }
   ]
 }
