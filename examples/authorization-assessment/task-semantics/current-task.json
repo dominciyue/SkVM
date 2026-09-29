@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "authorization-task-authoring/v1",
+  "request": "At readRecord entry, assess a caller without an object read grant while owner presence and identity are unspecified. Answer the absent, other-present and self-present counterfactuals separately.",
+  "policy": {
+    "text": "An authenticated caller may read an ownerless record, their own record, or a record with an explicit object read grant.",
+    "location": "current-task.json#/policy",
+    "revision": "owner-premises-policy-v1",
+    "acceptance": "accepted",
+    "reason": "The task author explicitly accepts this conditional rule."
+  },
+  "cases": [{
+    "name": "no-grant",
+    "entry": "read",
+    "principal": { "role": "authenticated caller without an object read grant" },
+    "resource": { "type": "existing record" },
+    "relation": "caller-without-object-read-grant",
+    "operation": "read record",
+    "expectation": "conditional",
+    "boundary": "declared-entry",
+    "premises": [{ "name": "owner-state", "statement": "The caller is authenticated and has no object read grant. Owner presence and identity are unspecified." }],
+    "conditions": {
+      "owner-present": { "basis": "Whether record.ownerId is non-null." },
+      "owner-is-caller": { "basis": "Whether a present owner equals caller.id." }
+    },
+    "branches": [
+      { "name": "absent", "assumptions": { "owner-present": false } },
+      { "name": "other-present", "assumptions": { "owner-present": true, "owner-is-caller": false } },
+      { "name": "self-present", "assumptions": { "owner-present": true, "owner-is-caller": true } }
+    ],
+    "responseDetails": ["Separate the current unspecified owner state from each requested counterfactual."]
+  }],
+  "publicInstruction": "Use the explicitly stated current premise. Explain the current effect or missing facts and report absent, other-present and self-present counterfactuals separately."
+}

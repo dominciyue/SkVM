@@ -1120,7 +1120,7 @@ OWUI最终保留retrieval.py:1340–1539的完整save_docs_to_vector_db，host-c
 
 ### 7.33 AN 当前任务合同与领域声明展开
 
-2026-09-30，用户在AM父任务复核后要求编写任务书并派发`gpt-6-sol / max`。[AN0–AN16](../superpowers/plans/2026-09-30-authorization-task-contract-and-authoring.md)已授权、待启动，工程和效果结果尚未产生。继续当前任务类，重点从寻找更多源码转向减少重复编写和输出合同冲突；已有v2/v6、控制上下文及gap复用继续作为基础。
+2026-09-30，用户在AM父任务复核后授权`gpt-6-sol / max`执行[AN0–AN16](../superpowers/plans/2026-09-30-authorization-task-contract-and-authoring.md)。本轮继续当前任务类，重点从寻找更多源码转向减少重复编写和输出合同冲突；已有v2/v6、控制上下文及gap复用继续作为基础。工程、40次真实调用、作者消费与独立评价已完成，发布核验见本节末尾记录。
 
 **复核事实。** AM最终头`af6a2cd0`与origin一致，工作区干净；父任务分组复跑交付459 pass/1平台skip、3013断言，另补study.test.ts的2项/12断言，typecheck和零provider评分重算通过。主16终答9有据且解决、3解释错误、4研究入口阻塞；修订4/4另列。AM验证记录的protocol.test.ts路径未匹配现有计数测试study.test.ts，后者本次已实际补跑，历史记录不覆盖。
 
@@ -1132,13 +1132,23 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **验证安排。** 固定AM四份材料作Markdown/DSL×旧兼容/新统一合同16个fresh质量session；两包Markdown/完整v2/新前端三路线原/变共12作者稿、12消费和24计划义务。三路线使用相同当前brief，旧v2同样获得最新版普通指南；所有宿主代填字段、机械展开和模型创作贡献在派发前登记。结构、公开事实、语义等价和消费分别评价，合理命名不因隐藏固定key被拒。回答有据与任务解决沿AM双维口径，原始回答与最终交付分开；全部失败、修订和未知费用保留。
 
-实现中的接口选择、红绿反例、真实结果及剩余问题继续追加本节。当前默认、历史结果和保护输入保持，AN1可按实际代码修正小接口并同步任务书。
+接口选择、红绿反例、真实结果及剩余问题记录如下。当前默认、历史结果和保护输入保持；AN1按实际代码修正的小接口已同步任务书。
 
 **AN0–AN1现场与接口。** 启动HEAD `3251ff0c`、`skill-ir-aot`干净；AN结果根已建独立status/journal。q06/q08/q16的归档真实DSL提示带旧`requiredAnalysis`返回标签，v6又要求`observed`；Memos原稿任务含未来政策，首稿`atEntry`为boolean，Paperless修订condition使用未声明的自然语言。这些是观察而非对全部质量错误的因果证明。新前端只表达当前单一政策和具名case，作用域内派生入口/条件引用到现有v2；普通入口固定`init --context --task --out`。无效稿只允许诊断登记的JSON Pointer局部修订，有效稿变更继续走edit/compose。新运行选项`--task-contract=current-v1`只支持plain/explicit-v1/v6并绑定session/compare；已知旧输出指令在协议边界迁移，未知冲突给诊断。具体工程及实验结果待红绿测试和真实运行。
 
 **AN2–AN7工程反例。** 合成重命名任务验证当前快照拒绝未来字段，具名政策变更要求逐case重审期待且不改原快照；新前端把case内的前提入口和条件引用机械展开到有效v2，缺政策、重复case、错误入口及跨case引用在分析前诊断。字段来源侧车按JSON Pointer区分明确给出的内容、模型作者内容和宿主引用。AM式boolean `atEntry`及自然语言condition可在原无效稿保留的前提下，只按已登记诊断叶子做一次局部修订；附带改政策/期待被拒。真实mock provider请求确认current-v1清掉已知旧返回要求，MD/DSL共用v6输出协议；未知自定义格式要求具名报错。宿主政策摘要和原模型解释分字段留存，明确相反标签沿原单次repair，不用正则代替一般语义评审。相关工程回归419 pass/1平台skip、2951断言，类型检查通过；真实16/12/12实验尚未派发，不能预判效果。
 
-**AN8零付费登记。** 已对四项固定AM新材料逐任务登记Markdown/DSL×compatibility/current-v1共16行，并从两个公开brief投影三路线原/变12当前快照，另登记12消费、24义务、来源绑定、统一模型/超时/修订次数和AM双维评价规则。原稿提示只含当前快照；Memos原版未来政策字符串不进入提示。16个真实质量参数组合经普通运行入口抵达mock provider，保存准确请求，均通过普通check，四臂每任务输入和源码包摘要一致；12个作者提示及其current-v1编译/check/reuse组合也零provider通过。预检先发现OWUI归档旧要求使用`exact input locations`，与其余三项`exact supplied-source locations`不同；添加这条确切迁移及红绿反例后重跑16/16通过。预检的mock发送不计付费模型观察；质量和作者真实行仍为0，后续不得把预检当效果。
+**AN8零付费登记。** 已对四项固定AM新材料逐任务登记Markdown/DSL×compatibility/current-v1共16行，并从两个公开brief投影三路线原/变12当前快照，另登记12消费、24义务、来源绑定、统一模型/超时/修订次数和AM双维评价规则。原稿提示只含当前快照；Memos原版未来政策字符串不进入提示。16个真实质量参数组合经普通运行入口抵达mock provider，保存准确请求，均通过普通check，四臂每任务输入和源码包摘要一致；12个作者提示及其current-v1编译/check/reuse组合也零provider通过。预检先发现OWUI归档旧要求使用`exact input locations`，与其余三项`exact supplied-source locations`不同；添加这条确切迁移及红绿反例后重跑16/16通过。预检的mock发送不计付费模型观察；实际结果见下文。
+
+**AN9固定材料质量。** 生成前[冻结](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/generation-freeze.json)绑定63项输入和实现文件，16项质量fresh session全部真实完成，21次分析调用含5次原有单次修复。生成关闭之后才读取评价oracle；[逐行评分与摘要](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/evaluation-summary.json)同时保留首答和终答：首答11/16有效交付且源码支持，终答16/16有据且解决，其中12项确定、4项条件完整。compatibility与current-v1各8/8终答支持，八组配对均无终答质量升降；首答分别5/8与6/8，不能据此声称新合同稳定提高质量。五份初答因wire决策类型或引用范围无效而未交付，即使其中原始叙述与源码相符，也按冻结口径记blocked，修复后才计终答。原AM的三份矛盾解释仍保留为历史；AN的新结果不能追认提示冲突是其唯一因果原因。
+
+**AN10–AN11编写与消费。** 两包三路线原/变共12计划作者稿，原稿失败使3份变稿依赖阻塞；实际9稿派发、12次作者调用含3次诊断修订。结构与公开事实及语义均有效的终稿为5/12：Markdown 0/4、完整v2 DSL 1/4、新前端4/4。新前端只机械展开已声明的入口/前提/条件、ID和引用；政策、期待、owner存在性仍由作者提供。Markdown稿遗漏公开事实，Memos DSL原稿没有有效版本，Paperless DSL变稿改动了受约束政策/请求；这些失败没有由主代理补写后计成功。有效稿经普通check、同源准备复用和fresh run完成5/12消费session，另7项作者依赖阻塞；24计划义务中10项实际交付、14项阻塞。5次最终消费均有据且解决（3确定、2条件完整），首答仅3次有效交付；两组具名变化仍需复查旧答案。新前端的4/4作者稿和4/4消费与这两包公开development任务相符，不能推广为一般作者可靠性或真人省时，更不能把宿主编译通过当作消费成功。
+
+**AN12有界修订与普通使用。** 消费开始前发现研究runner以对象键顺序比较复用报告，使已`claim`但未派发模型的消费行被拒；先红绿改为结构比较并分开付费前/后恢复，随后又修正离线准备归档重入时的独占保存。原冻结及AN9/AN10字节不改，两份[消费专用修订身份](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/generation-revision-2.json)逐次登记，最终只继续5份有效稿，不重抽低分或无效作者稿。普通[当前任务示例](../../examples/authorization-assessment/task-semantics/README.md#start-from-a-scoped-current-task)展示当前task→init/check/prepare→fresh run→具名变更→reuse/check/compare→fresh run；`init/check/prepare/reuse/compare`不调用模型，两次`run`需要用户配置模型并付费。一次仓外复制离线核验14文件摘要、原/变同源和同pending gaps、变化任务与材料摘要差异、两份有效current-v1检查；provider与目标执行均为0，见[portable-verification](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/portable-verification.json)。
+
+**AN13效果和完整代价。** [40次真实请求](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/generation-summary.json)均有响应：质量21、作者12、消费7；已知fresh input174,684、cache-read20,736、output48,813，完整prompt195,420、总计244,233 tokens；provider已知累计响应耗时1,433,286.822ms。40次actualUSD均未由provider报告，宿主开发/评审开销、隐藏transport retries及真人分钟也未测，不能换算成实测美元或人力节省。工程上已消除可识别的旧格式指令冲突并减少作者重复引用；质量面板终答两合同打平，作者/消费优势只在有效样本及受阻分母下成立，不能归因于DSL语法本身。当前能力限于公开development、单repo/ref、已声明政策/入口/源码的source-visible任务；没有目标执行、部署核验、held-out或生产默认安全结论。旧默认兼容，新前端和current-v1仍显式选择。
+
+**AN15独立核验与有限修正。** 两项只读复核分别抽查生产接口和生成/评分归档：当前/未来政策隔离、缺政策不推断、定向修订白名单、实际prompt合同、模型原解释保留、冻结分母、首答与终答区分及40次用量均有对应源码和档案。发现直接调用renderer可把current-v1与旧wire组合，以及评分replay只核评分包、不重核raw report/run原件；各先写失败测试，再分别拒绝非v6的直接组合、以原件摘要核对28个评分包。生产有效v6提示及已生成答案不变，原生成freeze不改，没有追加provider请求。相关回归480 pass/1平台skip、3146断言/67文件，主/研究类型、12文档测试、链接/实验目录和四项零provider重放均通过；实际USD/真人分钟及未见任务可靠性仍未知。归档提示未直接保存单独的“无oracle”证明，隔离依赖生成前冻结、生成关闭后才读取oracle及现有prompt档案；此限制不升级为污染事实。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

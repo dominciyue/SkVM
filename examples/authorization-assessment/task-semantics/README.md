@@ -95,3 +95,55 @@ premise changes. For paid assessment, run `owner-material/assessment.json`,
 compare its saved session with `owner-reused/assessment.json`, then run the
 changed input fresh using the ordinary commands above. Source/ref changes
 invalidate this reuse instead of silently clearing old gaps.
+
+## Start from a scoped current task
+
+`current-task-context.json` supplies the synthetic source identity, allowlist and
+entry. `current-task.json` supplies the accepted policy, current premises and
+three requested branches. `authorization init` compiles these explicit facts to
+the ordinary v2 authoring input and writes field provenance beside it. The host
+derives references and IDs; it does not invent a policy or an owner fact. Copy
+this whole folder to a fresh directory outside the checkout and set `$demo` to
+that directory. The commands below write only inside that copy.
+
+```powershell
+bun ./src/index.ts authorization init "--context=$demo/current-task-context.json" "--task=$demo/current-task.json" "--out=$demo/current-authoring.json"
+bun ./src/index.ts authorization check "--input=$demo/current-authoring.json" --method=plain --assessment=explicit-v1 --wire=v6 --task-contract=current-v1
+bun ./src/index.ts authorization prepare "--input=$demo/current-authoring.json" "--request=$demo/current-authoring.entry-seed.json" --context=callable-v1 "--out=$demo/current-material"
+bun ./src/index.ts authorization check "--input=$demo/current-material/assessment.json" --method=plain --assessment=explicit-v1 --wire=v6 --task-contract=current-v1
+```
+
+These four steps use no provider. `current-material/report.json` records the
+source identity, selected bytes and any pending gaps. A fresh analysis is a
+separate paid step; save the session path printed by this command:
+
+```powershell
+bun ./src/index.ts authorization run "--input=$demo/current-material/assessment.json" --model=<provider/model> "--out=$demo/current-sessions" --method=plain --assessment=explicit-v1 --wire=v6 --task-contract=current-v1
+```
+
+`current-task-change.json` names a task change: a different owner is now present
+at entry. It keeps the same source, accepted policy and requested
+counterfactuals. The small example script calls `applyTaskChange` and refuses to
+overwrite an existing output. Compile the changed current task and reuse the
+prepared source material:
+
+```powershell
+bun ./examples/authorization-assessment/task-semantics/apply-current-task-change.ts "--task=$demo/current-task.json" "--change=$demo/current-task-change.json" "--out=$demo/changed-current-task.json"
+bun ./src/index.ts authorization init "--context=$demo/current-task-context.json" "--task=$demo/changed-current-task.json" "--out=$demo/changed-authoring.json"
+bun ./src/index.ts authorization prepare "--input=$demo/changed-authoring.json" "--reuse=$demo/current-material/assessment.json" "--out=$demo/changed-material"
+bun ./src/index.ts authorization check "--input=$demo/changed-material/assessment.json" --method=plain --assessment=explicit-v1 --wire=v6 --task-contract=current-v1
+```
+
+These change and preparation steps also use no provider. The source bytes and
+pending gaps remain the same; the request and owner premise change. A previous
+answer needs review against the changed task, and a changed answer requires a
+fresh paid run:
+
+```powershell
+bun ./src/index.ts authorization compare --previous=<printed-original-session-path> "--input=$demo/changed-material/assessment.json" --method=plain --assessment=explicit-v1 --wire=v6 --task-contract=current-v1
+bun ./src/index.ts authorization run "--input=$demo/changed-material/assessment.json" --model=<provider/model> "--out=$demo/changed-sessions" --method=plain --assessment=explicit-v1 --wire=v6 --task-contract=current-v1
+```
+
+`compare` makes no provider call and cannot turn the old answer into a new
+one. The two `run` commands are shown as ordinary user steps; the portable
+example verification performs no paid analysis or target execution.

@@ -194,23 +194,23 @@ conditions只声明一次、branches引用同一作用域里的名称；名称�
 
 ### AN0 基线与状态
 
-- [ ] 读取上下文、确认当前分支/规划提交/其他改动，建立新status/journal和逐行恢复记录。
-- [ ] 定位AM四份材料、两包共享材料、三条错误原响应及两个作者失败，登记实际路径和版本；不扫描全历史。
-- [ ] 记录本轮唯一写者、nextAction和完整恢复命令；禁止对已派发paid行重复执行。
+- [x] 读取上下文、确认当前分支/规划提交/其他改动，建立新status/journal和逐行恢复记录。
+- [x] 定位AM四份材料、两包共享材料、三条错误原响应及两个作者失败，登记实际路径和版本；不扫描全历史。
+- [x] 记录本轮唯一写者、nextAction和完整恢复命令；禁止对已派发paid行重复执行。
 
 ### AN1 反例与接口定稿
 
-- [ ] 用真实归档确认新旧格式指令同时存在、original brief暴露changed值、atEntry/condition错误；只读取必要的完整prompt。
-- [ ] 亲读作者/compose/workspace/render/outcome代码，固定前端schema、init参数、具名修订操作、task-contract开关和来源字段；同步研究§7.33和本书。
-- [ ] 以重命名的合成授权任务定义三个接口反例，不使用Memos/Paperless名称决定分支。
+- [x] 用真实归档确认新旧格式指令同时存在、original brief暴露changed值、atEntry/condition错误；只读取必要的完整prompt。
+- [x] 亲读作者/compose/workspace/render/outcome代码，固定前端schema、init参数、具名修订操作、task-contract开关和来源字段；同步研究§7.33和本书。
+- [x] 以重命名的合成授权任务定义三个接口反例，不使用Memos/Paperless名称决定分支。
 
 **AN1接口定稿（2026-09-30）：** `authorization-task-authoring/v1`为单一当前政策加`cases[]`的结构化文件；每个case显式`name/entry/principal/resource/relation/operation/expectation/boundary`，premise只写`name/statement`，branch只写`name/assumptions`，条件在同case字典声明。编译器派生v2的principal/resource键、premise.atEntry、同case条件引用和canonical ID，输出字段来源，不从源码补政策。普通`init --context=<context.json> --task=<task.json> --out=<assessment.json>`独占写v2、entry seed和provenance；`--task`不得脱离`--context`。有效v2变更仍走现有`edit/compose`，非法作者稿的定向修订用独立`authorization-author-draft-repair/v1`，仅合并诊断允许的已登记JSON Pointer。普通分析选项定为`--task-contract=current-v1`，只接`plain/explicit-v1/v6`，进入session/compare身份；省略保持compatibility。原版研究brief投影只含当前字段，change-set随后具名改变政策/期待或premise；不能把整份历史brief直接送给原稿作者。
 
 ### AN2 当前任务投影
 
-- [ ] 写当前/变更隔离红例：给同时包含旧/新值的研究brief，original有效prompt中只出现当前政策和期待；changed通过显式变更得到新快照。
-- [ ] 实现共享当前快照生成/校验，返回公开事实来源；未知字段和缺政策保持诊断。
-- [ ] 测试原对象不变、变更路径外字段不变、case身份稳定、未来政策不进入原版或其修订。
+- [x] 写当前/变更隔离红例：给同时包含旧/新值的研究brief，original有效prompt中只出现当前政策和期待；changed通过显式变更得到新快照。
+- [x] 实现共享当前快照生成/校验，返回公开事实来源；未知字段和缺政策保持诊断。
+- [x] 测试原对象不变、变更路径外字段不变、case身份稳定、未来政策不进入原版或其修订。
 
 ```ts
 const original = projectCurrentTask(brief, "original");
@@ -225,9 +225,9 @@ expect(original.policy.text).toBe(brief.originalPolicy);
 
 ### AN3 领域作者前端与确定性展开
 
-- [ ] 定义前端schema，先覆盖一个case、不同条件名、两个case、缺政策、重复case、错误入口、跨case条件引用、explicit unknown及未请求分支。
-- [ ] 实现compileAuthorizationTaskAuthoring，生成普通v2、来源映射与诊断；复用现有lowerer，不从目标代码生成政策/期待。
-- [ ] 核验反事实只按显式branches展开，premise.atEntry来自case入口，条件字典生成一次；改变内部生成ID不改变领域含义。
+- [x] 定义前端schema，先覆盖一个case、不同条件名、两个case、缺政策、重复case、错误入口、跨case条件引用、explicit unknown及未请求分支。
+- [x] 实现compileAuthorizationTaskAuthoring，生成普通v2、来源映射与诊断；复用现有lowerer，不从目标代码生成政策/期待。
+- [x] 核验反事实只按显式branches展开，premise.atEntry来自case入口，条件字典生成一次；改变内部生成ID不改变领域含义。
 
 ```ts
 const built = compileAuthorizationTaskAuthoring(context, taskAuthoring);
@@ -237,84 +237,86 @@ expect(normalizeAuthorizationAuthoringInput(built.authoring).status).toBe("ready
 expect(built.provenance.hostDerived).toContain("premise entry references");
 ```
 
-- [ ] 运行新authoring-task tests与authoring-v2/assessment-contract tests；补一个已有v2复杂输入仍正常的兼容用例。
+- [x] 运行新authoring-task tests与authoring-v2/assessment-contract tests；补一个已有v2复杂输入仍正常的兼容用例。
 
 ### AN4 普通init与变化入口
 
-- [ ] 新init选项调用AN3生产函数，schema错误先诊断，文件冲突不覆盖；零模型生成assessment、entry seed和字段来源。
-- [ ] 当前task/change-set编译后通过现有edit/compose继续，保存原/变任务和差异；相对sourceRoot与搬移行为沿现有规则。
-- [ ] CLI红例验证编译稿真实进入check/prepare/reuse，入口数/义务数不因helper或展开层增加；旧init保持。
-- [ ] 运行`bun test ./src/cli/authorization-an.test.ts ./src/cli/authorization.test.ts ./src/cli/authorization-edit.test.ts`。
+- [x] 新init选项调用AN3生产函数，schema错误先诊断，文件冲突不覆盖；零模型生成assessment、entry seed和字段来源。
+- [x] 当前task/change-set编译后通过现有edit/compose继续，保存原/变任务和差异；相对sourceRoot与搬移行为沿现有规则。
+- [x] CLI红例验证编译稿真实进入check/prepare/reuse，入口数/义务数不因helper或展开层增加；旧init保持。
+- [x] 运行`bun test ./src/cli/authorization-an.test.ts ./src/cli/authorization.test.ts ./src/cli/authorization-edit.test.ts`。
 
 ### AN5 有界作者修订
 
-- [ ] 测试非法草稿的类型/引用诊断可形成允许字段清单，合并后再检查；不要求先有valid v2才能修复。
-- [ ] 测试模型修atEntry却附带修改policy/expectation时具名拒绝附带变更，已确认值保持；未知路径、重复赋值和prototype路径拒绝。
-- [ ] 当前brief、输出形式和字段约束首/修共用；合理修订能到ready，未修完仍needs-input，不自动删除问题字段。
-- [ ] 用原AM两种失败形状和重命名合成版本回归；不把离线修复后的旧响应当新作者成功。
+- [x] 测试非法草稿的类型/引用诊断可形成允许字段清单，合并后再检查；不要求先有valid v2才能修复。
+- [x] 测试模型修atEntry却附带修改policy/expectation时具名拒绝附带变更，已确认值保持；未知路径、重复赋值和prototype路径拒绝。
+- [x] 当前brief、输出形式和字段约束首/修共用；合理修订能到ready，未修完仍needs-input，不自动删除问题字段。
+- [x] 用原AM两种失败形状和重命名合成版本回归；不把离线修复后的旧响应当新作者成功。
 
 ### AN6 唯一当前输出合同
 
-- [ ] 从AM q06构造红例，旧返回标签要求与v6同时进入实际prompt；正确迁移后保留领域分析内容，输出指令只有v6。
-- [ ] 实现task-contract模块，已知格式迁移记录原文/来源/原因。未知自定义内容不擅删；源码或引文中出现旧标签仍原样保留。
-- [ ] 同时测试Markdown/DSL两条路径、legacy/v4/v5兼容、conditional语义及case/domain facts不变；任务内容本来无冲突时不增加冗长说明。
-- [ ] 精确捕获provider mock收到的完整请求进行断言，不只测试renderer片段。
+- [x] 从AM q06构造红例，旧返回标签要求与v6同时进入实际prompt；正确迁移后保留领域分析内容，输出指令只有v6。
+- [x] 实现task-contract模块，已知格式迁移记录原文/来源/原因。未知自定义内容不擅删；源码或引文中出现旧标签仍原样保留。
+- [x] 同时测试Markdown/DSL两条路径、legacy/v4/v5兼容、conditional语义及case/domain facts不变；任务内容本来无冲突时不增加冗长说明。
+- [x] 精确捕获provider mock收到的完整请求进行断言，不只测试renderer片段。
 
 ### AN7 普通运行、政策摘要与矛盾归属
 
-- [ ] 新task-contract选项经普通run进入renderer、session恢复身份和compare依赖；不支持组合在provider前给清楚诊断。
-- [ ] 复用现有observed比较生成摘要，测试allow/deny四组合和unknown；conditional保留原分析及明确的不确定性。
-- [ ] 模型解释与宿主摘要分字段保存。明确相反标签触发具名矛盾记录，原解释不改；一般自然语言由后续语义评审判定。
-- [ ] 若接已有repair，只用原一次机会并保存首答。测试无新循环、无额外自评调用、原费用保留。
+- [x] 新task-contract选项经普通run进入renderer、session恢复身份和compare依赖；不支持组合在provider前给清楚诊断。
+- [x] 复用现有observed比较生成摘要，测试allow/deny四组合和unknown；conditional保留原分析及明确的不确定性。
+- [x] 模型解释与宿主摘要分字段保存。明确相反标签触发具名矛盾记录，原解释不改；一般自然语言由后续语义评审判定。
+- [x] 若接已有repair，只用原一次机会并保存首答。测试无新循环、无额外自评调用、原费用保留。
 
 ### AN8 全部真实入口预检与实验登记
 
-- [ ] 建16质量、12作者、12消费行清单，固定源码/政策/前提/branches、主评价和首答/终答口径；实际作者host贡献逐字段登记。
-- [ ] 让每种真实参数组合进入普通入口的零provider mock，验证instructionOrigin、wire/method/contract、compare --previous、局部修订和引用；不是只检查参数字符串。
-- [ ] 比对四臂有效prompt的领域事实/义务/材料相同，只允许登记合同差异。两个作者current brief不含未来内容。
-- [ ] 提交工程及协议，登记一次生成实现身份和恢复命令。评价oracle隔离，所有check/replay必须零provider。
+- [x] 建16质量、12作者、12消费行清单，固定源码/政策/前提/branches、主评价和首答/终答口径；实际作者host贡献逐字段登记。
+- [x] 让每种真实参数组合进入普通入口的零provider mock，验证instructionOrigin、wire/method/contract、compare --previous、局部修订和引用；不是只检查参数字符串。
+- [x] 比对四臂有效prompt的领域事实/义务/材料相同，只允许登记合同差异。两个作者current brief不含未来内容。
+- [x] 提交工程及协议，登记一次生成实现身份和恢复命令。评价oracle隔离，所有check/replay必须零provider。
 
 ### AN9 固定材料质量运行
 
-- [ ] 执行16个fresh session，交错四臂顺序，保存实际prompt、首答、修复和最终产物；所有失败进入分母。
-- [ ] 不重新定位源码，不按效果手工裁剪材料；原AM回答保持历史。
-- [ ] 生成关闭后匿名评审源码decision、政策解释、所有要求分支和完整交付，两维统计及差异单列。
+- [x] 执行16个fresh session，交错四臂顺序，保存实际prompt、首答、修复和最终产物；所有失败进入分母。
+- [x] 不重新定位源码，不按效果手工裁剪材料；原AM回答保持历史。
+- [x] 生成关闭后匿名评审源码decision、政策解释、所有要求分支和完整交付，两维统计及差异单列。
 
 ### AN10 三路线作者原/变稿
 
-- [ ] 两包三路线共12首稿，按当前任务隔离和公开普通指南编写；每稿至多一次诊断修订。
-- [ ] 记录结构、事实一致、语义等价、宿主展开范围；合法条件命名不要求暗含的固定字符串。
-- [ ] 原稿无效保留依赖阻塞，主代理不代填领域字段；所有模型修订/host机械合并单列。
+- [x] 两包三路线共12首稿，按当前任务隔离和公开普通指南编写；每稿至多一次诊断修订。
+- [x] 记录结构、事实一致、语义等价、宿主展开范围；合法条件命名不要求暗含的固定字符串。
+- [x] 原稿无效保留依赖阻塞，主代理不代填领域字段；所有模型修订/host机械合并单列。
 
 ### AN11 十二次普通消费与复用
 
-- [ ] 有效原/变稿走普通check/reuse/run，最多12session、24计划义务；实际展开及阻塞另列。
-- [ ] 原/变source、ranges和pending gaps一致；政策/前提只按change-set变更，旧结果compare需复查。
-- [ ] 当前模式对三路线相同，不给新前端额外源码或分析调用；分别评价作者有效和消费解决，不因宿主编译成功跳过真实分析。
+- [x] 有效原/变稿走普通check/reuse/run，最多12session、24计划义务；实际展开及阻塞另列。
+- [x] 原/变source、ranges和pending gaps一致；政策/前提只按change-set变更，旧结果compare需复查。
+- [x] 当前模式对三路线相同，不给新前端额外源码或分析调用；分别评价作者有效和消费解决，不因宿主编译成功跳过真实分析。
 
 ### AN12 有界修订与普通示例
 
-- [ ] 确认是否存在可复现共享实现缺陷；没有则关闭修订区块，不为低分追加。若有，先红绿修复，登记至多8个受影响session，保留主结果。
+- [x] 确认是否存在可复现共享实现缺陷；没有则关闭修订区块，不为低分追加。若有，先红绿修复，登记至多8个受影响session，保留主结果。
 - 消费前发现共享研究runner缺陷：复用报告的 `included` 仅因 JSON 对象键顺序不同被字符串比较拒绝；该行已经 `claim`，但没有消费模型调用。AN12 修订只处理结构比较与付费前/后的恢复边界，保留 AN8 原冻结、AN9/AN10 结果，登记新的消费runner身份；不重跑已完成质量或作者行，最多继续5个有效稿消费session。
 - 第一版消费修订的恢复尝试暴露已归档离线命令的独占写入冲突，仍为零消费模型调用。第二版只允许复用这些已有的 `init/edit/prepare` 离线结果并继续前述5行；第一版manifest和失败记录保持可追溯。
-- [ ] 更新现有editor-support/task-semantics例子，展示当前任务→编译→准备/复用→运行→具名变更→再运行；清楚区分零调用和付费步骤。
-- [ ] 一次仓外复制验证源路径和身份、差异以及普通命令；不重复付费演示，不处理旧被拒删除目录。
+- [x] 更新现有editor-support/task-semantics例子，展示当前任务→编译→准备/复用→运行→具名变更→再运行；清楚区分零调用和付费步骤。
+- [x] 一次仓外复制验证源路径和身份、差异以及普通命令；不重复付费演示，不处理旧被拒删除目录。
 
 ### AN13 效果与实现归因
 
-- [ ] 分开报告合同清理、机械展开、领域判断、作者修改和消费质量；共享helper收益与DSL表示收益分开。
-- [ ] 逐路线记录作者字段/重复事实/修订次数、编译是否减少引用负担；有效稿率不代替语义消费。
-- [ ] 汇总全部调用和成本，raw回答与最终展示分开评分；说明当前模式适用条件，未测真人时间/USD维持unknown。
+- [x] 分开报告合同清理、机械展开、领域判断、作者修改和消费质量；共享helper收益与DSL表示收益分开。
+- [x] 逐路线记录作者字段/重复事实/修订次数、编译是否减少引用负担；有效稿率不代替语义消费。
+- [x] 汇总全部调用和成本，raw回答与最终展示分开评分；说明当前模式适用条件，未测真人时间/USD维持unknown。
 
 ### AN14 统一研究与文档
 
-- [ ] 在研究§7.33追加问题—根因—合同选择—反例—真实结果—剩余项；同步usage、developer-guide、spec/plan/current-status及本书checkbox。
-- [ ] 更新实验目录和实际验证命令；AM验证中旧protocol.test.ts名称与现有study.test.ts的差异在新记录中明确，不覆写历史证据。
-- [ ] 每阶段追加根conversation_log；必要durable决定才同步handoff/communication，避免重复整份改写。
+- [x] 在研究§7.33追加问题—根因—合同选择—反例—真实结果—剩余项；同步usage、developer-guide、spec/plan/current-status及本书checkbox。
+- [x] 更新实验目录和实际验证命令；AM验证中旧protocol.test.ts名称与现有study.test.ts的差异在新记录中明确，不覆写历史证据。
+- [x] 每阶段追加根conversation_log；必要durable决定才同步handoff/communication，避免重复整份改写。
+
+**AN9–AN14实际记录（2026-09-30）。** 生成前63项冻结和两份消费专用修订身份保留；第二份修订只恢复离线准备归档的独占保存，不重跑质量或作者。质量16/16终答有据且解决，compatibility/current-v1各8/8、无配对终答增益；作者5/12有效（Markdown 0、v2 DSL 1、新前端4），5/12消费完成，24计划义务10交付、14作者阻塞。40次真实调用、完整prompt195,420/output48,813 tokens，实际USD及真人分钟未知。仓外普通复制检查零provider、零目标执行。逐行首答/终答、成本和限制见[AN评价摘要](../../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/evaluation-summary.json)与[研究§7.33](../../skill-ir/skill-dsl-research.md#733-an-当前任务合同与领域声明展开)；AN15复核不新增付费行。
 
 ### AN15 一次有限验证和独立核验
 
-- [ ] 运行相关回归、类型、新研究脚本类型和零provider重放。新tests在目录中被实际发现，检查运行文件数及测试数，不用不存在的路径冒充覆盖。
+- [x] 运行相关回归、类型、新研究脚本类型和零provider重放。新tests在目录中被实际发现，检查运行文件数及测试数，不用不存在的路径冒充覆盖。
 
 ```powershell
 bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts ./src/cli/authorization-am.test.ts ./src/cli/authorization-an.test.ts ./src/cli/authorization-compose.test.ts ./src/cli/authorization-prepare.test.ts ./src/cli/authorization-edit.test.ts ./src/providers/structured.test.ts ./src/measurement/token-accounting.test.ts ./scripts/token-accounting ./results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/study.test.ts
@@ -325,8 +327,10 @@ python ./scripts/check_skill_ir_doc_links.py --root .
 git diff --check
 ```
 
-- [ ] 做一次只读独立核验：当前/未来隔离、编译未猜政策、修订权限、真实prompt单合同、原解释不隐藏、评价公平和全成本。只修具体缺陷并定向复验。
-- [ ] 核对待提交文件归属与敏感信息；历史runner实现身份不兼容时说明，不改旧freeze刷绿，不追加历史全量审计。
+- [x] 做一次只读独立核验：当前/未来隔离、编译未猜政策、修订权限、真实prompt单合同、原解释不隐藏、评价公平和全成本。只修具体缺陷并定向复验。
+- [x] 核对待提交文件归属与敏感信息；历史runner实现身份不兼容时说明，不改旧freeze刷绿，不追加历史全量审计。
+
+AN15实际核验为480 pass/1平台skip、3146断言/67文件，主与研究类型、12项文档测试、21,065文件链接扫描、13条实验目录及四项零provider重放通过；凭据模式零命中。生成档案按原字节提交，`.gitattributes`仅对AN结果根关闭换行转换并对归档源码/预览放宽对应空白格式检查；748个已跟踪AN文件的Git blob与工作文件原字节一致。独立检查发现的直接renderer旧wire组合、评分replay未重核raw报告两处缺口已按红绿测试修正，原freeze/调用/评分不改。详见[验证记录](../../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/verification.json)。
 
 ### AN16 发布和交付
 

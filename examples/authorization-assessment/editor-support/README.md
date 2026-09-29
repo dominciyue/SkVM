@@ -96,6 +96,19 @@ Open `$sample` as the editor workspace. The association now resolves entirely
 inside that directory. Keep using this checkout's CLI, or a separately available
 compatible CLI; this example does not claim that these assets are npm-published.
 
+## Compile a current task before editing v2
+
+The [task-semantics example](../task-semantics/README.md) includes
+`current-task-context.json`, `current-task.json` and a named
+`current-task-change.json`. Run ordinary `authorization init --context --task`
+there to produce a v2 authoring file, an entry seed and field provenance. Edit
+that v2 file with the local schema described above, then run ordinary `check`
+with `--method=plain --assessment=explicit-v1 --wire=v6
+--task-contract=current-v1`. `init`, schema validation, `check`, bounded
+`prepare`, reuse and `compare` use no provider; only an explicit `run` sends the
+analysis to the configured model. The task-semantics README gives the complete
+compile, prepare, named change and rerun sequence.
+
 ## Change the scenario in the same declaration
 
 For an **owner** variation, set the resource fact to `owned by alice`, update
