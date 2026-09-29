@@ -1,0 +1,583 @@
+{
+  "schemaVersion": "authorization-assessment-input/v1",
+  "sourceIdentity": {
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+  },
+  "sourceRoot": "source",
+  "sources": [
+    "src/documents/permissions.py",
+    "src/documents/serialisers.py",
+    "src/documents/views.py"
+  ],
+  "task": {
+    "schemaVersion": "source-authorization-assessment/v0",
+    "taskId": "paperless-share-create-document-view",
+    "request": "At ShareLinkViewSet.create handler entry, can an authenticated caller with global add_sharelink and global view_document permission create a share link for a document owned by someone else when the caller lacks object view_document permission on that document?",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "sourceMode": "fixed-context",
+    "policySources": [
+      {
+        "id": "policy:share-target-document-view",
+        "kind": "explicit-task-requirement",
+        "text": "Share-link creation requires the share-link creation permission and view access to the referenced document; a global view_document grant alone does not substitute for the owner-aware object check.",
+        "location": "src/documents/permissions.py:30-53; src/documents/serialisers.py:2851-2886",
+        "revision": "126ec414a8b65158368653a2604ae58415e43103",
+        "acceptance": {
+          "status": "accepted",
+          "actorRole": "task-author",
+          "reason": "Public fixed-ref source and task-author bounded requirement."
+        }
+      }
+    ],
+    "principals": [
+      {
+        "id": "principal:global-permissions-only",
+        "role": "authenticated user with global add_sharelink and view_document permissions",
+        "description": "Author facts: [\"The caller has the global permissions named in the question.\",\"The caller has no object view_document grant on the target document.\"]",
+        "startingCapabilities": []
+      }
+    ],
+    "resources": [
+      {
+        "id": "resource:other-document-share",
+        "type": "document and new share link",
+        "description": "Author facts: [\"The referenced document exists and is owned by another user.\",\"No object view grant is held by the caller.\"]"
+      }
+    ],
+    "entries": [
+      {
+        "id": "entry:share-create",
+        "name": "ShareLinkViewSet.create",
+        "locations": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4696,
+            "endLine": 4717
+          }
+        ]
+      }
+    ],
+    "obligations": [
+      {
+        "id": "scenario:global-only-no-document-view",
+        "principalId": "principal:global-permissions-only",
+        "resourceId": "resource:other-document-share",
+        "relation": "global-view-without-object-view",
+        "operation": "create share link referencing document",
+        "expectation": "deny",
+        "conditions": [],
+        "policySourceId": "policy:share-target-document-view",
+        "entryIds": [
+          "entry:share-create"
+        ]
+      }
+    ],
+    "scopeAssurance": "Only explicitly declared scenarios and supplied source are assessed; repository discovery and deployment behavior are not tested.",
+    "requiredAnalysis": [
+      "Trace entry, identity and resource binding, strongest authorization control, and protected effect. Explain decisive missing source-external facts.",
+      "identify the principal, operation, protected resource, decisive control, and effect",
+      "return source_supported_failure, source_refuted, or unknown with exact supplied-source locations"
+    ],
+    "constraints": [
+      "Use only supplied fixed source context. Do not execute or modify the target, contact a deployment, or claim repository-wide discovery.",
+      "Use only the supplied fixed-ref case inputs.",
+      "Do not execute the target project or infer deployment facts."
+    ]
+  },
+  "analysisProfile": {
+    "id": "authorization-core-v1",
+    "origin": "derived"
+  },
+  "analysisRequirements": [
+    {
+      "id": "authorization-core-v1.entry-control",
+      "kind": "entry-control",
+      "obligationIds": [
+        "scenario:global-only-no-document-view"
+      ],
+      "question": "Which source-visible condition or control gates the declared entry before the assessed path proceeds?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.identity-binding",
+      "kind": "identity-binding",
+      "obligationIds": [
+        "scenario:global-only-no-document-view"
+      ],
+      "question": "How is the declared principal bound to the runtime caller or identity used by the assessed operation?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.resource-binding",
+      "kind": "resource-binding",
+      "obligationIds": [
+        "scenario:global-only-no-document-view"
+      ],
+      "question": "How is the request-selected object bound to the declared resource, and which other checked resource must remain distinct?",
+      "applicability": "required",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "authorization-core-v1.authorization-decision",
+      "kind": "authorization-decision",
+      "obligationIds": [
+        "scenario:global-only-no-document-view"
+      ],
+      "question": "What is the strongest source-visible authorization decision for this principal, resource relation, operation, and condition set, including any role or ownership branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.identity-binding",
+        "authorization-core-v1.resource-binding"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.effect-reachability",
+      "kind": "effect-reachability",
+      "obligationIds": [
+        "scenario:global-only-no-document-view"
+      ],
+      "question": "After the visible controls, can the requested operation reach the declared protected effect, and under which source-visible branch?",
+      "applicability": "required",
+      "prerequisiteIds": [
+        "authorization-core-v1.entry-control",
+        "authorization-core-v1.authorization-decision"
+      ]
+    },
+    {
+      "id": "authorization-core-v1.external-assumption",
+      "kind": "external-assumption",
+      "obligationIds": [
+        "scenario:global-only-no-document-view"
+      ],
+      "question": "Which source-external fact, if any, can change the answer, and is that fact supplied or still unknown in this fixed context?",
+      "applicability": "when-present",
+      "prerequisiteIds": [
+        "authorization-core-v1.effect-reachability"
+      ]
+    }
+  ],
+  "analysisContract": {
+    "schemaVersion": "authorization-analysis-contract/v1",
+    "publicInstruction": "Decide the current scenario at the stated declared-entry boundary from the supplied fixed source and accepted policy. Treat premises as question assumptions, not source or deployment proof. Trace the decisive authorization control, protected object and effect with exact supplied-source locations. State any decisive missing runtime fact rather than assuming it. Do not execute the target, infer missing deployment facts, or consult later versions.\nCurrent question: At ShareLinkViewSet.create handler entry, can an authenticated caller with global add_sharelink and global view_document permission create a share link for a document owned by someone else when the caller lacks object view_document permission on that document?\nAnalysis boundary: declared-entry.\nTask premise: At ShareLinkViewSet.create entry, the authenticated caller has global add_sharelink and view_document, but the referenced document exists, belongs to another user, and has no caller object view grant.\nRequired response detail: Trace the viewset's permissions and serializer validation of the referenced document; distinguish the share-link object from its target document.",
+    "scenarios": [
+      {
+        "obligationId": "scenario:global-only-no-document-view",
+        "boundary": "declared-entry",
+        "premises": [
+          {
+            "id": "premise-1",
+            "statement": "At ShareLinkViewSet.create entry, the authenticated caller has global add_sharelink and view_document, but the referenced document exists, belongs to another user, and has no caller object view grant.",
+            "atEntryId": "entry:share-create",
+            "provenance": "task-assumption"
+          }
+        ],
+        "requestedBranches": [],
+        "requiredResponseDetails": [
+          "Trace the viewset's permissions and serializer validation of the referenced document; distinguish the share-link object from its target document."
+        ]
+      }
+    ]
+  },
+  "evidencePreparation": {
+    "schemaVersion": "authorization-evidence-report/v2",
+    "status": "partial",
+    "sourceIdentity": {
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+    "included": [
+      {
+        "path": "src/documents/permissions.py",
+        "originalPath": "src/documents/permissions.py",
+        "startLine": 30,
+        "endLine": 637,
+        "origins": [
+          "model-proposal:dep-share-create-http-permission-map",
+          "model-proposal:dep-share-create-owner-aware-check",
+          "host-context:symbol-d50f36cbe040d6fab5ea55a5"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 30,
+            "originalEndLine": 53,
+            "origins": [
+              "model-proposal:dep-share-create-http-permission-map"
+            ],
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 24
+          },
+          {
+            "originalStartLine": 624,
+            "originalEndLine": 637,
+            "origins": [
+              "model-proposal:dep-share-create-owner-aware-check",
+              "host-context:symbol-d50f36cbe040d6fab5ea55a5"
+            ],
+            "snapshotStartLine": 25,
+            "snapshotEndLine": 38
+          }
+        ]
+      },
+      {
+        "path": "src/documents/serialisers.py",
+        "originalPath": "src/documents/serialisers.py",
+        "startLine": 2869,
+        "endLine": 2886,
+        "origins": [
+          "model-proposal:dep-share-create-document-validation"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 2869,
+            "originalEndLine": 2886,
+            "origins": [
+              "model-proposal:dep-share-create-document-validation"
+            ],
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 18
+          }
+        ]
+      },
+      {
+        "path": "src/documents/views.py",
+        "originalPath": "src/documents/views.py",
+        "startLine": 406,
+        "endLine": 4719,
+        "origins": [
+          "locator:located-2",
+          "model-proposal:dep-share-create-user-context",
+          "model-proposal:dep-share-viewset-composition",
+          "entry:share-create",
+          "locator:located-1",
+          "model-proposal:dep-share-serializer-binding",
+          "model-proposal:dep-share-permission-binding"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 406,
+            "originalEndLine": 428,
+            "origins": [
+              "locator:located-2",
+              "model-proposal:dep-share-create-user-context"
+            ],
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 23
+          },
+          {
+            "originalStartLine": 4696,
+            "originalEndLine": 4719,
+            "origins": [
+              "model-proposal:dep-share-viewset-composition",
+              "entry:share-create",
+              "locator:located-1",
+              "model-proposal:dep-share-serializer-binding",
+              "model-proposal:dep-share-permission-binding"
+            ],
+            "snapshotStartLine": 24,
+            "snapshotEndLine": 47
+          }
+        ]
+      }
+    ],
+    "gaps": [
+      {
+        "id": "context:range:src/documents/permissions.py:30-53",
+        "entryKey": "$",
+        "reason": "range-uncertain",
+        "attemptedPath": "src/documents/permissions.py",
+        "next": "Supply an explicit reliable range or prepare the omitted unit within the byte budget."
+      },
+      {
+        "id": "context:range:src/documents/serialisers.py:2869-2886",
+        "entryKey": "$",
+        "reason": "range-uncertain",
+        "attemptedPath": "src/documents/serialisers.py",
+        "next": "Supply an explicit reliable range or prepare the omitted unit within the byte budget."
+      },
+      {
+        "id": "context:range:src/documents/views.py:406-428",
+        "entryKey": "$",
+        "reason": "range-uncertain",
+        "attemptedPath": "src/documents/views.py",
+        "next": "Supply an explicit reliable range or prepare the omitted unit within the byte budget."
+      },
+      {
+        "id": "context:range:src/documents/views.py:4696-4719",
+        "entryKey": "$",
+        "reason": "range-uncertain",
+        "attemptedPath": "src/documents/views.py",
+        "next": "Supply an explicit reliable range or prepare the omitted unit within the byte budget."
+      }
+    ],
+    "closureClaim": "declared-dependencies-only",
+    "materialBinding": {
+      "request": {
+        "schemaVersion": "authorization-evidence-request/v2",
+        "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+        "allowedFiles": [
+          "src/documents/views.py",
+          "src/documents/permissions.py",
+          "src/documents/serialisers.py"
+        ],
+        "entries": [
+          {
+            "entryKey": "share-create",
+            "path": "src/documents/views.py",
+            "startLine": 4696,
+            "endLine": 4717
+          }
+        ],
+        "dependencies": [
+          {
+            "id": "located-1",
+            "from": "share-create",
+            "path": "src/documents/views.py",
+            "startLine": 4696,
+            "endLine": 4719,
+            "reason": "other",
+            "basis": "locator"
+          },
+          {
+            "id": "located-2",
+            "from": "share-create",
+            "path": "src/documents/views.py",
+            "startLine": 406,
+            "endLine": 410,
+            "reason": "other",
+            "basis": "locator"
+          },
+          {
+            "id": "dep-share-viewset-composition",
+            "from": "share-create",
+            "path": "src/documents/views.py",
+            "startLine": 4696,
+            "endLine": 4703,
+            "reason": "control",
+            "basis": "model-proposal"
+          },
+          {
+            "id": "dep-share-serializer-binding",
+            "from": "share-create",
+            "path": "src/documents/views.py",
+            "startLine": 4704,
+            "endLine": 4709,
+            "reason": "resource-binding",
+            "basis": "model-proposal"
+          },
+          {
+            "id": "dep-share-permission-binding",
+            "from": "share-create",
+            "path": "src/documents/views.py",
+            "startLine": 4710,
+            "endLine": 4710,
+            "reason": "control",
+            "basis": "model-proposal"
+          },
+          {
+            "id": "dep-share-create-user-context",
+            "from": "located-2",
+            "path": "src/documents/views.py",
+            "startLine": 411,
+            "endLine": 428,
+            "reason": "identity",
+            "basis": "model-proposal"
+          },
+          {
+            "id": "dep-share-create-http-permission-map",
+            "from": "dep-share-permission-binding",
+            "path": "src/documents/permissions.py",
+            "startLine": 30,
+            "endLine": 53,
+            "reason": "control",
+            "basis": "model-proposal"
+          },
+          {
+            "id": "dep-share-create-document-validation",
+            "from": "dep-share-serializer-binding",
+            "path": "src/documents/serialisers.py",
+            "startLine": 2869,
+            "endLine": 2886,
+            "reason": "control",
+            "basis": "model-proposal"
+          },
+          {
+            "id": "dep-share-create-owner-aware-check",
+            "from": "dep-share-create-document-validation",
+            "path": "src/documents/permissions.py",
+            "startLine": 624,
+            "endLine": 635,
+            "reason": "control",
+            "basis": "model-proposal"
+          }
+        ],
+        "limits": {
+          "maxFiles": 12,
+          "maxBytes": 65536,
+          "maxDepth": 3
+        }
+      },
+      "sources": [
+        {
+          "path": "src/documents/views.py",
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+        },
+        {
+          "path": "src/documents/serialisers.py",
+          "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266"
+        }
+      ]
+    },
+    "controlContext": {
+      "strategy": "callable-v1",
+      "selected": [
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 30,
+          "endLine": 53,
+          "origins": [
+            "model-proposal:dep-share-create-http-permission-map"
+          ]
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "origins": [
+            "model-proposal:dep-share-create-owner-aware-check"
+          ]
+        },
+        {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2869,
+          "endLine": 2886,
+          "origins": [
+            "model-proposal:dep-share-create-document-validation"
+          ]
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 406,
+          "endLine": 428,
+          "origins": [
+            "locator:located-2",
+            "model-proposal:dep-share-create-user-context"
+          ]
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 4696,
+          "endLine": 4719,
+          "origins": [
+            "model-proposal:dep-share-viewset-composition",
+            "entry:share-create",
+            "locator:located-1",
+            "model-proposal:dep-share-serializer-binding",
+            "model-proposal:dep-share-permission-binding"
+          ]
+        }
+      ],
+      "units": [
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 30,
+          "endLine": 53,
+          "id": "range:src/documents/permissions.py:30-53",
+          "status": "range-uncertain",
+          "triggers": [
+            {
+              "path": "src/documents/permissions.py",
+              "startLine": 30,
+              "endLine": 53
+            }
+          ],
+          "omitted": []
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 637,
+          "id": "symbol-d50f36cbe040d6fab5ea55a5",
+          "status": "unit-complete",
+          "triggers": [
+            {
+              "path": "src/documents/permissions.py",
+              "startLine": 624,
+              "endLine": 635
+            }
+          ],
+          "omitted": []
+        },
+        {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2869,
+          "endLine": 2886,
+          "id": "range:src/documents/serialisers.py:2869-2886",
+          "status": "range-uncertain",
+          "triggers": [
+            {
+              "path": "src/documents/serialisers.py",
+              "startLine": 2869,
+              "endLine": 2886
+            }
+          ],
+          "omitted": []
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 406,
+          "endLine": 428,
+          "id": "range:src/documents/views.py:406-428",
+          "status": "range-uncertain",
+          "triggers": [
+            {
+              "path": "src/documents/views.py",
+              "startLine": 406,
+              "endLine": 428
+            }
+          ],
+          "omitted": []
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 4696,
+          "endLine": 4719,
+          "id": "range:src/documents/views.py:4696-4719",
+          "status": "range-uncertain",
+          "triggers": [
+            {
+              "path": "src/documents/views.py",
+              "startLine": 4696,
+              "endLine": 4719
+            }
+          ],
+          "omitted": []
+        }
+      ],
+      "expansions": [
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 636,
+          "endLine": 637,
+          "unitId": "symbol-d50f36cbe040d6fab5ea55a5",
+          "origin": "host-context"
+        }
+      ],
+      "finalBytes": 3449,
+      "maxBytes": 65536,
+      "indexBudget": {
+        "usedBytes": 374999,
+        "maxBytes": 1048576,
+        "omittedFiles": []
+      }
+    }
+  }
+}

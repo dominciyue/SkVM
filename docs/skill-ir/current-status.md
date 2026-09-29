@@ -1,12 +1,12 @@
 # Skill IR 当前状态
 
-更新于 2026-09-29。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；历史任务书保存当时的执行记录。
+更新于 2026-09-30。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；历史任务书保存当时的执行记录。
 
 ## 当前方向与任务
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-**AM0–AM16正在执行：** [控制上下文、作者编写与证据复用任务书](../superpowers/plans/2026-09-29-authorization-control-context-and-reuse.md)，由一个`gpt-6-sol / max`任务继续在本分支执行。基线为AL最终头`5426a0e6`；优先解决已读helper在最终材料中被裁掉、作者修订丢失原输出合同、政策修改缺少说明编辑入口，以及原/变材料复用丢失pending gaps。计划交付可选有界上下文、宿主草稿、同合同修订、定向文本编辑和带缺口的普通复用；四项真实准备、16行质量配对与两包8稿/8消费分别检验回答可靠性、任务解决和修改负担。使用已暴露development输入，普通分析默认及旧结果保留；AM0–AM7工程已接通；AM8协议已登记，相关回归455 pass/1平台skip、3004断言及两项类型检查通过，另9项发现回归通过。八proposal零模型packing与四seed预检已完成，模型调用仍为0，实际进展见新结果根的status。设计与复核见[研究§7.32](skill-dsl-research.md#732-am-控制上下文与作者复用)。
+**AM0–AM16正在收尾：** [控制上下文、作者编写与证据复用任务书](../superpowers/plans/2026-09-29-authorization-control-context-and-reuse.md)的工程、43次真实调用、独立评价和有限验证已关闭，正在发布到用户origin。开发任务为`gpt-6-sol / max`，被测模型为`xty/gpt-5.6-sol`。普通prepare/init/edit/reuse已接通；四项准备均partial，OWUI完整helper实际保留。16主质量行首答8、终答9同时有据且解决（终答4确定/5条件），3行政策解释错误、4行入口阻塞均保留；唯一修订另列4/4终答有据且解决。作者首/终有效均4/8，8计划消费4完成，16声明义务终答8有据且解决、8因作者失败阻塞。4次有效消费继承同源和全部pending gaps，两组变化compare需复查。全部43调用响应、完整prompt331,789/output60,919 tokens，actualUSD/宿主成本/真人分钟未知，目标执行0。相关回归459 pass/1平台skip、3013断言及两项typecheck通过；新策略仍opt-in，普通默认和旧结果保持。设计、裁定及限制见[研究§7.32](skill-dsl-research.md#732-am-控制上下文与作者复用)、[机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-control-context-v1/status.json)与[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-control-context-v1/summary.json)。
 
 **AL0–AL16已完成并发布。** 工程、真实生成、评价、有限验证与独立复核已关闭，首次完整发布头`bc59120026ecd8035068ba26cdc76813971cf65f`已核对用户origin且工作区干净；最终状态随本页同步。最终回归433 pass/1平台skip、2903断言，主/研究类型、七项零provider重放及文档/目录检查通过。开发任务为`gpt-6-sol / max`，被测模型为`xty/gpt-5.6-sol`。位置选择、逐项恢复、二轮上下文和普通作者诊断已接通；唯一共享修订补Python多行正文及重复JSON属性拒绝。八项准备全部发布，20质量行18完成/2历史阻塞，首答6/20、最终8/20完整（6确定、2条件完整）；另列修订4行中Download两份完整、OWUI两份仍缺允许范围内的helper中段。作者结构有效5/8→6/8，严格语义有效4/8→5/8；8计划消费6完成/2阻塞，16声明义务首答7、最终9完整，4义务因作者失败阻塞。64次调用均响应，完整prompt439,772/output78,113 tokens、实际USD与人力未知，目标执行0。同材料MD/DSL没有稳定质量优势，不改默认或追加采样。[机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/status.json)、[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/summary.json)与[研究§7.31](skill-dsl-research.md#731-al-源码定位恢复与普通作者闭环)保存实际结果与限制。
 

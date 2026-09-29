@@ -13,6 +13,7 @@
 ## 1. 执行约定与上下文
 
 - 日期：2026-09-29；初始状态：`planned-not-started`。
+- 2026-09-30执行记录：AM0–AM15已完成；生成关闭，43次调用全部响应。AM16发布正在收尾；主16/修订4/作者8/消费8分母和负结果保留，实际结果见研究§7.32及新结果根。
 - 代码基线：`5426a0e62720313b0715a5940248a033ec114f80`。本书及状态文档的规划提交将位于该基线上；AM0记录实际启动提交。
 - 分支：`skill-ir-aot`；只向用户 `origin/skill-ir-aot` 发布，不开新分支，不写 upstream。
 - 开发任务：`gpt-6-sol / max`。被测模型沿用 `xty/gpt-5.6-sol`，实际配置在每次运行账户记录。
@@ -179,7 +180,7 @@ expect(packed.expansions[0].origin).toBe("host-context");
 
 - [x] 加入函数重命名、多行声明、同名重复、无法确定边界的红例，边界不确定时给出range-uncertain，不能任取第一个符号。
 - [x] 实现共享索引适配与范围策略；原selector、原行号/CRLF行为不退化。
-- [ ] 运行新`control-context.test.ts`及`location-selection.test.ts`，确认反例转绿。
+- [x] 运行新`control-context.test.ts`及`location-selection.test.ts`，确认反例转绿。
 
 ### AM3 预算、类方法与关键省略
 
@@ -219,6 +220,8 @@ for (const required of [task.publicBrief, task.outputContract, task.editScope]) 
 - [x] 共用提示生成放生产支持模块；研究runner只负责派发/存档，不维护另一套隐藏schema或答案提示。
 - [x] 测试诊断不带evaluator oracle，不因修订扩大源码或政策修改权限；原稿/修订费用可分别重算。
 
+生成关闭后的工程收尾：本轮DSL作者把`premise.atEntry`写成boolean、把分支`condition`写成未声明的描述。普通字段指引补明入口字符串和同场景条件键的类型/引用要求，不追加作者或消费请求，不计为已测收益。生成时base/shared-revision freeze永久保留；零provider评审/验证使用独立`verification-freeze.json`，绑定原生成freeze、关闭记录和43次实际调用。评分包仅附加现有宿主`firstResponse.deliveryComplete`，按已登记blocked规则评价首答，不修改评分枚举/标准。
+
 ### AM7 政策与前提修改的说明一致性
 
 - [x] 给现有local-edit增加具名text操作，覆盖publicInstruction/requiredResponseDetails；保留reason、policy/scenario/premise现有操作。
@@ -240,49 +243,49 @@ expect(reused.requiresAnalysis).toBe(true);
 - [x] 测试源字节/ref变化使复用失效；解决缺口需新证据，任务不再相关需显式理由，未知旧版本能拒绝而不丢记录。实现普通prepare的reuse路径。
 - [x] 建立独立评价枚举与汇总测试：准确unknown不被算成确定解决；完整条件答案可resolved；blocking仍进计划分母；评分重算不访问provider。
 - [x] 固定四项准备、16质量行、8稿/8消费、16义务及可执行修订规则。旧评分不覆写；必要时只增一份零调用双口径说明。
-- [ ] 提交工程和本轮协议，登记一次实现身份、预算与输入路径。研究driver的`check/replay`命令在status中给出完整可执行写法。
+- [x] 提交工程和本轮协议，登记一次实现身份、预算与输入路径。研究driver的`check/replay`命令在status中给出完整可执行写法。
 
 ### AM9 离线八任务和四项真实准备
 
-- [ ] 用同八seed/归档proposal比较旧packing和AM packing；报告范围、字节、unit状态和gap，无模型时不得记新准备成功。
-- [ ] 四个主job各真实准备一次，按顺序保存全部请求/响应/预算/补读和最终材料；不按oracle补选helper。
-- [ ] 对实际材料做独立控制覆盖核验；机械范围与语义控制分别给出，确定是否确实补OWUI中段、是否避免Download无关膨胀。
+- [x] 用同八seed/归档proposal比较旧packing和AM packing；报告范围、字节、unit状态和gap，无模型时不得记新准备成功。
+- [x] 四个主job各真实准备一次，按顺序保存全部请求/响应/预算/补读和最终材料；不按oracle补选helper。
+- [x] 对实际材料做独立控制覆盖核验；机械范围与语义控制分别给出，确定是否确实补OWUI中段、是否避免Download无关膨胀。
 
 ### AM10 16行质量配对
 
-- [ ] 以相同当前分析实现fresh消费AL材料和AM材料，MD/DSL共享每份输入；首答/repair/final和blocked全部保存。
-- [ ] 生成关闭后匿名复核fidelity与resolution、关键控制/前提、过度弃答和错误确定性；盲化映射保留，分歧基于源码裁定。
-- [ ] 输出逐任务配对与完整分母，不以这16行推断总体泛化或把不同评分的AK/AL总率连成趋势。
-- [ ] 若命名共享实现bug触发唯一修订区块，先写红例修复并预登记受影响行；原面板不改。
+- [x] 以相同当前分析实现fresh消费AL材料和AM材料，MD/DSL共享每份输入；首答/repair/final和blocked全部保存。
+- [x] 生成关闭后匿名复核fidelity与resolution、关键控制/前提、过度弃答和错误确定性；盲化映射保留，分歧基于源码裁定。
+- [x] 输出逐任务配对与完整分母，不以这16行推断总体泛化或把不同评分的AK/AL总率连成趋势。
+- [x] 若命名共享实现bug触发唯一修订区块，先写红例修复并预登记受影响行；原面板不改。
 
 ### AM11 作者首稿、修改与八次自然消费
 
-- [ ] 两包8计划作者稿使用普通init/check/edit及相同公开brief；一稿最多一次诊断修订，主代理不代写领域字段。
-- [ ] 按协议为每包建立共享源码与gap材料，原/变复用同一材料；检验domain field变化及旧结果needs-review。
-- [ ] 对有效稿执行8计划消费、16声明义务；分别评价作者语义和消费答案，记录任何多展开/少展开及原因。
-- [ ] 检验source、gaps和条件元数据的一致性；政策reason/instruction残留与已过时反事实说明逐项评审。
+- [x] 两包8计划作者稿使用普通init/check/edit及相同公开brief；一稿最多一次诊断修订，主代理不代写领域字段。
+- [x] 按协议为每包建立共享源码与gap材料，原/变复用同一材料；检验domain field变化及旧结果needs-review。
+- [x] 对有效稿执行8计划消费、16声明义务；分别评价作者语义和消费答案，记录任何多展开/少展开及原因。
+- [x] 检验source、gaps和条件元数据的一致性；政策reason/instruction残留与已过时反事实说明逐项评审。
 
 ### AM12 普通可搬移示例
 
-- [ ] 更新现有evidence-editing与task-semantics实例：context草稿→check→prepare context→run→edit→reuse→compare→重新run。
-- [ ] 文档给出无需研究driver的实际命令。零模型步骤与付费步骤标清，不要求用户手写日志、hash或评分协议。
-- [ ] 一次具名仓外复制验证相对路径、源绑定、pending gaps和修改反馈；不额外调用模型重复演示，不处理旧被拒删除目录。
+- [x] 更新现有evidence-editing与task-semantics实例：context草稿→check→prepare context→run→edit→reuse→compare→重新run。
+- [x] 文档给出无需研究driver的实际命令。零模型步骤与付费步骤标清，不要求用户手写日志、hash或评分协议。
+- [x] 一次具名仓外复制验证相对路径、源绑定、pending gaps和修改反馈；不额外调用模型重复演示，不处理旧被拒删除目录。
 
 ### AM13 方法结果与端到端成本
 
-- [ ] 汇总共同控制上下文收益、同材料表示差异、作者首稿/修订有效率及复用完整性；两个评价维度并列。
-- [ ] 报所有调用、prompt/output/cache、源/展示字节、费用未知项及准备一次多次消费的真实分摊，保留未消费准备的成本。
-- [ ] 按实际证据建议新策略的适用条件和是否仍opt-in；普通分析默认保持。负结果指出尚未支持的具体控制/输入，不追加无目的样本。
+- [x] 汇总共同控制上下文收益、同材料表示差异、作者首稿/修订有效率及复用完整性；两个评价维度并列。
+- [x] 报所有调用、prompt/output/cache、源/展示字节、费用未知项及准备一次多次消费的真实分摊，保留未消费准备的成本。
+- [x] 按实际证据建议新策略的适用条件和是否仍opt-in；普通分析默认保持。负结果指出尚未支持的具体控制/输入，不追加无目的样本。
 
 ### AM14 文档与开发复盘
 
-- [ ] 在研究§7.32持续追加“问题—根因—共享修改—反例—真实结果—剩余限制”；不新建分散的研究总报告。
-- [ ] 同步usage、developer-guide、spec/plan/current-status、实验目录与本书checkbox，保留旧AL结果与费用。
-- [ ] 每个有意义阶段追加根conversation_log；只有需要跨线程恢复的durable决定才同步handoff/communication，避免重复全量改写。
+- [x] 在研究§7.32持续追加“问题—根因—共享修改—反例—真实结果—剩余限制”；不新建分散的研究总报告。
+- [x] 同步usage、developer-guide、spec/plan/current-status、实验目录与本书checkbox，保留旧AL结果与费用。
+- [x] 每个有意义阶段追加根conversation_log；只有需要跨线程恢复的durable决定才同步handoff/communication，避免重复全量改写。
 
 ### AM15 一次有限验证与只读核验
 
-- [ ] 执行以下相关回归、类型、文档及差异检查。新研究脚本使用新结果根tsconfig做独立类型检查；修复只定向补跑，最终有代码变化才更新相关总验证。
+- [x] 执行以下相关回归、类型、文档及差异检查。新研究脚本使用新结果根tsconfig做独立类型检查；修复只定向补跑，最终有代码变化才更新相关总验证。
 
 ```powershell
 bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts ./src/cli/authorization-compose.test.ts ./src/cli/authorization-prepare.test.ts ./src/cli/authorization-edit.test.ts ./src/providers/structured.test.ts ./src/measurement/token-accounting.test.ts ./scripts/token-accounting
@@ -292,9 +295,9 @@ python ./scripts/check_skill_ir_doc_links.py --root .
 git diff --check
 ```
 
-- [ ] 零provider重放本轮统计与评价；核对首答/修订分账、全部失败行、两评价维度、source/gap继承和主/修订实现身份。
-- [ ] 做一次有界只读独立核验，聚焦控制范围、gap丢失、作者修订合同、编辑边界和实验公平性；修具体缺陷，不发起全历史审计或新效果轮次。
-- [ ] 凭据检查仅针对将暂存文件，不打印key。旧冻结runner因实现变化拒绝时记兼容边界，不替换旧hash刷绿。
+- [x] 零provider重放本轮统计与评价；核对首答/修订分账、全部失败行、两评价维度、source/gap继承和主/修订实现身份。
+- [x] 做一次有界只读独立核验，聚焦控制范围、gap丢失、作者修订合同、编辑边界和实验公平性；修具体缺陷，不发起全历史审计或新效果轮次。
+- [x] 凭据检查仅针对将暂存文件，不打印key。旧冻结runner因实现变化拒绝时记兼容边界，不替换旧hash刷绿。
 
 ### AM16 发布与交付
 

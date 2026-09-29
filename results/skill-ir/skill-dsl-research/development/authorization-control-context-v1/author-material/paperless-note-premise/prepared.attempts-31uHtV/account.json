@@ -1,0 +1,368 @@
+{
+  "schemaVersion": "authorization-preparation-attempts/v1",
+  "model": "xty/gpt-5.6-sol",
+  "status": "completed",
+  "published": true,
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "prompt-parse",
+      "status": "response",
+      "startedAt": "2026-09-29T15:25:15.179Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 68148,
+        "toolNames": [],
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 24714,
+        "output": 1455,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-notes-action-permissions\",\"from\":\"notes-post\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-135b35e68ba33698a32938c1\",\"startLine\":1841,\"endLine\":1845},\"reason\":\"control\",\"description\":\"Binds the notes action, including POST, to PaperlessNotePermissions.\"},{\"id\":\"dep-notes-caller-identity\",\"from\":\"notes-post\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-135b35e68ba33698a32938c1\",\"startLine\":1848,\"endLine\":1849},\"reason\":\"identity\",\"description\":\"Binds currentUser to the authenticated request principal used by subsequent checks and note creation.\"},{\"id\":\"dep-notes-document-owner-binding\",\"from\":\"notes-post\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-135b35e68ba33698a32938c1\",\"startLine\":1850,\"endLine\":1856},\"reason\":\"resource-binding\",\"description\":\"Loads the addressed document and its owner, preserving the distinction between no owner and a different owner.\"},{\"id\":\"dep-notes-view-gate\",\"from\":\"notes-post\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-135b35e68ba33698a32938c1\",\"startLine\":1857,\"endLine\":1864},\"reason\":\"control\",\"description\":\"Applies the owner-aware view_document check before request-method dispatch.\"},{\"id\":\"dep-notes-post-change-gate\",\"from\":\"notes-post\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-135b35e68ba33698a32938c1\",\"startLine\":1877,\"endLine\":1886},\"reason\":\"control\",\"description\":\"At the POST branch, applies the owner-aware change_document check before creating a note.\"},{\"id\":\"dep-notes-create-effect\",\"from\":\"notes-post\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-135b35e68ba33698a32938c1\",\"startLine\":1888,\"endLine\":1892},\"reason\":\"effect\",\"description\":\"Creates the note only after the POST authorization gate.\"},{\"id\":\"dep-owner-aware-decision\",\"from\":\"located-2\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-c2c0c8541c89adff27371448\",\"startLine\":634,\"endLine\":635},\"reason\":\"control\",\"description\":\"Defines the decisive alternatives: owner absent, caller ownership, or an object permission grant.\"},{\"id\":\"dep-document-viewset-default-permissions\",\"from\":\"located-1\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-8f9c1405db2606aa22ae697d\",\"startLine\":1008,\"endLine\":1021},\"reason\":\"control\",\"description\":\"Shows the enclosing viewset's default authentication and object-permission classes, against which the action-specific override is interpreted.\"}],\"reads\":[{\"id\":\"read-paperless-note-permissions\",\"from\":\"dep-notes-action-permissions\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-e63b2cd36074b965cf519ecc\"},\"contextLines\":2}]}",
+        "toolCalls": [],
+        "tokens": {
+          "input": 24714,
+          "output": 1455,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 30774.495700000007,
+        "stopReason": "end_turn"
+      },
+      "endedAt": "2026-09-29T15:25:45.954Z"
+    },
+    {
+      "id": "provider-attempt-2",
+      "phase": "initial",
+      "transport": "prompt-parse",
+      "status": "response",
+      "startedAt": "2026-09-29T15:25:45.989Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 19058,
+        "toolNames": [],
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 4874,
+        "output": 350,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-notes-post-global-permissions-map\",\"from\":\"dep-notes-action-permissions\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-a4420e39e7b3c70791b70955\",\"startLine\":678,\"endLine\":691},\"reason\":\"control\",\"description\":\"Defines the global permissions required for POST, including add_note, view_document, and change_document.\"},{\"id\":\"dep-notes-global-permission-check\",\"from\":\"dep-notes-action-permissions\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-a4420e39e7b3c70791b70955\",\"startLine\":693,\"endLine\":699},\"reason\":\"control\",\"description\":\"Selects the method-specific permission list and requires the authenticated caller to hold all listed global permissions.\"}],\"reads\":[]}",
+        "toolCalls": [],
+        "tokens": {
+          "input": 4874,
+          "output": 350,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 12910.936100000006,
+        "stopReason": "end_turn"
+      },
+      "endedAt": "2026-09-29T15:25:58.900Z"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 2,
+    "respondedCalls": 2,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 2,
+    "knownTokens": {
+      "input": 29588,
+      "output": 1805,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  },
+  "rounds": [
+    {
+      "kind": "proposal",
+      "promptCharacters": 68148,
+      "promptBytes": 68148,
+      "metadataBytes": 56158,
+      "displayedBytes": 11990,
+      "uniqueSourceBytes": 11990,
+      "resentSourceBytes": 0,
+      "diagnostics": []
+    },
+    {
+      "kind": "supplement",
+      "promptCharacters": 19058,
+      "promptBytes": 19058,
+      "metadataBytes": 6054,
+      "displayedBytes": 13004,
+      "uniqueSourceBytes": 1014,
+      "resentSourceBytes": 11990,
+      "diagnostics": []
+    }
+  ],
+  "diagnostics": [],
+  "readOutcomes": [
+    {
+      "requestId": "read-paperless-note-permissions",
+      "request": {
+        "id": "read-paperless-note-permissions",
+        "from": "dep-notes-action-permissions",
+        "selector": {
+          "kind": "indexed-symbol",
+          "symbolId": "symbol-e63b2cd36074b965cf519ecc"
+        },
+        "contextLines": 2
+      },
+      "budget": {
+        "usedBytes": 11990,
+        "maxBytes": 65536
+      },
+      "status": "resolved",
+      "windowId": "window-a4420e39e7b3c70791b70955",
+      "path": "src/documents/permissions.py",
+      "startLine": 673,
+      "endLine": 701,
+      "bytes": 1014,
+      "newlyShown": true
+    }
+  ],
+  "selectionOutcomes": [
+    {
+      "id": "dep-notes-action-permissions",
+      "from": "notes-post",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-135b35e68ba33698a32938c1",
+        "startLine": 1841,
+        "endLine": 1845
+      },
+      "description": "Binds the notes action, including POST, to PaperlessNotePermissions.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-notes-caller-identity",
+      "from": "notes-post",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-135b35e68ba33698a32938c1",
+        "startLine": 1848,
+        "endLine": 1849
+      },
+      "description": "Binds currentUser to the authenticated request principal used by subsequent checks and note creation.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-notes-document-owner-binding",
+      "from": "notes-post",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-135b35e68ba33698a32938c1",
+        "startLine": 1850,
+        "endLine": 1856
+      },
+      "description": "Loads the addressed document and its owner, preserving the distinction between no owner and a different owner.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-notes-view-gate",
+      "from": "notes-post",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-135b35e68ba33698a32938c1",
+        "startLine": 1857,
+        "endLine": 1864
+      },
+      "description": "Applies the owner-aware view_document check before request-method dispatch.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-notes-post-change-gate",
+      "from": "notes-post",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-135b35e68ba33698a32938c1",
+        "startLine": 1877,
+        "endLine": 1886
+      },
+      "description": "At the POST branch, applies the owner-aware change_document check before creating a note.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-notes-create-effect",
+      "from": "notes-post",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-135b35e68ba33698a32938c1",
+        "startLine": 1888,
+        "endLine": 1892
+      },
+      "description": "Creates the note only after the POST authorization gate.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-owner-aware-decision",
+      "from": "located-2",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-c2c0c8541c89adff27371448",
+        "startLine": 634,
+        "endLine": 635
+      },
+      "description": "Defines the decisive alternatives: owner absent, caller ownership, or an object permission grant.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-document-viewset-default-permissions",
+      "from": "located-1",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-8f9c1405db2606aa22ae697d",
+        "startLine": 1008,
+        "endLine": 1021
+      },
+      "description": "Shows the enclosing viewset's default authentication and object-permission classes, against which the action-specific override is interpreted.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-notes-post-global-permissions-map",
+      "from": "dep-notes-action-permissions",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-a4420e39e7b3c70791b70955",
+        "startLine": 678,
+        "endLine": 691
+      },
+      "description": "Defines the global permissions required for POST, including add_note, view_document, and change_document.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-notes-global-permission-check",
+      "from": "dep-notes-action-permissions",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-a4420e39e7b3c70791b70955",
+        "startLine": 693,
+        "endLine": 699
+      },
+      "description": "Selects the method-specific permission list and requires the authenticated caller to hold all listed global permissions.",
+      "status": "resolved"
+    }
+  ],
+  "acceptedDependencies": [
+    {
+      "id": "dep-notes-action-permissions",
+      "from": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 1841,
+      "endLine": 1845,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-notes-caller-identity",
+      "from": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 1848,
+      "endLine": 1849,
+      "reason": "identity",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-notes-document-owner-binding",
+      "from": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 1850,
+      "endLine": 1856,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-notes-view-gate",
+      "from": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 1857,
+      "endLine": 1864,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-notes-post-change-gate",
+      "from": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 1877,
+      "endLine": 1886,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-notes-create-effect",
+      "from": "notes-post",
+      "path": "src/documents/views.py",
+      "startLine": 1888,
+      "endLine": 1892,
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-owner-aware-decision",
+      "from": "located-2",
+      "path": "src/documents/permissions.py",
+      "startLine": 634,
+      "endLine": 635,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-document-viewset-default-permissions",
+      "from": "located-1",
+      "path": "src/documents/views.py",
+      "startLine": 1008,
+      "endLine": 1021,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-notes-post-global-permissions-map",
+      "from": "dep-notes-action-permissions",
+      "path": "src/documents/permissions.py",
+      "startLine": 678,
+      "endLine": 691,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-notes-global-permission-check",
+      "from": "dep-notes-action-permissions",
+      "path": "src/documents/permissions.py",
+      "startLine": 693,
+      "endLine": 699,
+      "reason": "control",
+      "basis": "model-proposal"
+    }
+  ],
+  "sourceDisplay": {
+    "totalBytes": 24994,
+    "uniqueSourceBytes": 13004,
+    "resentSourceBytes": 11990,
+    "maxBytes": 65536
+  },
+  "unknownCostReason": "provider did not report actual cost for every dispatched request"
+}

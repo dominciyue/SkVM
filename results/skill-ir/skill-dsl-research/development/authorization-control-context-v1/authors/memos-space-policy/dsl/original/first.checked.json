@@ -1,0 +1,243 @@
+{
+  "valid": false,
+  "diagnostics": [
+    {
+      "code": "author-v2-structure",
+      "path": "analysisContract.scenarios.self-leave.premises.0.atEntry",
+      "schemaPath": "/analysisContract/scenarios/self-leave/premises/0/atEntry",
+      "message": "must NOT be valid",
+      "fix": "Provide /analysisContract/scenarios/self-leave/premises/0/atEntry with the shape described by the local authoring-v2 schema; policy and expectations must remain authored."
+    },
+    {
+      "code": "author-v2-structure",
+      "path": "analysisContract.scenarios.self-leave.premises.0.atEntry",
+      "schemaPath": "/analysisContract/scenarios/self-leave/premises/0/atEntry",
+      "message": "must be string",
+      "fix": "Provide /analysisContract/scenarios/self-leave/premises/0/atEntry with the shape described by the local authoring-v2 schema; policy and expectations must remain authored."
+    },
+    {
+      "code": "author-v2-structure",
+      "path": "analysisContract.scenarios.other-member.premises.0.atEntry",
+      "schemaPath": "/analysisContract/scenarios/other-member/premises/0/atEntry",
+      "message": "must NOT be valid",
+      "fix": "Provide /analysisContract/scenarios/other-member/premises/0/atEntry with the shape described by the local authoring-v2 schema; policy and expectations must remain authored."
+    },
+    {
+      "code": "author-v2-structure",
+      "path": "analysisContract.scenarios.other-member.premises.0.atEntry",
+      "schemaPath": "/analysisContract/scenarios/other-member/premises/0/atEntry",
+      "message": "must be string",
+      "fix": "Provide /analysisContract/scenarios/other-member/premises/0/atEntry with the shape described by the local authoring-v2 schema; policy and expectations must remain authored."
+    }
+  ],
+  "value": {
+    "schemaVersion": "authorization-assessment-authoring/v2",
+    "taskId": "al-use-memos-members",
+    "request": "At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.",
+    "repository": "https://github.com/usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "sourceRoot": "../../../../authorization-evidence-editing-v1/public-source/memos",
+    "sources": [
+      "server/api/v1/space_service.go"
+    ],
+    "entries": {
+      "delete-member": {
+        "name": "delete-member",
+        "locations": [
+          {
+            "path": "server/api/v1/space_service.go",
+            "startLine": 740,
+            "endLine": 763
+          }
+        ]
+      }
+    },
+    "policies": {
+      "rule": {
+        "text": "An active space member may delete their own membership and may remove a different active member of the same space without space administrator authority.",
+        "location": "author-briefs.json#/memos-space-policy/changedPolicy",
+        "revision": "changed",
+        "acceptance": "accepted",
+        "reason": "Change only the accepted space-member removal policy to changedPolicy."
+      }
+    },
+    "principals": {
+      "caller": {
+        "role": "authenticated active ordinary non-administrator member"
+      }
+    },
+    "resources": {
+      "target": {
+        "type": "active space membership"
+      }
+    },
+    "scenarios": {
+      "self-leave": {
+        "principal": "caller",
+        "resource": "target",
+        "policy": "rule",
+        "entries": [
+          "delete-member"
+        ],
+        "relation": "caller-is-target-member",
+        "operation": "delete own membership",
+        "expectation": "allow"
+      },
+      "other-member": {
+        "principal": "caller",
+        "resource": "target",
+        "policy": "rule",
+        "entries": [
+          "delete-member"
+        ],
+        "relation": "caller-is-not-target-member-and-not-admin",
+        "operation": "delete another active membership",
+        "expectation": "allow"
+      }
+    },
+    "analysisContract": {
+      "schemaVersion": "authorization-analysis-contract/v1",
+      "publicInstruction": "Report source-visible authorization and the accepted-policy comparison separately.",
+      "scenarios": {
+        "self-leave": {
+          "boundary": "declared-entry",
+          "premises": [
+            {
+              "id": "target-relation",
+              "statement": "At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds.",
+              "atEntry": true,
+              "provenance": "task-assumption"
+            }
+          ],
+          "requestedBranches": [],
+          "requiredResponseDetails": [
+            "Report the source-visible authorization at the declared handler entry.",
+            "Report the comparison with the accepted rule policy separately from the source-visible authorization."
+          ]
+        },
+        "other-member": {
+          "boundary": "declared-entry",
+          "premises": [
+            {
+              "id": "target-relation",
+              "statement": "At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds.",
+              "atEntry": true,
+              "provenance": "task-assumption"
+            }
+          ],
+          "requestedBranches": [],
+          "requiredResponseDetails": [
+            "Report the source-visible authorization at the declared handler entry.",
+            "Report the comparison with the accepted rule policy separately from the source-visible authorization."
+          ]
+        }
+      }
+    }
+  },
+  "delivered": {
+    "schemaVersion": "authorization-assessment-authoring/v2",
+    "taskId": "al-use-memos-members",
+    "request": "At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.",
+    "repository": "https://github.com/usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "sourceRoot": "../../../../authorization-evidence-editing-v1/public-source/memos",
+    "sources": [
+      "server/api/v1/space_service.go"
+    ],
+    "entries": {
+      "delete-member": {
+        "name": "delete-member",
+        "locations": [
+          {
+            "path": "server/api/v1/space_service.go",
+            "startLine": 740,
+            "endLine": 763
+          }
+        ]
+      }
+    },
+    "policies": {
+      "rule": {
+        "text": "An active space member may delete their own membership and may remove a different active member of the same space without space administrator authority.",
+        "location": "author-briefs.json#/memos-space-policy/changedPolicy",
+        "revision": "changed",
+        "acceptance": "accepted",
+        "reason": "Change only the accepted space-member removal policy to changedPolicy."
+      }
+    },
+    "principals": {
+      "caller": {
+        "role": "authenticated active ordinary non-administrator member"
+      }
+    },
+    "resources": {
+      "target": {
+        "type": "active space membership"
+      }
+    },
+    "scenarios": {
+      "self-leave": {
+        "principal": "caller",
+        "resource": "target",
+        "policy": "rule",
+        "entries": [
+          "delete-member"
+        ],
+        "relation": "caller-is-target-member",
+        "operation": "delete own membership",
+        "expectation": "allow"
+      },
+      "other-member": {
+        "principal": "caller",
+        "resource": "target",
+        "policy": "rule",
+        "entries": [
+          "delete-member"
+        ],
+        "relation": "caller-is-not-target-member-and-not-admin",
+        "operation": "delete another active membership",
+        "expectation": "allow"
+      }
+    },
+    "analysisContract": {
+      "schemaVersion": "authorization-analysis-contract/v1",
+      "publicInstruction": "Report source-visible authorization and the accepted-policy comparison separately.",
+      "scenarios": {
+        "self-leave": {
+          "boundary": "declared-entry",
+          "premises": [
+            {
+              "id": "target-relation",
+              "statement": "At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds.",
+              "atEntry": true,
+              "provenance": "task-assumption"
+            }
+          ],
+          "requestedBranches": [],
+          "requiredResponseDetails": [
+            "Report the source-visible authorization at the declared handler entry.",
+            "Report the comparison with the accepted rule policy separately from the source-visible authorization."
+          ]
+        },
+        "other-member": {
+          "boundary": "declared-entry",
+          "premises": [
+            {
+              "id": "target-relation",
+              "statement": "At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds.",
+              "atEntry": true,
+              "provenance": "task-assumption"
+            }
+          ],
+          "requestedBranches": [],
+          "requiredResponseDetails": [
+            "Report the source-visible authorization at the declared handler entry.",
+            "Report the comparison with the accepted rule policy separately from the source-visible authorization."
+          ]
+        }
+      }
+    }
+  },
+  "changedPaths": [],
+  "suppliedPaths": []
+}

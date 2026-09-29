@@ -1,0 +1,385 @@
+{
+  "valid": false,
+  "diagnostics": [
+    {
+      "code": "author-v2-structure",
+      "path": "analysisContract.scenarios.view-only.premises.0.atEntry",
+      "schemaPath": "/analysisContract/scenarios/view-only/premises/0/atEntry",
+      "message": "must NOT be valid",
+      "fix": "Provide /analysisContract/scenarios/view-only/premises/0/atEntry with the shape described by the local authoring-v2 schema; policy and expectations must remain authored."
+    },
+    {
+      "code": "author-v2-structure",
+      "path": "analysisContract.scenarios.view-only.premises.0.atEntry",
+      "schemaPath": "/analysisContract/scenarios/view-only/premises/0/atEntry",
+      "message": "must be string",
+      "fix": "Provide /analysisContract/scenarios/view-only/premises/0/atEntry with the shape described by the local authoring-v2 schema; policy and expectations must remain authored."
+    },
+    {
+      "code": "author-v2-structure",
+      "path": "analysisContract.scenarios.change-granted.premises.0.atEntry",
+      "schemaPath": "/analysisContract/scenarios/change-granted/premises/0/atEntry",
+      "message": "must NOT be valid",
+      "fix": "Provide /analysisContract/scenarios/change-granted/premises/0/atEntry with the shape described by the local authoring-v2 schema; policy and expectations must remain authored."
+    },
+    {
+      "code": "author-v2-structure",
+      "path": "analysisContract.scenarios.change-granted.premises.0.atEntry",
+      "schemaPath": "/analysisContract/scenarios/change-granted/premises/0/atEntry",
+      "message": "must be string",
+      "fix": "Provide /analysisContract/scenarios/change-granted/premises/0/atEntry with the shape described by the local authoring-v2 schema; policy and expectations must remain authored."
+    }
+  ],
+  "value": {
+    "schemaVersion": "authorization-assessment-authoring/v2",
+    "taskId": "al-use-paperless-note",
+    "request": "At notes POST handler entry assess both scenarios. The caller is not the document owner. The owner's presence is unspecified in the original task: distinguish absent from other-present where it changes authorization. Both callers have all stated global permissions and can view the document. Separate source-visible authorization from accepted-policy comparison.",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "sourceRoot": "../../../../authorization-evidence-editing-v1/public-source/paperless",
+    "sources": [
+      "src/documents/views.py"
+    ],
+    "entries": {
+      "notes-post": {
+        "name": "notes-post",
+        "locations": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1841,
+            "endLine": 1913
+          }
+        ]
+      }
+    },
+    "policies": {
+      "rule": {
+        "text": "Creating a note requires the stated global permissions and either document ownership or an object change_document grant; an object view grant alone is insufficient.",
+        "location": "author-briefs.json#/paperless-note-premise/originalPolicy",
+        "revision": "original",
+        "acceptance": "accepted",
+        "reason": "Accepted policy supplied in the public brief."
+      }
+    },
+    "principals": {
+      "caller": {
+        "role": "authenticated user with the stated global permissions",
+        "facts": [
+          "The caller has global add_note, view_document and change_document permissions.",
+          "The caller can view the document.",
+          "The caller is not the document owner."
+        ]
+      }
+    },
+    "resources": {
+      "target": {
+        "type": "document"
+      }
+    },
+    "scenarios": {
+      "view-only": {
+        "principal": "caller",
+        "resource": "target",
+        "policy": "rule",
+        "entries": [
+          "notes-post"
+        ],
+        "relation": "not-owner-view-only",
+        "operation": "create a note on the document",
+        "expectation": "deny",
+        "conditions": {
+          "object-view-grant": {
+            "basis": "The caller has an object view grant."
+          },
+          "object-change-document-grant": {
+            "basis": "The caller has no object change_document grant."
+          },
+          "owner-other-present": {
+            "basis": "A different user owns the document."
+          }
+        }
+      },
+      "change-granted": {
+        "principal": "caller",
+        "resource": "target",
+        "policy": "rule",
+        "entries": [
+          "notes-post"
+        ],
+        "relation": "not-owner-change-granted",
+        "operation": "create a note on the document",
+        "expectation": "allow",
+        "conditions": {
+          "object-view-grant": {
+            "basis": "The caller has an object view grant."
+          },
+          "object-change-document-grant": {
+            "basis": "The caller has an object change_document grant."
+          },
+          "owner-other-present": {
+            "basis": "A different user owns the document."
+          }
+        }
+      }
+    },
+    "analysisContract": {
+      "schemaVersion": "authorization-analysis-contract/v1",
+      "publicInstruction": "At notes POST handler entry assess both scenarios. The caller is not the document owner. The owner's presence is unspecified in the original task: distinguish absent from other-present where it changes authorization. Both callers have all stated global permissions and can view the document. Separate source-visible authorization from accepted-policy comparison.",
+      "scenarios": {
+        "view-only": {
+          "boundary": "declared-entry",
+          "premises": [
+            {
+              "id": "object-relation",
+              "statement": "At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has no object change_document grant. Owner is other-present: a different user owns the document.",
+              "atEntry": true,
+              "provenance": "task-assumption"
+            }
+          ],
+          "requestedBranches": [
+            {
+              "id": "absent",
+              "kind": "counterfactual",
+              "assumptions": [
+                {
+                  "condition": "document owner is absent",
+                  "value": true
+                }
+              ]
+            },
+            {
+              "id": "other-present",
+              "kind": "counterfactual",
+              "assumptions": [
+                {
+                  "condition": "document owner is a different user",
+                  "value": true
+                }
+              ]
+            }
+          ],
+          "requiredResponseDetails": [
+            "State the source-visible authorization result at the notes POST handler entry for each requested owner-presence branch.",
+            "Compare each source-visible result separately with the accepted rule policy and the declared deny expectation.",
+            "Distinguish an absent owner from an owner who is a different user where that distinction changes authorization."
+          ]
+        },
+        "change-granted": {
+          "boundary": "declared-entry",
+          "premises": [
+            {
+              "id": "object-relation",
+              "statement": "At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has an object change_document grant. Owner is other-present: a different user owns the document.",
+              "atEntry": true,
+              "provenance": "task-assumption"
+            }
+          ],
+          "requestedBranches": [
+            {
+              "id": "absent",
+              "kind": "counterfactual",
+              "assumptions": [
+                {
+                  "condition": "document owner is absent",
+                  "value": true
+                }
+              ]
+            },
+            {
+              "id": "other-present",
+              "kind": "counterfactual",
+              "assumptions": [
+                {
+                  "condition": "document owner is a different user",
+                  "value": true
+                }
+              ]
+            }
+          ],
+          "requiredResponseDetails": [
+            "State the source-visible authorization result at the notes POST handler entry for each requested owner-presence branch.",
+            "Compare each source-visible result separately with the accepted rule policy and the declared allow expectation.",
+            "Distinguish an absent owner from an owner who is a different user where that distinction changes authorization."
+          ]
+        }
+      }
+    }
+  },
+  "delivered": {
+    "schemaVersion": "authorization-assessment-authoring/v2",
+    "taskId": "al-use-paperless-note",
+    "request": "At notes POST handler entry assess both scenarios. The caller is not the document owner. The owner's presence is unspecified in the original task: distinguish absent from other-present where it changes authorization. Both callers have all stated global permissions and can view the document. Separate source-visible authorization from accepted-policy comparison.",
+    "repository": "https://github.com/paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "sourceRoot": "../../../../authorization-evidence-editing-v1/public-source/paperless",
+    "sources": [
+      "src/documents/views.py"
+    ],
+    "entries": {
+      "notes-post": {
+        "name": "notes-post",
+        "locations": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1841,
+            "endLine": 1913
+          }
+        ]
+      }
+    },
+    "policies": {
+      "rule": {
+        "text": "Creating a note requires the stated global permissions and either document ownership or an object change_document grant; an object view grant alone is insufficient.",
+        "location": "author-briefs.json#/paperless-note-premise/originalPolicy",
+        "revision": "original",
+        "acceptance": "accepted",
+        "reason": "Accepted policy supplied in the public brief."
+      }
+    },
+    "principals": {
+      "caller": {
+        "role": "authenticated user with the stated global permissions",
+        "facts": [
+          "The caller has global add_note, view_document and change_document permissions.",
+          "The caller can view the document.",
+          "The caller is not the document owner."
+        ]
+      }
+    },
+    "resources": {
+      "target": {
+        "type": "document"
+      }
+    },
+    "scenarios": {
+      "view-only": {
+        "principal": "caller",
+        "resource": "target",
+        "policy": "rule",
+        "entries": [
+          "notes-post"
+        ],
+        "relation": "not-owner-view-only",
+        "operation": "create a note on the document",
+        "expectation": "deny",
+        "conditions": {
+          "object-view-grant": {
+            "basis": "The caller has an object view grant."
+          },
+          "object-change-document-grant": {
+            "basis": "The caller has no object change_document grant."
+          },
+          "owner-other-present": {
+            "basis": "A different user owns the document."
+          }
+        }
+      },
+      "change-granted": {
+        "principal": "caller",
+        "resource": "target",
+        "policy": "rule",
+        "entries": [
+          "notes-post"
+        ],
+        "relation": "not-owner-change-granted",
+        "operation": "create a note on the document",
+        "expectation": "allow",
+        "conditions": {
+          "object-view-grant": {
+            "basis": "The caller has an object view grant."
+          },
+          "object-change-document-grant": {
+            "basis": "The caller has an object change_document grant."
+          },
+          "owner-other-present": {
+            "basis": "A different user owns the document."
+          }
+        }
+      }
+    },
+    "analysisContract": {
+      "schemaVersion": "authorization-analysis-contract/v1",
+      "publicInstruction": "At notes POST handler entry assess both scenarios. The caller is not the document owner. The owner's presence is unspecified in the original task: distinguish absent from other-present where it changes authorization. Both callers have all stated global permissions and can view the document. Separate source-visible authorization from accepted-policy comparison.",
+      "scenarios": {
+        "view-only": {
+          "boundary": "declared-entry",
+          "premises": [
+            {
+              "id": "object-relation",
+              "statement": "At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has no object change_document grant. Owner is other-present: a different user owns the document.",
+              "atEntry": true,
+              "provenance": "task-assumption"
+            }
+          ],
+          "requestedBranches": [
+            {
+              "id": "absent",
+              "kind": "counterfactual",
+              "assumptions": [
+                {
+                  "condition": "document owner is absent",
+                  "value": true
+                }
+              ]
+            },
+            {
+              "id": "other-present",
+              "kind": "counterfactual",
+              "assumptions": [
+                {
+                  "condition": "document owner is a different user",
+                  "value": true
+                }
+              ]
+            }
+          ],
+          "requiredResponseDetails": [
+            "State the source-visible authorization result at the notes POST handler entry for each requested owner-presence branch.",
+            "Compare each source-visible result separately with the accepted rule policy and the declared deny expectation.",
+            "Distinguish an absent owner from an owner who is a different user where that distinction changes authorization."
+          ]
+        },
+        "change-granted": {
+          "boundary": "declared-entry",
+          "premises": [
+            {
+              "id": "object-relation",
+              "statement": "At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has an object change_document grant. Owner is other-present: a different user owns the document.",
+              "atEntry": true,
+              "provenance": "task-assumption"
+            }
+          ],
+          "requestedBranches": [
+            {
+              "id": "absent",
+              "kind": "counterfactual",
+              "assumptions": [
+                {
+                  "condition": "document owner is absent",
+                  "value": true
+                }
+              ]
+            },
+            {
+              "id": "other-present",
+              "kind": "counterfactual",
+              "assumptions": [
+                {
+                  "condition": "document owner is a different user",
+                  "value": true
+                }
+              ]
+            }
+          ],
+          "requiredResponseDetails": [
+            "State the source-visible authorization result at the notes POST handler entry for each requested owner-presence branch.",
+            "Compare each source-visible result separately with the accepted rule policy and the declared allow expectation.",
+            "Distinguish an absent owner from an owner who is a different user where that distinction changes authorization."
+          ]
+        }
+      }
+    }
+  },
+  "changedPaths": [],
+  "suppliedPaths": []
+}

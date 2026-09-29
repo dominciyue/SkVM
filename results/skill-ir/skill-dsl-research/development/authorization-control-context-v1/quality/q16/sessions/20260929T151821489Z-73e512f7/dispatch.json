@@ -1,0 +1,423 @@
+{
+  "schemaVersion": "authorization-local-dispatch/v1",
+  "methodSelection": {
+    "requested": "plain",
+    "effective": "plain",
+    "selectionOrigin": "explicit",
+    "conditionRequestIgnored": false
+  },
+  "wireVersion": "source-authorization-assessment-wire/v6",
+  "assessmentMode": "explicit-v1",
+  "reasoningStrategy": "standard",
+  "evidencePreparation": {
+    "status": "partial",
+    "sourceIdentity": {
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+    },
+    "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+    "gaps": [
+      {
+        "id": "context:range:src/documents/permissions.py:30-53",
+        "entryKey": "$",
+        "reason": "range-uncertain",
+        "attemptedPath": "src/documents/permissions.py",
+        "next": "Supply an explicit reliable range or prepare the omitted unit within the byte budget."
+      },
+      {
+        "id": "context:range:src/documents/serialisers.py:2869-2886",
+        "entryKey": "$",
+        "reason": "range-uncertain",
+        "attemptedPath": "src/documents/serialisers.py",
+        "next": "Supply an explicit reliable range or prepare the omitted unit within the byte budget."
+      },
+      {
+        "id": "context:range:src/documents/views.py:406-428",
+        "entryKey": "$",
+        "reason": "range-uncertain",
+        "attemptedPath": "src/documents/views.py",
+        "next": "Supply an explicit reliable range or prepare the omitted unit within the byte budget."
+      },
+      {
+        "id": "context:range:src/documents/views.py:4696-4719",
+        "entryKey": "$",
+        "reason": "range-uncertain",
+        "attemptedPath": "src/documents/views.py",
+        "next": "Supply an explicit reliable range or prepare the omitted unit within the byte budget."
+      }
+    ],
+    "materialBinding": {
+      "request": {
+        "schemaVersion": "authorization-evidence-request/v2",
+        "sourceRoot": "../../../authorization-evidence-editing-v1/public-source/paperless",
+        "allowedFiles": [
+          "src/documents/views.py",
+          "src/documents/permissions.py",
+          "src/documents/serialisers.py"
+        ],
+        "entries": [
+          {
+            "entryKey": "share-create",
+            "path": "src/documents/views.py",
+            "startLine": 4696,
+            "endLine": 4717
+          }
+        ],
+        "dependencies": [
+          {
+            "id": "located-1",
+            "from": "share-create",
+            "path": "src/documents/views.py",
+            "startLine": 4696,
+            "endLine": 4719,
+            "reason": "other",
+            "basis": "locator"
+          },
+          {
+            "id": "located-2",
+            "from": "share-create",
+            "path": "src/documents/views.py",
+            "startLine": 406,
+            "endLine": 410,
+            "reason": "other",
+            "basis": "locator"
+          },
+          {
+            "id": "dep-share-viewset-composition",
+            "from": "share-create",
+            "path": "src/documents/views.py",
+            "startLine": 4696,
+            "endLine": 4703,
+            "reason": "control",
+            "basis": "model-proposal"
+          },
+          {
+            "id": "dep-share-serializer-binding",
+            "from": "share-create",
+            "path": "src/documents/views.py",
+            "startLine": 4704,
+            "endLine": 4709,
+            "reason": "resource-binding",
+            "basis": "model-proposal"
+          },
+          {
+            "id": "dep-share-permission-binding",
+            "from": "share-create",
+            "path": "src/documents/views.py",
+            "startLine": 4710,
+            "endLine": 4710,
+            "reason": "control",
+            "basis": "model-proposal"
+          },
+          {
+            "id": "dep-share-create-user-context",
+            "from": "located-2",
+            "path": "src/documents/views.py",
+            "startLine": 411,
+            "endLine": 428,
+            "reason": "identity",
+            "basis": "model-proposal"
+          },
+          {
+            "id": "dep-share-create-http-permission-map",
+            "from": "dep-share-permission-binding",
+            "path": "src/documents/permissions.py",
+            "startLine": 30,
+            "endLine": 53,
+            "reason": "control",
+            "basis": "model-proposal"
+          },
+          {
+            "id": "dep-share-create-document-validation",
+            "from": "dep-share-serializer-binding",
+            "path": "src/documents/serialisers.py",
+            "startLine": 2869,
+            "endLine": 2886,
+            "reason": "control",
+            "basis": "model-proposal"
+          },
+          {
+            "id": "dep-share-create-owner-aware-check",
+            "from": "dep-share-create-document-validation",
+            "path": "src/documents/permissions.py",
+            "startLine": 624,
+            "endLine": 635,
+            "reason": "control",
+            "basis": "model-proposal"
+          }
+        ],
+        "limits": {
+          "maxFiles": 12,
+          "maxBytes": 65536,
+          "maxDepth": 3
+        }
+      },
+      "sources": [
+        {
+          "path": "src/documents/views.py",
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+        },
+        {
+          "path": "src/documents/serialisers.py",
+          "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266"
+        }
+      ]
+    },
+    "closureClaim": "declared-dependencies-only",
+    "schemaVersion": "authorization-evidence-report/v2",
+    "controlContext": {
+      "strategy": "callable-v1",
+      "selected": [
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 30,
+          "endLine": 53,
+          "origins": [
+            "model-proposal:dep-share-create-http-permission-map"
+          ]
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "origins": [
+            "model-proposal:dep-share-create-owner-aware-check"
+          ]
+        },
+        {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2869,
+          "endLine": 2886,
+          "origins": [
+            "model-proposal:dep-share-create-document-validation"
+          ]
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 406,
+          "endLine": 428,
+          "origins": [
+            "locator:located-2",
+            "model-proposal:dep-share-create-user-context"
+          ]
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 4696,
+          "endLine": 4719,
+          "origins": [
+            "model-proposal:dep-share-viewset-composition",
+            "entry:share-create",
+            "locator:located-1",
+            "model-proposal:dep-share-serializer-binding",
+            "model-proposal:dep-share-permission-binding"
+          ]
+        }
+      ],
+      "units": [
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 30,
+          "endLine": 53,
+          "id": "range:src/documents/permissions.py:30-53",
+          "status": "range-uncertain",
+          "triggers": [
+            {
+              "path": "src/documents/permissions.py",
+              "startLine": 30,
+              "endLine": 53
+            }
+          ],
+          "omitted": []
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 637,
+          "id": "symbol-d50f36cbe040d6fab5ea55a5",
+          "status": "unit-complete",
+          "triggers": [
+            {
+              "path": "src/documents/permissions.py",
+              "startLine": 624,
+              "endLine": 635
+            }
+          ],
+          "omitted": []
+        },
+        {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2869,
+          "endLine": 2886,
+          "id": "range:src/documents/serialisers.py:2869-2886",
+          "status": "range-uncertain",
+          "triggers": [
+            {
+              "path": "src/documents/serialisers.py",
+              "startLine": 2869,
+              "endLine": 2886
+            }
+          ],
+          "omitted": []
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 406,
+          "endLine": 428,
+          "id": "range:src/documents/views.py:406-428",
+          "status": "range-uncertain",
+          "triggers": [
+            {
+              "path": "src/documents/views.py",
+              "startLine": 406,
+              "endLine": 428
+            }
+          ],
+          "omitted": []
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 4696,
+          "endLine": 4719,
+          "id": "range:src/documents/views.py:4696-4719",
+          "status": "range-uncertain",
+          "triggers": [
+            {
+              "path": "src/documents/views.py",
+              "startLine": 4696,
+              "endLine": 4719
+            }
+          ],
+          "omitted": []
+        }
+      ],
+      "expansions": [
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 636,
+          "endLine": 637,
+          "unitId": "symbol-d50f36cbe040d6fab5ea55a5",
+          "origin": "host-context"
+        }
+      ],
+      "finalBytes": 3449,
+      "maxBytes": 65536,
+      "indexBudget": {
+        "usedBytes": 374999,
+        "maxBytes": 1048576,
+        "omittedFiles": []
+      }
+    },
+    "included": [
+      {
+        "path": "src/documents/permissions.py",
+        "originalPath": "src/documents/permissions.py",
+        "startLine": 30,
+        "endLine": 637,
+        "origins": [
+          "model-proposal:dep-share-create-http-permission-map",
+          "model-proposal:dep-share-create-owner-aware-check",
+          "host-context:symbol-d50f36cbe040d6fab5ea55a5"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 30,
+            "originalEndLine": 53,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 24,
+            "origins": [
+              "model-proposal:dep-share-create-http-permission-map"
+            ]
+          },
+          {
+            "originalStartLine": 624,
+            "originalEndLine": 637,
+            "snapshotStartLine": 25,
+            "snapshotEndLine": 38,
+            "origins": [
+              "model-proposal:dep-share-create-owner-aware-check",
+              "host-context:symbol-d50f36cbe040d6fab5ea55a5"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "src/documents/serialisers.py",
+        "originalPath": "src/documents/serialisers.py",
+        "startLine": 2869,
+        "endLine": 2886,
+        "origins": [
+          "model-proposal:dep-share-create-document-validation"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 2869,
+            "originalEndLine": 2886,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 18,
+            "origins": [
+              "model-proposal:dep-share-create-document-validation"
+            ]
+          }
+        ]
+      },
+      {
+        "path": "src/documents/views.py",
+        "originalPath": "src/documents/views.py",
+        "startLine": 406,
+        "endLine": 4719,
+        "origins": [
+          "locator:located-2",
+          "model-proposal:dep-share-create-user-context",
+          "model-proposal:dep-share-viewset-composition",
+          "entry:share-create",
+          "locator:located-1",
+          "model-proposal:dep-share-serializer-binding",
+          "model-proposal:dep-share-permission-binding"
+        ],
+        "segments": [
+          {
+            "originalStartLine": 406,
+            "originalEndLine": 428,
+            "snapshotStartLine": 1,
+            "snapshotEndLine": 23,
+            "origins": [
+              "locator:located-2",
+              "model-proposal:dep-share-create-user-context"
+            ]
+          },
+          {
+            "originalStartLine": 4696,
+            "originalEndLine": 4719,
+            "snapshotStartLine": 24,
+            "snapshotEndLine": 47,
+            "origins": [
+              "model-proposal:dep-share-viewset-composition",
+              "entry:share-create",
+              "locator:located-1",
+              "model-proposal:dep-share-serializer-binding",
+              "model-proposal:dep-share-permission-binding"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "sessionId": "20260929T151821489Z-73e512f7",
+  "model": "xty/gpt-5.6-sol",
+  "arm": "B",
+  "executionOptions": {
+    "timeoutMs": 300000,
+    "unitTimeoutMs": 900000,
+    "maxTokens": 6000,
+    "maxProviderDispatches": 4,
+    "maxDomainRepairs": 1
+  },
+  "startedAt": "2026-09-29T15:18:21.503Z",
+  "completionUnknownUntilRunArtifact": true,
+  "noAutomaticResend": true
+}

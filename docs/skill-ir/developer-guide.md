@@ -21,6 +21,8 @@ AM共享模块：`control-context.ts::buildControlContext`对实际源摘要、�
 
 AM研究入口集中在[authorization-control-context-v1](../../results/skill-ir/skill-dsl-research/development/authorization-control-context-v1/)。`study.ts check/replay`核对输入及准备/分析留账，`authors.ts replay`核对8稿/8消费与继承，`evaluate.ts replay`从独立ratings重算两维结果，`accounting.ts`重算全部阶段费用和真实分摊；均零provider。生成前base/shared-revision freeze保持原字节，生成关闭后的指引与核验变化由verification-freeze另绑定原生成freeze、generation-closed和43次调用。关闭标记禁止后续paid派发；重放仍检查当前实现与验证身份，不更新旧hash来绕过拒绝。修改研究driver时同时运行结果根tsconfig类型检查及protocol/generation-options测试。
 
+AM归档在Git中按原字节保存。格式检查只对source快照的末尾空行、带行号preview的行尾空格和manifest/journal原有CRLF设置精确属性；研究driver、生产代码和文档仍走普通检查。不要为了格式检查修改冻结源码、prompt或响应；发布前核对暂存Git blob与工作区归档字节，以及当前verification freeze文件摘要。
+
 [V0–V10 任务书](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9 任务书](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)、[X0–X13 任务书](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)、[Y0–Y14 任务书](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)和[研究 §7.19–7.22](skill-dsl-research.md#719-v-开发合同与持续复盘)描述已实现接口及当前扩展。它处理单 repository/ref、fixed-context、source-visible authorization obligation。领域代码位于 `src/task-dsl/authorization/`，实验代码位于 `src/benchmarks/authorization-dsl/`。
 
 公开边界如下：

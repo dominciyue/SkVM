@@ -1,0 +1,20 @@
+{
+  "review": "one bounded independent read-only pass",
+  "base": "0726c44ecbdde9aad0c44b05499e177b8a93a677",
+  "head": "04148e6adcc06a706e53e23e2b33587c68151ba0",
+  "issues": [
+    {
+      "severity": "important",
+      "file": "src/benchmarks/authorization-dsl/evidence-preparation/material-reuse.ts",
+      "line": 55,
+      "problem": "Reuse compares repository/ref, entries and current bound raw bytes but not sourceRoot directory identity.",
+      "impact": "Reviewer considers byte-identical relocated raw tree a provenance risk.",
+      "minimalRepro": "Copy identical bound files from project-a to project-b; change sourceRoot only; reuse accepts."
+    }
+  ],
+  "assessment": "Focused review reports 33 deterministic tests passed; otherwise control uncertainty, class narrowing, budget/digest/line checks, pending-gap history, author contract, named edits, denominators and post-generation isolation hold.",
+  "limits": [
+    "Read-only; no modifications.",
+    "No target/provider/heldout execution or historical audit."
+  ]
+}

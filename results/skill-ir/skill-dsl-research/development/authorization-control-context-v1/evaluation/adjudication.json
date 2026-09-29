@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "authorization-am-adjudication/v1",
+  "generationClosed": true,
+  "ratingRulesChanged": false,
+  "newProviderCalls": 0,
+  "reviewerRows": 70,
+  "finalRows": 72,
+  "reviewedBy": [
+    "am_review_1",
+    "am_review_2",
+    "am_review_3",
+    "am_review_4",
+    "am_code_review"
+  ],
+  "decisions": [
+    {
+      "topic": "Delivery and source gaps",
+      "decision": "Adjudicate first and final separately. q07 first delivery is true; q11 and r-q03 repaired finals are valid; a partial prepared material with visible decisive controls is not itself blocking.",
+      "anchors": [
+        "evaluation/packets-3.json:first.delivery",
+        "quality/q11/report.json:finalKind",
+        "protocol.ts:35-41"
+      ]
+    },
+    {
+      "topic": "Conclusion semantics",
+      "decision": "Reject reviewer-2's two changed Paperless negatives: source_refuted means expectation enforced, so observed allow/deny matching current expectations is correct.",
+      "anchors": [
+        "src/task-dsl/authorization/outcome-result.ts:25-26",
+        "src/task-dsl/authorization/render.ts:166-167",
+        "consumers/paperless-note-premise-markdown-changed/report.json:1406"
+      ]
+    },
+    {
+      "topic": "Unnoticed contradictory prose",
+      "decision": "q06, q08 and q16 explicitly call correct conforming denial source_supported_failure. Under the registered unsupported rule, retain these policy-classification negatives in both phases despite correct normalized decisions.",
+      "anchors": [
+        "quality/q06/report.json:470",
+        "quality/q08/report.json:199",
+        "quality/q16/report.json:482",
+        "protocol.ts:37"
+      ]
+    },
+    {
+      "topic": "Missing reviewer row",
+      "decision": "Reviewer-3 omitted q11; root supplies first blocked/final supported-conditional using the archived host validation and exact source anchors."
+    },
+    {
+      "topic": "Invariant branch outcome",
+      "decision": "Original Paperless change-granted is determinate because both declared owner-presence branches permit through the supplied object change grant; original view-only stays conditional."
+    },
+    {
+      "topic": "Raw-root review concern",
+      "decision": "No production change. Logical source identity is repository/ref/path plus every bound raw file digest (including unretained bytes and missing-file states), with all old pending gaps retained. sourceRoot is a caller-selected portable read location, not physical-directory identity. Byte-identical relocation is permitted and does not prove whole-repository equality. New deterministic test confirms relocation retains metadata and rejects changed bytes in the newly selected raw tree.",
+      "anchors": [
+        "src/benchmarks/authorization-dsl/evidence-preparation/material-reuse.ts:55-73",
+        "src/benchmarks/authorization-dsl/evidence-preparation/material-reuse.test.ts:59",
+        "src/benchmarks/authorization-dsl/local-input.ts:193-228"
+      ],
+      "test": "5 pass/23 assertions; initial short replacement failed local input range validation as invalid-reuse-input, then append fixture confirmed source-bytes-changed"
+    }
+  ],
+  "limits": [
+    "One reviewer pass only; proposals compressed with cited evidence retained.",
+    "No rescoring of historical AK/AL panels, no extra paid generation.",
+    "USD, human time and host reviewer/developer model usage remain unknown."
+  ]
+}

@@ -1,0 +1,435 @@
+{
+  "schemaVersion": "authorization-preparation-attempts/v1",
+  "model": "xty/gpt-5.6-sol",
+  "status": "completed",
+  "published": true,
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "prompt-parse",
+      "status": "response",
+      "startedAt": "2026-09-29T14:58:54.472Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 24387,
+        "toolNames": [],
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 7024,
+        "output": 1164,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-process-file-auth-source-binding\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1546,\"endLine\":1564},\"reason\":\"identity\",\"description\":\"Shows verified-user authentication and the non-admin source-file lookup constrained by the caller's user ID.\"},{\"id\":\"dep-process-file-destination-binding\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1565,\"endLine\":1570},\"reason\":\"resource-binding\",\"description\":\"Binds the write destination directly to the supplied collection_name, with only a default when it is absent.\"},{\"id\":\"dep-process-file-existing-content-path\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1596,\"endLine\":1626},\"reason\":\"control\",\"description\":\"Shows the branch taken when a collection name is supplied and how owned-file content is prepared for that destination.\"},{\"id\":\"dep-process-file-retrieval-bypass\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1671,\"endLine\":1682},\"reason\":\"control\",\"description\":\"Shows the configuration branch that returns without performing a vector-database write.\"},{\"id\":\"dep-process-file-vector-write-call\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1683,\"endLine\":1707},\"reason\":\"effect\",\"description\":\"Shows the call that passes the caller-supplied destination, documents, add mode, and user into the vector-database save helper.\"},{\"id\":\"dep-process-file-success-result\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-b3a9fc1b613a13770e8be595\",\"startLine\":1709,\"endLine\":1734},\"reason\":\"effect\",\"description\":\"Shows successful persistence metadata and the response reporting the selected collection.\"}],\"reads\":[{\"id\":\"read-save-docs-to-vector-db\",\"from\":\"dep-process-file-vector-write-call\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-e2cecd47ed4a9e8b9693e061\"},\"contextLines\":0},{\"id\":\"read-process-file-form\",\"from\":\"dep-process-file-destination-binding\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-c14560e177c01d2430edcfd8\"},\"contextLines\":0},{\"id\":\"read-collection-access-validator\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"indexed-symbol\",\"symbolId\":\"symbol-22cc9876de142e84e839b8bb\"},\"contextLines\":0}]}",
+        "toolCalls": [],
+        "tokens": {
+          "input": 7024,
+          "output": 1164,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 23888.7867,
+        "stopReason": "end_turn"
+      },
+      "endedAt": "2026-09-29T14:59:18.364Z"
+    },
+    {
+      "id": "provider-attempt-2",
+      "phase": "initial",
+      "transport": "prompt-parse",
+      "status": "response",
+      "startedAt": "2026-09-29T14:59:18.385Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 26691,
+        "toolNames": [],
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 6292,
+        "output": 668,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "{\"schemaVersion\":\"authorization-dependency-selection/v3\",\"dependencies\":[{\"id\":\"dep-process-file-form-client-collection-name\",\"from\":\"dep-process-file-destination-binding\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-d817ab115e3bbac87c314b5c\",\"startLine\":1540,\"endLine\":1543},\"reason\":\"resource-binding\",\"description\":\"The request form accepts a caller-supplied collection_name alongside the source file_id.\"},{\"id\":\"dep-vector-save-duplicate-content-check\",\"from\":\"dep-process-file-vector-write-call\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-44220fdd8141c1c8cd146401\",\"startLine\":1368,\"endLine\":1387},\"reason\":\"control\",\"description\":\"The pre-write query checks duplicate hashes and file IDs, without performing a collection write-access check.\"},{\"id\":\"dep-vector-save-existing-collection-control\",\"from\":\"dep-process-file-vector-write-call\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-44220fdd8141c1c8cd146401\",\"startLine\":1458,\"endLine\":1467},\"reason\":\"control\",\"description\":\"For an existing collection, add mode proceeds past the existing-collection branch; only overwrite and add=False receive special handling.\"},{\"id\":\"dep-vector-save-insert-effect\",\"from\":\"dep-process-file-vector-write-call\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-44220fdd8141c1c8cd146401\",\"startLine\":1517,\"endLine\":1534},\"reason\":\"effect\",\"description\":\"Constructed document items are inserted into the supplied collection_name and the operation returns success.\"},{\"id\":\"dep-collection-write-access-validator\",\"from\":\"post-process-file\",\"selector\":{\"kind\":\"shown-range\",\"windowId\":\"window-a51f4bac3745c35c41b9cf3f\",\"startLine\":2339,\"endLine\":2352},\"reason\":\"control\",\"description\":\"This helper enforces collection access for a specified access_type by rejecting denied collections.\"}],\"reads\":[]}",
+        "toolCalls": [],
+        "tokens": {
+          "input": 6292,
+          "output": 668,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 15091.8544,
+        "stopReason": "end_turn"
+      },
+      "endedAt": "2026-09-29T14:59:33.478Z"
+    }
+  ],
+  "telemetry": {
+    "providerCalls": 2,
+    "respondedCalls": 2,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 2,
+    "knownTokens": {
+      "input": 13316,
+      "output": 1832,
+      "cacheRead": 0,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  },
+  "rounds": [
+    {
+      "kind": "proposal",
+      "promptCharacters": 24387,
+      "promptBytes": 24387,
+      "metadataBytes": 13605,
+      "displayedBytes": 10782,
+      "uniqueSourceBytes": 10782,
+      "resentSourceBytes": 0,
+      "diagnostics": []
+    },
+    {
+      "kind": "supplement",
+      "promptCharacters": 26691,
+      "promptBytes": 26691,
+      "metadataBytes": 5487,
+      "displayedBytes": 21204,
+      "uniqueSourceBytes": 10422,
+      "resentSourceBytes": 10782,
+      "diagnostics": []
+    }
+  ],
+  "diagnostics": [],
+  "readOutcomes": [
+    {
+      "requestId": "read-save-docs-to-vector-db",
+      "request": {
+        "id": "read-save-docs-to-vector-db",
+        "from": "dep-process-file-vector-write-call",
+        "selector": {
+          "kind": "indexed-symbol",
+          "symbolId": "symbol-e2cecd47ed4a9e8b9693e061"
+        },
+        "contextLines": 0
+      },
+      "budget": {
+        "usedBytes": 10782,
+        "maxBytes": 65536
+      },
+      "status": "resolved",
+      "windowId": "window-44220fdd8141c1c8cd146401",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1340,
+      "endLine": 1539,
+      "bytes": 9506,
+      "newlyShown": true
+    },
+    {
+      "requestId": "read-process-file-form",
+      "request": {
+        "id": "read-process-file-form",
+        "from": "dep-process-file-destination-binding",
+        "selector": {
+          "kind": "indexed-symbol",
+          "symbolId": "symbol-c14560e177c01d2430edcfd8"
+        },
+        "contextLines": 0
+      },
+      "budget": {
+        "usedBytes": 20288,
+        "maxBytes": 65536
+      },
+      "status": "resolved",
+      "windowId": "window-d817ab115e3bbac87c314b5c",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1540,
+      "endLine": 1545,
+      "bytes": 171,
+      "newlyShown": true
+    },
+    {
+      "requestId": "read-collection-access-validator",
+      "request": {
+        "id": "read-collection-access-validator",
+        "from": "post-process-file",
+        "selector": {
+          "kind": "indexed-symbol",
+          "symbolId": "symbol-22cc9876de142e84e839b8bb"
+        },
+        "contextLines": 0
+      },
+      "budget": {
+        "usedBytes": 20459,
+        "maxBytes": 65536
+      },
+      "status": "resolved",
+      "windowId": "window-a51f4bac3745c35c41b9cf3f",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 2339,
+      "endLine": 2354,
+      "bytes": 745,
+      "newlyShown": true
+    }
+  ],
+  "selectionOutcomes": [
+    {
+      "id": "dep-process-file-auth-source-binding",
+      "from": "post-process-file",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1546,
+        "endLine": 1564
+      },
+      "description": "Shows verified-user authentication and the non-admin source-file lookup constrained by the caller's user ID.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-destination-binding",
+      "from": "post-process-file",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1565,
+        "endLine": 1570
+      },
+      "description": "Binds the write destination directly to the supplied collection_name, with only a default when it is absent.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-existing-content-path",
+      "from": "post-process-file",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1596,
+        "endLine": 1626
+      },
+      "description": "Shows the branch taken when a collection name is supplied and how owned-file content is prepared for that destination.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-retrieval-bypass",
+      "from": "post-process-file",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1671,
+        "endLine": 1682
+      },
+      "description": "Shows the configuration branch that returns without performing a vector-database write.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-vector-write-call",
+      "from": "post-process-file",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1683,
+        "endLine": 1707
+      },
+      "description": "Shows the call that passes the caller-supplied destination, documents, add mode, and user into the vector-database save helper.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-success-result",
+      "from": "post-process-file",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-b3a9fc1b613a13770e8be595",
+        "startLine": 1709,
+        "endLine": 1734
+      },
+      "description": "Shows successful persistence metadata and the response reporting the selected collection.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-process-file-form-client-collection-name",
+      "from": "dep-process-file-destination-binding",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-d817ab115e3bbac87c314b5c",
+        "startLine": 1540,
+        "endLine": 1543
+      },
+      "description": "The request form accepts a caller-supplied collection_name alongside the source file_id.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-vector-save-duplicate-content-check",
+      "from": "dep-process-file-vector-write-call",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-44220fdd8141c1c8cd146401",
+        "startLine": 1368,
+        "endLine": 1387
+      },
+      "description": "The pre-write query checks duplicate hashes and file IDs, without performing a collection write-access check.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-vector-save-existing-collection-control",
+      "from": "dep-process-file-vector-write-call",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-44220fdd8141c1c8cd146401",
+        "startLine": 1458,
+        "endLine": 1467
+      },
+      "description": "For an existing collection, add mode proceeds past the existing-collection branch; only overwrite and add=False receive special handling.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-vector-save-insert-effect",
+      "from": "dep-process-file-vector-write-call",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-44220fdd8141c1c8cd146401",
+        "startLine": 1517,
+        "endLine": 1534
+      },
+      "description": "Constructed document items are inserted into the supplied collection_name and the operation returns success.",
+      "status": "resolved"
+    },
+    {
+      "id": "dep-collection-write-access-validator",
+      "from": "post-process-file",
+      "selector": {
+        "kind": "shown-range",
+        "windowId": "window-a51f4bac3745c35c41b9cf3f",
+        "startLine": 2339,
+        "endLine": 2352
+      },
+      "description": "This helper enforces collection access for a specified access_type by rejecting denied collections.",
+      "status": "resolved"
+    }
+  ],
+  "acceptedDependencies": [
+    {
+      "id": "dep-process-file-auth-source-binding",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1546,
+      "endLine": 1564,
+      "reason": "identity",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-destination-binding",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1565,
+      "endLine": 1570,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-existing-content-path",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1596,
+      "endLine": 1626,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-retrieval-bypass",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1671,
+      "endLine": 1682,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-vector-write-call",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1683,
+      "endLine": 1707,
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-success-result",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1709,
+      "endLine": 1734,
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-process-file-form-client-collection-name",
+      "from": "dep-process-file-destination-binding",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1540,
+      "endLine": 1543,
+      "reason": "resource-binding",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-vector-save-duplicate-content-check",
+      "from": "dep-process-file-vector-write-call",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1368,
+      "endLine": 1387,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-vector-save-existing-collection-control",
+      "from": "dep-process-file-vector-write-call",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1458,
+      "endLine": 1467,
+      "reason": "control",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-vector-save-insert-effect",
+      "from": "dep-process-file-vector-write-call",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1517,
+      "endLine": 1534,
+      "reason": "effect",
+      "basis": "model-proposal"
+    },
+    {
+      "id": "dep-collection-write-access-validator",
+      "from": "post-process-file",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 2339,
+      "endLine": 2352,
+      "reason": "control",
+      "basis": "model-proposal"
+    }
+  ],
+  "sourceDisplay": {
+    "totalBytes": 31986,
+    "uniqueSourceBytes": 21204,
+    "resentSourceBytes": 10782,
+    "maxBytes": 65536
+  },
+  "unknownCostReason": "provider did not report actual cost for every dispatched request"
+}

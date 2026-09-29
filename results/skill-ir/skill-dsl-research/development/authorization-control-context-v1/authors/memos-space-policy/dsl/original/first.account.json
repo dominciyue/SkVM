@@ -1,0 +1,57 @@
+{
+  "providerCalls": 1,
+  "respondedCalls": 1,
+  "unknownUsageCalls": 0,
+  "unknownCostCalls": 1,
+  "knownTokens": {
+    "input": 2241,
+    "output": 1680,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "tokensStatus": "complete",
+  "knownActualUsdSubtotal": 0,
+  "totalActualUsd": null,
+  "actualUsdStatus": "unknown",
+  "transportAttempts": "unknown",
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "prompt-parse",
+      "status": "response",
+      "startedAt": "2026-09-29T15:27:31.830Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 8534,
+        "toolNames": [],
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false
+      },
+      "usage": {
+        "input": 2241,
+        "output": 1680,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "{\n  \"schemaVersion\": \"authorization-assessment-authoring/v2\",\n  \"taskId\": \"al-use-memos-members\",\n  \"request\": \"At DeleteSpaceMember handler entry, compare removal of the caller's own active membership with removal of a different active member's membership in the same space. Assume resource resolution succeeds. Report source-visible authorization and the accepted-policy comparison separately.\",\n  \"repository\": \"https://github.com/usememos/memos\",\n  \"sourceRef\": \"cb42e326ba9cc266a6a9570c53e0fe04c62793f4\",\n  \"sourceRoot\": \"../../../../authorization-evidence-editing-v1/public-source/memos\",\n  \"sources\": [\n    \"server/api/v1/space_service.go\"\n  ],\n  \"entries\": {\n    \"delete-member\": {\n      \"name\": \"delete-member\",\n      \"locations\": [\n        {\n          \"path\": \"server/api/v1/space_service.go\",\n          \"startLine\": 740,\n          \"endLine\": 763\n        }\n      ]\n    }\n  },\n  \"policies\": {\n    \"rule\": {\n      \"text\": \"An active space member may delete their own membership and may remove a different active member of the same space without space administrator authority.\",\n      \"location\": \"author-briefs.json#/memos-space-policy/changedPolicy\",\n      \"revision\": \"changed\",\n      \"acceptance\": \"accepted\",\n      \"reason\": \"Change only the accepted space-member removal policy to changedPolicy.\"\n    }\n  },\n  \"principals\": {\n    \"caller\": {\n      \"role\": \"authenticated active ordinary non-administrator member\"\n    }\n  },\n  \"resources\": {\n    \"target\": {\n      \"type\": \"active space membership\"\n    }\n  },\n  \"scenarios\": {\n    \"self-leave\": {\n      \"principal\": \"caller\",\n      \"resource\": \"target\",\n      \"policy\": \"rule\",\n      \"entries\": [\n        \"delete-member\"\n      ],\n      \"relation\": \"caller-is-target-member\",\n      \"operation\": \"delete own membership\",\n      \"expectation\": \"allow\"\n    },\n    \"other-member\": {\n      \"principal\": \"caller\",\n      \"resource\": \"target\",\n      \"policy\": \"rule\",\n      \"entries\": [\n        \"delete-member\"\n      ],\n      \"relation\": \"caller-is-not-target-member-and-not-admin\",\n      \"operation\": \"delete another active membership\",\n      \"expectation\": \"allow\"\n    }\n  },\n  \"analysisContract\": {\n    \"schemaVersion\": \"authorization-analysis-contract/v1\",\n    \"publicInstruction\": \"Report source-visible authorization and the accepted-policy comparison separately.\",\n    \"scenarios\": {\n      \"self-leave\": {\n        \"boundary\": \"declared-entry\",\n        \"premises\": [\n          {\n            \"id\": \"target-relation\",\n            \"statement\": \"At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and resolveSpaceMemberResource succeeds.\",\n            \"atEntry\": true,\n            \"provenance\": \"task-assumption\"\n          }\n        ],\n        \"requestedBranches\": [],\n        \"requiredResponseDetails\": [\n          \"Report the source-visible authorization at the declared handler entry.\",\n          \"Report the comparison with the accepted rule policy separately from the source-visible authorization.\"\n        ]\n      },\n      \"other-member\": {\n        \"boundary\": \"declared-entry\",\n        \"premises\": [\n          {\n            \"id\": \"target-relation\",\n            \"statement\": \"At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and resolveSpaceMemberResource succeeds.\",\n            \"atEntry\": true,\n            \"provenance\": \"task-assumption\"\n          }\n        ],\n        \"requestedBranches\": [],\n        \"requiredResponseDetails\": [\n          \"Report the source-visible authorization at the declared handler entry.\",\n          \"Report the comparison with the accepted rule policy separately from the source-visible authorization.\"\n        ]\n      }\n    }\n  }\n}",
+        "toolCalls": [],
+        "tokens": {
+          "input": 2241,
+          "output": 1680,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 32010.63569999999,
+        "stopReason": "end_turn"
+      },
+      "endedAt": "2026-09-29T15:28:03.842Z"
+    }
+  ],
+  "knownDurationMs": 32010.63569999999
+}

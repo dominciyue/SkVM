@@ -1,0 +1,414 @@
+{
+  "providerCalls": 1,
+  "respondedCalls": 1,
+  "unknownUsageCalls": 0,
+  "unknownCostCalls": 1,
+  "knownTokens": {
+    "input": 5127,
+    "output": 1557,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "tokensStatus": "complete",
+  "knownActualUsdSubtotal": 0,
+  "totalActualUsd": null,
+  "actualUsdStatus": "unknown",
+  "transportAttempts": "unknown",
+  "attempts": [
+    {
+      "id": "provider-attempt-1",
+      "phase": "initial",
+      "transport": "schema-tool",
+      "status": "response",
+      "startedAt": "2026-09-29T15:03:35.218Z",
+      "request": {
+        "messageCount": 1,
+        "messageCharacters": 22704,
+        "toolNames": [
+          "submit_authorization_result"
+        ],
+        "toolChoice": {
+          "name": "submit_authorization_result"
+        },
+        "maxTokens": 6000,
+        "temperature": 0,
+        "executableTools": false,
+        "toolSchemas": [
+          {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "obligationId": {
+                      "type": "string"
+                    },
+                    "explanation": {
+                      "type": "string"
+                    },
+                    "facts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "entry",
+                              "binding",
+                              "control",
+                              "effect",
+                              "condition"
+                            ]
+                          },
+                          "statement": {
+                            "type": "string"
+                          },
+                          "citations": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "sourceId": {
+                                  "type": "string"
+                                },
+                                "startLine": {
+                                  "type": "number"
+                                },
+                                "endLine": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "sourceId",
+                                "startLine",
+                                "endLine"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "statement",
+                          "citations"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "decisiveMissingFacts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suggestedObservations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "decision": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "observed"
+                            },
+                            "observed": {
+                              "type": "string",
+                              "enum": [
+                                "allow",
+                                "deny",
+                                "unknown"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "observed"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "conditional-policy"
+                            },
+                            "policyStatus": {
+                              "type": "string",
+                              "enum": [
+                                "satisfied",
+                                "violated",
+                                "undetermined"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "policyStatus"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "branchResults": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "assumptions": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "conditionId": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "string",
+                                  "enum": [
+                                    "true",
+                                    "false",
+                                    "unknown"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "conditionId",
+                                "value"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "effect": {
+                            "type": "string",
+                            "enum": [
+                              "reachable",
+                              "blocked",
+                              "unknown"
+                            ]
+                          },
+                          "explanation": {
+                            "type": "string"
+                          },
+                          "missingFacts": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "factIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "assumptions",
+                          "effect",
+                          "explanation",
+                          "missingFacts",
+                          "factIds"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "obligationId",
+                    "explanation",
+                    "facts",
+                    "decisiveMissingFacts",
+                    "suggestedObservations",
+                    "decision",
+                    "branchResults"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "results"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "usage": {
+        "input": 5127,
+        "output": 1557,
+        "cacheRead": 0,
+        "cacheWrite": 0
+      },
+      "costUsd": null,
+      "transportAttempts": "unknown",
+      "response": {
+        "text": "",
+        "toolCalls": [
+          {
+            "id": "call_8bTBNolIXzGyoP9qf32arRWA",
+            "name": "submit_authorization_result",
+            "arguments": {
+              "results": [
+                {
+                  "obligationId": "scenario%3Afile-owner-without-destination-write-grant::entry%3Apost-process-file",
+                  "decision": {
+                    "kind": "observed",
+                    "observed": "allow"
+                  },
+                  "branchResults": [],
+                  "explanation": "At the declared POST /process/file boundary, the source-visible path allows the stated verified non-admin to cause a write to the caller-selected existing collection. Authentication binds user through the verified-user dependency, and the non-admin branch restricts lookup of the source file by both file ID and user ID. That is a source-file ownership/access control only. The caller-supplied collection_name is then selected as the destination and passed to save_docs_to_vector_db with add=True whenever a collection name was supplied. On the supplied existing-collection path, existence is detected, but the no-write short circuit applies only when add is False; the downstream sink inserts items into the selected collection. No destination-knowledge-base ownership or explicit-write-grant check is visible on this supplied path. Thus, under the task premises that the collection already exists and the principal lacks destination ownership or a write grant, source-file ownership remains distinct from destination permission and does not block the destination write. The destination write sink is VECTOR_DB_CLIENT.insert with collection_name and items. This is a source-supported failure relative to the accepted deny policy, expressed by the required observed decision as allow; it is limited to the declared entry and supplied fixed context and makes no repository-wide or deployment claim.",
+                  "facts": [
+                    {
+                      "id": "fact-entry",
+                      "kind": "entry",
+                      "statement": "The declared entry is POST /process/file, whose handler receives the form, a verified user dependency, and a database session.",
+                      "citations": [
+                        {
+                          "sourceId": "src-fe559de1b09b3607",
+                          "startLine": 1546,
+                          "endLine": 1552
+                        }
+                      ]
+                    },
+                    {
+                      "id": "fact-principal-binding",
+                      "kind": "binding",
+                      "statement": "For a non-admin, the handler retrieves the supplied source file by both file ID and the authenticated user's ID; processing proceeds only if that file lookup succeeds.",
+                      "citations": [
+                        {
+                          "sourceId": "src-fe559de1b09b3607",
+                          "startLine": 1559,
+                          "endLine": 1564
+                        }
+                      ]
+                    },
+                    {
+                      "id": "fact-caller-collection-field",
+                      "kind": "condition",
+                      "statement": "The request model exposes collection_name as a caller-supplied optional field alongside file_id and content.",
+                      "citations": [
+                        {
+                          "sourceId": "src-fe559de1b09b3607",
+                          "startLine": 1540,
+                          "endLine": 1543
+                        }
+                      ]
+                    },
+                    {
+                      "id": "fact-resource-binding",
+                      "kind": "binding",
+                      "statement": "The handler binds the destination collection directly from form_data.collection_name, using a file-specific fallback only when the caller did not supply one.",
+                      "citations": [
+                        {
+                          "sourceId": "src-fe559de1b09b3607",
+                          "startLine": 1564,
+                          "endLine": 1569
+                        }
+                      ]
+                    },
+                    {
+                      "id": "fact-strongest-control",
+                      "kind": "control",
+                      "statement": "The strongest visible authorization control is the admin/non-admin source-file lookup split; the non-admin check binds file ownership/access but does not check ownership of or a write grant on the selected destination collection.",
+                      "citations": [
+                        {
+                          "sourceId": "src-fe559de1b09b3607",
+                          "startLine": 1559,
+                          "endLine": 1564
+                        }
+                      ]
+                    },
+                    {
+                      "id": "fact-write-call",
+                      "kind": "effect",
+                      "statement": "The handler passes the selected collection name and prepared documents to save_docs_to_vector_db and sets add to true when the caller supplied collection_name.",
+                      "citations": [
+                        {
+                          "sourceId": "src-fe559de1b09b3607",
+                          "startLine": 1694,
+                          "endLine": 1706
+                        }
+                      ]
+                    },
+                    {
+                      "id": "fact-existing-collection-path",
+                      "kind": "control",
+                      "statement": "The save path detects an existing collection; its shown early return for an existing collection is conditioned on add being false, so the caller-selected add=true path is not blocked there.",
+                      "citations": [
+                        {
+                          "sourceId": "src-fe559de1b09b3607",
+                          "startLine": 1458,
+                          "endLine": 1467
+                        }
+                      ]
+                    },
+                    {
+                      "id": "fact-destination-write-sink",
+                      "kind": "effect",
+                      "statement": "The protected destination effect is insertion of items into VECTOR_DB_CLIENT under the selected collection_name.",
+                      "citations": [
+                        {
+                          "sourceId": "src-fe559de1b09b3607",
+                          "startLine": 1527,
+                          "endLine": 1531
+                        }
+                      ]
+                    },
+                    {
+                      "id": "fact-success-result",
+                      "kind": "effect",
+                      "statement": "After a truthy save result, the handler records the selected collection name and returns success with that collection name and the processed content.",
+                      "citations": [
+                        {
+                          "sourceId": "src-fe559de1b09b3607",
+                          "startLine": 1707,
+                          "endLine": 1732
+                        }
+                      ]
+                    }
+                  ],
+                  "decisiveMissingFacts": [],
+                  "suggestedObservations": []
+                }
+              ]
+            }
+          }
+        ],
+        "tokens": {
+          "input": 5127,
+          "output": 1557,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": null,
+        "durationMs": 35115.8132,
+        "stopReason": "tool_use"
+      },
+      "schemaValidation": {
+        "valid": true,
+        "diagnostics": []
+      },
+      "endedAt": "2026-09-29T15:04:10.339Z"
+    }
+  ],
+  "knownDurationMs": 35115.8132,
+  "repairCalls": 0,
+  "fallbackCalls": 0
+}

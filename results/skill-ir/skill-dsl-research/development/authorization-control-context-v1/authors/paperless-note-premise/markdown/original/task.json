@@ -1,0 +1,62 @@
+{
+  "publicBrief": "{\"id\":\"paperless-note-premise\",\"kind\":\"premise-change\",\"taskId\":\"al-use-paperless-note\",\"repository\":\"https://github.com/paperless-ngx/paperless-ngx\",\"originalSourceRef\":\"126ec414a8b65158368653a2604ae58415e43103\",\"changedSourceRef\":\"126ec414a8b65158368653a2604ae58415e43103\",\"originalSourceRoot\":\"../authorization-evidence-editing-v1/public-source/paperless\",\"changedSourceRoot\":\"../authorization-evidence-editing-v1/public-source/paperless\",\"allowedFiles\":[\"src/documents/views.py\",\"src/documents/permissions.py\"],\"entry\":{\"entryKey\":\"notes-post\",\"path\":\"src/documents/views.py\",\"startLine\":1841,\"endLine\":1913},\"question\":\"At notes POST handler entry assess both scenarios. The caller is not the document owner. The owner's presence is unspecified in the original task: distinguish absent from other-present where it changes authorization. Both callers have all stated global permissions and can view the document. Separate source-visible authorization from accepted-policy comparison.\",\"originalPolicy\":\"Creating a note requires the stated global permissions and either document ownership or an object change_document grant; an object view grant alone is insufficient.\",\"changedPolicy\":\"Creating a note requires the stated global permissions and either document ownership or an object change_document grant; an object view grant alone is insufficient.\",\"scenarios\":[{\"key\":\"view-only\",\"principal\":\"authenticated user with the stated global permissions\",\"relation\":\"not-owner-view-only\",\"operation\":\"create a note on the document\",\"premiseId\":\"object-relation\",\"premise\":\"At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has no object change_document grant. Owner presence is unspecified: it may be absent or owned by a different user.\",\"changedPremise\":\"At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has no object change_document grant. Owner is other-present: a different user owns the document.\"},{\"key\":\"change-granted\",\"principal\":\"authenticated user with the stated global permissions\",\"relation\":\"not-owner-change-granted\",\"operation\":\"create a note on the document\",\"premiseId\":\"object-relation\",\"premise\":\"At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has an object change_document grant. Owner presence is unspecified: it may be absent or owned by a different user.\",\"changedPremise\":\"At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has an object change_document grant. Owner is other-present: a different user owns the document.\"}],\"originalExpectations\":{\"view-only\":\"deny\",\"change-granted\":\"allow\"},\"changedExpectations\":{\"view-only\":\"deny\",\"change-granted\":\"allow\"},\"changeRequest\":\"Change only both object-relation premise statements to their changedPremise values. Preserve source bytes/ref, task ID, policy, expectations, identities, relations, conditions and requested counterfactuals. Do not infer another task change.\",\"supportRole\":\"Declare only the requested handler as an analysis entry. Helpers belong in evidence-request dependencies; an empty dependency list with discover=true is supported. Do not author all helper positions.\",\"policyLocationOriginal\":\"author-briefs.json#/paperless-note-premise/originalPolicy\",\"policyLocationChanged\":\"author-briefs.json#/paperless-note-premise/originalPolicy\",\"sourceRoot\":\"../../../../authorization-evidence-editing-v1/public-source/paperless\",\"variant\":\"original\",\"requestedCounterfactuals\":[\"absent\",\"other-present\"]}",
+  "outputContract": "Return only reusable Markdown task instructions. Copy current public policy, all premise statements, keys, relations and operations verbatim. Retain source identity/entry and current expectations, distinguish original from changed, and retain requested counterfactuals. No completed analysis.",
+  "editScope": "Fill only unknown domain dictionaries and analysisContract with the explicit public facts. Keep named keys rule/caller/target, both supplied scenario keys and the single supplied entry. Copy policies and premises verbatim; do not infer source outcomes or add obligations.",
+  "knownFields": {
+    "context": {
+      "schemaVersion": "authorization-authoring-context/v1",
+      "taskId": "al-use-paperless-note",
+      "request": "At notes POST handler entry assess both scenarios. The caller is not the document owner. The owner's presence is unspecified in the original task: distinguish absent from other-present where it changes authorization. Both callers have all stated global permissions and can view the document. Separate source-visible authorization from accepted-policy comparison.",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "sourceRoot": "../../../../authorization-evidence-editing-v1/public-source/paperless",
+      "allowedFiles": [
+        "src/documents/views.py",
+        "src/documents/permissions.py"
+      ],
+      "entries": [
+        {
+          "entryKey": "notes-post",
+          "path": "src/documents/views.py",
+          "startLine": 1841,
+          "endLine": 1913
+        }
+      ]
+    },
+    "draft": {
+      "schemaVersion": "authorization-assessment-authoring/v2",
+      "taskId": "al-use-paperless-note",
+      "request": "At notes POST handler entry assess both scenarios. The caller is not the document owner. The owner's presence is unspecified in the original task: distinguish absent from other-present where it changes authorization. Both callers have all stated global permissions and can view the document. Separate source-visible authorization from accepted-policy comparison.",
+      "repository": "https://github.com/paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "sourceRoot": "../../../../authorization-evidence-editing-v1/public-source/paperless",
+      "sources": [
+        "src/documents/views.py"
+      ],
+      "entries": {
+        "notes-post": {
+          "name": "notes-post",
+          "locations": [
+            {
+              "path": "src/documents/views.py",
+              "startLine": 1841,
+              "endLine": 1913
+            }
+          ]
+        }
+      },
+      "policies": {},
+      "principals": {},
+      "resources": {},
+      "scenarios": {}
+    },
+    "sourceEntry": "1841:     @action(\n1842:         methods=[\"get\", \"post\", \"delete\"],\n1843:         detail=True,\n1844:         permission_classes=[PaperlessNotePermissions],\n1845:         pagination_class=None,\n1846:         filter_backends=[],\n1847:     )\n1848:     def notes(self, request, pk=None):\n1849:         currentUser = request.user\n1850:         try:\n1851:             doc = (\n1852:                 Document.objects.select_related(\"owner\")\n1853:                 .prefetch_related(\"notes\")\n1854:                 .only(\"pk\", \"owner__id\")\n1855:                 .get(pk=pk)\n1856:             )\n1857:             if currentUser is not None and not has_perms_owner_aware(\n1858:                 currentUser,\n1859:                 \"view_document\",\n1860:                 doc,\n1861:             ):\n1862:                 return HttpResponseForbidden(\"Insufficient permissions to view notes\")\n1863:         except Document.DoesNotExist:\n1864:             raise Http404\n1865: \n1866:         serializer = self.get_serializer(doc)\n1867: \n1868:         if request.method == \"GET\":\n1869:             try:\n1870:                 notes = serializer.to_representation(doc).get(\"notes\")\n1871:                 return Response(notes)\n1872:             except Exception as e:\n1873:                 logger.warning(f\"An error occurred retrieving notes: {e!s}\")\n1874:                 return Response(\n1875:                     {\"error\": \"Error retrieving notes, check logs for more detail.\"},\n1876:                 )\n1877:         elif request.method == \"POST\":\n1878:             try:\n1879:                 if currentUser is not None and not has_perms_owner_aware(\n1880:                     currentUser,\n1881:                     \"change_document\",\n1882:                     doc,\n1883:                 ):\n1884:                     return HttpResponseForbidden(\n1885:                         \"Insufficient permissions to create notes\",\n1886:                     )\n1887: \n1888:                 c = Note.objects.create(\n1889:                     document=doc,\n1890:                     note=request.data[\"note\"],\n1891:                     user=currentUser,\n1892:                 )\n1893:                 # If audit log is enabled make an entry in the log\n1894:                 # about this note change\n1895:                 if settings.AUDIT_LOG_ENABLED:\n1896:                     LogEntry.objects.log_create(\n1897:                         instance=doc,\n1898:                         changes={\n1899:                             \"Note Added\": [\"None\", c.id],\n1900:                         },\n1901:                         action=LogEntry.Action.UPDATE,\n1902:                     )\n1903: \n1904:                 doc.modified = timezone.now()\n1905:                 doc.save(update_fields=[\"modified\"])\n1906: \n1907:                 from documents.search import get_backend\n1908: \n1909:                 get_backend().add_or_update(doc)\n1910: \n1911:                 notes = serializer.to_representation(doc).get(\"notes\")\n1912: \n1913:                 return Response(notes)",
+    "domainFieldsAutomated": 0,
+    "hostOperations": [
+      "init --context",
+      "entry seed generated",
+      "source bytes read"
+    ]
+  },
+  "fieldGuide": "Write reusable Markdown with the same public facts and two scenario obligations. If an owner fact is unspecified, retain both requested counterfactuals. Source helpers are support, not extra entries."
+}
