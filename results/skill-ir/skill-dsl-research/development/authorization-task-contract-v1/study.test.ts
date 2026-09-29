@@ -5,8 +5,9 @@ import path from "node:path"
 import { authorUnits, buildCurrentAuthorTasks, qualityUnits, ratingRules } from "./protocol.ts"
 import { checkDelivery, checkTaskFacts, checkV2Facts } from "./author-protocol.ts"
 import { compileAuthorizationTaskAuthoring } from "../../../../../src/benchmarks/authorization-dsl/authoring-task.ts"
-import { unresolvedClaim } from "./common.ts"
+import { hash, unresolvedClaim } from "./common.ts"
 import { consumerClaimState, readOrCreateOfflineRecord, sameSharedMaterial } from "./consumer-gate.ts"
+import { assertPacketArchiveBound, summarizeReviewedRows } from "./evaluation-core.ts"
 
 const root = import.meta.dir
 const am = path.resolve(root, "../authorization-control-context-v1")
@@ -123,4 +124,23 @@ test("pre-dispatch recovery reuses an archived offline command without executing
     expect(created.exitCode).toBe(0)
     expect(calls).toBe(1)
   } finally { await rm(directory, { recursive: true, force: true }) }
+})
+
+test("evaluation keeps invalid first answers and author blocks in the registered denominator", () => {
+  const summary = summarizeReviewedRows([
+    { id: "repaired", status: "completed", firstDeliveryComplete: false, first: { support: "blocked", outcome: "blocked" }, final: { support: "supported", outcome: "determinate" } },
+    { id: "conditional", status: "completed", firstDeliveryComplete: true, first: { support: "supported", outcome: "conditional" }, final: { support: "supported", outcome: "conditional" } },
+    { id: "author-blocked", status: "author-dependency-blocked", firstDeliveryComplete: false, first: { support: "blocked", outcome: "blocked" }, final: { support: "blocked", outcome: "blocked" } },
+  ])
+  expect(summary).toEqual({ planned: 3, completed: 2, firstDeliveryComplete: 1, firstSupported: 1, finalSupported: 2, finalDeterminate: 1, finalConditional: 1, finalBlocked: 1 })
+})
+
+test("evaluation replay rejects a changed raw report or run behind an unchanged review packet", () => {
+  const report = Buffer.from("archived report")
+  const run = Buffer.from("archived run")
+  const packet = { reportSha256: hash(report), runSha256: hash(run) }
+  expect(() => assertPacketArchiveBound(packet, report, run)).not.toThrow()
+  expect(() => assertPacketArchiveBound(packet, Buffer.from("changed report"), run)).toThrow("raw report")
+  expect(() => assertPacketArchiveBound(packet, report, Buffer.from("changed run"))).toThrow("raw run")
+  expect(() => assertPacketArchiveBound(packet, report, null)).toThrow("raw run")
 })

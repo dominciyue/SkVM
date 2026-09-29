@@ -40,3 +40,9 @@ test("renderer current-v1 gives DSL and Markdown the same v6 result contract wit
   expect(markdown.prompt).not.toContain(oldRule)
   expect(renderAuthorizationTask(compiled, "B", undefined, undefined, { wireVersion: "v6" }).prompt).toContain(oldRule)
 })
+
+test("renderer rejects current-v1 without the v6 result contract", () => {
+  const compiled = compileAuthorizationTask(example.task as any)
+  expect(() => renderAuthorizationTask(compiled, "B", undefined, undefined, { taskContract: "current-v1" })).toThrow("current-v1 requires wire v6")
+  expect(() => renderAuthorizationTask(compiled, "B", undefined, undefined, { taskContract: "current-v1", wireVersion: "v4" })).toThrow("current-v1 requires wire v6")
+})

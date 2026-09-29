@@ -292,6 +292,9 @@ export function renderAuthorizationTask(
   conditionPlan?: ConditionAnalysisPlan,
   options: AuthorizationRenderOptions = {},
 ): RenderedAuthorizationTask {
+  if (options.taskContract === "current-v1" && options.wireVersion !== "v6") {
+    throw new Error("current-v1 requires wire v6")
+  }
   if (options.researchInstructions !== undefined && (!validMarkdownStudyInput(options.researchInstructions)
     || analysisPlan || conditionPlan || arm !== "B" || (options.wireVersion !== "v4" && options.wireVersion !== "v5" && options.wireVersion !== "v6"))) {
     throw new Error("Independent Markdown requires a nonempty independent-author input and plain/v4, plain/v5, or plain/v6 on render arm B.")
