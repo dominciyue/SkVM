@@ -2,13 +2,27 @@
 
 - 更新日期：2026-09-29
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AK0–AK16工程、真实运行、评审、有限验证及用户origin发布完成；首次发布头`a9aa3d9e`已核对一致，终态记录随本页同步。AJ历史保留。
+- 状态：AL0–AL16已获授权、待执行，开发任务为`gpt-6-sol / max`；AK已完成，基线`c0604c5c`与origin对齐、工作区干净。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
-- 当前任务书：[AK0–AK16](../superpowers/plans/2026-09-29-authorization-bounded-dependency-preparation.md)
-- 当前设计：[研究§7.30](skill-dsl-research.md#730-ak-有界依赖准备与源码片段)；AJ证据保留在§7.29。
+- 当前任务书：[AL0–AL16](../superpowers/plans/2026-09-29-authorization-location-recovery-and-authoring.md)
+- 当前设计：[研究§7.31](skill-dsl-research.md#731-al-源码定位恢复与普通作者闭环)；AK证据保留在§7.30。
 
 分类继续服务于范围，DSL价值包含编写、修改、质量与效率。AB同包/schema/核心可处理两项目八状态；Markdown 8/8 full、DSL 6/8 full，后者两项标签错误，必要控制与解释均正确。DSL整体收益未建立，准备/修改/运行负担及限制见研究§7.25。
+
+## AL 已授权队列
+
+由一个`gpt-6-sol / max`执行任务负责实现、共享文档、真实调用与Git发布。继续单repo/ref、明确政策/入口和允许文件的授权任务；质量60%/复用40%分开验收。
+
+| 阶段 | 工作 | 验收 |
+|---|---|---|
+| AL0–AL2 | 归档反例、位置合同、宿主标识与范围消歧 | 解释不作原文、范围外重复不误拒、未展示位置不接受 |
+| AL3–AL5 | 逐项补读恢复、跨轮上下文与普通prepare | 有效部分保留，partial/gap可用，安全错误仍拒绝，失败留账 |
+| AL6–AL7 | 普通作者结构诊断、条件前提与变化表达 | init/check复用schema，无静默owner假设，不扩义务 |
+| AL8–AL11 | 八任务准备、20质量计划行、两包8次消费 | 区分确定解决、条件完整、各类unknown及原/变失败 |
+| AL12–AL16 | 可搬移例子、方法归因、文档验证与发布 | 普通入口可用、完整成本、研究重放和用户origin同步 |
+
+先用AK归档响应与synthetic定位变体完成零调用反例；真实面板集中在四个已知缺口，辅以两个sentinel。旧材料与新材料由同一当前分析实现fresh消费，MD/DSL共享准备材料。作者首稿各最多一次诊断修订；不把手修稿混作自动交付。完整规模、失败恢复与允许调整由AL任务书规定，AL尚无效果结果。
 
 ## AK 已完成队列
 

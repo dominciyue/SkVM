@@ -995,6 +995,18 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 **AK15核验。** 相关402 pass/1平台skip及主typecheck后，16个实际冻结实现文件的当前字节和Git blob均一致。研究脚本typecheck、文档12测试/链接、10项目录、定向凭据扫描和8份普通session inspect通过；所有AK离线复算零provider。旧AJ面板评价复现，旧AJ作者评价因授权修改的local-run冻结哈希不同拒绝，旧身份不改。[独立diff核验](../../results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/independent-diff-review.json)未发现阻断发布问题；确认定位第二轮只展示补窗而不重给首窗（proposal.ts:109），可能影响质量，作为后续有界窗口策略事项保留，不修改已冻结初轮。完整验证见[verification](../../results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/verification.json)。
 
+### 7.31 AL 源码定位恢复与普通作者闭环
+
+2026-09-29，用户确认AK复核后的方向，要求派发`gpt-6-sol / max`执行[AL0–AL16](../superpowers/plans/2026-09-29-authorization-location-recovery-and-authoring.md)。状态为planned-not-started；下述为已核实问题和开发设计，尚无AL真实效果结果。
+
+**复核依据。** 父任务在`c0604c5c`验证402 pass/1平台skip、2735断言、typecheck及三项零调用重放。Git与用户origin一致。八项同请求v2准备的源码合计216,952→47,701字节，原要求范围得到保留。自动准备的确定性回答损失仍集中在OWUI、下载及分享授权缺口，GetShared准备未发布；源码充分性与完整unknown分开报告。
+
+**具体机制问题。** 对七份AK自动proposal的34个可选match作离线核对，25个没有原文字面命中、3个在声明范围内唯一但全文件重复、6个全文件唯一。该分母是定位字段，不是必要控制数，部分与已有入口重叠。模型把说明/省略号写进match，而prepare先要求全文件唯一，再检查所给范围。GetShared带路径和范围的解释式补读失败会抛出整个job；第二轮fresh请求只给新窗口和旧ID，未给必要的旧源码与依赖摘要。作者的完整schema和结构诊断改进主要位于AK研究driver；Paperless则另有owner为空与前提未指定的语义问题。
+
+**选择的方法。** 沿用当前领域声明和分析host。宿主给窗口/符号标识，模型选择位置和补读需求；原文校验与理由分开。安全的补读缺口逐项诊断，保留验证通过的入口/依赖，缺必要材料时保持partial或invalid。第二轮携带预算内相关旧上下文及新窗口，重发字节/token单列。作者通过现有init/check获得结构建议，通过已有conditions/assumptions/branches说明前提；不把“未知”写成null或非空，不自动接受政策。
+
+**验收与解释。** 先用归档响应及重命名/重复符号等synthetic测试验证共性，再从AK八个seed各真实准备一次。四个主缺口做旧归档自动材料/新自动材料×MD/DSL的16计划行，两个sentinel新材料补4行；旧GetShared无输入的两行保留blocked。分析采用同一当前实现fresh消费，旧回答不拼入新配对。两包8作者稿和8次原/变消费检验普通诊断与条件表达。按确定解决、条件完整、过度弃答、真实外部未知、作者前提缺失和可补源码缺口报告，并计入准备/修复全成本。真实调用前登记输入和评价规则；后续实现问题、修复与结果继续追加本节。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
