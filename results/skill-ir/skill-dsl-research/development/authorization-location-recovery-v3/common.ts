@@ -33,7 +33,15 @@ export function configureProvider(model: string) {
 }
 export async function verifyStudy() {
   const plan = await json(path.join(root, "study-plan.json"))
-  const frozen = await json(path.join(root, "implementation-freeze.json"))
+  const baselineFile = path.join(root, "implementation-freeze.json")
+  let frozen = await json(baselineFile)
+  const revisionFile = path.join(root, "shared-revision", "implementation-freeze.json")
+  if (await exists(revisionFile)) {
+    const revision = await json(revisionFile)
+    if (revision.baselineFreezeSha256 !== hash(await readFile(baselineFile))) throw new Error("Revision baseline changed")
+    if (revision.registrationSha256 !== hash(await readFile(path.join(root, "shared-revision", "registration.json")))) throw new Error("Revision registration changed")
+    frozen = revision
+  }
   if (frozen.planSha256 !== hash(await readFile(path.join(root, "study-plan.json")))) throw new Error("Study registration changed")
   await verify([...frozen.files, ...plan.cases.flatMap((c: any) => [c.input, c.seedRequest, c.markdown, ...c.sourceFiles,
     ...(c.oldMaterial.blocked ? [] : [c.oldMaterial.input, c.oldMaterial.report, ...c.oldMaterial.sources])]), plan.publicBriefs, plan.authorBriefs, ...plan.scaffoldBindings, ...plan.ordinaryGuide])

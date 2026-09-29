@@ -103,6 +103,22 @@ AL6将`editor-support/schema.ts`的`authoringEditorDiagnostics`接入versioned n
 
 AL7复用现有premise statement、scenario relation/expectation、conditions和requestedBranches表达owner unspecified/absent/other-present/self；未增领域状态字段。`owner-premise.test.ts`核对既有local-edit、普通preview/program与`createExecutionDependencies`均保留精确声明；单premise变化会进入assessmentContract/program/prompt摘要，源码及未编辑场景字节不改。compare因共享模型上下文保守复查所有运行场景，不能将局部作者字段修改误称为局部答案复用。未声明facts仍not-declared；仅显式branch展开，重复/相反条件赋值沿已有contract validator报具体路径，不解析自然语言矛盾。14项相关测试/88断言通过；未写项目名或函数名特例。
 
+AL研究入口的注册/生成与评价隔离：`register.ts`先物化八个原seed、共同brief、20质量行及8作者/消费行，工程提交后保存实现字节；生成入口`prepare-study/panel/authors/consumers.ts`只读公共输入和冻结身份，不打开evaluator。claim在dispatch前独占，已有claim不重发；每稿最多一次diagnostics修订，失效作者阻塞消费，宿主不代填领域字段。`evaluate.ts`只在完整生成分母关闭后构造匿名包和复算review，`coverage`单独记录实际原行覆盖而不判语义。以下命令为零provider复算，真实run不重复：
+
+```powershell
+$al = './results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3'
+bun "$al/replay-archived.ts"
+bun "$al/prepare-study.ts" replay
+bun "$al/panel.ts" replay
+bun "$al/authors.ts" replay
+bun "$al/consumers.ts" replay
+bun "$al/portable-check.ts" replay
+bun "$al/evaluate.ts" replay
+bunx tsc --project "$al/tsconfig.json"
+```
+
+AL仓外示例的具名副本保留在`D:/skill优化/project-maintenance/authorization-al-portable-20260929`；用途和字节检查在结果根`portable-verification.json`。复制两个完整示例目录即可保留相对来源；源码与编号材料按原字节归档，不为风格检查修剪。冻结核心源码复算仍使用LF checkout；旧AK实现hash因本轮修改拒绝时保持原件及拒绝边界，不更新旧hash。
+
 从仓根执行以下复算均不初始化provider，也不执行目标；不重跑创建目录或真实run命令：
 
 ```powershell
@@ -304,3 +320,5 @@ Use `authorization init --format=authoring-v2`, ordinary `check/run --input=...`
 - `results/skill-ir/`：机器证据与失败原件。
 
 The Z development result root is `results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1`. Reproduce its retained evaluations without provider access using `bun <root>/evaluate-panel.ts --replay`, `bun <root>/evaluate-panel.ts --config=revision-config.json --replay`, then `python <root>/summarize.py --replay`. Review decisions bind raw output hashes and fixed rubric source locations. The original eight units and the one assignee revision pair have separate frozen configs/summaries; do not regenerate into those directories. `run-panel.ts --check` verifies declared inputs and sources without reading evaluator criteria; existing claim files prevent automatic resend. Strict Zod objects now advertise `additionalProperties: false` in both tool and fallback schema; passthrough schemas stay open. This converter correction is not a promise of provider enforcement. Late usage reconciliation is accounting only and never changes a terminal timeout into a delivered result.
+<!-- al-shared-revision-runtime -->
+有界Python符号索引先平衡多行声明的括号，再按suite缩进判断body结束；声明闭合行不能提前截断函数。v3定位响应先检查每个JSON对象的重复属性，避免`reads`被后一个同名属性静默覆盖；原响应和用量先保留，复用既有一次diagnostics-only格式修订。该检查不合并冲突数组或猜测模型意图。

@@ -50,6 +50,28 @@ const BoundedProposalSchema = z.object({
   reads: z.array(z.object({ id: z.string().trim().min(1).optional(), from: z.string().trim().min(1).optional(), selector: EvidenceLocationSelectorSchema, contextLines: z.number().int().min(0).max(80).optional() }).strict()).max(8).optional().default([]),
 }).strict()
 
+function parseSelectionJSON(response: string): unknown {
+  const text = response.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "")
+  const parsed: unknown = JSON.parse(text)
+  // JSON.parse alone silently keeps the last duplicate property. A source read
+  // must not disappear that way; retain the response and use the format revision.
+  const stack: Array<{ keys: Set<string> | null; expectsKey: boolean }> = []
+  for (const match of text.matchAll(/"(?:\\.|[^"\\])*"|[{}\[\]:,]|[^{}\[\]:,\s]+/g)) {
+    const token = match[0], current = stack.at(-1)
+    if (token === "{") stack.push({ keys: new Set(), expectsKey: true })
+    else if (token === "[") stack.push({ keys: null, expectsKey: false })
+    else if (token === "}" || token === "]") stack.pop()
+    else if (token === "," && current?.keys) current.expectsKey = true
+    else if (token === ":" && current) current.expectsKey = false
+    else if (token.startsWith('"') && current?.keys && current.expectsKey) {
+      const key: string = JSON.parse(token)
+      if (current.keys.has(key)) throw new Error(`Duplicate JSON property: ${key}`)
+      current.keys.add(key); current.expectsKey = false
+    }
+  }
+  return parsed
+}
+
 /** Two position rounds with one diagnostics-only format revision. All actual dispatches use the existing lifecycle. */
 export async function proposeBoundedAuthorizationDependencies(input: {
   inputFile: string; discovery: AuthorizationDiscovery; model: string; provider: LLMProvider;
@@ -113,7 +135,7 @@ export async function proposeBoundedAuthorizationDependencies(input: {
       responseCharacters += response.text.length; durationMs += response.durationMs
       if (input.signal?.aborted) throw Object.assign(new Error("Preparation proposal cancelled after response"), { name: "AbortError" })
       let parsed: z.infer<typeof BoundedProposalSchema>
-      try { parsed = BoundedProposalSchema.parse(JSON.parse(response.text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""))) }
+      try { parsed = BoundedProposalSchema.parse(parseSelectionJSON(response.text)) }
       catch (error) {
         round.diagnostics.push(String(error))
         if (repaired) throw error
@@ -124,7 +146,7 @@ export async function proposeBoundedAuthorizationDependencies(input: {
         const corrected = await telemetry.inPhase("domain-repair", provider => provider.complete({ messages: [{ role: "user", content: repairPrompt }], system: "Repair JSON/schema only; no new discovery or authorization answer.", temperature: 0, maxTokens: 6000 }))
         responseCharacters += corrected.text.length; durationMs += corrected.durationMs
         if (input.signal?.aborted) throw Object.assign(new Error("Preparation proposal cancelled after format revision"), { name: "AbortError" })
-        try { parsed = BoundedProposalSchema.parse(JSON.parse(corrected.text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""))) }
+        try { parsed = BoundedProposalSchema.parse(parseSelectionJSON(corrected.text)) }
         catch (error) { rounds.at(-1)!.diagnostics.push(String(error)); throw error }
       }
       const newIds = new Set<string>()

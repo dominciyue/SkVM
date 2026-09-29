@@ -55,7 +55,16 @@ function indexSymbols(file: string, physical: string[]): Array<Omit<DiscoverySym
     let end = i
     if (python) {
       const indent = py![1]!.length
-      for (let j = i + 1; j < lines.length; j++) {
+      // A dedented closing parenthesis still belongs to a multiline declaration.
+      // Strip quoted defaults/comments before balancing its logical header.
+      let brackets = 0
+      for (let j = i; j < lines.length; j++) {
+        const header = lines[j]!.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, "\"\"").replace(/#.*$/, "")
+        brackets += (header.match(/[([{]/g) ?? []).length - (header.match(/[)\]}]/g) ?? []).length
+        end = j
+        if (brackets <= 0 && !header.trimEnd().endsWith("\\")) break
+      }
+      for (let j = end + 1; j < lines.length; j++) {
         if (lines[j]!.trim() && !lines[j]!.trim().startsWith("#") && (lines[j]!.match(/^\s*/)?.[0].length ?? 0) <= indent) break
         end = j
       }

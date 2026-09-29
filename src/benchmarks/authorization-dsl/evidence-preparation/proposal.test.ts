@@ -260,3 +260,40 @@ for (const text of [selectionResponse(), "invalid JSON"]) test(`cancellation whi
     expect(caught?.account.published).toBe(false)
   } finally { await rm(f.root, { recursive: true, force: true }) }
 })
+
+test("duplicate JSON reads are diagnosed before last-wins can discard an indexed body request", async () => {
+  const f = await proposalFixture()
+  try {
+    f.request.schemaVersion = "authorization-evidence-request/v2"
+    await writeFile(path.join(f.root, "project", "src/guard.ts"), "function hidden() { return true }\n")
+    const discovery = await discoverAuthorizationEvidence(f)
+    const reads = [{ id: "body", selector: { kind: "indexed-symbol", symbolId: discovery.symbols.find(s => s.name === "hidden")!.id } }]
+    const duplicate = selectionResponse([], reads).replace(/}$/, ',"r\\u0065ads":[]}')
+    let calls = 0
+    const provider = responseProvider(""); provider.complete = async params => {
+      calls++
+      if (calls === 2) expect(params.messages[0]!.content).toContain("Duplicate JSON property: reads")
+      return responseProvider(calls === 1 ? duplicate : calls === 2 ? selectionResponse([], reads) : selectionResponse([{ id: "guard", from: "update", selector: shownSelector(discovery, "src/guard.ts", 1, 1), reason: "control" }])).complete(params)
+    }
+    const result = await proposeBoundedAuthorizationDependencies({ ...f, discovery, model: "test/mock", provider })
+    expect(calls).toBe(3)
+    expect(result.dependencies.map(d => d.id)).toEqual(["guard"])
+    expect(result.account.rounds!.map(r => r.kind)).toEqual(["proposal", "format-repair", "supplement"])
+    expect(result.account.attempts[0]!.response!.text).toBe(duplicate)
+    expect(result.account.telemetry.knownTokens.input).toBe(369)
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
+
+test("duplicate nested JSON properties stay rejected after the single format revision", async () => {
+  const f = await proposalFixture()
+  try {
+    f.request.schemaVersion = "authorization-evidence-request/v2"
+    const discovery = await discoverAuthorizationEvidence(f)
+    const text = selectionResponse([{ id: "entry", from: "update", selector: shownSelector(discovery, "src/entry.ts", 1, 3), reason: "control" }]).replace('"startLine":1', '"startLine":1,"startLine":1')
+    let caught: any
+    try { await proposeBoundedAuthorizationDependencies({ ...f, discovery, model: "test/mock", provider: responseProvider(text) }) } catch (error) { caught = error }
+    expect(caught?.message).toContain("Duplicate JSON property: startLine")
+    expect(caught?.account.telemetry.providerCalls).toBe(2)
+    expect(caught?.account.acceptedDependencies).toEqual([])
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})

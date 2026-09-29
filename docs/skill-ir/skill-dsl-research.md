@@ -997,7 +997,7 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 ### 7.31 AL 源码定位恢复与普通作者闭环
 
-2026-09-29，用户确认AK复核后的方向，要求派发`gpt-6-sol / max`执行[AL0–AL16](../superpowers/plans/2026-09-29-authorization-location-recovery-and-authoring.md)。AL已开始；下述包含离线反例和接口决定，尚无AL真实效果结果。
+2026-09-29，用户确认AK复核后的方向，要求派发`gpt-6-sol / max`执行[AL0–AL16](../superpowers/plans/2026-09-29-authorization-location-recovery-and-authoring.md)。AL0–AL9与AL12已完成工程/准备，质量及作者流正在执行；尚无最终语义收益结论。
 
 **复核依据。** 父任务在`c0604c5c`验证402 pass/1平台skip、2735断言、typecheck及三项零调用重放。Git与用户origin一致。八项同请求v2准备的源码合计216,952→47,701字节，原要求范围得到保留。自动准备的确定性回答损失仍集中在OWUI、下载及分享授权缺口，GetShared准备未发布；源码充分性与完整unknown分开报告。
 
@@ -1014,6 +1014,14 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 **AL7前提决定。** 既有premise/conditions/requestedBranches足以清楚表达unspecified、absent、other-present和self，不增加泛型owner字段或项目特例。14项测试/88断言确认：不补非空前提、仅显式分支展开、相反结构化赋值具名拒绝、premise编辑只改目标声明并使ordinary preview/program/compare依赖变化、源码不变。共享模型上下文的compare仍保守影响全部运行场景；自然语言冲突不由host猜测。AL11的Paperless原/变brief会在生成前冻结owner未指定→other-present，不能事后补非空假设改变主评分。
 
 **验收与解释。** 先用归档响应及重命名/重复符号等synthetic测试验证共性，再从AK八个seed各真实准备一次。四个主缺口做旧归档自动材料/新自动材料×MD/DSL的16计划行，两个sentinel新材料补4行；旧GetShared无输入的两行保留blocked。分析采用同一当前实现fresh消费，旧回答不拼入新配对。两包8作者稿和8次原/变消费检验普通诊断与条件表达。按确定解决、条件完整、过度弃答、真实外部未知、作者前提缺失和可补源码缺口报告，并计入准备/修复全成本。真实调用前登记输入和评价规则；后续实现问题、修复与结果继续追加本节。
+
+**AL8冻结与核验。** 工程提交`fdd9fc7a`及脚本末尾空行修正`25155066`后登记58项实现字节，生成入口核对冻结身份；旧结果与错误match不改。427 pass/1平台skip、2875断言，主与研究脚本typecheck、12文档测试和链接检查通过。独立只读核验发现返回期间取消仍可完成或追加格式修订，两个红例后补返回时检查，原usage保留；in-flight取消仍等待既有provider返回/截止，不宣称能中止底层请求。20质量行和两包8稿/8消费的公开前提、允许未知、决定性依据在生成前登记且与生成入口隔离。
+
+**AL9实际准备。** 八项各执行一次，全部发布（5 ready、3 partial），13次调用均有响应，完整prompt132,733/output11,072 tokens；actualUSD全未知，已知响应耗时552,546ms，目标执行0。GetShared这次partial发布，旧版整体阻塞未重现；FastAPI的CurrentUser歧义和Memos的深度gap明确保留。机械整段criterion范围完全覆盖为2/8，这些范围部分大于最小决定性语句，不能据此直接声称只有两项语义充分，也不能以8/8发布声称质量完整。新旧材料由当前同一分析实现消费，低分不追加抽样；见[准备账户](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/preparation-summary.json)与[范围覆盖](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/preparation-coverage.json)。
+
+**AL12普通例子。** 两个既有例子补充valid/bad/valid的exact-literal恢复与四种owner前提、显式分支、局部premise edit及普通生命周期命令。[仓外零调用核验](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/portable-verification.json)保留具名目录`D:/skill优化/project-maintenance/authorization-al-portable-20260929`，相对路径、partial/ready发布、具体结构诊断和same-source/changed-program检查均通过；没有执行目标或重复真实模型演示。
+
+**AL10共享实现修订。** 原20行生成关闭后的定位核验发现Python多行声明在同缩进`)`处被误判结束（OWUI helper 1340–1348，实际续至1537；Download resolver 1401–1406，实际续至1427）。Download首提议还同时含非空`reads`和末尾`reads:[]`，JSON.parse静默采用后者。三个反例先红、补逻辑后55项准备/CLI测试260断言转绿：词法索引先平衡声明header再扫描body，v3严格检查各对象的重复JSON属性（包含转义同名），通过已有一次格式修订处理，不代选模型意图。原结果保留；按任务书登记唯一修订区块，只对两个受影响新材料增加两次相同entry-seed准备和4次MD/DSL分析，预算不变，另列原/新freeze及费用。尚不以修复存在推断质量改善。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

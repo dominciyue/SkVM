@@ -104,3 +104,18 @@ test("host context rejects public discovery snapshot tampering", async () => {
     await expect(readDiscoveryWindows(d, [{ path: "entry.ts", startLine: 1, endLine: 1 }])).rejects.toThrow("integrity")
   } finally { await rm(f.root, { recursive: true, force: true }) }
 })
+
+test("Python multiline signatures include their bodies before the next peer declaration", async () => {
+  const f = await fixture({ "entry.ts": "function update() {\n return authorize()\n}\n", "helper.py": "def authorize(\n    record,\n    flags: dict = {\"label\": \"# ([)]\"},  # signature comment\n) -> bool:\n    return record.allowed\n\ndef next_helper():\n    return False\n\nclass Guards(\n    object,\n):\n    async def check(\n        self,\n        record,\n    ) -> bool:\n        return record.allowed\n\ndef after_class():\n    return True\n" })
+  try {
+    const d = await discoverAuthorizationEvidence(f)
+    const authorize = d.symbols.find(s => s.name === "authorize")!
+    expect(authorize).toMatchObject({ startLine: 1, endLine: 6 })
+    expect(d.windows.find(w => w.path === "helper.py" && w.startLine === 1)?.text).toContain("5 |     return record.allowed")
+    const klass = d.symbols.find(s => s.name === "Guards")!, method = d.symbols.find(s => s.name === "check")!
+    expect(klass).toMatchObject({ startLine: 10, endLine: 18 })
+    expect(method).toMatchObject({ startLine: 13, endLine: 18, parent: klass.id })
+    const read = await readDiscoveryWindows(d, [{ selector: { kind: "indexed-symbol", symbolId: method.id } }])
+    expect(read.windows[0]?.text).toContain("17 |         return record.allowed")
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
