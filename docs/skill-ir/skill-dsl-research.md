@@ -1150,6 +1150,8 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **AN15独立核验与有限修正。** 两项只读复核分别抽查生产接口和生成/评分归档：当前/未来政策隔离、缺政策不推断、定向修订白名单、实际prompt合同、模型原解释保留、冻结分母、首答与终答区分及40次用量均有对应源码和档案。发现直接调用renderer可把current-v1与旧wire组合，以及评分replay只核评分包、不重核raw report/run原件；各先写失败测试，再分别拒绝非v6的直接组合、以原件摘要核对28个评分包。生产有效v6提示及已生成答案不变，原生成freeze不改，没有追加provider请求。相关回归480 pass/1平台skip、3146断言/67文件，主/研究类型、12文档测试、链接/实验目录和四项零provider重放均通过；实际USD/真人分钟及未见任务可靠性仍未知。归档提示未直接保存单独的“无oracle”证明，隔离依赖生成前冻结、生成关闭后才读取oracle及现有prompt档案；此限制不升级为污染事实。
 
+**AN16发布。** 工程、原始调用/评分档案和文档按职责提交；首次完整头`d028fe97a0485bb753de8b6dc1b50acd0cde4ff8`已推到用户`origin/skill-ir-aot`并逐SHA核对，当时工作区干净。最后状态记录单独提交和同步；不扩样、重发失败行或读取保护集。普通入口见[task-semantics示例](../../examples/authorization-assessment/task-semantics/README.md#start-from-a-scoped-current-task)，逐案评级、费用未知项和零provider重放见[评价摘要](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/evaluation-summary.json)及[验证记录](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/verification.json)。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
