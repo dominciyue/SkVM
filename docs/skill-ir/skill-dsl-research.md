@@ -1065,6 +1065,22 @@ fresh input430,812、完整prompt+output517,885 tokens。旧AK自动材料的14�
 
 **AL16发布。** 工程、真实证据/示例及结论已推送用户origin/skill-ir-aot，完整头`bc59120026ecd8035068ba26cdc76813971cf65f`与远端SHA核对一致、工作区干净；最终状态随收尾提交同步，[发布记录](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/publication.json)保留首个完整发布身份。入Git后的链接扫描对归档日志内退役路径报错，原日志不改、12项精确引用登记后检查通过；不是新增当前文档或放宽通用检查。所有生成与评价流已关闭，不再调用provider、扩样或改默认。
 
+### 7.32 AM 控制上下文与作者复用
+
+2026-09-29，用户在AL复核后要求编写下一轮任务书并派发`gpt-6-sol / max`。已授权[AM0–AM16](../superpowers/plans/2026-09-29-authorization-control-context-and-reuse.md)，当前为planned-not-started；继续同一源码可见授权任务类，优先改共享生产路径和普通使用。AM实际调用、质量或作者效果尚未产生。
+
+**AL复核定位。** 基线`5426a0e6`与用户origin一致、工作区干净；父任务新鲜回归433 pass/1平台skip、2903断言，typecheck与零provider评价重放通过。OWUI完整helper已经给定位模型读取，最终只保留18/77评价范围行；最终10,173字节，仍有预算。Download补材料后两臂完整，同时增长至60,547字节。接下来的问题是有界控制上下文选择及无关材料膨胀，现有indexed-symbol已经支持完整符号，无须另造全仓索引框架。
+
+作者复核发现两个可修的接口问题。AL原作者请求要求assessment/evidenceRequest包络，修订prompt遗漏原outputRule与publicBrief，Paperless修订回裸assessment仍被拒绝；原稿是JSON结尾语法错误、stopReason为end_turn且output未达上限，没有证据把它归因于token截断。Memos变稿虽改政策与expectation，reason/publicInstruction仍称原政策；现有edit可以改reason，却没有publicInstruction等说明的定向操作，研究字段白名单也未提供完整修改空间。应先让普通工具具备完成修改的接口，再评价作者是否正确使用。
+
+复用复核发现AL消费者从成功dependencies重建request，省略proposal.gaps。Paperless原/变源码字节和ref相同，报告partial→ready的同时gaps被清空；旧缺口只在job说明保留。AM将源码、成功依赖和pending gaps一起继承。解决缺口要有新材料，不再相关要有显式范围/前提理由；纯前提主对照保持相同源码与gap元数据。分析模型仍可以根据明确前提判断某缺口不影响当前问题，避免把所有缺口都变成弃答理由。
+
+**拟实施方法。** 现有prepare增加opt-in控制上下文策略：小可调用单元优先保留完整范围，大单元在预算内保留可靠控制片段及明确省略；只选相关类方法。宿主扩展单独标来源和范围，保留原行号、允许文件、源身份及预算，不冒充定位模型已读内容。现有init根据context生成已知元数据、entry seed及紧凑作者指引，领域政策/前提仍由作者填写；首稿与修订共用相同brief和输出合同。local edit允许定向修改相关说明，prepared-material复用保留缺口生命周期。具体接口由AM1核对当前代码后固定，所有能力必须接进普通路径。
+
+**评价与实验。** 回答是否有据和任务是否解决分别统计，区分确定解决、完整条件答案、合理外部未知、可补源码缺口和作者前提不足。AK/AL历史full定义有差异，旧评分保持，不能用总比例推断同口径退步。AM沿八个已暴露seed做零模型packing核验；四个主缺口各新准备一次，以AL最新有效材料/AM材料×MD/DSL形成16个fresh质量session。两包8份作者稿和8次消费检验已知字段生成、政策说明同步、同材料前提修改与旧结果复查；计划16义务，失败及实际展开另列。准备、修复、作者、消费全成本分账，独立评审使用隔离oracle，实际美元费用和真人分钟未测则记unknown。
+
+后续实现问题、红绿反例、接口调整、真实结果与仍未解决的责任继续追加本节。当前普通分析默认、既有DSL和全部历史结果保留。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
