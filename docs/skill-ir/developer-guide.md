@@ -97,7 +97,7 @@ AK实际8job/14准备调用中7发布、1失败；40质量计划单元36完成�
 
 AL的`location-selection.ts`提供纯`selectEvidenceLocation(context,selector,purpose)`和`evidenceLocationId`。窗口/符号ID绑定repository/ref/path/digest/真实片段，shown-range不能跨省略或使用未知窗口，indexed-symbol可读未展示正文但不能将其直接纳入证据；literal-search在显式范围内消歧，错literal保留失败。内部模型协议为`authorization-dependency-selection/v3`，说明只进description，最终仍转为普通request/v2坐标；旧request/v1规则不改。`readDiscoveryWindows`返回每项resolved/unresolved、候选、request identity和预算，安全缺口不抛整批；retained host context、unsafe path和源码digest不一致仍fail closed。prepare按父依赖结果处理子项并保留独立有效位置。
 
-二轮位置提示包含同任务/政策、已验证依赖摘要、必要旧窗口和新窗口；`recordDiscoveryDisplay`将每次编号源码展示计入累计64KiB，并拆分unique/resent。account的sourceDisplay只统计实际dispatch轮次，round另记promptBytes/metadataBytes；取消后的未发窗口不冒充模型展示。没有新增源码信息不追加位置调用，二轮再求补读留下round-limit gap。普通CLI合并具名read缺口，在最终prepare重读时比对索引digest，并用原loader核验发布快照；partial可运行而invalid无可运行发布。修改时运行location-selection、discovery、proposal、prepare和CLI prepare测试，连同共有引用/run回归与typecheck。AL3–AL5聚焦50 tests/236 assertions通过，真实质量结果尚待登记运行。
+二轮位置提示包含同任务/政策、已验证依赖摘要、必要旧窗口和新窗口；`recordDiscoveryDisplay`将每次编号源码展示计入累计64KiB，并拆分unique/resent。account的sourceDisplay只统计实际dispatch轮次，round另记promptBytes/metadataBytes；取消后的未发窗口不冒充模型展示。没有新增源码信息不追加位置调用，二轮再求补读留下round-limit gap。普通CLI合并具名read缺口，在最终prepare重读时比对索引digest，并用原loader核验发布快照；partial可运行而invalid无可运行发布。修改时运行location-selection、discovery、proposal、prepare和CLI prepare测试，连同共有引用/run回归与typecheck。AL3–AL5聚焦50 tests/236 assertions通过；后续多行/重复属性反例补到55 tests/260 assertions。真实准备、质量、作者与消费结果按各自分母见研究§7.31，不能用ready代替关键控制闭合。
 
 AL6将`editor-support/schema.ts`的`authoringEditorDiagnostics`接入versioned normalizer及普通loader。显式v2或无版本但至少三项task metadata/两项命名字典且无task envelope的声明可获v2结构建议，未知版本/不明形状仍只给version诊断。Ajv结构失败先返回，不进入source/reference/provider；runtime Zod及引用refinement仍为后续权威。既有点路径保持，新增schemaPath给精确JSON Pointer（包括unknown property），fix要求作者明确版本/政策/期待。init模板报告`authoringEditorGuidance`的本地schema/required fields；prepare无效输入也保留同诊断。不插入版本、不修改政策接受、不用v2 schema解析v1或normalized。编辑支持/authoring/CLI的33 tests/751 assertions通过。
 
@@ -112,12 +112,22 @@ bun "$al/prepare-study.ts" replay
 bun "$al/panel.ts" replay
 bun "$al/authors.ts" replay
 bun "$al/consumers.ts" replay
+bun "$al/shared-revision.ts" replay
 bun "$al/portable-check.ts" replay
 bun "$al/evaluate.ts" replay
+bun "$al/evaluate.ts" source-reuse
+bun "$al/evaluate.ts" summary
+python "$al/verification-audit.py"
 bunx tsc --project "$al/tsconfig.json"
 ```
 
 AL仓外示例的具名副本保留在`D:/skill优化/project-maintenance/authorization-al-portable-20260929`；用途和字节检查在结果根`portable-verification.json`。复制两个完整示例目录即可保留相对来源；源码与编号材料按原字节归档，不为风格检查修剪。冻结核心源码复算仍使用LF checkout；旧AK实现hash因本轮修改拒绝时保持原件及拒绝边界，不更新旧hash。
+
+`evaluate.ts replay`核对20主行、8消费行和4修订行的packet/answer绑定与派生评价。`source-reuse`重新生成文件字节/ref证明，`summary`重算七阶段成本及准备摊销，均不创建provider。旧compare-summary的sameSourceBytes检查整个bundle JSON，因此文件不变而报告元数据变化时可能false；以新增文件级证明判源码身份，原字段不改。唯一修订freeze记录`97bcb6bb`的59项当前实现字节，原58项freeze保留；不能改历史hash来让旧实现runner通过。
+
+`verification-audit.py`只读当前AL文件和Git blob，核对两次freeze、注册来源、计划/完成分母、七阶段token和JSON/JSONL解析，并保存作者产物的当前digest。它不评价语义，不读本地provider配置，也不执行目标；`evidence-audit.json`是本次检查快照，不能替代原响应或成本账户。
+
+最终只读复核追加的补读ID反例由`discoveryReadRequestIds`处理：唯一原ID保持，碰撞时分配未使用后缀，原值仍在request.id；既有读取及第二轮未执行请求的gap共用此规则，避免普通CLI取到另一项缺口的selector。三项红测后35项聚焦/193断言通过，不增加provider修订。此修正发生在所有真实生成之后，`verification-freeze.json`单独绑定当前离线实现及旧revision freeze；原58项/研究修订59项按当时Git字节核对，不能冒充新实现下的真实观测。summary的verificationImplementation只表示最终复算实现。
 
 从仓根执行以下复算均不初始化provider，也不执行目标；不重跑创建目录或真实run命令：
 

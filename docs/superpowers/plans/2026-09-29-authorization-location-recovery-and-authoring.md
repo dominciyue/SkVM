@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、Ajv、既有 portable source reader、provider 生命周期与 token-accounting、SkVM CLI、Python 文档检查。
 
-- 日期：2026-09-29；状态：`in-progress`，AL0–AL7已完成，AL8登记与冻结中。执行状态见新结果根status；真实效果尚待AL9–AL11。
+- 日期：2026-09-29；状态：`in-progress`，AL0–AL15完成，真实生成、评价、有限验证与独立复核关闭；AL16用户origin发布收尾。执行状态与实际结果见新结果根status/summary，不再追加付费调用。
 - 基线：`c0604c5c5dcd55bd323af5f3a20a237e4c15cf60` 加本轮规划提交。
 - 工作目录：`D:/skill优化/SkVM`；直接使用 `skill-ir-aot`，仅推用户 origin，不建分支或 worktree，不推 upstream。
 - 开发任务：`gpt-6-sol / max`。被测 provider 沿用 `xty/gpt-5.6-sol`；开发代理、准备、作者、分析和评审开销分别记录。
@@ -217,20 +217,20 @@ Paperless共同brief在生成前明确原任务owner状态是未指定，需要�
 
 ### AL9 八项真实自动准备
 
-- [ ] 每任务运行一次新准备，保存全部轮次、原响应、候选/缺口和费用；未发布保留分母。
-- [ ] 只用host验证结果发布材料，不按oracle手补。八项准备结束后核对实际控制材料覆盖和字段/预算失败。
+- [x] 每任务运行一次新准备，保存全部轮次、原响应、候选/缺口和费用；未发布保留分母。
+- [x] 只用host验证结果发布材料，不按oracle手补。八项准备结束后核对实际控制材料覆盖和字段/预算失败。
 
 ### AL10 质量与问题解决评价
 
-- [ ] 按20行固定顺序执行可运行session；旧材料和新材料使用相同当前分析实现，blocked行不替换。
-- [ ] 生成终结后匿名复核，报告确定正确、条件完整、各类unknown及错误，首答和最终分开。
-- [ ] 仅在共享bug反例成立时采用一次修订区块；否则保留真实结果，无追加采样。
+- [x] 按20行固定顺序执行可运行session；旧材料和新材料使用相同当前分析实现，blocked行不替换。
+- [x] 生成终结后匿名复核，报告确定正确、条件完整、各类unknown及错误，首答和最终分开。
+- [x] 仅在共享bug反例成立时采用一次修订区块；否则保留真实结果，无追加采样。
 
 ### AL11 独立作者与原/变真实消费
 
-- [ ] 两包8首稿通过普通接口接受至多一次诊断修订；保存每次有效性、字段问题、模型用量和来源。
-- [ ] 有效稿运行8计划fresh session及四组compare，列16声明义务与实际展开；失败作者行保留blocked。
-- [ ] 根据冻结前提评价owner分支，不事后加入非空假设改变主分数；来源/政策/输入的变化各自可追溯。
+- [x] 两包8计划首稿通过普通接口接受至多一次诊断修订；实际7首稿派发、1依赖失效阻塞，保存每次有效性、字段问题、模型用量和来源。
+- [x] 有效稿运行8计划fresh session及四组compare，列16声明义务与实际展开；实际6消费/12展开，失败作者行保留blocked。
+- [x] 根据冻结前提评价owner分支，不事后加入非空假设改变主分数；来源/政策/输入的变化各自可追溯。
 
 ### AL12 可搬移普通例子
 
@@ -240,21 +240,25 @@ Paperless共同brief在生成前明确原任务owner状态是未指定，需要�
 
 ### AL13 收益归因与建议
 
-- [ ] 汇总定位接口修复、材料完整性、模型回答和作者负担四个层次；共同helper收益与表示收益分开。
-- [ ] 报完整端到端成本，同时给出准备复用一次/多次分析的实际摊销示例；未测项标unknown。
-- [ ] 给出适合自动准备的条件、仍需作者补充的信息，以及下一阶段最有价值的未解决问题。
+- [x] 汇总定位接口修复、材料完整性、模型回答和作者负担四个层次；共同helper收益与表示收益分开。
+- [x] 报完整端到端成本，同时给出准备复用一次/多次分析的实际摊销示例；未测项标unknown。
+- [x] 给出适合自动准备的条件、仍需作者补充的信息，以及下一阶段最有价值的未解决问题。
 
 ### AL14 同步研究和当前文档
 
-- [ ] 更新研究§7.31、对应当前设计及§11、usage、developer-guide、current-status、plan/spec和实验目录。问题—根因—实现—验证—剩余项写进同一研究正文。
-- [ ] 当前文档只写实际结果；AK原结果和失败保持，默认分析方法不因单轮观察自动切换。
-- [ ] 各阶段checkbox与机器状态一致，状态引用不留待执行的假任务。
+- [x] 更新研究§7.31、对应当前设计及§11、usage、developer-guide、current-status、plan/spec和实验目录。问题—根因—实现—验证—剩余项写进同一研究正文。
+- [x] 当前文档只写实际结果；AK原结果和失败保持，默认分析方法不因单轮观察自动切换。
+- [x] 各阶段checkbox与机器状态一致，状态引用不留待执行的假任务。
 
 ### AL15 一次有限验证与独立复核
 
-- [ ] 跑下方相关回归、类型、文档与diff检查；只因新改动或真实失败再扩测。
-- [ ] 新研究脚本类型检查与零provider replay通过，核对分母、原/变身份、cache不重计、未知费用。
-- [ ] 对本轮变更做一次只读独立复核，重点逐项恢复、路径/引用边界、条件前提、普通作者接线和研究输入隔离；修具体缺陷后定向复验。
+最终三项只读复核中，作者/前提及研究分账未发现可操作问题；host复核指出补读显式ID重复可使普通prepare通过first-match取错缺口详情。主线程确认具体路径后追加三项确定性反例：重复/默认ID碰撞、跨轮未执行reads身份、CLI逐项selector归属。修正仅由宿主分配唯一诊断ID，保留原request.id和读内容，不增加格式修订或付费调用。原58项及唯一研究修订59项freeze不改；最终离线工程修正另存verification-freeze，不能把当前实现冒充原真实调用实现。它不是第二个模型研究区块，真实64调用与所有原评分保持。
+
+- [x] 跑下方相关回归、类型、文档与diff检查；只因新改动或真实失败再扩测。
+- [x] 新研究脚本类型检查与零provider replay通过，核对分母、原/变身份、cache不重计、未知费用。
+- [x] 对本轮变更做一次只读独立复核，重点逐项恢复、路径/引用边界、条件前提、普通作者接线和研究输入隔离；修具体缺陷后定向复验。
+
+最终验证为433 pass/1平台skip/0 fail、2903断言；主与研究类型检查、七项零provider重放、评价重算、12项文档测试、链接与实验目录检查通过。58项原实现、59项研究修订和59项最终离线实现分别核验，85项登记来源绑定一致。三项独立复核已关闭，无未解决critical/important问题；实际USD和人力继续unknown。具体命令、预期红例与旧runner拒绝边界见结果根verification.json及final-review.json。
 
 ```powershell
 bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/cli/authorization.test.ts ./src/cli/authorization-compose.test.ts ./src/cli/authorization-prepare.test.ts ./src/cli/authorization-edit.test.ts ./src/providers/structured.test.ts ./src/measurement/token-accounting.test.ts ./scripts/token-accounting

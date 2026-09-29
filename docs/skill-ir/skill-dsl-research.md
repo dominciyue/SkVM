@@ -997,21 +997,21 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 
 ### 7.31 AL 源码定位恢复与普通作者闭环
 
-2026-09-29，用户确认AK复核后的方向，要求派发`gpt-6-sol / max`执行[AL0–AL16](../superpowers/plans/2026-09-29-authorization-location-recovery-and-authoring.md)。AL0–AL9与AL12已完成工程/准备，质量及作者流正在执行；尚无最终语义收益结论。
+2026-09-29，用户确认AK复核后的方向，要求派发`gpt-6-sol / max`执行[AL0–AL16](../superpowers/plans/2026-09-29-authorization-location-recovery-and-authoring.md)。工程、预登记真实生成、匿名评价与成本归因已完成；质量改善来自部分共同源码恢复，同材料MD/DSL未显示稳定优势，普通作者语义负担仍存在。最终验证与发布由机器状态记录，不再追加采样。
 
 **复核依据。** 父任务在`c0604c5c`验证402 pass/1平台skip、2735断言、typecheck及三项零调用重放。Git与用户origin一致。八项同请求v2准备的源码合计216,952→47,701字节，原要求范围得到保留。自动准备的确定性回答损失仍集中在OWUI、下载及分享授权缺口，GetShared准备未发布；源码充分性与完整unknown分开报告。
 
 **具体机制问题。** 对七份AK自动proposal的34个可选match作离线核对，25个没有原文字面命中、3个在声明范围内唯一但全文件重复、6个全文件唯一。该分母是定位字段，不是必要控制数，部分与已有入口重叠。模型把说明/省略号写进match，而prepare先要求全文件唯一，再检查所给范围。GetShared带路径和范围的解释式补读失败会抛出整个job；第二轮fresh请求只给新窗口和旧ID，未给必要的旧源码与依赖摘要。作者的完整schema和结构诊断改进主要位于AK研究driver；Paperless则另有owner为空与前提未指定的语义问题。
 
-**选择的方法。** 沿用当前领域声明和分析host。宿主给窗口/符号标识，模型选择位置和补读需求；原文校验与理由分开。安全的补读缺口逐项诊断，保留验证通过的入口/依赖，缺必要材料时保持partial或invalid。第二轮携带预算内相关旧上下文及新窗口，重发字节/token单列。作者通过现有init/check获得结构建议，通过已有conditions/assumptions/branches说明前提；不把“未知”写成null或非空，不自动接受政策。
+**当前方法。** 沿用当前领域声明和分析host。宿主给窗口/符号标识，模型选择位置和补读需求；原文校验与理由分开。安全的补读缺口逐项诊断，保留验证通过的入口/依赖，缺必要材料时保持partial或invalid。第二轮携带预算内相关旧上下文及新窗口，重发字节/token单列。作者通过现有init/check获得结构建议，通过已有conditions/assumptions/branches说明前提；不把“未知”写成null或非空，不自动接受政策。ready仅闭合请求声明的依赖，模型漏声明的决定性控制仍可能未读；结构诊断不能识别所有政策版本说明残留或代替语义判断。
 
 **AL1接口定稿。** [归档零调用重放](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/archived-reproduction.json)复现34字段=25无字面命中、3范围内唯一/范围外重复、6全局唯一；GetShared的3项补读在第一项解释式literal失败时整批终止。内部提议采用显式v3 selector：shown-range绑定仓库/ref/源码digest及真实连续窗口，indexed-symbol提供待补读位置，literal-search保留精确字面与范围消歧。自然说明使用独立description，不降级或删除错literal。公开request/v1保持旧语义，request/v2使用所声明范围消歧；补读逐项返回resolved/unresolved与候选和预算，不将安全缺口升级为整批失败。二轮沿用12文件/1MiB索引读取、累计64KiB展示/最终64KiB、深度3、两轮定位加一次纯格式修订，重发源码计入展示预算；元数据、完整prompt及provider用量另记。
 
 **AL2–AL5离线工程。** 红例先证实v2范围唯一被拒、safe read整批抛错、失败父节点仍纳入子项、二轮无旧上下文、取消后未dispatch窗口被记为展示、CLI丢失read gap和索引后源码变化未拒绝。纯selector、逐项恢复、父链处理、v3二轮及普通发布接线后，50项聚焦测试/236断言通过。GetShared旧3个错literal现在各返回not-found，既不删除literal也不伪造补窗；真实新准备仍须重新生成位置。相同旧响应重放只是机制证据，不能充当新模型观测或质量提升。入口/义务计数保持，paid failure、格式修订、timeout unknown和publication failure继续使用原telemetry；所有实际费用未知与已知用量分开。
 
-**AL6普通作者接口。** AK缺字段首稿的最小反例先只得到版本错误，现由已有local schema提供适用结构诊断；init/check/prepare复用同一normalizer/loader路径，缺版本仍invalid，不进入引用/源码的连锁报错或provider。明确v2与高置信v2形状可获schemaPath/fix，不明输入和显式未知版本不套v2；v1/normalized兼容。33项相关测试/751断言通过。它降低了诊断获取的程序性负担，真实作者首稿和一次修订成功率仍由AL11新观测决定。
+**AL6普通作者接口。** AK缺字段首稿的最小反例先只得到版本错误，现由已有local schema提供适用结构诊断；init/check/prepare复用同一normalizer/loader路径，缺版本仍invalid，不进入引用/源码的连锁报错或provider。明确v2与高置信v2形状可获schemaPath/fix，不明输入和显式未知版本不套v2；v1/normalized兼容。33项相关测试/751断言通过。它降低了诊断获取的程序性负担；AL11实际结构有效5/8→6/8、严格语义有效4/8→5/8，一份DSL原稿一次修订后仍失效，变化稿与下游阻塞。不据此推断真人省时。
 
-**AL7前提决定。** 既有premise/conditions/requestedBranches足以清楚表达unspecified、absent、other-present和self，不增加泛型owner字段或项目特例。14项测试/88断言确认：不补非空前提、仅显式分支展开、相反结构化赋值具名拒绝、premise编辑只改目标声明并使ordinary preview/program/compare依赖变化、源码不变。共享模型上下文的compare仍保守影响全部运行场景；自然语言冲突不由host猜测。AL11的Paperless原/变brief会在生成前冻结owner未指定→other-present，不能事后补非空假设改变主评分。
+**AL7前提决定。** 既有premise/conditions/requestedBranches足以清楚表达unspecified、absent、other-present和self，不增加泛型owner字段或项目特例。14项测试/88断言确认：不补非空前提、仅显式分支展开、相反结构化赋值具名拒绝、premise编辑只改目标声明并使ordinary preview/program/compare依赖变化、源码不变。共享模型上下文的compare仍保守影响全部运行场景；自然语言冲突不由host猜测。AL11的Paperless原/变brief在生成前冻结owner未指定→other-present，没有事后补非空假设改变主评分。
 
 **验收与解释。** 先用归档响应及重命名/重复符号等synthetic测试验证共性，再从AK八个seed各真实准备一次。四个主缺口做旧归档自动材料/新自动材料×MD/DSL的16计划行，两个sentinel新材料补4行；旧GetShared无输入的两行保留blocked。分析采用同一当前实现fresh消费，旧回答不拼入新配对。两包8作者稿和8次原/变消费检验普通诊断与条件表达。按确定解决、条件完整、过度弃答、真实外部未知、作者前提缺失和可补源码缺口报告，并计入准备/修复全成本。真实调用前登记输入和评价规则；后续实现问题、修复与结果继续追加本节。
 
@@ -1022,6 +1022,46 @@ AA1映射规则（authoring-v2-lowering/1）：字典按键排序后生成canoni
 **AL12普通例子。** 两个既有例子补充valid/bad/valid的exact-literal恢复与四种owner前提、显式分支、局部premise edit及普通生命周期命令。[仓外零调用核验](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/portable-verification.json)保留具名目录`D:/skill优化/project-maintenance/authorization-al-portable-20260929`，相对路径、partial/ready发布、具体结构诊断和same-source/changed-program检查均通过；没有执行目标或重复真实模型演示。
 
 **AL10共享实现修订。** 原20行生成关闭后的定位核验发现Python多行声明在同缩进`)`处被误判结束（OWUI helper 1340–1348，实际续至1537；Download resolver 1401–1406，实际续至1427）。Download首提议还同时含非空`reads`和末尾`reads:[]`，JSON.parse静默采用后者。三个反例先红、补逻辑后55项准备/CLI测试260断言转绿：词法索引先平衡声明header再扫描body，v3严格检查各对象的重复JSON属性（包含转义同名），通过已有一次格式修订处理，不代选模型意图。原结果保留；按任务书登记唯一修订区块，只对两个受影响新材料增加两次相同entry-seed准备和4次MD/DSL分析，预算不变，另列原/新freeze及费用。尚不以修复存在推断质量改善。
+
+**AL10主面板结果。** 20计划行18完成、旧GetShared两行因历史准备无产物阻塞。首答6/20、最终8/20完整，其中6确定解决、2为GetShared的完整条件答案，外部token状态仍未知；9部分、1错误。四个主任务每臂注册4个新旧配对，实际可执行3对；可执行改善为ShareCreate，GetShared另由阻塞变为条件完整，不把它算作可执行配对。两sentinel的4行均完整。以下分母包含两个sentinel，不能与旧材料4行直接解释为无混杂总比例提升。
+
+| 材料/表示 | 计划/完成/阻塞 | 首答完整 | 最终完整 |
+|---|---|---|---|
+| 旧自动 / Markdown | 4 / 3 / 1 | 0 | 0 |
+| 旧自动 / DSL | 4 / 3 / 1 | 0 | 0 |
+| 新自动 / Markdown | 6 / 6 / 0 | 3 | 4 |
+| 新自动 / DSL | 6 / 6 / 0 | 3 | 4 |
+
+OWUI新MD在未读helper正文时直接断言目标集合无授权检查，判为unsupported certainty/incorrect；新DSL保留允许源码缺口，判partial，不是过度弃答或完整unknown。最初两份只读评审对ready或未展示helper采用了较宽推断，最终按实际材料和冻结规则裁定，分歧及原判断保存在[质量评审](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/evaluator/quality-reviews.json)。主面板literal unknown为9行，原因非互斥：真实外部3、允许源码缺口10；后者包含MD未承认的缺口。外部事实未知、可补源码遗漏与条件政策undetermined不合并成“成功unknown”。
+
+**唯一修订区块结果。** 两次准备各两次定位调用，四次分析均首答关闭、无格式fallback或domain repair；最终2/4完整。Download两臂由partial改善为确定拒绝：root_doc的owner-aware view检查在选择有效文件版本之前，错误的file_doc权限不能绕过root检查。准备报告仍partial，未解决的root解析等gap在已冻结身份/资源前提下不妨碍这一决定性路径。代价是最终源码1,527→60,547字节，完整prompt准备52,107、分析49,988 tokens，不能称为成本下降。OWUI索引已展示完整多行helper给定位模型，最终选择只保留1458–1467及1527–1534，共18/77评价范围行，1468–1526仍遗漏；两臂合理unknown但仅partial，MD由无据确定性变为有据弃答。该结果另存[修订评价](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/revision-summary.json)和[修订覆盖](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/shared-revision/coverage.json)，不替换原20行，不继续按低分追加调用。
+
+**AL11作者与消费。** 8计划稿实际派发7份首稿与2次普通diagnostics修订，共9调用；Paperless DSL原稿失效后，依赖它的变化稿没有派发。自动结构有效首稿5/8、最终6/8；独立严格语义有效4/8→5/8。Memos DSL变化稿政策正文/expectation已改变，却将policy.reason和publicInstruction仍称为original policy；结构有效并不能证明修改完整。Paperless MD原稿一次结构诊断后明确未指定owner和absent/other分支，变化稿仅把实际前提改为other-present；DSL原/修订稿仍不是可消费领域声明，未手修替代。
+
+8计划fresh消费6完成、2作者阻塞；16声明义务实际展开12，首答7/16、最终9/16完整，3部分、4阻塞。session首答3/8、最终4/8完整，不能与逐义务分母混用。Memos MD原/变及DSL原稿6项完整；DSL变化稿的other项标签正确但理由继续把新政策叫原政策，判partial。Paperless MD原稿两项过度弃答：它已找到局部owner-aware分支，却在给定handler-entry和global权限前提后仍把未展示上游class当作当前决定性缺口。变化稿两项完整，实际other-present条件下view-only被拒、有change grant被允许，并保留absent反事实的source-allow/政策失败，不新增owner非空假设。
+
+三组可做compare均为needs-review，第四组作者失效阻塞；三个实际原/变源码文件的字节/path/digest/repo/ref相同。旧compare-summary的sameSourceBytes字段比较整个sourceBundle JSON，不能据其中两个false声称源码改变；[文件级证明](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/compare-source-verification.json)单列相同文件与不同元数据。Paperless MD原材料partial、变化材料ready，源码相同而准备gap元数据变了；这仍是消费上下文差异，变化稿较好回答不能全部归因于owner前提。比较只提示共同上下文重新分析，没有自动复用旧答案。逐义务来源见[消费评价](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/consumers-summary.json)和[作者评审](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/evaluator/author-reviews.json)。
+
+**AL13完整成本与摊销。** 下表包含全部实际dispatch和diagnostics修订；完整prompt已将cache-read加到fresh input一次，cache-write为0。64次全响应且usage已知，actualUSD全部未提供。响应耗时合计3,722,584ms（约62.04分钟）是各响应时长之和，不是研究墙钟或真人投入。开发/只读评审的宿主token与成本、隐藏传输重试和真人分钟均未知，不能估算为0。
+
+| 阶段 | 调用 | 完整prompt tokens | output tokens | 已含cache-read tokens |
+|---|---|---|---|---|
+| 八项初次准备 | 13 | 132,733 | 11,072 | 0 |
+| 20行主质量面板 | 21 | 86,768 | 23,124 | 4,480 |
+| 作者首稿/普通修订 | 9 | 28,183 | 13,979 | 0 |
+| 三份有效原稿准备 | 5 | 44,372 | 4,484 | 0 |
+| 原/变消费 | 8 | 45,621 | 17,133 | 4,480 |
+| 共享修订准备 | 4 | 52,107 | 3,851 | 0 |
+| 共享修订分析 | 4 | 49,988 | 4,470 | 0 |
+| 合计 | 64 | 439,772 | 78,113 | 8,960 |
+
+fresh input430,812、完整prompt+output517,885 tokens。旧AK自动材料的14次获取、prompt77,172/output8,875仅保留历史成本，不再冒充AL实际派发。8份初始准备全部收费一次；其中6份各消费两次共12次，两份未消费的32,395 prompt开销仍计入总数。只对已消费6份作算术示例：一次消费各份的准备prompt均摊16,723，实际两次消费均摊8,361.5；包含两份闲置开销则为11,061.1/实际消费。三个有效作者原稿准备跨6消费均摊7,395.3 prompt，修订准备跨4消费均摊13,026.75。这些除法没有新调用，也不证明端到端净节约。所有阶段、cache口径、freeze、实际/计划分母和摊销由[统一摘要](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/summary.json)零provider重算。
+
+**方法判断与剩余责任。** 逐项恢复避免GetShared一次错literal取消整批，准确位置和补正文对ShareCreate、Download有实际帮助；词法索引和二轮prompt仍不保证最终关键材料选择完备。适合自动准备的任务须有明确入口、白名单、固定ref及可限定依赖；已知决定性helper可用显式request/v2，不必重复定位。最有价值的下一问题是让提议明确交代仍未验证的关键控制范围，以及作者改变政策/前提时同步reason/publicInstruction和反事实解释；不扩成全仓AST或按任务名注入答案。普通check只给结构与来源支持，政策来源、完整前提、语义复核及原skill的其他职责仍由作者/评审承担。公开development、冻结入口和专业brief不证明whole-skill自动转换、一般可靠性、部署安全或DSL净收益；没有执行目标、held-out采样或默认方法切换。
+
+**AL15最终只读复核。** host核验发现显式read ID碰撞会让普通prepare按first-match取错selector。主线程用重复/默认ID、跨轮未执行read和CLI逐项归属三个反例确认失败；宿主分配唯一诊断ID并保留原request.id后35项聚焦/193断言通过，不增格式修订或付费调用。作者/前提与研究分账的另外两项复核没有可操作问题，未确认的词法边角只保留为限制。最终离线实现另绑verification-freeze，原58项和唯一研究修订59项身份不改；全部64次真实调用仍按当时实现报告，研究分数没有因工程收尾被替换。
+
+新鲜最终回归433 pass/1平台skip、2903断言，主/研究类型检查、七项零provider重放、评价重算、12项文档测试与链接/目录检查通过；三个实现身份分别核验，85项登记来源绑定一致，凭据候选0。独立复核没有未关闭critical/important问题。命令、原始输出和预期红例保留于[最终验证](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/verification.json)，[复核处置](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/final-review.json)记录实际修正；历史AK runner因冻结实现改变而拒绝的边界保持。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -1087,11 +1127,11 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 |---|---|---|---|---|
 | Q1 | 哪类外部任务值得首先做领域方法？ | 影响选类 | 两个独立 skill 家族支持单 repo/ref、source-visible authorization/trust-boundary 切片 | 范围已定；原型不扩大到 full/diff/broad |
 | Q2 | 成员共享领域含义还是流程外壳？ | 影响选类 | principal/resource/operation/control/evidence 可迁移；成员完整职责不能迁移 | v0 只保留 authorization-boundary；其他变体路由 |
-| Q3 | 用户反复遇到什么问题？ | 影响方法 | AK补失败usage、片段预算与角色；自动定位7/8发布但多处决定性helper仍缺，共同作者brief遗漏owner非空条件 | 先检查gap和准确前提；已知依赖用显式v2，多片段不替代语义闭合 |
-| Q4 | 配置、好说明或现成语言是否足够？ | 影响方法价值 | AK同材料M/D最终打平；自动路线每表示8/10 full含4unknown，显式10/10含2unknown | 默认兼容，不宣称表示净收益或自动替代专家依赖 |
-| Q5 | 领域声明应怎样被消费？ | 影响方法价值 | AK8fresh session/16义务、4compare完成；首稿5有效、正常修订后6、额外纠正后8；消费12/16主口径full | 入口/support分离和变化后fresh消费成立；作者前提、政策接受与语义复核仍需承担 |
+| Q3 | 用户反复遇到什么问题？ | 影响方法 | AL8/8发布但ready可漏helper，唯一多行/重复属性修订使Download两臂完整，OWUI中段仍缺；未指定owner须保留分支 | 已知决定性依赖用显式v2；报告关键未读范围，准确区分源码缺口与外部未知 |
+| Q4 | 配置、好说明或现成语言是否足够？ | 影响方法价值 | AL新材料M/D各4/6完整，修订各1/2；收益来自共同材料，一份MD无据确定性不证明稳定表示优势 | 默认兼容，不宣称DSL净收益或自动替代专家依赖 |
+| Q5 | 领域声明应怎样被消费？ | 影响方法价值 | AL结构5→6/8、严格语义4→5/8；8计划消费6完成/2阻塞，16义务9完整/3部分/4阻塞；新政策说明可残留旧版本 | 普通诊断和fresh消费成立；政策/前提说明、反事实和语义复核仍需承担 |
 | Q6 | 如何实现不损失结构？ | 仅影响未来实现 | 存在回填反例 | 只有本地化重新入选时才补编码与结构检查 |
-| Q7 | 如何评价且避免错误归因？ | 影响方法价值 | AK40计划/36完成/4阻塞、盲评和一次二审；36full含12合理unknown；74调用成本完整分账，USD/真人时间未知 | 保留注册和完成配对、原评分与语义裁定；不把不同准备路线当packing因果，不按结果补题 |
+| Q7 | 如何评价且避免错误归因？ | 影响方法价值 | AL20主行18完成/2阻塞、8完整；唯一修订4行2完整另列；64调用含准备/作者/修复，USD/真人时间未知；相同源码仍有报告元数据差异 | 按实际可见材料和冻结前提裁定，不把ready或可补源码unknown计完整，不按低分追加采样 |
 
 决策沿革：
 
@@ -1102,6 +1142,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-09-20 / E8：** 宽安全 profile 未经住边界成员；收窄为只含 authorization-boundary 的实验表示，并将“现有配置 + 同一 helper”设为必须击败或至少显示不同收益的主对照。
 - **2026-09-20 / T9：** 真实案例、oracle、coverage/evidence 与最小消费路径支持 `ready-with-bounded-questions`；首轮改为 organized B 对 domain-method D 的整体方法比较，第二表示和 active discovery 后置，旧 engineer-day 估算撤销。
 - **2026-09-29 / AK：** 显式多片段准备和角色边界完成；入口seed自动定位仍缺决定性依赖，M/D最终同材料打平。共同作者前提缺口按实际源码纠正评价并保留敏感性；不改旧默认、不新增分析采样。
+- **2026-09-29 / AL：** 逐项位置恢复、跨轮上下文和普通结构诊断完成；唯一共性bug区块有红绿反例，Download改善而OWUI仍漏材料。主面板、修订、作者结构/语义和逐义务消费分别计分，原/变准备元数据混杂单列；不增加第二修订或净收益主张。
 
 ## 12. 后续追加规则
 
@@ -1382,6 +1423,10 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 ### 2026-09-21 X12 普通使用复验与能力判定
 
 **X12-USAGE-01。** 先以失败测试锁定省略 arm 应采用 B，再把 ordinary check/run 默认从 D 改为 B；显式 N/B/D 和旧 session 读取不变。synthetic example 的省略-arm check 为 valid/B/六项要求/零诊断；作者 trace 三项测试与 local input/run 共 14/14、104 assertions 通过。通过普通 inspect 复用 Open WebUI controlled-text B 与 FastAPI foreign-update B 的 X11 session，两项目均 completed/source_refuted/coverage valid，新增 provider 与目标执行为零，且不装载 evaluator。机器记录绑定两个 result 与 authoring artifact 的 SHA-256。能力定为 bounded development：单 repo/ref、显式 source/obligation 可用；仓库 discovery、目标/部署执行、whole-skill 自动转换、patch 和生产默认均不在范围。初轮 14/5/4、header partial、N 无重复、USD/human time unknown 继续保留。下一轮最小实现仅为 opt-in 顶层命令适配器加一个新 held-out repo/task，不在本轮提前生产化。X13 只做统一验证、文档/证据同步与发布。
+
+### 2026-09-29 AL 开发与真实闭环记录
+
+定位说明误作literal、整批补读失败、二轮旧上下文缺失、普通作者诊断与owner前提问题由共性模块和反例处理；真实8准备、20主质量行、8计划作者/消费及唯一4行修订全部关闭。主质量6→8/20完整，修订2/4、作者结构5→6/8而语义4→5/8、消费7→9/16完整，失败分母与元数据混杂保留。64调用的准备/作者/修订全成本和实际摊销已汇总；默认不改，不再付费采样。最窄证据为§7.31所链的原始账户、hash-bound评审、文件级来源证明和summary；最终有限验证/发布状态保存在AL status及Git，不新建日期化结论正文。
 
 ## 13. 原始证据索引（只在需要细节时读取）
 

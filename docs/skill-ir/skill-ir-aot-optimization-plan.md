@@ -2,7 +2,7 @@
 
 - 更新日期：2026-09-29
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AL0–AL7工程完成，AL8登记与零调用验证中，AL9–AL16继续执行；开发任务为`gpt-6-sol / max`，被测provider为`xty/gpt-5.6-sol`。真实效果尚未产生。
+- 状态：AL0–AL15完成，生成、评价、有限验证与独立复核关闭，AL16用户origin发布收尾；开发任务为`gpt-6-sol / max`，被测provider为`xty/gpt-5.6-sol`。不再追加付费调用。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AL0–AL16](../superpowers/plans/2026-09-29-authorization-location-recovery-and-authoring.md)
@@ -10,7 +10,7 @@
 
 分类继续服务于范围，DSL价值包含编写、修改、质量与效率。AB同包/schema/核心可处理两项目八状态；Markdown 8/8 full、DSL 6/8 full，后者两项标签错误，必要控制与解释均正确。DSL整体收益未建立，准备/修改/运行负担及限制见研究§7.25。
 
-## AL 已授权队列
+## AL 实际闭环与收尾
 
 由一个`gpt-6-sol / max`执行任务负责实现、共享文档、真实调用与Git发布。继续单repo/ref、明确政策/入口和允许文件的授权任务；质量60%/复用40%分开验收。
 
@@ -23,6 +23,8 @@
 | AL12–AL16 | 可搬移例子、方法归因、文档验证与发布 | 普通入口可用、完整成本、研究重放和用户origin同步 |
 
 AK归档34字段分类与GetShared逐项失败已零调用重现，synthetic定位、取消与前提变更测试已通过。八个seed、20质量行及两包八次原/变消费在生成前登记；真实面板集中在四个已知缺口，辅以两个sentinel。旧材料与新材料由同一当前分析实现fresh消费，MD/DSL共享准备材料。作者首稿各最多一次诊断修订，不把手修稿混作自动交付。Paperless仅改变owner前提，Memos仅改变政策与期待；完整规模、失败恢复与允许调整由AL任务书规定。
+
+**AL实际结果：** 八项准备8发布（5 ready/3 partial），20质量行18完成/2历史阻塞，首答6/20、最终8/20完整，包含6个确定解决与2个条件完整。唯一共享bug区块登记两项必要准备和4分析，修Python多行符号正文与重复JSON属性，Download两臂改善至完整，OWUI仍缺helper中段；修订2/4完整另列，不替换原20行。作者8计划稿实际派发7首稿和2次诊断修订；结构有效5→6、严格语义有效4→5。8计划消费6完成/2因作者阻塞，16声明义务实际展开12，最终9/16完整、3部分、4阻塞。三组可做compare均需复查且原/变源码字节/ref相同，第四组阻塞；准备报告元数据差异另记。总64次调用、完整prompt439,772/output78,113 tokens、USD/人力未知。同材料表示无稳定优势，普通默认保持，剩余问题为决定性源码选择与政策/前提变更后的说明一致性。证据与成本见[研究§7.31](skill-dsl-research.md#731-al-源码定位恢复与普通作者闭环)和[AL汇总](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/summary.json)。
 
 ## AK 已完成队列
 
