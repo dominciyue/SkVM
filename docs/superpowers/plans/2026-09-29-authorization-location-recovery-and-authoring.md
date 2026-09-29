@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、Ajv、既有 portable source reader、provider 生命周期与 token-accounting、SkVM CLI、Python 文档检查。
 
-- 日期：2026-09-29；状态：`in-progress`，AL0–AL15完成，真实生成、评价、有限验证与独立复核关闭；AL16用户origin发布收尾。执行状态与实际结果见新结果根status/summary，不再追加付费调用。
+- 日期：2026-09-29；状态：`completed-development`，AL0–AL16完成，真实生成、评价、有限验证与独立复核关闭；完整发布头`bc591200`已核对用户origin且工作区干净，最终状态再同步。执行状态与实际结果见新结果根status/summary，不再追加付费调用。
 - 基线：`c0604c5c5dcd55bd323af5f3a20a237e4c15cf60` 加本轮规划提交。
 - 工作目录：`D:/skill优化/SkVM`；直接使用 `skill-ir-aot`，仅推用户 origin，不建分支或 worktree，不推 upstream。
 - 开发任务：`gpt-6-sol / max`。被测 provider 沿用 `xty/gpt-5.6-sol`；开发代理、准备、作者、分析和评审开销分别记录。
@@ -272,9 +272,11 @@ git diff --check
 
 ### AL16 提交推送和交付
 
-- [ ] 按工程、真实证据、文档分职责提交；仅暂存本轮归属文件，历史排除项和其他任务修改不混入。
-- [ ] 推送用户 `origin/skill-ir-aot`，核对远端SHA和工作区。无force push，无upstream写入。
-- [ ] 最终给出普通可用命令、四类核心缺口实际改善、质量与作者首稿/修订结果、完整成本和下一建议；完成后停止本任务。
+- [x] 按工程、真实证据、文档分职责提交；仅暂存本轮归属文件，历史排除项和其他任务修改不混入。
+- [x] 推送用户 `origin/skill-ir-aot`，核对远端SHA和工作区。无force push，无upstream写入。
+- [x] 最终给出普通可用命令、四类核心缺口实际改善、质量与作者首稿/修订结果、完整成本和下一建议；完成后停止本任务。
+
+工程、证据/示例`0c114823`及结论文档`bc591200`已发布；完整头`bc59120026ecd8035068ba26cdc76813971cf65f`通过git ls-remote与本地核对，工作区干净。证据入Git后，原链接检查日志内退役路径触发8条新引用；保留原日志和失败记录，在已有清单登记12项精确日志/目标对，19597文件扫描及12项文档测试通过。最终状态作为最后一个提交同步，实际最终SHA记根conversation_log和交付；没有待派发单元或自动后续调用。
 
 ## 7. 完成条件与调整边界
 

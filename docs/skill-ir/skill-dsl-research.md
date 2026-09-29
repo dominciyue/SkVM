@@ -1063,6 +1063,8 @@ fresh input430,812、完整prompt+output517,885 tokens。旧AK自动材料的14�
 
 新鲜最终回归433 pass/1平台skip、2903断言，主/研究类型检查、七项零provider重放、评价重算、12项文档测试与链接/目录检查通过；三个实现身份分别核验，85项登记来源绑定一致，凭据候选0。独立复核没有未关闭critical/important问题。命令、原始输出和预期红例保留于[最终验证](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/verification.json)，[复核处置](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/final-review.json)记录实际修正；历史AK runner因冻结实现改变而拒绝的边界保持。
 
+**AL16发布。** 工程、真实证据/示例及结论已推送用户origin/skill-ir-aot，完整头`bc59120026ecd8035068ba26cdc76813971cf65f`与远端SHA核对一致、工作区干净；最终状态随收尾提交同步，[发布记录](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/publication.json)保留首个完整发布身份。入Git后的链接扫描对归档日志内退役路径报错，原日志不改、12项精确引用登记后检查通过；不是新增当前文档或放宽通用检查。所有生成与评价流已关闭，不再调用provider、扩样或改默认。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
