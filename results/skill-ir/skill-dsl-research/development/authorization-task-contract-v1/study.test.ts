@@ -6,6 +6,7 @@ import { authorUnits, buildCurrentAuthorTasks, qualityUnits, ratingRules } from 
 import { checkDelivery, checkTaskFacts, checkV2Facts } from "./author-protocol.ts"
 import { compileAuthorizationTaskAuthoring } from "../../../../../src/benchmarks/authorization-dsl/authoring-task.ts"
 import { unresolvedClaim } from "./common.ts"
+import { consumerClaimState, sameSharedMaterial } from "./consumer-gate.ts"
 
 const root = import.meta.dir
 const am = path.resolve(root, "../authorization-control-context-v1")
@@ -83,5 +84,28 @@ test("a claimed but unterminated paid row is visible for archival without redisp
     expect((await unresolvedClaim(directory, "report.json"))?.archivedFiles).toEqual(["claim.json"])
     await writeFile(path.join(directory, "report.json"), "{}")
     expect(await unresolvedClaim(directory, "report.json")).toBeNull()
+  } finally { await rm(directory, { recursive: true, force: true }) }
+})
+
+test("consumer reuse accepts the same material despite JSON object key order", async () => {
+  const shared = JSON.parse(await readFile(path.join(am, "author-material", "memos-space-policy", "prepared", "report.json"), "utf8"))
+  const reordered = structuredClone(shared)
+  reordered.included[0] = Object.fromEntries(Object.entries(reordered.included[0]).reverse())
+  expect(JSON.stringify(reordered.included)).not.toBe(JSON.stringify(shared.included))
+  expect(sameSharedMaterial(reordered, shared)).toBe(true)
+  reordered.gaps[0].reason = "different-gap"
+  expect(sameSharedMaterial(reordered, shared)).toBe(false)
+})
+
+test("consumer claim before provider dispatch resumes preparation but dispatch claim stays unknown", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "authorization-an-consumer-claim-"))
+  try {
+    expect(await consumerClaimState(directory)).toBe("new")
+    await writeFile(path.join(directory, "claim.json"), "{}")
+    expect(await consumerClaimState(directory)).toBe("pre-dispatch")
+    await writeFile(path.join(directory, "dispatch-claim.json"), "{}")
+    expect(await consumerClaimState(directory)).toBe("completion-unknown")
+    await writeFile(path.join(directory, "report.json"), "{}")
+    expect(await consumerClaimState(directory)).toBe("terminal")
   } finally { await rm(directory, { recursive: true, force: true }) }
 })

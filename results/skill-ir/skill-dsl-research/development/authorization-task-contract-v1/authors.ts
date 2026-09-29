@@ -6,11 +6,31 @@ import { executeLocalAuthorizationRun } from "../../../../../src/benchmarks/auth
 import { executeMarkdownStudyRun } from "../../../../../src/benchmarks/authorization-dsl/markdown-study.ts"
 import { createTelemetryProvider } from "../../../../../src/benchmarks/authorization-dsl/telemetry.ts"
 import { authorPromptTask, checkDelivery, checkV2Facts, parseObject } from "./author-protocol.ts"
+import { consumerClaimState, sameSharedMaterial } from "./consumer-gate.ts"
 import { root, repo, al, absolute, claim, cli, configureProvider, exists, hash, json, journal, paidPaused, paidRecordExists, provider, retainPaid, save, sessionAccount, aggregateUsage, unknownAccount, unresolvedClaim, updateStatus, verifyPlan } from "./common.ts"
 
 const mode = process.argv[2]
 if (!["setup", "check", "run", "consume", "replay"].includes(mode ?? "")) throw new Error("Usage: authors.ts setup|check|run|consume|replay")
-const plan = await verifyPlan(["run", "consume"].includes(mode ?? ""))
+const plan = await verifyPlan(mode === "run")
+if (mode === "consume") {
+  const freezeFile = path.join(root, "generation-freeze.json")
+  const freezeBytes = await readFile(freezeFile)
+  const freeze = JSON.parse(freezeBytes.toString())
+  const revision = await json(path.join(root, "generation-revision-1.json"))
+  const authorPath = "results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/authors.ts"
+  const gatePath = "results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/consumer-gate.ts"
+  if (revision.schemaVersion !== "authorization-an-consumer-revision/v1" || revision.scope !== "consumer-only"
+    || revision.baseFreezeSha256 !== hash(freezeBytes) || revision.maxAffectedSessions !== 8
+    || JSON.stringify(revision.changedFiles.map((item: any) => item.path).sort()) !== JSON.stringify([authorPath, gatePath].sort())) throw new Error("Consumer revision identity is invalid")
+  for (const file of freeze.files) {
+    const expected = file.path === authorPath ? revision.changedFiles.find((item: any) => item.path === authorPath).sha256 : file.sha256
+    if (hash(await readFile(path.join(repo, file.path))) !== expected) throw new Error(`Consumer revision source changed: ${file.path}`)
+  }
+  if (hash(await readFile(path.join(repo, gatePath))) !== revision.changedFiles.find((item: any) => item.path === gatePath).sha256) throw new Error("Consumer gate changed")
+  const validRows = []
+  for (const row of plan.consumers) if ((await json(path.join(root, "authors", row.id, "delivery.json"))).finalValid) validRows.push(row.id)
+  if (validRows.length > revision.maxAffectedSessions || JSON.stringify(validRows) !== JSON.stringify(revision.affectedRows)) throw new Error("Consumer revision scope changed")
+}
 const briefs = await json(path.join(al, "author-briefs.json"))
 const briefFor = (row: any) => briefs.packages.find((item: any) => item.id === row.packageId)
 const snapshotFor = (row: any) => plan.authorSnapshots.find((item: any) => item.packageId === row.packageId)
@@ -165,7 +185,8 @@ if (mode === "setup") {
 } else if (mode === "consume") {
   for (const row of plan.consumers) {
     const directory = path.join(root, "consumers", row.id), authored = authorDir(row), delivery = path.join(jobDir(row), "delivery.json")
-    if (await exists(path.join(directory, "claim.json"))) {
+    const claimState = await consumerClaimState(directory)
+    if (claimState === "completion-unknown") {
       const interrupted = await unresolvedClaim(directory, "report.json")
       if (interrupted) {
         const account = unknownAccount(), status = "completion-unknown-after-claim"
@@ -173,7 +194,11 @@ if (mode === "setup") {
         await save(path.join(directory, "account.json"), account, true)
         if (!await paidRecordExists(`consumer:${row.id}`)) await retainPaid(`consumer:${row.id}`, status, account, true)
         await journal("AN11-interrupted-consumer", { id: row.id, archivedFiles: interrupted.archivedFiles })
-      } else if (await exists(path.join(directory, "report.json")) && !await paidRecordExists(`consumer:${row.id}`)) {
+      }
+      continue
+    }
+    if (claimState === "terminal") {
+      if (!await paidRecordExists(`consumer:${row.id}`)) {
         const report = await json(path.join(directory, "report.json")), accountFile = path.join(directory, "account.json")
         const account = await exists(accountFile) ? await json(accountFile) : await sessionAccount(directory, report)
         if (!await exists(accountFile)) await save(accountFile, account, true)
@@ -182,7 +207,7 @@ if (mode === "setup") {
       continue
     }
     if (await paidPaused()) break
-    await claim(directory, row)
+    if (claimState === "new") await claim(directory, row)
     if (!await exists(delivery) || !(await json(delivery)).finalValid) {
       await save(path.join(directory, "report.json"), { row, status: "author-dependency-blocked" }, true)
       await save(path.join(directory, "account.json"), { providerCalls: 0, knownTokens: {}, unknownUsageCalls: 0, unknownCostCalls: 0 }, true)
@@ -210,8 +235,9 @@ if (mode === "setup") {
     await save(path.join(directory, "reuse-command.json"), reused, true)
     if (reused.exitCode) throw new Error(`Ordinary reuse failed ${row.id}: ${JSON.stringify(reused)}`)
     const actualReport = await json(path.join(directory, "material", "report.json")), sharedReport = await json(path.join(path.dirname(shared), "report.json"))
-    if (JSON.stringify(actualReport.gaps) !== JSON.stringify(sharedReport.gaps) || JSON.stringify(actualReport.included) !== JSON.stringify(sharedReport.included)) throw new Error(`Shared material/gaps changed ${row.id}`)
+    if (!sameSharedMaterial(actualReport, sharedReport)) throw new Error(`Shared material/gaps changed ${row.id}`)
     configureProvider()
+    await save(path.join(directory, "dispatch-claim.json"), { at: new Date().toISOString(), rowId: row.id, noAutomaticResend: true }, true)
     console.log(JSON.stringify({ id: row.id, action: "consumer-start", gaps: actualReport.gaps.length }))
     let report: any, account: any
     try {
