@@ -119,3 +119,23 @@ test("Python multiline signatures include their bodies before the next peer decl
     expect(read.windows[0]?.text).toContain("17 |         return record.allowed")
   } finally { await rm(f.root, { recursive: true, force: true }) }
 })
+
+test("read identities distinguish duplicate explicit, generated and later-batch IDs", async () => {
+  const f = await fixture({ "entry.ts": "function update() {\n return true\n}\n", "helper.ts": "first\nlast\n" })
+  try {
+    const d = await discoverAuthorizationEvidence(f)
+    const reads = [
+      { id: "same", path: "helper.ts", match: "missing-first" },
+      { id: "same", path: "helper.ts", match: "missing-second" },
+      { id: "read-4", path: "helper.ts", startLine: 1, endLine: 1 },
+      { path: "helper.ts", startLine: 2, endLine: 2 },
+    ]
+    const first = await readDiscoveryWindows(d, reads)
+    expect(new Set(first.outcomes.map(o => o.requestId)).size).toBe(4)
+    expect(first.outcomes.map(o => o.request)).toEqual(reads)
+    expect(first.outcomes.map(o => o.status)).toEqual(["unresolved", "unresolved", "resolved", "resolved"])
+    const later = await readDiscoveryWindows(d, [{ id: "same", path: "helper.ts", match: "missing-later" }])
+    expect(new Set([...first.outcomes, ...later.outcomes].map(o => o.requestId)).size).toBe(5)
+    expect(later.outcomes[0]!.request.id).toBe("same")
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})

@@ -5,7 +5,7 @@ import { createTelemetryProvider, type AuthorizationLifecycleEvent, type Authori
 import { loadPortableSourceBundle } from "../inputs.ts"
 import { loadLocalAuthorizationInput } from "../local-input.ts"
 import { AuthorizationEvidenceRequestSchema, type AuthorizationEvidenceReport, type AuthorizationEvidenceRequest } from "./schema.ts"
-import { discoveryLocationContext, readDiscoveryWindows, recordDiscoveryDisplay, type AuthorizationDiscovery, type DiscoveryReadOutcome, type DiscoveryWindow } from "./discovery.ts"
+import { discoveryLocationContext, discoveryReadRequestIds, readDiscoveryWindows, recordDiscoveryDisplay, type AuthorizationDiscovery, type DiscoveryReadOutcome, type DiscoveryWindow } from "./discovery.ts"
 import { EvidenceLocationSelectorSchema, selectEvidenceLocation, type EvidenceLocationSelector } from "./location-selection.ts"
 
 const ProposalSchema = z.object({ dependencies: z.array(z.object({
@@ -183,7 +183,8 @@ export async function proposeBoundedAuthorizationDependencies(input: {
       for (const id of newIds) claimedIds.add(id)
       if (!parsed.reads.length) break
       if (kind === "supplement") {
-        gaps.push(...parsed.reads.map((read, i) => ({ id: `read:${read.id ?? i + 1}`, entryKey: entryKeyFor(read.from ?? request.entries[0]!.entryKey), reason: "read-round-limit" })))
+        const requestIds = discoveryReadRequestIds(discovery, parsed.reads)
+        gaps.push(...parsed.reads.map((read, i) => ({ id: `read:${requestIds[i]}`, entryKey: entryKeyFor(read.from ?? request.entries[0]!.entryKey), reason: "read-round-limit" })))
         diagnostics.push("second-position-round-read-limit"); break
       }
       const entryWindows = pendingWindows.filter(w => request.entries.some(e => e.path === w.path && w.startLine <= e.startLine && w.endLine >= e.endLine))

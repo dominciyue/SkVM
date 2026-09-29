@@ -208,3 +208,27 @@ test("source changed during a paid proposal is rejected and returned usage is ar
     expect(account.diagnostics.some((d: string) => d.includes("digest"))).toBe(true)
   } finally { await rm(root, { recursive: true, force: true }) }
 })
+
+test("duplicate model read IDs retain each partial gap's own selector", async () => {
+  const demo = path.resolve("examples/authorization-assessment/evidence-editing"), root = await mkdtemp(path.join(os.tmpdir(), "authorization-read-id-"))
+  try {
+    const request = JSON.parse(await readFile(path.join(demo, "entry-seed-v2.json"), "utf8"))
+    const requestFile = path.join(root, "request.json"); await writeFile(requestFile, JSON.stringify(request))
+    const reads = ["missing-first-source", "missing-second-source"].map(literal => ({ id: "same", selector: { kind: "literal-search", path: request.allowedFiles[0], literal } }))
+    const out = path.join(root, "out")
+    let calls = 0
+    const code = await runAuthorizationCli(["prepare", `--input=${path.join(demo, "base.json")}`, `--request=${requestFile}`, `--out=${out}`, "--discover=true", "--proposal-model=test/mock"], {
+      stdout: () => {}, stderr: () => {}, providerFactory: () => ({ name: "mock", complete: async () => {
+        calls++
+        return { text: JSON.stringify({ schemaVersion: "authorization-dependency-selection/v3", dependencies: [], reads }), toolCalls: [], tokens: { input: 10, output: 10, cacheRead: 0, cacheWrite: 0 }, durationMs: 1, stopReason: "end_turn" }
+      }, completeWithToolResults: async () => { throw new Error("No tools") } }),
+    })
+    expect(code).toBe(0)
+    expect(calls).toBe(1)
+    const report = JSON.parse(await readFile(path.join(out, "report.json"), "utf8"))
+    const gaps = report.gaps.filter((g: any) => g.reason === "read-not-found")
+    expect(gaps.map((g: any) => g.selector.literal)).toEqual(reads.map(read => read.selector.literal))
+    expect(new Set(gaps.map((g: any) => g.requestId)).size).toBe(2)
+    expect(report.status).toBe("partial")
+  } finally { await rm(root, { recursive: true, force: true }) }
+})

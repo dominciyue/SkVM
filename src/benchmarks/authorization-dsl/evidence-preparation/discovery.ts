@@ -231,6 +231,18 @@ export async function discoverAuthorizationEvidence(input: { inputFile: string; 
   return result
 }
 
+/** Keep caller IDs in request.id; outcome IDs must distinguish every read in this job. */
+export function discoveryReadRequestIds(discovery: Pick<AuthorizationDiscovery, "readOutcomes">, reads: readonly DiscoveryRead[]): string[] {
+  const used = new Set(discovery.readOutcomes.map(outcome => outcome.requestId))
+  return reads.map((read, index) => {
+    const base = read.id ?? `read-${index + 1}`
+    let id = base, suffix = 2
+    while (used.has(id)) id = `${base}:${suffix++}`
+    used.add(id)
+    return id
+  })
+}
+
 /** Safe read failures are gaps; unsafe paths and changed host snapshots still reject the job. */
 export async function readDiscoveryWindows(discovery: AuthorizationDiscovery, reads: DiscoveryRead[], options: { reserveDisplayBytes?: number } = {}): Promise<{ windows: DiscoveryWindow[]; bytes: number; outcomes: DiscoveryReadOutcome[] }> {
   const state = retained(discovery), context = discoveryLocationContext(discovery)
@@ -242,11 +254,12 @@ export async function readDiscoveryWindows(discovery: AuthorizationDiscovery, re
   }
   const windows: DiscoveryWindow[] = []
   const outcomes: DiscoveryReadOutcome[] = []
+  const requestIds = discoveryReadRequestIds(discovery, reads)
   let bytes = 0
   for (const [i, read] of reads.entries()) {
     const selector = selectors[i]
     const file = selector?.kind === "literal-search" ? selector.path : read.path
-    const base = { requestId: read.id ?? `read-${i + 1}`, request: structuredClone(read), budget: { usedBytes: discovery.displayBytes + bytes, maxBytes: Math.min(65536, discovery.maxDisplayBytes) } }
+    const base = { requestId: requestIds[i]!, request: structuredClone(read), budget: { usedBytes: discovery.displayBytes + bytes, maxBytes: Math.min(65536, discovery.maxDisplayBytes) } }
     if (file && !state.sources.has(file)) { outcomes.push({ ...base, status: "unresolved", code: "file-unavailable", candidates: [] }); continue }
     let location: EvidenceLocationOutcome
     if (selector) location = selectEvidenceLocation(context, selector, "read")

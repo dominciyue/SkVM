@@ -42,6 +42,13 @@ export async function verifyStudy() {
     if (revision.registrationSha256 !== hash(await readFile(path.join(root, "shared-revision", "registration.json")))) throw new Error("Revision registration changed")
     frozen = revision
   }
+  const verificationFile = path.join(root, "verification-freeze.json")
+  if (await exists(verificationFile)) {
+    const verification = await json(verificationFile)
+    if (verification.generationClosed !== true || verification.providerCallsAfterChange !== 0) throw new Error("Post-generation verification identity changed")
+    if (verification.sharedRevisionFreezeSha256 !== hash(await readFile(revisionFile))) throw new Error("Verification parent freeze changed")
+    frozen = verification
+  }
   if (frozen.planSha256 !== hash(await readFile(path.join(root, "study-plan.json")))) throw new Error("Study registration changed")
   await verify([...frozen.files, ...plan.cases.flatMap((c: any) => [c.input, c.seedRequest, c.markdown, ...c.sourceFiles,
     ...(c.oldMaterial.blocked ? [] : [c.oldMaterial.input, c.oldMaterial.report, ...c.oldMaterial.sources])]), plan.publicBriefs, plan.authorBriefs, ...plan.scaffoldBindings, ...plan.ordinaryGuide])

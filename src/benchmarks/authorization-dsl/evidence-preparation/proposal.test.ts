@@ -35,6 +35,27 @@ export const responseProvider = (text: string): LLMProvider => ({ name: "mock", 
 const selectionResponse = (dependencies: unknown[] = [], reads: unknown[] = []) => JSON.stringify({ schemaVersion: "authorization-dependency-selection/v3", dependencies, reads })
 const shownSelector = (discovery: Awaited<ReturnType<typeof discoverAuthorizationEvidence>>, file: string, startLine: number, endLine: number) => ({ kind: "shown-range", windowId: discovery.windows.find(w => w.path === file && w.startLine <= startLine && w.endLine >= endLine)!.id, startLine, endLine })
 
+test("final-round read gaps cannot reuse a completed read identity", async () => {
+  const f = await proposalFixture()
+  try {
+    await writeFile(path.join(f.root, "project", "src", "extra.ts"), "unshown support\n")
+    f.request.schemaVersion = "authorization-evidence-request/v2"
+    f.request.allowedFiles.push("src/extra.ts")
+    const discovery = await discoverAuthorizationEvidence(f)
+    const read = { id: "same", selector: { kind: "literal-search", path: "src/extra.ts", literal: "unshown support", startLine: 1, endLine: 1 } }
+    let calls = 0
+    const provider = responseProvider("")
+    provider.complete = async () => ({ text: selectionResponse([], ++calls === 1 ? [read] : [read, read]), toolCalls: [], tokens: { input: 10, output: 10, cacheRead: 0, cacheWrite: 0 }, durationMs: 1, stopReason: "end_turn" })
+    const result = await proposeBoundedAuthorizationDependencies({ ...f, discovery, model: "test/mock", provider })
+    expect(calls).toBe(2)
+    const actual = result.account.readOutcomes!.map(o => `read:${o.requestId}`)
+    const gaps = result.gaps!.filter(g => g.reason === "read-round-limit")
+    expect(gaps).toHaveLength(2)
+    expect(new Set([...actual, ...gaps.map(g => g.id)]).size).toBe(3)
+    expect(result.account.readOutcomes).toHaveLength(1)
+  } finally { await rm(f.root, { recursive: true, force: true }) }
+})
+
 for (const [kind, text] of [
   ["invalid JSON", "not json"], ["schema rejection", '{"dependencies":"bad"}'],
   ["position rejection", JSON.stringify({ dependencies: [{ id: "guard", from: "update", path: "src/guard.ts", startLine: 900, endLine: 902, reason: "control" }] })],
