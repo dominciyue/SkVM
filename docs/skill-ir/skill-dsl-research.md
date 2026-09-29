@@ -1089,6 +1089,8 @@ fresh input430,812、完整prompt+output517,885 tokens。旧AK自动材料的14�
 
 **AM10具名入口修订。** 首四个AL/Markdown行因runner传入非普通合同的instructionOrigin而在provider之前invalid，四行调用为0、原报告保持。DSL q05/q06随后完成，暂停阻止其余派发。唯一共享修订区块修正研究入口metadata为已有independent-author，顺带把尚未使用的compare参数固定为普通--previous；生产host、源、公开问题、输出合同、模型和预算均不改。新增零provider入口反例确认Markdown到达普通provider边界和compare进入session校验。预登记只补四个已失败MD行，0额外prepare，原16分母与另列修订4行保持；尚未派发的既定行使用相同修正配置继续。此为具名工程错误恢复，不按模型低分重抽。
 
+同一修订区块在作者派发前的仓外复制演练另发现：Zod重排included字段顺序，使runner按JSON文本比较的继承检查误报。实际source/range/gap/materialBinding均按值相等。共享核验改用深值比较，仍严格保留数组顺序与所有字段；作者known-fields的结构比较也采用同一语义，不把对象属性顺序当领域事实。三项入口/复用反例与两项评价协议测试共5 pass/19断言，研究typecheck通过。初版revision freeze/registration字节另存，修订仍只补预登记四行，不增加prepare或消费重跑。10个仓外普通CLI步骤全部通过，两个示例继承全部pending gaps并要求fresh分析。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

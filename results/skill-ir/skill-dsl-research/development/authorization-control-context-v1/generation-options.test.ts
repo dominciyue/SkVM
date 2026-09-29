@@ -3,7 +3,7 @@ import { mkdtemp } from "node:fs/promises"
 import path from "node:path"
 import os from "node:os"
 import { executeMarkdownStudyRun } from "../../../../../src/benchmarks/authorization-dsl/markdown-study.ts"
-import { markdownInput, compareArgs } from "./generation-options.ts"
+import { markdownInput, compareArgs, sameValue } from "./generation-options.ts"
 import { cli, root, al } from "./common.ts"
 
 test("shared Markdown metadata reaches ordinary provider boundary without a paid dispatch", async () => {
@@ -21,4 +21,12 @@ test("shared comparison arguments use the ordinary previous-session option", asy
   const result = await cli(compareArgs(path.join(root, "nonexistent-session"), path.join(root, "nonexistent-input.json")))
   expect(result.exitCode).toBe(2)
   expect(result.errors.join("\n")).toContain("session index")
+})
+
+test("schema key reordering preserves material identity but changed gaps and ranges do not", () => {
+  const before = { included: [{ path: "guard.py", originalPath: "guard.py", startLine: 1, endLine: 3 }], gaps: [{ id: "missing", reason: "unread" }] }
+  const after = { gaps: [{ reason: "unread", id: "missing" }], included: [{ endLine: 3, startLine: 1, originalPath: "guard.py", path: "guard.py" }] }
+  expect(sameValue(before, after)).toBe(true)
+  expect(sameValue(before, { ...after, gaps: [] })).toBe(false)
+  expect(sameValue(before, { ...after, included: [{ ...after.included[0], endLine: 2 }] })).toBe(false)
 })

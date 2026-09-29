@@ -7,7 +7,7 @@ import { loadLocalAuthorizationInput } from "../../../../../src/benchmarks/autho
 import { createTelemetryProvider } from "../../../../../src/benchmarks/authorization-dsl/telemetry.ts"
 import { executeLocalAuthorizationRun } from "../../../../../src/benchmarks/authorization-dsl/local-run.ts"
 import { executeMarkdownStudyRun } from "../../../../../src/benchmarks/authorization-dsl/markdown-study.ts"
-import { markdownInput, compareArgs } from "./generation-options.ts"
+import { markdownInput, compareArgs, sameValue } from "./generation-options.ts"
 import { root, repo, al, absolute, cli, claim, configureProvider, exists, hash, json, journal, save, sessionAccount, aggregateUsage, verifyStudy, proposalAccount, retainPaid, paidPaused, provider } from "./common.ts"
 
 const mode = process.argv[2]
@@ -32,15 +32,15 @@ function scaffold(b: any, sourceRoot: string, variant = "original") {
 }
 function publicDiagnostics(unit: any, b: any, value: any, expected: any) {
   const diagnostics: any[] = [], add = (field: string, message: string) => diagnostics.push({ path: field, message })
-  for (const field of ["taskId", "request", "repository", "sourceRef", "sourceRoot", "sources", "entries"]) if (JSON.stringify(value[field]) !== JSON.stringify(expected[field])) add(field, "Preserve the supplied known metadata and single requested entry exactly.")
+  for (const field of ["taskId", "request", "repository", "sourceRef", "sourceRoot", "sources", "entries"]) if (!sameValue(value[field], expected[field])) add(field, "Preserve the supplied known metadata and single requested entry exactly.")
   for (const field of ["policies", "principals", "resources", "scenarios"]) if (JSON.stringify(Object.keys(value[field] ?? {}).sort()) !== JSON.stringify(Object.keys(expected[field]).sort())) add(field, "Keep only the public named keys; no extra analysis obligation.")
   if (value.policies?.rule?.text !== expected.policies.rule.text || value.policies?.rule?.acceptance !== "accepted") add("policies.rule", "Copy the explicitly accepted current public policy.")
   for (const s of b.scenarios) {
     const actual = value.scenarios?.[s.key], e = expected.scenarios[s.key]
-    for (const field of ["principal", "resource", "policy", "entries", "relation", "operation", "expectation"]) if (JSON.stringify(actual?.[field]) !== JSON.stringify(e[field])) add(`scenarios.${s.key}.${field}`, "Preserve the public scenario facts and current expectation.")
+    for (const field of ["principal", "resource", "policy", "entries", "relation", "operation", "expectation"]) if (!sameValue(actual?.[field], e[field])) add(`scenarios.${s.key}.${field}`, "Preserve the public scenario facts and current expectation.")
     const contract = value.analysisContract?.scenarios?.[s.key], ex = expected.analysisContract.scenarios[s.key]
-    if (!contract || contract.boundary !== "declared-entry" || JSON.stringify(contract.premises) !== JSON.stringify(ex.premises)) add(`analysisContract.scenarios.${s.key}.premises`, "Copy the exact current public premise at the declared entry.")
-    if (b.kind === "premise-change" && JSON.stringify(contract?.requestedBranches) !== JSON.stringify(ex.requestedBranches)) add(`analysisContract.scenarios.${s.key}.requestedBranches`, "Keep the two requested absent/other-present counterfactuals and their owner-present condition values.")
+    if (!contract || contract.boundary !== "declared-entry" || !sameValue(contract.premises, ex.premises)) add(`analysisContract.scenarios.${s.key}.premises`, "Copy the exact current public premise at the declared entry.")
+    if (b.kind === "premise-change" && !sameValue(contract?.requestedBranches, ex.requestedBranches)) add(`analysisContract.scenarios.${s.key}.requestedBranches`, "Keep the two requested absent/other-present counterfactuals and their owner-present condition values.")
   }
   return diagnostics
 }
@@ -171,7 +171,7 @@ if (mode === "setup") {
     await save(path.join(dir, "reuse-command.json"), reuse, true)
     if (reuse.exitCode) throw new Error("Ordinary material reuse failed " + unit.id + JSON.stringify(reuse))
     const actualReport = await json(path.join(dir, "material", "report.json")), sharedReport = await json(path.join(path.dirname(sharedInput), "report.json"))
-    if (JSON.stringify(actualReport.gaps) !== JSON.stringify(sharedReport.gaps) || JSON.stringify(actualReport.included) !== JSON.stringify(sharedReport.included)) throw new Error("Source/gap inheritance changed " + unit.id)
+    if (!sameValue(actualReport.gaps, sharedReport.gaps) || !sameValue(actualReport.included, sharedReport.included)) throw new Error("Source/gap inheritance changed " + unit.id)
     configureProvider(); const execution = { inputFile: reuse.report.inputPath, model: plan.model, outRoot: dir, ...plan.analysis, executionOptions: plan.executionOptions }
     console.log(JSON.stringify({ id: unit.id, action: "consumer-start", gaps: actualReport.gaps.length }))
     const report = unit.arm === "markdown" ? await executeMarkdownStudyRun({ ...execution, markdown: markdownInput(await readFile(path.join(authored, unit.variant + ".selected.md"), "utf8"), path.relative(repo, path.join(authored, unit.variant + ".selected.md")).split(path.sep).join("/")) }) : await executeLocalAuthorizationRun(execution)
