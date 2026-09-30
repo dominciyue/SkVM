@@ -2,6 +2,14 @@ import { z } from "zod"
 import { AuthorizationAuthoringInputV2Schema } from "./authoring-v2.ts"
 import { normalizeAuthorizationAuthoringInput, type AuthorizationAuthoringDiagnostic } from "./authoring.ts"
 import { AuthorizationEvidenceRequestSchema } from "./evidence-preparation/schema.ts"
+import { AuthorizationInquirySchema, type AuthorizationInquiry } from "../../task-dsl/authorization/inquiry.ts"
+
+/** Accept structural author work without claiming semantic equivalence to the natural brief. */
+export function acceptAuthoredInquiry(value: unknown, supplied: { brief: string; mode: "behavior" | "conformance"; policy?: AuthorizationInquiry["policy"] }) {
+  const inquiry = AuthorizationInquirySchema.parse(value)
+  if (inquiry.mode !== supplied.mode || JSON.stringify(inquiry.policy) !== JSON.stringify(supplied.policy)) throw new Error("Author changed supplied task mode or independent policy")
+  return { inquiry, provenance: { schemaVersion: "authorization-inquiry-provenance/v1", userExplicit: ["naturalBrief", "mode", ...(supplied.policy ? ["policy"] : [])], modelAuthored: ["questions"], hostDerived: ["program queue and stable relation IDs"], naturalBrief: supplied.brief, semanticEquivalence: "unreviewed" } }
+}
 
 const fields = AuthorizationAuthoringInputV2Schema.shape
 const portable = (file: string) => !!file && !/[\\\0]/.test(file) && !/^(?:[A-Za-z]:|\/)/.test(file) && file.split("/").every(p => p && p !== "." && p !== "..")
@@ -21,7 +29,7 @@ export const authorizationAuthoringFieldGuide = [
   "analysisContract: {schemaVersion:authorization-analysis-contract/v1,publicInstruction?:string,scenarios:{scenarioKey:{boundary:declared-entry|supplied-path|deployment,premises:[{id,statement,atEntry,provenance:task-assumption}],requestedBranches:[{id,kind:counterfactual,assumptions:[{condition,value:boolean|unknown}]}],requiredResponseDetails:string[]}}}.",
   "Each premise.atEntry is a string naming an entry key declared in that scenario's entries array, never a boolean. Each branch assumption.condition is the exact key declared in that same scenario's conditions dictionary, not a prose description or a lowered condition ID. For example, atEntry:\"handler\" references entries.handler; condition:\"owner-present\" references scenarios[scenarioKey].conditions[\"owner-present\"].",
   "Use current declared policy references in generated guidance. Distinguish unspecified facts from absent facts. Request only explicit counterfactuals; do not invent owner presence or deployment truth.",
-  "For changes use authorization-local-edit/v1 {schemaVersion,reason,operations}. policy:{kind:policy,key,set:{text?,location?,revision?,reason?}}; scenario:{kind:scenario,key,set:{relation?,operation?,expectation?}}; premise:{kind:premise,scenarioKey,premiseId,statement}; public-instruction:{kind:public-instruction,statement}; response-detail:{kind:response-detail,scenarioKey,index,statement}. Replace existing fields only. Review every policy-linked expectation and affectedText.",
+  "For changes use authorization-local-edit/v1 {schemaVersion,reason,operations}. request:{kind:request,statement}; policy:{kind:policy,key,set:{text?,location?,revision?,reason?}}; scenario:{kind:scenario,key,set:{relation?,operation?,expectation?}}; premise:{kind:premise,scenarioKey,premiseId,statement}; public-instruction:{kind:public-instruction,statement}; response-detail:{kind:response-detail,scenarioKey,index,statement}. Replace existing fields only. Review every policy-linked expectation and affectedText.",
 ].join("\n\n")
 
 /** Generate machine-known fields only. Empty domain dictionaries are intentionally non-runnable. */

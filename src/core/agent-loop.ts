@@ -51,6 +51,8 @@ export interface AgentLoopConfig {
    * should opt in.
    */
   parallelToolExecution?: boolean
+  toolHistoryCharacterLimit?: number
+  stopBeforeIterationLimit?: boolean
 }
 
 export interface AgentLoopResult {
@@ -250,7 +252,7 @@ export async function runAgentLoop(
       const actionSig = response.toolCalls.map(tc => `${tc.name}(${JSON.stringify(tc.arguments)})`).sort().join("|")
       pendingHistory = [
         { role: "assistant", content: response.text || `[Called: ${response.toolCalls.map(tc => tc.name).join(", ")}]` },
-        { role: "user", content: toolResults.map(tr => tr.content.slice(0, 2000)).join("\n---\n") },
+        { role: "user", content: toolResults.map(tr => tr.content.slice(0, config.toolHistoryCharacterLimit ?? 2000)).join("\n---\n") },
       ]
       runtimeTrace?.turnEnd(iteration)
 
@@ -268,6 +270,7 @@ export async function runAgentLoop(
       }
 
       // Next LLM call with tool results
+      if (config.stopBeforeIterationLimit && iteration >= maxIterations) { loopError = new Error("Agent iteration budget exhausted before continuation"); break }
       runtimeTrace?.providerRequestStart(iteration + 1)
       response = await provider.completeWithToolResults(params, toolResults, response)
       runtimeTrace?.providerResponseReceived(iteration + 1, response)

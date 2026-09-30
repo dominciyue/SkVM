@@ -2585,3 +2585,7 @@ AM质量分别记录回答可靠性与任务解决，历史AK/AL评分保持。�
 本轮明确允许分析过程调用共用有界只读工具补读源码，并由DSL组织控制对象/资源对象/效果/例外和取证缺口。工具执行不开放目标运行、任意shell、写文件或在线攻击；原始源码与任务范围两臂一致，评价答案与历史解答不在工具范围。程序检查关联与来源，模型形成源码判断，独立review核对语义；不能以词法同名、引用存在或完整ledger证明控制有效。未知与可补缺口分开，源内短路决定可正常完成，不要求无关依赖全部闭合。
 
 自然作者从未填好的任务材料出发，完整DSL零模型编译；修复Markdown字面误拒和request编辑接口不对称。32质量session、8作者稿/至多8消费及8来源skill使用分别报告，初轮失败与最多一个8session共享缺陷修订分列。源skill真实通过现有loader/普通运行消费，共用只读工具，新包领域工具实际调用留trace。开发精力比例不成为评分权重，领域表示、运行支持、共同工具和输入整理的贡献分开；研究与开发问题持续进入[研究§7.34](skill-dsl-research.md#734-ao-真实授权任务与领域取证工具)。旧结果、保护输入、readiness和默认保持，实际费用与人力未知不补零。
+
+**AO实现接口（2026-10-01）。** `authorization-inquiry-input/v1`包含taskId/repository/sourceRef/相对sourceRoot/allowedPaths，互斥的brief或完整inquiry；自然brief附mode和独立policy，完整inquiry自带mode。inquiry/v1 questions包含id/request/premises及可选principal/resource/operation/entryHint；premises只保存用户显式事实。policy为text、origin=user|external-policy、location。compiler不读源码，展开六关系pending事项。result/v1按question记录behavior、条件branches、evidenceIds、missing；policyAssessment只用于conformance。validate证明结构和已展示引用，不证明语义控制成立。
+
+普通CLI为`authorization inquiry init/check/run/inspect/edit/compare`，方法M/D0/D1默认D1；init/edit/check/inspect/compare零provider。共同source_list/search/symbol/read只读原始范围，native skill运行增加skill_reference_read及可选authorization_compile/observe/check_result。每次派发累计展示源码，首答/终答和初始校验独立归档，provider continuation进入同一计量。普通run使用`--authorization-scope/--authorization-domain-tools/--authorization-trace`显式启用；默认路径不变。工具能力、运行依赖和失效条件见[developer-guide](developer-guide.md#authorization-authoring-and-input-applicability)。

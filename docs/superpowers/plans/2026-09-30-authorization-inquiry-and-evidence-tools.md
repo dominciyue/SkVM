@@ -130,6 +130,8 @@ Markdown只做基本结构/可读性检查，语义采用独立逐项review；�
 
 ## 4. 文件职责与反例
 
+**AO1已定接口（2026-10-01）。** 生产入口`authorization inquiry init/check/run/inspect/edit/compare`，输入inquiry-input/v1选择natural brief+mode/policy或完整inquiry；policy origin为user|external-policy。方法M/D0/D1默认D1。新`inquiry-local.ts` owns离线检查/归档/编辑/比较，`inquiry-native.ts` owns普通skill只读注册与增量轨迹；现有bare-agent/run添加authorization-scope/domain-tools/trace opt-in。作者接受沿authoring-assist，旧local-edit新增request。study额外row-ledger负责unknown终态及两次基础设施故障暂停；匿名评价沿evaluate.ts，作者语义沿author-review.ts。预算实际派发12、动作24、累计目标源码展示262144 bytes；源skill正文另计token。精确公共类型和边界已同步spec/guide。
+
 以下新增名称为本轮具体实施位置；AO1可按已存在职责合并文件，改名同步本书，不能留下未接线空模块。
 
 | 职责 | 生产位置 | 测试位置 |

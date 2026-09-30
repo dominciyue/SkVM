@@ -73,6 +73,9 @@ export const RUN_FLAGS = defineFlags(
       placeholder: "<path>",
       help: "Write a value-free execution observation JSON sidecar",
     },
+    "authorization-scope": { kind: "string", placeholder: "<path>", help: "Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent)." },
+    "authorization-domain-tools": { kind: "bool", help: "Enable inquiry compilation, relation observations and result checking in the restricted source run." },
+    "authorization-trace": { kind: "string", placeholder: "<path>", help: "Save the restricted authorization tool and provider trace outside target source." },
     "timeout-ms": {
       kind: "int",
       min: 1,
@@ -145,6 +148,8 @@ export type ValidatedRunConfig = {
 }
 
 export function validateRunConfig(config: RunConfig): ValidatedRunConfig {
+  if ((config["authorization-domain-tools"] || config["authorization-trace"]) && !config["authorization-scope"]) throw new UsageError("run: authorization tools/trace require --authorization-scope", RUN_FLAGS.help)
+  if (config["authorization-scope"] && (config.adapter !== "bare-agent" || config.optimize || config["resume-optimization"])) throw new UsageError("run: authorization source scope requires bare-agent source execution", RUN_FLAGS.help)
   const hasTask = config.task !== undefined
   const hasPrompt = config.prompt !== undefined
   if (config["resume-optimization"] !== undefined) {
@@ -393,6 +398,7 @@ export async function runRun(config: RunConfig): Promise<void> {
     timeoutMs: runRuntime.timeoutMs,
     idleTimeoutMs: config["idle-timeout-ms"],
     mode: adapterModeRun,
+    ...(config["authorization-scope"] ? { providerOptions: { authorizationScope: path.resolve(config["authorization-scope"]), authorizationDomainTools: config["authorization-domain-tools"] === true, ...(config["authorization-trace"] ? { authorizationTraceDir: path.resolve(config["authorization-trace"] + ".events") } : {}) } } : {}),
   }
 
   const adapter = createAdapter(harness)
@@ -467,6 +473,13 @@ export async function runRun(config: RunConfig): Promise<void> {
         `${JSON.stringify(result.runResult.executionObservation, null, 2)}\n`,
         "utf8",
       )
+    }
+    if (config["authorization-trace"]) {
+      if (!result.runResult.authorizationInquiry) throw new Error("Restricted authorization runtime did not provide a trace")
+      const { mkdir, writeFile } = await import("node:fs/promises")
+      const output = path.resolve(config["authorization-trace"])
+      await mkdir(path.dirname(output), { recursive: true })
+      await writeFile(output, JSON.stringify(result.runResult.authorizationInquiry, null, 2) + "\n", { encoding: "utf8", flag: "wx" })
     }
     runSp.succeed(`Task ${task.id} complete`)
 

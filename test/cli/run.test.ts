@@ -28,6 +28,9 @@ describe("RUN_FLAGS.parse — typed config", () => {
       workdir: undefined,
       "initial-workdir-manifest": undefined,
       "execution-observation": undefined,
+      "authorization-scope": undefined,
+      "authorization-domain-tools": false,
+      "authorization-trace": undefined,
       "timeout-ms": undefined,
       "idle-timeout-ms": undefined,
       "max-steps": undefined,
@@ -63,6 +66,9 @@ describe("RUN_FLAGS.parse — typed config", () => {
       workdir: "/tmp/wd",
       "initial-workdir-manifest": undefined,
       "execution-observation": "/tmp/observation.json",
+      "authorization-scope": undefined,
+      "authorization-domain-tools": false,
+      "authorization-trace": undefined,
       "timeout-ms": 90000,
       "idle-timeout-ms": 30000,
       "max-steps": 12,
@@ -162,6 +168,9 @@ Options:
   --workdir=<path>                            Use this directory instead of a temp work directory
   --initial-workdir-manifest=<path>           Write a pre-agent workdir manifest outside the work directory
   --execution-observation=<path>              Write a value-free execution observation JSON sidecar
+  --authorization-scope=<path>                Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent).
+  --authorization-domain-tools                Enable inquiry compilation, relation observations and result checking in the restricted source run.
+  --authorization-trace=<path>                Save the restricted authorization tool and provider trace outside target source.
   --timeout-ms=<n>                            Override the per-task agent execution timeout (ms).
                                               This caps how long the target adapter spends solving
                                               one task. Falls back to task.json's \`timeoutMs\`,

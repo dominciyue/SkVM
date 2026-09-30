@@ -1170,7 +1170,7 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 ### 7.34 AO 真实授权任务与领域取证工具
 
-2026-09-30，用户在AN复核与输入职责讨论后，授权`gpt-6.1-sol / max`执行[AO0–AO16](../superpowers/plans/2026-09-30-authorization-inquiry-and-evidence-tools.md)。本节持续记录开发问题、解决和结果。当前为规划阶段，没有新模型结果。
+2026-09-30，用户在AN复核与输入职责讨论后，授权`gpt-6.1-sol / max`执行[AO0–AO16](../superpowers/plans/2026-09-30-authorization-inquiry-and-evidence-tools.md)。本节持续记录开发问题、解决和结果。2026-10-01从干净aea87139启动。当前工程进行中，没有新模型结果。
 
 本轮处理五个相连问题：作者语义误拒和request编辑缺项；完整目标声明预供；把源码实际行为写成已知政策；行为调查被强制要求expectation；分析宿主缺少运行中补读依赖。普通入口沿用SkVM，增加behavior/conformance区分、共用只读工具和领域观察/缺口队列；旧fixed-context路径继续兼容。
 
@@ -1179,6 +1179,14 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 工程复用已定位的`readDiscoveryWindows`、`prepareAuthorizationEvidence`、`loadPortableSourceBundle`、skill-loader、runAgentLoop和计量；bare-agent原工具含写入/命令/网络，本轮需显式只读工具集合或薄adapter，执行器实际限制能力，旧默认不改。Cloudflare `security-audit`和GitHub `security-review`按已登记ref取正文并实际加载，授权职责接入与剩余职责分别报告。
 
 质量面板在已暴露项目上以自然任务比较Markdown+共用工具、DSL基础路线与DSL领域取证路线，24主行加8变化行；两任务8自然作者稿/至多8消费和两个源skill8使用session另列。所有路线访问相同原始源码范围，不给D臂预写控制路径或目标答案。开发精力六四开，不设六四分数；原AN评分和历史字节保留。精确接口、运行预算、失败处理与验收在任务书，后续实施发现需同步本节。
+
+**AO0–AO3接口与反例。** inquiry/v1把repo/ref/sourceRoot与允许范围留在context中，behavior不接受规范政策，conformance缺独立policy返回policy-required；纯compiler展开六类pending检查事项，不生成控制、expectation或旧conclusion。result/v1保留实际behavior/branches/missing，只有conformance有policyAssessment；observation检查本次展示证据及question关联，semanticSupport始终unreviewed。local-edit增加request操作，所有场景进入复查但policy/未指定文本保持。10项/53断言聚焦通过，初红及固定来源获取过程入journal；源skill原件已按ref获取，不把历史摘要当loader原件。下一步是同次分析内的受限源码请求。
+
+**AO4–AO9工程与校准（2026-10-01）。** 生产新增`authorization inquiry init/check/run/inspect/edit/compare`，输入采用natural brief或完整inquiry、相对sourceRoot与allowedPaths；check不建provider，D0/D1在run中调用自然作者，M保留brief。共同只读工具在同次分析补读，稳定原行证据，D1增加六关系pending队列/observe反馈。结果只做结构/已展示证据检查，首答与终答分开，最多一次交付修复。普通bare-agent opt-in保留完整源SKILL和配套引用，注册共同读工具及可选compile/observe/check_result，原生continuation和实际请求入账、增量轨迹在源码根外保存。循环、Windows junction越界、未读证据、源码变更、预算和归档篡改均有确定性反例；归档比较不依赖JSON属性次序。
+
+32质量、8作者稿、最多8消费、8来源skill使用共56行已登记，模型xty/gpt-5.6-sol；四项目固定ref共800原始文件，两源skill共28文件及许可证保留。Gitea upstream辅助范围补齐，synthetic重命名以实际gitea.dev模块前缀更新；改名/短路variant明确非upstream、非unseen。36项输入/方法和真实loader/注册预检零provider通过。12 dispatch/24动作/256 KiB累计model target-source/300s每调用/1200s每session固定，索引512文件/8 MiB；源skill参考正文另计provider token，不冒充目标源码。claim前置、unknown不重发、连续两次基础设施故障暂停新派发。仅登记和源码身份提示进入模型；evaluator、历史答案与construction说明不在生成范围。
+
+[AN校准](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/an-calibration.json)零调用读取旧原稿的诊断修订响应：Memos的正确`Deny`因小写字面判据误拒，Paperless完整permission/owner前提因逗号/反引号差异误拒；只确认具名语义事实，未把整篇稿判为等价。旧变稿依赖阻塞、调用0，不能补作成功。旧GetSharedMemo policy本身预组织了实现分支，本轮behavior brief不供应这些规范答案。原AN分数、字节和分母保留。普通示例增加自然任务→同次读证据→回答→改request/compare；source-only和完整安全审计职责仍分列。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

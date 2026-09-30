@@ -26,7 +26,7 @@ export interface AuthorizationProviderAttempt {
     toolChoice?: CompletionParams["toolChoice"]
     maxTokens?: number
     temperature?: number
-    executableTools: false
+    executableTools: boolean
     toolSchemas?: Record<string, unknown>[]
   }
   response?: {
@@ -67,6 +67,8 @@ export interface AuthorizationTelemetryOptions {
   perCallTimeoutMs?: number
   unitTimeoutMs?: number
   maxDispatches?: number
+  executableToolNames?: readonly string[]
+  beforeDispatch?: (params: CompletionParams, toolResults?: LLMToolResult[], previousResponse?: LLMResponse) => void | Promise<void>
   onEvent?: (event: AuthorizationLifecycleEvent) => void | Promise<void>
 }
 
@@ -264,9 +266,8 @@ export function createTelemetryProvider(
     throw error
   }
 
-  const provider: LLMProvider = {
-    name: `${delegate.name}-authorization-telemetry`,
-    async complete(params: CompletionParams): Promise<LLMResponse> {
+  const dispatch = async (params: CompletionParams, toolResults?: LLMToolResult[], previousResponse?: LLMResponse): Promise<LLMResponse> => {
+      if (options.executableToolNames && params.tools?.some(tool => !options.executableToolNames!.includes(tool.name))) throw new AuthorizationProtocolError("Native request includes an unregistered executable tool", delegate.name)
       if (closed) {
         return rejectDispatch(
           new AuthorizationLifecycleClosedError(closeReason, delegate.name),
@@ -287,6 +288,7 @@ export function createTelemetryProvider(
           "unit-timeout-before-dispatch",
         )
       }
+      await options.beforeDispatch?.(params, toolResults, previousResponse)
       const attempt: AuthorizationProviderAttempt = {
         id: `provider-attempt-${attempts.length + 1}`,
         phase,
@@ -300,7 +302,7 @@ export function createTelemetryProvider(
           ...(params.toolChoice === undefined ? {} : { toolChoice: params.toolChoice }),
           ...(params.maxTokens === undefined ? {} : { maxTokens: params.maxTokens }),
           ...(params.temperature === undefined ? {} : { temperature: params.temperature }),
-          executableTools: false,
+          executableTools: options.executableToolNames !== undefined,
           ...(params.tools ? { toolSchemas: params.tools.map(tool => tool.inputSchema) } : {}),
         },
         usage: null,
@@ -320,7 +322,7 @@ export function createTelemetryProvider(
       const timeoutKind: "per-call" | "unit" = remainingUnitMs <= perCallTimeoutMs ? "unit" : "per-call"
       let timedOut = false
       let timer: ReturnType<typeof setTimeout> | undefined
-      const delegatePromise = delegate.complete(params)
+      const delegatePromise = toolResults && previousResponse ? delegate.completeWithToolResults(params, toolResults, previousResponse) : delegate.complete(params)
       const settlement = delegatePromise.then(async response => {
         attempt.response = sanitizeResponse(response)
         attempt.usage = { ...response.tokens }
@@ -435,12 +437,16 @@ export function createTelemetryProvider(
       } finally {
         if (!timedOut && timer !== undefined) clearTimeout(timer)
       }
-    },
+    }
+  const provider: LLMProvider = {
+    name: `${delegate.name}-authorization-telemetry`,
+    complete: params => dispatch(params),
     async completeWithToolResults(
-      _params: CompletionParams,
-      _toolResults: LLMToolResult[],
-      _previousResponse: LLMResponse,
+      params: CompletionParams,
+      toolResults: LLMToolResult[],
+      previousResponse: LLMResponse,
     ): Promise<LLMResponse> {
+      if (options.executableToolNames) return dispatch(params, toolResults, previousResponse)
       throw new AuthorizationProtocolError(
         "Tool-result continuation is disabled for the fixed-context authorization host.",
         delegate.name,

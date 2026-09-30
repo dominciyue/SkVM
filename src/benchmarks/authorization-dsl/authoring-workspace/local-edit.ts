@@ -15,6 +15,7 @@ export const AuthorizationLocalEditRequestSchema = z.object({
     z.object({ kind: z.literal("policy"), key: Text, set: SetPolicy }).strict(),
     z.object({ kind: z.literal("scenario"), key: Text, set: SetScenario }).strict(),
     z.object({ kind: z.literal("premise"), scenarioKey: Text, premiseId: Text, statement: Text }).strict(),
+    z.object({ kind: z.literal("request"), statement: Text }).strict(),
     z.object({ kind: z.literal("public-instruction"), statement: Text }).strict(),
     z.object({ kind: z.literal("response-detail"), scenarioKey: Text, index: z.number().int().nonnegative(), statement: Text }).strict(),
   ])).min(1),
@@ -90,6 +91,9 @@ export function applyAuthorizationLocalEdit(base: unknown, request: unknown): Au
         values.set(name, { before: premise.statement, after: operation.statement })
         premise.statement = operation.statement
       }
+    } else if (operation.kind === "request") {
+      for (const key of Object.keys(value.scenarios)) affected.add(key)
+      if (claim("request")) { values.set("request", { before: value.request, after: operation.statement }); value.request = operation.statement }
     } else if (operation.kind === "public-instruction") {
       const contract = value.analysisContract, name = "analysisContract.publicInstruction"
       if (contract?.publicInstruction === undefined) { diagnostic("unknown-local-edit-target", name, "Public instruction is not declared."); continue }

@@ -124,6 +124,7 @@ export class BareAgentAdapter implements AgentAdapter {
   private maxSteps: number = TASK_FILE_DEFAULTS.maxSteps
   private timeoutMs: number = TASK_FILE_DEFAULTS.timeoutMs
   private hooks: RuntimeHooks = {}
+  private providerOptions: Record<string, unknown> = {}
 
   constructor(
     private providerFactory: (config: AdapterConfig) => LLMProvider,
@@ -142,6 +143,7 @@ export class BareAgentAdapter implements AgentAdapter {
     this.model = config.model
     this.maxSteps = config.maxSteps
     this.timeoutMs = config.timeoutMs
+    this.providerOptions = config.providerOptions ?? {}
   }
 
   async run(task: {
@@ -190,6 +192,11 @@ IMPORTANT: Replace "${skillName}" with the exact skill name from the list below.
 Available skills:
 - **${skillName}**: ${task.skill!.meta.description}`
     }
+    const restricted = typeof this.providerOptions.authorizationScope === "string"
+      ? await (await import("../benchmarks/authorization-dsl/inquiry-native.ts")).createNativeInquiryRuntime({ inputFile: this.providerOptions.authorizationScope, workDir: task.workDir, domainTools: this.providerOptions.authorizationDomainTools === true, skillContent: task.skill?.content, traceDir: typeof this.providerOptions.authorizationTraceDir === "string" ? this.providerOptions.authorizationTraceDir : undefined })
+      : undefined
+    const telemetry = restricted ? (await import("../benchmarks/authorization-dsl/telemetry.ts")).createTelemetryProvider(activeProvider, { executableToolNames: restricted.definitions.map(t => t.name), maxDispatches: 12, perCallTimeoutMs: 300000, unitTimeoutMs: Math.min(task.timeoutMs ?? this.timeoutMs, 1200000), beforeDispatch: restricted.beforeDispatch, onEvent: restricted.onEvent }) : undefined
+    if (restricted && telemetry) { activeProvider = telemetry.provider; system += `\n\n${restricted.system}` }
 
     // --- Hook: beforeLLM (short-circuit support) ---
     // The agent loop doesn't know about hooks. We wrap the provider to intercept
@@ -262,18 +269,19 @@ Available skills:
         {
         provider: wrappedProvider,
         model: this.model,
-        tools: TOOLS,
-        executeTool: createToolExecutor(task.workDir),
+        tools: restricted?.definitions ?? TOOLS,
+        executeTool: restricted?.execute ?? createToolExecutor(task.workDir),
         system,
         maxIterations: this.maxSteps,
         timeoutMs: task.timeoutMs ?? this.timeoutMs,
-        maxTokens: 16384,
+        maxTokens: restricted ? 6000 : 16384,
         runtimeTrace: task.runtimeTrace,
         // bare-agent's tool executor spawns isolated shell subprocesses per
         // call — safe for ILP fan-out. Closes the runtime side of pass3's ILP
         // annotation: when a skill hints the model to batch independent
         // tool_use blocks in one turn, we actually execute them concurrently.
-        parallelToolExecution: true,
+        parallelToolExecution: !restricted,
+        ...(restricted ? { toolHistoryCharacterLimit: Number.MAX_SAFE_INTEGER, stopBeforeIterationLimit: true } : {}),
         onAfterLLM: async (response, iteration) => {
           if (task.skill?.mode === "discover" && !discoverSkillLoaded) {
             const skillMatch = response.text.match(LOAD_SKILL_RE)
@@ -302,7 +310,12 @@ Available skills:
         },
         [{ role: "user", content: task.prompt }],
       )
+    } catch (cause) {
+      if (!restricted || !telemetry) throw cause
+      const summary = telemetry.summary(), error = cause instanceof Error ? cause : new Error(String(cause))
+      loopResult = { text: telemetry.attempts.at(-1)?.response?.text ?? "", steps: [], tokens: summary.knownTokens, llmDurationMs: telemetry.attempts.reduce((n, a) => n + (a.response?.durationMs ?? 0), 0), iterations: telemetry.attempts.length, allToolCalls, error, timedOut: error.name === "AuthorizationCallTimeoutError" }
     } finally {
+      await telemetry?.close("ordinary-skill-run-ended")
       if (convLog) {
         try {
           await convLog.finalize()
@@ -334,6 +347,7 @@ Available skills:
       llmDurationMs: loopResult.llmDurationMs,
       workDir: task.workDir,
       skillLoaded: task.skill ? skillLoaded : undefined,
+      ...(restricted && telemetry ? { authorizationInquiry: { ...restricted.report(), telemetry: telemetry.summary(), attempts: telemetry.attempts, events: telemetry.events } } : {}),
       runStatus,
       ...(statusDetail ? { statusDetail } : {}),
       ...(loopResult.error ? { adapterError: { exitCode: 1, stderr: loopResult.error.message } } : {}),

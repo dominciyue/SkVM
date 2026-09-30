@@ -1,0 +1,520 @@
+{
+  "schemaVersion": "authorization-ao-study/v1",
+  "development": true,
+  "unseenClaim": false,
+  "model": "xty/gpt-5.6-sol",
+  "createdAt": "2026-09-30T19:49:54.675Z",
+  "implementationCommit": null,
+  "budgets": {
+    "perCallTimeoutMs": 300000,
+    "sessionTimeoutMs": 1200000,
+    "maxDispatches": 12,
+    "maxToolCalls": 24,
+    "maxDisplayBytes": 262144,
+    "maxFiles": 512,
+    "maxReadBytes": 8388608,
+    "authorDiagnosticRepairs": 1
+  },
+  "tasks": [
+    {
+      "id": "memos-share",
+      "source": "memos",
+      "mode": "behavior",
+      "brief": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied."
+    },
+    {
+      "id": "paperless-download",
+      "source": "paperless",
+      "mode": "behavior",
+      "brief": "Investigate the document Download operation in this Paperless revision. Explain how the requested document, selected version or original/archive representation, and authenticated user's authorization relate to the file returned. Identify relevant control branches and whether selecting another version changes the resource that is authorized. Ownership and object grants are unspecified: analyze relevant source branches rather than assuming a grant. State missing source or deployment facts precisely."
+    },
+    {
+      "id": "owui-ingestion",
+      "source": "owui",
+      "mode": "behavior",
+      "brief": "Investigate process_file at /process/file in this Open WebUI revision. Trace the caller, the supplied file_id and the destination collection_name through authorization and the eventual processing or vector write. Explain whether the object authorized for input and the object affected by output are the same, and what happens for caller-owned versus another user's file. Do not assume the caller owns the destination collection. Give visible conditions and specific remaining limits; this is behavior investigation."
+    },
+    {
+      "id": "gitea-self-query",
+      "source": "gitea",
+      "mode": "behavior",
+      "brief": "Investigate GetRepoPermissions in this Gitea revision. Compare a normal authenticated caller querying their own collaborator permission with the same caller querying another user's permission; include differences for privileged callers visible in source. Explain path-specific controls, identity comparison and the repository permission result. Follow upstream code only when relevant. Do not turn this behavior question into an invented normative policy."
+    },
+    {
+      "id": "memos-remove",
+      "source": "memos",
+      "mode": "conformance",
+      "brief": "Check DeleteSpaceMember in this Memos revision against the independently supplied current policy. May an ordinary space member remove a different member, and do visible admin and self-removal paths differ? Do not assume deployment middleware or undocumented role grants. Explain actual behavior, compare it with the policy, cite the controlling source and preserve any decisive missing facts.",
+      "policy": {
+        "text": "Only a space administrator may remove another member from that space. This policy does not prohibit a member leaving the space themselves.",
+        "origin": "user",
+        "location": "experimental-user-brief:memos-member-policy/v1"
+      }
+    },
+    {
+      "id": "paperless-notes",
+      "source": "paperless",
+      "mode": "conformance",
+      "brief": "Check GET and POST on the document notes operation against the current independently supplied policy. Compare viewing notes and creating a note on the addressed document. The document owner is unspecified, and object grants are not given; retain relevant owner and permission branches rather than silently supplying those facts. Trace endpoint and object controls to the corresponding effects, explain policy compliance and preserve exact gaps.",
+      "policy": {
+        "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+        "origin": "user",
+        "location": "experimental-user-brief:paperless-note-policy/v1"
+      }
+    },
+    {
+      "id": "paperless-share-create",
+      "source": "paperless",
+      "mode": "conformance",
+      "brief": "Check creating a share through ShareLinkViewSet against the current independently supplied policy. A principal asks to share an existing document; determine which endpoint and object controls apply to that exact document before the share is created. Include relevant inherited permission and serializer paths. Do not assume that document existence or a global model permission grants access to this document. Explain source behavior, policy compliance and specific missing facts.",
+      "policy": {
+        "text": "A caller creating a document share must have view_document permission for the exact shared document. A global add_sharelink permission or knowing a document ID alone is insufficient.",
+        "origin": "user",
+        "location": "experimental-user-brief:paperless-share-policy/v1"
+      }
+    },
+    {
+      "id": "gitea-create-issue",
+      "source": "gitea",
+      "mode": "conformance",
+      "brief": "Check CreateIssue and its API route in this Gitea revision against the independently supplied current policy. Compare authenticated repository readers and principals with issue write permission. Trace route-level controls, repository or issue-unit checks and the issue creation effect; identify any relevant exceptions instead of assuming endpoint-local checks are the whole path. Explain policy compliance and precise source or deployment limits.",
+      "policy": {
+        "text": "Creating an issue requires write permission to the repository's issues unit. Read permission to the repository alone does not authorize this write.",
+        "origin": "user",
+        "location": "experimental-user-brief:gitea-issue-policy/v1"
+      }
+    },
+    {
+      "id": "memos-remove-policy-change",
+      "source": "memos",
+      "mode": "conformance",
+      "brief": "Check DeleteSpaceMember in this Memos revision against the independently supplied revised current policy. May an ordinary space member remove a different member, and do visible admin and self-removal paths differ? Do not assume deployment middleware or undocumented role grants. Explain actual behavior, compare it with the policy, cite the controlling source and preserve any decisive missing facts.",
+      "policy": {
+        "text": "Any current member of a space may remove a different member from that space; self-removal is also allowed.",
+        "origin": "user",
+        "location": "experimental-user-brief:memos-member-policy/v2"
+      }
+    },
+    {
+      "id": "owui-ingestion-relation-change",
+      "source": "owui",
+      "mode": "behavior",
+      "brief": "Investigate process_file at /process/file under this explicit current premise: the supplied file belongs to the authenticated caller, while the requested destination collection belongs to a different principal and the caller has no stated grant on that collection. Does the visible source let this request process or write into that destination? Trace the object authorized and the object affected, relevant controls and exact unresolved deployment facts. This is a behavior question, not a supplied normative policy."
+    },
+    {
+      "id": "memos-share-offline-deny",
+      "source": "memos",
+      "mode": "behavior",
+      "brief": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied. This is a labeled synthetic offline source variant, not an upstream commit or an unseen project; investigate its actual current bytes.",
+      "sourceVariant": "memos-deny"
+    },
+    {
+      "id": "gitea-self-query-renamed",
+      "source": "gitea",
+      "mode": "behavior",
+      "brief": "Investigate InspectRepoAccess in this Gitea revision. Compare a normal authenticated caller querying their own collaborator permission with the same caller querying another user's permission; include differences for privileged callers visible in source. Explain path-specific controls, identity comparison and the repository permission result. Follow upstream code only when relevant. Do not turn this behavior question into an invented normative policy. This is a labeled synthetic path/symbol rename with no intended semantic change; use the current paths and names.",
+      "sourceVariant": "gitea-renamed"
+    }
+  ],
+  "rows": [
+    {
+      "id": "quality-memos-share-M",
+      "kind": "quality",
+      "task": "memos-share",
+      "method": "M"
+    },
+    {
+      "id": "quality-memos-share-D0",
+      "kind": "quality",
+      "task": "memos-share",
+      "method": "D0"
+    },
+    {
+      "id": "quality-memos-share-D1",
+      "kind": "quality",
+      "task": "memos-share",
+      "method": "D1"
+    },
+    {
+      "id": "quality-paperless-download-D0",
+      "kind": "quality",
+      "task": "paperless-download",
+      "method": "D0"
+    },
+    {
+      "id": "quality-paperless-download-D1",
+      "kind": "quality",
+      "task": "paperless-download",
+      "method": "D1"
+    },
+    {
+      "id": "quality-paperless-download-M",
+      "kind": "quality",
+      "task": "paperless-download",
+      "method": "M"
+    },
+    {
+      "id": "quality-owui-ingestion-D1",
+      "kind": "quality",
+      "task": "owui-ingestion",
+      "method": "D1"
+    },
+    {
+      "id": "quality-owui-ingestion-M",
+      "kind": "quality",
+      "task": "owui-ingestion",
+      "method": "M"
+    },
+    {
+      "id": "quality-owui-ingestion-D0",
+      "kind": "quality",
+      "task": "owui-ingestion",
+      "method": "D0"
+    },
+    {
+      "id": "quality-gitea-self-query-M",
+      "kind": "quality",
+      "task": "gitea-self-query",
+      "method": "M"
+    },
+    {
+      "id": "quality-gitea-self-query-D0",
+      "kind": "quality",
+      "task": "gitea-self-query",
+      "method": "D0"
+    },
+    {
+      "id": "quality-gitea-self-query-D1",
+      "kind": "quality",
+      "task": "gitea-self-query",
+      "method": "D1"
+    },
+    {
+      "id": "quality-memos-remove-D0",
+      "kind": "quality",
+      "task": "memos-remove",
+      "method": "D0"
+    },
+    {
+      "id": "quality-memos-remove-D1",
+      "kind": "quality",
+      "task": "memos-remove",
+      "method": "D1"
+    },
+    {
+      "id": "quality-memos-remove-M",
+      "kind": "quality",
+      "task": "memos-remove",
+      "method": "M"
+    },
+    {
+      "id": "quality-paperless-notes-D1",
+      "kind": "quality",
+      "task": "paperless-notes",
+      "method": "D1"
+    },
+    {
+      "id": "quality-paperless-notes-M",
+      "kind": "quality",
+      "task": "paperless-notes",
+      "method": "M"
+    },
+    {
+      "id": "quality-paperless-notes-D0",
+      "kind": "quality",
+      "task": "paperless-notes",
+      "method": "D0"
+    },
+    {
+      "id": "quality-paperless-share-create-M",
+      "kind": "quality",
+      "task": "paperless-share-create",
+      "method": "M"
+    },
+    {
+      "id": "quality-paperless-share-create-D0",
+      "kind": "quality",
+      "task": "paperless-share-create",
+      "method": "D0"
+    },
+    {
+      "id": "quality-paperless-share-create-D1",
+      "kind": "quality",
+      "task": "paperless-share-create",
+      "method": "D1"
+    },
+    {
+      "id": "quality-gitea-create-issue-D0",
+      "kind": "quality",
+      "task": "gitea-create-issue",
+      "method": "D0"
+    },
+    {
+      "id": "quality-gitea-create-issue-D1",
+      "kind": "quality",
+      "task": "gitea-create-issue",
+      "method": "D1"
+    },
+    {
+      "id": "quality-gitea-create-issue-M",
+      "kind": "quality",
+      "task": "gitea-create-issue",
+      "method": "M"
+    },
+    {
+      "id": "quality-memos-remove-policy-change-M",
+      "kind": "quality",
+      "task": "memos-remove-policy-change",
+      "method": "M"
+    },
+    {
+      "id": "quality-memos-remove-policy-change-D1",
+      "kind": "quality",
+      "task": "memos-remove-policy-change",
+      "method": "D1"
+    },
+    {
+      "id": "quality-owui-ingestion-relation-change-M",
+      "kind": "quality",
+      "task": "owui-ingestion-relation-change",
+      "method": "M"
+    },
+    {
+      "id": "quality-owui-ingestion-relation-change-D1",
+      "kind": "quality",
+      "task": "owui-ingestion-relation-change",
+      "method": "D1"
+    },
+    {
+      "id": "quality-memos-share-offline-deny-M",
+      "kind": "quality",
+      "task": "memos-share-offline-deny",
+      "method": "M"
+    },
+    {
+      "id": "quality-memos-share-offline-deny-D1",
+      "kind": "quality",
+      "task": "memos-share-offline-deny",
+      "method": "D1"
+    },
+    {
+      "id": "quality-gitea-self-query-renamed-M",
+      "kind": "quality",
+      "task": "gitea-self-query-renamed",
+      "method": "M"
+    },
+    {
+      "id": "quality-gitea-self-query-renamed-D1",
+      "kind": "quality",
+      "task": "gitea-self-query-renamed",
+      "method": "D1"
+    },
+    {
+      "id": "author-memos-remove-MD-original",
+      "kind": "author",
+      "task": "memos-remove",
+      "format": "MD",
+      "version": "original"
+    },
+    {
+      "id": "author-memos-remove-MD-changed",
+      "kind": "author",
+      "task": "memos-remove",
+      "format": "MD",
+      "version": "changed",
+      "dependsOn": "author-memos-remove-MD-original"
+    },
+    {
+      "id": "author-memos-remove-DSL-original",
+      "kind": "author",
+      "task": "memos-remove",
+      "format": "DSL",
+      "version": "original"
+    },
+    {
+      "id": "author-memos-remove-DSL-changed",
+      "kind": "author",
+      "task": "memos-remove",
+      "format": "DSL",
+      "version": "changed",
+      "dependsOn": "author-memos-remove-DSL-original"
+    },
+    {
+      "id": "author-paperless-notes-MD-original",
+      "kind": "author",
+      "task": "paperless-notes",
+      "format": "MD",
+      "version": "original"
+    },
+    {
+      "id": "author-paperless-notes-MD-changed",
+      "kind": "author",
+      "task": "paperless-notes",
+      "format": "MD",
+      "version": "changed",
+      "dependsOn": "author-paperless-notes-MD-original"
+    },
+    {
+      "id": "author-paperless-notes-DSL-original",
+      "kind": "author",
+      "task": "paperless-notes",
+      "format": "DSL",
+      "version": "original"
+    },
+    {
+      "id": "author-paperless-notes-DSL-changed",
+      "kind": "author",
+      "task": "paperless-notes",
+      "format": "DSL",
+      "version": "changed",
+      "dependsOn": "author-paperless-notes-DSL-original"
+    },
+    {
+      "id": "consume-memos-remove-MD-original",
+      "kind": "consume",
+      "task": "memos-remove",
+      "format": "MD",
+      "version": "original",
+      "dependsOn": "author-memos-remove-MD-original"
+    },
+    {
+      "id": "consume-memos-remove-MD-changed",
+      "kind": "consume",
+      "task": "memos-remove",
+      "format": "MD",
+      "version": "changed",
+      "dependsOn": "author-memos-remove-MD-changed"
+    },
+    {
+      "id": "consume-memos-remove-DSL-original",
+      "kind": "consume",
+      "task": "memos-remove",
+      "format": "DSL",
+      "version": "original",
+      "dependsOn": "author-memos-remove-DSL-original"
+    },
+    {
+      "id": "consume-memos-remove-DSL-changed",
+      "kind": "consume",
+      "task": "memos-remove",
+      "format": "DSL",
+      "version": "changed",
+      "dependsOn": "author-memos-remove-DSL-changed"
+    },
+    {
+      "id": "consume-paperless-notes-MD-original",
+      "kind": "consume",
+      "task": "paperless-notes",
+      "format": "MD",
+      "version": "original",
+      "dependsOn": "author-paperless-notes-MD-original"
+    },
+    {
+      "id": "consume-paperless-notes-MD-changed",
+      "kind": "consume",
+      "task": "paperless-notes",
+      "format": "MD",
+      "version": "changed",
+      "dependsOn": "author-paperless-notes-MD-changed"
+    },
+    {
+      "id": "consume-paperless-notes-DSL-original",
+      "kind": "consume",
+      "task": "paperless-notes",
+      "format": "DSL",
+      "version": "original",
+      "dependsOn": "author-paperless-notes-DSL-original"
+    },
+    {
+      "id": "consume-paperless-notes-DSL-changed",
+      "kind": "consume",
+      "task": "paperless-notes",
+      "format": "DSL",
+      "version": "changed",
+      "dependsOn": "author-paperless-notes-DSL-changed"
+    },
+    {
+      "id": "skill-cloudflare-security-audit-memos-remove-original",
+      "kind": "skill",
+      "task": "memos-remove",
+      "sourceSkill": "cloudflare-security-audit",
+      "domainTools": false
+    },
+    {
+      "id": "skill-cloudflare-security-audit-memos-remove-domain",
+      "kind": "skill",
+      "task": "memos-remove",
+      "sourceSkill": "cloudflare-security-audit",
+      "domainTools": true
+    },
+    {
+      "id": "skill-cloudflare-security-audit-paperless-notes-original",
+      "kind": "skill",
+      "task": "paperless-notes",
+      "sourceSkill": "cloudflare-security-audit",
+      "domainTools": false
+    },
+    {
+      "id": "skill-cloudflare-security-audit-paperless-notes-domain",
+      "kind": "skill",
+      "task": "paperless-notes",
+      "sourceSkill": "cloudflare-security-audit",
+      "domainTools": true
+    },
+    {
+      "id": "skill-github-security-review-memos-remove-original",
+      "kind": "skill",
+      "task": "memos-remove",
+      "sourceSkill": "github-security-review",
+      "domainTools": false
+    },
+    {
+      "id": "skill-github-security-review-memos-remove-domain",
+      "kind": "skill",
+      "task": "memos-remove",
+      "sourceSkill": "github-security-review",
+      "domainTools": true
+    },
+    {
+      "id": "skill-github-security-review-paperless-notes-original",
+      "kind": "skill",
+      "task": "paperless-notes",
+      "sourceSkill": "github-security-review",
+      "domainTools": false
+    },
+    {
+      "id": "skill-github-security-review-paperless-notes-domain",
+      "kind": "skill",
+      "task": "paperless-notes",
+      "sourceSkill": "github-security-review",
+      "domainTools": true
+    }
+  ],
+  "evaluation": {
+    "required": [
+      "correct source behavior",
+      "requested scenario completeness",
+      "evidence supports decisive claims",
+      "control/resource/effect binding",
+      "specific and justified unknown",
+      "policy comparison only for independently supplied policy"
+    ],
+    "firstAndFinalSeparate": true,
+    "structureIsNotQuality": true,
+    "reviewer": "development-agent after all generation closes",
+    "authorObligations": {
+      "memos-remove": [
+        "other-member removal",
+        "self-removal distinction",
+        "current independently supplied policy",
+        "source-only evidence and limits"
+      ],
+      "paperless-notes": [
+        "GET view and POST create",
+        "respective view_document/change_document grant",
+        "owner unspecified originally / absent in changed version",
+        "source-only evidence and limits"
+      ]
+    }
+  }
+}

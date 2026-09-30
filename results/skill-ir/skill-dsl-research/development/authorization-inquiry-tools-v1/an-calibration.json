@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "authorization-ao-an-calibration/v1",
+  "date": "2026-10-01",
+  "providerCalls": 0,
+  "originalsModified": false,
+  "historicalCountsRewritten": false,
+  "records": [
+    {
+      "id": "memos-space-policy",
+      "response": "authors/memos-space-policy-markdown-original/revision.response.json",
+      "sha256": "38cf37adffba5eff7c2bbb7fed00ea48cd0a749a6d4fc386e800c138290e4801",
+      "kind": "original-draft-diagnostic-revision",
+      "originalStatus": "invalid",
+      "originalDiagnostics": [
+        {
+          "path": "markdown",
+          "message": "Retain this public current fact: deny"
+        }
+      ],
+      "exactRequiredMatch": [
+        false
+      ],
+      "spellingOnlyComparison": [
+        true
+      ],
+      "snippets": [
+        "- **Principal:** Authenticated active ordinary non-administrator member",
+        "- **Relation:** `caller-is-target-member`",
+        "- **Operation:** Delete own membership",
+        "- **Expected policy result:** Allow",
+        "- **Premise:** At handler entry, the active ordinary non-administrator caller targets their own active membership in the selected space, and `resolveSpaceMemberResource` succeeds.",
+        "- **Principal:** Authenticated active ordinary non-administrator member",
+        "- **Relation:** `caller-is-not-target-member-and-not-admin`",
+        "- **Operation:** Delete another active membership",
+        "- **Expected policy result:** Deny",
+        "- **Premise:** At handler entry, the active ordinary non-administrator caller targets a different active member in the same space, and `resolveSpaceMemberResource` succeeds."
+      ],
+      "newReviewScope": "Named actor/negation/permission/premise facts only; no wholesale AN rescoring",
+      "semanticReview": {
+        "reviewer": "development-agent",
+        "judgment": "The named denial and permission/owner premises preserve the current requirement; exact lowercase or comma placement is not a semantic acceptance criterion.",
+        "fullArtifactEquivalent": "unreviewed"
+      },
+      "changedRow": {
+        "status": "author-dependency-blocked",
+        "calls": 0
+      },
+      "derivedConsumption": "Historical blocked rows remain unexecuted; no successful outcome is imputed"
+    },
+    {
+      "id": "paperless-note-premise",
+      "response": "authors/paperless-note-premise-markdown-original/revision.response.json",
+      "sha256": "3e0efb6912e91f4885635ab1aa51f64a1d0253d2340d155ad0b6cbedf71bdc03",
+      "kind": "original-draft-diagnostic-revision",
+      "originalStatus": "invalid",
+      "originalDiagnostics": [
+        {
+          "path": "markdown",
+          "message": "Retain this public current fact: At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has no object change_document grant. Owner presence is unspecified: it may be absent or owned by a different user."
+        },
+        {
+          "path": "markdown",
+          "message": "Retain this public current fact: At handler entry, the caller has global add_note, view_document and change_document permissions and an object view grant, is not the document owner, and has an object change_document grant. Owner presence is unspecified: it may be absent or owned by a different user."
+        }
+      ],
+      "exactRequiredMatch": [
+        false,
+        false
+      ],
+      "spellingOnlyComparison": [
+        true,
+        true
+      ],
+      "snippets": [
+        "- At handler entry, the caller has global `add_note`, `view_document`, and `change_document` permissions.",
+        "- **Relation:** `not-owner-view-only`",
+        "- **Expected policy result:** **Deny**",
+        "At handler entry, the caller has global `add_note`, `view_document`, and `change_document` permissions and an object view grant, is not the document owner, and has no object `change_document` grant. Owner presence is unspecified: it may be absent or owned by a different user.",
+        "- **Relation:** `not-owner-change-granted`",
+        "- **Expected policy result:** **Allow**",
+        "At handler entry, the caller has global `add_note`, `view_document`, and `change_document` permissions and an object view grant, is not the document owner, and has an object `change_document` grant. Owner presence is unspecified: it may be absent or owned by a different user."
+      ],
+      "newReviewScope": "Named actor/negation/permission/premise facts only; no wholesale AN rescoring",
+      "semanticReview": {
+        "reviewer": "development-agent",
+        "judgment": "The named denial and permission/owner premises preserve the current requirement; exact lowercase or comma placement is not a semantic acceptance criterion.",
+        "fullArtifactEquivalent": "unreviewed"
+      },
+      "changedRow": {
+        "status": "author-dependency-blocked",
+        "calls": 0
+      },
+      "derivedConsumption": "Historical blocked rows remain unexecuted; no successful outcome is imputed"
+    }
+  ],
+  "oldGetSharedMemoClassification": {
+    "normativeField": "Policy includes no authentication, exact memo token scope, and NOT_FOUND on inaccessible/invalid/expired shares",
+    "provenance": "The old task author wrote source-derived behavior into a normative field; source-only conditions and uncertainty were already organized before analysis",
+    "rawOriginal": "quality/q12/sessions/20260929T191405679Z-b203adc1/run.json",
+    "actualBehaviorEvidence": "Source must be read during the new behavior inquiry",
+    "oracle": "Historical evaluator stays separate; its expectations are never transferred into new briefs",
+    "newBrief": "inputs/memos-share.json supplies a behavior question only, without that policy or an expected outcome"
+  }
+}

@@ -160,6 +160,7 @@ export function authorizationCliHelp(): string {
     "skvm authorization — bounded source-visible authorization assessment",
     "",
     "Commands:",
+    "  inquiry init/check/run/inspect/edit/compare --help (natural behavior or independent-policy conformance; M|D0|D1)",
     "  locate --root=<project> --file=<relative-path> --match=<literal-text> [--limit=20]",
     "  init --out=<assessment.json> [--from=<authoring.json> | --format=authoring-v2 | --context=<context.json> [--task=<task-authoring.json> [--field-origin=user-explicit|model-authored]]]",
     "  compose --workspace=<workspace.json> --out=<new-directory> [--check-only]",
@@ -191,6 +192,10 @@ export async function runAuthorizationCli(
     return 0
   }
   try {
+    if (argv[0] === "inquiry") {
+      const { runAuthorizationInquiryCli } = await import("./authorization-inquiry.ts")
+      return await runAuthorizationInquiryCli(argv.slice(1), dependencies)
+    }
     if (argv[0] === "locate") {
       const options = parseOptions(argv.slice(1), new Set(["root", "file", "match", "limit"]))
       for (const name of ["root", "file", "match"]) {

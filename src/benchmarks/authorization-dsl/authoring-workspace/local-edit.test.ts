@@ -19,6 +19,24 @@ function base(): AuthorizationAuthoringInputV2 {
   }
 }
 
+test("request edit changes the effective question only and marks every scenario for review", () => {
+  const original = base(), before = structuredClone(original)
+  const result = applyAuthorizationLocalEdit(original, { schemaVersion: "authorization-local-edit/v1", reason: "Revised question", operations: [
+    { kind: "request", statement: "Can a member update their own record?" },
+  ] })
+  expect(result.status).toBe("ready")
+  expect(result.value?.request).toBe("Can a member update their own record?")
+  expect(result.value?.policies).toEqual(original.policies)
+  expect(result.value?.analysisContract).toEqual(original.analysisContract)
+  expect(result.changedPaths).toEqual(["request"])
+  expect(result.affectedScenarios).toEqual(["outsider", "owner"])
+  expect(original).toEqual(before)
+  const duplicate = applyAuthorizationLocalEdit(original, { schemaVersion: "authorization-local-edit/v1", reason: "Duplicate", operations: [
+    { kind: "request", statement: "First question" }, { kind: "request", statement: "Second question" },
+  ] })
+  expect(duplicate.diagnostics.some(item => item.code === "duplicate-local-edit")).toBe(true)
+})
+
 test("policy text needs expectation acknowledgment for every referencing scenario", () => {
   const original = base()
   const missing = applyAuthorizationLocalEdit(original, { schemaVersion: "authorization-local-edit/v1", reason: "Policy changed", operations: [

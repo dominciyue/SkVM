@@ -1,12 +1,12 @@
 # Skill IR 当前状态
 
-更新于 2026-09-30。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；历史任务书保存当时的执行记录。
+更新于 2026-10-01。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；历史任务书保存当时的执行记录。
 
 ## 当前方向与任务
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-**当前队列（2026-09-30）：** 用户已授权[AO0–AO16 真实授权任务、领域 DSL 与有界取证工具](../superpowers/plans/2026-09-30-authorization-inquiry-and-evidence-tools.md)，开发线程配置为`gpt-6.1-sol / max`，规划状态`planned-not-started`，基线`cdcbb744`。在同一`skill-ir-aot`连续完成评价校准、行为调查/政策检查区分、分析中只读补证、自然作者和两个源skill实际接入；AO0建立执行状态。研究与设计见[§7.34](skill-dsl-research.md#734-ao-真实授权任务与领域取证工具)。
+**当前队列（2026-10-01）：** [AO0–AO16 真实授权任务、领域 DSL 与有界取证工具](../superpowers/plans/2026-09-30-authorization-inquiry-and-evidence-tools.md)已从干净`aea87139`启动，开发线程为`gpt-6.1-sol / max`。行为/政策 inquiry、同次分析只读补证、自然作者与普通bare-agent opt-in接线已实现并通过聚焦模拟；当前完善归档与文档、固定生成前工程身份。已取得两源skill原件及四目标固定ref原始源码，登记32质量、8作者稿、至多8消费与8来源skill行；36输入/方法组合零provider预检通过，真实模型调用仍为0，尚无新质量结论。恢复从[AO机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/status.json)和任务书继续，不重发已claim行。方法见[§7.34](skill-dsl-research.md#734-ao-真实授权任务与领域取证工具)。
 
 **当前用户要求（2026-09-30）：** 质量约60%、编写复用约40%只表示开发精力分配，项目要求与评价不按该比例划分。保留真实任务难度，明确规范要求与待查源码行为，禁止预供答案；DSL语义、编译器、脚手架及工具支持按共性缺口继续完善。新分析循环显式启用，旧fixed-context路径保持。
 
