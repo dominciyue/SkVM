@@ -3,6 +3,21 @@ import { mkdtemp, mkdir, writeFile, readFile } from "node:fs/promises"
 import path from "node:path"
 import os from "node:os"
 import { createNativeInquiryRuntime } from "./inquiry-native.ts"
+import { AuthorizationInquirySchema } from "../../task-dsl/authorization/inquiry.ts"
+test("ordinary skill receives the current declaration and independent policy from its input", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "ao-native-policy-")); await mkdir(path.join(root, "source"))
+  await writeFile(path.join(root, "source/entry.ts"), "export function entry() { return false; }\n")
+  const inputFile = path.join(root, "input.json")
+  const policy = { text: "Only the addressed document's reviewer may approve it.", origin: "user", location: "current-policy/v2" }
+  const brief = "Can an ordinary member approve another member's document?"
+  await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "current", repository: "synthetic", sourceRef: "fixed", sourceRoot: "source", allowedPaths: ["."], mode: "conformance", policy, brief }))
+  const natural = await createNativeInquiryRuntime({ inputFile, workDir: root, domainTools: true })
+  expect(natural.system).toContain(JSON.stringify({ brief, mode: "conformance", policy }))
+  const inquiry = { schemaVersion: "authorization-inquiry/v1", mode: "conformance", policy, questions: [{ id: "review", request: brief, premises: [] }] }
+  await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "current", repository: "synthetic", sourceRef: "fixed", sourceRoot: "source", allowedPaths: ["."], inquiry }))
+  const declared = await createNativeInquiryRuntime({ inputFile, workDir: root, domainTools: false })
+  expect(declared.system).toContain(JSON.stringify({ inquiry: AuthorizationInquirySchema.parse(inquiry) }))
+})
 test("ordinary skill runtime restricts common tools and actually executes domain checks", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "ao-native-")); await mkdir(path.join(root, "source"))
   await writeFile(path.join(root, "source/entry.ts"), "export function entry() { return false; }\n")
