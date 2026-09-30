@@ -1,0 +1,32 @@
+{
+  "sampleId": "sample-1d9fe49f",
+  "packetSha256": "3c57bbe88d08ecf37742d1b3cbc33c1109b95a89833369d0a9ac84fd6698037b",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "correct",
+    "unknowns": "appropriate",
+    "policy": "not-applicable"
+  },
+  "issues": [],
+  "sourceSupport": [
+    {
+      "path": "src/documents/views.py",
+      "line": 1021,
+      "detail": "DocumentViewSet uses IsAuthenticated and PaperlessObjectPermissions."
+    },
+    {
+      "path": "src/documents/versioning.py",
+      "line": 23,
+      "detail": "Version ordering is newest-first by version_index, supporting latest-version resolution."
+    },
+    {
+      "path": "src/documents/permissions.py",
+      "line": 624,
+      "detail": "Owner-aware authorization is distinct from later file/version selection."
+    }
+  ],
+  "rationale": "The candidate correctly binds authorization to root_doc and treats version/original/archive choices as resource selection inside the authorized family. It does not convert unspecified deployment facts into certainty."
+}

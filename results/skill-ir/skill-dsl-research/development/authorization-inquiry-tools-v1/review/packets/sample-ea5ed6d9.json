@@ -1,0 +1,84 @@
+{
+  "sampleId": "sample-ea5ed6d9",
+  "kind": "author",
+  "brief": "Check DeleteSpaceMember in this Memos revision against the independently supplied current policy. May an ordinary space member remove a different member, and do visible admin and self-removal paths differ? Do not assume deployment middleware or undocumented role grants. Explain actual behavior, compare it with the policy, cite the controlling source and preserve any decisive missing facts.",
+  "mode": "conformance",
+  "policy": {
+    "text": "Only a space administrator may remove another member from that space. This policy does not prohibit a member leaving the space themselves.",
+    "origin": "user",
+    "location": "experimental-user-brief:memos-member-policy/v1"
+  },
+  "context": {
+    "repository": "usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "sourceRoot": "public-source/memos",
+    "allowedPaths": [
+      "server/api/v1",
+      "core/access",
+      "store",
+      "proto/api/v1",
+      "internal/ratelimit"
+    ]
+  },
+  "candidate": {
+    "schemaVersion": "authorization-inquiry/v1",
+    "mode": "conformance",
+    "questions": [
+      {
+        "id": "ordinary-member-removal",
+        "request": "Check DeleteSpaceMember in this Memos revision against the independently supplied current policy. Determine whether an ordinary space member may remove a different member. Explain the actual behavior, compare it with the policy, cite the controlling source, and preserve every decisive missing fact. Do not assume deployment middleware or undocumented role grants.",
+        "principal": "ordinary space member",
+        "resource": "different member of the same space",
+        "operation": "remove",
+        "entryHint": "DeleteSpaceMember",
+        "premises": [
+          {
+            "text": "The repository is usememos/memos.",
+            "origin": "user"
+          },
+          {
+            "text": "The source revision is cb42e326ba9cc266a6a9570c53e0fe04c62793f4.",
+            "origin": "user"
+          },
+          {
+            "text": "The allowed source paths are server/api/v1, core/access, store, proto/api/v1, and internal/ratelimit.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "admin-and-self-removal-paths",
+        "request": "For DeleteSpaceMember in this Memos revision, determine whether the visible administrator-removal path and the visible self-removal path differ. Explain the actual behavior, compare each path with the independently supplied current policy, cite the controlling source, and preserve every decisive missing fact. Do not assume deployment middleware or undocumented role grants.",
+        "entryHint": "DeleteSpaceMember",
+        "premises": [
+          {
+            "text": "The repository is usememos/memos.",
+            "origin": "user"
+          },
+          {
+            "text": "The source revision is cb42e326ba9cc266a6a9570c53e0fe04c62793f4.",
+            "origin": "user"
+          },
+          {
+            "text": "The allowed source paths are server/api/v1, core/access, store, proto/api/v1, and internal/ratelimit.",
+            "origin": "user"
+          }
+        ]
+      }
+    ],
+    "policy": {
+      "text": "Only a space administrator may remove another member from that space. This policy does not prohibit a member leaving the space themselves.",
+      "origin": "user",
+      "location": "experimental-user-brief:memos-member-policy/v1"
+    }
+  },
+  "evidence": [],
+  "format": "DSL",
+  "artifactSha256": "0c0e6480e67788af659d422c383ae9df58129cf7cf7d60d6cda81e2fb626de00",
+  "requirements": [
+    "other-member removal",
+    "self-removal distinction",
+    "current independently supplied policy",
+    "source-only evidence and limits"
+  ]
+}

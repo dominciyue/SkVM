@@ -1,0 +1,331 @@
+{
+  "sampleId": "sample-3e315142",
+  "kind": "analysis",
+  "brief": "Investigate GetRepoPermissions in this Gitea revision. Compare a normal authenticated caller querying their own collaborator permission with the same caller querying another user's permission; include differences for privileged callers visible in source. Explain path-specific controls, identity comparison and the repository permission result. Follow upstream code only when relevant. Do not turn this behavior question into an invented normative policy.",
+  "mode": "behavior",
+  "policy": null,
+  "context": {
+    "repository": "go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "sourceRoot": "public-source/gitea",
+    "allowedPaths": [
+      "routers/api/v1/repo",
+      "routers/api/v1/api.go",
+      "routers/api/v1/utils",
+      "modules/structs",
+      "modules/setting",
+      "modules/web",
+      "models/unit",
+      "models/perm",
+      "models/auth",
+      "models/user",
+      "models/repo",
+      "models/issues",
+      "models/organization",
+      "services/convert",
+      "services/issue",
+      "services/context"
+    ]
+  },
+  "candidate": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "get-repo-permissions",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The normal caller's own-collaborator query passes the path-specific guard when the path name matches ctx.Doer.LowerName case-insensitively, then resolves that user and returns the repository permission calculated for ctx.Repo.Repository and that user. The same caller querying another user's name is denied with HTTP 403 unless the caller is also an instance administrator or repository administrator. Authentication is a separate upstream prerequisite: an unsigned caller receives HTTP 401 from reqToken()."
+        },
+        "branches": [
+          {
+            "id": "normal-own",
+            "condition": "Signed-in caller; collaborator path matches ctx.Doer.LowerName case-insensitively; caller is not required to be privileged",
+            "disposition": "allow",
+            "explanation": "The identity-comparison branch passes. The handler resolves the named user, computes that user's permission on ctx.Repo.Repository, and returns HTTP 200 with the permission access mode.",
+            "evidenceIds": [
+              "ev-05978ff27040aa97e657",
+              "ev-2ef6ec200802a9ba7c20"
+            ]
+          },
+          {
+            "id": "normal-other",
+            "condition": "Signed-in ordinary caller; collaborator path does not match ctx.Doer.LowerName case-insensitively",
+            "disposition": "deny",
+            "explanation": "The compound guard fails when the caller is neither an instance admin nor a repository admin and the requested name is not the caller's own. The handler returns HTTP 403 before resolving the target user or computing permission.",
+            "evidenceIds": [
+              "ev-2ef6ec200802a9ba7c20"
+            ]
+          },
+          {
+            "id": "instance-admin-other",
+            "condition": "Signed-in caller with ctx.Doer.IsAdmin true; collaborator may be another user",
+            "disposition": "allow",
+            "explanation": "Instance-admin status bypasses the own-name restriction. The target user is looked up and the repository permission result is returned.",
+            "evidenceIds": [
+              "ev-2ef6ec200802a9ba7c20"
+            ]
+          },
+          {
+            "id": "repo-admin-other",
+            "condition": "Signed-in caller for whom ctx.IsUserRepoAdmin() is true; collaborator may be another user",
+            "disposition": "allow",
+            "explanation": "Repository-admin status bypasses the own-name restriction for the repository represented by ctx.Repo.Repository. The target is then resolved and its repository permission is returned.",
+            "evidenceIds": [
+              "ev-2ef6ec200802a9ba7c20"
+            ]
+          },
+          {
+            "id": "unsigned",
+            "condition": "ctx.IsSigned is false",
+            "disposition": "deny",
+            "explanation": "The route's reqToken() upstream control returns HTTP 401 before the handler runs.",
+            "evidenceIds": [
+              "ev-05978ff27040aa97e657"
+            ]
+          },
+          {
+            "id": "target-not-found",
+            "condition": "The path-specific guard passes but GetUserByName cannot resolve the collaborator",
+            "disposition": "deny",
+            "explanation": "The handler returns HTTP 404 for a missing target user; other lookup errors become an internal API error.",
+            "evidenceIds": [
+              "ev-2ef6ec200802a9ba7c20"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-3285ce58433180bb551f",
+          "ev-7c0146a501b98df9c24d",
+          "ev-05978ff27040aa97e657",
+          "ev-2ef6ec200802a9ba7c20"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The internal implementation of ctx.IsUserRepoAdmin() was not read, so the exact repository-admin predicate, including owner/organization/team or other role details, is not established here.",
+            "nextRead": "Read the definition of IsUserRepoAdmin in the allowed services/context or other allowed source path where it is defined."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The internal implementation of GetIndividualUserRepoPermission was not read, so the detailed precedence and sources of repository permission (for example direct collaboration, organization membership, teams, ownership, or visibility) are not established here.",
+            "nextRead": "Read the definition of GetIndividualUserRepoPermission in the allowed models/perm or related allowed source path."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The internal implementation of ToUserAndPermission was not read, so the exact response fields beyond the use of permission.AccessMode are not established here.",
+            "nextRead": "Read the definition of ToUserAndPermission in the allowed services/convert path."
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "This is a behavior inquiry with no normative policy expectation. The source-visible behavior and branches are established above; no policy-compliance conclusion is made."
+        }
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "get-repo-permissions",
+        "kind": "entry",
+        "subject": "GetRepoPermissions entry and route",
+        "claim": "The GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission route dispatches to GetRepoPermissions inside a /collaborators group protected by reqToken().",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3285ce58433180bb551f",
+          "ev-7c0146a501b98df9c24d"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions",
+        "kind": "principal-binding",
+        "subject": "Authenticated caller binding",
+        "claim": "The route requires a signed-in context: reqToken() allows ctx.IsSigned and otherwise returns 401; the handler then uses ctx.Doer for the caller identity checks.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-05978ff27040aa97e657"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions",
+        "kind": "resource-binding",
+        "subject": "Target collaborator and repository",
+        "claim": "The handler selects the target user from the collaborator path parameter and computes permission for ctx.Repo.Repository and that resolved collaborator user.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-2ef6ec200802a9ba7c20"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions",
+        "kind": "guard",
+        "subject": "Path-specific identity guard",
+        "claim": "Before resolving the target user, the handler permits the request only when the caller is an instance admin, the requested collaborator name matches ctx.Doer.LowerName case-insensitively, or ctx.IsUserRepoAdmin() is true; otherwise it returns 403.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-2ef6ec200802a9ba7c20"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions",
+        "kind": "effect",
+        "subject": "Permission result response",
+        "claim": "After the guard and user lookup, the handler calls GetIndividualUserRepoPermission for the repository and target user, then returns HTTP 200 with ToUserAndPermission using permission.AccessMode.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-2ef6ec200802a9ba7c20"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions",
+        "kind": "exception",
+        "subject": "Privileged caller branches",
+        "claim": "Instance admins can query any collaborator; repository admins can query any collaborator in the repository; ordinary callers can query only a case-insensitive name match to their own lower-cased Doer name.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-2ef6ec200802a9ba7c20"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions",
+        "kind": "entry",
+        "subject": "GetRepoPermissions entry and route",
+        "claim": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission is registered inside the /collaborators route group and dispatches to GetRepoPermissions. The surrounding group applies reqToken().",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3285ce58433180bb551f",
+          "ev-7c0146a501b98df9c24d"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions",
+        "kind": "principal-binding",
+        "subject": "Authenticated caller binding",
+        "claim": "The path requires a signed-in context: reqToken() permits execution when ctx.IsSigned is true and otherwise returns HTTP 401. The handler uses ctx.Doer for caller-side identity and instance-admin checks.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-05978ff27040aa97e657",
+          "ev-2ef6ec200802a9ba7c20"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions",
+        "kind": "resource-binding",
+        "subject": "Repository and collaborator selection",
+        "claim": "The target user is selected from the collaborator path parameter and resolved with GetUserByName. The permission lookup is then performed for ctx.Repo.Repository and that resolved collaborator user.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-2ef6ec200802a9ba7c20"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions",
+        "kind": "guard",
+        "subject": "Path-specific authorization guard",
+        "claim": "Before target-user lookup, access is allowed only if at least one condition holds: ctx.Doer.IsAdmin; the collaborator path name equals ctx.Doer.LowerName under strings.EqualFold; or ctx.IsUserRepoAdmin() is true. If none holds, the handler returns HTTP 403 and does not perform the user lookup or permission lookup.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-2ef6ec200802a9ba7c20"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions",
+        "kind": "effect",
+        "subject": "Repository permission result",
+        "claim": "For an authorized request with a resolvable collaborator, the handler calls GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator), then returns HTTP 200 through ToUserAndPermission with permission.AccessMode. The source read establishes the returned access-mode value but does not establish the internal algorithm or complete set of possible permission modes.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-2ef6ec200802a9ba7c20"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions",
+        "kind": "exception",
+        "subject": "Privileged and identity branches",
+        "claim": "An ordinary authenticated caller may query only the collaborator identity matching that caller's ctx.Doer.LowerName, case-insensitively. An instance administrator may query any named collaborator. A repository administrator, as determined by ctx.IsUserRepoAdmin(), may query any named collaborator for the current repository.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-2ef6ec200802a9ba7c20"
+        ]
+      }
+    ],
+    "scope": "go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b1; GetRepoPermissions and its registered API route, including source-visible authentication, identity, repository-admin, and permission-result controls. No all-repository coverage claimed."
+  },
+  "evidence": [
+    {
+      "id": "ev-7c0146a501b98df9c24d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1370,
+      "endLine": 1370,
+      "text": "1370 | \t\t\t\t\t\tm.Get(\"/permission\", repo.GetRepoPermissions)\n",
+      "bytes": 59
+    },
+    {
+      "id": "ev-e294e0511838d6709a3f",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 248,
+      "endLine": 248,
+      "text": "248 | func GetRepoPermissions(ctx *context.APIContext) {\n",
+      "bytes": 57
+    },
+    {
+      "id": "ev-3285ce58433180bb551f",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1330,
+      "endLine": 1390,
+      "text": "1330 | \t\t\t\taddActionsRoutes(m, reqRepoReader(unit.TypeActions), reqOwner(), repo.NewAction())\n1331 | \n1332 | \t\t\t\tm.Group(\"/actions/workflows\", func() {\n1333 | \t\t\t\t\tm.Get(\"\", repo.ActionsListRepositoryWorkflows)\n1334 | \t\t\t\t\tm.Get(\"/{workflow_id}\", repo.ActionsGetWorkflow)\n1335 | \t\t\t\t\tm.Get(\"/{workflow_id}/runs\", repo.ActionsListWorkflowRuns)\n1336 | \t\t\t\t\tm.Put(\"/{workflow_id}/disable\", reqRepoWriter(unit.TypeActions), repo.ActionsDisableWorkflow)\n1337 | \t\t\t\t\tm.Put(\"/{workflow_id}/enable\", reqRepoWriter(unit.TypeActions), repo.ActionsEnableWorkflow)\n1338 | \t\t\t\t\tm.Post(\"/{workflow_id}/dispatches\", reqRepoWriter(unit.TypeActions), bind(api.CreateActionWorkflowDispatch{}), repo.ActionsDispatchWorkflow)\n1339 | \t\t\t\t}, context.ReferencesGitRepo(), reqToken(), reqRepoReader(unit.TypeActions))\n1340 | \n1341 | \t\t\t\tm.Group(\"/actions/jobs\", func() {\n1342 | \t\t\t\t\tm.Get(\"/{job_id}\", repo.GetWorkflowJob)\n1343 | \t\t\t\t\tm.Get(\"/{job_id}/logs\", repo.DownloadActionsRunJobLogs)\n1344 | \t\t\t\t}, reqToken(), reqRepoReader(unit.TypeActions))\n1345 | \n1346 | \t\t\t\tm.Group(\"/hooks/git\", func() {\n1347 | \t\t\t\t\tm.Combo(\"\").Get(repo.ListGitHooks)\n1348 | \t\t\t\t\tm.Group(\"/{id}\", func() {\n1349 | \t\t\t\t\t\tm.Combo(\"\").Get(repo.GetGitHook).\n1350 | \t\t\t\t\t\t\tPatch(bind(api.EditGitHookOption{}), repo.EditGitHook).\n1351 | \t\t\t\t\t\t\tDelete(repo.DeleteGitHook)\n1352 | \t\t\t\t\t})\n1353 | \t\t\t\t}, reqToken(), reqAdmin(), reqGitHook(), context.ReferencesGitRepo(true))\n1354 | \t\t\t\tm.Group(\"/hooks\", func() {\n1355 | \t\t\t\t\tm.Combo(\"\").Get(repo.ListHooks).\n1356 | \t\t\t\t\t\tPost(bind(api.CreateHookOption{}), repo.CreateHook)\n1357 | \t\t\t\t\tm.Group(\"/{id}\", func() {\n1358 | \t\t\t\t\t\tm.Combo(\"\").Get(repo.GetHook).\n1359 | \t\t\t\t\t\t\tPatch(bind(api.EditHookOption{}), repo.EditHook).\n1360 | \t\t\t\t\t\t\tDelete(repo.DeleteHook)\n1361 | \t\t\t\t\t\tm.Post(\"/tests\", context.ReferencesGitRepo(), context.RepoRefForAPI, repo.TestHook)\n1362 | \t\t\t\t\t})\n1363 | \t\t\t\t}, reqToken(), reqAdmin(), reqWebhooksEnabled())\n1364 | \t\t\t\tm.Group(\"/collaborators\", func() {\n1365 | \t\t\t\t\tm.Get(\"\", reqAnyRepoReader(), repo.ListCollaborators)\n1366 | \t\t\t\t\tm.Group(\"/{collaborator}\", func() {\n1367 | \t\t\t\t\t\tm.Combo(\"\").Get(reqAnyRepoReader(), repo.IsCollaborator).\n1368 | \t\t\t\t\t\t\tPut(reqAdmin(), bind(api.AddCollaboratorOption{}), repo.AddOrUpdateCollaborator).\n1369 | \t\t\t\t\t\t\tDelete(reqAdmin(), repo.DeleteCollaborator)\n1370 | \t\t\t\t\t\tm.Get(\"/permission\", repo.GetRepoPermissions)\n1371 | \t\t\t\t\t})\n1372 | \t\t\t\t}, reqToken())\n1373 | \t\t\t\tm.Get(\"/assignees\", reqToken(), reqAnyRepoReader(), repo.GetAssignees)\n1374 | \t\t\t\tm.Get(\"/assignees/{assignee}\", reqToken(), reqAnyRepoReader(), repo.CheckRepoIssueAssignee)\n1375 | \t\t\t\tm.Get(\"/reviewers\", reqToken(), reqAnyRepoReader(), repo.GetReviewers)\n1376 | \t\t\t\tm.Group(\"/teams\", func() {\n1377 | \t\t\t\t\tm.Get(\"\", reqAnyRepoReader(), repo.ListTeams)\n1378 | \t\t\t\t\tm.Combo(\"/{team}\").Get(reqAnyRepoReader(), repo.IsTeam).\n1379 | \t\t\t\t\t\tPut(reqAdmin(), repo.AddTeam).\n1380 | \t\t\t\t\t\tDelete(reqAdmin(), repo.DeleteTeam)\n1381 | \t\t\t\t}, reqToken())\n1382 | \t\t\t\tm.Get(\"/raw/*\", context.ReferencesGitRepo(), context.RepoRefForAPI, reqRepoReader(unit.TypeCode), repo.GetRawFile)\n1383 | \t\t\t\tm.Get(\"/media/*\", context.ReferencesGitRepo(), context.RepoRefForAPI, reqRepoReader(unit.TypeCode), repo.GetRawFileOrLFS)\n1384 | \t\t\t\tm.Methods(\"HEAD,GET\", \"/archive/*\", reqRepoReader(unit.TypeCode), context.ReferencesGitRepo(true), repo.GetArchive)\n1385 | \t\t\t\tm.Combo(\"/forks\").Get(repo.ListForks).\n1386 | \t\t\t\t\tPost(reqToken(), reqRepoReader(unit.TypeCode), bind(api.CreateForkOption{}), repo.CreateFork)\n1387 | \t\t\t\tm.Post(\"/merge-upstream\", reqToken(), mustNotBeArchived, reqRepoWriter(unit.TypeCode), bind(api.MergeUpstreamRequest{}), repo.MergeUpstream)\n1388 | \t\t\t\tm.Group(\"/branches\", func() {\n1389 | \t\t\t\t\tm.Get(\"\", repo.ListBranches)\n1390 | \t\t\t\t\tm.Get(\"/*\", repo.GetBranch)\n",
+      "bytes": 3775
+    },
+    {
+      "id": "ev-2ef6ec200802a9ba7c20",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 220,
+      "endLine": 310,
+      "text": "220 | \t//   type: string\n221 | \t//   required: true\n222 | \t// responses:\n223 | \t//   \"204\":\n224 | \t//     \"$ref\": \"#/responses/empty\"\n225 | \t//   \"404\":\n226 | \t//     \"$ref\": \"#/responses/notFound\"\n227 | \t//   \"422\":\n228 | \t//     \"$ref\": \"#/responses/validationError\"\n229 | \n230 | \tcollaborator, err := user_model.GetUserByName(ctx, ctx.PathParam(\"collaborator\"))\n231 | \tif err != nil {\n232 | \t\tif user_model.IsErrUserNotExist(err) {\n233 | \t\t\tctx.APIError(http.StatusUnprocessableEntity, err.Error())\n234 | \t\t} else {\n235 | \t\t\tctx.APIErrorInternal(err)\n236 | \t\t}\n237 | \t\treturn\n238 | \t}\n239 | \n240 | \tif err := repo_service.DeleteCollaboration(ctx, ctx.Repo.Repository, collaborator); err != nil {\n241 | \t\tctx.APIErrorInternal(err)\n242 | \t\treturn\n243 | \t}\n244 | \tctx.Status(http.StatusNoContent)\n245 | }\n246 | \n247 | // GetRepoPermissions gets repository permissions for a user\n248 | func GetRepoPermissions(ctx *context.APIContext) {\n249 | \t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions\n250 | \t// ---\n251 | \t// summary: Get repository permissions for a user\n252 | \t// produces:\n253 | \t// - application/json\n254 | \t// parameters:\n255 | \t// - name: owner\n256 | \t//   in: path\n257 | \t//   description: owner of the repo\n258 | \t//   type: string\n259 | \t//   required: true\n260 | \t// - name: repo\n261 | \t//   in: path\n262 | \t//   description: name of the repo\n263 | \t//   type: string\n264 | \t//   required: true\n265 | \t// - name: collaborator\n266 | \t//   in: path\n267 | \t//   description: username of the collaborator whose permissions are to be obtained\n268 | \t//   type: string\n269 | \t//   required: true\n270 | \t// responses:\n271 | \t//   \"200\":\n272 | \t//     \"$ref\": \"#/responses/RepoCollaboratorPermission\"\n273 | \t//   \"404\":\n274 | \t//     \"$ref\": \"#/responses/notFound\"\n275 | \t//   \"403\":\n276 | \t//     \"$ref\": \"#/responses/forbidden\"\n277 | \n278 | \tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n279 | \tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n280 | \t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n281 | \t\treturn\n282 | \t}\n283 | \n284 | \tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n285 | \tif err != nil {\n286 | \t\tif user_model.IsErrUserNotExist(err) {\n287 | \t\t\tctx.APIError(http.StatusNotFound, err.Error())\n288 | \t\t} else {\n289 | \t\t\tctx.APIErrorInternal(err)\n290 | \t\t}\n291 | \t\treturn\n292 | \t}\n293 | \n294 | \tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n295 | \tif err != nil {\n296 | \t\tctx.APIErrorInternal(err)\n297 | \t\treturn\n298 | \t}\n299 | \n300 | \tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))\n301 | }\n302 | \n303 | // GetReviewers return all users that can be requested to review in this repo\n304 | func GetReviewers(ctx *context.APIContext) {\n305 | \t// swagger:operation GET /repos/{owner}/{repo}/reviewers repository repoGetReviewers\n306 | \t// ---\n307 | \t// summary: Return all users that can be requested to review in this repo\n308 | \t// produces:\n309 | \t// - application/json\n310 | \t// parameters:\n",
+      "bytes": 3323
+    },
+    {
+      "id": "ev-40479f5cece22d0784a0",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1100,
+      "endLine": 1160,
+      "text": "1100 | \t\t\tm.Get(\"/licenses\", misc.ListLicenseTemplates)\n1101 | \t\t\tm.Get(\"/licenses/{name}\", misc.GetLicenseTemplateInfo)\n1102 | \t\t\tm.Get(\"/label/templates\", misc.ListLabelTemplates)\n1103 | \t\t\tm.Get(\"/label/templates/{name}\", misc.GetLabelTemplate)\n1104 | \n1105 | \t\t\tm.Group(\"/settings\", func() {\n1106 | \t\t\t\tm.Get(\"/ui\", settings.GetGeneralUISettings)\n1107 | \t\t\t\tm.Get(\"/api\", settings.GetGeneralAPISettings)\n1108 | \t\t\t\tm.Get(\"/attachment\", settings.GetGeneralAttachmentSettings)\n1109 | \t\t\t\tm.Get(\"/repository\", settings.GetGeneralRepoSettings)\n1110 | \t\t\t})\n1111 | \t\t})\n1112 | \n1113 | \t\t// Token introspection and deletion endpoint\n1114 | \t\tm.Combo(\"/token\").\n1115 | \t\t\tGet(reqToken(), token.GetCurrentToken).\n1116 | \t\t\tDelete(reqToken(), token.DeleteCurrentToken)\n1117 | \n1118 | \t\t// Notifications (requires 'notifications' scope)\n1119 | \t\t// The notifications API is not available for public-only tokens because a user's notifications mix\n1120 | \t\t// public and private repository events in the same mailbox.\n1121 | \t\tm.Group(\"/notifications\", func() {\n1122 | \t\t\tm.Combo(\"\").\n1123 | \t\t\t\tGet(reqToken(), notify.ListNotifications).\n1124 | \t\t\t\tPut(reqToken(), notify.ReadNotifications)\n1125 | \t\t\tm.Get(\"/new\", reqToken(), notify.NewAvailable)\n1126 | \t\t\tm.Combo(\"/threads/{id}\").\n1127 | \t\t\t\tGet(reqToken(), notify.GetThread).\n1128 | \t\t\t\tPatch(reqToken(), notify.ReadThread)\n1129 | \t\t}, tokenRequiresScopes(auth_model.AccessTokenScopeCategoryNotification), rejectPublicOnly())\n1130 | \n1131 | \t\t// Users (requires user scope)\n1132 | \t\tm.Group(\"/users\", func() {\n1133 | \t\t\tm.Get(\"/search\", reqExploreSignIn(), reqUsersExploreEnabled(), user.Search)\n1134 | \n1135 | \t\t\tm.Group(\"/{username}\", func() {\n1136 | \t\t\t\tm.Get(\"\", reqExploreSignIn(), user.GetInfo)\n1137 | \n1138 | \t\t\t\tif setting.Service.EnableUserHeatmap {\n1139 | \t\t\t\t\tm.Get(\"/heatmap\", user.GetUserHeatmapData)\n1140 | \t\t\t\t}\n1141 | \n1142 | \t\t\t\tm.Get(\"/repos\", tokenRequiresScopes(auth_model.AccessTokenScopeCategoryRepository), reqExploreSignIn(), user.ListUserRepos)\n1143 | \t\t\t\tm.Get(\"/projects\", tokenRequiresScopes(auth_model.AccessTokenScopeCategoryIssue), reqExploreSignIn(),\n1144 | \t\t\t\t\treqProjectsUnitAccess(perm.AccessModeRead), shared.ListProjects)\n1145 | \t\t\t\tm.Group(\"/tokens\", func() {\n1146 | \t\t\t\t\tm.Combo(\"\").Get(user.ListAccessTokens).\n1147 | \t\t\t\t\t\tPost(bind(api.CreateAccessTokenOption{}), reqToken(), user.CreateAccessToken)\n1148 | \t\t\t\t\tm.Combo(\"/{id}\").Delete(reqToken(), user.DeleteAccessToken)\n1149 | \t\t\t\t}, reqSelfOrAdmin(), reqBasicOrRevProxyAuth())\n1150 | \n1151 | \t\t\t\tm.Get(\"/activities/feeds\", user.ListUserActivityFeeds)\n1152 | \t\t\t}, context.UserAssignmentAPI(), checkTokenPublicOnly(), individualPermsChecker)\n1153 | \t\t}, tokenRequiresScopes(auth_model.AccessTokenScopeCategoryUser))\n1154 | \n1155 | \t\t// Users (requires user scope)\n1156 | \t\tm.Group(\"/users\", func() {\n1157 | \t\t\tm.Group(\"/{username}\", func() {\n1158 | \t\t\t\tm.Get(\"/keys\", user.ListPublicKeys)\n1159 | \t\t\t\tm.Get(\"/gpg_keys\", user.ListGPGKeys)\n1160 | \n",
+      "bytes": 2986
+    },
+    {
+      "id": "ev-3bd1ee7a849080c74cd5",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 374,
+      "endLine": 374,
+      "text": "374 | func reqToken() func(ctx *context.APIContext) {\n",
+      "bytes": 54
+    },
+    {
+      "id": "ev-05978ff27040aa97e657",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 350,
+      "endLine": 395,
+      "text": "350 | \t\t\tctx.APIError(http.StatusForbidden, \"checking scope failed: \"+err.Error())\n351 | \t\t\treturn\n352 | \t\t}\n353 | \n354 | \t\tif !allow {\n355 | \t\t\tctx.APIError(http.StatusForbidden, fmt.Sprintf(\"token does not have at least one of required scope(s), required=%v, token scope=%v\", requiredScopes, scope))\n356 | \t\t\treturn\n357 | \t\t}\n358 | \n359 | \t\tctx.Data[\"requiredScopeCategories\"] = requiredScopeCategories\n360 | \n361 | \t\t// check if scope only applies to public resources\n362 | \t\tpublicOnly, err := scope.PublicOnly()\n363 | \t\tif err != nil {\n364 | \t\t\tctx.APIError(http.StatusForbidden, \"parsing public resource scope failed: \"+err.Error())\n365 | \t\t\treturn\n366 | \t\t}\n367 | \n368 | \t\t// assign to true so that those searching should only filter public repositories/users/organizations\n369 | \t\tctx.PublicOnly = publicOnly\n370 | \t}\n371 | }\n372 | \n373 | // Contexter middleware already checks token for user sign in process.\n374 | func reqToken() func(ctx *context.APIContext) {\n375 | \treturn func(ctx *context.APIContext) {\n376 | \t\t// if a real user is signed in, or the user is from a Actions task, we are good\n377 | \t\tif ctx.IsSigned {\n378 | \t\t\treturn\n379 | \t\t}\n380 | \t\tctx.APIError(http.StatusUnauthorized, \"token is required\")\n381 | \t}\n382 | }\n383 | \n384 | func reqExploreSignIn() func(ctx *context.APIContext) {\n385 | \treturn func(ctx *context.APIContext) {\n386 | \t\tif (setting.Service.RequireSignInViewStrict || setting.Service.Explore.RequireSigninView) && !ctx.IsSigned {\n387 | \t\t\tctx.APIError(http.StatusUnauthorized, \"you must be signed in to search for users\")\n388 | \t\t}\n389 | \t}\n390 | }\n391 | \n392 | func reqUsersExploreEnabled() func(ctx *context.APIContext) {\n393 | \treturn func(ctx *context.APIContext) {\n394 | \t\tif setting.Service.Explore.DisableUsersPage {\n395 | \t\t\tctx.APIErrorNotFound()\n",
+      "bytes": 1800
+    }
+  ]
+}

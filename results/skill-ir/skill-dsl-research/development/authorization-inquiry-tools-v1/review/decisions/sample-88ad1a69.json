@@ -1,0 +1,47 @@
+{
+  "sampleId": "sample-88ad1a69",
+  "packetSha256": "f83ffd1aee12fe9d163da20c507e8aeb3823f79c33d3535abbf3a0a649c4fad0",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "correct",
+    "unknowns": "missing",
+    "policy": "not-applicable"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "It leaves IsUserRepoAdmin, remaining permission helper branches, and route context middleware unexamined; these are available and relevant."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "routers/api/v1/api.go",
+      "line": 1370,
+      "detail": "Synthetic route registration."
+    },
+    {
+      "path": "routers/api/v1/api.go",
+      "line": 374,
+      "detail": "reqToken rejects unsigned contexts."
+    },
+    {
+      "path": "routers/api/v1/repository_access/collaborators.go",
+      "line": 279,
+      "detail": "Identity/admin guard."
+    },
+    {
+      "path": "routers/api/v1/repository_access/collaborators.go",
+      "line": 294,
+      "detail": "Target permission call."
+    },
+    {
+      "path": "services/convert/user.go",
+      "line": 129,
+      "detail": "Converter signature includes target user, doer, and access mode."
+    }
+  ],
+  "rationale": "Most complete candidate for this synthetic path; residual unknowns are avoidable source omissions. Main-agent adjudication: Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+}

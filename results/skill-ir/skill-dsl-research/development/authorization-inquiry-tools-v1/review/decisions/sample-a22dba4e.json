@@ -1,0 +1,41 @@
+{
+  "sampleId": "sample-a22dba4e",
+  "packetSha256": "0234f7d64efe8ca4a77257d639b480f550bb5f589a03dee7909754b411f31e3c",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "partial",
+    "bindings": "correct",
+    "unknowns": "overstated",
+    "policy": "correct"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "The candidate marks requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator as unread source gaps even though the packet includes decisive helper evidence at server/api/v1/space_service.go:19-27, 54-55, and 632-662."
+    },
+    {
+      "kind": "other",
+      "detail": "Deployment unverified is reasonable as a deployment limit, but the source-gap unknown is avoidable and should not be presented as unresolved."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "server/api/v1/space_service.go",
+      "line": 19,
+      "detail": "requireCurrentSpaceUser fetches the current user and rejects nil user as unauthenticated."
+    },
+    {
+      "path": "server/api/v1/space_service.go",
+      "line": 632,
+      "detail": "resolveSpaceMemberResource parses the resource, resolves caller membership, normal target user, and active target membership."
+    },
+    {
+      "path": "server/api/v1/space_service.go",
+      "line": 741,
+      "detail": "The handler branches on self versus non-self and passes resolved IDs plus currentUser.ID to the store."
+    }
+  ],
+  "rationale": "Substantive behavior, branches, bindings, effects, and v1 policy comparison are correct. Evidence is only partial because the candidate unnecessarily leaves available decisive helper implementations unresolved."
+}

@@ -1,0 +1,37 @@
+{
+  "sampleId": "sample-4db2ddec",
+  "packetSha256": "b0cdcf02ddd5709615e00ee252e9d939227ebba86d58955e2a37e0ec32de6209",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "partial",
+    "unknowns": "overstated",
+    "policy": "correct"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "The claimed route-binding source gap is avoidable: allowed views.py contains UnifiedSearchViewSet(DocumentViewSet), which establishes the relevant inheritance."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "src/documents/views.py",
+      "line": 2503,
+      "detail": "UnifiedSearchViewSet inherits DocumentViewSet."
+    },
+    {
+      "path": "src/documents/permissions.py",
+      "line": 624,
+      "detail": "Owner/null-owner bypass and object-permission fallback are explicit."
+    },
+    {
+      "path": "src/documents/views.py",
+      "line": 1848,
+      "detail": "notes loads and acts on the addressed document."
+    }
+  ],
+  "rationale": "The behavioral branches and policy comparison are accurate; only the route-binding unknown is an avoidable omission of available controlling source. Main-agent adjudication: The policy-violation observation is positive commentary. Keep the avoidable inheritance gap and partial bindings."
+}

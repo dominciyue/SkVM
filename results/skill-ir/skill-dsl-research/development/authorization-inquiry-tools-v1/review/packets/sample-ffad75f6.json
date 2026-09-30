@@ -1,0 +1,288 @@
+{
+  "sampleId": "sample-ffad75f6",
+  "kind": "analysis",
+  "brief": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied. This is a labeled synthetic offline source variant, not an upstream commit or an unseen project; investigate its actual current bytes.",
+  "mode": "behavior",
+  "policy": null,
+  "context": {
+    "repository": "usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+    "sourceRoot": "source-variants/memos-deny",
+    "allowedPaths": [
+      "server/api/v1",
+      "core/access",
+      "store",
+      "proto/api/v1",
+      "internal/ratelimit"
+    ]
+  },
+  "candidate": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "deny",
+          "explanation": "In the actual current bytes, APIV1Service.GetSharedMemo immediately and unconditionally returns PermissionDenied with \"synthetic offline denial\". This decisive return occurs before the supplied share token is read or looked up, before expiration is checked, before any memo is fetched, and before reactions, attachments, conversion, or parent stripping. Therefore no supplied token—invalid, expired, or otherwise valid—binds to or returns a memo through this method, and authentication status does not alter the result. The Connect handler merely delegates to this method and converts its error."
+        },
+        "branches": [
+          {
+            "id": "q1-unconditional-entry-denial",
+            "condition": "Any call that reaches APIV1Service.GetSharedMemo, regardless of caller authentication or request.ShareToken value",
+            "disposition": "deny",
+            "explanation": "Line 173 is an unconditional return of PermissionDenied. The subsequent share-resolution code is unreachable in these bytes. The visible transport wrapper adds no token or authentication exception; it delegates and converts the returned error.",
+            "evidenceIds": [
+              "ev-7e8efcac58d87f6396e8",
+              "ev-98ab406a9a116859689d"
+            ]
+          },
+          {
+            "id": "q1-invalid-token",
+            "condition": "The supplied token is invalid or absent from the memo-share store",
+            "disposition": "deny",
+            "explanation": "The request is denied before getActiveMemoShare can run, so the visible method does not reach the later intended NOT_FOUND treatment for an invalid token.",
+            "evidenceIds": [
+              "ev-7e8efcac58d87f6396e8"
+            ]
+          },
+          {
+            "id": "q1-expired-token",
+            "condition": "The supplied token identifies an expired share",
+            "disposition": "deny",
+            "explanation": "MemoShare visibly has an optional ExpiresTs field, but GetSharedMemo returns before the active-share helper or any expiration comparison. Thus expiration makes no observable difference at this entry point: the result remains PermissionDenied.",
+            "evidenceIds": [
+              "ev-7e8efcac58d87f6396e8",
+              "ev-83d57908785258282442"
+            ]
+          },
+          {
+            "id": "q1-valid-token",
+            "condition": "The supplied token would otherwise identify an active share",
+            "disposition": "deny",
+            "explanation": "Although MemoShare structurally binds a bearer UID to MemoID, the current GetSharedMemo never consumes request.ShareToken and never follows MemoID to a memo because of the first return. A valid token therefore returns no memo and authorizes no surrounding access through this method.",
+            "evidenceIds": [
+              "ev-7e8efcac58d87f6396e8",
+              "ev-83d57908785258282442"
+            ]
+          },
+          {
+            "id": "q1-unauthenticated-caller",
+            "condition": "Caller is unauthenticated and the call reaches GetSharedMemo",
+            "disposition": "deny",
+            "explanation": "There is no current-user fetch or authentication-dependent branch before the decisive denial. An unauthenticated caller obtains neither memo data nor token-specific information from this method; it receives the same PermissionDenied result as an authenticated caller.",
+            "evidenceIds": [
+              "ev-7e8efcac58d87f6396e8"
+            ]
+          },
+          {
+            "id": "q1-unreachable-intended-controls",
+            "condition": "Hypothetical execution after the unconditional return (unreachable in the actual bytes)",
+            "disposition": "conditional",
+            "explanation": "The dead code documents a token-to-resource chain: getActiveMemoShare(request.ShareToken), then Store.GetMemo by ms.MemoID. It would conceal invalid/expired shares and missing, archived, SPACE-audience, or failed read-context memos as NOT_FOUND; successful conversion would include reactions and attachments and clear Parent so the token did not expose surrounding conversation/relation context. These are visible but non-executing controls and exceptions, not current successful behavior.",
+            "evidenceIds": [
+              "ev-7e8efcac58d87f6396e8",
+              "ev-d3d7e25ee50206edf1da"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-7e8efcac58d87f6396e8",
+          "ev-98ab406a9a116859689d",
+          "ev-83d57908785258282442",
+          "ev-d3d7e25ee50206edf1da"
+        ],
+        "missing": [
+          {
+            "kind": "deployment-unverified",
+            "detail": "Whether a deployed router, proxy, interceptor, or rate limiter permits a particular request to reach this handler was not established. This does not change the source-level result once APIV1Service.GetSharedMemo is entered."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The body of getActiveMemoShare, including its exact expiration comparison, was not read because the unconditional return decisively prevents it from executing in the investigated method.",
+            "nextRead": "server/api/v1/memo_share_service.go:216-245"
+          }
+        ]
+      }
+    ],
+    "observations": [],
+    "scope": "Source-visible behavior of GetSharedMemo in allowed source for usememos/memos@cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny; analysis is limited to the inspected entry point and visible delegate, not all-repository or deployed behavior."
+  },
+  "evidence": [
+    {
+      "id": "ev-252378213ae173bafecb",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "server/api/v1/memo_share_service.go",
+      "sha256": "15a8dd9ebd54c273179214ffe25fc2d1522a90e32ef1690c1e6118d338f92e7c",
+      "startLine": 135,
+      "endLine": 135,
+      "text": "135 | \t// name format: memos/{memoUID}/shares/{shareToken}\n",
+      "bytes": 59
+    },
+    {
+      "id": "ev-66fce98d5f0b1c05ec8c",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "server/api/v1/memo_share_service.go",
+      "sha256": "15a8dd9ebd54c273179214ffe25fc2d1522a90e32ef1690c1e6118d338f92e7c",
+      "startLine": 140,
+      "endLine": 140,
+      "text": "140 | \tmemoUID, shareToken := tokens[0], tokens[1]\n",
+      "bytes": 51
+    },
+    {
+      "id": "ev-7d1138a0b4e0b2f144d7",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "server/api/v1/memo_share_service.go",
+      "sha256": "15a8dd9ebd54c273179214ffe25fc2d1522a90e32ef1690c1e6118d338f92e7c",
+      "startLine": 152,
+      "endLine": 152,
+      "text": "152 | \tms, err := s.Store.GetMemoShare(ctx, &store.FindMemoShare{UID: &shareToken})\n",
+      "bytes": 84
+    },
+    {
+      "id": "ev-402bd1992c30b52fd037",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "server/api/v1/memo_share_service.go",
+      "sha256": "15a8dd9ebd54c273179214ffe25fc2d1522a90e32ef1690c1e6118d338f92e7c",
+      "startLine": 161,
+      "endLine": 161,
+      "text": "161 | \t\tUID:    &shareToken,\n",
+      "bytes": 29
+    },
+    {
+      "id": "ev-8ad257680b942118a1d2",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "server/api/v1/memo_share_service.go",
+      "sha256": "15a8dd9ebd54c273179214ffe25fc2d1522a90e32ef1690c1e6118d338f92e7c",
+      "startLine": 234,
+      "endLine": 234,
+      "text": "234 | // name format: memos/{memoUID}/shares/{shareToken}.\n",
+      "bytes": 59
+    },
+    {
+      "id": "ev-bbba0f2e2a5779f4a11b",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "server/api/v1/memo_share_service.go",
+      "sha256": "15a8dd9ebd54c273179214ffe25fc2d1522a90e32ef1690c1e6118d338f92e7c",
+      "startLine": 174,
+      "endLine": 174,
+      "text": "174 | \tms, err := s.getActiveMemoShare(ctx, request.ShareToken)\n",
+      "bytes": 64
+    },
+    {
+      "id": "ev-7e8efcac58d87f6396e8",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "server/api/v1/memo_share_service.go",
+      "sha256": "15a8dd9ebd54c273179214ffe25fc2d1522a90e32ef1690c1e6118d338f92e7c",
+      "startLine": 120,
+      "endLine": 215,
+      "text": "120 | \t}\n121 | \treturn response, nil\n122 | }\n123 | \n124 | // DeleteMemoShare revokes a share link.\n125 | // Only the memo's creator may call this.\n126 | func (s *APIV1Service) DeleteMemoShare(ctx context.Context, request *v1pb.DeleteMemoShareRequest) (*emptypb.Empty, error) {\n127 | \tuser, err := s.fetchCurrentUser(ctx)\n128 | \tif err != nil {\n129 | \t\treturn nil, status.Errorf(codes.Internal, \"failed to get user\")\n130 | \t}\n131 | \tif user == nil {\n132 | \t\treturn nil, status.Errorf(codes.Unauthenticated, \"user not authenticated\")\n133 | \t}\n134 | \n135 | \t// name format: memos/{memoUID}/shares/{shareToken}\n136 | \ttokens, err := GetNameParentTokens(request.Name, MemoNamePrefix, MemoShareNamePrefix)\n137 | \tif err != nil {\n138 | \t\treturn nil, status.Errorf(codes.InvalidArgument, \"invalid share name: %v\", err)\n139 | \t}\n140 | \tmemoUID, shareToken := tokens[0], tokens[1]\n141 | \n142 | \tmemo, err := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})\n143 | \tif err != nil {\n144 | \t\treturn nil, status.Errorf(codes.Internal, \"failed to get memo\")\n145 | \t}\n146 | \tif memo == nil {\n147 | \t\treturn nil, status.Errorf(codes.NotFound, \"memo not found\")\n148 | \t}\n149 | \tif !access.CanManageMemo(user, memo) {\n150 | \t\treturn nil, status.Errorf(codes.PermissionDenied, \"permission denied\")\n151 | \t}\n152 | \tms, err := s.Store.GetMemoShare(ctx, &store.FindMemoShare{UID: &shareToken})\n153 | \tif err != nil {\n154 | \t\treturn nil, status.Errorf(codes.Internal, \"failed to get memo share\")\n155 | \t}\n156 | \tif ms == nil || ms.MemoID != memo.ID {\n157 | \t\treturn nil, status.Errorf(codes.NotFound, \"memo share not found\")\n158 | \t}\n159 | \n160 | \tif err := s.Store.DeleteMemoShare(ctx, &store.DeleteMemoShare{\n161 | \t\tUID:    &shareToken,\n162 | \t\tMemoID: &memo.ID,\n163 | \t\tPolicy: memoWritePolicy(user.ID, false),\n164 | \t}); err != nil {\n165 | \t\treturn nil, mapMemoWriteError(err, \"failed to delete memo share\")\n166 | \t}\n167 | \treturn &emptypb.Empty{}, nil\n168 | }\n169 | \n170 | // GetSharedMemo resolves a share token to its memo. No authentication required.\n171 | // Returns NOT_FOUND for invalid or expired tokens (no information leakage).\n172 | func (s *APIV1Service) GetSharedMemo(ctx context.Context, request *v1pb.GetSharedMemoRequest) (*v1pb.Memo, error) {\n173 | \treturn nil, status.Error(codes.PermissionDenied, \"synthetic offline denial\")\n174 | \tms, err := s.getActiveMemoShare(ctx, request.ShareToken)\n175 | \tif err != nil {\n176 | \t\treturn nil, err\n177 | \t}\n178 | \n179 | \tmemo, err := s.Store.GetMemo(ctx, &store.FindMemo{ID: &ms.MemoID})\n180 | \tif err != nil {\n181 | \t\treturn nil, status.Errorf(codes.Internal, \"failed to get memo\")\n182 | \t}\n183 | \t// Treat archived or missing memos the same as an invalid token — no information leakage.\n184 | \tif memo == nil || memo.RowStatus != store.Normal || memo.Visibility == store.SpaceAudience {\n185 | \t\treturn nil, status.Errorf(codes.NotFound, \"not found\")\n186 | \t}\n187 | \treadContext, err := s.buildMemoReadContext(ctx, memo, &ms.MemoID)\n188 | \tif err != nil || !access.CheckMemoReadContext(readContext).Allowed() {\n189 | \t\treturn nil, status.Error(codes.NotFound, \"not found\")\n190 | \t}\n191 | \n192 | \treactions, err := s.Store.ListReactions(ctx, &store.FindReaction{\n193 | \t\tMemoID: &memo.ID,\n194 | \t})\n195 | \tif err != nil {\n196 | \t\treturn nil, status.Errorf(codes.Internal, \"failed to list reactions\")\n197 | \t}\n198 | \n199 | \tattachments, err := s.Store.ListAttachments(ctx, &store.FindAttachment{MemoID: &memo.ID})\n200 | \tif err != nil {\n201 | \t\treturn nil, status.Errorf(codes.Internal, \"failed to list attachments\")\n202 | \t}\n203 | \n204 | \tmemoMessage, err := s.convertMemoFromStore(ctx, memo, reactions, attachments, nil)\n205 | \tif err != nil {\n206 | \t\tif stderrors.Is(err, errMemoCreatorNotFound) {\n207 | \t\t\treturn nil, status.Errorf(codes.NotFound, \"not found\")\n208 | \t\t}\n209 | \t\treturn nil, errors.Wrap(err, \"failed to convert memo\")\n210 | \t}\n211 | \t// A share token grants access to this memo only, not to its surrounding\n212 | \t// conversation or relation graph.\n213 | \tmemoMessage.Parent = nil\n214 | \treturn memoMessage, nil\n215 | }\n",
+      "bytes": 4082
+    },
+    {
+      "id": "ev-98ab406a9a116859689d",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "server/api/v1/connect_services.go",
+      "sha256": "b7c43523239e74e488104e9a550b0315c09f8e93714e37b220e79d79d31631b0",
+      "startLine": 495,
+      "endLine": 515,
+      "text": "495 | \n496 | func (s *ConnectServiceHandler) DeleteMemoShare(ctx context.Context, req *connect.Request[v1pb.DeleteMemoShareRequest]) (*connect.Response[emptypb.Empty], error) {\n497 | \tresp, err := s.APIV1Service.DeleteMemoShare(ctx, req.Msg)\n498 | \tif err != nil {\n499 | \t\treturn nil, convertGRPCError(err)\n500 | \t}\n501 | \treturn connect.NewResponse(resp), nil\n502 | }\n503 | \n504 | func (s *ConnectServiceHandler) GetSharedMemo(ctx context.Context, req *connect.Request[v1pb.GetSharedMemoRequest]) (*connect.Response[v1pb.Memo], error) {\n505 | \tresp, err := s.APIV1Service.GetSharedMemo(ctx, req.Msg)\n506 | \tif err != nil {\n507 | \t\treturn nil, convertGRPCError(err)\n508 | \t}\n509 | \treturn connect.NewResponse(resp), nil\n510 | }\n511 | \n512 | func (s *ConnectServiceHandler) GetLinkMetadata(ctx context.Context, req *connect.Request[v1pb.GetLinkMetadataRequest]) (*connect.Response[v1pb.LinkMetadata], error) {\n513 | \tresp, err := s.APIV1Service.GetLinkMetadata(ctx, req.Msg)\n514 | \tif err != nil {\n515 | \t\treturn nil, convertGRPCError(err)\n",
+      "bytes": 1039
+    },
+    {
+      "id": "ev-83d57908785258282442",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "store/memo_share.go",
+      "sha256": "4513170339f2844f5cc9f9ad0153eb420e9a494e8d0eb3e74e0696000a4b6c86",
+      "startLine": 1,
+      "endLine": 79,
+      "text": "1 | package store\n2 | \n3 | import (\n4 | \t\"context\"\n5 | \t\"errors\"\n6 | )\n7 | \n8 | // MemoShare is an access grant that permits read-only access to a memo via a bearer token.\n9 | type MemoShare struct {\n10 | \tID        int32\n11 | \tUID       string\n12 | \tMemoID    int32\n13 | \tCreatorID int32\n14 | \tCreatedTs int64\n15 | \tExpiresTs *int64 // nil means the share never expires\n16 | \tPolicy    *MemoWritePolicy\n17 | }\n18 | \n19 | // FindMemoShare is used to filter memo shares in list/get queries.\n20 | type FindMemoShare struct {\n21 | \tID        *int32\n22 | \tUID       *string\n23 | \tMemoID    *int32\n24 | \tCreatorID *int32\n25 | }\n26 | \n27 | // DeleteMemoShare identifies a share grant to remove.\n28 | type DeleteMemoShare struct {\n29 | \tID     *int32\n30 | \tUID    *string\n31 | \tMemoID *int32\n32 | \t// Policy is required for transport-facing revocation and is revalidated in\n33 | \t// the same transaction as the delete.\n34 | \tPolicy *MemoWritePolicy\n35 | }\n36 | \n37 | // CreateMemoShare creates a new share grant.\n38 | func (s *Store) CreateMemoShare(ctx context.Context, create *MemoShare) (*MemoShare, error) {\n39 | \tif create == nil {\n40 | \t\treturn nil, errors.New(\"memo share is required\")\n41 | \t}\n42 | \tif err := validateMemoWritePolicy(create.Policy); err != nil {\n43 | \t\treturn nil, err\n44 | \t}\n45 | \tif create.Policy == nil {\n46 | \t\treturn s.driver.CreateMemoShare(ctx, create)\n47 | \t}\n48 | \treturn s.driver.CreateMemoShare(ctx, create)\n49 | }\n50 | \n51 | // ListMemoShares returns all share grants matching the filter.\n52 | func (s *Store) ListMemoShares(ctx context.Context, find *FindMemoShare) ([]*MemoShare, error) {\n53 | \treturn s.driver.ListMemoShares(ctx, find)\n54 | }\n55 | \n56 | // GetMemoShare returns the first share grant matching the filter, or nil if none found.\n57 | func (s *Store) GetMemoShare(ctx context.Context, find *FindMemoShare) (*MemoShare, error) {\n58 | \treturn s.driver.GetMemoShare(ctx, find)\n59 | }\n60 | \n61 | // DeleteMemoShare removes a share grant.\n62 | func (s *Store) DeleteMemoShare(ctx context.Context, delete *DeleteMemoShare) error {\n63 | \tif delete == nil {\n64 | \t\treturn errors.New(\"memo share deletion is required\")\n65 | \t}\n66 | \tif delete.ID == nil && delete.UID == nil {\n67 | \t\treturn errors.New(\"memo share deletion requires id or uid\")\n68 | \t}\n69 | \tif err := validateMemoWritePolicy(delete.Policy); err != nil {\n70 | \t\treturn err\n71 | \t}\n72 | \tif delete.Policy == nil {\n73 | \t\treturn s.driver.DeleteMemoShare(ctx, delete)\n74 | \t}\n75 | \tif delete.MemoID == nil || *delete.MemoID <= 0 {\n76 | \t\treturn errors.New(\"authorized memo share deletion requires memo\")\n77 | \t}\n78 | \treturn s.driver.DeleteMemoShare(ctx, delete)\n79 | }\n",
+      "bytes": 2669
+    },
+    {
+      "id": "ev-d3d7e25ee50206edf1da",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "store/memo.go",
+      "sha256": "eb61ed8a7e709a092b42bf2e2c81aefc89c4623a1dd2e2612c5f724e806afe90",
+      "startLine": 1,
+      "endLine": 120,
+      "text": "1 | package store\n2 | \n3 | import (\n4 | \t\"context\"\n5 | \t\"database/sql\"\n6 | \t\"errors\"\n7 | \n8 | \t\"github.com/usememos/memos/internal/identifier\"\n9 | \n10 | \tstorepb \"github.com/usememos/memos/proto/gen/store\"\n11 | )\n12 | \n13 | // ErrMemoSpaceNotWritable indicates that a memo targets a missing or otherwise\n14 | // invalid Space.\n15 | var ErrMemoSpaceNotWritable = errors.New(\"memo space is not writable\")\n16 | \n17 | // ErrMemoSpaceMembershipRequired indicates that the memo creator is not an\n18 | // active member of its assigned space.\n19 | var ErrMemoSpaceMembershipRequired = errors.New(\"active space membership required\")\n20 | \n21 | // ErrMemoPermissionDenied indicates that the actor no longer owns the memo\n22 | // being mutated.\n23 | var ErrMemoPermissionDenied = errors.New(\"memo mutation permission denied\")\n24 | \n25 | // ErrMemoShareConflict indicates that an active share conflicts with a\n26 | // SPACE audience transition.\n27 | var ErrMemoShareConflict = errors.New(\"active memo share conflicts with audience\")\n28 | \n29 | // Visibility is the type of a visibility.\n30 | type Visibility string\n31 | \n32 | const (\n33 | \t// Public is the PUBLIC visibility.\n34 | \tPublic Visibility = \"PUBLIC\"\n35 | \t// Protected is the PROTECTED visibility.\n36 | \tProtected Visibility = \"PROTECTED\"\n37 | \t// Private is the PRIVATE visibility.\n38 | \tPrivate Visibility = \"PRIVATE\"\n39 | \t// SpaceAudience is visible only to active members of its space.\n40 | \tSpaceAudience Visibility = \"SPACE\"\n41 | )\n42 | \n43 | func (v Visibility) String() string {\n44 | \treturn string(v)\n45 | }\n46 | \n47 | type Memo struct {\n48 | \t// ID is the system generated unique identifier for the memo.\n49 | \tID int32\n50 | \t// UID is the user defined unique identifier for the memo.\n51 | \tUID string\n52 | \n53 | \t// Standard fields\n54 | \tRowStatus RowStatus\n55 | \tCreatorID int32\n56 | \tCreatedTs int64\n57 | \tUpdatedTs int64\n58 | \n59 | \t// Domain specific fields\n60 | \tContent    string\n61 | \tVisibility Visibility\n62 | \tPinned     bool\n63 | \tPayload    *storepb.MemoPayload\n64 | \tSpaceID    *int32\n65 | \n66 | \t// Composed fields\n67 | \tParentUID *string\n68 | }\n69 | \n70 | type FindMemo struct {\n71 | \tID  *int32\n72 | \tUID *string\n73 | \n74 | \tIDList  []int32\n75 | \tUIDList []string\n76 | \n77 | \t// Standard fields\n78 | \tRowStatus *RowStatus\n79 | \tCreatorID *int32\n80 | \n81 | \t// Domain specific fields\n82 | \tVisibilityList       []Visibility\n83 | \tCommentContextMemoID *int32\n84 | \tAccess               *MemoAccessScope\n85 | \tExcludeContent       bool\n86 | \tExcludeComments      bool\n87 | \tFilters              []string\n88 | \n89 | \t// Pagination\n90 | \tLimit  *int\n91 | \tOffset *int\n92 | \n93 | \t// Ordering\n94 | \tOrderByPinned    bool\n95 | \tOrderByUpdatedTs bool\n96 | \tOrderByTimeAsc   bool\n97 | }\n98 | \n99 | type FindMemoPayload struct {\n100 | \tRaw                *string\n101 | \tTagSearch          []string\n102 | \tHasLink            bool\n103 | \tHasTaskList        bool\n104 | \tHasCode            bool\n105 | \tHasIncompleteTasks bool\n106 | }\n107 | \n108 | type UpdateMemo struct {\n109 | \tID         int32\n110 | \tUID        *string\n111 | \tCreatedTs  *int64\n112 | \tUpdatedTs  *int64\n113 | \tRowStatus  *RowStatus\n114 | \tContent    *string\n115 | \tVisibility *Visibility\n116 | \tPinned     *bool\n117 | \tPayload    *storepb.MemoPayload\n118 | \tSpaceID    *int32\n119 | \tClearSpace bool\n120 | \t// Policy is set by transport-facing author mutations. Drivers revalidate it\n",
+      "bytes": 3415
+    },
+    {
+      "id": "ev-1514866bf7d153712b24",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "server/api/v1/memo_share_service.go",
+      "sha256": "15a8dd9ebd54c273179214ffe25fc2d1522a90e32ef1690c1e6118d338f92e7c",
+      "startLine": 222,
+      "endLine": 222,
+      "text": "222 | func (s *APIV1Service) getActiveMemoShare(ctx context.Context, shareID string) (*store.MemoShare, error) {\n",
+      "bytes": 113
+    },
+    {
+      "id": "ev-9ddc7efae12f8721e91b",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "server/api/v1/memo_service.go",
+      "sha256": "2043e8cec912fd70a3e5605c15c6c4e1d740f3e07db0df57391fc60cb710e19e",
+      "startLine": 92,
+      "endLine": 92,
+      "text": "92 | \tif currentUser == nil && !accessScope.AllowPublic {\n",
+      "bytes": 58
+    },
+    {
+      "id": "ev-33a90dad05d2c6cd4a97",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "server/api/v1/memo_service.go",
+      "sha256": "2043e8cec912fd70a3e5605c15c6c4e1d740f3e07db0df57391fc60cb710e19e",
+      "startLine": 236,
+      "endLine": 236,
+      "text": "236 | func (s *APIV1Service) GetMemo(ctx context.Context, request *v1pb.GetMemoRequest) (*v1pb.Memo, error) {\n",
+      "bytes": 110
+    },
+    {
+      "id": "ev-b06ceea5e20b124731ba",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "server/api/v1/memo_service.go",
+      "sha256": "2043e8cec912fd70a3e5605c15c6c4e1d740f3e07db0df57391fc60cb710e19e",
+      "startLine": 241,
+      "endLine": 241,
+      "text": "241 | \tmemo, err := s.Store.GetMemo(ctx, &store.FindMemo{\n",
+      "bytes": 58
+    },
+    {
+      "id": "ev-34ad044ffa583a474baf",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "server/api/v1/memo_service.go",
+      "sha256": "2043e8cec912fd70a3e5605c15c6c4e1d740f3e07db0df57391fc60cb710e19e",
+      "startLine": 296,
+      "endLine": 296,
+      "text": "296 | \tmemo, err := s.Store.GetMemo(ctx, &store.FindMemo{UID: &memoUID})\n",
+      "bytes": 73
+    },
+    {
+      "id": "ev-c484258dc41ec28dfe0f",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4+synthetic:memos-deny",
+      "path": "server/api/v1/memo_service.go",
+      "sha256": "2043e8cec912fd70a3e5605c15c6c4e1d740f3e07db0df57391fc60cb710e19e",
+      "startLine": 495,
+      "endLine": 495,
+      "text": "495 | \tmemo, err := s.Store.GetMemo(ctx, &store.FindMemo{\n",
+      "bytes": 58
+    }
+  ]
+}

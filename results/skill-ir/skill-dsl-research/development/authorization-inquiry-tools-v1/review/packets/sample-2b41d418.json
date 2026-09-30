@@ -1,0 +1,599 @@
+{
+  "sampleId": "sample-2b41d418",
+  "kind": "analysis",
+  "brief": "Check DeleteSpaceMember in this Memos revision against the independently supplied revised current policy. May an ordinary space member remove a different member, and do visible admin and self-removal paths differ? Do not assume deployment middleware or undocumented role grants. Explain actual behavior, compare it with the policy, cite the controlling source and preserve any decisive missing facts.",
+  "mode": "conformance",
+  "policy": {
+    "text": "Any current member of a space may remove a different member from that space; self-removal is also allowed.",
+    "origin": "user",
+    "location": "experimental-user-brief:memos-member-policy/v2"
+  },
+  "context": {
+    "repository": "usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "sourceRoot": "public-source/memos",
+    "allowedPaths": [
+      "server/api/v1",
+      "core/access",
+      "store",
+      "proto/api/v1",
+      "internal/ratelimit"
+    ]
+  },
+  "candidate": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "ordinary-member-removal",
+        "behavior": {
+          "disposition": "deny",
+          "explanation": "An ordinary current member may not remove a different member through the visible DeleteSpaceMember path. The API resolves the caller and target, sees that the target is not the caller, and requires requireSpaceAdministrator(callerMembership); a non-administrator is rejected before Store.DeleteSpaceMember is called. This conflicts with the supplied policy, which permits any current member to remove a different member."
+        },
+        "branches": [
+          {
+            "id": "different-member-ordinary",
+            "condition": "The caller is a current member, the target is a different member, and the caller is not an administrator.",
+            "disposition": "deny",
+            "explanation": "The visible API returns the administrator-check error before invoking the store deletion operation.",
+            "evidenceIds": [
+              "ev-3f913436015dacb5a046"
+            ]
+          },
+          {
+            "id": "different-member-administrator",
+            "condition": "The caller is a current member, the target is different, and the caller passes the administrator checks.",
+            "disposition": "conditional",
+            "explanation": "The API guard passes and the store/database path can delete the target's active membership, but deletion remains subject to resource, membership, user-status, database, and last-active-normal-administrator conditions.",
+            "evidenceIds": [
+              "ev-3f913436015dacb5a046",
+              "ev-6b981ee40752a9d2f4f3",
+              "ev-ef4e80453c3914569fb6",
+              "ev-06aefa5dfadb1131731d"
+            ]
+          },
+          {
+            "id": "self-removal",
+            "condition": "The selected target is the caller.",
+            "disposition": "conditional",
+            "explanation": "The API skips the administrator check and sends the caller's membership as the target to the common store path. Success remains subject to resource resolution, active-membership existence, backend validation, and the last-active-normal-administrator safeguard.",
+            "evidenceIds": [
+              "ev-3f913436015dacb5a046",
+              "ev-6b981ee40752a9d2f4f3",
+              "ev-ef4e80453c3914569fb6",
+              "ev-06aefa5dfadb1131731d"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-6b981ee40752a9d2f4f3",
+          "ev-ef4e80453c3914569fb6",
+          "ev-06aefa5dfadb1131731d"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The definitions of requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator were not read. The non-administrator denial is decisive for the requested ordinary-member scenario, but exact authentication, resource-resolution, and administrator-helper conditions are not fully established.",
+            "nextRead": "Read the definitions of requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator in server/api/v1."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "No deployment middleware or external authorization layer was verified; no such protection or grant may be assumed."
+          }
+        ],
+        "policyAssessment": {
+          "status": "violated",
+          "explanation": "The policy requires any current member to remove a different member. The visible implementation restricts that operation to administrators, although it exposes a separate self-removal path."
+        }
+      },
+      {
+        "questionId": "admin-and-self-removal-paths",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The paths differ at the visible API guard: removing another member requires administrator status, while removing oneself bypasses that requirement. Both paths then use the same store/database deletion operation and can be blocked by backend conditions, including protection of the last active normal administrator."
+        },
+        "branches": [
+          {
+            "id": "administrator-removes-different-member",
+            "condition": "The caller is current, the target is different, and the caller is an administrator in the selected space.",
+            "disposition": "conditional",
+            "explanation": "The API administrator guard and the inspected database administrator checks must pass; deletion may still fail for nonexistent resources, missing memberships, invalid user status, database errors, or removal of the last active normal administrator.",
+            "evidenceIds": [
+              "ev-3f913436015dacb5a046",
+              "ev-6b981ee40752a9d2f4f3",
+              "ev-ef4e80453c3914569fb6",
+              "ev-06aefa5dfadb1131731d"
+            ]
+          },
+          {
+            "id": "ordinary-member-removes-different-member",
+            "condition": "The caller is current, the target is different, and the caller is not an administrator.",
+            "disposition": "deny",
+            "explanation": "The API returns from requireSpaceAdministrator before invoking the store deletion operation.",
+            "evidenceIds": [
+              "ev-3f913436015dacb5a046"
+            ]
+          },
+          {
+            "id": "member-removes-self",
+            "condition": "The caller is current and the selected target is the caller.",
+            "disposition": "conditional",
+            "explanation": "isSelf is true, so the API bypasses the administrator requirement. The common store path receives the caller as both actor and target; the selected active membership is deleted only if backend validation succeeds, and last-active-normal-administrator protection can still reject the operation.",
+            "evidenceIds": [
+              "ev-3f913436015dacb5a046",
+              "ev-6b981ee40752a9d2f4f3",
+              "ev-ef4e80453c3914569fb6",
+              "ev-06aefa5dfadb1131731d"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-4f6b8a2dd800de964cf0",
+          "ev-2e58b04da3035688ff4e",
+          "ev-3f913436015dacb5a046",
+          "ev-6b981ee40752a9d2f4f3",
+          "ev-ef4e80453c3914569fb6",
+          "ev-06aefa5dfadb1131731d"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The exact implementations of current-user authentication, resource-name resolution, and requireSpaceAdministrator were not read. The visible self/non-self distinction is established, but upstream failure conditions are incomplete.",
+            "nextRead": "Read requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator in server/api/v1."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The deployment database backend is unspecified. MySQL, PostgreSQL, and SQLite implementations were inspected and show the same relevant administrator-versus-self distinction, but their status-query details differ."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "Deployment middleware, authentication configuration, and undocumented role grants were not inspected and must not be assumed."
+          }
+        ],
+        "policyAssessment": {
+          "status": "violated",
+          "explanation": "Self-removal is consistent with the supplied policy's self-removal clause, but the policy's broader requirement that any current member may remove a different member is not satisfied because the visible path requires administrator status."
+        }
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "ordinary-member-removal",
+        "kind": "entry",
+        "subject": "DeleteSpaceMember",
+        "object": "Connect and API service entry",
+        "claim": "The Connect handler delegates to APIV1Service.DeleteSpaceMember, whose visible implementation obtains the current user, resolves the requested member resource, applies the self-versus-different-target guard, and then invokes the store deletion operation.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-2e58b04da3035688ff4e",
+          "ev-3f913436015dacb5a046"
+        ]
+      },
+      {
+        "questionId": "ordinary-member-removal",
+        "kind": "principal-binding",
+        "subject": "currentUser.ID",
+        "object": "actorUserID",
+        "claim": "The API obtains a current user through requireCurrentSpaceUser and passes currentUser.ID to the store as actorUserID; the helper's implementation was not read.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046"
+        ]
+      },
+      {
+        "questionId": "ordinary-member-removal",
+        "kind": "resource-binding",
+        "subject": "request.Name",
+        "object": "targetMembership.SpaceID and targetMembership.UserID",
+        "claim": "The request name is resolved to the selected space/member resource, and the resulting target membership supplies the space and user IDs sent to the store deletion operation.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-4f6b8a2dd800de964cf0",
+          "ev-3f913436015dacb5a046",
+          "ev-76ddaa652dcf45908d19"
+        ]
+      },
+      {
+        "questionId": "ordinary-member-removal",
+        "kind": "guard",
+        "subject": "callerMembership",
+        "object": "requireSpaceAdministrator",
+        "claim": "When the selected target differs from the caller, the API invokes requireSpaceAdministrator(callerMembership) and returns the error before calling the store if that check fails.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046"
+        ]
+      },
+      {
+        "questionId": "ordinary-member-removal",
+        "kind": "effect",
+        "subject": "targetMembership",
+        "object": "active space_member row",
+        "claim": "After the API guard passes, the store delegates to the database driver, whose inspected MySQL, PostgreSQL, and SQLite implementations delete the selected active membership after backend checks; they protect the last active normal administrator.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-6b981ee40752a9d2f4f3",
+          "ev-ef4e80453c3914569fb6",
+          "ev-06aefa5dfadb1131731d"
+        ]
+      },
+      {
+        "questionId": "ordinary-member-removal",
+        "kind": "exception",
+        "subject": "self versus different target",
+        "object": "authorization branch",
+        "claim": "Self-removal bypasses the API administrator check. Different-member removal requires the API administrator check and, in the inspected database implementations, an active administrator actor; invalid resources, missing memberships, backend errors, and last-active-normal-admin protection can also prevent deletion.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-6b981ee40752a9d2f4f3",
+          "ev-ef4e80453c3914569fb6",
+          "ev-06aefa5dfadb1131731d"
+        ]
+      },
+      {
+        "questionId": "admin-and-self-removal-paths",
+        "kind": "entry",
+        "subject": "DeleteSpaceMember",
+        "object": "APIV1Service.DeleteSpaceMember",
+        "claim": "Administrator-removal and self-removal use the same API entry and then share the same store deletion call after a target-identity branch.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046"
+        ]
+      },
+      {
+        "questionId": "admin-and-self-removal-paths",
+        "kind": "principal-binding",
+        "subject": "currentUser",
+        "object": "actorUserID",
+        "claim": "The caller is represented by currentUser.ID and passed as actorUserID; exact authentication and current-user helper behavior remains unread.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-f8ef9b01df78754b0cd1"
+        ]
+      },
+      {
+        "questionId": "admin-and-self-removal-paths",
+        "kind": "resource-binding",
+        "subject": "request.Name",
+        "object": "resolved space and target membership",
+        "claim": "The declared resource name has the form spaces/{space}/members/{username}; the resolved target membership determines the space and user identifiers deleted by both branches.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-4f6b8a2dd800de964cf0",
+          "ev-3f913436015dacb5a046"
+        ]
+      },
+      {
+        "questionId": "admin-and-self-removal-paths",
+        "kind": "guard",
+        "subject": "isSelf",
+        "object": "administrator requirement",
+        "claim": "The visible branch sets isSelf from targetUser.ID == currentUser.ID; self requests skip requireSpaceAdministrator, while non-self requests must pass it.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046"
+        ]
+      },
+      {
+        "questionId": "admin-and-self-removal-paths",
+        "kind": "effect",
+        "subject": "Store.DeleteSpaceMember",
+        "object": "active membership row",
+        "claim": "Both branches call Store.DeleteSpaceMember with targetMembership.SpaceID and targetMembership.UserID. The inspected SQL implementations delete the active membership after backend validation and commit the transaction on success.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-6b981ee40752a9d2f4f3",
+          "ev-ef4e80453c3914569fb6",
+          "ev-06aefa5dfadb1131731d"
+        ]
+      },
+      {
+        "questionId": "admin-and-self-removal-paths",
+        "kind": "exception",
+        "subject": "database implementations",
+        "object": "role, status, and last-admin conditions",
+        "claim": "MySQL and PostgreSQL reject non-self actors whose user status is not normal and require an active administrator role; SQLite requires an active normal administrator for non-self deletion. All three inspected implementations protect removal of the last active normal administrator.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-6b981ee40752a9d2f4f3",
+          "ev-ef4e80453c3914569fb6",
+          "ev-06aefa5dfadb1131731d"
+        ]
+      }
+    ],
+    "scope": "Conformance analysis of usememos/memos@cb42e326ba9cc266a6a9570c53e0fe04c62793f4 within allowed paths only: server/api/v1, core/access, store, proto/api/v1, and internal/ratelimit. This does not establish whole-repository behavior, deployment middleware, authentication configuration, or undocumented grants."
+  },
+  "evidence": [
+    {
+      "id": "ev-781099126d4473f5a6a1",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 126,
+      "endLine": 126,
+      "text": "126 |   // DeleteSpaceMember removes a member. A member may delete their own\n",
+      "bytes": 77
+    },
+    {
+      "id": "ev-e97f2cbdd5d311b9c657",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 128,
+      "endLine": 128,
+      "text": "128 |   rpc DeleteSpaceMember(DeleteSpaceMemberRequest) returns (google.protobuf.Empty) {\n",
+      "bytes": 90
+    },
+    {
+      "id": "ev-77fb6b5d14d0b901a809",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 394,
+      "endLine": 394,
+      "text": "394 | message DeleteSpaceMemberRequest {\n",
+      "bytes": 41
+    },
+    {
+      "id": "ev-8587192a0a224bab1e1c",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/connect_services.go",
+      "sha256": "b7c43523239e74e488104e9a550b0315c09f8e93714e37b220e79d79d31631b0",
+      "startLine": 650,
+      "endLine": 650,
+      "text": "650 | func (s *ConnectServiceHandler) DeleteSpaceMember(ctx context.Context, req *connect.Request[v1pb.DeleteSpaceMemberRequest]) (*connect.Response[emptypb.Empty], error) {\n",
+      "bytes": 174
+    },
+    {
+      "id": "ev-8cc3386f0794bfc13e1b",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/connect_services.go",
+      "sha256": "b7c43523239e74e488104e9a550b0315c09f8e93714e37b220e79d79d31631b0",
+      "startLine": 651,
+      "endLine": 651,
+      "text": "651 | \tresp, err := s.APIV1Service.DeleteSpaceMember(ctx, req.Msg)\n",
+      "bytes": 67
+    },
+    {
+      "id": "ev-cb9cce8501567f6ecb00",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 740,
+      "endLine": 740,
+      "text": "740 | // DeleteSpaceMember removes a membership or lets a member leave a space.\n",
+      "bytes": 80
+    },
+    {
+      "id": "ev-9ee45f98c8803e5baf45",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 741,
+      "endLine": 741,
+      "text": "741 | func (s *APIV1Service) DeleteSpaceMember(ctx context.Context, request *v1pb.DeleteSpaceMemberRequest) (*emptypb.Empty, error) {\n",
+      "bytes": 134
+    },
+    {
+      "id": "ev-6f0761b3437bb3341438",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 756,
+      "endLine": 756,
+      "text": "756 | \tif err := s.Store.DeleteSpaceMember(ctx, &store.DeleteSpaceMember{\n",
+      "bytes": 74
+    },
+    {
+      "id": "ev-1406155e35289f4c8840",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/mysql/space.go",
+      "sha256": "c3a222324d95f0ec5b25f4ae00abca9592670f3afd5656bd6830c269b586deb6",
+      "startLine": 399,
+      "endLine": 399,
+      "text": "399 | func (d *DB) DeleteSpaceMember(ctx context.Context, delete *store.DeleteSpaceMember, actorUserID int32) error {\n",
+      "bytes": 118
+    },
+    {
+      "id": "ev-b937e51c129d5160f9ac",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/postgres/space.go",
+      "sha256": "904d4817ea006a369061588aa2ce843a6d9bd76ca0705b393f2dcad6d6896eb4",
+      "startLine": 437,
+      "endLine": 437,
+      "text": "437 | func (d *DB) DeleteSpaceMember(ctx context.Context, delete *store.DeleteSpaceMember, actorUserID int32) error {\n",
+      "bytes": 118
+    },
+    {
+      "id": "ev-33b04536e00eb4ebfaf6",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/sqlite/space.go",
+      "sha256": "3342f78a8fee794e6bdaf2765874030661a1b2130b5bf9eb6b0e8d626f4572f9",
+      "startLine": 411,
+      "endLine": 411,
+      "text": "411 | func (d *DB) DeleteSpaceMember(ctx context.Context, delete *store.DeleteSpaceMember, actorUserID int32) error {\n",
+      "bytes": 118
+    },
+    {
+      "id": "ev-f8ef9b01df78754b0cd1",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/driver.go",
+      "sha256": "8fb7f82b0338dbb5b9b683e7c6dd0b0107186b1106acf6d3cf292f2e6f8d24fb",
+      "startLine": 45,
+      "endLine": 45,
+      "text": "45 | \tDeleteSpaceMember(ctx context.Context, delete *DeleteSpaceMember, actorUserID int32) error\n",
+      "bytes": 97
+    },
+    {
+      "id": "ev-fd8f6bc0120a2628f62d",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 134,
+      "endLine": 134,
+      "text": "134 | // DeleteSpaceMember identifies a membership to delete.\n",
+      "bytes": 62
+    },
+    {
+      "id": "ev-26bcf93f9afea265612b",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 135,
+      "endLine": 135,
+      "text": "135 | type DeleteSpaceMember struct {\n",
+      "bytes": 38
+    },
+    {
+      "id": "ev-92698ef6bf9052def001",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 272,
+      "endLine": 272,
+      "text": "272 | // DeleteSpaceMember deletes a membership after checking that the change keeps\n",
+      "bytes": 85
+    },
+    {
+      "id": "ev-4e8276f16b6f286a6211",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 274,
+      "endLine": 274,
+      "text": "274 | func (s *Store) DeleteSpaceMember(ctx context.Context, delete *DeleteSpaceMember, actorUserID int32) error {\n",
+      "bytes": 115
+    },
+    {
+      "id": "ev-8386c158f397aee0ae85",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 278,
+      "endLine": 278,
+      "text": "278 | \treturn s.driver.DeleteSpaceMember(ctx, delete, actorUserID)\n",
+      "bytes": 67
+    },
+    {
+      "id": "ev-5f42b02eefefbb580847",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 120,
+      "endLine": 132,
+      "text": "120 |       patch: \"/api/v1/{space_member.name=spaces/*/members/*}\"\n121 |       body: \"space_member\"\n122 |     };\n123 |     option (google.api.method_signature) = \"space_member,update_mask\";\n124 |   }\n125 | \n126 |   // DeleteSpaceMember removes a member. A member may delete their own\n127 |   // membership to leave the space.\n128 |   rpc DeleteSpaceMember(DeleteSpaceMemberRequest) returns (google.protobuf.Empty) {\n129 |     option (google.api.http) = {delete: \"/api/v1/{name=spaces/*/members/*}\"};\n130 |     option (google.api.method_signature) = \"name\";\n131 |   }\n132 | }\n",
+      "bytes": 576
+    },
+    {
+      "id": "ev-76ddaa652dcf45908d19",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 130,
+      "endLine": 145,
+      "text": "130 | \tUserID  int32\n131 | \tRole    *SpaceMemberRole\n132 | }\n133 | \n134 | // DeleteSpaceMember identifies a membership to delete.\n135 | type DeleteSpaceMember struct {\n136 | \tSpaceID int32\n137 | \tUserID  int32\n138 | }\n139 | \n140 | // SpaceInvitation is a pending offer for an existing user to join a space.\n141 | type SpaceInvitation struct {\n142 | \tSpaceID int32\n143 | \tUserID  int32\n144 | \tRole    SpaceMemberRole\n145 | }\n",
+      "bytes": 424
+    },
+    {
+      "id": "ev-75f5532ed61a80b37b5f",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 268,
+      "endLine": 282,
+      "text": "268 | \t}\n269 | \treturn s.driver.UpdateSpaceMember(ctx, update, actorUserID)\n270 | }\n271 | \n272 | // DeleteSpaceMember deletes a membership after checking that the change keeps\n273 | // an active ADMIN.\n274 | func (s *Store) DeleteSpaceMember(ctx context.Context, delete *DeleteSpaceMember, actorUserID int32) error {\n275 | \tif delete == nil || delete.SpaceID <= 0 || delete.UserID <= 0 || actorUserID <= 0 {\n276 | \t\treturn errors.New(\"space member deletion requires space, user, and actor\")\n277 | \t}\n278 | \treturn s.driver.DeleteSpaceMember(ctx, delete, actorUserID)\n279 | }\n280 | \n281 | // CreateSpaceInvitation creates a pending invitation. It never creates an\n282 | // active membership; only the invitee can do that by accepting it.\n",
+      "bytes": 737
+    },
+    {
+      "id": "ev-6b981ee40752a9d2f4f3",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/mysql/space.go",
+      "sha256": "c3a222324d95f0ec5b25f4ae00abca9592670f3afd5656bd6830c269b586deb6",
+      "startLine": 395,
+      "endLine": 450,
+      "text": "395 | \t}\n396 | \treturn member, nil\n397 | }\n398 | \n399 | func (d *DB) DeleteSpaceMember(ctx context.Context, delete *store.DeleteSpaceMember, actorUserID int32) error {\n400 | \ttx, err := d.db.BeginTx(ctx, nil)\n401 | \tif err != nil {\n402 | \t\treturn err\n403 | \t}\n404 | \tdefer func() { _ = tx.Rollback() }()\n405 | \tuserStatuses, err := readMySQLUserStatuses(ctx, tx, actorUserID, delete.UserID)\n406 | \tif err != nil {\n407 | \t\treturn err\n408 | \t}\n409 | \tif actorUserID != delete.UserID && userStatuses[actorUserID] != store.Normal {\n410 | \t\treturn store.ErrSpacePermissionDenied\n411 | \t}\n412 | \tvar spaceID int32\n413 | \tif err := tx.QueryRowContext(ctx, \"SELECT id FROM space WHERE id = ?\", delete.SpaceID).Scan(&spaceID); err != nil {\n414 | \t\tif errors.Is(err, sql.ErrNoRows) {\n415 | \t\t\treturn store.ErrSpaceNotFound\n416 | \t\t}\n417 | \t\treturn err\n418 | \t}\n419 | \tif actorUserID != delete.UserID {\n420 | \t\tvar role store.SpaceMemberRole\n421 | \t\tif err := tx.QueryRowContext(ctx, \"SELECT role FROM space_member WHERE space_id = ? AND user_id = ? AND status = ?\", delete.SpaceID, actorUserID, store.SpaceMemberStatusActive).Scan(&role); errors.Is(err, sql.ErrNoRows) {\n422 | \t\t\treturn store.ErrSpacePermissionDenied\n423 | \t\t} else if err != nil {\n424 | \t\t\treturn err\n425 | \t\t} else if role != store.SpaceMemberRoleAdmin {\n426 | \t\t\treturn store.ErrSpacePermissionDenied\n427 | \t\t}\n428 | \t}\n429 | \tmember, err := getMySQLSpaceMember(ctx, tx, delete.SpaceID, delete.UserID)\n430 | \tif err != nil {\n431 | \t\tif errors.Is(err, sql.ErrNoRows) {\n432 | \t\t\treturn store.ErrSpaceMemberNotFound\n433 | \t\t}\n434 | \t\treturn err\n435 | \t}\n436 | \tif member.Role == store.SpaceMemberRoleAdmin && userStatuses[delete.UserID] == store.Normal {\n437 | \t\tvar count int\n438 | \t\tif err := tx.QueryRowContext(ctx, \"SELECT COUNT(*) FROM space_member sm JOIN user u ON u.id = sm.user_id WHERE sm.space_id = ? AND sm.status = ? AND sm.role = ? AND u.row_status = 'NORMAL'\", delete.SpaceID, store.SpaceMemberStatusActive, store.SpaceMemberRoleAdmin).Scan(&count); err != nil {\n439 | \t\t\treturn err\n440 | \t\t}\n441 | \t\tif count <= 1 {\n442 | \t\t\treturn store.ErrLastSpaceAdmin\n443 | \t\t}\n444 | \t}\n445 | \tif _, err := tx.ExecContext(ctx, \"DELETE FROM space_member WHERE space_id = ? AND user_id = ? AND status = ?\", delete.SpaceID, delete.UserID, store.SpaceMemberStatusActive); err != nil {\n446 | \t\treturn err\n447 | \t}\n448 | \treturn tx.Commit()\n449 | }\n450 | \n",
+      "bytes": 2411
+    },
+    {
+      "id": "ev-ef4e80453c3914569fb6",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/postgres/space.go",
+      "sha256": "904d4817ea006a369061588aa2ce843a6d9bd76ca0705b393f2dcad6d6896eb4",
+      "startLine": 433,
+      "endLine": 488,
+      "text": "433 | \t}\n434 | \treturn member, nil\n435 | }\n436 | \n437 | func (d *DB) DeleteSpaceMember(ctx context.Context, delete *store.DeleteSpaceMember, actorUserID int32) error {\n438 | \ttx, err := d.db.BeginTx(ctx, nil)\n439 | \tif err != nil {\n440 | \t\treturn err\n441 | \t}\n442 | \tdefer func() { _ = tx.Rollback() }()\n443 | \tuserStatuses, err := readPostgresUserStatuses(ctx, tx, actorUserID, delete.UserID)\n444 | \tif err != nil {\n445 | \t\treturn err\n446 | \t}\n447 | \tif actorUserID != delete.UserID && userStatuses[actorUserID] != store.Normal {\n448 | \t\treturn store.ErrSpacePermissionDenied\n449 | \t}\n450 | \tvar spaceID int32\n451 | \tif err := tx.QueryRowContext(ctx, \"SELECT id FROM space WHERE id = $1\", delete.SpaceID).Scan(&spaceID); err != nil {\n452 | \t\tif errors.Is(err, sql.ErrNoRows) {\n453 | \t\t\treturn store.ErrSpaceNotFound\n454 | \t\t}\n455 | \t\treturn err\n456 | \t}\n457 | \tif actorUserID != delete.UserID {\n458 | \t\tvar role store.SpaceMemberRole\n459 | \t\tif err := tx.QueryRowContext(ctx, \"SELECT role FROM space_member WHERE space_id = $1 AND user_id = $2 AND status = $3\", delete.SpaceID, actorUserID, store.SpaceMemberStatusActive).Scan(&role); errors.Is(err, sql.ErrNoRows) {\n460 | \t\t\treturn store.ErrSpacePermissionDenied\n461 | \t\t} else if err != nil {\n462 | \t\t\treturn err\n463 | \t\t} else if role != store.SpaceMemberRoleAdmin {\n464 | \t\t\treturn store.ErrSpacePermissionDenied\n465 | \t\t}\n466 | \t}\n467 | \tmember, err := getPostgresSpaceMember(ctx, tx, delete.SpaceID, delete.UserID)\n468 | \tif err != nil {\n469 | \t\tif errors.Is(err, sql.ErrNoRows) {\n470 | \t\t\treturn store.ErrSpaceMemberNotFound\n471 | \t\t}\n472 | \t\treturn err\n473 | \t}\n474 | \tif member.Role == store.SpaceMemberRoleAdmin && userStatuses[delete.UserID] == store.Normal {\n475 | \t\tvar count int\n476 | \t\tif err := tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM space_member sm JOIN \"user\" u ON u.id = sm.user_id WHERE sm.space_id = $1 AND sm.status = $2 AND sm.role = $3 AND u.row_status = 'NORMAL'`, delete.SpaceID, store.SpaceMemberStatusActive, store.SpaceMemberRoleAdmin).Scan(&count); err != nil {\n477 | \t\t\treturn err\n478 | \t\t}\n479 | \t\tif count <= 1 {\n480 | \t\t\treturn store.ErrLastSpaceAdmin\n481 | \t\t}\n482 | \t}\n483 | \tif _, err := tx.ExecContext(ctx, \"DELETE FROM space_member WHERE space_id = $1 AND user_id = $2 AND status = $3\", delete.SpaceID, delete.UserID, store.SpaceMemberStatusActive); err != nil {\n484 | \t\treturn err\n485 | \t}\n486 | \treturn tx.Commit()\n487 | }\n488 | \n",
+      "bytes": 2429
+    },
+    {
+      "id": "ev-06aefa5dfadb1131731d",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/sqlite/space.go",
+      "sha256": "3342f78a8fee794e6bdaf2765874030661a1b2130b5bf9eb6b0e8d626f4572f9",
+      "startLine": 407,
+      "endLine": 456,
+      "text": "407 | \t}\n408 | \treturn member, nil\n409 | }\n410 | \n411 | func (d *DB) DeleteSpaceMember(ctx context.Context, delete *store.DeleteSpaceMember, actorUserID int32) error {\n412 | \ttx, err := d.db.BeginTx(ctx, nil)\n413 | \tif err != nil {\n414 | \t\treturn err\n415 | \t}\n416 | \tdefer func() { _ = tx.Rollback() }()\n417 | \tvar spaceID int32\n418 | \tif err := tx.QueryRowContext(ctx, \"SELECT id FROM space WHERE id = ?\", delete.SpaceID).Scan(&spaceID); err != nil {\n419 | \t\tif errors.Is(err, sql.ErrNoRows) {\n420 | \t\t\treturn store.ErrSpaceNotFound\n421 | \t\t}\n422 | \t\treturn err\n423 | \t}\n424 | \tif actorUserID != delete.UserID {\n425 | \t\tvar actorRole store.SpaceMemberRole\n426 | \t\tif err := tx.QueryRowContext(ctx, \"SELECT sm.role FROM space_member sm JOIN user u ON u.id = sm.user_id WHERE sm.space_id = ? AND sm.user_id = ? AND sm.status = ? AND u.row_status = 'NORMAL'\", delete.SpaceID, actorUserID, store.SpaceMemberStatusActive).Scan(&actorRole); errors.Is(err, sql.ErrNoRows) {\n427 | \t\t\treturn store.ErrSpacePermissionDenied\n428 | \t\t} else if err != nil {\n429 | \t\t\treturn err\n430 | \t\t} else if actorRole != store.SpaceMemberRoleAdmin {\n431 | \t\t\treturn store.ErrSpacePermissionDenied\n432 | \t\t}\n433 | \t}\n434 | \tvar role store.SpaceMemberRole\n435 | \tvar targetStatus sql.NullString\n436 | \tif err := tx.QueryRowContext(ctx, \"SELECT sm.role, u.row_status FROM space_member sm LEFT JOIN user u ON u.id = sm.user_id WHERE sm.space_id = ? AND sm.user_id = ? AND sm.status = ?\", delete.SpaceID, delete.UserID, store.SpaceMemberStatusActive).Scan(&role, &targetStatus); err != nil {\n437 | \t\tif errors.Is(err, sql.ErrNoRows) {\n438 | \t\t\treturn store.ErrSpaceMemberNotFound\n439 | \t\t}\n440 | \t\treturn err\n441 | \t}\n442 | \tif role == store.SpaceMemberRoleAdmin && targetStatus.Valid && store.RowStatus(targetStatus.String) == store.Normal {\n443 | \t\tvar count int\n444 | \t\tif err := tx.QueryRowContext(ctx, \"SELECT COUNT(*) FROM space_member sm JOIN user u ON u.id = sm.user_id WHERE sm.space_id = ? AND sm.status = ? AND sm.role = ? AND u.row_status = 'NORMAL'\", delete.SpaceID, store.SpaceMemberStatusActive, store.SpaceMemberRoleAdmin).Scan(&count); err != nil {\n445 | \t\t\treturn err\n446 | \t\t}\n447 | \t\tif count <= 1 {\n448 | \t\t\treturn store.ErrLastSpaceAdmin\n449 | \t\t}\n450 | \t}\n451 | \tif _, err := tx.ExecContext(ctx, \"DELETE FROM space_member WHERE space_id = ? AND user_id = ? AND status = ?\", delete.SpaceID, delete.UserID, store.SpaceMemberStatusActive); err != nil {\n452 | \t\treturn err\n453 | \t}\n454 | \treturn tx.Commit()\n455 | }\n456 | \n",
+      "bytes": 2513
+    },
+    {
+      "id": "ev-3f913436015dacb5a046",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 740,
+      "endLine": 764,
+      "text": "740 | // DeleteSpaceMember removes a membership or lets a member leave a space.\n741 | func (s *APIV1Service) DeleteSpaceMember(ctx context.Context, request *v1pb.DeleteSpaceMemberRequest) (*emptypb.Empty, error) {\n742 | \tcurrentUser, err := s.requireCurrentSpaceUser(ctx)\n743 | \tif err != nil {\n744 | \t\treturn nil, err\n745 | \t}\n746 | \t_, targetUser, callerMembership, targetMembership, err := s.resolveSpaceMemberResource(ctx, request.Name, currentUser)\n747 | \tif err != nil {\n748 | \t\treturn nil, err\n749 | \t}\n750 | \tisSelf := targetUser.ID == currentUser.ID\n751 | \tif !isSelf {\n752 | \t\tif err := requireSpaceAdministrator(callerMembership); err != nil {\n753 | \t\t\treturn nil, err\n754 | \t\t}\n755 | \t}\n756 | \tif err := s.Store.DeleteSpaceMember(ctx, &store.DeleteSpaceMember{\n757 | \t\tSpaceID: targetMembership.SpaceID,\n758 | \t\tUserID:  targetMembership.UserID,\n759 | \t}, currentUser.ID); err != nil {\n760 | \t\treturn nil, mapSpaceMutationError(err, \"failed to delete space member\")\n761 | \t}\n762 | \ts.SSEHub.publishSpaceChanged()\n763 | \treturn &emptypb.Empty{}, nil\n764 | }\n",
+      "bytes": 1069
+    },
+    {
+      "id": "ev-4f6b8a2dd800de964cf0",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 394,
+      "endLine": 399,
+      "text": "394 | message DeleteSpaceMemberRequest {\n395 |   // Required. Format: spaces/{space}/members/{username}.\n396 |   string name = 1 [\n397 |     (google.api.field_behavior) = REQUIRED,\n398 |     (google.api.resource_reference) = {type: \"memos.api.v1/SpaceMember\"}\n399 |   ];\n",
+      "bytes": 271
+    },
+    {
+      "id": "ev-2e58b04da3035688ff4e",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/connect_services.go",
+      "sha256": "b7c43523239e74e488104e9a550b0315c09f8e93714e37b220e79d79d31631b0",
+      "startLine": 650,
+      "endLine": 656,
+      "text": "650 | func (s *ConnectServiceHandler) DeleteSpaceMember(ctx context.Context, req *connect.Request[v1pb.DeleteSpaceMemberRequest]) (*connect.Response[emptypb.Empty], error) {\n651 | \tresp, err := s.APIV1Service.DeleteSpaceMember(ctx, req.Msg)\n652 | \tif err != nil {\n653 | \t\treturn nil, convertGRPCError(err)\n654 | \t}\n655 | \treturn connect.NewResponse(resp), nil\n656 | }\n",
+      "bytes": 368
+    }
+  ]
+}

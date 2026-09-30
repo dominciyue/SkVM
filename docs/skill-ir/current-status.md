@@ -6,7 +6,7 @@
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-**当前队列（2026-10-01）：** [AO0–AO16 真实授权任务、领域 DSL 与有界取证工具](../superpowers/plans/2026-09-30-authorization-inquiry-and-evidence-tools.md)已从干净`aea87139`启动，开发线程为`gpt-6.1-sol / max`。行为/政策 inquiry、同次分析只读补证、自然作者与普通bare-agent opt-in接线已实现并通过聚焦模拟；当前完善归档与文档、固定生成前工程身份。已取得两源skill原件及四目标固定ref原始源码，登记32质量、8作者稿、至多8消费与8来源skill行；36输入/方法组合零provider预检通过，真实模型调用仍为0，尚无新质量结论。恢复从[AO机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/status.json)和任务书继续，不重发已claim行。方法见[§7.34](skill-dsl-research.md#734-ao-真实授权任务与领域取证工具)。
+**当前队列（2026-10-01）：** [AO0–AO16 真实授权任务、领域 DSL 与有界取证工具](../superpowers/plans/2026-09-30-authorization-inquiry-and-evidence-tools.md)的工程、56/56真实终态行、319次provider请求和61匿名packet的独立评阅已完成，正在有限验证与origin发布收口。行为/政策inquiry、同次分析只读补证、自然作者、普通bare-agent源skill接线及scope-only政策传递已实现。质量首答8/终答9完整（32计划），主M/D0/D1终答2/1/1（各8），变化M/D1为3/2（各4）；未建立稳定DSL质量优势。8作者稿语义有效，8消费6交付/2严格完整；8源skill均加载原文，领域四包均实际调用，但checked domain result仅3/4。四个配置失败均调用0、两消费协议失败保留、共享修订0。完整prompt4,726,375/output196,444 tokens，actualUSD/真人分钟/开发代理用量unknown，目标执行0。首次工程绑定`218f5bbf`和原始输出不改。当前验证与发布证据从[AO机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/status.json)恢复；结果与方法见[§7.34](skill-dsl-research.md#734-ao-真实授权任务与领域取证工具)。
 
 **当前用户要求（2026-09-30）：** 质量约60%、编写复用约40%只表示开发精力分配，项目要求与评价不按该比例划分。保留真实任务难度，明确规范要求与待查源码行为，禁止预供答案；DSL语义、编译器、脚手架及工具支持按共性缺口继续完善。新分析循环显式启用，旧fixed-context路径保持。
 

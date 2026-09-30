@@ -1,0 +1,36 @@
+{
+  "sampleId": "sample-c102e8d9",
+  "packetSha256": "5421881211e2a621ac5bab9e6af205b3f9077651586f6a9cfa53fbbd32eb8c7c",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "partial",
+    "scenarios": "partial",
+    "evidence": "partial",
+    "bindings": "partial",
+    "unknowns": "overstated",
+    "policy": "incorrect"
+  },
+  "issues": [
+    {
+      "kind": "avoidable-unknown",
+      "detail": "Requested PaperlessObjectPermissions, PassUserMixin, OwnedObjectSerializer and owner-aware helper bodies are in allowed original source, not unavailable."
+    },
+    {
+      "kind": "unsupported-certainty",
+      "detail": "A satisfied policy verdict from the helper's name alone does not establish exact-document grant semantics; permissions.py:635 contains owner/null-owner bypasses."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "src/paperless/urls.py",
+      "line": 88,
+      "detail": "share_links route registered to ShareLinkViewSet."
+    },
+    {
+      "path": "src/documents/serialisers.py",
+      "line": 2851,
+      "detail": "ShareLinkSerializer exact-document validation path."
+    }
+  ],
+  "rationale": "Correctly states exact-document owner-aware validation before create and treats inherited details as source gaps. Main-agent adjudication: The serializer's exact-document argument is correct, but the available unread helper and inherited paths are decisive for this task. Apply the same rule as the independently flagged share answer sample-323944ad."
+}

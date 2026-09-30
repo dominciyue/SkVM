@@ -1,0 +1,758 @@
+{
+  "sampleId": "sample-333e42e4",
+  "kind": "analysis",
+  "brief": "Check GET and POST on the document notes operation against the current independently supplied policy. Compare viewing notes and creating a note on the addressed document. The document owner is unspecified, and object grants are not given; retain relevant owner and permission branches rather than silently supplying those facts. Trace endpoint and object controls to the corresponding effects, explain policy compliance and preserve exact gaps.",
+  "mode": "conformance",
+  "policy": {
+    "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+    "origin": "user",
+    "location": "experimental-user-brief:paperless-note-policy/v1"
+  },
+  "context": {
+    "repository": "paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "sourceRoot": "public-source/paperless",
+    "allowedPaths": [
+      "src/documents",
+      "src/paperless/urls.py"
+    ]
+  },
+  "candidate": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The notes action is a detail endpoint supporting GET and POST and assigns PaperlessNotePermissions. The view loads the addressed document by pk, performs an owner-aware view_document check before dispatching either method, and performs an additional owner-aware change_document check for POST. GET returns the document's notes; POST creates a Note attached to that document, updates the document, optionally logs the change, updates search, and returns the notes. The result depends on the unspecified owner relationship and unspecified object grants."
+        },
+        "branches": [
+          {
+            "id": "q1-get-grant",
+            "condition": "GET; the caller has a view_document object grant for the addressed document, and satisfies the endpoint's model-level GET permissions.",
+            "disposition": "allow",
+            "explanation": "The GET path's object check calls has_perms_owner_aware(currentUser, \"view_document\", doc) before returning the serialized notes. The supplied policy requires a view_document grant, so this branch conforms. The endpoint also requires model-level documents.view_note and documents.view_document permissions, which are additional implementation controls.",
+            "evidenceIds": [
+              "ev-ee6d2fcbb8e74a3cade8",
+              "ev-4b5fffa7b9d58001b919",
+              "ev-458142315ae76eda187c"
+            ]
+          },
+          {
+            "id": "q1-get-owner-bypass",
+            "condition": "GET; the caller is the document owner, or the document owner is null, but the caller lacks the required view_document object grant.",
+            "disposition": "deny",
+            "explanation": "The implementation permits the request because has_perms_owner_aware returns true when obj.owner is None or obj.owner == user, without requiring the object grant. Under the independent policy, ownership by itself does not substitute for view_document, so the endpoint behavior is nonconforming and should be denied by policy.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919",
+              "ev-458142315ae76eda187c"
+            ]
+          },
+          {
+            "id": "q1-get-no-qualifying-access",
+            "condition": "GET; the caller is neither covered by the owner/null-owner bypass nor granted view_document on the addressed document, while endpoint-level model permissions otherwise pass.",
+            "disposition": "deny",
+            "explanation": "The owner-aware view_document check fails and returns HTTP 403 before notes are returned. This matches the policy's denial when no view_document grant exists.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919",
+              "ev-458142315ae76eda187c"
+            ]
+          },
+          {
+            "id": "q1-post-grants",
+            "condition": "POST; the caller has view_document and change_document object grants for the addressed document, and satisfies the endpoint's model-level POST permissions including documents.add_note, documents.view_document, and documents.change_document.",
+            "disposition": "allow",
+            "explanation": "The initial object check requires view_document; the POST branch then requires change_document. If both relevant object grants exist, the request reaches Note.objects.create(document=doc, ...), and the resulting notes are returned. The policy's creating-notes requirement is satisfied because change_document is present; view_document is an additional endpoint control.",
+            "evidenceIds": [
+              "ev-ee6d2fcbb8e74a3cade8",
+              "ev-4b5fffa7b9d58001b919",
+              "ev-458142315ae76eda187c",
+              "ev-9d99b5897f67220d34f1",
+              "ev-489ba0eccf53bd181746",
+              "ev-79e23bb5c68184accd8e"
+            ]
+          },
+          {
+            "id": "q1-post-change-grant-missing",
+            "condition": "POST; the caller has view_document access but lacks a change_document object grant, while endpoint-level model permissions otherwise pass.",
+            "disposition": "deny",
+            "explanation": "The POST-specific owner-aware change_document check returns HTTP 403 and prevents Note.objects.create. This matches the policy's denial without change_document.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919",
+              "ev-665b74503461c39d827e",
+              "ev-458142315ae76eda187c"
+            ]
+          },
+          {
+            "id": "q1-post-owner-bypass",
+            "condition": "POST; the caller is the document owner, or the document owner is null, but lacks the required change_document object grant (and possibly also lacks the required view_document object grant).",
+            "disposition": "deny",
+            "explanation": "The implementation's owner-aware helper treats a null owner or the current user as sufficient for both the initial view_document check and the POST change_document check, so the request can reach Note.objects.create without the object grant. Under the independent policy, ownership cannot substitute for change_document; therefore this implementation-allowed branch is policy-violating and should be denied.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919",
+              "ev-458142315ae76eda187c",
+              "ev-9d99b5897f67220d34f1"
+            ]
+          },
+          {
+            "id": "q1-post-neither-grant",
+            "condition": "POST; the caller lacks the required object access and is not covered by the helper's owner/null-owner bypass, while endpoint-level model permissions otherwise pass.",
+            "disposition": "deny",
+            "explanation": "The initial view_document check fails before the POST-specific change_document check and note creation. The resulting denial is consistent with the policy, although the implementation short-circuits on view_document first.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919",
+              "ev-00c9f628bfc37efe1571",
+              "ev-665b74503461c39d827e"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-4b5fffa7b9d58001b919",
+          "ev-ee6d2fcbb8e74a3cade8",
+          "ev-458142315ae76eda187c",
+          "ev-61afda06a4eb27c6d63b",
+          "ev-b9070c210e53d01f9419",
+          "ev-00c9f628bfc37efe1571",
+          "ev-665b74503461c39d827e",
+          "ev-9d99b5897f67220d34f1",
+          "ev-79e23bb5c68184accd8e"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The identity of the caller relative to the addressed document owner is unspecified; specifically, whether the caller is the owner, whether the document owner is null, or whether the caller is a non-owner.",
+            "nextRead": "No source read can resolve this request-specific fact; supply the caller/document owner relationship."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "No object-level view_document grant is supplied for the addressed document.",
+            "nextRead": "No source read can resolve this request-specific fact; supply the caller's object grant state for the addressed document."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "No object-level change_document grant is supplied for the addressed document.",
+            "nextRead": "No source read can resolve this request-specific fact; supply the caller's object grant state for the addressed document."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The inspected URL source registers the documents viewset but does not itself show the generated detail-action route or the viewset definition; the action declaration establishes methods=[\"get\",\"post\",\"delete\"] and detail=True, while exact URL formatting is not needed to decide the permission behavior.",
+            "nextRead": "src/documents/views.py:1841-1848"
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "The implementation conforms on branches where the required object grants are actually present and denies branches without qualifying access, but it also contains an owner/null-owner bypass in has_perms_owner_aware. Because the caller's owner relationship and object grants are unspecified, overall conformance cannot be resolved to a single unconditional status. Specifically, owner-only or null-owner access would allow GET and/or POST in the implementation while violating the independent policy."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103; addressed document notes operation (GET and POST); inspected source paths under src/documents and src/paperless/urls.py only"
+  },
+  "evidence": [
+    {
+      "id": "ev-1f6986adf2660dead666",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 855,
+      "endLine": 855,
+      "text": "855 |     notes=extend_schema(\n",
+      "bytes": 31
+    },
+    {
+      "id": "ev-09797ab1795a215e818e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 856,
+      "endLine": 856,
+      "text": "856 |         description=\"View, add, or delete notes for the document\",\n",
+      "bytes": 73
+    },
+    {
+      "id": "ev-e1862068f65c504d5500",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1040,
+      "endLine": 1040,
+      "text": "1040 |         \"num_notes\",\n",
+      "bytes": 28
+    },
+    {
+      "id": "ev-e610f1fd3849a93c4bdc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1203,
+      "endLine": 1203,
+      "text": "1203 |             Prefetch(\"notes\", queryset=Note.objects.select_related(\"user\")),\n",
+      "bytes": 84
+    },
+    {
+      "id": "ev-b0eb13b4b8ae0511fc2b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1210,
+      "endLine": 1210,
+      "text": "1210 |             .annotate(num_notes=Coalesce(note_count, 0))\n",
+      "bytes": 64
+    },
+    {
+      "id": "ev-da78d301ba55f9786fa5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1848,
+      "endLine": 1848,
+      "text": "1848 |     def notes(self, request, pk=None):\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-5fd8666a8ea4ea5ec01c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1853,
+      "endLine": 1853,
+      "text": "1853 |                 .prefetch_related(\"notes\")\n",
+      "bytes": 50
+    },
+    {
+      "id": "ev-00c9f628bfc37efe1571",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1862,
+      "endLine": 1862,
+      "text": "1862 |                 return HttpResponseForbidden(\"Insufficient permissions to view notes\")\n",
+      "bytes": 94
+    },
+    {
+      "id": "ev-ec2b2170fb4a630832f1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1870,
+      "endLine": 1870,
+      "text": "1870 |                 notes = serializer.to_representation(doc).get(\"notes\")\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-30c75455641c832ab599",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1871,
+      "endLine": 1871,
+      "text": "1871 |                 return Response(notes)\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-82f9517609a6a35c983c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1873,
+      "endLine": 1873,
+      "text": "1873 |                 logger.warning(f\"An error occurred retrieving notes: {e!s}\")\n",
+      "bytes": 84
+    },
+    {
+      "id": "ev-ceaef64f13330d6e1ea0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1875,
+      "endLine": 1875,
+      "text": "1875 |                     {\"error\": \"Error retrieving notes, check logs for more detail.\"},\n",
+      "bytes": 93
+    },
+    {
+      "id": "ev-665b74503461c39d827e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1885,
+      "endLine": 1885,
+      "text": "1885 |                         \"Insufficient permissions to create notes\",\n",
+      "bytes": 75
+    },
+    {
+      "id": "ev-489ba0eccf53bd181746",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1911,
+      "endLine": 1911,
+      "text": "1911 |                 notes = serializer.to_representation(doc).get(\"notes\")\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-79e23bb5c68184accd8e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1913,
+      "endLine": 1913,
+      "text": "1913 |                 return Response(notes)\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-4186e405a00107e9d8b9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1927,
+      "endLine": 1927,
+      "text": "1927 |                 return HttpResponseForbidden(\"Insufficient permissions to delete notes\")\n",
+      "bytes": 96
+    },
+    {
+      "id": "ev-663339cb08c6e79d885d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1955,
+      "endLine": 1955,
+      "text": "1955 |             notes = serializer.to_representation(doc).get(\"notes\")\n",
+      "bytes": 74
+    },
+    {
+      "id": "ev-994a8395c8b49b9a56e3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1957,
+      "endLine": 1957,
+      "text": "1957 |             return Response(notes)\n",
+      "bytes": 42
+    },
+    {
+      "id": "ev-854023bd6b9ce7047ae6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 158,
+      "endLine": 158,
+      "text": "158 | from documents.models import Note\n",
+      "bytes": 40
+    },
+    {
+      "id": "ev-9dc0c656745173943fdc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 171,
+      "endLine": 171,
+      "text": "171 | from documents.permissions import PaperlessNotePermissions\n",
+      "bytes": 65
+    },
+    {
+      "id": "ev-01f62fd3456760d56c38",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 205,
+      "endLine": 205,
+      "text": "205 | from documents.serialisers import NotesSerializer\n",
+      "bytes": 56
+    },
+    {
+      "id": "ev-875a8ce639470295ce69",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 859,
+      "endLine": 859,
+      "text": "859 |             name=\"NoteCreateRequest\",\n",
+      "bytes": 44
+    },
+    {
+      "id": "ev-0ebf5332f39708bfc516",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 870,
+      "endLine": 870,
+      "text": "870 |                 description=\"Note ID to delete (used only for DELETE requests)\",\n",
+      "bytes": 87
+    },
+    {
+      "id": "ev-516e44ce6836076c23ff",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 874,
+      "endLine": 874,
+      "text": "874 |             200: NotesSerializer(many=True),\n",
+      "bytes": 51
+    },
+    {
+      "id": "ev-d8725f6288d47b8a64a9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1170,
+      "endLine": 1170,
+      "text": "1170 |             Note.objects.filter(document=OuterRef(\"pk\"))\n",
+      "bytes": 64
+    },
+    {
+      "id": "ev-d7711deb81486f22323f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1202,
+      "endLine": 1202,
+      "text": "1202 |             # NotesSerializer nests the author, this avoids query per note\n",
+      "bytes": 82
+    },
+    {
+      "id": "ev-61afda06a4eb27c6d63b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1844,
+      "endLine": 1844,
+      "text": "1844 |         permission_classes=[PaperlessNotePermissions],\n",
+      "bytes": 62
+    },
+    {
+      "id": "ev-9d99b5897f67220d34f1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1888,
+      "endLine": 1888,
+      "text": "1888 |                 c = Note.objects.create(\n",
+      "bytes": 48
+    },
+    {
+      "id": "ev-34f1bc2658a270323cae",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1899,
+      "endLine": 1899,
+      "text": "1899 |                             \"Note Added\": [\"None\", c.id],\n",
+      "bytes": 65
+    },
+    {
+      "id": "ev-14e717f5bc6928cd4d4d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1936,
+      "endLine": 1936,
+      "text": "1936 |             note = get_object_or_404(Note, id=note_id_int, document=doc)\n",
+      "bytes": 80
+    },
+    {
+      "id": "ev-9263b17d3cbee109518b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1941,
+      "endLine": 1941,
+      "text": "1941 |                         \"Note Deleted\": [note.id, \"None\"],\n",
+      "bytes": 66
+    },
+    {
+      "id": "ev-4b5fffa7b9d58001b919",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1828,
+      "endLine": 1920,
+      "text": "1828 |             handle = file_doc.thumbnail_file\n1829 | \n1830 |             return FileResponse(handle, content_type=\"image/webp\")\n1831 |         except FileNotFoundError:\n1832 |             raise Http404\n1833 | \n1834 |     @action(methods=[\"get\"], detail=True)\n1835 |     def download(self, request, pk=None):\n1836 |         try:\n1837 |             return self.file_response(pk, request, \"attachment\")\n1838 |         except (FileNotFoundError, Document.DoesNotExist):\n1839 |             raise Http404\n1840 | \n1841 |     @action(\n1842 |         methods=[\"get\", \"post\", \"delete\"],\n1843 |         detail=True,\n1844 |         permission_classes=[PaperlessNotePermissions],\n1845 |         pagination_class=None,\n1846 |         filter_backends=[],\n1847 |     )\n1848 |     def notes(self, request, pk=None):\n1849 |         currentUser = request.user\n1850 |         try:\n1851 |             doc = (\n1852 |                 Document.objects.select_related(\"owner\")\n1853 |                 .prefetch_related(\"notes\")\n1854 |                 .only(\"pk\", \"owner__id\")\n1855 |                 .get(pk=pk)\n1856 |             )\n1857 |             if currentUser is not None and not has_perms_owner_aware(\n1858 |                 currentUser,\n1859 |                 \"view_document\",\n1860 |                 doc,\n1861 |             ):\n1862 |                 return HttpResponseForbidden(\"Insufficient permissions to view notes\")\n1863 |         except Document.DoesNotExist:\n1864 |             raise Http404\n1865 | \n1866 |         serializer = self.get_serializer(doc)\n1867 | \n1868 |         if request.method == \"GET\":\n1869 |             try:\n1870 |                 notes = serializer.to_representation(doc).get(\"notes\")\n1871 |                 return Response(notes)\n1872 |             except Exception as e:\n1873 |                 logger.warning(f\"An error occurred retrieving notes: {e!s}\")\n1874 |                 return Response(\n1875 |                     {\"error\": \"Error retrieving notes, check logs for more detail.\"},\n1876 |                 )\n1877 |         elif request.method == \"POST\":\n1878 |             try:\n1879 |                 if currentUser is not None and not has_perms_owner_aware(\n1880 |                     currentUser,\n1881 |                     \"change_document\",\n1882 |                     doc,\n1883 |                 ):\n1884 |                     return HttpResponseForbidden(\n1885 |                         \"Insufficient permissions to create notes\",\n1886 |                     )\n1887 | \n1888 |                 c = Note.objects.create(\n1889 |                     document=doc,\n1890 |                     note=request.data[\"note\"],\n1891 |                     user=currentUser,\n1892 |                 )\n1893 |                 # If audit log is enabled make an entry in the log\n1894 |                 # about this note change\n1895 |                 if settings.AUDIT_LOG_ENABLED:\n1896 |                     LogEntry.objects.log_create(\n1897 |                         instance=doc,\n1898 |                         changes={\n1899 |                             \"Note Added\": [\"None\", c.id],\n1900 |                         },\n1901 |                         action=LogEntry.Action.UPDATE,\n1902 |                     )\n1903 | \n1904 |                 doc.modified = timezone.now()\n1905 |                 doc.save(update_fields=[\"modified\"])\n1906 | \n1907 |                 from documents.search import get_backend\n1908 | \n1909 |                 get_backend().add_or_update(doc)\n1910 | \n1911 |                 notes = serializer.to_representation(doc).get(\"notes\")\n1912 | \n1913 |                 return Response(notes)\n1914 |             except Exception as e:\n1915 |                 logger.warning(f\"An error occurred saving note: {e!s}\")\n1916 |                 return Response(\n1917 |                     {\n1918 |                         \"error\": \"Error saving note, check logs for more detail.\",\n1919 |                     },\n1920 |                 )\n",
+      "bytes": 3948
+    },
+    {
+      "id": "ev-ba7ab3ba2b26e6db4f8d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 75,
+      "endLine": 75,
+      "text": "75 | api_router.register(r\"correspondents\", CorrespondentViewSet)\n",
+      "bytes": 66
+    },
+    {
+      "id": "ev-826143609cd7fb52e624",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 76,
+      "endLine": 76,
+      "text": "76 | api_router.register(r\"document_types\", DocumentTypeViewSet)\n",
+      "bytes": 65
+    },
+    {
+      "id": "ev-b9070c210e53d01f9419",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 77,
+      "endLine": 77,
+      "text": "77 | api_router.register(r\"documents\", UnifiedSearchViewSet)\n",
+      "bytes": 61
+    },
+    {
+      "id": "ev-8bab46ff6d8daff65de4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 78,
+      "endLine": 78,
+      "text": "78 | api_router.register(r\"logs\", LogViewSet, basename=\"logs\")\n",
+      "bytes": 63
+    },
+    {
+      "id": "ev-47827e4150370d87ea0f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 79,
+      "endLine": 79,
+      "text": "79 | api_router.register(r\"tags\", TagViewSet)\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-8b6598298ec40c7a6c31",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 80,
+      "endLine": 80,
+      "text": "80 | api_router.register(r\"saved_views\", SavedViewViewSet)\n",
+      "bytes": 59
+    },
+    {
+      "id": "ev-c98a1d6c6a61cc1b81d1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 81,
+      "endLine": 81,
+      "text": "81 | api_router.register(r\"storage_paths\", StoragePathViewSet)\n",
+      "bytes": 63
+    },
+    {
+      "id": "ev-2cdb881931558629ab60",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 82,
+      "endLine": 82,
+      "text": "82 | api_router.register(r\"tasks\", TasksViewSet, basename=\"tasks\")\n",
+      "bytes": 67
+    },
+    {
+      "id": "ev-810f5fa43ffa84c61c24",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 83,
+      "endLine": 83,
+      "text": "83 | api_router.register(r\"users\", UserViewSet, basename=\"users\")\n",
+      "bytes": 66
+    },
+    {
+      "id": "ev-39b878efeba1b4fcc0cd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 84,
+      "endLine": 84,
+      "text": "84 | api_router.register(r\"groups\", GroupViewSet, basename=\"groups\")\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-01509d16f3891b40fcc8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 85,
+      "endLine": 85,
+      "text": "85 | api_router.register(r\"mail_accounts\", MailAccountViewSet)\n",
+      "bytes": 63
+    },
+    {
+      "id": "ev-87794d9231f07e3f3389",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 86,
+      "endLine": 86,
+      "text": "86 | api_router.register(r\"mail_rules\", MailRuleViewSet)\n",
+      "bytes": 57
+    },
+    {
+      "id": "ev-41e917e3602d8889a84f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 87,
+      "endLine": 87,
+      "text": "87 | api_router.register(r\"share_link_bundles\", ShareLinkBundleViewSet)\n",
+      "bytes": 72
+    },
+    {
+      "id": "ev-04e9a1f74e3e05b3fb0c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 88,
+      "endLine": 88,
+      "text": "88 | api_router.register(r\"share_links\", ShareLinkViewSet)\n",
+      "bytes": 59
+    },
+    {
+      "id": "ev-bedb9e39403644e2f147",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 89,
+      "endLine": 89,
+      "text": "89 | api_router.register(r\"workflow_triggers\", WorkflowTriggerViewSet)\n",
+      "bytes": 71
+    },
+    {
+      "id": "ev-cf8e20de23b73a2028f5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 90,
+      "endLine": 90,
+      "text": "90 | api_router.register(r\"workflow_actions\", WorkflowActionViewSet)\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-14080a42680b23ee2e86",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 91,
+      "endLine": 91,
+      "text": "91 | api_router.register(r\"workflows\", WorkflowViewSet)\n",
+      "bytes": 56
+    },
+    {
+      "id": "ev-eec8971fc0b5faca1992",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 92,
+      "endLine": 92,
+      "text": "92 | api_router.register(r\"custom_fields\", CustomFieldViewSet)\n",
+      "bytes": 63
+    },
+    {
+      "id": "ev-fbebcbfef1f5575d602f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 93,
+      "endLine": 93,
+      "text": "93 | api_router.register(r\"config\", ApplicationConfigurationViewSet)\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-667b07f28145dd79ea44",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 94,
+      "endLine": 94,
+      "text": "94 | api_router.register(r\"processed_mail\", ProcessedMailViewSet)\n",
+      "bytes": 66
+    },
+    {
+      "id": "ev-ee6d2fcbb8e74a3cade8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 673,
+      "endLine": 701,
+      "text": "673 | class PaperlessNotePermissions(BasePermission):\n674 |     \"\"\"\n675 |     Permissions class that checks for model permissions for Notes.\n676 |     \"\"\"\n677 | \n678 |     perms_map = {\n679 |         \"OPTIONS\": [\"documents.view_note\", \"documents.view_document\"],\n680 |         \"GET\": [\"documents.view_note\", \"documents.view_document\"],\n681 |         \"POST\": [\n682 |             \"documents.add_note\",\n683 |             \"documents.view_document\",\n684 |             \"documents.change_document\",\n685 |         ],\n686 |         \"DELETE\": [\n687 |             \"documents.delete_note\",\n688 |             \"documents.view_document\",\n689 |             \"documents.change_document\",\n690 |         ],\n691 |     }\n692 | \n693 |     def has_permission(self, request, view):\n694 |         if not request.user or (not request.user.is_authenticated):  # pragma: no cover\n695 |             return False\n696 | \n697 |         perms = self.perms_map[request.method]\n698 | \n699 |         return request.user.has_perms(perms)\n700 | \n701 | \n",
+      "bytes": 1014
+    },
+    {
+      "id": "ev-458142315ae76eda187c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 624,
+      "endLine": 637,
+      "text": "624 | def has_perms_owner_aware(user, perms, obj):\n625 |     \"\"\"\n626 |     Legacy slow path (guardian-backed) single-object permission check.\n627 | \n628 |     The queryset-filtering side of this migrated onto\n629 |     ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n630 |     single-object check still has many production callers. Several callers\n631 |     remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n632 |     -- grep for this function name before removing it.\n633 |     \"\"\"\n634 |     checker = ObjectPermissionChecker(user)\n635 |     return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)\n636 | \n637 | \n",
+      "bytes": 674
+    },
+    {
+      "id": "ev-9343db12bf190e631733",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 65,
+      "endLine": 80,
+      "text": "65 | from paperless.views import TOTPView\n66 | from paperless.views import UserViewSet\n67 | from paperless_mail.views import MailAccountViewSet\n68 | from paperless_mail.views import MailRuleViewSet\n69 | from paperless_mail.views import OauthCallbackView\n70 | from paperless_mail.views import ProcessedMailViewSet\n71 | \n72 | admin.site.login = secure_admin_login(admin.site.login)\n73 | \n74 | api_router = DefaultRouter()\n75 | api_router.register(r\"correspondents\", CorrespondentViewSet)\n76 | api_router.register(r\"document_types\", DocumentTypeViewSet)\n77 | api_router.register(r\"documents\", UnifiedSearchViewSet)\n78 | api_router.register(r\"logs\", LogViewSet, basename=\"logs\")\n79 | api_router.register(r\"tags\", TagViewSet)\n80 | api_router.register(r\"saved_views\", SavedViewViewSet)\n",
+      "bytes": 780
+    }
+  ]
+}

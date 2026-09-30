@@ -1,0 +1,41 @@
+{
+  "sampleId": "sample-333e42e4",
+  "packetSha256": "c5c769e1286964826f7d06f690c00076166877ea111e4ed541452059a3e29bc5",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "partial",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "correct",
+    "unknowns": "appropriate",
+    "policy": "undetermined-justified"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "Owner/null-owner branches have disposition 'deny' even though the candidate explanation says the implementation permits the request; implementation behavior should be 'allow', with a separate policy violation judgment."
+    },
+    {
+      "kind": "other",
+      "detail": "The same disposition error occurs for POST owner/null-owner bypass."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "src/documents/permissions.py",
+      "line": 624,
+      "detail": "Owner/null-owner satisfies has_perms_owner_aware before object grants."
+    },
+    {
+      "path": "src/documents/views.py",
+      "line": 1862,
+      "detail": "GET returns 403 only when the owner-aware check fails."
+    },
+    {
+      "path": "src/documents/views.py",
+      "line": 1885,
+      "detail": "POST returns insufficient-permission response only when its change check fails."
+    }
+  ],
+  "rationale": "The branch coverage and policy assessment are substantively sound, but the behavior disposition is conflated with normative policy denial."
+}

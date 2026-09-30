@@ -1,0 +1,37 @@
+{
+  "sampleId": "sample-48fd30e2",
+  "packetSha256": "30e29eb3da970d38cc3e903ca36362f19b66086a156f0d52079bca053be41468",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "partial",
+    "bindings": "correct",
+    "unknowns": "overstated",
+    "policy": "not-applicable"
+  },
+  "issues": [
+    {
+      "kind": "avoidable-unknown",
+      "detail": "The current source includes the verified-user role guard (auth.py:458-464) and actual file-id/user-id query (files.py:172-184), while the candidate leaves authentication/input binding dependencies unread."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "backend/open_webui/routers/retrieval.py",
+      "line": 1562,
+      "detail": "Non-admin input file lookup is bound to user.id."
+    },
+    {
+      "path": "backend/open_webui/routers/retrieval.py",
+      "line": 1697,
+      "detail": "process_file sends selected collection_name to vector saving without collection-access validator."
+    },
+    {
+      "path": "backend/open_webui/utils/auth.py",
+      "line": 458,
+      "detail": "Available verified-user role guard."
+    }
+  ],
+  "rationale": "Traces both input authorization and destination validation, correctly retaining unresolved backend/deployment facts. Main-agent adjudication: Correct the reviewer anchor: _validate_collection_access at retrieval.py:1781 belongs to separate /process/text, not process_file. The candidate correctly says no destination guard on process_file. Keep its real unread available input/auth dependencies."
+}

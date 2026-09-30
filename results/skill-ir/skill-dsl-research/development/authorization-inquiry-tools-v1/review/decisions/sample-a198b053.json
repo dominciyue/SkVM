@@ -1,0 +1,42 @@
+{
+  "sampleId": "sample-a198b053",
+  "packetSha256": "edc195c8aad474de455e31c2076b0e96a86f97cf07cabb8c5addcd0ab238a6ba",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "partial",
+    "bindings": "partial",
+    "unknowns": "missing",
+    "policy": "not-applicable"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "The answer's stated repository-admin semantics depend on a helper not read in the candidate; converter fields are also unresolved."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "routers/api/v1/api.go",
+      "line": 1370,
+      "detail": "Route dispatch."
+    },
+    {
+      "path": "routers/api/v1/repo/collaborators.go",
+      "line": 279,
+      "detail": "Case-insensitive identity and privilege guard."
+    },
+    {
+      "path": "routers/api/v1/repo/collaborators.go",
+      "line": 294,
+      "detail": "Permission is for resolved collaborator."
+    },
+    {
+      "path": "models/perm/access/repo_permission.go",
+      "line": 529,
+      "detail": "Underlying repository-admin helper."
+    }
+  ],
+  "rationale": "Correct source behavior, but evidence and unknown criteria are weakened by omitted available dependencies. Main-agent adjudication: Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+}

@@ -1,0 +1,41 @@
+{
+  "sampleId": "sample-8a82c010",
+  "packetSha256": "e53edf5bcb7968d8dbd914b82594f7822ce119e288d6249b3d69714684960574",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "partial",
+    "bindings": "partial",
+    "unknowns": "overstated",
+    "policy": "not-applicable"
+  },
+  "issues": [
+    {
+      "kind": "binding",
+      "detail": "Default collection naming ties a vector collection to file.id; it does not make the collection the same authorization object as the file record."
+    },
+    {
+      "kind": "avoidable-unknown",
+      "detail": "File lookup and verified-user helper bodies are within the allowed source but remain unread while caller/file dispositions are asserted."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "backend/open_webui/routers/retrieval.py",
+      "line": 1562,
+      "detail": "Authorizes the file record, not the vector collection."
+    },
+    {
+      "path": "backend/open_webui/routers/retrieval.py",
+      "line": 1568,
+      "detail": "Default collection name derives from file.id."
+    },
+    {
+      "path": "backend/open_webui/models/files.py",
+      "line": 177,
+      "detail": "Available exact id and user_id database binding."
+    }
+  ],
+  "rationale": "Accurately distinguishes file authorization, explicit/default destinations, and operational unknowns. Main-agent adjudication: Reviewer incorrectly referenced the neighboring /process/text destination validator. Candidate's no-destination-guard conclusion is correct, but default name equality is not object identity and available input helpers remain unread."
+}

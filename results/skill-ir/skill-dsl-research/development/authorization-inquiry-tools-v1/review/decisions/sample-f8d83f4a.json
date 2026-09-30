@@ -1,0 +1,32 @@
+{
+  "sampleId": "sample-f8d83f4a",
+  "packetSha256": "d7f1176555f0b2ec6dc16a303a478505349cca1a3e81bf23fbb51b5a2f361865",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "correct",
+    "unknowns": "appropriate",
+    "policy": "correct"
+  },
+  "issues": [],
+  "sourceSupport": [
+    {
+      "path": "server/api/v1/space_service.go",
+      "line": 741,
+      "detail": "Visible handler obtains current user, resolves target, branches on self, and only then calls Store.DeleteSpaceMember."
+    },
+    {
+      "path": "server/api/v1/space_service.go",
+      "line": 54,
+      "detail": "requireSpaceAdministrator accepts only SpaceMemberRoleAdmin."
+    },
+    {
+      "path": "store/db/mysql/space.go",
+      "line": 419,
+      "detail": "MySQL backend repeats the non-self ADMIN check."
+    }
+  ],
+  "rationale": "Candidate is a concise, source-grounded v1 conformance analysis with correct actor/resource/effect binding and appropriately limited deployment qualification."
+}

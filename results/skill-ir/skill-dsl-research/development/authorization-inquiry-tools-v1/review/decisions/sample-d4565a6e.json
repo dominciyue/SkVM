@@ -1,0 +1,46 @@
+{
+  "sampleId": "sample-d4565a6e",
+  "packetSha256": "992fb91cb9e5b38d2d68a3d829591a96f33c568790e6856d76a6c0e0a12a1183",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "correct",
+    "unknowns": "missing",
+    "policy": "undetermined-justified"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "The route, reader gate, non-writer handler path, issue binding, service call, blocked-user and invalid-assignee branches are well supported."
+    },
+    {
+      "kind": "other",
+      "detail": "The candidate declares policy violated while explicitly leaving models/issues.NewIssue unexamined; a downstream authorization check remains a decisive unknown, so the end-to-end policy verdict should be undetermined-justified."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "routers/api/v1/api.go",
+      "line": 1649,
+      "detail": "Create route uses reqRepoReader(unit.TypeIssues), not reqRepoWriter."
+    },
+    {
+      "path": "routers/api/v1/api.go",
+      "line": 474,
+      "detail": "Reader gate tests CanRead and admin exceptions."
+    },
+    {
+      "path": "routers/api/v1/repo/issue.go",
+      "line": 624,
+      "detail": "Handler calls issue_service.NewIssue."
+    },
+    {
+      "path": "services/issue/issue.go",
+      "line": 25,
+      "detail": "NewIssue invokes model creation inside transaction after blocked-user check."
+    }
+  ],
+  "rationale": "Strongest CreateIssue review, but downstream model authorization was available and unexamined; route evidence alone cannot establish final conformance."
+}

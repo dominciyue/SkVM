@@ -1,0 +1,36 @@
+{
+  "sampleId": "sample-fe49b3c8",
+  "packetSha256": "87ec49aaeecc02a6bb9712b3b241821c0ec2ccf17a30edbd85d62ce84d836080",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "partial",
+    "scenarios": "partial",
+    "evidence": "partial",
+    "bindings": "partial",
+    "unknowns": "overstated",
+    "policy": "incorrect"
+  },
+  "issues": [
+    {
+      "kind": "avoidable-unknown",
+      "detail": "The candidate explicitly leaves PaperlessObjectPermissions, owner-aware helper and inherited user/save paths unread despite their presence in the allowed scope."
+    },
+    {
+      "kind": "unsupported-certainty",
+      "detail": "Satisfied conformance is asserted while exact grant/bypass semantics of the decisive helper remain unread."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "src/documents/serialisers.py",
+      "line": 2851,
+      "detail": "ShareLinkSerializer validates document before persistence."
+    },
+    {
+      "path": "src/paperless/urls.py",
+      "line": 88,
+      "detail": "share_links route registration."
+    }
+  ],
+  "rationale": "Correct exact-document view check, global view requirement, authentication and inherited-path gaps; ID/add permission alone is not treated as sufficient. Main-agent adjudication: Same registered criterion as the other share candidates: exact document at a call site does not resolve the requested inherited permission and owner/null-owner semantics."
+}

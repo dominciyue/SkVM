@@ -1,0 +1,37 @@
+{
+  "sampleId": "sample-c5897fee",
+  "packetSha256": "28d159681d729d89d60c05461d400b8865e02b4f4b1ac1b84d062006dbf21903",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "partial",
+    "unknowns": "overstated",
+    "policy": "correct"
+  },
+  "issues": [
+    {
+      "kind": "avoidable-unknown",
+      "detail": "Prose explicitly leaves router registration unresolved, but UnifiedSearchViewSet(DocumentViewSet) and document router registration are in the allowed source."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "src/documents/views.py",
+      "line": 1848,
+      "detail": "notes action entry."
+    },
+    {
+      "path": "src/documents/views.py",
+      "line": 1862,
+      "detail": "GET denial before retrieval."
+    },
+    {
+      "path": "src/documents/views.py",
+      "line": 1885,
+      "detail": "POST denial branch."
+    }
+  ],
+  "rationale": "Accurate owner-aware bypass/policy analysis, but weak auditability due to prose-only delivery. Main-agent adjudication: Ordinary original-skill prose is a permitted output; remove the format-based semantic penalty. Its source/branch/policy analysis is supported by permissions.py:635 and views.py:1848-1913. Retain its real route-binding source gap."
+}

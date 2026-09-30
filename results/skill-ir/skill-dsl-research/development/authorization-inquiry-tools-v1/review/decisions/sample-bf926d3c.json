@@ -1,0 +1,36 @@
+{
+  "sampleId": "sample-bf926d3c",
+  "packetSha256": "2d7990e06839f72bf3417639a700c9ba41186895f4712b3868d1620ff7e3ed0f",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "partial",
+    "bindings": "correct",
+    "unknowns": "overstated",
+    "policy": "correct"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "The candidate leaves the API handler mapping from current user to actorUserID unresolved even though the packet's controlling evidence includes server/api/v1/space_service.go:741-764."
+    },
+    {
+      "kind": "other",
+      "detail": "It also omits that the visible API non-self guard is decisive before the store, relying mainly on backend evidence."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "server/api/v1/space_service.go",
+      "line": 750,
+      "detail": "Self comparison and non-self administrator guard are explicit."
+    },
+    {
+      "path": "store/db/sqlite/space.go",
+      "line": 424,
+      "detail": "Backend rejects non-ADMIN different-target deletion."
+    }
+  ],
+  "rationale": "The v2 policy violation and actual branches are correct, but the stated source-gap unknown is avoidable because the packet contains the decisive service implementation. Main-agent adjudication: Candidate policyAssessment correctly says violated for revised v2. Keep the independent review's available unread handler/actor evidence gap and overstated unknown; this correction does not make the answer full."
+}

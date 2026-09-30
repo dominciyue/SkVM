@@ -1,0 +1,32 @@
+{
+  "sampleId": "sample-81faed46",
+  "packetSha256": "ae7156ed1fc3fa1d27c0f526f59ec47c252aeb280befd53671b071d097b903c7",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "correct",
+    "unknowns": "appropriate",
+    "policy": "not-applicable"
+  },
+  "issues": [],
+  "sourceSupport": [
+    {
+      "path": "backend/open_webui/routers/retrieval.py",
+      "line": 1562,
+      "detail": "Under the current caller-owned-file premise, input selects the caller's file."
+    },
+    {
+      "path": "backend/open_webui/routers/retrieval.py",
+      "line": 1697,
+      "detail": "Selected caller-supplied destination is passed to vector writer."
+    },
+    {
+      "path": "backend/open_webui/utils/auth.py",
+      "line": 458,
+      "detail": "Shown verified-user role guard."
+    }
+  ],
+  "rationale": "Core binding is right, but destination authorization differs by visible branch and the candidate overgeneralizes reachability. Main-agent adjudication: The reviewer confused neighboring process_text with process_file. Main checked process_file:1546-1762 and candidate conditional/backend limits; its stated source-visible reach to destination writing is correct, not unconditional deployment success."
+}

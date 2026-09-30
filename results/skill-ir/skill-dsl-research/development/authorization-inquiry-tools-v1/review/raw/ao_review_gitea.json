@@ -1,0 +1,483 @@
+[
+  {
+    "sampleId": "sample-14074ead",
+    "packetSha256": "e45dca86ea25956c8cd077cf5c81ab27188c9f9f44782c389c03f4d868ddfc14",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "partial",
+      "bindings": "partial",
+      "unknowns": "missing",
+      "policy": "not-applicable"
+    },
+    "issues": [
+      "The answer correctly identifies reqToken, case-insensitive self matching, site-admin and repository-admin bypasses, 404 lookup failure, and target-user permission computation.",
+      "Repository-admin semantics and response conversion are asserted while their controlling bodies were not examined; available dependencies leave an avoidable evidence/unknown gap."
+    ],
+    "sourceSupport": [
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 1370,
+        "detail": "Registers GET /permission."
+      },
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 1372,
+        "detail": "The collaborators group applies reqToken()."
+      },
+      {
+        "path": "routers/api/v1/repo/collaborators.go",
+        "line": 279,
+        "detail": "Guard is !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin()."
+      },
+      {
+        "path": "routers/api/v1/repo/collaborators.go",
+        "line": 294,
+        "detail": "Permission is computed for ctx.Repo.Repository and resolved collaborator."
+      },
+      {
+        "path": "models/perm/access/repo_permission.go",
+        "line": 529,
+        "detail": "IsUserRepoAdmin includes user.IsAdmin or real repository-admin access."
+      }
+    ],
+    "rationale": "Core behavior is supported and complete for requested branches; evidence is partial because the context predicate and converter were not read despite being decisive for exact privilege/result binding."
+  },
+  {
+    "sampleId": "sample-208be5ea",
+    "packetSha256": "24768306a98eda27efed3bd431ee79b767554f7545cadee6985091120cf44ad3",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "partial",
+      "scenarios": "complete",
+      "evidence": "partial",
+      "bindings": "partial",
+      "unknowns": "missing",
+      "policy": "undetermined-justified"
+    },
+    "issues": [
+      "The route visibly checks CanRead(unit.TypeIssues), not CanWrite, but the answer stops before the persistence call and therefore cannot establish the final read-only creation effect.",
+      "It correctly identifies repository/poster binding and write-only metadata branches, but leaves reqToken, repository assignment, admin semantics, and persistence unexamined."
+    ],
+    "sourceSupport": [
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 1649,
+        "detail": "POST uses reqToken(), mustNotBeArchived, binding, reqRepoReader(unit.TypeIssues), then CreateIssue."
+      },
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 474,
+        "detail": "reqRepoReader tests CanRead(unitType), with repo/site-admin exceptions."
+      },
+      {
+        "path": "routers/api/v1/repo/issue.go",
+        "line": 572,
+        "detail": "Deadline is processed only when CanWrite(unit.TypeIssues)."
+      },
+      {
+        "path": "routers/api/v1/repo/issue.go",
+        "line": 580,
+        "detail": "PosterID and Poster are bound to ctx.Doer."
+      }
+    ],
+    "rationale": "The route-level policy concern is well-founded, but final creation and any downstream authorization were not read; policy should remain undetermined rather than declared violated."
+  },
+  {
+    "sampleId": "sample-3e315142",
+    "packetSha256": "4a2882885d39ee28b86fb2367444bc83b44f266aa93dacd7ccf3991ba902cf9e",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "partial",
+      "bindings": "partial",
+      "unknowns": "missing",
+      "policy": "not-applicable"
+    },
+    "issues": [
+      "Self/other/admin/unsigned/404 branches are correct.",
+      "The answer explicitly leaves IsUserRepoAdmin, permission derivation, and conversion unread; these are available dependencies relevant to privilege and result binding."
+    ],
+    "sourceSupport": [
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 1370,
+        "detail": "Permission route registration."
+      },
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 374,
+        "detail": "reqToken exists upstream."
+      },
+      {
+        "path": "routers/api/v1/repo/collaborators.go",
+        "line": 279,
+        "detail": "Identity and privilege guard."
+      },
+      {
+        "path": "routers/api/v1/repo/collaborators.go",
+        "line": 294,
+        "detail": "Target collaborator is passed to permission computation."
+      }
+    ],
+    "rationale": "Behavioral branch summary is accurate, but semantic support is incomplete for repository-admin qualification and exact output."
+  },
+  {
+    "sampleId": "sample-70f2f97e",
+    "packetSha256": "e4ac4a254c53cd328133e0a311856a482476a805452056e376467ea39a1fb169",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "missing",
+      "policy": "not-applicable"
+    },
+    "issues": [
+      "Synthetic rename is followed correctly.",
+      "The answer relies on source-visible helper branches and notes reqToken/converter gaps, but those available source dependencies remain unexamined."
+    ],
+    "sourceSupport": [
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 1370,
+        "detail": "Synthetic route dispatches to repo.InspectRepoAccess."
+      },
+      {
+        "path": "routers/api/v1/repository_access/collaborators.go",
+        "line": 279,
+        "detail": "Synthetic handler preserves the original guard."
+      },
+      {
+        "path": "routers/api/v1/repository_access/collaborators.go",
+        "line": 294,
+        "detail": "Synthetic handler computes permission for the named collaborator."
+      },
+      {
+        "path": "models/perm/access/repo_permission.go",
+        "line": 529,
+        "detail": "Repository-admin predicate implementation is present."
+      }
+    ],
+    "rationale": "The renamed path and symbol retain the original semantics; control/resource/effect binding is correctly distinguished."
+  },
+  {
+    "sampleId": "sample-7bc8b121",
+    "packetSha256": "43483912bd3715e8696c5e0572be9c3b581b1185f078eb0ce1724d954b7fbbbf",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "missing",
+      "policy": "not-applicable"
+    },
+    "issues": [
+      "The branch logic and target-user binding are correct.",
+      "The answer leaves context predicate, converter, and visibility helper bodies unread even though they are available and refine decisive semantics."
+    ],
+    "sourceSupport": [
+      {
+        "path": "routers/api/v1/repo/collaborators.go",
+        "line": 279,
+        "detail": "Own-name or admin/repo-admin guard."
+      },
+      {
+        "path": "routers/api/v1/repo/collaborators.go",
+        "line": 294,
+        "detail": "Permission target is resolved collaborator."
+      },
+      {
+        "path": "models/perm/access/repo_permission.go",
+        "line": 529,
+        "detail": "Repository-admin source predicate."
+      }
+    ],
+    "rationale": "Correct conditional behavior, but avoidable source gaps make unknown handling incomplete."
+  },
+  {
+    "sampleId": "sample-80c6fa18",
+    "packetSha256": "bfaa2ba4185a0a419d436b674d8d2761f39ce27c9050e31bb26dc3fd71bc96f9",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "missing",
+      "policy": "not-applicable"
+    },
+    "issues": [
+      "Synthetic route/handler and target permission binding are correctly traced.",
+      "reqToken and response conversion are listed as gaps despite available source; exact visibility/permission derivation is also only partially examined."
+    ],
+    "sourceSupport": [
+      {
+        "path": "routers/api/v1/repository_access/collaborators.go",
+        "line": 279,
+        "detail": "Synthetic identity guard."
+      },
+      {
+        "path": "routers/api/v1/repository_access/collaborators.go",
+        "line": 294,
+        "detail": "Synthetic target-user permission call."
+      },
+      {
+        "path": "models/perm/access/repo_permission.go",
+        "line": 423,
+        "detail": "Explicit-user permission helper."
+      },
+      {
+        "path": "models/perm/access/repo_permission.go",
+        "line": 529,
+        "detail": "Repository-admin implementation."
+      }
+    ],
+    "rationale": "Main result is correct and bindings are clear; unknown accounting is incomplete because controlling source was available."
+  },
+  {
+    "sampleId": "sample-869315d3",
+    "packetSha256": "41f9d80ab99a0c85d0e817473a29c11972a97028fec25c7a54a4a0e8ab07af7d",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "partial",
+      "bindings": "partial",
+      "unknowns": "missing",
+      "policy": "not-applicable"
+    },
+    "issues": [
+      "Unsigned, self, other, site-admin, repo-admin, and missing-target branches are correct.",
+      "Permission helper and context-admin semantics were not examined, so the claimed result scope is under-supported."
+    ],
+    "sourceSupport": [
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 374,
+        "detail": "reqToken implementation location."
+      },
+      {
+        "path": "routers/api/v1/repo/collaborators.go",
+        "line": 279,
+        "detail": "Handler guard."
+      },
+      {
+        "path": "routers/api/v1/repo/collaborators.go",
+        "line": 294,
+        "detail": "Target-specific permission calculation."
+      }
+    ],
+    "rationale": "Correct branch behavior, but exact permission result and repository-admin qualification remain avoidably unresolved."
+  },
+  {
+    "sampleId": "sample-88ad1a69",
+    "packetSha256": "f83ffd1aee12fe9d163da20c507e8aeb3823f79c33d3535abbf3a0a649c4fad0",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "missing",
+      "policy": "not-applicable"
+    },
+    "issues": [
+      "The answer correctly separates caller query authorization from target-user permission and includes authentication, lookup, computation-error, and success branches.",
+      "It leaves IsUserRepoAdmin, remaining permission helper branches, and route context middleware unexamined; these are available and relevant."
+    ],
+    "sourceSupport": [
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 1370,
+        "detail": "Synthetic route registration."
+      },
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 374,
+        "detail": "reqToken rejects unsigned contexts."
+      },
+      {
+        "path": "routers/api/v1/repository_access/collaborators.go",
+        "line": 279,
+        "detail": "Identity/admin guard."
+      },
+      {
+        "path": "routers/api/v1/repository_access/collaborators.go",
+        "line": 294,
+        "detail": "Target permission call."
+      },
+      {
+        "path": "services/convert/user.go",
+        "line": 129,
+        "detail": "Converter signature includes target user, doer, and access mode."
+      }
+    ],
+    "rationale": "Most complete candidate for this synthetic path; residual unknowns are avoidable source omissions."
+  },
+  {
+    "sampleId": "sample-a198b053",
+    "packetSha256": "edc195c8aad474de455e31c2076b0e96a86f97cf07cabb8c5addcd0ab238a6ba",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "partial",
+      "bindings": "partial",
+      "unknowns": "missing",
+      "policy": "not-applicable"
+    },
+    "issues": [
+      "Core self/other/admin/404/result branches are accurate.",
+      "The answer's stated repository-admin semantics depend on a helper not read in the candidate; converter fields are also unresolved."
+    ],
+    "sourceSupport": [
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 1370,
+        "detail": "Route dispatch."
+      },
+      {
+        "path": "routers/api/v1/repo/collaborators.go",
+        "line": 279,
+        "detail": "Case-insensitive identity and privilege guard."
+      },
+      {
+        "path": "routers/api/v1/repo/collaborators.go",
+        "line": 294,
+        "detail": "Permission is for resolved collaborator."
+      },
+      {
+        "path": "models/perm/access/repo_permission.go",
+        "line": 529,
+        "detail": "Underlying repository-admin helper."
+      }
+    ],
+    "rationale": "Correct source behavior, but evidence and unknown criteria are weakened by omitted available dependencies."
+  },
+  {
+    "sampleId": "sample-d302a3b0",
+    "packetSha256": "29e2583cacbd672aa55b35e1ec8d05c85b30ed8b6d0f14e38c09fb32d86646c7",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "missing",
+      "policy": "not-applicable"
+    },
+    "issues": [
+      "Branch dispositions and target-specific permission explanation are correct.",
+      "The answer acknowledges but does not resolve available IsUserRepoAdmin, converter, visibility, and mode derivation dependencies."
+    ],
+    "sourceSupport": [
+      {
+        "path": "routers/api/v1/repo/collaborators.go",
+        "line": 279,
+        "detail": "Guard and identity comparison."
+      },
+      {
+        "path": "routers/api/v1/repo/collaborators.go",
+        "line": 294,
+        "detail": "Target collaborator passed to permission helper."
+      },
+      {
+        "path": "models/perm/access/repo_permission.go",
+        "line": 529,
+        "detail": "Repository-admin logic."
+      }
+    ],
+    "rationale": "Semantically correct conditional answer with incomplete unknown accounting."
+  },
+  {
+    "sampleId": "sample-d4565a6e",
+    "packetSha256": "992fb91cb9e5b38d2d68a3d829591a96f33c568790e6856d76a6c0e0a12a1183",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "missing",
+      "policy": "undetermined-justified"
+    },
+    "issues": [
+      "The route, reader gate, non-writer handler path, issue binding, service call, blocked-user and invalid-assignee branches are well supported.",
+      "The candidate declares policy violated while explicitly leaving models/issues.NewIssue unexamined; a downstream authorization check remains a decisive unknown, so the end-to-end policy verdict should be undetermined-justified."
+    ],
+    "sourceSupport": [
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 1649,
+        "detail": "Create route uses reqRepoReader(unit.TypeIssues), not reqRepoWriter."
+      },
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 474,
+        "detail": "Reader gate tests CanRead and admin exceptions."
+      },
+      {
+        "path": "routers/api/v1/repo/issue.go",
+        "line": 624,
+        "detail": "Handler calls issue_service.NewIssue."
+      },
+      {
+        "path": "services/issue/issue.go",
+        "line": 25,
+        "detail": "NewIssue invokes model creation inside transaction after blocked-user check."
+      }
+    ],
+    "rationale": "Strongest CreateIssue review, but downstream model authorization was available and unexamined; route evidence alone cannot establish final conformance."
+  },
+  {
+    "sampleId": "sample-eeb711aa",
+    "packetSha256": "d68a2ecf904cfe98ccca81363e0e8b93f89956952a32677cf329c956b45ae984",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "partial",
+      "scenarios": "complete",
+      "evidence": "partial",
+      "bindings": "partial",
+      "unknowns": "missing",
+      "policy": "undetermined-justified"
+    },
+    "issues": [
+      "The explanation correctly identifies reader-only route admission and unconditional service invocation in the shown handler.",
+      "The reader-only branch is labeled deny even though the explanation says creation proceeds; this is an internal contradiction.",
+      "models/issues.NewIssue is unexamined, so the violated policy conclusion is premature."
+    ],
+    "sourceSupport": [
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 1649,
+        "detail": "POST route admits reqRepoReader(unit.TypeIssues)."
+      },
+      {
+        "path": "routers/api/v1/api.go",
+        "line": 474,
+        "detail": "reqRepoReader uses CanRead, not CanWrite."
+      },
+      {
+        "path": "routers/api/v1/repo/issue.go",
+        "line": 572,
+        "detail": "CanWrite gates optional deadline handling."
+      },
+      {
+        "path": "routers/api/v1/repo/issue.go",
+        "line": 624,
+        "detail": "Handler invokes issue_service.NewIssue."
+      },
+      {
+        "path": "services/issue/issue.go",
+        "line": 25,
+        "detail": "Service delegates to issue model creation, but model body was not read."
+      }
+    ],
+    "rationale": "The main route finding is plausible, but branch disposition contradicts its explanation and downstream authorization remains unresolved."
+  }
+]

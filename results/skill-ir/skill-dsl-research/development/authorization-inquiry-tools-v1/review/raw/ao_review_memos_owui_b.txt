@@ -1,0 +1,330 @@
+[
+  {
+    "sampleId": "sample-9d69d6b9",
+    "packetSha256": "588f80d1f37fb71be86b1ba6eea5a030ba01ab548ec3fed7a11c7370895dfd87",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "not-needed",
+      "policy": "correct"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "server/api/v1/space_service.go",
+        "line": 741,
+        "detail": "DeleteSpaceMember compares targetUser.ID with currentUser.ID and requires requireSpaceAdministrator for non-self targets."
+      },
+      {
+        "path": "store/db/sqlite/space.go",
+        "line": 424,
+        "detail": "Different-target deletion requires an active ADMIN actor; self-target bypasses that check."
+      }
+    ],
+    "rationale": "The candidate correctly states ordinary non-self denial, administrator-only non-self removal, and the self-removal exception, with source-visible control/effect binding and no material unsupported policy claim."
+  },
+  {
+    "sampleId": "sample-a22dba4e",
+    "packetSha256": "0234f7d64efe8ca4a77257d639b480f550bb5f589a03dee7909754b411f31e3c",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "partial",
+      "bindings": "correct",
+      "unknowns": "overstated",
+      "policy": "correct"
+    },
+    "issues": [
+      "The candidate marks requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator as unread source gaps even though the packet includes decisive helper evidence at server/api/v1/space_service.go:19-27, 54-55, and 632-662.",
+      "Deployment unverified is reasonable as a deployment limit, but the source-gap unknown is avoidable and should not be presented as unresolved."
+    ],
+    "sourceSupport": [
+      {
+        "path": "server/api/v1/space_service.go",
+        "line": 19,
+        "detail": "requireCurrentSpaceUser fetches the current user and rejects nil user as unauthenticated."
+      },
+      {
+        "path": "server/api/v1/space_service.go",
+        "line": 632,
+        "detail": "resolveSpaceMemberResource parses the resource, resolves caller membership, normal target user, and active target membership."
+      },
+      {
+        "path": "server/api/v1/space_service.go",
+        "line": 741,
+        "detail": "The handler branches on self versus non-self and passes resolved IDs plus currentUser.ID to the store."
+      }
+    ],
+    "rationale": "Substantive behavior, branches, bindings, effects, and v1 policy comparison are correct. Evidence is only partial because the candidate unnecessarily leaves available decisive helper implementations unresolved."
+  },
+  {
+    "sampleId": "sample-ab455eb2",
+    "packetSha256": "8fca25d901f0824cfd41943cede04cb3640ec362f26a72f5bc3de3471cb27a58",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "correct"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "server/api/v1/space_service.go",
+        "line": 741,
+        "detail": "Non-self targets invoke requireSpaceAdministrator; self-targets skip that guard and the resolved target IDs are passed to Store.DeleteSpaceMember."
+      },
+      {
+        "path": "store/db/postgres/space.go",
+        "line": 457,
+        "detail": "Backend independently requires ADMIN for different-target deletion."
+      },
+      {
+        "path": "store/db/sqlite/space.go",
+        "line": 442,
+        "detail": "Deleting the sole active normal administrator returns ErrLastSpaceAdmin."
+      }
+    ],
+    "rationale": "The candidate accurately covers ordinary denial, admin conditionality, self-removal, last-admin protection, actor/resource/effect binding, and the supplied v1 policy. Deployment middleware remains appropriately qualified."
+  },
+  {
+    "sampleId": "sample-b288efe2",
+    "packetSha256": "28aa5fc1ac51c34e9c5e550375a0b6426de26c677d683664ac18fea457deb6e4",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "incorrect"
+    },
+    "issues": [
+      "The implementation is correctly described as denying ordinary different-member removal, but that directly violates revised policy v2, which allows any current member to remove a different member.",
+      "The candidate correctly identifies self-removal and the last-active-admin exception."
+    ],
+    "sourceSupport": [
+      {
+        "path": "server/api/v1/space_service.go",
+        "line": 750,
+        "detail": "Non-self targets enter the administrator-only branch."
+      },
+      {
+        "path": "store/db/sqlite/space.go",
+        "line": 424,
+        "detail": "Database layer also requires ADMIN for non-self deletion."
+      }
+    ],
+    "rationale": "Source behavior and branch/effect binding are complete and well supported. Policy assessment is correctly violated because v2 requires ordinary members to remove different members."
+  },
+  {
+    "sampleId": "sample-bf926d3c",
+    "packetSha256": "2d7990e06839f72bf3417639a700c9ba41186895f4712b3868d1620ff7e3ed0f",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "partial",
+      "bindings": "correct",
+      "unknowns": "overstated",
+      "policy": "incorrect"
+    },
+    "issues": [
+      "The candidate leaves the API handler mapping from current user to actorUserID unresolved even though the packet's controlling evidence includes server/api/v1/space_service.go:741-764.",
+      "It also omits that the visible API non-self guard is decisive before the store, relying mainly on backend evidence."
+    ],
+    "sourceSupport": [
+      {
+        "path": "server/api/v1/space_service.go",
+        "line": 750,
+        "detail": "Self comparison and non-self administrator guard are explicit."
+      },
+      {
+        "path": "store/db/sqlite/space.go",
+        "line": 424,
+        "detail": "Backend rejects non-ADMIN different-target deletion."
+      }
+    ],
+    "rationale": "The v2 policy violation and actual branches are correct, but the stated source-gap unknown is avoidable because the packet contains the decisive service implementation."
+  },
+  {
+    "sampleId": "sample-dfa1e12e",
+    "packetSha256": "37cbe49bb29e2c8de47239612bf4403c26fea16928eb9af0bcb0b266562b7f76",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "partial",
+      "bindings": "correct",
+      "unknowns": "overstated",
+      "policy": "correct"
+    },
+    "issues": [
+      "The candidate reports helper bodies as unread source gaps, but decisive helper implementations are available in the packet at server/api/v1/space_service.go:19-27, 54-55, and 632-662."
+    ],
+    "sourceSupport": [
+      {
+        "path": "server/api/v1/space_service.go",
+        "line": 741,
+        "detail": "Non-self removal requires administrator status; self removal skips the check."
+      },
+      {
+        "path": "server/api/v1/space_service.go",
+        "line": 632,
+        "detail": "Resource resolution binds caller and target to the same space and active memberships."
+      },
+      {
+        "path": "store/db/postgres/space.go",
+        "line": 457,
+        "detail": "Backend independently enforces ADMIN for non-self deletion."
+      }
+    ],
+    "rationale": "Behavior, requested branches, bindings, evidence claims, and v1 policy comparison are substantively correct. Unknown handling is overstated because accessible decisive source was missed."
+  },
+  {
+    "sampleId": "sample-f8d83f4a",
+    "packetSha256": "d7f1176555f0b2ec6dc16a303a478505349cca1a3e81bf23fbb51b5a2f361865",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "correct"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "server/api/v1/space_service.go",
+        "line": 741,
+        "detail": "Visible handler obtains current user, resolves target, branches on self, and only then calls Store.DeleteSpaceMember."
+      },
+      {
+        "path": "server/api/v1/space_service.go",
+        "line": 54,
+        "detail": "requireSpaceAdministrator accepts only SpaceMemberRoleAdmin."
+      },
+      {
+        "path": "store/db/mysql/space.go",
+        "line": 419,
+        "detail": "MySQL backend repeats the non-self ADMIN check."
+      }
+    ],
+    "rationale": "Candidate is a concise, source-grounded v1 conformance analysis with correct actor/resource/effect binding and appropriately limited deployment qualification."
+  },
+  {
+    "sampleId": "sample-ffad75f6",
+    "packetSha256": "b0f9b6d4ce551167e71faa80d67ab4b7f93d424c3fa88c90941682c69f40c9a0",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "not-applicable"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "server/api/v1/memo_share_service.go",
+        "line": 173,
+        "detail": "Synthetic variant unconditionally returns PermissionDenied before reading token or fetching memo."
+      },
+      {
+        "path": "server/api/v1/connect_services.go",
+        "line": 650,
+        "detail": "Connect handler only delegates to APIV1Service.GetSharedMemo."
+      }
+    ],
+    "rationale": "The candidate correctly short-circuits all token branches, distinguishes unreachable dead-code controls from current behavior, and appropriately marks deployment and dead-helper limits."
+  },
+  {
+    "sampleId": "sample-8e3f65a6",
+    "packetSha256": "f6fccb85f9be0b750c3a63796b866fd1cdadc088ed31dedf0b8f388cd45604a0",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "not-applicable"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "backend/open_webui/routers/retrieval.py",
+        "line": 1,
+        "detail": "Candidate evidence identifies process_file's file authorization and destination processing branches."
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/main.py",
+        "line": 1,
+        "detail": "Candidate traces collection_name to vector insertion without visible principal/grant validation."
+      }
+    ],
+    "rationale": "The answer correctly distinguishes authorized file from affected destination collection, covers bypass and backend-failure branches, and states deployment facts as unresolved rather than asserting final external authorization."
+  },
+  {
+    "sampleId": "sample-bd103ad1",
+    "packetSha256": "1c20a69a23c923a723e4a059240c56d98abcfa86e593f8b818731860d9568f85",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "not-applicable"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "backend/open_webui/routers/retrieval.py",
+        "line": 1,
+        "detail": "Candidate correctly states non-admin file lookup is user-bound, admin lookup is unrestricted, and collection_name is passed to save_docs_to_vector_db."
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/main.py",
+        "line": 1,
+        "detail": "Candidate correctly identifies lack of visible destination owner/grant check."
+      }
+    ],
+    "rationale": "Behavioral branches, input/output object distinction, Chroma creation behavior, bypass path, and deployment/source unknowns are correctly represented."
+  },
+  {
+    "sampleId": "sample-c4572a2d",
+    "packetSha256": "badf75460dfb79dded3087259f8dde46d1c4b4a4e17d083f6038226e9816a7a6",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "not-applicable"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "backend/open_webui/routers/retrieval.py",
+        "line": 1,
+        "detail": "Candidate traces caller-owned versus other-user file lookup, explicit/default collection selection, file mutation, and possible default collection deletion."
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/main.py",
+        "line": 1,
+        "detail": "Candidate correctly states explicit collection insertion lacks visible collection ownership/write authorization validation."
+      }
+    ],
+    "rationale": "The candidate gives a complete behavior trace, correctly distinguishes file authorization from collection effect, covers admin/non-admin and bypass/error branches, and identifies unresolved auth/backend/deployment facts without overclaiming."
+  }
+]

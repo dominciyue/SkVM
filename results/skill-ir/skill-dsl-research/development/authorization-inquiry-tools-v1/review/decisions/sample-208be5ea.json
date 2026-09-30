@@ -1,0 +1,46 @@
+{
+  "sampleId": "sample-208be5ea",
+  "packetSha256": "24768306a98eda27efed3bd431ee79b767554f7545cadee6985091120cf44ad3",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "partial",
+    "scenarios": "complete",
+    "evidence": "partial",
+    "bindings": "partial",
+    "unknowns": "missing",
+    "policy": "undetermined-justified"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "The route visibly checks CanRead(unit.TypeIssues), not CanWrite, but the answer stops before the persistence call and therefore cannot establish the final read-only creation effect."
+    },
+    {
+      "kind": "other",
+      "detail": "It correctly identifies repository/poster binding and write-only metadata branches, but leaves reqToken, repository assignment, admin semantics, and persistence unexamined."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "routers/api/v1/api.go",
+      "line": 1649,
+      "detail": "POST uses reqToken(), mustNotBeArchived, binding, reqRepoReader(unit.TypeIssues), then CreateIssue."
+    },
+    {
+      "path": "routers/api/v1/api.go",
+      "line": 474,
+      "detail": "reqRepoReader tests CanRead(unitType), with repo/site-admin exceptions."
+    },
+    {
+      "path": "routers/api/v1/repo/issue.go",
+      "line": 572,
+      "detail": "Deadline is processed only when CanWrite(unit.TypeIssues)."
+    },
+    {
+      "path": "routers/api/v1/repo/issue.go",
+      "line": 580,
+      "detail": "PosterID and Poster are bound to ctx.Doer."
+    }
+  ],
+  "rationale": "The route-level policy concern is well-founded, but final creation and any downstream authorization were not read; policy should remain undetermined rather than declared violated."
+}

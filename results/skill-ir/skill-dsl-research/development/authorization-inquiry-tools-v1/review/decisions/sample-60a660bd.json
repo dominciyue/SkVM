@@ -1,0 +1,37 @@
+{
+  "sampleId": "sample-60a660bd",
+  "packetSha256": "d8d0b8ce984d1fda5791aa3401e50666199ad74ebec308e0b7e1af8f313f5c30",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "partial",
+    "evidence": "partial",
+    "bindings": "partial",
+    "unknowns": "overstated",
+    "policy": "not-applicable"
+  },
+  "issues": [
+    {
+      "kind": "avoidable-unknown",
+      "detail": "Owner-aware authorization, version-selection and serve_file bodies are available within the allowed src/documents scope but left unread. Requested ownership and version resource details are not completed."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "src/documents/views.py",
+      "line": 1375,
+      "detail": "_resolve_file_doc computes version_requested and resolves within root_doc."
+    },
+    {
+      "path": "src/documents/views.py",
+      "line": 1395,
+      "detail": "Version request_doc with no version returns request_doc; otherwise root resolution."
+    },
+    {
+      "path": "src/documents/views.py",
+      "line": 1401,
+      "detail": "Root authorization path; helper-body uncertainty is correctly retained."
+    }
+  ],
+  "rationale": "Accurately binds authorization to root_doc and effect to selected file_doc; covers original/archive and denial/error branches. Main-agent adjudication: The same registered available-dependency rule applies to download: the candidate's source gaps are avoidable, including has_perms_owner_aware at permissions.py:635, rather than justified external unknowns."
+}

@@ -1,0 +1,42 @@
+{
+  "sampleId": "sample-3e315142",
+  "packetSha256": "4a2882885d39ee28b86fb2367444bc83b44f266aa93dacd7ccf3991ba902cf9e",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "partial",
+    "bindings": "partial",
+    "unknowns": "missing",
+    "policy": "not-applicable"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "The answer explicitly leaves IsUserRepoAdmin, permission derivation, and conversion unread; these are available dependencies relevant to privilege and result binding."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "routers/api/v1/api.go",
+      "line": 1370,
+      "detail": "Permission route registration."
+    },
+    {
+      "path": "routers/api/v1/api.go",
+      "line": 374,
+      "detail": "reqToken exists upstream."
+    },
+    {
+      "path": "routers/api/v1/repo/collaborators.go",
+      "line": 279,
+      "detail": "Identity and privilege guard."
+    },
+    {
+      "path": "routers/api/v1/repo/collaborators.go",
+      "line": 294,
+      "detail": "Target collaborator is passed to permission computation."
+    }
+  ],
+  "rationale": "Behavioral branch summary is accurate, but semantic support is incomplete for repository-admin qualification and exact output. Main-agent adjudication: Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+}

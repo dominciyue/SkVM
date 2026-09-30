@@ -1,0 +1,42 @@
+{
+  "sampleId": "sample-80c6fa18",
+  "packetSha256": "bfaa2ba4185a0a419d436b674d8d2761f39ce27c9050e31bb26dc3fd71bc96f9",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "correct",
+    "unknowns": "missing",
+    "policy": "not-applicable"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "reqToken and response conversion are listed as gaps despite available source; exact visibility/permission derivation is also only partially examined."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "routers/api/v1/repository_access/collaborators.go",
+      "line": 279,
+      "detail": "Synthetic identity guard."
+    },
+    {
+      "path": "routers/api/v1/repository_access/collaborators.go",
+      "line": 294,
+      "detail": "Synthetic target-user permission call."
+    },
+    {
+      "path": "models/perm/access/repo_permission.go",
+      "line": 423,
+      "detail": "Explicit-user permission helper."
+    },
+    {
+      "path": "models/perm/access/repo_permission.go",
+      "line": 529,
+      "detail": "Repository-admin implementation."
+    }
+  ],
+  "rationale": "Main result is correct and bindings are clear; unknown accounting is incomplete because controlling source was available. Main-agent adjudication: Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+}

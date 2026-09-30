@@ -1,0 +1,37 @@
+{
+  "sampleId": "sample-c4572a2d",
+  "packetSha256": "badf75460dfb79dded3087259f8dde46d1c4b4a4e17d083f6038226e9816a7a6",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "correct",
+    "unknowns": "overstated",
+    "policy": "not-applicable"
+  },
+  "issues": [
+    {
+      "kind": "avoidable-unknown",
+      "detail": "Candidate leaves the available get_verified_user role guard at auth.py:458-464 and actual in-scope files/knowledge callers untraced."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "backend/open_webui/routers/retrieval.py",
+      "line": 1697,
+      "detail": "Actual destination effect and no process_file collection validator."
+    },
+    {
+      "path": "backend/open_webui/utils/auth.py",
+      "line": 458,
+      "detail": "Available verified-user role guard establishes admitted roles."
+    },
+    {
+      "path": "backend/open_webui/routers/knowledge.py",
+      "line": 661,
+      "detail": "Available backend caller of process_file."
+    }
+  ],
+  "rationale": "The candidate gives a complete behavior trace, correctly distinguishes file authorization from collection effect, covers admin/non-admin and bypass/error branches, and identifies unresolved auth/backend/deployment facts without overclaiming. Main-agent adjudication: Keep the correct caller/file/destination analysis but apply the same avoidable source-gap criterion: these controlling dependencies and backend callers are in the registered allowed source."
+}

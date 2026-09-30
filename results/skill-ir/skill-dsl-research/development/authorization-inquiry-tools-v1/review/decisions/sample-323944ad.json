@@ -1,0 +1,45 @@
+{
+  "sampleId": "sample-323944ad",
+  "packetSha256": "cdefd80096c15595e6087a1ba6921595677c4d7799a809d3a4e7122fe1ba500c",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "partial",
+    "scenarios": "partial",
+    "evidence": "partial",
+    "bindings": "partial",
+    "unknowns": "overstated",
+    "policy": "incorrect"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "The allowed source contains has_perms_owner_aware, so owner behavior is not a source gap; marking the owner branch unknown is avoidable."
+    },
+    {
+      "kind": "other",
+      "detail": "The allowed source contains UnifiedSearchViewSet inheritance, so route/action binding is not unresolved."
+    },
+    {
+      "kind": "other",
+      "detail": "The candidate incorrectly says policy is satisfied and fails to report the owner/null-owner implementation bypass as a policy violation."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "src/documents/permissions.py",
+      "line": 624,
+      "detail": "The helper's owner/null-owner/object-permission expression is available in allowed source."
+    },
+    {
+      "path": "src/documents/views.py",
+      "line": 1008,
+      "detail": "DocumentViewSet declaration."
+    },
+    {
+      "path": "src/documents/views.py",
+      "line": 2503,
+      "detail": "UnifiedSearchViewSet(DocumentViewSet) establishes the router/action inheritance."
+    }
+  ],
+  "rationale": "The notes effects and permission names are mostly right, but the candidate withholds decisive available source facts and reaches the wrong policy conclusion."
+}

@@ -1,0 +1,666 @@
+{
+  "sampleId": "sample-eeb711aa",
+  "kind": "analysis",
+  "brief": "Check CreateIssue and its API route in this Gitea revision against the independently supplied current policy. Compare authenticated repository readers and principals with issue write permission. Trace route-level controls, repository or issue-unit checks and the issue creation effect; identify any relevant exceptions instead of assuming endpoint-local checks are the whole path. Explain policy compliance and precise source or deployment limits.",
+  "mode": "conformance",
+  "policy": {
+    "text": "Creating an issue requires write permission to the repository's issues unit. Read permission to the repository alone does not authorize this write.",
+    "origin": "user",
+    "location": "experimental-user-brief:gitea-issue-policy/v1"
+  },
+  "context": {
+    "repository": "go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "sourceRoot": "public-source/gitea",
+    "allowedPaths": [
+      "routers/api/v1/repo",
+      "routers/api/v1/api.go",
+      "routers/api/v1/utils",
+      "modules/structs",
+      "modules/setting",
+      "modules/web",
+      "models/unit",
+      "models/perm",
+      "models/auth",
+      "models/user",
+      "models/repo",
+      "models/issues",
+      "models/organization",
+      "services/convert",
+      "services/issue",
+      "services/context"
+    ]
+  },
+  "candidate": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "create-issue-conformance",
+        "behavior": {
+          "disposition": "deny",
+          "explanation": "The route is not policy-conformant for ordinary authenticated repository readers. The route requires a token and then reqRepoReader(unit.TypeIssues), which accepts issue-read permission (or repository/site-admin status), not issue-write permission. CreateIssue does not reject a caller lacking issue write permission: its CanWrite(unit.TypeIssues) checks only conditionally process deadline, milestone, assignees, and labels; the else branch merely clears labels, and it unconditionally calls issue_service.NewIssue. That service invokes the issue-model creation operation inside a transaction. Therefore an authenticated principal with issue read but not issue write can reach the issue-creation effect, subject to the separately checked route/error conditions. This conflicts with the supplied policy that read permission alone does not authorize creation."
+        },
+        "branches": [
+          {
+            "id": "issue-reader-without-issue-write",
+            "condition": "Authenticated/token-authorized principal has read permission for the repository's issues unit but lacks write permission to that unit, is not blocked by another route condition, and the request is otherwise valid.",
+            "disposition": "deny",
+            "explanation": "The route's reqRepoReader permits the principal based on CanRead(unit.TypeIssues), while CreateIssue has no enclosing CanWrite rejection. The handler proceeds to NewIssue even when CanWrite(unit.TypeIssues) is false; only optional fields are restricted and labels are cleared.",
+            "evidenceIds": [
+              "ev-4f3047892863b4c396d8",
+              "ev-6af31bfbcfaf66dd8ce9",
+              "ev-98a96680dff3cfd848cf",
+              "ev-0386efc7fa2ccae8174c"
+            ]
+          },
+          {
+            "id": "issue-writer",
+            "condition": "Authenticated/token-authorized principal has write permission to the repository's issues unit and the request passes validation, archive, assignment, blocked-user, and other service checks.",
+            "disposition": "allow",
+            "explanation": "Issue write permission is represented by CanWrite(unit.TypeIssues); the permission helper maps the non-pull case to the issues unit. Such a principal passes the route's reader gate and the handler enables write-only issue attributes before invoking NewIssue. This is the policy-allowed class, assuming the independent request and service conditions succeed.",
+            "evidenceIds": [
+              "ev-4f3047892863b4c396d8",
+              "ev-12a8d1633bf47e88e4bb",
+              "ev-98a96680dff3cfd848cf",
+              "ev-43a8f0785739ec5ad876"
+            ]
+          },
+          {
+            "id": "repo-or-site-admin",
+            "condition": "Principal is a repository administrator or site administrator but the source does not establish that the resulting effective permission necessarily includes issue-unit write access.",
+            "disposition": "conditional",
+            "explanation": "reqRepoReader explicitly exempts repository and site admins from the issue-read check, and repoAssignment computes a permission object for the doer. The supplied policy is stated in terms of issue-unit write permission, not an administrative bypass. The reviewed route/handler does not add a write check for these principals, so conformance for an admin without effective issue-unit write permission is not established; if the deployment's admin semantics grant that write permission, the branch falls under the issue-writer case.",
+            "evidenceIds": [
+              "ev-6af31bfbcfaf66dd8ce9",
+              "ev-4f3047892863b4c396d8",
+              "ev-b756302addcb8cfdc229"
+            ]
+          },
+          {
+            "id": "unauthenticated-or-token-ineligible",
+            "condition": "Request lacks the required token/authentication or fails repository/token visibility and assignment checks.",
+            "disposition": "deny",
+            "explanation": "The POST route uses reqToken; repoAssignment resolves the owner/repository, computes permission, rejects no-access cases with not-found behavior, and applies TokenCanAccessRepo. Such requests do not reach CreateIssue.",
+            "evidenceIds": [
+              "ev-4f3047892863b4c396d8",
+              "ev-b756302addcb8cfdc229"
+            ]
+          },
+          {
+            "id": "other-request-or-service-failure",
+            "condition": "Request is archived, malformed, has invalid assignees, involves blocked users, or NewIssue/close/refetch fails.",
+            "disposition": "deny",
+            "explanation": "The route applies mustNotBeArchived and form binding. CreateIssue validates assignability for write-capable callers, maps service errors to API errors, and NewIssue rejects blocked-user cases and propagates creation/transaction errors. These are execution-failure branches, not authorization evidence that read permission authorizes the write.",
+            "evidenceIds": [
+              "ev-4f3047892863b4c396d8",
+              "ev-98a96680dff3cfd848cf",
+              "ev-43a8f0785739ec5ad876"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-4f3047892863b4c396d8",
+          "ev-b756302addcb8cfdc229",
+          "ev-6af31bfbcfaf66dd8ce9",
+          "ev-98a96680dff3cfd848cf",
+          "ev-12a8d1633bf47e88e4bb",
+          "ev-0386efc7fa2ccae8174c",
+          "ev-43a8f0785739ec5ad876"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The reviewed evidence shows services/issue.NewIssue invoking issues_model.NewIssue inside a transaction, but does not include the body of models/issues.NewIssue. Read that model function to determine whether it independently enforces issue-write authorization or is purely a persistence operation; such a downstream check could change the effective path result.",
+            "nextRead": "models/issues: locate and read the NewIssue function body"
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "No deployment configuration, middleware composition outside the shown route, authentication/token scopes, or actual permission assignments were supplied. In particular, the source establishes route predicates and handler behavior but not which concrete principals receive issue-unit write permission in a deployment.",
+            "nextRead": "Verify the deployed router/middleware configuration, token scope enforcement, and repository permission assignments"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The exact implementation and semantics of mustNotBeArchived and reqToken were not read here. They can add denial conditions but do not, on the shown route, substitute for a missing issue-write predicate.",
+            "nextRead": "routers/api/v1/api.go: locate and read reqToken and mustNotBeArchived"
+          }
+        ],
+        "policyAssessment": {
+          "status": "violated",
+          "explanation": "For the requested CreateIssue API route, the source-visible path gates entry on authentication/token eligibility and issue read permission, not issue write permission. The handler conditionally limits optional fields for non-writers but still invokes the issue-creation service. On the evidence reviewed, authenticated issue readers lacking issue write permission are not denied before the creation effect, so the implementation does not conform to the independently supplied policy. This conclusion is limited to the examined route and remains subject to any unreviewed downstream authorization in models/issues.NewIssue and deployment-specific middleware/permission behavior."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b1; CreateIssue and POST /repos/{username}/{reponame}/issues only; not all repository issue paths or deployments"
+  },
+  "evidence": [
+    {
+      "id": "ev-a6ad2b7ca36ec07a2374",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/issues/issue_label.go",
+      "sha256": "cb58f468667047e55bc2b40481c8ee61a116d0fcd19c73fca7a6d81d80d7751e",
+      "startLine": 363,
+      "endLine": 363,
+      "text": "363 | \t\tif !perm.CanWriteIssuesOrPulls(issue.IsPull) {\n",
+      "bytes": 55
+    },
+    {
+      "id": "ev-f25843918b456382fd1a",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/issues/issue_xref.go",
+      "sha256": "46e7452ede5daa433266d28990ec2f27783258a71fec574dcf3dcb24a988b618",
+      "startLine": 229,
+      "endLine": 229,
+      "text": "229 | \t\t\t!perm.CanWriteIssuesOrPulls(refIssue.IsPull) &&\n",
+      "bytes": 57
+    },
+    {
+      "id": "ev-30054eae118ea4af03ce",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 157,
+      "endLine": 157,
+      "text": "157 | // CanWriteIssuesOrPulls returns true if isPull is true and user could write to pull requests and\n",
+      "bytes": 104
+    },
+    {
+      "id": "ev-af9ce15c77318e6e2476",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 159,
+      "endLine": 159,
+      "text": "159 | func (p *Permission) CanWriteIssuesOrPulls(isPull bool) bool {\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-1a0b9bd19f2c0df25c91",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue.go",
+      "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+      "startLine": 709,
+      "endLine": 709,
+      "text": "709 | \tcanWrite := ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull)\n",
+      "bytes": 75
+    },
+    {
+      "id": "ev-1b38db51e3f1eb92f226",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue.go",
+      "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+      "startLine": 962,
+      "endLine": 962,
+      "text": "962 | \tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-61cfc6605fb256304346",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_assignee.go",
+      "sha256": "baff9d8efb88c32a5d4d0a74cf0e3142863dea02a304d7d8098e31623e2a333a",
+      "startLine": 196,
+      "endLine": 196,
+      "text": "196 | \tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-6b38c746ca8ab1099cae",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_attachment.go",
+      "sha256": "de407017453ca604e7942bdbf1c280c49095189bf7689bc2588bed3ac785ebe6",
+      "startLine": 374,
+      "endLine": 374,
+      "text": "374 | \tcanEditIssue := ctx.IsSigned && (ctx.Doer.ID == issue.PosterID || ctx.IsUserRepoAdmin() || ctx.IsUserSiteAdmin() || ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull))\n",
+      "bytes": 180
+    },
+    {
+      "id": "ev-b6dbd8858409c8073faf",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_comment.go",
+      "sha256": "a2c173c3a828dfa83668021973f4baa38a3f009c3cceec86ddb7c639b1ebea12",
+      "startLine": 394,
+      "endLine": 394,
+      "text": "394 | \tif issue.IsLocked && !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) && !ctx.Doer.IsAdmin {\n",
+      "bytes": 108
+    },
+    {
+      "id": "ev-b55d30795c8903b5554c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_comment.go",
+      "sha256": "a2c173c3a828dfa83668021973f4baa38a3f009c3cceec86ddb7c639b1ebea12",
+      "startLine": 575,
+      "endLine": 575,
+      "text": "575 | \tif !ctx.IsSigned || (ctx.Doer.ID != comment.PosterID && !ctx.Repo.Permission.CanWriteIssuesOrPulls(comment.Issue.IsPull)) {\n",
+      "bytes": 131
+    },
+    {
+      "id": "ev-ee872e0c8ff66cf658c0",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_comment.go",
+      "sha256": "a2c173c3a828dfa83668021973f4baa38a3f009c3cceec86ddb7c639b1ebea12",
+      "startLine": 680,
+      "endLine": 680,
+      "text": "680 | \tif !ctx.IsSigned || (ctx.Doer.ID != comment.PosterID && !ctx.Repo.Permission.CanWriteIssuesOrPulls(comment.Issue.IsPull)) {\n",
+      "bytes": 131
+    },
+    {
+      "id": "ev-5b7a9ce831708eca529d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_comment_attachment.go",
+      "sha256": "25acebc2101048e5390c4196888712a949c9d0813734a4fae58e718550728b19",
+      "startLine": 382,
+      "endLine": 382,
+      "text": "382 | \tcanEditComment := ctx.IsSigned && (ctx.Doer.ID == comment.PosterID || ctx.IsUserRepoAdmin() || ctx.IsUserSiteAdmin()) && ctx.Repo.Permission.CanWriteIssuesOrPulls(comment.Issue.IsPull)\n",
+      "bytes": 192
+    },
+    {
+      "id": "ev-9effa79afeeddf675ed5",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_dependency.go",
+      "sha256": "95264c2c914bf3304c531116e82a50480099a1d858e6d520a325e0de20c81871",
+      "startLine": 78,
+      "endLine": 78,
+      "text": "78 | \tcanWrite := ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull)\n",
+      "bytes": 74
+    },
+    {
+      "id": "ev-4600088081bac1fda7be",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_dependency.go",
+      "sha256": "95264c2c914bf3304c531116e82a50480099a1d858e6d520a325e0de20c81871",
+      "startLine": 540,
+      "endLine": 540,
+      "text": "540 | \tif !targetPerm.CanWriteIssuesOrPulls(target.IsPull) {\n",
+      "bytes": 61
+    },
+    {
+      "id": "ev-c2d807cc70ffdb9814be",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_dependency.go",
+      "sha256": "95264c2c914bf3304c531116e82a50480099a1d858e6d520a325e0de20c81871",
+      "startLine": 566,
+      "endLine": 566,
+      "text": "566 | \tif !targetPerm.CanWriteIssuesOrPulls(target.IsPull) {\n",
+      "bytes": 61
+    },
+    {
+      "id": "ev-dcde04a9fc39e5f1c1e3",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_label.go",
+      "sha256": "771232cc1edb0456d3d439396e2792253d9b98b3c848593c82ec354b8931e18e",
+      "startLine": 176,
+      "endLine": 176,
+      "text": "176 | \tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-d1e84bdec67e223c4504",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_label.go",
+      "sha256": "771232cc1edb0456d3d439396e2792253d9b98b3c848593c82ec354b8931e18e",
+      "startLine": 297,
+      "endLine": 297,
+      "text": "297 | \tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-b462573f628309e97114",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_label.go",
+      "sha256": "771232cc1edb0456d3d439396e2792253d9b98b3c848593c82ec354b8931e18e",
+      "startLine": 321,
+      "endLine": 321,
+      "text": "321 | \tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-4bca05ac2e24ff236184",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_lock.go",
+      "sha256": "e0d46753b902a798ddb1dde1f5afef745cf95789161937cb79d1a486d293c2cd",
+      "startLine": 60,
+      "endLine": 60,
+      "text": "60 | \tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n",
+      "bytes": 68
+    },
+    {
+      "id": "ev-a7928f05fd7312ee4e90",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_lock.go",
+      "sha256": "e0d46753b902a798ddb1dde1f5afef745cf95789161937cb79d1a486d293c2cd",
+      "startLine": 123,
+      "endLine": 123,
+      "text": "123 | \tif !ctx.Repo.Permission.CanWriteIssuesOrPulls(issue.IsPull) {\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-98a96680dff3cfd848cf",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue.go",
+      "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+      "startLine": 533,
+      "endLine": 653,
+      "text": "533 | func CreateIssue(ctx *context.APIContext) {\n534 | \t// swagger:operation POST /repos/{owner}/{repo}/issues issue issueCreateIssue\n535 | \t// ---\n536 | \t// summary: Create an issue. If using deadline only the date will be taken into account, and time of day ignored.\n537 | \t// consumes:\n538 | \t// - application/json\n539 | \t// produces:\n540 | \t// - application/json\n541 | \t// parameters:\n542 | \t// - name: owner\n543 | \t//   in: path\n544 | \t//   description: owner of the repo\n545 | \t//   type: string\n546 | \t//   required: true\n547 | \t// - name: repo\n548 | \t//   in: path\n549 | \t//   description: name of the repo\n550 | \t//   type: string\n551 | \t//   required: true\n552 | \t// - name: body\n553 | \t//   in: body\n554 | \t//   schema:\n555 | \t//     \"$ref\": \"#/definitions/CreateIssueOption\"\n556 | \t// responses:\n557 | \t//   \"201\":\n558 | \t//     \"$ref\": \"#/responses/Issue\"\n559 | \t//   \"403\":\n560 | \t//     \"$ref\": \"#/responses/forbidden\"\n561 | \t//   \"404\":\n562 | \t//     \"$ref\": \"#/responses/notFound\"\n563 | \t//   \"412\":\n564 | \t//     \"$ref\": \"#/responses/error\"\n565 | \t//   \"422\":\n566 | \t//     \"$ref\": \"#/responses/validationError\"\n567 | \t//   \"423\":\n568 | \t//     \"$ref\": \"#/responses/repoArchivedError\"\n569 | \n570 | \tform := web.GetForm[*api.CreateIssueOption](ctx)\n571 | \tvar deadlineUnix timeutil.TimeStamp\n572 | \tif form.Deadline != nil && ctx.Repo.Permission.CanWrite(unit.TypeIssues) {\n573 | \t\tdeadlineUnix = timeutil.TimeStamp(form.Deadline.Unix())\n574 | \t}\n575 | \n576 | \tissue := &issues_model.Issue{\n577 | \t\tRepoID:       ctx.Repo.Repository.ID,\n578 | \t\tRepo:         ctx.Repo.Repository,\n579 | \t\tTitle:        form.Title,\n580 | \t\tPosterID:     ctx.Doer.ID,\n581 | \t\tPoster:       ctx.Doer,\n582 | \t\tContent:      form.Body,\n583 | \t\tRef:          form.Ref,\n584 | \t\tDeadlineUnix: deadlineUnix,\n585 | \t}\n586 | \n587 | \tassigneeIDs := make([]int64, 0)\n588 | \tvar err error\n589 | \tif ctx.Repo.Permission.CanWrite(unit.TypeIssues) {\n590 | \t\tissue.MilestoneID = form.Milestone\n591 | \t\tassigneeIDs, err = issues_model.MakeIDsFromAPIAssigneesToAdd(ctx, form.Assignee, form.Assignees)\n592 | \t\tif err != nil {\n593 | \t\t\tif user_model.IsErrUserNotExist(err) {\n594 | \t\t\t\tctx.APIError(http.StatusUnprocessableEntity, fmt.Sprintf(\"Assignee does not exist: [name: %s]\", err))\n595 | \t\t\t} else {\n596 | \t\t\t\tctx.APIErrorInternal(err)\n597 | \t\t\t}\n598 | \t\t\treturn\n599 | \t\t}\n600 | \n601 | \t\t// Check if the passed assignees is assignable\n602 | \t\tfor _, aID := range assigneeIDs {\n603 | \t\t\tassignee, err := user_model.GetUserByID(ctx, aID)\n604 | \t\t\tif err != nil {\n605 | \t\t\t\tctx.APIErrorInternal(err)\n606 | \t\t\t\treturn\n607 | \t\t\t}\n608 | \n609 | \t\t\tvalid, err := access_model.CanBeAssigned(ctx, assignee, ctx.Repo.Repository)\n610 | \t\t\tif err != nil {\n611 | \t\t\t\tctx.APIErrorInternal(err)\n612 | \t\t\t\treturn\n613 | \t\t\t}\n614 | \t\t\tif !valid {\n615 | \t\t\t\tctx.APIError(http.StatusUnprocessableEntity, repo_model.ErrUserDoesNotHaveAccessToRepo{UserID: aID, RepoName: ctx.Repo.Repository.Name}.Error())\n616 | \t\t\t\treturn\n617 | \t\t\t}\n618 | \t\t}\n619 | \t} else {\n620 | \t\t// setting labels is not allowed if user is not a writer\n621 | \t\tform.Labels = make([]int64, 0)\n622 | \t}\n623 | \n624 | \tif err := issue_service.NewIssue(ctx, ctx.Repo.Repository, issue, form.Labels, nil, assigneeIDs, form.Projects); err != nil {\n625 | \t\tif errors.Is(err, user_model.ErrBlockedUser) {\n626 | \t\t\tctx.APIError(http.StatusForbidden, err.Error())\n627 | \t\t} else if errors.Is(err, util.ErrPermissionDenied) || errors.Is(err, util.ErrNotExist) {\n628 | \t\t\tctx.APIError(http.StatusBadRequest, err.Error())\n629 | \t\t} else {\n630 | \t\t\tctx.APIErrorInternal(err)\n631 | \t\t}\n632 | \t\treturn\n633 | \t}\n634 | \n635 | \tif form.Closed {\n636 | \t\tif err := issue_service.CloseIssue(ctx, issue, ctx.Doer, \"\"); err != nil {\n637 | \t\t\tif issues_model.IsErrDependenciesLeft(err) {\n638 | \t\t\t\tctx.APIError(http.StatusPreconditionFailed, \"cannot close this issue because it still has open dependencies\")\n639 | \t\t\t\treturn\n640 | \t\t\t}\n641 | \t\t\tctx.APIErrorInternal(err)\n642 | \t\t\treturn\n643 | \t\t}\n644 | \t}\n645 | \n646 | \t// Refetch from database to assign some automatic values\n647 | \tissue, err = issues_model.GetIssueByID(ctx, issue.ID)\n648 | \tif err != nil {\n649 | \t\tctx.APIErrorInternal(err)\n650 | \t\treturn\n651 | \t}\n652 | \tctx.JSON(http.StatusCreated, convert.ToAPIIssue(ctx, ctx.Doer, issue))\n653 | }\n",
+      "bytes": 4312
+    },
+    {
+      "id": "ev-12a8d1633bf47e88e4bb",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 145,
+      "endLine": 175,
+      "text": "145 | func (p *Permission) CanReadIssuesOrPulls(isPull bool) bool {\n146 | \tif isPull {\n147 | \t\treturn p.CanRead(unit.TypePullRequests)\n148 | \t}\n149 | \treturn p.CanRead(unit.TypeIssues)\n150 | }\n151 | \n152 | // CanWrite returns true if user could write to this unit\n153 | func (p *Permission) CanWrite(unitType unit.Type) bool {\n154 | \treturn p.CanAccess(perm_model.AccessModeWrite, unitType)\n155 | }\n156 | \n157 | // CanWriteIssuesOrPulls returns true if isPull is true and user could write to pull requests and\n158 | // returns true if isPull is false and user could write to issues\n159 | func (p *Permission) CanWriteIssuesOrPulls(isPull bool) bool {\n160 | \tif isPull {\n161 | \t\treturn p.CanWrite(unit.TypePullRequests)\n162 | \t}\n163 | \treturn p.CanWrite(unit.TypeIssues)\n164 | }\n165 | \n166 | func (p *Permission) ReadableUnitTypes() []unit.Type {\n167 | \ttypes := make([]unit.Type, 0, len(p.units))\n168 | \tfor _, u := range p.units {\n169 | \t\tif p.CanRead(u.Type) {\n170 | \t\t\ttypes = append(types, u.Type)\n171 | \t\t}\n172 | \t}\n173 | \treturn types\n174 | }\n175 | \n",
+      "bytes": 1056
+    },
+    {
+      "id": "ev-6e9a102a22de00845757",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 272,
+      "endLine": 272,
+      "text": "272 | \t\t\t\t\tctx.APIError(http.StatusForbidden, \"token scope is limited to public issues\")\n",
+      "bytes": 89
+    },
+    {
+      "id": "ev-76ebfeff2b2e0ac02fc6",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 845,
+      "endLine": 845,
+      "text": "845 | \t\t\tm.Get(\"/issues\", shared.ListProjectColumnIssues)\n",
+      "bytes": 58
+    },
+    {
+      "id": "ev-3f5112c4b85fdcac522c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 859,
+      "endLine": 859,
+      "text": "859 | \t\t\t\tm.Post(\"/issues/{issue_id}\", shared.AddIssueToProjectColumn)\n",
+      "bytes": 71
+    },
+    {
+      "id": "ev-fe8c792b397d5995f253",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 860,
+      "endLine": 860,
+      "text": "860 | \t\t\t\tm.Delete(\"/issues/{issue_id}\", shared.RemoveIssueFromProjectColumn)\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-51984583cc8846e83cfe",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 862,
+      "endLine": 862,
+      "text": "862 | \t\t\tm.Post(\"/issues/{issue_id}/move\", bind(api.MoveProjectIssueOption{}), shared.MoveProjectIssue)\n",
+      "bytes": 104
+    },
+    {
+      "id": "ev-10acb011d2bf32a54cb7",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1644,
+      "endLine": 1644,
+      "text": "1644 | \t\t\tm.Get(\"/issues/search\", repo.SearchIssues)\n",
+      "bytes": 53
+    },
+    {
+      "id": "ev-cac9e225e30fe4296185",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1647,
+      "endLine": 1647,
+      "text": "1647 | \t\t\t\tm.Group(\"/issues\", func() {\n",
+      "bytes": 39
+    },
+    {
+      "id": "ev-0bcce01429d0a5eb8860",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue.go",
+      "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+      "startLine": 572,
+      "endLine": 572,
+      "text": "572 | \tif form.Deadline != nil && ctx.Repo.Permission.CanWrite(unit.TypeIssues) {\n",
+      "bytes": 82
+    },
+    {
+      "id": "ev-2ada8ecc81524d525c7b",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue.go",
+      "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+      "startLine": 589,
+      "endLine": 589,
+      "text": "589 | \tif ctx.Repo.Permission.CanWrite(unit.TypeIssues) {\n",
+      "bytes": 58
+    },
+    {
+      "id": "ev-e50ce525ce270df9297d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 118,
+      "endLine": 118,
+      "text": "118 | \t\t\tif ctx.IsSigned && ctx.Doer.IsAdmin {\n",
+      "bytes": 47
+    },
+    {
+      "id": "ev-644b0390d378c8e88757",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 157,
+      "endLine": 157,
+      "text": "157 | \t\tif ctx.IsSigned && strings.EqualFold(ctx.Doer.LowerName, userName) {\n",
+      "bytes": 77
+    },
+    {
+      "id": "ev-61d85a7665010789c0f2",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 377,
+      "endLine": 377,
+      "text": "377 | \t\tif ctx.IsSigned {\n",
+      "bytes": 26
+    },
+    {
+      "id": "ev-82639409205f8c096e78",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 386,
+      "endLine": 386,
+      "text": "386 | \t\tif (setting.Service.RequireSignInViewStrict || setting.Service.Explore.RequireSigninView) && !ctx.IsSigned {\n",
+      "bytes": 117
+    },
+    {
+      "id": "ev-c7dbfb5fc94895484ea8",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 402,
+      "endLine": 402,
+      "text": "402 | \t\tif ctx.IsSigned && setting.Service.EnableReverseProxyAuthAPI && ctx.Data[\"AuthedMethod\"] == auth.ReverseProxyMethodName {\n",
+      "bytes": 130
+    },
+    {
+      "id": "ev-f985d69d46286d8120d0",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 739,
+      "endLine": 739,
+      "text": "739 | \t\t\tif ctx.IsSigned {\n",
+      "bytes": 27
+    },
+    {
+      "id": "ev-ead57c550dc1319d772b",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 762,
+      "endLine": 762,
+      "text": "762 | \t\t\tif ctx.IsSigned {\n",
+      "bytes": 27
+    },
+    {
+      "id": "ev-3c774cc7adeab522bf29",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 786,
+      "endLine": 786,
+      "text": "786 | \t\t\tif ctx.IsSigned {\n",
+      "bytes": 27
+    },
+    {
+      "id": "ev-85c0527cb7c2cce35350",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 933,
+      "endLine": 933,
+      "text": "933 | \t\tctx.IsSigned = ar.Doer != nil\n",
+      "bytes": 38
+    },
+    {
+      "id": "ev-0b1ccd36694b2d1db634",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 942,
+      "endLine": 942,
+      "text": "942 | \t\tif ctx.IsSigned {\n",
+      "bytes": 26
+    },
+    {
+      "id": "ev-4e120766e587a5e18fc6",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 968,
+      "endLine": 968,
+      "text": "968 | \t\tif options.SignOutRequired && ctx.IsSigned && ctx.Req.URL.RequestURI() != \"/\" {\n",
+      "bytes": 88
+    },
+    {
+      "id": "ev-62b0b3b675c1ee48e13f",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 974,
+      "endLine": 974,
+      "text": "974 | \t\t\tif !ctx.IsSigned {\n",
+      "bytes": 28
+    },
+    {
+      "id": "ev-4f3047892863b4c396d8",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1625,
+      "endLine": 1695,
+      "text": "1625 | \t\t\t\tm.Methods(\"HEAD,GET\", \"/{ball_type:tarball|zipball|bundle}/*\", reqRepoReader(unit.TypeCode), context.ReferencesGitRepo(true), repo.DownloadArchive)\n1626 | \t\t\t}, repoAssignment(), checkTokenPublicOnly())\n1627 | \t\t}, tokenRequiresScopes(auth_model.AccessTokenScopeCategoryRepository))\n1628 | \n1629 | \t\t// Artifacts direct download endpoint authenticates via signed url\n1630 | \t\t// it is protected by the \"sig\" parameter (to help to access private repo), so no need to use other middlewares\n1631 | \t\tm.Get(\"/repos/{username}/{reponame}/actions/artifacts/{artifact_id}/zip/raw\", repo.DownloadArtifactRaw)\n1632 | \n1633 | \t\t// Notifications (requires notifications scope)\n1634 | \t\tm.Group(\"/repos\", func() {\n1635 | \t\t\tm.Group(\"/{username}/{reponame}\", func() {\n1636 | \t\t\t\tm.Combo(\"/notifications\", reqToken()).\n1637 | \t\t\t\t\tGet(notify.ListRepoNotifications).\n1638 | \t\t\t\t\tPut(notify.ReadRepoNotifications)\n1639 | \t\t\t}, repoAssignment(), checkTokenPublicOnly())\n1640 | \t\t}, tokenRequiresScopes(auth_model.AccessTokenScopeCategoryNotification))\n1641 | \n1642 | \t\t// Issue (requires issue scope)\n1643 | \t\tm.Group(\"/repos\", func() {\n1644 | \t\t\tm.Get(\"/issues/search\", repo.SearchIssues)\n1645 | \n1646 | \t\t\tm.Group(\"/{username}/{reponame}\", func() {\n1647 | \t\t\t\tm.Group(\"/issues\", func() {\n1648 | \t\t\t\t\tm.Combo(\"\").Get(repo.ListIssues).\n1649 | \t\t\t\t\t\tPost(reqToken(), mustNotBeArchived, bind(api.CreateIssueOption{}), reqRepoReader(unit.TypeIssues), repo.CreateIssue)\n1650 | \t\t\t\t\tm.Get(\"/pinned\", reqRepoReader(unit.TypeIssues), repo.ListPinnedIssues)\n1651 | \t\t\t\t\tm.Group(\"/comments\", func() {\n1652 | \t\t\t\t\t\tm.Get(\"\", repo.ListRepoIssueComments)\n1653 | \t\t\t\t\t\tm.Group(\"/{id}\", func() {\n1654 | \t\t\t\t\t\t\tm.Combo(\"\").\n1655 | \t\t\t\t\t\t\t\tGet(repo.GetIssueComment).\n1656 | \t\t\t\t\t\t\t\tPatch(mustNotBeArchived, reqToken(), bind(api.EditIssueCommentOption{}), repo.EditIssueComment).\n1657 | \t\t\t\t\t\t\t\tDelete(reqToken(), repo.DeleteIssueComment)\n1658 | \t\t\t\t\t\t\tm.Combo(\"/reactions\").\n1659 | \t\t\t\t\t\t\t\tGet(repo.GetIssueCommentReactions).\n1660 | \t\t\t\t\t\t\t\tPost(reqToken(), bind(api.EditReactionOption{}), repo.PostIssueCommentReaction).\n1661 | \t\t\t\t\t\t\t\tDelete(reqToken(), bind(api.EditReactionOption{}), repo.DeleteIssueCommentReaction)\n1662 | \t\t\t\t\t\t\tm.Group(\"/assets\", func() {\n1663 | \t\t\t\t\t\t\t\tm.Combo(\"\").\n1664 | \t\t\t\t\t\t\t\t\tGet(repo.ListIssueCommentAttachments).\n1665 | \t\t\t\t\t\t\t\t\tPost(reqToken(), mustNotBeArchived, repo.CreateIssueCommentAttachment)\n1666 | \t\t\t\t\t\t\t\tm.Combo(\"/{attachment_id}\").\n1667 | \t\t\t\t\t\t\t\t\tGet(repo.GetIssueCommentAttachment).\n1668 | \t\t\t\t\t\t\t\t\tPatch(reqToken(), mustNotBeArchived, bind(api.EditAttachmentOptions{}), repo.EditIssueCommentAttachment).\n1669 | \t\t\t\t\t\t\t\t\tDelete(reqToken(), mustNotBeArchived, repo.DeleteIssueCommentAttachment)\n1670 | \t\t\t\t\t\t\t}, mustEnableAttachments)\n1671 | \t\t\t\t\t\t})\n1672 | \t\t\t\t\t})\n1673 | \t\t\t\t\tm.Group(\"/{index}\", func() {\n1674 | \t\t\t\t\t\tm.Combo(\"\").Get(repo.GetIssue).\n1675 | \t\t\t\t\t\t\tPatch(reqToken(), bind(api.EditIssueOption{}), repo.EditIssue).\n1676 | \t\t\t\t\t\t\tDelete(reqToken(), reqAdmin(), context.ReferencesGitRepo(), repo.DeleteIssue)\n1677 | \t\t\t\t\t\tm.Combo(\"/assignees\").\n1678 | \t\t\t\t\t\t\tPost(reqToken(), mustNotBeArchived, bind(api.IssueAssigneesOption{}), repo.AddIssueAssignees).\n1679 | \t\t\t\t\t\t\tDelete(reqToken(), mustNotBeArchived, bind(api.IssueAssigneesOption{}), repo.DeleteIssueAssignees)\n1680 | \t\t\t\t\t\tm.Get(\"/assignees/{assignee}\", repo.CheckIssueAssignee)\n1681 | \t\t\t\t\t\tm.Group(\"/comments\", func() {\n1682 | \t\t\t\t\t\t\tm.Combo(\"\").Get(repo.ListIssueComments).\n1683 | \t\t\t\t\t\t\t\tPost(reqToken(), mustNotBeArchived, bind(api.CreateIssueCommentOption{}), repo.CreateIssueComment)\n1684 | \t\t\t\t\t\t\tm.Combo(\"/{id}\", reqToken()).Patch(bind(api.EditIssueCommentOption{}), repo.EditIssueCommentDeprecated).\n1685 | \t\t\t\t\t\t\t\tDelete(repo.DeleteIssueCommentDeprecated)\n1686 | \t\t\t\t\t\t})\n1687 | \t\t\t\t\t\tm.Get(\"/timeline\", repo.ListIssueCommentsAndTimeline)\n1688 | \t\t\t\t\t\tm.Group(\"/labels\", func() {\n1689 | \t\t\t\t\t\t\tm.Combo(\"\").Get(repo.ListIssueLabels).\n1690 | \t\t\t\t\t\t\t\tPost(reqToken(), bind(api.IssueLabelsOption{}), repo.AddIssueLabels).\n1691 | \t\t\t\t\t\t\t\tPut(reqToken(), bind(api.IssueLabelsOption{}), repo.ReplaceIssueLabels).\n1692 | \t\t\t\t\t\t\t\tDelete(reqToken(), repo.ClearIssueLabels)\n1693 | \t\t\t\t\t\t\tm.Delete(\"/{id}\", reqToken(), repo.DeleteIssueLabel)\n1694 | \t\t\t\t\t\t})\n1695 | \t\t\t\t\t\tm.Group(\"/times\", func() {\n",
+      "bytes": 4291
+    },
+    {
+      "id": "ev-0386efc7fa2ccae8174c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue.go",
+      "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+      "startLine": 624,
+      "endLine": 624,
+      "text": "624 | \tif err := issue_service.NewIssue(ctx, ctx.Repo.Repository, issue, form.Labels, nil, assigneeIDs, form.Projects); err != nil {\n",
+      "bytes": 133
+    },
+    {
+      "id": "ev-43a8f0785739ec5ad876",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/issue/issue.go",
+      "sha256": "632232e16929c6fa0a4b5c6e17aed3f52d4e5e372d8801793d2461ae42ee3c43",
+      "startLine": 1,
+      "endLine": 180,
+      "text": "1 | // Copyright 2019 The Gitea Authors. All rights reserved.\n2 | // SPDX-License-Identifier: MIT\n3 | \n4 | package issue\n5 | \n6 | import (\n7 | \t\"context\"\n8 | \t\"fmt\"\n9 | \n10 | \tactivities_model \"gitea.dev/models/activities\"\n11 | \t\"gitea.dev/models/db\"\n12 | \tissues_model \"gitea.dev/models/issues\"\n13 | \taccess_model \"gitea.dev/models/perm/access\"\n14 | \tproject_model \"gitea.dev/models/project\"\n15 | \trepo_model \"gitea.dev/models/repo\"\n16 | \tsystem_model \"gitea.dev/models/system\"\n17 | \tuser_model \"gitea.dev/models/user\"\n18 | \t\"gitea.dev/modules/git\"\n19 | \t\"gitea.dev/modules/log\"\n20 | \t\"gitea.dev/modules/storage\"\n21 | \tnotify_service \"gitea.dev/services/notify\"\n22 | )\n23 | \n24 | // NewIssue creates new issue with labels for repository.\n25 | func NewIssue(ctx context.Context, repo *repo_model.Repository, issue *issues_model.Issue, labelIDs []int64, uuids []string, assigneeIDs, projectIDs []int64) error {\n26 | \tif err := issue.LoadPoster(ctx); err != nil {\n27 | \t\treturn err\n28 | \t}\n29 | \n30 | \tif user_model.IsUserBlockedBy(ctx, issue.Poster, repo.OwnerID) || user_model.IsUserBlockedBy(ctx, issue.Poster, assigneeIDs...) {\n31 | \t\treturn user_model.ErrBlockedUser\n32 | \t}\n33 | \n34 | \tassigneeCommentMap := make(map[int64]*issues_model.Comment)\n35 | \tassignees := make(map[int64]*user_model.User)\n36 | \tif err := db.WithTx(ctx, func(ctx context.Context) error {\n37 | \t\tif err := issues_model.NewIssue(ctx, repo, issue, labelIDs, uuids); err != nil {\n38 | \t\t\treturn err\n39 | \t\t}\n40 | \t\tfor _, assigneeID := range assigneeIDs {\n41 | \t\t\tassignee, err := user_model.GetUserByID(ctx, assigneeID)\n42 | \t\t\tif err != nil {\n43 | \t\t\t\tlog.Error(\"GetUserByID: %v\", err)\n44 | \t\t\t\tcontinue\n45 | \t\t\t}\n46 | \t\t\tassignees[assigneeID] = assignee\n47 | \t\t\tcomment, err := AddAssigneeIfNotAssigned(ctx, issue, issue.Poster, assignee)\n48 | \t\t\tif err != nil {\n49 | \t\t\t\treturn err\n50 | \t\t\t}\n51 | \t\t\tassigneeCommentMap[assigneeID] = comment\n52 | \t\t}\n53 | \t\tif len(projectIDs) > 0 {\n54 | \t\t\terr := issues_model.IssueAssignOrRemoveProject(ctx, issue, issue.Poster, projectIDs)\n55 | \t\t\tif err != nil {\n56 | \t\t\t\treturn err\n57 | \t\t\t}\n58 | \t\t}\n59 | \t\treturn nil\n60 | \t}); err != nil {\n61 | \t\treturn err\n62 | \t}\n63 | \n64 | \tmentions, err := issues_model.FindAndUpdateIssueMentions(ctx, issue, issue.Poster, issue.Content)\n65 | \tif err != nil {\n66 | \t\treturn err\n67 | \t}\n68 | \n69 | \tnotify_service.NewIssue(ctx, issue, mentions)\n70 | \tif len(issue.Labels) > 0 {\n71 | \t\tnotify_service.IssueChangeLabels(ctx, issue.Poster, issue, issue.Labels, nil)\n72 | \t}\n73 | \tif issue.Milestone != nil {\n74 | \t\tnotify_service.IssueChangeMilestone(ctx, issue.Poster, issue, 0)\n75 | \t}\n76 | \n77 | \tif len(assigneeIDs) > 0 {\n78 | \t\tfor _, assignee := range assignees {\n79 | \t\t\tnotify_service.IssueChangeAssignee(ctx, issue.Poster, issue, assignee, false, assigneeCommentMap[assignee.ID])\n80 | \t\t}\n81 | \t}\n82 | \n83 | \treturn nil\n84 | }\n85 | \n86 | // ChangeTitle changes the title of this issue, as the given user.\n87 | func ChangeTitle(ctx context.Context, issue *issues_model.Issue, doer *user_model.User, title string) error {\n88 | \toldTitle := issue.Title\n89 | \tissue.Title = title\n90 | \n91 | \tif oldTitle == title {\n92 | \t\treturn nil\n93 | \t}\n94 | \n95 | \tif err := issue.LoadRepo(ctx); err != nil {\n96 | \t\treturn err\n97 | \t}\n98 | \n99 | \tif user_model.IsUserBlockedBy(ctx, doer, issue.PosterID, issue.Repo.OwnerID) {\n100 | \t\tif !access_model.IsUserRepoAdmin(ctx, issue.Repo, doer) {\n101 | \t\t\treturn user_model.ErrBlockedUser\n102 | \t\t}\n103 | \t}\n104 | \n105 | \tif err := issues_model.ChangeIssueTitle(ctx, issue, doer, oldTitle); err != nil {\n106 | \t\treturn err\n107 | \t}\n108 | \n109 | \tvar reviewNotifiers []*ReviewRequestNotifier\n110 | \tif issue.IsPull && issues_model.HasWorkInProgressPrefix(oldTitle) && !issues_model.HasWorkInProgressPrefix(title) {\n111 | \t\tif err := issue.LoadPullRequest(ctx); err != nil {\n112 | \t\t\treturn err\n113 | \t\t}\n114 | \n115 | \t\tvar err error\n116 | \t\treviewNotifiers, err = PullRequestCodeOwnersReview(ctx, issue.PullRequest)\n117 | \t\tif err != nil {\n118 | \t\t\tlog.Error(\"PullRequestCodeOwnersReview: %v\", err)\n119 | \t\t}\n120 | \t}\n121 | \n122 | \tnotify_service.IssueChangeTitle(ctx, doer, issue, oldTitle)\n123 | \tReviewRequestNotify(ctx, issue, issue.Poster, reviewNotifiers)\n124 | \n125 | \treturn nil\n126 | }\n127 | \n128 | // ChangeTimeEstimate changes the time estimate of this issue, as the given user.\n129 | func ChangeTimeEstimate(ctx context.Context, issue *issues_model.Issue, doer *user_model.User, timeEstimate int64) (err error) {\n130 | \tissue.TimeEstimate = timeEstimate\n131 | \n132 | \treturn issues_model.ChangeIssueTimeEstimate(ctx, issue, doer, timeEstimate)\n133 | }\n134 | \n135 | // ChangeIssueRef changes the branch of this issue, as the given user.\n136 | func ChangeIssueRef(ctx context.Context, issue *issues_model.Issue, doer *user_model.User, ref string) error {\n137 | \toldRef := issue.Ref\n138 | \tissue.Ref = ref\n139 | \n140 | \tif err := issues_model.ChangeIssueRef(ctx, issue, doer, oldRef); err != nil {\n141 | \t\treturn err\n142 | \t}\n143 | \n144 | \tnotify_service.IssueChangeRef(ctx, doer, issue, oldRef)\n145 | \n146 | \treturn nil\n147 | }\n148 | \n149 | // DeleteIssue deletes an issue\n150 | func DeleteIssue(ctx context.Context, doer *user_model.User, issue *issues_model.Issue) error {\n151 | \t// load issue before deleting it\n152 | \tif err := issue.LoadAttributes(ctx); err != nil {\n153 | \t\treturn err\n154 | \t}\n155 | \tif err := issue.LoadPullRequest(ctx); err != nil {\n156 | \t\treturn err\n157 | \t}\n158 | \n159 | \t// delete entries in database\n160 | \tattachmentPaths, err := deleteIssue(ctx, issue)\n161 | \tif err != nil {\n162 | \t\treturn err\n163 | \t}\n164 | \tfor _, attachmentPath := range attachmentPaths {\n165 | \t\tsystem_model.RemoveStorageWithNotice(ctx, storage.Attachments, \"Delete issue attachment\", attachmentPath)\n166 | \t}\n167 | \n168 | \t// delete pull request related git data\n169 | \tif issue.IsPull {\n170 | \t\tif err := issue.PullRequest.LoadBaseRepo(ctx); err != nil {\n171 | \t\t\treturn err\n172 | \t\t}\n173 | \t\tif err := git.RemoveRef(ctx, issue.PullRequest.BaseRepo, issue.PullRequest.GetGitHeadRefName()); err != nil {\n174 | \t\t\treturn err\n175 | \t\t}\n176 | \t}\n177 | \n178 | \tnotify_service.DeleteIssue(ctx, doer, issue)\n179 | \n180 | \treturn nil\n",
+      "bytes": 6232
+    },
+    {
+      "id": "ev-b756302addcb8cfdc229",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 146,
+      "endLine": 227,
+      "text": "146 | func repoAssignment() func(ctx *context.APIContext) {\n147 | \treturn func(ctx *context.APIContext) {\n148 | \t\tuserName := ctx.PathParam(\"username\")\n149 | \t\trepoName := ctx.PathParam(\"reponame\")\n150 | \n151 | \t\tvar (\n152 | \t\t\towner *user_model.User\n153 | \t\t\terr   error\n154 | \t\t)\n155 | \n156 | \t\t// Check if the user is the same as the repository owner.\n157 | \t\tif ctx.IsSigned && strings.EqualFold(ctx.Doer.LowerName, userName) {\n158 | \t\t\towner = ctx.Doer\n159 | \t\t} else {\n160 | \t\t\towner, err = user_model.GetUserByName(ctx, userName)\n161 | \t\t\tif err != nil {\n162 | \t\t\t\tif user_model.IsErrUserNotExist(err) {\n163 | \t\t\t\t\tif redirectUserID, err := user_model.LookupUserRedirect(ctx, userName); err == nil {\n164 | \t\t\t\t\t\tcontext.RedirectToUser(ctx.Base, ctx.Doer, userName, redirectUserID)\n165 | \t\t\t\t\t} else if user_model.IsErrUserRedirectNotExist(err) {\n166 | \t\t\t\t\t\tctx.APIErrorNotFound()\n167 | \t\t\t\t\t} else {\n168 | \t\t\t\t\t\tctx.APIErrorInternal(err)\n169 | \t\t\t\t\t}\n170 | \t\t\t\t} else {\n171 | \t\t\t\t\tctx.APIErrorInternal(err)\n172 | \t\t\t\t}\n173 | \t\t\t\treturn\n174 | \t\t\t}\n175 | \t\t}\n176 | \t\tctx.Repo.Owner = owner\n177 | \t\tctx.ContextUser = owner\n178 | \n179 | \t\t// Get repository.\n180 | \t\trepo, err := repo_model.GetRepositoryByName(ctx, owner.ID, repoName)\n181 | \t\tif err != nil {\n182 | \t\t\tif repo_model.IsErrRepoNotExist(err) {\n183 | \t\t\t\tredirectRepoID, err := repo_model.LookupRedirect(ctx, owner.ID, repoName)\n184 | \t\t\t\tif err == nil {\n185 | \t\t\t\t\tcontext.RedirectToRepo(ctx.Base, redirectRepoID)\n186 | \t\t\t\t} else if repo_model.IsErrRedirectNotExist(err) {\n187 | \t\t\t\t\tctx.APIErrorNotFound()\n188 | \t\t\t\t} else {\n189 | \t\t\t\t\tctx.APIErrorInternal(err)\n190 | \t\t\t\t}\n191 | \t\t\t} else {\n192 | \t\t\t\tctx.APIErrorInternal(err)\n193 | \t\t\t}\n194 | \t\t\treturn\n195 | \t\t}\n196 | \n197 | \t\trepo.Owner = owner\n198 | \t\tctx.Repo.Repository = repo\n199 | \n200 | \t\t{\n201 | \t\t\tneedTwoFactor, err := doerNeedTwoFactorAuth(ctx, ctx.Doer)\n202 | \t\t\tif err != nil {\n203 | \t\t\t\tctx.APIErrorInternal(err)\n204 | \t\t\t\treturn\n205 | \t\t\t}\n206 | \t\t\tif needTwoFactor {\n207 | \t\t\t\tctx.Repo.Permission = access_model.PermissionNoAccess()\n208 | \t\t\t} else {\n209 | \t\t\t\tctx.Repo.Permission, err = access_model.GetDoerRepoPermission(ctx, repo, ctx.Doer)\n210 | \t\t\t\tif err != nil {\n211 | \t\t\t\t\tctx.APIErrorInternal(err)\n212 | \t\t\t\t\treturn\n213 | \t\t\t\t}\n214 | \t\t\t}\n215 | \t\t}\n216 | \n217 | \t\tif !ctx.Repo.Permission.HasAnyUnitAccessOrPublicAccess() {\n218 | \t\t\tctx.APIErrorNotFound()\n219 | \t\t\treturn\n220 | \t\t}\n221 | \n222 | \t\tif !ctx.TokenCanAccessRepo(repo) {\n223 | \t\t\tctx.APIErrorNotFound()\n224 | \t\t\treturn\n225 | \t\t}\n226 | \t}\n227 | }\n",
+      "bytes": 2553
+    },
+    {
+      "id": "ev-6af31bfbcfaf66dd8ce9",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 460,
+      "endLine": 485,
+      "text": "460 | \n461 | // reqRepoWriter user should have a permission to write to a repo, or be a site admin\n462 | func reqRepoWriter(unitTypes ...unit.Type) func(ctx *context.APIContext) {\n463 | \treturn func(ctx *context.APIContext) {\n464 | \t\tif !ctx.IsUserRepoWriter(unitTypes) && !ctx.IsUserRepoAdmin() && !ctx.IsUserSiteAdmin() {\n465 | \t\t\tctx.APIError(http.StatusForbidden, \"user should have a permission to write to a repo\")\n466 | \t\t\treturn\n467 | \t\t}\n468 | \t}\n469 | }\n470 | \n471 | // reqRepoReader user should have specific read permission or be a repo admin or a site admin\n472 | func reqRepoReader(unitType unit.Type) func(ctx *context.APIContext) {\n473 | \treturn func(ctx *context.APIContext) {\n474 | \t\tif !ctx.Repo.Permission.CanRead(unitType) && !ctx.IsUserRepoAdmin() && !ctx.IsUserSiteAdmin() {\n475 | \t\t\tctx.APIError(http.StatusForbidden, \"user should have specific read permission or be a repo admin or a site admin\")\n476 | \t\t\treturn\n477 | \t\t}\n478 | \t}\n479 | }\n480 | \n481 | // reqAnyRepoReader user should have any permission to read repository or permissions of site admin\n482 | func reqAnyRepoReader() func(ctx *context.APIContext) {\n483 | \treturn func(ctx *context.APIContext) {\n484 | \t\tif !ctx.Repo.Permission.HasAnyUnitAccess() && !ctx.IsUserSiteAdmin() {\n485 | \t\t\tctx.APIError(http.StatusForbidden, \"user should have any permission to read repository or permissions of site admin\")\n",
+      "bytes": 1391
+    }
+  ]
+}

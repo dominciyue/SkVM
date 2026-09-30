@@ -1,0 +1,32 @@
+{
+  "sampleId": "sample-2b41d418",
+  "packetSha256": "4ec75f6ee10eb03420ba57448773a7c90924c967546dba8a88bc8d7afc7046db",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "correct",
+    "unknowns": "appropriate",
+    "policy": "correct"
+  },
+  "issues": [],
+  "sourceSupport": [
+    {
+      "path": "public-source/memos/server/api/v1/space_service.go",
+      "line": 750,
+      "detail": "Different-member requests require administrator; self requests bypass that check."
+    },
+    {
+      "path": "public-source/memos/store/db/sqlite/space.go",
+      "line": 424,
+      "detail": "Database independently requires ADMIN for non-self actor."
+    },
+    {
+      "path": "public-source/memos/store/space.go",
+      "line": 274,
+      "detail": "Store delegates the bound SpaceID/UserID and actorUserID."
+    }
+  ],
+  "rationale": "Correctly identifies violation of revised any-member policy and preserves separate self path and backend limits."
+}

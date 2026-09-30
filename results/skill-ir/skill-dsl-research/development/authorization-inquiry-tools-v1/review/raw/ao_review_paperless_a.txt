@@ -1,0 +1,197 @@
+[
+  {
+    "sampleId": "sample-1d4c1389",
+    "packetSha256": "ad2a4617a8ce4c363b48192022bc1fbfc8601c0af7b03a2b73628a0d750a0b31",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "not-applicable"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {"path": "src/documents/views.py", "line": 1021, "detail": "DocumentViewSet declares permission_classes = (IsAuthenticated, PaperlessObjectPermissions)."},
+      {"path": "src/documents/views.py", "line": 1835, "detail": "download resolves the requested document/root and applies the manual authorization path before file selection."},
+      {"path": "src/documents/permissions.py", "line": 624, "detail": "has_perms_owner_aware is the owner/object-permission helper."}
+    ],
+    "rationale": "The candidate preserves the root-document authorization short-circuit, version-family restriction, original/archive selection, and deployment-dependent file facts. Unknowns are tied to genuinely unspecified identity, grants, rows, and storage."
+  },
+  {
+    "sampleId": "sample-1d9fe49f",
+    "packetSha256": "3c57bbe88d08ecf37742d1b3cbc33c1109b95a89833369d0a9ac84fd6698037b",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "not-applicable"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {"path": "src/documents/views.py", "line": 1021, "detail": "DocumentViewSet uses IsAuthenticated and PaperlessObjectPermissions."},
+      {"path": "src/documents/versioning.py", "line": 23, "detail": "Version ordering is newest-first by version_index, supporting latest-version resolution."},
+      {"path": "src/documents/permissions.py", "line": 624, "detail": "Owner-aware authorization is distinct from later file/version selection."}
+    ],
+    "rationale": "The candidate correctly binds authorization to root_doc and treats version/original/archive choices as resource selection inside the authorized family. It does not convert unspecified deployment facts into certainty."
+  },
+  {
+    "sampleId": "sample-1e48bb83",
+    "packetSha256": "9c2e9dbacf5a5aafb1a4430e3c04cf872058726d5c93503dfeddca7895f8271a",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "correct"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {"path": "src/documents/views.py", "line": 1848, "detail": "notes loads the addressed Document by pk and handles GET/POST effects."},
+      {"path": "src/documents/permissions.py", "line": 624, "detail": "has_perms_owner_aware allows owner/null-owner branches before object permission checking."},
+      {"path": "src/documents/permissions.py", "line": 673, "detail": "PaperlessNotePermissions defines method-specific global permission maps."}
+    ],
+    "rationale": "The candidate accurately identifies both endpoint-level and addressed-document checks, the owner/null-owner bypass, POST's additional change check, and the independent policy violation. Its framework and premise unknowns are appropriately scoped."
+  },
+  {
+    "sampleId": "sample-2b67bb46",
+    "packetSha256": "a9ca753fefb41c79d0f8daea61bbed3f6d9cdb9b3f88aa210c757e170be2c154",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "overstated",
+      "policy": "incorrect"
+    },
+    "issues": [
+      "The policy explicitly says ownership is not a substitute; treating owner-based access as an unresolved policy interpretation is incorrect.",
+      "The candidate should classify the source's owner/null-owner allow path as policy nonconforming, while keeping the concrete caller outcome conditional."
+    ],
+    "sourceSupport": [
+      {"path": "src/documents/serialisers.py", "line": 1770, "detail": "Share-link document validation is performed in the serializer path."},
+      {"path": "src/documents/permissions.py", "line": 624, "detail": "Owner-aware helper accepts owner/null-owner before object permission checking."},
+      {"path": "src/documents/views.py", "line": 2503, "detail": "UnifiedSearchViewSet inherits DocumentViewSet, establishing notes/action-style viewset inheritance where relevant."}
+    ],
+    "rationale": "Exact-document validation and global add permission tracing are sound, but the independently supplied policy removes the claimed ownership ambiguity. Runtime identity/grants remain unknown; policy conformance of the owner bypass does not."
+  },
+  {
+    "sampleId": "sample-323944ad",
+    "packetSha256": "cdefd80096c15595e6087a1ba6921595677c4d7799a809d3a4e7122fe1ba500c",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "partial",
+      "scenarios": "partial",
+      "evidence": "partial",
+      "bindings": "partial",
+      "unknowns": "overstated",
+      "policy": "incorrect"
+    },
+    "issues": [
+      "The allowed source contains has_perms_owner_aware, so owner behavior is not a source gap; marking the owner branch unknown is avoidable.",
+      "The allowed source contains UnifiedSearchViewSet inheritance, so route/action binding is not unresolved.",
+      "The candidate incorrectly says policy is satisfied and fails to report the owner/null-owner implementation bypass as a policy violation."
+    ],
+    "sourceSupport": [
+      {"path": "src/documents/permissions.py", "line": 624, "detail": "The helper's owner/null-owner/object-permission expression is available in allowed source."},
+      {"path": "src/documents/views.py", "line": 1008, "detail": "DocumentViewSet declaration."},
+      {"path": "src/documents/views.py", "line": 2503, "detail": "UnifiedSearchViewSet(DocumentViewSet) establishes the router/action inheritance."}
+    ],
+    "rationale": "The notes effects and permission names are mostly right, but the candidate withholds decisive available source facts and reaches the wrong policy conclusion."
+  },
+  {
+    "sampleId": "sample-333e42e4",
+    "packetSha256": "c5c769e1286964826f7d06f690c00076166877ea111e4ed541452059a3e29bc5",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "partial",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "undetermined-justified"
+    },
+    "issues": [
+      "Owner/null-owner branches have disposition 'deny' even though the candidate explanation says the implementation permits the request; implementation behavior should be 'allow', with a separate policy violation judgment.",
+      "The same disposition error occurs for POST owner/null-owner bypass."
+    ],
+    "sourceSupport": [
+      {"path": "src/documents/permissions.py", "line": 624, "detail": "Owner/null-owner satisfies has_perms_owner_aware before object grants."},
+      {"path": "src/documents/views.py", "line": 1862, "detail": "GET returns 403 only when the owner-aware check fails."},
+      {"path": "src/documents/views.py", "line": 1885, "detail": "POST returns insufficient-permission response only when its change check fails."}
+    ],
+    "rationale": "The branch coverage and policy assessment are substantively sound, but the behavior disposition is conflated with normative policy denial."
+  },
+  {
+    "sampleId": "sample-3e57ddf0",
+    "packetSha256": "516e5e2e54f05ed226be572b3dcf8479a1f8df185130eb6a0ef4c21459cc9a56",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "partial",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "correct"
+    },
+    "issues": [
+      "The revised premise fixes owner=null; the retained non-null owner/object-grant branch is extraneous and should not be treated as an unresolved current scenario."
+    ],
+    "sourceSupport": [
+      {"path": "src/documents/permissions.py", "line": 624, "detail": "The null-owner short-circuit is source-defined."},
+      {"path": "src/documents/permissions.py", "line": 673, "detail": "Global GET/POST permission requirements are source-defined."},
+      {"path": "src/documents/views.py", "line": 1848, "detail": "The notes action performs the addressed-document effects."}
+    ],
+    "rationale": "For the revised null-owner premise, the candidate correctly identifies unconditional source-level bypasses conditional only on global endpoint permissions and correctly marks policy violation. Its extra non-null-owner branch weakens premise completeness."
+  },
+  {
+    "sampleId": "sample-4db2ddec",
+    "packetSha256": "b0cdcf02ddd5709615e00ee252e9d939227ebba86d58955e2a37e0ec32de6209",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "partial",
+      "unknowns": "overstated",
+      "policy": "correct"
+    },
+    "issues": [
+      "The claimed route-binding source gap is avoidable: allowed views.py contains UnifiedSearchViewSet(DocumentViewSet), which establishes the relevant inheritance.",
+      "The policy violation conclusion is correct because owner/null-owner source branches bypass the required object grant."
+    ],
+    "sourceSupport": [
+      {"path": "src/documents/views.py", "line": 2503, "detail": "UnifiedSearchViewSet inherits DocumentViewSet."},
+      {"path": "src/documents/permissions.py", "line": 624, "detail": "Owner/null-owner bypass and object-permission fallback are explicit."},
+      {"path": "src/documents/views.py", "line": 1848, "detail": "notes loads and acts on the addressed document."}
+    ],
+    "rationale": "The behavioral branches and policy comparison are accurate; only the route-binding unknown is an avoidable omission of available controlling source."
+  },
+  {
+    "sampleId": "sample-5d3435c6",
+    "packetSha256": "27a8ac886c878c6436eb2c71b34939191e41e1161c05d640ecb80321d986772f",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "correct"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {"path": "src/documents/views.py", "line": 1848, "detail": "notes is the addressed-document operation and handles the note effects."},
+      {"path": "src/documents/permissions.py", "line": 624, "detail": "Owner/null-owner bypass is the decisive object-control behavior."},
+      {"path": "src/documents/permissions.py", "line": 673, "detail": "PaperlessNotePermissions supplies the GET/POST endpoint permission maps."}
+    ],
+    "rationale": "The long-form review correctly separates model-level gates, object-level owner/grant behavior, concrete effects, and the independent policy's two conformance failures. Unknown runtime owner/grant facts are preserved."
+  }
+]

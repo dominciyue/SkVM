@@ -1,0 +1,545 @@
+{
+  "sampleId": "sample-2b67bb46",
+  "kind": "analysis",
+  "brief": "Check creating a share through ShareLinkViewSet against the current independently supplied policy. A principal asks to share an existing document; determine which endpoint and object controls apply to that exact document before the share is created. Include relevant inherited permission and serializer paths. Do not assume that document existence or a global model permission grants access to this document. Explain source behavior, policy compliance and specific missing facts.",
+  "mode": "conformance",
+  "policy": {
+    "text": "A caller creating a document share must have view_document permission for the exact shared document. A global add_sharelink permission or knowing a document ID alone is insufficient.",
+    "origin": "user",
+    "location": "experimental-user-brief:paperless-share-policy/v1"
+  },
+  "context": {
+    "repository": "paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "sourceRoot": "public-source/paperless",
+    "allowedPaths": [
+      "src/documents",
+      "src/paperless/urls.py"
+    ]
+  },
+  "candidate": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The share is created only if the request reaches the registered share-links create endpoint, the caller is authenticated, the ShareLink object-level create permission passes, and ShareLinkSerializer.validate_document accepts the exact document. The endpoint-level POST check is for the ShareLink model's global add permission, while the serializer separately checks global documents.view_document plus an owner-aware, exact-document view check. Therefore a global add_sharelink permission or knowledge of the document ID alone is insufficient. The source supports the policy for non-owner callers when exact-document view access is established, but the implementation also requires global documents.view_document and add_sharelink. Ownership is treated by the owner-aware helper as sufficient for the object-specific portion, so whether ownership counts as the policy's exact-document view_document permission is a policy interpretation/deployment fact."
+        },
+        "branches": [
+          {
+            "id": "b1",
+            "condition": "Caller is unauthenticated",
+            "disposition": "deny",
+            "explanation": "ShareLinkViewSet declares IsAuthenticated among its permission classes; authentication is required before creation.",
+            "evidenceIds": [
+              "ev-49ecc96be2740d713310"
+            ]
+          },
+          {
+            "id": "b2",
+            "condition": "Caller is authenticated but lacks the ShareLink model's POST/add permission, including the relevant global add_sharelink permission",
+            "disposition": "deny",
+            "explanation": "ShareLinkViewSet uses PaperlessObjectPermissions, whose POST map is add_%(model_name)s. For this viewset model that is add_sharelink. The source does not show a document-specific substitute for this endpoint-level gate.",
+            "evidenceIds": [
+              "ev-49ecc96be2740d713310",
+              "ev-eda1c188be1a3b5a7012"
+            ]
+          },
+          {
+            "id": "b3",
+            "condition": "Caller passes endpoint permissions but lacks global documents.view_document",
+            "disposition": "deny",
+            "explanation": "ShareLinkSerializer.validate_document explicitly requires user.has_perm(\"documents.view_document\") before accepting the document.",
+            "evidenceIds": [
+              "ev-3d7c485342f7437161a8",
+              "ev-934abc932a19cf8328d4"
+            ]
+          },
+          {
+            "id": "b4",
+            "condition": "Caller has global documents.view_document but lacks owner-aware view access to the exact supplied document",
+            "disposition": "deny",
+            "explanation": "Validation passes the supplied document to has_perms_owner_aware(user, \"view_document\", document); that helper allows the document owner or a guardian object permission, otherwise it returns false. Thus a document ID or document existence does not establish access.",
+            "evidenceIds": [
+              "ev-3d7c485342f7437161a8",
+              "ev-934abc932a19cf8328d4"
+            ]
+          },
+          {
+            "id": "b5",
+            "condition": "Caller is authenticated, passes ShareLink add permission, has global documents.view_document, and has owner-aware view access to the exact document",
+            "disposition": "allow",
+            "explanation": "The registered route is share_links, mapped to ShareLinkViewSet. The viewset permits creation through CreateModelMixin, and serializer validation returns the exact document when both global and owner-aware checks pass.",
+            "evidenceIds": [
+              "ev-04e9a1f74e3e05b3fb0c",
+              "ev-49ecc96be2740d713310",
+              "ev-3d7c485342f7437161a8",
+              "ev-934abc932a19cf8328d4"
+            ]
+          },
+          {
+            "id": "b6",
+            "condition": "Creation succeeds after validation",
+            "disposition": "allow",
+            "explanation": "ShareLinkSerializer.create assigns a random 50-character slug and delegates to its inherited OwnedObjectSerializer.create. The inherited path defaults owner to the current user when appropriate, removes optional set_permissions before creation, creates the model instance, and applies supplied permissions afterward.",
+            "evidenceIds": [
+              "ev-3d7c485342f7437161a8",
+              "ev-a7386fd007efad165b5f"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-04e9a1f74e3e05b3fb0c",
+          "ev-49ecc96be2740d713310",
+          "ev-3d7c485342f7437161a8",
+          "ev-eda1c188be1a3b5a7012",
+          "ev-934abc932a19cf8328d4",
+          "ev-a7386fd007efad165b5f"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The caller identity and authentication state are not supplied."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "It is not supplied whether the caller has the ShareLink model's global add_sharelink permission."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "It is not supplied whether the caller has global documents.view_document."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "It is not supplied whether the exact target document exists, who owns it, or whether the caller has a guardian/user/group view_document grant for that document."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "It is not supplied whether the policy's phrase 'must have view_document permission for the exact shared document' treats ownership as equivalent to that permission. The source's owner-aware helper does."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The inspected source does not include the completed PassUserMixin body, the remaining create-specific get_permissions implementation after line 4753, or the full ShareLink model definition. Those reads could further confirm request-user propagation, any create-action permission alteration, and model ownership details.",
+            "nextRead": "src/documents/views.py:400-430; src/documents/views.py:4753-4785; src/documents/models.py:972-1031"
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "The source behavior materially enforces the independent policy's exact-document requirement through validate_document and has_perms_owner_aware, and explicitly rejects reliance on only a global add_sharelink permission or a document ID. However, the actual scenario cannot be decided without caller/target facts. Conformance is also conditional on interpreting owner-based access as satisfying exact-document view permission; additionally, the implementation requires global documents.view_document and endpoint-level add_sharelink, which are extra gates rather than policy replacements."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103; allowed source paths inspected within src/documents and src/paperless/urls.py; exact-document share creation through ShareLinkViewSet only"
+  },
+  "evidence": [
+    {
+      "id": "ev-bb09efbd8fc5ad1febe8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 25,
+      "endLine": 25,
+      "text": "25 | from documents.views import DeleteDocumentsView\n",
+      "bytes": 53
+    },
+    {
+      "id": "ev-4bdcdc4bab68840d77df",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 26,
+      "endLine": 26,
+      "text": "26 | from documents.views import DocumentTypeViewSet\n",
+      "bytes": 53
+    },
+    {
+      "id": "ev-3479114e53e39532418c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 27,
+      "endLine": 27,
+      "text": "27 | from documents.views import EditPdfDocumentsView\n",
+      "bytes": 54
+    },
+    {
+      "id": "ev-ec0cf2bb52399c8414c8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 31,
+      "endLine": 31,
+      "text": "31 | from documents.views import MergeDocumentsAsVersionsView\n",
+      "bytes": 62
+    },
+    {
+      "id": "ev-58a47768f087dd9d2c66",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 32,
+      "endLine": 32,
+      "text": "32 | from documents.views import MergeDocumentsView\n",
+      "bytes": 52
+    },
+    {
+      "id": "ev-7889c345f1ef18eab52b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 33,
+      "endLine": 33,
+      "text": "33 | from documents.views import PostDocumentView\n",
+      "bytes": 50
+    },
+    {
+      "id": "ev-654a7708339b58a1a072",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 35,
+      "endLine": 35,
+      "text": "35 | from documents.views import RemovePasswordDocumentsView\n",
+      "bytes": 61
+    },
+    {
+      "id": "ev-6ea7fce676c128aca2da",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 36,
+      "endLine": 36,
+      "text": "36 | from documents.views import ReprocessDocumentsView\n",
+      "bytes": 56
+    },
+    {
+      "id": "ev-b9190adb9bc5cc2312af",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 37,
+      "endLine": 37,
+      "text": "37 | from documents.views import RotateDocumentsView\n",
+      "bytes": 53
+    },
+    {
+      "id": "ev-826143609cd7fb52e624",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 76,
+      "endLine": 76,
+      "text": "76 | api_router.register(r\"document_types\", DocumentTypeViewSet)\n",
+      "bytes": 65
+    },
+    {
+      "id": "ev-1ee16184ddb884b55d75",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 151,
+      "endLine": 151,
+      "text": "151 |                                 PostDocumentView.as_view(),\n",
+      "bytes": 66
+    },
+    {
+      "id": "ev-6a71314cf16ad162cc3e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 161,
+      "endLine": 161,
+      "text": "161 |                                 DeleteDocumentsView.as_view(),\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-aa5c7c8f873046e5f848",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 166,
+      "endLine": 166,
+      "text": "166 |                                 ReprocessDocumentsView.as_view(),\n",
+      "bytes": 72
+    },
+    {
+      "id": "ev-b0f6103292c29f1dcf59",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 171,
+      "endLine": 171,
+      "text": "171 |                                 RotateDocumentsView.as_view(),\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-51f292f93284f6f6226c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 176,
+      "endLine": 176,
+      "text": "176 |                                 MergeDocumentsView.as_view(),\n",
+      "bytes": 68
+    },
+    {
+      "id": "ev-e3bf22cd03ec2bbba92a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 181,
+      "endLine": 181,
+      "text": "181 |                                 MergeDocumentsAsVersionsView.as_view(),\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-5b3829a6de3d1a8be90f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 186,
+      "endLine": 186,
+      "text": "186 |                                 EditPdfDocumentsView.as_view(),\n",
+      "bytes": 70
+    },
+    {
+      "id": "ev-cf31384d5c91a91e9ecb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 191,
+      "endLine": 191,
+      "text": "191 |                                 RemovePasswordDocumentsView.as_view(),\n",
+      "bytes": 77
+    },
+    {
+      "id": "ev-13a3395da58caf1e14c8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4696,
+      "endLine": 4696,
+      "text": "4696 | class ShareLinkViewSet(\n",
+      "bytes": 31
+    },
+    {
+      "id": "ev-f2aae09d6114bcedbe33",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 69,
+      "endLine": 69,
+      "text": "69 | from documents.models import ShareLink\n",
+      "bytes": 44
+    },
+    {
+      "id": "ev-c1e291d71e1758ee3723",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 70,
+      "endLine": 70,
+      "text": "70 | from documents.models import ShareLinkBundle\n",
+      "bytes": 50
+    },
+    {
+      "id": "ev-130cae1b8d9db6c8a05c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2851,
+      "endLine": 2851,
+      "text": "2851 | class ShareLinkSerializer(OwnedObjectSerializer):\n",
+      "bytes": 57
+    },
+    {
+      "id": "ev-0c1a2552ef2b51a530a0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2858,
+      "endLine": 2858,
+      "text": "2858 |         model = ShareLink\n",
+      "bytes": 33
+    },
+    {
+      "id": "ev-9fa397289cc60e3c3a2a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2889,
+      "endLine": 2889,
+      "text": "2889 | class ShareLinkBundleSerializer(OwnedObjectSerializer):\n",
+      "bytes": 63
+    },
+    {
+      "id": "ev-49f60431095850a80cdb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2908,
+      "endLine": 2908,
+      "text": "2908 |         model = ShareLinkBundle\n",
+      "bytes": 39
+    },
+    {
+      "id": "ev-6de72c184f7fb0e36872",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2983,
+      "endLine": 2983,
+      "text": "2983 |     def get_document_count(self, obj: ShareLinkBundle) -> int:\n",
+      "bytes": 70
+    },
+    {
+      "id": "ev-04e9a1f74e3e05b3fb0c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 88,
+      "endLine": 88,
+      "text": "88 | api_router.register(r\"share_links\", ShareLinkViewSet)\n",
+      "bytes": 59
+    },
+    {
+      "id": "ev-49ecc96be2740d713310",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4660,
+      "endLine": 4755,
+      "text": "4660 |                 status__in=[PaperlessTask.Status.PENDING, PaperlessTask.Status.STARTED],\n4661 |             )\n4662 |             .order_by(\"-date_created\")[:50]\n4663 |         )\n4664 |         serializer = self.get_serializer(queryset, many=True)\n4665 |         return Response(serializer.data)\n4666 | \n4667 |     @action(methods=[\"post\"], detail=False)\n4668 |     def run(self, request):\n4669 |         \"\"\"Manually dispatch a background task. Superuser only.\"\"\"\n4670 |         if not request.user.is_superuser:\n4671 |             return HttpResponseForbidden(\"Insufficient permissions\")\n4672 |         serializer = RunTaskSerializer(data=request.data)\n4673 |         serializer.is_valid(raise_exception=True)\n4674 |         task_type = serializer.validated_data.get(\"task_type\")\n4675 | \n4676 |         if task_type not in self._RUNNABLE_TASKS:\n4677 |             return Response(\n4678 |                 {\"error\": f\"Task type '{task_type}' cannot be manually triggered\"},\n4679 |                 status=status.HTTP_400_BAD_REQUEST,\n4680 |             )\n4681 | \n4682 |         try:\n4683 |             task_func, task_kwargs = self._RUNNABLE_TASKS[task_type]\n4684 |             async_result = task_func.apply_async(\n4685 |                 kwargs=task_kwargs,\n4686 |                 headers={\"trigger_source\": PaperlessTask.TriggerSource.MANUAL},\n4687 |             )\n4688 |             return Response({\"task_id\": async_result.id})\n4689 |         except Exception as e:\n4690 |             logger.warning(f\"Error running task: {e!s}\")\n4691 |             return HttpResponseServerError(\n4692 |                 \"Error running task, check logs for more detail.\",\n4693 |             )\n4694 | \n4695 | \n4696 | class ShareLinkViewSet(\n4697 |     PassUserMixin,\n4698 |     CreateModelMixin,\n4699 |     RetrieveModelMixin,\n4700 |     DestroyModelMixin,\n4701 |     ListModelMixin,\n4702 |     GenericViewSet,\n4703 | ):\n4704 |     model = ShareLink\n4705 | \n4706 |     queryset = ShareLink.objects.select_related(\"document\")\n4707 | \n4708 |     serializer_class = ShareLinkSerializer\n4709 |     pagination_class = StandardPagination\n4710 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n4711 |     filter_backends = (\n4712 |         DjangoFilterBackend,\n4713 |         OrderingFilter,\n4714 |         PermittedObjectsFilter,\n4715 |     )\n4716 |     filterset_class = ShareLinkFilterSet\n4717 |     ordering_fields = (\"created\", \"expiration\", \"document__title\")\n4718 | \n4719 | \n4720 | @extend_schema_view(\n4721 |     rebuild=extend_schema(\n4722 |         operation_id=\"share_link_bundles_rebuild\",\n4723 |         description=\"Reset and re-queue a share link bundle for processing.\",\n4724 |         responses={\n4725 |             HTTPStatus.OK: ShareLinkBundleSerializer,\n4726 |             (HTTPStatus.BAD_REQUEST, \"application/json\"): inline_serializer(\n4727 |                 name=\"RebuildBundleError\",\n4728 |                 fields={\"detail\": serializers.CharField()},\n4729 |             ),\n4730 |         },\n4731 |     ),\n4732 | )\n4733 | class ShareLinkBundleViewSet(PassUserMixin, ModelViewSet[ShareLinkBundle]):\n4734 |     model = ShareLinkBundle\n4735 | \n4736 |     # Bundles are immutable once created; rebuild via the dedicated action\n4737 |     # rather than PUT/PATCH.\n4738 |     http_method_names = [\"get\", \"post\", \"delete\", \"head\", \"options\"]\n4739 | \n4740 |     queryset = ShareLinkBundle.objects.all()\n4741 | \n4742 |     serializer_class = ShareLinkBundleSerializer\n4743 |     pagination_class = StandardPagination\n4744 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n4745 |     filter_backends = (\n4746 |         DjangoFilterBackend,\n4747 |         OrderingFilter,\n4748 |         PermittedObjectsFilter,\n4749 |     )\n4750 |     filterset_class = ShareLinkBundleFilterSet\n4751 |     ordering_fields = (\"created\", \"expiration\", \"status\")\n4752 | \n4753 |     def get_permissions(self):\n4754 |         permissions = super().get_permissions()\n4755 |         if self.action == \"create\":\n",
+      "bytes": 4029
+    },
+    {
+      "id": "ev-3d7c485342f7437161a8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2820,
+      "endLine": 2890,
+      "text": "2820 |         if not isinstance(tasks, list):\n2821 |             raise serializers.ValidationError(f\"{name} must be a list\")\n2822 |         if not all(isinstance(i, int) for i in tasks):\n2823 |             raise serializers.ValidationError(f\"{name} must be a list of integers\")\n2824 |         queryset = self.context.get(\"queryset\", PaperlessTask.objects.all())\n2825 |         count = queryset.filter(id__in=tasks).count()\n2826 |         if not count == len(tasks):\n2827 |             raise serializers.ValidationError(\n2828 |                 f\"Some tasks in {name} don't exist or were specified twice.\",\n2829 |             )\n2830 | \n2831 |     def validate_tasks(self, tasks):\n2832 |         self._validate_task_id_list(tasks)\n2833 |         return tasks\n2834 | \n2835 |     def validate(self, attrs):\n2836 |         acknowledge_all = attrs.get(\"all\", False)\n2837 |         task_ids = attrs.get(\"tasks\")\n2838 | \n2839 |         if acknowledge_all and task_ids is not None:\n2840 |             raise serializers.ValidationError(\n2841 |                 \"Set either all or tasks, not both.\",\n2842 |             )\n2843 |         if not acknowledge_all and task_ids is None:\n2844 |             raise serializers.ValidationError(\n2845 |                 \"Either all must be true or tasks must be provided.\",\n2846 |             )\n2847 | \n2848 |         return attrs\n2849 | \n2850 | \n2851 | class ShareLinkSerializer(OwnedObjectSerializer):\n2852 |     document_title = serializers.CharField(\n2853 |         source=\"document.title\",\n2854 |         read_only=True,\n2855 |     )\n2856 | \n2857 |     class Meta:\n2858 |         model = ShareLink\n2859 |         fields = (\n2860 |             \"id\",\n2861 |             \"created\",\n2862 |             \"expiration\",\n2863 |             \"slug\",\n2864 |             \"document\",\n2865 |             \"document_title\",\n2866 |             \"file_version\",\n2867 |         )\n2868 | \n2869 |     def create(self, validated_data):\n2870 |         validated_data[\"slug\"] = get_random_string(50)\n2871 |         return super().create(validated_data)\n2872 | \n2873 |     def validate_document(self, document):\n2874 |         if (\n2875 |             self.user is not None\n2876 |             and self.user.has_perm(\"documents.view_document\")\n2877 |             and has_perms_owner_aware(\n2878 |                 self.user,\n2879 |                 \"view_document\",\n2880 |                 document,\n2881 |             )\n2882 |         ):\n2883 |             return document\n2884 |         raise PermissionDenied(\n2885 |             _(\"Insufficient permissions.\"),\n2886 |         )\n2887 | \n2888 | \n2889 | class ShareLinkBundleSerializer(OwnedObjectSerializer):\n2890 |     document_ids = serializers.ListField(\n",
+      "bytes": 2708
+    },
+    {
+      "id": "ev-637bd033955eeb3ddd13",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 55,
+      "endLine": 100,
+      "text": "55 | from documents.views import serve_logo\n56 | from paperless.consumers import StatusConsumer\n57 | from paperless.views import ApplicationConfigurationViewSet\n58 | from paperless.views import DisconnectSocialAccountView\n59 | from paperless.views import FaviconView\n60 | from paperless.views import GenerateAuthTokenView\n61 | from paperless.views import GroupViewSet\n62 | from paperless.views import PaperlessObtainAuthTokenView\n63 | from paperless.views import ProfileView\n64 | from paperless.views import SocialAccountProvidersView\n65 | from paperless.views import TOTPView\n66 | from paperless.views import UserViewSet\n67 | from paperless_mail.views import MailAccountViewSet\n68 | from paperless_mail.views import MailRuleViewSet\n69 | from paperless_mail.views import OauthCallbackView\n70 | from paperless_mail.views import ProcessedMailViewSet\n71 | \n72 | admin.site.login = secure_admin_login(admin.site.login)\n73 | \n74 | api_router = DefaultRouter()\n75 | api_router.register(r\"correspondents\", CorrespondentViewSet)\n76 | api_router.register(r\"document_types\", DocumentTypeViewSet)\n77 | api_router.register(r\"documents\", UnifiedSearchViewSet)\n78 | api_router.register(r\"logs\", LogViewSet, basename=\"logs\")\n79 | api_router.register(r\"tags\", TagViewSet)\n80 | api_router.register(r\"saved_views\", SavedViewViewSet)\n81 | api_router.register(r\"storage_paths\", StoragePathViewSet)\n82 | api_router.register(r\"tasks\", TasksViewSet, basename=\"tasks\")\n83 | api_router.register(r\"users\", UserViewSet, basename=\"users\")\n84 | api_router.register(r\"groups\", GroupViewSet, basename=\"groups\")\n85 | api_router.register(r\"mail_accounts\", MailAccountViewSet)\n86 | api_router.register(r\"mail_rules\", MailRuleViewSet)\n87 | api_router.register(r\"share_link_bundles\", ShareLinkBundleViewSet)\n88 | api_router.register(r\"share_links\", ShareLinkViewSet)\n89 | api_router.register(r\"workflow_triggers\", WorkflowTriggerViewSet)\n90 | api_router.register(r\"workflow_actions\", WorkflowActionViewSet)\n91 | api_router.register(r\"workflows\", WorkflowViewSet)\n92 | api_router.register(r\"custom_fields\", CustomFieldViewSet)\n93 | api_router.register(r\"config\", ApplicationConfigurationViewSet)\n94 | api_router.register(r\"processed_mail\", ProcessedMailViewSet)\n95 | \n96 | \n97 | urlpatterns = [\n98 |     re_path(\n99 |         r\"^api/\",\n100 |         include(\n",
+      "bytes": 2322
+    },
+    {
+      "id": "ev-66b1c88388e1d1594861",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/models.py",
+      "sha256": "e5dfbdac82ea52a40b0b8665561b4fc8cc4890aa7ea2adc63c94f48b6d8b01d2",
+      "startLine": 1900,
+      "endLine": 2005,
+      "text": "1900 |         blank=True,\n1901 |         related_name=\"+\",\n1902 |         verbose_name=_(\"remove change permissions for these users\"),\n1903 |     )\n1904 | \n1905 |     remove_change_groups = models.ManyToManyField(\n1906 |         Group,\n1907 |         blank=True,\n1908 |         related_name=\"+\",\n1909 |         verbose_name=_(\"remove change permissions for these groups\"),\n1910 |     )\n1911 | \n1912 |     remove_all_permissions = models.BooleanField(\n1913 |         default=False,\n1914 |         verbose_name=_(\"remove all permissions\"),\n1915 |     )\n1916 | \n1917 |     remove_custom_fields = models.ManyToManyField(\n1918 |         CustomField,\n1919 |         blank=True,\n1920 |         related_name=\"+\",\n1921 |         verbose_name=_(\"remove these custom fields\"),\n1922 |     )\n1923 | \n1924 |     remove_all_custom_fields = models.BooleanField(\n1925 |         default=False,\n1926 |         verbose_name=_(\"remove all custom fields\"),\n1927 |     )\n1928 | \n1929 |     email = models.ForeignKey(\n1930 |         WorkflowActionEmail,\n1931 |         null=True,\n1932 |         blank=True,\n1933 |         on_delete=models.SET_NULL,\n1934 |         related_name=\"action\",\n1935 |         verbose_name=_(\"email\"),\n1936 |     )\n1937 | \n1938 |     webhook = models.ForeignKey(\n1939 |         WorkflowActionWebhook,\n1940 |         null=True,\n1941 |         blank=True,\n1942 |         on_delete=models.SET_NULL,\n1943 |         related_name=\"action\",\n1944 |         verbose_name=_(\"webhook\"),\n1945 |     )\n1946 | \n1947 |     passwords = models.JSONField(\n1948 |         _(\"passwords\"),\n1949 |         null=True,\n1950 |         blank=True,\n1951 |         help_text=_(\n1952 |             \"Passwords to try when removing PDF protection. Separate with commas or new lines.\",\n1953 |         ),\n1954 |     )\n1955 | \n1956 |     ai_suggestion_fields = models.JSONField(\n1957 |         _(\"AI suggestion fields\"),\n1958 |         null=True,\n1959 |         blank=True,\n1960 |         help_text=_(\n1961 |             \"Which of the AI-suggested fields to apply to the document.\",\n1962 |         ),\n1963 |     )\n1964 | \n1965 |     ai_create_missing = models.BooleanField(\n1966 |         _(\"create missing objects\"),\n1967 |         default=False,\n1968 |         help_text=_(\n1969 |             \"Create suggested tags, correspondents, document types and storage \"\n1970 |             \"paths that do not already exist instead of skipping them.\",\n1971 |         ),\n1972 |     )\n1973 | \n1974 |     ai_overwrite_existing = models.BooleanField(\n1975 |         _(\"overwrite existing values\"),\n1976 |         default=False,\n1977 |         help_text=_(\n1978 |             \"Apply suggestions even if the document already has a value for that \"\n1979 |             \"field. Tags are always added to, never replaced.\",\n1980 |         ),\n1981 |     )\n1982 | \n1983 |     class Meta:\n1984 |         verbose_name = _(\"workflow action\")\n1985 |         verbose_name_plural = _(\"workflow actions\")\n1986 | \n1987 |     def __str__(self):\n1988 |         return f\"WorkflowAction {self.pk}\"\n1989 | \n1990 | \n1991 | class Workflow(models.Model):\n1992 |     name = models.CharField(_(\"name\"), max_length=256, unique=True)\n1993 | \n1994 |     order = models.IntegerField(_(\"order\"), default=0)\n1995 | \n1996 |     triggers = models.ManyToManyField(\n1997 |         WorkflowTrigger,\n1998 |         related_name=\"workflows\",\n1999 |         blank=False,\n2000 |         verbose_name=_(\"triggers\"),\n2001 |     )\n2002 | \n2003 |     actions = models.ManyToManyField(\n2004 |         WorkflowAction,\n2005 |         related_name=\"workflows\",\n",
+      "bytes": 3567
+    },
+    {
+      "id": "ev-eda1c188be1a3b5a7012",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 1,
+      "endLine": 70,
+      "text": "1 | from typing import Any\n2 | from typing import TypeVar\n3 | \n4 | from django.contrib.auth.models import Group\n5 | from django.contrib.auth.models import Permission\n6 | from django.contrib.auth.models import User\n7 | from django.contrib.contenttypes.models import ContentType\n8 | from django.db.models import Case\n9 | from django.db.models import Count\n10 | from django.db.models import IntegerField\n11 | from django.db.models import Model\n12 | from django.db.models import Q\n13 | from django.db.models import QuerySet\n14 | from django.db.models import Value\n15 | from django.db.models import When\n16 | from django.db.models.functions import Cast\n17 | from guardian.core import ObjectPermissionChecker\n18 | from guardian.models import GroupObjectPermission\n19 | from guardian.models import UserObjectPermission\n20 | from guardian.shortcuts import assign_perm\n21 | from guardian.shortcuts import get_objects_for_user\n22 | from guardian.shortcuts import get_users_with_perms\n23 | from guardian.shortcuts import remove_perm\n24 | from rest_framework.permissions import BasePermission\n25 | from rest_framework.permissions import DjangoObjectPermissions\n26 | \n27 | from documents.models import Document\n28 | \n29 | \n30 | class PaperlessObjectPermissions(DjangoObjectPermissions):\n31 |     \"\"\"\n32 |     A permissions backend that checks for object-level permissions\n33 |     or for ownership.\n34 |     \"\"\"\n35 | \n36 |     perms_map = {\n37 |         \"GET\": [\"%(app_label)s.view_%(model_name)s\"],\n38 |         \"OPTIONS\": [\"%(app_label)s.view_%(model_name)s\"],\n39 |         \"HEAD\": [\"%(app_label)s.view_%(model_name)s\"],\n40 |         \"POST\": [\"%(app_label)s.add_%(model_name)s\"],\n41 |         \"PUT\": [\"%(app_label)s.change_%(model_name)s\"],\n42 |         \"PATCH\": [\"%(app_label)s.change_%(model_name)s\"],\n43 |         \"DELETE\": [\"%(app_label)s.delete_%(model_name)s\"],\n44 |     }\n45 | \n46 |     def has_object_permission(self, request, view, obj):\n47 |         if hasattr(obj, \"owner\") and obj.owner is not None:\n48 |             if request.user == obj.owner:\n49 |                 return True\n50 |             else:\n51 |                 return super().has_object_permission(request, view, obj)\n52 |         else:\n53 |             return True  # no owner\n54 | \n55 | \n56 | class PaperlessAdminPermissions(BasePermission):\n57 |     def has_permission(self, request, view):\n58 |         return request.user.is_active and request.user.is_staff\n59 | \n60 | \n61 | def has_global_statistics_permission(user: User | None) -> bool:\n62 |     if (\n63 |         user is None\n64 |         or not getattr(user, \"is_active\", False)\n65 |         or not getattr(user, \"is_authenticated\", False)\n66 |     ):\n67 |         return False\n68 | \n69 |     return getattr(user, \"is_superuser\", False) or user.has_perm(\n70 |         \"paperless.view_global_statistics\",\n",
+      "bytes": 2828
+    },
+    {
+      "id": "ev-934abc932a19cf8328d4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 600,
+      "endLine": 650,
+      "text": "600 |     Legacy slow path (guardian-backed, O(n) style permission resolution).\n601 |     Most queryset-filtering call sites have migrated onto\n602 |     ``PermittedObjectsFilter``/``permitted_object_ids()``, but this function\n603 |     is kept because production callers still remain. Several callers remain\n604 |     across ``documents/``, ``paperless_mail/``, and ``paperless_ai/`` --\n605 |     grep for this function name before removing it.\n606 |     \"\"\"\n607 |     manager = (\n608 |         Model.global_objects\n609 |         if include_deleted and hasattr(Model, \"global_objects\")\n610 |         else Model.objects\n611 |     )\n612 | \n613 |     objects_owned = manager.filter(owner=user)\n614 |     objects_unowned = manager.filter(owner__isnull=True)\n615 |     objects_with_perms = get_objects_for_user(\n616 |         user=user,\n617 |         perms=perms,\n618 |         klass=manager.all(),\n619 |         accept_global_perms=False,\n620 |     )\n621 |     return objects_owned | objects_unowned | objects_with_perms\n622 | \n623 | \n624 | def has_perms_owner_aware(user, perms, obj):\n625 |     \"\"\"\n626 |     Legacy slow path (guardian-backed) single-object permission check.\n627 | \n628 |     The queryset-filtering side of this migrated onto\n629 |     ``PermittedObjectsFilter``/``permitted_object_ids()``, but this\n630 |     single-object check still has many production callers. Several callers\n631 |     remain across ``documents/``, ``paperless_mail/``, and ``paperless_ai/``\n632 |     -- grep for this function name before removing it.\n633 |     \"\"\"\n634 |     checker = ObjectPermissionChecker(user)\n635 |     return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)\n636 | \n637 | \n638 | class ViewDocumentsPermissions(BasePermission):\n639 |     \"\"\"\n640 |     Permissions class that checks for model permissions for only viewing Documents.\n641 |     \"\"\"\n642 | \n643 |     perms_map = {\n644 |         \"OPTIONS\": [\"documents.view_document\"],\n645 |         \"GET\": [\"documents.view_document\"],\n646 |         \"POST\": [\"documents.view_document\"],\n647 |     }\n648 | \n649 |     def has_permission(self, request, view):\n650 |         if not request.user or (not request.user.is_authenticated):  # pragma: no cover\n",
+      "bytes": 2228
+    },
+    {
+      "id": "ev-a7386fd007efad165b5f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 295,
+      "endLine": 522,
+      "text": "295 | class OwnedObjectSerializer(\n296 |     SerializerWithPerms,\n297 |     serializers.ModelSerializer[Any],\n298 |     SetPermissionsMixin,\n299 | ):\n300 |     def __init__(self, *args, **kwargs) -> None:\n301 |         super().__init__(*args, **kwargs)\n302 | \n303 |         if not self.all_fields:\n304 |             try:\n305 |                 if self.full_perms:\n306 |                     self.fields.pop(\"user_can_change\")\n307 |                     self.fields.pop(\"is_shared_by_requester\")\n308 |                 else:\n309 |                     self.fields.pop(\"permissions\")\n310 |             except KeyError:\n311 |                 pass\n312 | \n313 |     def _get_perms(self, obj, codename: str, target: Literal[\"users\", \"groups\"]):\n314 |         \"\"\"\n315 |         Get the given permissions from context or from django-guardian.\n316 | \n317 |         :param codename: The permission codename, e.g. 'view' or 'change'\n318 |         :param target: 'users' or 'groups'\n319 |         \"\"\"\n320 |         key = f\"{target}_{codename}_perms\"\n321 |         cached = self.context.get(key, {}).get(obj.pk)\n322 |         if cached is not None:\n323 |             return list(cached)\n324 | \n325 |         # Permission not found in the context, get it from guardian\n326 |         if target == \"users\":\n327 |             return list(\n328 |                 get_users_with_perms(\n329 |                     obj,\n330 |                     only_with_perms_in=[f\"{codename}_{obj.__class__.__name__.lower()}\"],\n331 |                     with_group_users=False,\n332 |                 ).values_list(\"id\", flat=True),\n333 |             )\n334 |         else:  # groups\n335 |             return list(\n336 |                 get_groups_with_only_permission(\n337 |                     obj,\n338 |                     codename=f\"{codename}_{obj.__class__.__name__.lower()}\",\n339 |                 ).values_list(\"id\", flat=True),\n340 |             )\n341 | \n342 |     @extend_schema_field(\n343 |         field={\n344 |             \"type\": \"object\",\n345 |             \"properties\": {\n346 |                 \"view\": {\n347 |                     \"type\": \"object\",\n348 |                     \"properties\": {\n349 |                         \"users\": {\n350 |                             \"type\": \"array\",\n351 |                             \"items\": {\"type\": \"integer\"},\n352 |                         },\n353 |                         \"groups\": {\n354 |                             \"type\": \"array\",\n355 |                             \"items\": {\"type\": \"integer\"},\n356 |                         },\n357 |                     },\n358 |                 },\n359 |                 \"change\": {\n360 |                     \"type\": \"object\",\n361 |                     \"properties\": {\n362 |                         \"users\": {\n363 |                             \"type\": \"array\",\n364 |                             \"items\": {\"type\": \"integer\"},\n365 |                         },\n366 |                         \"groups\": {\n367 |                             \"type\": \"array\",\n368 |                             \"items\": {\"type\": \"integer\"},\n369 |                         },\n370 |                     },\n371 |                 },\n372 |             },\n373 |         },\n374 |     )\n375 |     def get_permissions(self, obj) -> dict:\n376 |         return {\n377 |             \"view\": {\n378 |                 \"users\": self._get_perms(obj, \"view\", \"users\"),\n379 |                 \"groups\": self._get_perms(obj, \"view\", \"groups\"),\n380 |             },\n381 |             \"change\": {\n382 |                 \"users\": self._get_perms(obj, \"change\", \"users\"),\n383 |                 \"groups\": self._get_perms(obj, \"change\", \"groups\"),\n384 |             },\n385 |         }\n386 | \n387 |     def get_user_can_change(self, obj) -> bool:\n388 |         if obj.owner is None or obj.owner == self.user:\n389 |             return True\n390 |         if self.user is None:\n391 |             return False\n392 |         if self.user.is_active and self.user.is_superuser:\n393 |             # Mirrors guardian's own ObjectPermissionChecker.has_perm() shortcut --\n394 |             # superusers aren't necessarily granted explicit object permissions,\n395 |             # so the batched context below would otherwise incorrectly say no.\n396 |             return True\n397 | \n398 |         # Prefer the page-level batch computed by BulkPermissionMixin\n399 |         # (get_serializer_context) over a fresh per-object guardian check,\n400 |         # which would otherwise query the permission tables once per row.\n401 |         users_change_perms = self.context.get(\"users_change_perms\")\n402 |         groups_change_perms = self.context.get(\"groups_change_perms\")\n403 |         if users_change_perms is not None and groups_change_perms is not None:\n404 |             if self.user.pk in users_change_perms.get(obj.pk, []):\n405 |                 return True\n406 |             user_group_ids = getattr(self, \"_user_group_ids\", None)\n407 |             if user_group_ids is None:\n408 |                 user_group_ids = set(self.user.groups.values_list(\"id\", flat=True))\n409 |                 self._user_group_ids = user_group_ids\n410 |             return bool(\n411 |                 user_group_ids.intersection(groups_change_perms.get(obj.pk, [])),\n412 |             )\n413 | \n414 |         checker = ObjectPermissionChecker(self.user)\n415 |         return checker.has_perm(f\"change_{obj.__class__.__name__.lower()}\", obj)\n416 | \n417 |     @staticmethod\n418 |     def get_shared_object_pks(objects: Iterable):\n419 |         \"\"\"\n420 |         Return the primary keys of the subset of objects that are shared.\n421 |         \"\"\"\n422 |         try:\n423 |             first_obj = next(iter(objects))\n424 |         except StopIteration:\n425 |             return set()\n426 | \n427 |         ctype = ContentType.objects.get_for_model(first_obj)\n428 |         object_pks = list(obj.pk for obj in objects)\n429 |         pk_type = type(first_obj.pk)\n430 | \n431 |         def get_pks_for_permission_type(model):\n432 |             return map(\n433 |                 pk_type,  # coerce the pk to be the same type of the provided objects\n434 |                 model.objects.filter(\n435 |                     content_type=ctype,\n436 |                     object_pk__in=object_pks,\n437 |                 )\n438 |                 .values_list(\"object_pk\", flat=True)\n439 |                 .distinct(),\n440 |             )\n441 | \n442 |         UserObjectPermission = get_user_obj_perms_model()\n443 |         GroupObjectPermission = get_group_obj_perms_model()\n444 |         user_permission_pks = get_pks_for_permission_type(UserObjectPermission)\n445 |         group_permission_pks = get_pks_for_permission_type(GroupObjectPermission)\n446 | \n447 |         return set(user_permission_pks) | set(group_permission_pks)\n448 | \n449 |     def get_is_shared_by_requester(self, obj: Document) -> bool:\n450 |         # First check the context to see if `shared_object_pks` is set by the parent.\n451 |         shared_object_pks = self.context.get(\"shared_object_pks\")\n452 |         # If not just check if the current object is shared.\n453 |         if shared_object_pks is None:\n454 |             shared_object_pks = self.get_shared_object_pks([obj])\n455 |         return obj.owner == self.user and obj.id in shared_object_pks\n456 | \n457 |     permissions = SerializerMethodField(read_only=True, required=False)\n458 |     user_can_change = SerializerMethodField(read_only=True, required=False)\n459 |     is_shared_by_requester = SerializerMethodField(read_only=True, required=False)\n460 | \n461 |     set_permissions = SetPermissionsSerializer(\n462 |         label=\"Set permissions\",\n463 |         required=False,\n464 |         write_only=True,\n465 |     )\n466 |     # other methods in mixin\n467 | \n468 |     def validate_unique_together(self, validated_data, instance=None) -> None:\n469 |         # workaround for https://github.com/encode/django-rest-framework/issues/9358\n470 |         if \"owner\" in validated_data and \"name\" in self.Meta.fields:\n471 |             name = validated_data.get(\"name\", instance.name if instance else None)\n472 |             objects = (\n473 |                 self.Meta.model.objects.exclude(pk=instance.pk)\n474 |                 if instance\n475 |                 else self.Meta.model.objects.all()\n476 |             )\n477 |             not_unique = objects.filter(\n478 |                 owner=validated_data[\"owner\"],\n479 |                 name=name,\n480 |             ).exists()\n481 |             if not_unique:\n482 |                 raise serializers.ValidationError(\n483 |                     {\"error\": \"Object violates owner / name unique constraint\"},\n484 |                 )\n485 | \n486 |     def create(self, validated_data):\n487 |         # default to current user if not set\n488 |         request = self.context.get(\"request\")\n489 |         if (\n490 |             \"owner\" not in validated_data\n491 |             or (request is not None and \"owner\" not in request.data)\n492 |         ) and self.user:\n493 |             validated_data[\"owner\"] = self.user\n494 |         permissions = None\n495 |         if \"set_permissions\" in validated_data:\n496 |             permissions = validated_data.pop(\"set_permissions\")\n497 |         self.validate_unique_together(validated_data)\n498 |         instance = super().create(validated_data)\n499 |         if permissions is not None:\n500 |             self._set_permissions(permissions, instance)\n501 |         return instance\n502 | \n503 |     def update(self, instance, validated_data):\n504 |         user = getattr(self, \"user\", None)\n505 |         is_superuser = user.is_superuser if user is not None else False\n506 |         is_owner = instance.owner == user if user is not None else False\n507 |         is_unowned = instance.owner is None\n508 | \n509 |         if (\n510 |             (\"owner\" in validated_data and validated_data[\"owner\"] != instance.owner)\n511 |             or \"set_permissions\" in validated_data\n512 |         ) and not (is_superuser or is_owner or is_unowned):\n513 |             raise PermissionDenied(\n514 |                 _(\"Insufficient permissions.\"),\n515 |             )\n516 | \n517 |         if \"set_permissions\" in validated_data:\n518 |             self._set_permissions(validated_data[\"set_permissions\"], instance)\n519 |         self.validate_unique_together(validated_data, instance)\n520 |         return super().update(instance, validated_data)\n521 | \n522 | \n",
+      "bytes": 10412
+    },
+    {
+      "id": "ev-5b555c4790792dbeb031",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 406,
+      "endLine": 406,
+      "text": "406 | class PassUserMixin(GenericAPIView[Any]):\n",
+      "bytes": 48
+    },
+    {
+      "id": "ev-f9b9f79a6ec56a1a8f28",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/models.py",
+      "sha256": "e5dfbdac82ea52a40b0b8665561b4fc8cc4890aa7ea2adc63c94f48b6d8b01d2",
+      "startLine": 972,
+      "endLine": 972,
+      "text": "972 | class ShareLink(SoftDeleteModel):\n",
+      "bytes": 40
+    },
+    {
+      "id": "ev-c2a2893391a66a2d2805",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/models.py",
+      "sha256": "e5dfbdac82ea52a40b0b8665561b4fc8cc4890aa7ea2adc63c94f48b6d8b01d2",
+      "startLine": 1032,
+      "endLine": 1032,
+      "text": "1032 | class ShareLinkBundle(models.Model):\n",
+      "bytes": 44
+    }
+  ]
+}

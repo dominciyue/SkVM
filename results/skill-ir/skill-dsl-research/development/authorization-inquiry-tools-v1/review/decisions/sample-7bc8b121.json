@@ -1,0 +1,37 @@
+{
+  "sampleId": "sample-7bc8b121",
+  "packetSha256": "43483912bd3715e8696c5e0572be9c3b581b1185f078eb0ce1724d954b7fbbbf",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "correct",
+    "unknowns": "missing",
+    "policy": "not-applicable"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "The answer leaves context predicate, converter, and visibility helper bodies unread even though they are available and refine decisive semantics."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "routers/api/v1/repo/collaborators.go",
+      "line": 279,
+      "detail": "Own-name or admin/repo-admin guard."
+    },
+    {
+      "path": "routers/api/v1/repo/collaborators.go",
+      "line": 294,
+      "detail": "Permission target is resolved collaborator."
+    },
+    {
+      "path": "models/perm/access/repo_permission.go",
+      "line": 529,
+      "detail": "Repository-admin source predicate."
+    }
+  ],
+  "rationale": "Correct conditional behavior, but avoidable source gaps make unknown handling incomplete. Main-agent adjudication: Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+}

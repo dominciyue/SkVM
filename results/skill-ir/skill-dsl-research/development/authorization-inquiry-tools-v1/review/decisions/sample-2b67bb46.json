@@ -1,0 +1,36 @@
+{
+  "sampleId": "sample-2b67bb46",
+  "packetSha256": "a9ca753fefb41c79d0f8daea61bbed3f6d9cdb9b3f88aa210c757e170be2c154",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "partial",
+    "scenarios": "partial",
+    "evidence": "partial",
+    "bindings": "correct",
+    "unknowns": "overstated",
+    "policy": "undetermined-justified"
+  },
+  "issues": [
+    {
+      "kind": "omitted-branch",
+      "detail": "The exact-document helper also allows owner=None (permissions.py:635), but the candidate describes only owner/object-grant paths and can falsely deny the null-owner path."
+    },
+    {
+      "kind": "avoidable-unknown",
+      "detail": "PassUserMixin and create-action permission bodies are within the registered scope; the candidate leaves requested inherited identity/permission paths unread."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "src/documents/permissions.py",
+      "line": 635,
+      "detail": "Owner=None OR owner==user OR object grant; null-owner branch is omitted."
+    },
+    {
+      "path": "src/documents/serialisers.py",
+      "line": 2851,
+      "detail": "ShareLink serializer validates the exact document."
+    }
+  ],
+  "rationale": "Exact-document validation and global add permission tracing are sound, but the independently supplied policy removes the claimed ownership ambiguity. Runtime identity/grants remain unknown; policy conformance of the owner bypass does not. Main-agent adjudication: Reviewer imported the notes policy's explicit ownership prohibition into this distinct share policy. Current share policy does not contain that sentence. Remove that rationale; retain the real omitted null-owner and inherited-path gaps."
+}

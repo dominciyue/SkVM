@@ -1,0 +1,42 @@
+{
+  "sampleId": "sample-70f2f97e",
+  "packetSha256": "e4ac4a254c53cd328133e0a311856a482476a805452056e376467ea39a1fb169",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "correct",
+    "unknowns": "missing",
+    "policy": "not-applicable"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "The answer relies on source-visible helper branches and notes reqToken/converter gaps, but those available source dependencies remain unexamined."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "routers/api/v1/api.go",
+      "line": 1370,
+      "detail": "Synthetic route dispatches to repo.InspectRepoAccess."
+    },
+    {
+      "path": "routers/api/v1/repository_access/collaborators.go",
+      "line": 279,
+      "detail": "Synthetic handler preserves the original guard."
+    },
+    {
+      "path": "routers/api/v1/repository_access/collaborators.go",
+      "line": 294,
+      "detail": "Synthetic handler computes permission for the named collaborator."
+    },
+    {
+      "path": "models/perm/access/repo_permission.go",
+      "line": 529,
+      "detail": "Repository-admin predicate implementation is present."
+    }
+  ],
+  "rationale": "The renamed path and symbol retain the original semantics; control/resource/effect binding is correctly distinguished. Main-agent adjudication: Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+}

@@ -1,0 +1,31 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Write a reusable Markdown task instruction from only this CURRENT natural brief and independent policy. Preserve all requested scenarios and supplied premises; do not answer the source question or invent implementation facts. No finished task is provided. Source context is repository/ref/allowed paths only.\nMode: conformance\nCurrent independent policy: {\"text\":\"Only a space administrator may remove another member from that space. This policy does not prohibit a member leaving the space themselves.\",\"origin\":\"user\",\"location\":\"experimental-user-brief:memos-member-policy/v1\"}\nNatural brief:\nCheck DeleteSpaceMember in this Memos revision against the independently supplied current policy. May an ordinary space member remove a different member, and do visible admin and self-removal paths differ? Do not assume deployment middleware or undocumented role grants. Explain actual behavior, compare it with the policy, cite the controlling source and preserve any decisive missing facts.\nReturn {markdown:<complete current instruction>}.\nSource context: {\"repository\":\"usememos/memos\",\"sourceRef\":\"cb42e326ba9cc266a6a9570c53e0fe04c62793f4\",\"allowedPaths\":[\"server/api/v1\",\"core/access\",\"store\",\"proto/api/v1\",\"internal/ratelimit\"]}"
+    }
+  ],
+  "tools": [
+    {
+      "name": "submit_current_author_artifact",
+      "description": "Write the complete current reusable task instruction without source answers.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "markdown": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "markdown"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "toolChoice": {
+    "name": "submit_current_author_artifact"
+  },
+  "temperature": 0,
+  "maxTokens": 6000
+}

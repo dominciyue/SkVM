@@ -1,0 +1,363 @@
+{
+  "schemaVersion": "authorization-ao-main-adjudications/v1",
+  "development": true,
+  "reviewer": "development-agent",
+  "timing": "After generation close; packet/candidate/evidence archives unchanged; no model resampling",
+  "samples": {
+    "sample-0a4f50be": {
+      "dropIssueIndices": [
+        0,
+        1
+      ],
+      "reason": "Both issue strings are positive reviewer comments. Evidence remains partial; no promotion to full quality."
+    },
+    "sample-36ed81c8": {
+      "dropIssueIndices": [
+        0
+      ],
+      "reason": "The first issue is a positive comment. The available unread vector-writing dependency remains a quality gap."
+    },
+    "sample-b288efe2": {
+      "criteria": {
+        "policy": "correct"
+      },
+      "issues": [],
+      "reason": "Candidate policyAssessment is violated at packet lines 110-112, matching the revised independent v2 policy and the controlling non-self ADMIN guard. Reviewer incorrectly marked a correctly identified implementation violation as answer-policy error."
+    },
+    "sample-bf926d3c": {
+      "criteria": {
+        "policy": "correct"
+      },
+      "reason": "Candidate policyAssessment correctly says violated for revised v2. Keep the independent review's available unread handler/actor evidence gap and overstated unknown; this correction does not make the answer full."
+    },
+    "sample-2b67bb46": {
+      "criteria": {
+        "behavior": "partial",
+        "scenarios": "partial",
+        "evidence": "partial",
+        "policy": "undetermined-justified"
+      },
+      "issues": [
+        {
+          "kind": "omitted-branch",
+          "detail": "The exact-document helper also allows owner=None (permissions.py:635), but the candidate describes only owner/object-grant paths and can falsely deny the null-owner path."
+        },
+        {
+          "kind": "avoidable-unknown",
+          "detail": "PassUserMixin and create-action permission bodies are within the registered scope; the candidate leaves requested inherited identity/permission paths unread."
+        }
+      ],
+      "sourceSupport": [
+        {
+          "path": "src/documents/permissions.py",
+          "line": 635,
+          "detail": "Owner=None OR owner==user OR object grant; null-owner branch is omitted."
+        },
+        {
+          "path": "src/documents/serialisers.py",
+          "line": 2851,
+          "detail": "ShareLink serializer validates the exact document."
+        }
+      ],
+      "reason": "Reviewer imported the notes policy's explicit ownership prohibition into this distinct share policy. Current share policy does not contain that sentence. Remove that rationale; retain the real omitted null-owner and inherited-path gaps."
+    },
+    "sample-60a660bd": {
+      "criteria": {
+        "scenarios": "partial",
+        "evidence": "partial",
+        "bindings": "partial",
+        "unknowns": "overstated"
+      },
+      "issues": [
+        {
+          "kind": "avoidable-unknown",
+          "detail": "Owner-aware authorization, version-selection and serve_file bodies are available within the allowed src/documents scope but left unread. Requested ownership and version resource details are not completed."
+        }
+      ],
+      "reason": "The same registered available-dependency rule applies to download: the candidate's source gaps are avoidable, including has_perms_owner_aware at permissions.py:635, rather than justified external unknowns."
+    },
+    "sample-8473dfcd": {
+      "criteria": {
+        "bindings": "partial",
+        "unknowns": "overstated"
+      },
+      "issues": [
+        {
+          "kind": "avoidable-unknown",
+          "detail": "Candidate leaves the notes route inheritance unresolved; UnifiedSearchViewSet(DocumentViewSet) is available at views.py:2503."
+        }
+      ],
+      "reason": "Apply the same inheritance gap criterion as sample-4db2ddec. Source-visible policy/owner branches remain correct."
+    },
+    "sample-c102e8d9": {
+      "criteria": {
+        "behavior": "partial",
+        "scenarios": "partial",
+        "evidence": "partial",
+        "bindings": "partial",
+        "unknowns": "overstated",
+        "policy": "incorrect"
+      },
+      "issues": [
+        {
+          "kind": "avoidable-unknown",
+          "detail": "Requested PaperlessObjectPermissions, PassUserMixin, OwnedObjectSerializer and owner-aware helper bodies are in allowed original source, not unavailable."
+        },
+        {
+          "kind": "unsupported-certainty",
+          "detail": "A satisfied policy verdict from the helper's name alone does not establish exact-document grant semantics; permissions.py:635 contains owner/null-owner bypasses."
+        }
+      ],
+      "reason": "The serializer's exact-document argument is correct, but the available unread helper and inherited paths are decisive for this task. Apply the same rule as the independently flagged share answer sample-323944ad."
+    },
+    "sample-fe49b3c8": {
+      "criteria": {
+        "behavior": "partial",
+        "scenarios": "partial",
+        "evidence": "partial",
+        "bindings": "partial",
+        "unknowns": "overstated",
+        "policy": "incorrect"
+      },
+      "issues": [
+        {
+          "kind": "avoidable-unknown",
+          "detail": "The candidate explicitly leaves PaperlessObjectPermissions, owner-aware helper and inherited user/save paths unread despite their presence in the allowed scope."
+        },
+        {
+          "kind": "unsupported-certainty",
+          "detail": "Satisfied conformance is asserted while exact grant/bypass semantics of the decisive helper remain unread."
+        }
+      ],
+      "reason": "Same registered criterion as the other share candidates: exact document at a call site does not resolve the requested inherited permission and owner/null-owner semantics."
+    },
+    "sample-c5897fee": {
+      "criteria": {
+        "behavior": "correct",
+        "evidence": "supported",
+        "bindings": "partial",
+        "unknowns": "overstated"
+      },
+      "issues": [
+        {
+          "kind": "avoidable-unknown",
+          "detail": "Prose explicitly leaves router registration unresolved, but UnifiedSearchViewSet(DocumentViewSet) and document router registration are in the allowed source."
+        }
+      ],
+      "reason": "Ordinary original-skill prose is a permitted output; remove the format-based semantic penalty. Its source/branch/policy analysis is supported by permissions.py:635 and views.py:1848-1913. Retain its real route-binding source gap."
+    },
+    "sample-c6f384a7": {
+      "criteria": {
+        "behavior": "correct",
+        "evidence": "supported"
+      },
+      "issues": [],
+      "reason": "Ordinary original-skill prose is permitted. Main checked the full candidate's GET/POST endpoint permissions, same-document view/change checks, owner/null-owner and grant branches, note effect and policy violation. The sole reviewer deduction was representation, not a semantic deficiency."
+    },
+    "sample-ea565de8": {
+      "criteria": {
+        "behavior": "partial",
+        "scenarios": "partial",
+        "evidence": "partial",
+        "bindings": "partial",
+        "unknowns": "overstated",
+        "policy": "incorrect"
+      },
+      "issues": [
+        {
+          "kind": "avoidable-unknown",
+          "detail": "Under the fixed null-owner premise the available permissions.py:635 establishes bypass; PaperlessNotePermissions:673-699 establishes endpoint gates. Candidate leaves both decisive bodies unread and its conformance undetermined."
+        }
+      ],
+      "reason": "Unknowns are not justified merely because the candidate did not read an available decisive source. The fixed null-owner task remains incomplete."
+    },
+    "sample-48fd30e2": {
+      "criteria": {
+        "evidence": "partial",
+        "unknowns": "overstated"
+      },
+      "issues": [
+        {
+          "kind": "avoidable-unknown",
+          "detail": "The current source includes the verified-user role guard (auth.py:458-464) and actual file-id/user-id query (files.py:172-184), while the candidate leaves authentication/input binding dependencies unread."
+        }
+      ],
+      "sourceSupport": [
+        {
+          "path": "backend/open_webui/routers/retrieval.py",
+          "line": 1562,
+          "detail": "Non-admin input file lookup is bound to user.id."
+        },
+        {
+          "path": "backend/open_webui/routers/retrieval.py",
+          "line": 1697,
+          "detail": "process_file sends selected collection_name to vector saving without collection-access validator."
+        },
+        {
+          "path": "backend/open_webui/utils/auth.py",
+          "line": 458,
+          "detail": "Available verified-user role guard."
+        }
+      ],
+      "reason": "Correct the reviewer anchor: _validate_collection_access at retrieval.py:1781 belongs to separate /process/text, not process_file. The candidate correctly says no destination guard on process_file. Keep its real unread available input/auth dependencies."
+    },
+    "sample-8a82c010": {
+      "criteria": {
+        "evidence": "partial",
+        "bindings": "partial",
+        "unknowns": "overstated"
+      },
+      "issues": [
+        {
+          "kind": "binding",
+          "detail": "Default collection naming ties a vector collection to file.id; it does not make the collection the same authorization object as the file record."
+        },
+        {
+          "kind": "avoidable-unknown",
+          "detail": "File lookup and verified-user helper bodies are within the allowed source but remain unread while caller/file dispositions are asserted."
+        }
+      ],
+      "sourceSupport": [
+        {
+          "path": "backend/open_webui/routers/retrieval.py",
+          "line": 1562,
+          "detail": "Authorizes the file record, not the vector collection."
+        },
+        {
+          "path": "backend/open_webui/routers/retrieval.py",
+          "line": 1568,
+          "detail": "Default collection name derives from file.id."
+        },
+        {
+          "path": "backend/open_webui/models/files.py",
+          "line": 177,
+          "detail": "Available exact id and user_id database binding."
+        }
+      ],
+      "reason": "Reviewer incorrectly referenced the neighboring /process/text destination validator. Candidate's no-destination-guard conclusion is correct, but default name equality is not object identity and available input helpers remain unread."
+    },
+    "sample-81faed46": {
+      "criteria": {
+        "evidence": "supported"
+      },
+      "issues": [],
+      "sourceSupport": [
+        {
+          "path": "backend/open_webui/routers/retrieval.py",
+          "line": 1562,
+          "detail": "Under the current caller-owned-file premise, input selects the caller's file."
+        },
+        {
+          "path": "backend/open_webui/routers/retrieval.py",
+          "line": 1697,
+          "detail": "Selected caller-supplied destination is passed to vector writer."
+        },
+        {
+          "path": "backend/open_webui/utils/auth.py",
+          "line": 458,
+          "detail": "Shown verified-user role guard."
+        }
+      ],
+      "reason": "The reviewer confused neighboring process_text with process_file. Main checked process_file:1546-1762 and candidate conditional/backend limits; its stated source-visible reach to destination writing is correct, not unconditional deployment success."
+    },
+    "sample-7d9d6a91": {
+      "sourceSupport": [
+        {
+          "path": "source-variants/memos-deny/server/api/v1/memo_share_service.go",
+          "line": 173,
+          "detail": "Synthetic unconditional PermissionDenied precedes share or memo lookup."
+        }
+      ],
+      "reason": "Replace the reviewer's incorrect original memo_service.go:1 citation with the current synthetic variant's controlling line. Correct short circuit makes downstream branches unnecessary."
+    },
+    "sample-c4572a2d": {
+      "criteria": {
+        "unknowns": "overstated"
+      },
+      "issues": [
+        {
+          "kind": "avoidable-unknown",
+          "detail": "Candidate leaves the available get_verified_user role guard at auth.py:458-464 and actual in-scope files/knowledge callers untraced."
+        }
+      ],
+      "sourceSupport": [
+        {
+          "path": "backend/open_webui/routers/retrieval.py",
+          "line": 1697,
+          "detail": "Actual destination effect and no process_file collection validator."
+        },
+        {
+          "path": "backend/open_webui/utils/auth.py",
+          "line": 458,
+          "detail": "Available verified-user role guard establishes admitted roles."
+        },
+        {
+          "path": "backend/open_webui/routers/knowledge.py",
+          "line": 661,
+          "detail": "Available backend caller of process_file."
+        }
+      ],
+      "reason": "Keep the correct caller/file/destination analysis but apply the same avoidable source-gap criterion: these controlling dependencies and backend callers are in the registered allowed source."
+    },
+    "sample-14074ead": {
+      "dropIssueIndices": [
+        0
+      ],
+      "reason": "Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+    },
+    "sample-3e315142": {
+      "dropIssueIndices": [
+        0
+      ],
+      "reason": "Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+    },
+    "sample-70f2f97e": {
+      "dropIssueIndices": [
+        0
+      ],
+      "reason": "Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+    },
+    "sample-7bc8b121": {
+      "dropIssueIndices": [
+        0
+      ],
+      "reason": "Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+    },
+    "sample-80c6fa18": {
+      "dropIssueIndices": [
+        0
+      ],
+      "reason": "Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+    },
+    "sample-869315d3": {
+      "dropIssueIndices": [
+        0
+      ],
+      "reason": "Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+    },
+    "sample-88ad1a69": {
+      "dropIssueIndices": [
+        0
+      ],
+      "reason": "Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+    },
+    "sample-a198b053": {
+      "dropIssueIndices": [
+        0
+      ],
+      "reason": "Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+    },
+    "sample-d302a3b0": {
+      "dropIssueIndices": [
+        0
+      ],
+      "reason": "Move the positive first issue to retained raw commentary. Keep the reviewer's available unread privilege/result dependencies and its non-full ratings."
+    },
+    "sample-4db2ddec": {
+      "dropIssueIndices": [
+        1
+      ],
+      "reason": "The policy-violation observation is positive commentary. Keep the avoidable inheritance gap and partial bindings."
+    }
+  }
+}

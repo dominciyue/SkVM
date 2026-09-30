@@ -1,0 +1,31 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Write a reusable Markdown task instruction from only this CURRENT natural brief and independent policy. Preserve all requested scenarios and supplied premises; do not answer the source question or invent implementation facts. No finished task is provided. Source context is repository/ref/allowed paths only.\nMode: conformance\nCurrent independent policy: {\"text\":\"Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.\",\"origin\":\"user\",\"location\":\"experimental-user-brief:paperless-note-policy/v1\"}\nNatural brief:\nCheck GET and POST on the document notes operation against the current independently supplied policy. Compare viewing notes and creating a note on the addressed document. The document owner is unspecified, and object grants are not given; retain relevant owner and permission branches rather than silently supplying those facts. Trace endpoint and object controls to the corresponding effects, explain policy compliance and preserve exact gaps.\nReturn {markdown:<complete current instruction>}.\nSource context: {\"repository\":\"paperless-ngx/paperless-ngx\",\"sourceRef\":\"126ec414a8b65158368653a2604ae58415e43103\",\"allowedPaths\":[\"src/documents\",\"src/paperless/urls.py\"]}"
+    }
+  ],
+  "tools": [
+    {
+      "name": "submit_current_author_artifact",
+      "description": "Write the complete current reusable task instruction without source answers.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "markdown": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "markdown"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "toolChoice": {
+    "name": "submit_current_author_artifact"
+  },
+  "temperature": 0,
+  "maxTokens": 6000
+}

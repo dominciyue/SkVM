@@ -1170,7 +1170,7 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 ### 7.34 AO 真实授权任务与领域取证工具
 
-2026-09-30，用户在AN复核与输入职责讨论后，授权`gpt-6.1-sol / max`执行[AO0–AO16](../superpowers/plans/2026-09-30-authorization-inquiry-and-evidence-tools.md)。本节持续记录开发问题、解决和结果。2026-10-01从干净aea87139启动。当前工程进行中，没有新模型结果。
+2026-09-30，用户在AN复核与输入职责讨论后，授权`gpt-6.1-sol / max`执行[AO0–AO16](../superpowers/plans/2026-09-30-authorization-inquiry-and-evidence-tools.md)。2026-10-01从干净aea87139启动；工程、56行真实生成与语义评价已完成，有限验证与发布状态以[机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/status.json)为准。本轮支持有界取证和自然作者接线，未建立DSL稳定质量或人工节省优势。
 
 本轮处理五个相连问题：作者语义误拒和request编辑缺项；完整目标声明预供；把源码实际行为写成已知政策；行为调查被强制要求expectation；分析宿主缺少运行中补读依赖。普通入口沿用SkVM，增加behavior/conformance区分、共用只读工具和领域观察/缺口队列；旧fixed-context路径继续兼容。
 
@@ -1187,6 +1187,26 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 32质量、8作者稿、最多8消费、8来源skill使用共56行已登记，模型xty/gpt-5.6-sol；四项目固定ref共800原始文件，两源skill共28文件及许可证保留。Gitea upstream辅助范围补齐，synthetic重命名以实际gitea.dev模块前缀更新；改名/短路variant明确非upstream、非unseen。36项输入/方法和真实loader/注册预检零provider通过。12 dispatch/24动作/256 KiB累计model target-source/300s每调用/1200s每session固定，索引512文件/8 MiB；源skill参考正文另计provider token，不冒充目标源码。claim前置、unknown不重发、连续两次基础设施故障暂停新派发。仅登记和源码身份提示进入模型；evaluator、历史答案与construction说明不在生成范围。
 
 [AN校准](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/an-calibration.json)零调用读取旧原稿的诊断修订响应：Memos的正确`Deny`因小写字面判据误拒，Paperless完整permission/owner前提因逗号/反引号差异误拒；只确认具名语义事实，未把整篇稿判为等价。旧变稿依赖阻塞、调用0，不能补作成功。旧GetSharedMemo policy本身预组织了实现分支，本轮behavior brief不供应这些规范答案。原AN分数、字节和分母保留。普通示例增加自然任务→同次读证据→回答→改request/compare；source-only和完整安全审计职责仍分列。
+
+**AO10–AO12实际结果。** 工程218f5bbf绑定后完成56/56终态、319次provider派发。默认cache未命中xty route导致首4行配置失败、调用0；明确选择原有repo cache后只继续未claim行，没有重发或连通性付费探针。质量32行中27 completed、1 completed-with-diagnostics、4配置失败。两次Markdown Memos消费因单次提案反复超过8个工具动作而transport-failed；其4/3调用和原始输出保留，不归为基础设施丢失。生成全部关闭后才建立65匿名packet/104首终映射；61非空packet由六个独立default-agent复核，方法元数据隔离而表示仍可能被推断。
+
+| 质量面板 | 计划分母 | 首答完整 | 终答完整 | 实际调用 | 完整prompt tokens |
+|---|---:|---:|---:|---:|---:|
+| M 主行 | 8 | 1 | 2 | 51 | 917,887 |
+| D0 主行 | 8 | 1 | 1 | 49 | 554,070 |
+| D1 主行 | 8 | 1 | 1 | 47 | 721,180 |
+| M 变化行 | 4 | 3 | 3 | 26 | 301,925 |
+| D1 变化行 | 4 | 2 | 2 | 25 | 293,718 |
+
+共32行首答8、终答9完整。缺项主要是可补的owner/permission/privilege/helper/upstream证据链、行为disposition与解释矛盾，以及已知null-owner前提仍留不适用分支；通用只读工具确实补读原始源码，但pending队列未保证模型选择和解释决定性依赖。四条零调用配置失败使主行已交付数M/D0/D1为7/6/7，不能按总tokens较少宣称效率优势。短路变体正确拒绝无需枚举已不可达依赖；重命名变体跟随新符号仍可能漏关键helper。当前默认不因低分或未赢而调整。
+
+**作者与复用。** 从自然brief独立生成的MD/DSL原/变各4稿，8/8结构与语义有效，32项登记需求均保留；没有宿主代填领域答案。作者9调用（MD4、DSL5，含一次结构transport fallback）。自然消费MD交付2/4、DSL4/4，严格完整各1/4；完整消费成本分别20/28调用、282,864/535,285 prompt tokens。四份变化compare均needs-review，保留旧失败也能比较依赖。主代理按生成前四项义务逐项记录最终消费为17 full、7 partial、8未交付（共32）；这个义务附录不是另一轮独立评审，严格session分母仍2/8完整。DSL null-owner变稿多留两条不适用branch和对应缺口，不能把字段齐全算当前任务完整。真人修改时间和节省均未测。
+
+**源skill使用。** Cloudflare/GitHub原文及28直接配套文件固定ref保留；8session均经普通loader完整加载，扩展包保留原文前缀。原包4/4回答交付、3/4严格完整；领域包4/4交付、4/4语义完整，实际26/38调用、380,087/728,795 prompt tokens。这一小面板差异来自一个原包路由继承缺口，不证明稳定或类别级收益。四领域包均实际compile，native history共17个领域名称动作、14成功/3拒绝；runtime操作计数15另列。Cloudflare Paperless包耗尽工具预算后observe/check被拒绝，仍交付有据prose但没有checked domain result；因此领域结果检查是3/4，不能把注册或回答正确冒充完整工具闭环。其余安全审计、依赖/密钥扫描、动态执行、修复/patch、差异审查和全仓覆盖仍按source duty map保留，未被授权切片替代。
+
+**AO13工程修订及评审裁定。** 普通native路径先前仅给repository/scope，scope文件里的独立policy未传给模型；新增natural conformance与完整inquiry反例确认红灯，最小修复传递当前声明原字段，2测试/11断言转绿、provider0。56行实测的自然prompt原已提供mode/policy，不受该缺陷影响，故共享修订session0且原冻结不改。原始评语保存在[receipt/raw](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/review/receipt.json)，[具名裁定](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/review/adjudications.json)纠正v2实现违规被误算答案错误、notes政策串入share政策、prose格式扣分和邻接process_text误当process_file；统一把允许范围内未读决定性依赖记为可补缺口。pretty-file SHA只在原字节确实匹配时归一到packet SHA，一份作者digest漏字符经原稿及四义务复核纠正；没有改写答案、源码或原评语。独立完成审查未报告可证阻断缺陷；之后的普通输入传递修复由主线程红绿验证。
+
+**费用与交付边界。** [评价摘要](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/evaluation-summary.json)保存逐行首答/终答、结构状态、review、source IO、调用与时长。全部319调用usage已报告：fresh input3,956,583、cache-read769,792、output196,444，完整prompt4,726,375（缓存仅一次）、完整prompt+output4,922,819；累计响应4,923,698.496ms、逐session墙钟合计4,959,264ms，合计并非并行实验日历耗时。319项actualUSD均未报告，总额unknown，已知小计0不表示免费；开发代理tokens、真人分钟unknown，目标执行0、共享修订0。一个仓外普通例子复制后check/edit/inspect/compare零provider通过，并复用已有Paperless session验证相对源字节、旧结果current及修改后needs-review。工程能力和复验成立，模型取证完整性与整体方法净收益仍未建立；不追加采样。精确恢复命令见[结果入口](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/README.md)。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

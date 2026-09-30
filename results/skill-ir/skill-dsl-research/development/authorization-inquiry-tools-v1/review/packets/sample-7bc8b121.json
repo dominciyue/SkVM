@@ -1,0 +1,538 @@
+{
+  "sampleId": "sample-7bc8b121",
+  "kind": "analysis",
+  "brief": "Investigate GetRepoPermissions in this Gitea revision. Compare a normal authenticated caller querying their own collaborator permission with the same caller querying another user's permission; include differences for privileged callers visible in source. Explain path-specific controls, identity comparison and the repository permission result. Follow upstream code only when relevant. Do not turn this behavior question into an invented normative policy.",
+  "mode": "behavior",
+  "policy": null,
+  "context": {
+    "repository": "go-gitea/gitea",
+    "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+    "sourceRoot": "public-source/gitea",
+    "allowedPaths": [
+      "routers/api/v1/repo",
+      "routers/api/v1/api.go",
+      "routers/api/v1/utils",
+      "modules/structs",
+      "modules/setting",
+      "modules/web",
+      "models/unit",
+      "models/perm",
+      "models/auth",
+      "models/user",
+      "models/repo",
+      "models/issues",
+      "models/organization",
+      "services/convert",
+      "services/issue",
+      "services/context"
+    ]
+  },
+  "candidate": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "get-repo-permissions-own-vs-other",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The endpoint is registered under the repository collaborators path with reqToken() at the group level. The handler then permits a caller to query the named user's permission when the caller is a site admin, the caller is a repository admin, or the path username matches ctx.Doer.LowerName case-insensitively. A normal authenticated caller can therefore query their own named permission but is rejected when naming another user. When the check passes, the handler resolves the named user and computes that target user's repository permission."
+        },
+        "branches": [
+          {
+            "id": "normal-own",
+            "condition": "The caller is authenticated, is neither a site admin nor a repository admin for the repository, and the collaborator path value matches ctx.Doer.LowerName under strings.EqualFold.",
+            "disposition": "allow",
+            "explanation": "The identity-comparison term is false inside the negated denial condition, so the handler continues to target-user lookup and permission calculation.",
+            "evidenceIds": [
+              "ev-fe2f06beb1369bc2dc33"
+            ]
+          },
+          {
+            "id": "normal-other",
+            "condition": "The caller is authenticated, is neither a site admin nor a repository admin for the repository, and the collaborator path value does not match ctx.Doer.LowerName case-insensitively.",
+            "disposition": "deny",
+            "explanation": "The handler returns HTTP 403 with the source-visible message that only admins can query all permissions, repository admins can query all repository permissions, and collaborators can query only their own. Target lookup and permission calculation are not reached.",
+            "evidenceIds": [
+              "ev-fe2f06beb1369bc2dc33"
+            ]
+          },
+          {
+            "id": "site-admin-other",
+            "condition": "ctx.Doer.IsAdmin is true while the path names another user.",
+            "disposition": "allow",
+            "explanation": "The site-admin term short-circuits the handler's denial condition. The named user is then looked up and used as the subject of repository-permission calculation; the source does not substitute the caller's site-admin status for the target user's returned repository permission.",
+            "evidenceIds": [
+              "ev-fe2f06beb1369bc2dc33"
+            ]
+          },
+          {
+            "id": "repository-admin-other",
+            "condition": "ctx.IsUserRepoAdmin() is true for the repository while the path names another user.",
+            "disposition": "allow",
+            "explanation": "Repository-admin status is an explicit exception to the own-user restriction. The handler proceeds with lookup and computes permission for the named target user.",
+            "evidenceIds": [
+              "ev-fe2f06beb1369bc2dc33"
+            ]
+          },
+          {
+            "id": "target-not-found",
+            "condition": "The path username passes the handler's access check but user_model.GetUserByName cannot find it.",
+            "disposition": "deny",
+            "explanation": "The handler returns HTTP 404 for a nonexistent target user; other lookup failures go to the internal API error path.",
+            "evidenceIds": [
+              "ev-fe2f06beb1369bc2dc33"
+            ]
+          },
+          {
+            "id": "permission-calculation",
+            "condition": "The named target user exists and GetIndividualUserRepoPermission succeeds.",
+            "disposition": "allow",
+            "explanation": "The helper receives ctx.Repo.Repository and the resolved target user, not the caller. Source-visible computation loads repository units, checks collaborator status, loads the repository owner, can return AccessModeNone when the owner is not visible and the target is not a collaborator, grants AccessModeOwner when the target is an instance admin or repository owner, and otherwise derives access from owner/access configuration plus organization-team and minimum-public-access rules. The handler returns permission.AccessMode via convert.ToUserAndPermission with HTTP 200.",
+            "evidenceIds": [
+              "ev-fe2f06beb1369bc2dc33",
+              "ev-df09dec33e722d5feed3"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-36a0d75a671e4c309a0c",
+          "ev-fe2f06beb1369bc2dc33",
+          "ev-df09dec33e722d5feed3"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The bodies of ctx.IsUserRepoAdmin(), convert.ToUserAndPermission(), modeByOwnerAndAccess(), and organization.HasOrgOrUserVisible() were not read. These could refine repository-admin qualification, response-field semantics, and exact access-mode derivation.",
+            "nextRead": "Read the definitions of IsUserRepoAdmin, ToUserAndPermission, modeByOwnerAndAccess, and HasOrgOrUserVisible within the allowed paths."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "The source establishes reqToken() on the route but does not establish deployment authentication/token configuration or runtime values for ctx.Doer, ctx.ContextUser, and ctx.Repo.",
+            "nextRead": "Inspect the relevant request-context and token-middleware definitions if runtime authentication behavior is required."
+          }
+        ]
+      }
+    ],
+    "observations": [],
+    "scope": "go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b1; GetRepoPermissions route and its direct repository-permission helper"
+  },
+  "evidence": [
+    {
+      "id": "ev-7c0146a501b98df9c24d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1370,
+      "endLine": 1370,
+      "text": "1370 | \t\t\t\t\t\tm.Get(\"/permission\", repo.GetRepoPermissions)\n",
+      "bytes": 59
+    },
+    {
+      "id": "ev-a60533ab4a5b542475f5",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 247,
+      "endLine": 247,
+      "text": "247 | // GetRepoPermissions gets repository permissions for a user\n",
+      "bytes": 67
+    },
+    {
+      "id": "ev-e294e0511838d6709a3f",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 248,
+      "endLine": 248,
+      "text": "248 | func GetRepoPermissions(ctx *context.APIContext) {\n",
+      "bytes": 57
+    },
+    {
+      "id": "ev-a3192c9940835e6f74bd",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 249,
+      "endLine": 249,
+      "text": "249 | \t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions\n",
+      "bytes": 128
+    },
+    {
+      "id": "ev-fe2f06beb1369bc2dc33",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 240,
+      "endLine": 310,
+      "text": "240 | \tif err := repo_service.DeleteCollaboration(ctx, ctx.Repo.Repository, collaborator); err != nil {\n241 | \t\tctx.APIErrorInternal(err)\n242 | \t\treturn\n243 | \t}\n244 | \tctx.Status(http.StatusNoContent)\n245 | }\n246 | \n247 | // GetRepoPermissions gets repository permissions for a user\n248 | func GetRepoPermissions(ctx *context.APIContext) {\n249 | \t// swagger:operation GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission repository repoGetRepoPermissions\n250 | \t// ---\n251 | \t// summary: Get repository permissions for a user\n252 | \t// produces:\n253 | \t// - application/json\n254 | \t// parameters:\n255 | \t// - name: owner\n256 | \t//   in: path\n257 | \t//   description: owner of the repo\n258 | \t//   type: string\n259 | \t//   required: true\n260 | \t// - name: repo\n261 | \t//   in: path\n262 | \t//   description: name of the repo\n263 | \t//   type: string\n264 | \t//   required: true\n265 | \t// - name: collaborator\n266 | \t//   in: path\n267 | \t//   description: username of the collaborator whose permissions are to be obtained\n268 | \t//   type: string\n269 | \t//   required: true\n270 | \t// responses:\n271 | \t//   \"200\":\n272 | \t//     \"$ref\": \"#/responses/RepoCollaboratorPermission\"\n273 | \t//   \"404\":\n274 | \t//     \"$ref\": \"#/responses/notFound\"\n275 | \t//   \"403\":\n276 | \t//     \"$ref\": \"#/responses/forbidden\"\n277 | \n278 | \tcollaboratorUsername := ctx.PathParam(\"collaborator\")\n279 | \tif !ctx.Doer.IsAdmin && !strings.EqualFold(ctx.Doer.LowerName, collaboratorUsername) && !ctx.IsUserRepoAdmin() {\n280 | \t\tctx.APIError(http.StatusForbidden, \"Only admins can query all permissions, repo admins can query all repo permissions, collaborators can query only their own\")\n281 | \t\treturn\n282 | \t}\n283 | \n284 | \tcollaborator, err := user_model.GetUserByName(ctx, collaboratorUsername)\n285 | \tif err != nil {\n286 | \t\tif user_model.IsErrUserNotExist(err) {\n287 | \t\t\tctx.APIError(http.StatusNotFound, err.Error())\n288 | \t\t} else {\n289 | \t\t\tctx.APIErrorInternal(err)\n290 | \t\t}\n291 | \t\treturn\n292 | \t}\n293 | \n294 | \tpermission, err := access_model.GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator)\n295 | \tif err != nil {\n296 | \t\tctx.APIErrorInternal(err)\n297 | \t\treturn\n298 | \t}\n299 | \n300 | \tctx.JSON(http.StatusOK, convert.ToUserAndPermission(ctx, collaborator, ctx.ContextUser, permission.AccessMode))\n301 | }\n302 | \n303 | // GetReviewers return all users that can be requested to review in this repo\n304 | func GetReviewers(ctx *context.APIContext) {\n305 | \t// swagger:operation GET /repos/{owner}/{repo}/reviewers repository repoGetReviewers\n306 | \t// ---\n307 | \t// summary: Return all users that can be requested to review in this repo\n308 | \t// produces:\n309 | \t// - application/json\n310 | \t// parameters:\n",
+      "bytes": 2728
+    },
+    {
+      "id": "ev-98a0be34e4d78aa47bf4",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 1,
+      "endLine": 120,
+      "text": "1 | // Copyright 2018 The Gitea Authors. All rights reserved.\n2 | // SPDX-License-Identifier: MIT\n3 | \n4 | package access\n5 | \n6 | import (\n7 | \t\"context\"\n8 | \t\"errors\"\n9 | \t\"fmt\"\n10 | \t\"maps\"\n11 | \t\"slices\"\n12 | \t\"strings\"\n13 | \n14 | \tactions_model \"gitea.dev/models/actions\"\n15 | \t\"gitea.dev/models/db\"\n16 | \tdeploykey_model \"gitea.dev/models/deploykey\"\n17 | \t\"gitea.dev/models/organization\"\n18 | \tperm_model \"gitea.dev/models/perm\"\n19 | \trepo_model \"gitea.dev/models/repo\"\n20 | \t\"gitea.dev/models/unit\"\n21 | \tuser_model \"gitea.dev/models/user\"\n22 | \t\"gitea.dev/modules/container\"\n23 | \t\"gitea.dev/modules/log\"\n24 | \t\"gitea.dev/modules/setting\"\n25 | \t\"gitea.dev/modules/util\"\n26 | )\n27 | \n28 | // Permission contains all the permissions related variables to a repository for a user\n29 | type Permission struct {\n30 | \tAccessMode perm_model.AccessMode\n31 | \n32 | \tunits     []*repo_model.RepoUnit\n33 | \tunitsMode map[unit.Type]perm_model.AccessMode\n34 | \n35 | \teveryoneAccessMode  map[unit.Type]perm_model.AccessMode // the unit's minimal access mode for every signed-in user\n36 | \tanonymousAccessMode map[unit.Type]perm_model.AccessMode // the unit's minimal access mode for anonymous (non-signed-in) user\n37 | \n38 | \torgRepoTeams []*organization.Team\n39 | }\n40 | \n41 | // IsOwner returns true if current user is the owner of repository.\n42 | func (p *Permission) IsOwner() bool {\n43 | \treturn p.AccessMode >= perm_model.AccessModeOwner\n44 | }\n45 | \n46 | // IsAdmin returns true if current user has admin or higher access of repository.\n47 | func (p *Permission) IsAdmin() bool {\n48 | \treturn p.AccessMode >= perm_model.AccessModeAdmin\n49 | }\n50 | \n51 | // HasAnyUnitAccess returns true if the user might have at least one access mode to any unit of this repository.\n52 | // It doesn't count the \"public(anonymous/everyone) access mode\".\n53 | // TODO: most calls to this function should be replaced with `HasAnyUnitAccessOrPublicAccess`\n54 | func (p *Permission) HasAnyUnitAccess() bool {\n55 | \tfor _, v := range p.unitsMode {\n56 | \t\tif v >= perm_model.AccessModeRead {\n57 | \t\t\treturn true\n58 | \t\t}\n59 | \t}\n60 | \treturn p.AccessMode >= perm_model.AccessModeRead\n61 | }\n62 | \n63 | func (p *Permission) HasAnyUnitPublicAccess() bool {\n64 | \tfor _, v := range p.anonymousAccessMode {\n65 | \t\tif v >= perm_model.AccessModeRead {\n66 | \t\t\treturn true\n67 | \t\t}\n68 | \t}\n69 | \tfor _, v := range p.everyoneAccessMode {\n70 | \t\tif v >= perm_model.AccessModeRead {\n71 | \t\t\treturn true\n72 | \t\t}\n73 | \t}\n74 | \treturn false\n75 | }\n76 | \n77 | func (p *Permission) HasAnyUnitAccessOrPublicAccess() bool {\n78 | \treturn p.HasAnyUnitPublicAccess() || p.HasAnyUnitAccess()\n79 | }\n80 | \n81 | // HasUnits returns true if the permission contains attached units\n82 | func (p *Permission) HasUnits() bool {\n83 | \treturn len(p.units) > 0\n84 | }\n85 | \n86 | // GetFirstUnitRepoID returns the repo ID of the first unit, it is a fragile design and should NOT be used anymore\n87 | // deprecated\n88 | func (p *Permission) GetFirstUnitRepoID() int64 {\n89 | \tif len(p.units) > 0 {\n90 | \t\treturn p.units[0].RepoID\n91 | \t}\n92 | \treturn 0\n93 | }\n94 | \n95 | // UnitAccessMode returns current user access mode to the specify unit of the repository\n96 | // It also considers \"public (anonymous/everyone) access mode\"\n97 | func (p *Permission) UnitAccessMode(unitType unit.Type) perm_model.AccessMode {\n98 | \t// if the units map contains the access mode, use it, but admin/owner mode could override it\n99 | \tif m, ok := p.unitsMode[unitType]; ok {\n100 | \t\treturn util.Iif(p.AccessMode >= perm_model.AccessModeAdmin, p.AccessMode, m)\n101 | \t}\n102 | \t// if the units map does not contain the access mode, return the default access mode if the unit exists\n103 | \tunitDefaultAccessMode := p.AccessMode\n104 | \tunitDefaultAccessMode = max(unitDefaultAccessMode, p.anonymousAccessMode[unitType])\n105 | \tunitDefaultAccessMode = max(unitDefaultAccessMode, p.everyoneAccessMode[unitType])\n106 | \thasUnit := slices.ContainsFunc(p.units, func(u *repo_model.RepoUnit) bool { return u.Type == unitType })\n107 | \treturn util.Iif(hasUnit, unitDefaultAccessMode, perm_model.AccessModeNone)\n108 | }\n109 | \n110 | func (p *Permission) SetUnitsWithDefaultAccessMode(units []*repo_model.RepoUnit, mode perm_model.AccessMode) {\n111 | \tp.units = units\n112 | \tp.unitsMode = make(map[unit.Type]perm_model.AccessMode)\n113 | \tfor _, u := range p.units {\n114 | \t\tp.unitsMode[u.Type] = mode\n115 | \t}\n116 | }\n117 | \n118 | // CanAccess returns true if user has mode access to the unit of the repository\n119 | func (p *Permission) CanAccess(mode perm_model.AccessMode, unitType unit.Type) bool {\n120 | \treturn p.UnitAccessMode(unitType) >= mode\n",
+      "bytes": 4670
+    },
+    {
+      "id": "ev-2b5b37e663a2dadfc8fb",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 337,
+      "endLine": 337,
+      "text": "337 | \tbotPerm, err := GetIndividualUserRepoPermission(ctx, repo, user_model.NewActionsUser())\n",
+      "bytes": 95
+    },
+    {
+      "id": "ev-69252f0dd93fbc09b103",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 420,
+      "endLine": 420,
+      "text": "420 | \treturn GetIndividualUserRepoPermission(ctx, repo, user)\n",
+      "bytes": 63
+    },
+    {
+      "id": "ev-82b999d75b44d4692920",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 423,
+      "endLine": 423,
+      "text": "423 | // GetIndividualUserRepoPermission returns the permissions for an explicit user identity.\n",
+      "bytes": 96
+    },
+    {
+      "id": "ev-f3f3f4a5afdbd477ee62",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 426,
+      "endLine": 426,
+      "text": "426 | func GetIndividualUserRepoPermission(ctx context.Context, repo *repo_model.Repository, user *user_model.User) (perm Permission, err error) {\n",
+      "bytes": 147
+    },
+    {
+      "id": "ev-ce37cfd41b6a96ce987d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 570,
+      "endLine": 570,
+      "text": "570 | \tperm, err := GetIndividualUserRepoPermission(ctx, repo, user)\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-a76f5518f6dd76c7f1f1",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 589,
+      "endLine": 589,
+      "text": "589 | \tperm, err := GetIndividualUserRepoPermission(ctx, repo, user)\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-284902d068070fd495a0",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 608,
+      "endLine": 608,
+      "text": "608 | \tperm, err := GetIndividualUserRepoPermission(ctx, repo, user)\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-9a9730ed8243c12d8f1e",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 661,
+      "endLine": 661,
+      "text": "661 | \tperm, err := GetIndividualUserRepoPermission(ctx, repo, user)\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-c56bbdb1f13f1d69a98b",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 663,
+      "endLine": 663,
+      "text": "663 | \t\tlog.Error(\"GetIndividualUserRepoPermission: %w\", err)\n",
+      "bytes": 62
+    },
+    {
+      "id": "ev-4facefe61b2062c0dce6",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 711,
+      "endLine": 711,
+      "text": "711 | \tbotPerm, err := GetIndividualUserRepoPermission(ctx, targetRepo, user_model.NewActionsUser())\n",
+      "bytes": 101
+    },
+    {
+      "id": "ev-aab061541d74ff5a93e7",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 110,
+      "endLine": 110,
+      "text": "110 | func sudo() func(ctx *context.APIContext) {\n",
+      "bytes": 50
+    },
+    {
+      "id": "ev-e4dd64a7cbbfb5049924",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 111,
+      "endLine": 111,
+      "text": "111 | \treturn func(ctx *context.APIContext) {\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-ff550ce153805de86532",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 146,
+      "endLine": 146,
+      "text": "146 | func repoAssignment() func(ctx *context.APIContext) {\n",
+      "bytes": 60
+    },
+    {
+      "id": "ev-c40164833c78fdeff2dd",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 147,
+      "endLine": 147,
+      "text": "147 | \treturn func(ctx *context.APIContext) {\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-4049b13fbffb422746fa",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 243,
+      "endLine": 243,
+      "text": "243 | func reqPackageAccess(accessMode perm.AccessMode) func(ctx *context.APIContext) {\n",
+      "bytes": 88
+    },
+    {
+      "id": "ev-a7b60605649f62a9eabe",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 244,
+      "endLine": 244,
+      "text": "244 | \treturn func(ctx *context.APIContext) {\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-4d11f7641af736746900",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 252,
+      "endLine": 252,
+      "text": "252 | func checkTokenPublicOnly() func(ctx *context.APIContext) {\n",
+      "bytes": 66
+    },
+    {
+      "id": "ev-7238023ed4ed01bffb5c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 253,
+      "endLine": 253,
+      "text": "253 | \treturn func(ctx *context.APIContext) {\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-15e537b27c6504bf3caa",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 309,
+      "endLine": 309,
+      "text": "309 | func rejectPublicOnly() func(ctx *context.APIContext) {\n",
+      "bytes": 62
+    },
+    {
+      "id": "ev-dca61a76bb3cd79ef8e3",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 310,
+      "endLine": 310,
+      "text": "310 | \treturn func(ctx *context.APIContext) {\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-775e90975a473add109d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 319,
+      "endLine": 319,
+      "text": "319 | func contextAuthenticatedUser() func(ctx *context.APIContext) {\n",
+      "bytes": 70
+    },
+    {
+      "id": "ev-d1c34766be52b8fe71d6",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 320,
+      "endLine": 320,
+      "text": "320 | \treturn func(ctx *context.APIContext) {\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-0216bd4a336dddb7ae3a",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 327,
+      "endLine": 327,
+      "text": "327 | func tokenRequiresScopes(requiredScopeCategories ...auth_model.AccessTokenScopeCategory) func(ctx *context.APIContext) {\n",
+      "bytes": 127
+    },
+    {
+      "id": "ev-384fb17f2ee3ce4529cb",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 328,
+      "endLine": 328,
+      "text": "328 | \treturn func(ctx *context.APIContext) {\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-3bd1ee7a849080c74cd5",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 374,
+      "endLine": 374,
+      "text": "374 | func reqToken() func(ctx *context.APIContext) {\n",
+      "bytes": 54
+    },
+    {
+      "id": "ev-d3bc1ad07ab02cd3aa57",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 375,
+      "endLine": 375,
+      "text": "375 | \treturn func(ctx *context.APIContext) {\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-eb74b1288fc56a07ea95",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 384,
+      "endLine": 384,
+      "text": "384 | func reqExploreSignIn() func(ctx *context.APIContext) {\n",
+      "bytes": 62
+    },
+    {
+      "id": "ev-99772b21fa9e3cfcd698",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 385,
+      "endLine": 385,
+      "text": "385 | \treturn func(ctx *context.APIContext) {\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-d354e2f994d186d02688",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 392,
+      "endLine": 392,
+      "text": "392 | func reqUsersExploreEnabled() func(ctx *context.APIContext) {\n",
+      "bytes": 68
+    },
+    {
+      "id": "ev-190380ff19f5e5f10a9a",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 393,
+      "endLine": 393,
+      "text": "393 | \treturn func(ctx *context.APIContext) {\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-df09dec33e722d5feed3",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 420,
+      "endLine": 510,
+      "text": "420 | \treturn GetIndividualUserRepoPermission(ctx, repo, user)\n421 | }\n422 | \n423 | // GetIndividualUserRepoPermission returns the permissions for an explicit user identity.\n424 | // In most request paths, callers should use GetDoerRepoPermission instead.\n425 | // Unlike GetDoerRepoPermission, this helper does not resolve Actions task users.\n426 | func GetIndividualUserRepoPermission(ctx context.Context, repo *repo_model.Repository, user *user_model.User) (perm Permission, err error) {\n427 | \tdefer func() {\n428 | \t\tif err == nil {\n429 | \t\t\tfinalProcessRepoUnitPermission(user, &perm)\n430 | \t\t}\n431 | \t\tlog.Trace(\"Permission Loaded for user %-v in repo %-v, permissions: %-+v\", user, repo, perm)\n432 | \t}()\n433 | \n434 | \tif err = repo.LoadUnits(ctx); err != nil {\n435 | \t\treturn perm, err\n436 | \t}\n437 | \tperm.units = repo.Units\n438 | \n439 | \t// anonymous user visit private repo.\n440 | \tif user == nil && repo.IsPrivate {\n441 | \t\tperm.AccessMode = perm_model.AccessModeNone\n442 | \t\treturn perm, nil\n443 | \t}\n444 | \n445 | \tvar isCollaborator bool\n446 | \tif user != nil {\n447 | \t\tisCollaborator, err = repo_model.IsCollaborator(ctx, repo.ID, user.ID)\n448 | \t\tif err != nil {\n449 | \t\t\treturn perm, err\n450 | \t\t}\n451 | \t}\n452 | \n453 | \tif err = repo.LoadOwner(ctx); err != nil {\n454 | \t\treturn perm, err\n455 | \t}\n456 | \n457 | \t// Prevent strangers from checking out public repo of private organization/users\n458 | \t// Allow user if they are a collaborator of a repo within a private user or a private organization but not a member of the organization itself\n459 | \t// TODO: rename it to \"IsOwnerVisibleToDoer\"\n460 | \tif !organization.HasOrgOrUserVisible(ctx, repo.Owner, user) && !isCollaborator {\n461 | \t\tperm.AccessMode = perm_model.AccessModeNone\n462 | \t\treturn perm, nil\n463 | \t}\n464 | \n465 | \t// anonymous visit public repo\n466 | \tif user == nil {\n467 | \t\tperm.AccessMode = perm_model.AccessModeRead\n468 | \t\treturn perm, nil\n469 | \t}\n470 | \n471 | \t// Admin or the owner has super access to the repository\n472 | \tif user.IsAdmin || user.ID == repo.OwnerID {\n473 | \t\tperm.AccessMode = perm_model.AccessModeOwner\n474 | \t\treturn perm, nil\n475 | \t}\n476 | \n477 | \t// plain user TODO: this check should be replaced, only need to check collaborator access mode\n478 | \tperm.AccessMode, err = modeByOwnerAndAccess(ctx, user, repo)\n479 | \tif err != nil {\n480 | \t\treturn perm, err\n481 | \t}\n482 | \n483 | \tif !repo.Owner.IsOrganization() {\n484 | \t\treturn perm, nil\n485 | \t}\n486 | \n487 | \t// now: the owner is visible to doer, if the repo is public, then the min access mode is read\n488 | \tminAccessMode := util.Iif(!repo.IsPrivate && !user.IsRestricted, perm_model.AccessModeRead, perm_model.AccessModeNone)\n489 | \tperm.AccessMode = max(perm.AccessMode, minAccessMode)\n490 | \n491 | \t// get units mode from teams\n492 | \tperm.orgRepoTeams, err = organization.GetUserRepoTeams(ctx, repo.OwnerID, user.ID, repo.ID)\n493 | \tif err != nil {\n494 | \t\treturn perm, err\n495 | \t}\n496 | \tif len(perm.orgRepoTeams) == 0 {\n497 | \t\treturn perm, nil\n498 | \t}\n499 | \n500 | \tperm.unitsMode = make(map[unit.Type]perm_model.AccessMode)\n501 | \n502 | \t// Collaborators on organization\n503 | \tif isCollaborator {\n504 | \t\tfor _, u := range repo.Units {\n505 | \t\t\tperm.unitsMode[u.Type] = perm.AccessMode\n506 | \t\t}\n507 | \t}\n508 | \n509 | \t// if user in an owner team\n510 | \tfor _, team := range perm.orgRepoTeams {\n",
+      "bytes": 3380
+    },
+    {
+      "id": "ev-36a0d75a671e4c309a0c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1348,
+      "endLine": 1375,
+      "text": "1348 | \t\t\t\t\tm.Group(\"/{id}\", func() {\n1349 | \t\t\t\t\t\tm.Combo(\"\").Get(repo.GetGitHook).\n1350 | \t\t\t\t\t\t\tPatch(bind(api.EditGitHookOption{}), repo.EditGitHook).\n1351 | \t\t\t\t\t\t\tDelete(repo.DeleteGitHook)\n1352 | \t\t\t\t\t})\n1353 | \t\t\t\t}, reqToken(), reqAdmin(), reqGitHook(), context.ReferencesGitRepo(true))\n1354 | \t\t\t\tm.Group(\"/hooks\", func() {\n1355 | \t\t\t\t\tm.Combo(\"\").Get(repo.ListHooks).\n1356 | \t\t\t\t\t\tPost(bind(api.CreateHookOption{}), repo.CreateHook)\n1357 | \t\t\t\t\tm.Group(\"/{id}\", func() {\n1358 | \t\t\t\t\t\tm.Combo(\"\").Get(repo.GetHook).\n1359 | \t\t\t\t\t\t\tPatch(bind(api.EditHookOption{}), repo.EditHook).\n1360 | \t\t\t\t\t\t\tDelete(repo.DeleteHook)\n1361 | \t\t\t\t\t\tm.Post(\"/tests\", context.ReferencesGitRepo(), context.RepoRefForAPI, repo.TestHook)\n1362 | \t\t\t\t\t})\n1363 | \t\t\t\t}, reqToken(), reqAdmin(), reqWebhooksEnabled())\n1364 | \t\t\t\tm.Group(\"/collaborators\", func() {\n1365 | \t\t\t\t\tm.Get(\"\", reqAnyRepoReader(), repo.ListCollaborators)\n1366 | \t\t\t\t\tm.Group(\"/{collaborator}\", func() {\n1367 | \t\t\t\t\t\tm.Combo(\"\").Get(reqAnyRepoReader(), repo.IsCollaborator).\n1368 | \t\t\t\t\t\t\tPut(reqAdmin(), bind(api.AddCollaboratorOption{}), repo.AddOrUpdateCollaborator).\n1369 | \t\t\t\t\t\t\tDelete(reqAdmin(), repo.DeleteCollaborator)\n1370 | \t\t\t\t\t\tm.Get(\"/permission\", repo.GetRepoPermissions)\n1371 | \t\t\t\t\t})\n1372 | \t\t\t\t}, reqToken())\n1373 | \t\t\t\tm.Get(\"/assignees\", reqToken(), reqAnyRepoReader(), repo.GetAssignees)\n1374 | \t\t\t\tm.Get(\"/assignees/{assignee}\", reqToken(), reqAnyRepoReader(), repo.CheckRepoIssueAssignee)\n1375 | \t\t\t\tm.Get(\"/reviewers\", reqToken(), reqAnyRepoReader(), repo.GetReviewers)\n",
+      "bytes": 1552
+    }
+  ]
+}

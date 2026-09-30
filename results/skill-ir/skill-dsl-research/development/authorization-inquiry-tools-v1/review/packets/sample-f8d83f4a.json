@@ -1,0 +1,290 @@
+{
+  "sampleId": "sample-f8d83f4a",
+  "kind": "analysis",
+  "brief": "Check DeleteSpaceMember in this Memos revision against the independently supplied current policy. May an ordinary space member remove a different member, and do visible admin and self-removal paths differ? Do not assume deployment middleware or undocumented role grants. Explain actual behavior, compare it with the policy, cite the controlling source and preserve any decisive missing facts.",
+  "mode": "conformance",
+  "policy": {
+    "text": "Only a space administrator may remove another member from that space. This policy does not prohibit a member leaving the space themselves.",
+    "origin": "user",
+    "location": "experimental-user-brief:memos-member-policy/v1"
+  },
+  "context": {
+    "repository": "usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "sourceRoot": "public-source/memos",
+    "allowedPaths": [
+      "server/api/v1",
+      "core/access",
+      "store",
+      "proto/api/v1",
+      "internal/ratelimit"
+    ]
+  },
+  "candidate": "## Result: conforms to the supplied policy\n\n**Policy:** “Only a space administrator may remove another member from that space. This policy does not prohibit a member leaving the space themselves.”\n\n### Different-member removal\n\nAn ordinary space member **may not remove a different member** through the visible `DeleteSpaceMember` path.\n\nThe controlling service logic is:\n\n1. It obtains the authenticated user with `requireCurrentSpaceUser`; unauthenticated callers are rejected.\n2. It resolves the space and target membership using the request name. The caller must be an active member of the space, and the target must also be an active member.\n3. It compares the target user with the authenticated user.\n4. If the target is different, it invokes `requireSpaceAdministrator(callerMembership)`. That check permits only `store.SpaceMemberRoleAdmin`; other roles receive `PermissionDenied`.  \n   Evidence: `server/api/v1/space_service.go:19–27, 54–59, 632–662` (`ev-4afead7210bbd51b606f`, `ev-926952702ca64510054d`).\n5. Only after that check does it call `Store.DeleteSpaceMember`.  \n   Evidence: `server/api/v1/space_service.go:740–760` (`ev-3f913436015dacb5a046`).\n\nThe store/database implementations independently enforce the same distinction for a different target:\n\n- SQLite checks the actor’s active membership and requires the actor role to be `ADMIN` when `actorUserID != delete.UserID` (`ev-0bb2e8d1c0db6604a997`).\n- MySQL does the equivalent role check (`ev-21f5cf9514ab3804eac2`).\n- PostgreSQL does the equivalent role check (`ev-4613bf5cc02521f91db5`).\n\nThus, for an ordinary member targeting someone else, the visible API denies the request before the deletion effect, and the persistence layer also rejects such a request if reached.\n\nAn administrator may remove a different active member, subject to the separate invariant that the operation must not remove the last active administrator. The database implementations return `ErrLastSpaceAdmin` in that case, which the API maps to `FailedPrecondition` (`ev-4afead7210bbd51b606f`, `ev-0bb2e8d1c0db6604a997`, `ev-21f5cf9514ab3804eac2`, `ev-4613bf5cc02521f91db5`).\n\n### Self-removal\n\nThe self-removal path **does differ** from the administrator path.\n\nAt the service layer:\n\n```text\nisSelf := targetUser.ID == currentUser.ID\nif !isSelf {\n    requireSpaceAdministrator(callerMembership)\n}\n```\n\nTherefore, when the resolved target is the authenticated caller, the administrator check is skipped and the service calls `Store.DeleteSpaceMember` directly (`ev-3f913436015dacb5a046`).\n\nThe database implementations preserve this distinction: their administrator-role check is conditional on `actorUserID != delete.UserID`. Consequently, a non-administrator member can leave by deleting their own membership (`ev-0bb2e8d1c0db6604a997`, `ev-21f5cf9514ab3804eac2`, `ev-4613bf5cc02521f91db5`).\n\nSelf-removal is not unconditional: if the member is the only active administrator, the last-administrator safeguard denies the operation (`ErrLastSpaceAdmin` → `FailedPrecondition`).\n\n### Entry-point note\n\nThe visible Connect handler only delegates to `APIV1Service.DeleteSpaceMember`; it does not add or remove authorization logic (`ev-8342d54fbeb48401efa1`). The RPC is declared in the service definition as `DeleteSpaceMember` (`ev-e97f2cbdd5d311b9c657`, `ev-77fb6b5d14d0b901a809`).\n\n### Policy assessment\n\n**Satisfied for the source-visible path.**\n\n- Ordinary member removes different member: **denied**.\n- Administrator removes different member: **allowed**, subject to active-membership and last-administrator constraints.\n- Member removes themselves: **allowed**, subject to the last-administrator constraint.\n\n### Limits and missing facts\n\nThis is a source-only conclusion for revision `cb42e326ba9cc266a6a9570c53e0fe04c62793f4`. It does **not** assume or establish behavior from deployment middleware, route-specific controls outside the reviewed source, undocumented role grants, or provider configuration. Those facts were not needed to determine the behavior of the visible service and store/database branches, but they remain outside this bounded review.",
+  "evidence": [
+    {
+      "id": "ev-b7d3d44b85d6b96f9eda",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 650,
+      "endLine": 764,
+      "text": "650 | \t}\n651 | \ttargetMembership, err := s.Store.GetSpaceMember(ctx, &store.FindSpaceMember{\n652 | \t\tSpaceID:      &space.ID,\n653 | \t\tUserID:       &targetUser.ID,\n654 | \t\tViewerUserID: &currentUser.ID,\n655 | \t})\n656 | \tif err != nil {\n657 | \t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to get space membership: %v\", err)\n658 | \t}\n659 | \tif targetMembership == nil || !targetMembership.Role.IsActiveMember() {\n660 | \t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n661 | \t}\n662 | \treturn space, targetUser, callerMembership, targetMembership, nil\n663 | }\n664 | \n665 | // GetSpaceMember gets one membership visible to another member of the space.\n666 | func (s *APIV1Service) GetSpaceMember(ctx context.Context, request *v1pb.GetSpaceMemberRequest) (*v1pb.SpaceMember, error) {\n667 | \tcurrentUser, err := s.requireCurrentSpaceUser(ctx)\n668 | \tif err != nil {\n669 | \t\treturn nil, err\n670 | \t}\n671 | \tspace, targetUser, _, membership, err := s.resolveSpaceMemberResource(ctx, request.Name, currentUser)\n672 | \tif err != nil {\n673 | \t\treturn nil, err\n674 | \t}\n675 | \treturn convertSpaceMemberFromStore(space, targetUser, membership), nil\n676 | }\n677 | \n678 | // UpdateSpaceMember changes a member's role in a Space.\n679 | func (s *APIV1Service) UpdateSpaceMember(ctx context.Context, request *v1pb.UpdateSpaceMemberRequest) (*v1pb.SpaceMember, error) {\n680 | \tcurrentUser, err := s.requireCurrentSpaceUser(ctx)\n681 | \tif err != nil {\n682 | \t\treturn nil, err\n683 | \t}\n684 | \tif request.GetSpaceMember() == nil {\n685 | \t\treturn nil, status.Error(codes.InvalidArgument, \"space member is required\")\n686 | \t}\n687 | \tif request.UpdateMask == nil || len(request.UpdateMask.Paths) == 0 {\n688 | \t\treturn nil, status.Error(codes.InvalidArgument, \"update mask must include role\")\n689 | \t}\n690 | \troleIncluded := false\n691 | \tuserIncluded := false\n692 | \tfor _, path := range request.UpdateMask.Paths {\n693 | \t\tswitch path {\n694 | \t\tcase \"role\":\n695 | \t\t\troleIncluded = true\n696 | \t\tcase \"user\":\n697 | \t\t\t// grpc-gateway infers user from the schema-required REST body. It is\n698 | \t\t\t// accepted as immutable identity context, never as a mutable field.\n699 | \t\t\tuserIncluded = true\n700 | \t\tdefault:\n701 | \t\t\treturn nil, status.Errorf(codes.InvalidArgument, \"unsupported update mask path: %s\", path)\n702 | \t\t}\n703 | \t}\n704 | \tif !roleIncluded {\n705 | \t\treturn nil, status.Error(codes.InvalidArgument, \"update mask must include role\")\n706 | \t}\n707 | \tspace, targetUser, callerMembership, targetMembership, err := s.resolveSpaceMemberResource(ctx, request.SpaceMember.Name, currentUser)\n708 | \tif err != nil {\n709 | \t\treturn nil, err\n710 | \t}\n711 | \texpectedUser := BuildUserName(targetUser.Username)\n712 | \tif userIncluded && request.SpaceMember.User == \"\" {\n713 | \t\treturn nil, status.Error(codes.InvalidArgument, \"space member user is required when included in the update mask\")\n714 | \t}\n715 | \tif request.SpaceMember.User != \"\" && request.SpaceMember.User != expectedUser {\n716 | \t\treturn nil, status.Error(codes.InvalidArgument, \"space member user does not match name\")\n717 | \t}\n718 | \tif err := requireSpaceAdministrator(callerMembership); err != nil {\n719 | \t\treturn nil, err\n720 | \t}\n721 | \trole, ok := convertSpaceMemberRoleToStore(request.SpaceMember.Role)\n722 | \tif !ok {\n723 | \t\treturn nil, status.Error(codes.InvalidArgument, \"space member role must be ADMIN or USER\")\n724 | \t}\n725 | \tupdated, err := s.Store.UpdateSpaceMember(ctx, &store.UpdateSpaceMember{\n726 | \t\tSpaceID: targetMembership.SpaceID,\n727 | \t\tUserID:  targetMembership.UserID,\n728 | \t\tRole:    &role,\n729 | \t}, currentUser.ID)\n730 | \tif err != nil {\n731 | \t\treturn nil, mapSpaceMutationError(err, \"failed to update space member\")\n732 | \t}\n733 | \tif updated == nil {\n734 | \t\treturn nil, status.Error(codes.NotFound, \"space member not found\")\n735 | \t}\n736 | \ts.SSEHub.publishSpaceChanged()\n737 | \treturn convertSpaceMemberFromStore(space, targetUser, updated), nil\n738 | }\n739 | \n740 | // DeleteSpaceMember removes a membership or lets a member leave a space.\n741 | func (s *APIV1Service) DeleteSpaceMember(ctx context.Context, request *v1pb.DeleteSpaceMemberRequest) (*emptypb.Empty, error) {\n742 | \tcurrentUser, err := s.requireCurrentSpaceUser(ctx)\n743 | \tif err != nil {\n744 | \t\treturn nil, err\n745 | \t}\n746 | \t_, targetUser, callerMembership, targetMembership, err := s.resolveSpaceMemberResource(ctx, request.Name, currentUser)\n747 | \tif err != nil {\n748 | \t\treturn nil, err\n749 | \t}\n750 | \tisSelf := targetUser.ID == currentUser.ID\n751 | \tif !isSelf {\n752 | \t\tif err := requireSpaceAdministrator(callerMembership); err != nil {\n753 | \t\t\treturn nil, err\n754 | \t\t}\n755 | \t}\n756 | \tif err := s.Store.DeleteSpaceMember(ctx, &store.DeleteSpaceMember{\n757 | \t\tSpaceID: targetMembership.SpaceID,\n758 | \t\tUserID:  targetMembership.UserID,\n759 | \t}, currentUser.ID); err != nil {\n760 | \t\treturn nil, mapSpaceMutationError(err, \"failed to delete space member\")\n761 | \t}\n762 | \ts.SSEHub.publishSpaceChanged()\n763 | \treturn &emptypb.Empty{}, nil\n764 | }\n",
+      "bytes": 5064
+    },
+    {
+      "id": "ev-8342d54fbeb48401efa1",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/connect_services.go",
+      "sha256": "b7c43523239e74e488104e9a550b0315c09f8e93714e37b220e79d79d31631b0",
+      "startLine": 620,
+      "endLine": 670,
+      "text": "620 | \tif err != nil {\n621 | \t\treturn nil, convertGRPCError(err)\n622 | \t}\n623 | \treturn connect.NewResponse(resp), nil\n624 | }\n625 | \n626 | func (s *ConnectServiceHandler) ListSpaceMembers(ctx context.Context, req *connect.Request[v1pb.ListSpaceMembersRequest]) (*connect.Response[v1pb.ListSpaceMembersResponse], error) {\n627 | \tresp, err := s.APIV1Service.ListSpaceMembers(ctx, req.Msg)\n628 | \tif err != nil {\n629 | \t\treturn nil, convertGRPCError(err)\n630 | \t}\n631 | \treturn connect.NewResponse(resp), nil\n632 | }\n633 | \n634 | func (s *ConnectServiceHandler) GetSpaceMember(ctx context.Context, req *connect.Request[v1pb.GetSpaceMemberRequest]) (*connect.Response[v1pb.SpaceMember], error) {\n635 | \tresp, err := s.APIV1Service.GetSpaceMember(ctx, req.Msg)\n636 | \tif err != nil {\n637 | \t\treturn nil, convertGRPCError(err)\n638 | \t}\n639 | \treturn connect.NewResponse(resp), nil\n640 | }\n641 | \n642 | func (s *ConnectServiceHandler) UpdateSpaceMember(ctx context.Context, req *connect.Request[v1pb.UpdateSpaceMemberRequest]) (*connect.Response[v1pb.SpaceMember], error) {\n643 | \tresp, err := s.APIV1Service.UpdateSpaceMember(ctx, req.Msg)\n644 | \tif err != nil {\n645 | \t\treturn nil, convertGRPCError(err)\n646 | \t}\n647 | \treturn connect.NewResponse(resp), nil\n648 | }\n649 | \n650 | func (s *ConnectServiceHandler) DeleteSpaceMember(ctx context.Context, req *connect.Request[v1pb.DeleteSpaceMemberRequest]) (*connect.Response[emptypb.Empty], error) {\n651 | \tresp, err := s.APIV1Service.DeleteSpaceMember(ctx, req.Msg)\n652 | \tif err != nil {\n653 | \t\treturn nil, convertGRPCError(err)\n654 | \t}\n655 | \treturn connect.NewResponse(resp), nil\n656 | }\n657 | \n658 | // AttachmentService\n659 | \n660 | func (s *ConnectServiceHandler) UploadAttachment(ctx context.Context, req *connect.Request[v1pb.UploadAttachmentRequest]) (*connect.Response[v1pb.UploadAttachmentResponse], error) {\n661 | \tresp, err := s.APIV1Service.UploadAttachment(ctx, req.Msg)\n662 | \tif err != nil {\n663 | \t\treturn nil, convertGRPCError(err)\n664 | \t}\n665 | \treturn connect.NewResponse(resp), nil\n666 | }\n667 | \n668 | func (s *ConnectServiceHandler) CreateAttachment(ctx context.Context, req *connect.Request[v1pb.CreateAttachmentRequest]) (*connect.Response[v1pb.Attachment], error) {\n669 | \tresp, err := s.APIV1Service.CreateAttachment(ctx, req.Msg)\n670 | \tif err != nil {\n",
+      "bytes": 2329
+    },
+    {
+      "id": "ev-cb9cce8501567f6ecb00",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 740,
+      "endLine": 740,
+      "text": "740 | // DeleteSpaceMember removes a membership or lets a member leave a space.\n",
+      "bytes": 80
+    },
+    {
+      "id": "ev-9ee45f98c8803e5baf45",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 741,
+      "endLine": 741,
+      "text": "741 | func (s *APIV1Service) DeleteSpaceMember(ctx context.Context, request *v1pb.DeleteSpaceMemberRequest) (*emptypb.Empty, error) {\n",
+      "bytes": 134
+    },
+    {
+      "id": "ev-6f0761b3437bb3341438",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 756,
+      "endLine": 756,
+      "text": "756 | \tif err := s.Store.DeleteSpaceMember(ctx, &store.DeleteSpaceMember{\n",
+      "bytes": 74
+    },
+    {
+      "id": "ev-7d71f7e0bc6b308bb2c4",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 54,
+      "endLine": 54,
+      "text": "54 | func requireSpaceAdministrator(member *store.SpaceMember) error {\n",
+      "bytes": 71
+    },
+    {
+      "id": "ev-2ab4debfc153de338eba",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 65,
+      "endLine": 65,
+      "text": "65 | \tcase errors.Is(err, store.ErrLastSpaceAdmin):\n",
+      "bytes": 52
+    },
+    {
+      "id": "ev-6f2905868b3ec01f1f9b",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 195,
+      "endLine": 195,
+      "text": "195 | \tif err := requireSpaceAdministrator(membership); err != nil {\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-13dfa899ab551b5ef2f8",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 247,
+      "endLine": 247,
+      "text": "247 | \tif err := requireSpaceAdministrator(membership); err != nil {\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-539f8d40a8bb2ae11149",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 275,
+      "endLine": 275,
+      "text": "275 | \tif err := requireSpaceAdministrator(callerMembership); err != nil {\n",
+      "bytes": 75
+    },
+    {
+      "id": "ev-be967314a7cced42009f",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 324,
+      "endLine": 324,
+      "text": "324 | \tif err := requireSpaceAdministrator(callerMembership); err != nil {\n",
+      "bytes": 75
+    },
+    {
+      "id": "ev-45c782efdab82ca10ce6",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 512,
+      "endLine": 512,
+      "text": "512 | \tif err := requireSpaceAdministrator(callerMembership); err != nil {\n",
+      "bytes": 75
+    },
+    {
+      "id": "ev-78eb68701c8ded876792",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 718,
+      "endLine": 718,
+      "text": "718 | \tif err := requireSpaceAdministrator(callerMembership); err != nil {\n",
+      "bytes": 75
+    },
+    {
+      "id": "ev-ee46c332e60ac55cb4a7",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 752,
+      "endLine": 752,
+      "text": "752 | \t\tif err := requireSpaceAdministrator(callerMembership); err != nil {\n",
+      "bytes": 76
+    },
+    {
+      "id": "ev-4afead7210bbd51b606f",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 1,
+      "endLine": 85,
+      "text": "1 | package v1\n2 | \n3 | import (\n4 | \t\"context\"\n5 | \t\"database/sql\"\n6 | \t\"strings\"\n7 | \n8 | \t\"github.com/pkg/errors\"\n9 | \t\"google.golang.org/grpc/codes\"\n10 | \t\"google.golang.org/grpc/status\"\n11 | \t\"google.golang.org/protobuf/proto\"\n12 | \t\"google.golang.org/protobuf/types/known/emptypb\"\n13 | \n14 | \tv1pb \"github.com/usememos/memos/proto/gen/api/v1\"\n15 | \tstorepb \"github.com/usememos/memos/proto/gen/store\"\n16 | \t\"github.com/usememos/memos/store\"\n17 | )\n18 | \n19 | func (s *APIV1Service) requireCurrentSpaceUser(ctx context.Context) (*store.User, error) {\n20 | \tuser, err := s.fetchCurrentUser(ctx)\n21 | \tif err != nil {\n22 | \t\treturn nil, status.Errorf(codes.Internal, \"failed to get current user: %v\", err)\n23 | \t}\n24 | \tif user == nil {\n25 | \t\treturn nil, status.Error(codes.Unauthenticated, \"user not authenticated\")\n26 | \t}\n27 | \treturn user, nil\n28 | }\n29 | \n30 | func (s *APIV1Service) resolveMemberSpace(ctx context.Context, name string, currentUser *store.User) (*store.Space, *store.SpaceMember, error) {\n31 | \tuid, err := ExtractSpaceUIDFromName(name)\n32 | \tif err != nil {\n33 | \t\treturn nil, nil, status.Errorf(codes.InvalidArgument, \"invalid space name: %v\", err)\n34 | \t}\n35 | \tspace, err := s.Store.GetSpace(ctx, &store.FindSpace{UID: &uid, MemberUserID: &currentUser.ID})\n36 | \tif err != nil {\n37 | \t\treturn nil, nil, status.Errorf(codes.Internal, \"failed to get space: %v\", err)\n38 | \t}\n39 | \tif space == nil {\n40 | \t\treturn nil, nil, status.Error(codes.NotFound, \"space not found\")\n41 | \t}\n42 | \tmember, err := s.Store.GetSpaceMember(ctx, &store.FindSpaceMember{SpaceID: &space.ID, UserID: &currentUser.ID})\n43 | \tif err != nil {\n44 | \t\treturn nil, nil, status.Errorf(codes.Internal, \"failed to get space membership: %v\", err)\n45 | \t}\n46 | \tif member == nil || !member.Role.IsActiveMember() {\n47 | \t\t// A non-member must not be able to distinguish an existing private\n48 | \t\t// collaboration boundary from a missing resource.\n49 | \t\treturn nil, nil, status.Error(codes.NotFound, \"space not found\")\n50 | \t}\n51 | \treturn space, member, nil\n52 | }\n53 | \n54 | func requireSpaceAdministrator(member *store.SpaceMember) error {\n55 | \tif member == nil || member.Role != store.SpaceMemberRoleAdmin {\n56 | \t\treturn status.Error(codes.PermissionDenied, \"space administrator permission required\")\n57 | \t}\n58 | \treturn nil\n59 | }\n60 | \n61 | func mapSpaceMutationError(err error, operation string) error {\n62 | \tswitch {\n63 | \tcase err == nil:\n64 | \t\treturn nil\n65 | \tcase errors.Is(err, store.ErrLastSpaceAdmin):\n66 | \t\treturn status.Error(codes.FailedPrecondition, \"a space must retain an active administrator\")\n67 | \tcase errors.Is(err, store.ErrSpacePermissionDenied):\n68 | \t\treturn status.Error(codes.NotFound, \"space not found\")\n69 | \tcase errors.Is(err, store.ErrSpaceMemberNotActive):\n70 | \t\treturn status.Error(codes.FailedPrecondition, \"space members must be active users\")\n71 | \tcase errors.Is(err, store.ErrSpaceAlreadyExists):\n72 | \t\treturn status.Error(codes.AlreadyExists, \"space already exists\")\n73 | \tcase errors.Is(err, store.ErrSpaceMemberAlreadyExists):\n74 | \t\treturn status.Error(codes.AlreadyExists, \"space membership or invitation already exists\")\n75 | \tcase errors.Is(err, store.ErrSpaceInvitationNotFound):\n76 | \t\treturn status.Error(codes.NotFound, \"space invitation not found\")\n77 | \tcase errors.Is(err, store.ErrSpaceNotFound), errors.Is(err, store.ErrSpaceMemberNotFound):\n78 | \t\treturn status.Error(codes.NotFound, \"space or membership not found\")\n79 | \tcase errors.Is(err, sql.ErrNoRows):\n80 | \t\treturn status.Error(codes.NotFound, \"space or membership not found\")\n81 | \tdefault:\n82 | \t\treturn status.Errorf(codes.Internal, \"%s: %v\", operation, err)\n83 | \t}\n84 | }\n85 | \n",
+      "bytes": 3706
+    },
+    {
+      "id": "ev-926952702ca64510054d",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 600,
+      "endLine": 663,
+      "text": "600 | \t\tif err != nil {\n601 | \t\t\treturn nil, status.Errorf(codes.Internal, \"failed to create next page token: %v\", err)\n602 | \t\t}\n603 | \t}\n604 | \tresponse := &v1pb.ListSpaceMembersResponse{SpaceMembers: make([]*v1pb.SpaceMember, 0, len(members)), NextPageToken: nextPageToken}\n605 | \tif len(members) == 0 {\n606 | \t\treturn response, nil\n607 | \t}\n608 | \n609 | \tuserIDs := make([]int32, 0, len(members))\n610 | \tfor _, member := range members {\n611 | \t\tuserIDs = append(userIDs, member.UserID)\n612 | \t}\n613 | \tusers, err := s.Store.ListUsers(ctx, &store.FindUser{IDList: userIDs})\n614 | \tif err != nil {\n615 | \t\treturn nil, status.Errorf(codes.Internal, \"failed to resolve space members: %v\", err)\n616 | \t}\n617 | \tusersByID := make(map[int32]*store.User, len(users))\n618 | \tfor _, user := range users {\n619 | \t\tusersByID[user.ID] = user\n620 | \t}\n621 | \tfor _, member := range members {\n622 | \t\tuser := usersByID[member.UserID]\n623 | \t\tif user == nil || user.RowStatus != store.Normal || convertSpaceMemberRoleFromStore(member.Role) == v1pb.SpaceMember_ROLE_UNSPECIFIED {\n624 | \t\t\t// Malformed/dangling memberships are never exposed as active access.\n625 | \t\t\tcontinue\n626 | \t\t}\n627 | \t\tresponse.SpaceMembers = append(response.SpaceMembers, convertSpaceMemberFromStore(space, user, member))\n628 | \t}\n629 | \treturn response, nil\n630 | }\n631 | \n632 | func (s *APIV1Service) resolveSpaceMemberResource(ctx context.Context, name string, currentUser *store.User) (*store.Space, *store.User, *store.SpaceMember, *store.SpaceMember, error) {\n633 | \tspaceUID, username, err := ExtractSpaceMemberTokensFromName(name)\n634 | \tif err != nil {\n635 | \t\treturn nil, nil, nil, nil, status.Errorf(codes.InvalidArgument, \"invalid space member name: %v\", err)\n636 | \t}\n637 | \tspace, callerMembership, err := s.resolveMemberSpace(ctx, buildSpaceName(spaceUID), currentUser)\n638 | \tif err != nil {\n639 | \t\treturn nil, nil, nil, nil, err\n640 | \t}\n641 | \ttargetUser, err := ResolveUserByName(ctx, s.Store, BuildUserName(username))\n642 | \tif err != nil {\n643 | \t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to resolve member user: %v\", err)\n644 | \t}\n645 | \tif targetUser == nil {\n646 | \t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n647 | \t}\n648 | \tif targetUser.RowStatus != store.Normal {\n649 | \t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n650 | \t}\n651 | \ttargetMembership, err := s.Store.GetSpaceMember(ctx, &store.FindSpaceMember{\n652 | \t\tSpaceID:      &space.ID,\n653 | \t\tUserID:       &targetUser.ID,\n654 | \t\tViewerUserID: &currentUser.ID,\n655 | \t})\n656 | \tif err != nil {\n657 | \t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to get space membership: %v\", err)\n658 | \t}\n659 | \tif targetMembership == nil || !targetMembership.Role.IsActiveMember() {\n660 | \t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n661 | \t}\n662 | \treturn space, targetUser, callerMembership, targetMembership, nil\n663 | }\n",
+      "bytes": 3022
+    },
+    {
+      "id": "ev-f44137263542e65dc30e",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 250,
+      "endLine": 290,
+      "text": "250 | \tmembers, err := s.ListSpaceMembers(ctx, find)\n251 | \tif err != nil {\n252 | \t\treturn nil, err\n253 | \t}\n254 | \tif len(members) == 0 {\n255 | \t\treturn nil, nil\n256 | \t}\n257 | \treturn members[0], nil\n258 | }\n259 | \n260 | // UpdateSpaceMember updates and returns a membership after checking that the\n261 | // change keeps an active ADMIN.\n262 | func (s *Store) UpdateSpaceMember(ctx context.Context, update *UpdateSpaceMember, actorUserID int32) (*SpaceMember, error) {\n263 | \tif update == nil || update.Role == nil {\n264 | \t\treturn nil, errors.New(\"space member role is required\")\n265 | \t}\n266 | \tif update.Role != nil && !update.Role.IsActiveMember() {\n267 | \t\treturn nil, errors.New(\"invalid space member role\")\n268 | \t}\n269 | \treturn s.driver.UpdateSpaceMember(ctx, update, actorUserID)\n270 | }\n271 | \n272 | // DeleteSpaceMember deletes a membership after checking that the change keeps\n273 | // an active ADMIN.\n274 | func (s *Store) DeleteSpaceMember(ctx context.Context, delete *DeleteSpaceMember, actorUserID int32) error {\n275 | \tif delete == nil || delete.SpaceID <= 0 || delete.UserID <= 0 || actorUserID <= 0 {\n276 | \t\treturn errors.New(\"space member deletion requires space, user, and actor\")\n277 | \t}\n278 | \treturn s.driver.DeleteSpaceMember(ctx, delete, actorUserID)\n279 | }\n280 | \n281 | // CreateSpaceInvitation creates a pending invitation. It never creates an\n282 | // active membership; only the invitee can do that by accepting it.\n283 | func (s *Store) CreateSpaceInvitation(ctx context.Context, create *SpaceInvitation, actorUserID int32) (*SpaceInvitation, error) {\n284 | \tif create == nil || create.SpaceID <= 0 || create.UserID <= 0 || actorUserID <= 0 {\n285 | \t\treturn nil, errors.New(\"space invitation requires space, user, and actor\")\n286 | \t}\n287 | \tif !create.Role.IsActiveMember() {\n288 | \t\treturn nil, errors.New(\"invalid space invitation role\")\n289 | \t}\n290 | \treturn s.driver.CreateSpaceInvitation(ctx, create, actorUserID)\n",
+      "bytes": 1959
+    },
+    {
+      "id": "ev-0bb2e8d1c0db6604a997",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/sqlite/space.go",
+      "sha256": "3342f78a8fee794e6bdaf2765874030661a1b2130b5bf9eb6b0e8d626f4572f9",
+      "startLine": 400,
+      "endLine": 460,
+      "text": "400 | \t\tRETURNING space_id, user_id, role`\n401 | \tmember := &store.SpaceMember{}\n402 | \tif err := tx.QueryRowContext(ctx, query, args...).Scan(&member.SpaceID, &member.UserID, &member.Role); err != nil {\n403 | \t\treturn nil, err\n404 | \t}\n405 | \tif err := tx.Commit(); err != nil {\n406 | \t\treturn nil, err\n407 | \t}\n408 | \treturn member, nil\n409 | }\n410 | \n411 | func (d *DB) DeleteSpaceMember(ctx context.Context, delete *store.DeleteSpaceMember, actorUserID int32) error {\n412 | \ttx, err := d.db.BeginTx(ctx, nil)\n413 | \tif err != nil {\n414 | \t\treturn err\n415 | \t}\n416 | \tdefer func() { _ = tx.Rollback() }()\n417 | \tvar spaceID int32\n418 | \tif err := tx.QueryRowContext(ctx, \"SELECT id FROM space WHERE id = ?\", delete.SpaceID).Scan(&spaceID); err != nil {\n419 | \t\tif errors.Is(err, sql.ErrNoRows) {\n420 | \t\t\treturn store.ErrSpaceNotFound\n421 | \t\t}\n422 | \t\treturn err\n423 | \t}\n424 | \tif actorUserID != delete.UserID {\n425 | \t\tvar actorRole store.SpaceMemberRole\n426 | \t\tif err := tx.QueryRowContext(ctx, \"SELECT sm.role FROM space_member sm JOIN user u ON u.id = sm.user_id WHERE sm.space_id = ? AND sm.user_id = ? AND sm.status = ? AND u.row_status = 'NORMAL'\", delete.SpaceID, actorUserID, store.SpaceMemberStatusActive).Scan(&actorRole); errors.Is(err, sql.ErrNoRows) {\n427 | \t\t\treturn store.ErrSpacePermissionDenied\n428 | \t\t} else if err != nil {\n429 | \t\t\treturn err\n430 | \t\t} else if actorRole != store.SpaceMemberRoleAdmin {\n431 | \t\t\treturn store.ErrSpacePermissionDenied\n432 | \t\t}\n433 | \t}\n434 | \tvar role store.SpaceMemberRole\n435 | \tvar targetStatus sql.NullString\n436 | \tif err := tx.QueryRowContext(ctx, \"SELECT sm.role, u.row_status FROM space_member sm LEFT JOIN user u ON u.id = sm.user_id WHERE sm.space_id = ? AND sm.user_id = ? AND sm.status = ?\", delete.SpaceID, delete.UserID, store.SpaceMemberStatusActive).Scan(&role, &targetStatus); err != nil {\n437 | \t\tif errors.Is(err, sql.ErrNoRows) {\n438 | \t\t\treturn store.ErrSpaceMemberNotFound\n439 | \t\t}\n440 | \t\treturn err\n441 | \t}\n442 | \tif role == store.SpaceMemberRoleAdmin && targetStatus.Valid && store.RowStatus(targetStatus.String) == store.Normal {\n443 | \t\tvar count int\n444 | \t\tif err := tx.QueryRowContext(ctx, \"SELECT COUNT(*) FROM space_member sm JOIN user u ON u.id = sm.user_id WHERE sm.space_id = ? AND sm.status = ? AND sm.role = ? AND u.row_status = 'NORMAL'\", delete.SpaceID, store.SpaceMemberStatusActive, store.SpaceMemberRoleAdmin).Scan(&count); err != nil {\n445 | \t\t\treturn err\n446 | \t\t}\n447 | \t\tif count <= 1 {\n448 | \t\t\treturn store.ErrLastSpaceAdmin\n449 | \t\t}\n450 | \t}\n451 | \tif _, err := tx.ExecContext(ctx, \"DELETE FROM space_member WHERE space_id = ? AND user_id = ? AND status = ?\", delete.SpaceID, delete.UserID, store.SpaceMemberStatusActive); err != nil {\n452 | \t\treturn err\n453 | \t}\n454 | \treturn tx.Commit()\n455 | }\n456 | \n457 | func appendSQLiteLimit(query string, limit, offset *int) string {\n458 | \tif limit != nil {\n459 | \t\tquery = fmt.Sprintf(\"%s LIMIT %d\", query, *limit)\n460 | \t\tif offset != nil {\n",
+      "bytes": 2999
+    },
+    {
+      "id": "ev-dbc052f7f573c1bd42bb",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 300,
+      "endLine": 350,
+      "text": "300 |   string page_token = 3 [(google.api.field_behavior) = OPTIONAL];\n301 | }\n302 | \n303 | message ListSpaceInvitationsResponse {\n304 |   repeated SpaceInvitation space_invitations = 1;\n305 |   string next_page_token = 2;\n306 | }\n307 | \n308 | message ListUserSpaceInvitationsRequest {\n309 |   // Required. The authenticated user. Format: users/{username}.\n310 |   string parent = 1 [\n311 |     (google.api.field_behavior) = REQUIRED,\n312 |     (google.api.resource_reference) = {type: \"memos.api.v1/User\"}\n313 |   ];\n314 | \n315 |   // Optional. The maximum number of invitations to return.\n316 |   int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];\n317 | \n318 |   // Optional. A token from a previous ListUserSpaceInvitations response.\n319 |   string page_token = 3 [(google.api.field_behavior) = OPTIONAL];\n320 | }\n321 | \n322 | message ListUserSpaceInvitationsResponse {\n323 |   repeated SpaceInvitation space_invitations = 1;\n324 |   string next_page_token = 2;\n325 | }\n326 | \n327 | message GetSpaceInvitationRequest {\n328 |   // Required. Format: spaces/{space}/invitations/{username}.\n329 |   string name = 1 [\n330 |     (google.api.field_behavior) = REQUIRED,\n331 |     (google.api.resource_reference) = {type: \"memos.api.v1/SpaceInvitation\"}\n332 |   ];\n333 | }\n334 | \n335 | message DeleteSpaceInvitationRequest {\n336 |   // Required. Format: spaces/{space}/invitations/{username}.\n337 |   string name = 1 [\n338 |     (google.api.field_behavior) = REQUIRED,\n339 |     (google.api.resource_reference) = {type: \"memos.api.v1/SpaceInvitation\"}\n340 |   ];\n341 | }\n342 | \n343 | message AcceptSpaceInvitationRequest {\n344 |   // Required. Format: spaces/{space}/invitations/{username}.\n345 |   string name = 1 [\n346 |     (google.api.field_behavior) = REQUIRED,\n347 |     (google.api.resource_reference) = {type: \"memos.api.v1/SpaceInvitation\"}\n348 |   ];\n349 | }\n350 | \n",
+      "bytes": 1883
+    },
+    {
+      "id": "ev-21f5cf9514ab3804eac2",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/mysql/space.go",
+      "sha256": "c3a222324d95f0ec5b25f4ae00abca9592670f3afd5656bd6830c269b586deb6",
+      "startLine": 399,
+      "endLine": 449,
+      "text": "399 | func (d *DB) DeleteSpaceMember(ctx context.Context, delete *store.DeleteSpaceMember, actorUserID int32) error {\n400 | \ttx, err := d.db.BeginTx(ctx, nil)\n401 | \tif err != nil {\n402 | \t\treturn err\n403 | \t}\n404 | \tdefer func() { _ = tx.Rollback() }()\n405 | \tuserStatuses, err := readMySQLUserStatuses(ctx, tx, actorUserID, delete.UserID)\n406 | \tif err != nil {\n407 | \t\treturn err\n408 | \t}\n409 | \tif actorUserID != delete.UserID && userStatuses[actorUserID] != store.Normal {\n410 | \t\treturn store.ErrSpacePermissionDenied\n411 | \t}\n412 | \tvar spaceID int32\n413 | \tif err := tx.QueryRowContext(ctx, \"SELECT id FROM space WHERE id = ?\", delete.SpaceID).Scan(&spaceID); err != nil {\n414 | \t\tif errors.Is(err, sql.ErrNoRows) {\n415 | \t\t\treturn store.ErrSpaceNotFound\n416 | \t\t}\n417 | \t\treturn err\n418 | \t}\n419 | \tif actorUserID != delete.UserID {\n420 | \t\tvar role store.SpaceMemberRole\n421 | \t\tif err := tx.QueryRowContext(ctx, \"SELECT role FROM space_member WHERE space_id = ? AND user_id = ? AND status = ?\", delete.SpaceID, actorUserID, store.SpaceMemberStatusActive).Scan(&role); errors.Is(err, sql.ErrNoRows) {\n422 | \t\t\treturn store.ErrSpacePermissionDenied\n423 | \t\t} else if err != nil {\n424 | \t\t\treturn err\n425 | \t\t} else if role != store.SpaceMemberRoleAdmin {\n426 | \t\t\treturn store.ErrSpacePermissionDenied\n427 | \t\t}\n428 | \t}\n429 | \tmember, err := getMySQLSpaceMember(ctx, tx, delete.SpaceID, delete.UserID)\n430 | \tif err != nil {\n431 | \t\tif errors.Is(err, sql.ErrNoRows) {\n432 | \t\t\treturn store.ErrSpaceMemberNotFound\n433 | \t\t}\n434 | \t\treturn err\n435 | \t}\n436 | \tif member.Role == store.SpaceMemberRoleAdmin && userStatuses[delete.UserID] == store.Normal {\n437 | \t\tvar count int\n438 | \t\tif err := tx.QueryRowContext(ctx, \"SELECT COUNT(*) FROM space_member sm JOIN user u ON u.id = sm.user_id WHERE sm.space_id = ? AND sm.status = ? AND sm.role = ? AND u.row_status = 'NORMAL'\", delete.SpaceID, store.SpaceMemberStatusActive, store.SpaceMemberRoleAdmin).Scan(&count); err != nil {\n439 | \t\t\treturn err\n440 | \t\t}\n441 | \t\tif count <= 1 {\n442 | \t\t\treturn store.ErrLastSpaceAdmin\n443 | \t\t}\n444 | \t}\n445 | \tif _, err := tx.ExecContext(ctx, \"DELETE FROM space_member WHERE space_id = ? AND user_id = ? AND status = ?\", delete.SpaceID, delete.UserID, store.SpaceMemberStatusActive); err != nil {\n446 | \t\treturn err\n447 | \t}\n448 | \treturn tx.Commit()\n449 | }\n",
+      "bytes": 2354
+    },
+    {
+      "id": "ev-4613bf5cc02521f91db5",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/postgres/space.go",
+      "sha256": "904d4817ea006a369061588aa2ce843a6d9bd76ca0705b393f2dcad6d6896eb4",
+      "startLine": 437,
+      "endLine": 487,
+      "text": "437 | func (d *DB) DeleteSpaceMember(ctx context.Context, delete *store.DeleteSpaceMember, actorUserID int32) error {\n438 | \ttx, err := d.db.BeginTx(ctx, nil)\n439 | \tif err != nil {\n440 | \t\treturn err\n441 | \t}\n442 | \tdefer func() { _ = tx.Rollback() }()\n443 | \tuserStatuses, err := readPostgresUserStatuses(ctx, tx, actorUserID, delete.UserID)\n444 | \tif err != nil {\n445 | \t\treturn err\n446 | \t}\n447 | \tif actorUserID != delete.UserID && userStatuses[actorUserID] != store.Normal {\n448 | \t\treturn store.ErrSpacePermissionDenied\n449 | \t}\n450 | \tvar spaceID int32\n451 | \tif err := tx.QueryRowContext(ctx, \"SELECT id FROM space WHERE id = $1\", delete.SpaceID).Scan(&spaceID); err != nil {\n452 | \t\tif errors.Is(err, sql.ErrNoRows) {\n453 | \t\t\treturn store.ErrSpaceNotFound\n454 | \t\t}\n455 | \t\treturn err\n456 | \t}\n457 | \tif actorUserID != delete.UserID {\n458 | \t\tvar role store.SpaceMemberRole\n459 | \t\tif err := tx.QueryRowContext(ctx, \"SELECT role FROM space_member WHERE space_id = $1 AND user_id = $2 AND status = $3\", delete.SpaceID, actorUserID, store.SpaceMemberStatusActive).Scan(&role); errors.Is(err, sql.ErrNoRows) {\n460 | \t\t\treturn store.ErrSpacePermissionDenied\n461 | \t\t} else if err != nil {\n462 | \t\t\treturn err\n463 | \t\t} else if role != store.SpaceMemberRoleAdmin {\n464 | \t\t\treturn store.ErrSpacePermissionDenied\n465 | \t\t}\n466 | \t}\n467 | \tmember, err := getPostgresSpaceMember(ctx, tx, delete.SpaceID, delete.UserID)\n468 | \tif err != nil {\n469 | \t\tif errors.Is(err, sql.ErrNoRows) {\n470 | \t\t\treturn store.ErrSpaceMemberNotFound\n471 | \t\t}\n472 | \t\treturn err\n473 | \t}\n474 | \tif member.Role == store.SpaceMemberRoleAdmin && userStatuses[delete.UserID] == store.Normal {\n475 | \t\tvar count int\n476 | \t\tif err := tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM space_member sm JOIN \"user\" u ON u.id = sm.user_id WHERE sm.space_id = $1 AND sm.status = $2 AND sm.role = $3 AND u.row_status = 'NORMAL'`, delete.SpaceID, store.SpaceMemberStatusActive, store.SpaceMemberRoleAdmin).Scan(&count); err != nil {\n477 | \t\t\treturn err\n478 | \t\t}\n479 | \t\tif count <= 1 {\n480 | \t\t\treturn store.ErrLastSpaceAdmin\n481 | \t\t}\n482 | \t}\n483 | \tif _, err := tx.ExecContext(ctx, \"DELETE FROM space_member WHERE space_id = $1 AND user_id = $2 AND status = $3\", delete.SpaceID, delete.UserID, store.SpaceMemberStatusActive); err != nil {\n484 | \t\treturn err\n485 | \t}\n486 | \treturn tx.Commit()\n487 | }\n",
+      "bytes": 2372
+    },
+    {
+      "id": "ev-e97f2cbdd5d311b9c657",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 128,
+      "endLine": 128,
+      "text": "128 |   rpc DeleteSpaceMember(DeleteSpaceMemberRequest) returns (google.protobuf.Empty) {\n",
+      "bytes": 90
+    },
+    {
+      "id": "ev-77fb6b5d14d0b901a809",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 394,
+      "endLine": 394,
+      "text": "394 | message DeleteSpaceMemberRequest {\n",
+      "bytes": 41
+    },
+    {
+      "id": "ev-3f913436015dacb5a046",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 740,
+      "endLine": 764,
+      "text": "740 | // DeleteSpaceMember removes a membership or lets a member leave a space.\n741 | func (s *APIV1Service) DeleteSpaceMember(ctx context.Context, request *v1pb.DeleteSpaceMemberRequest) (*emptypb.Empty, error) {\n742 | \tcurrentUser, err := s.requireCurrentSpaceUser(ctx)\n743 | \tif err != nil {\n744 | \t\treturn nil, err\n745 | \t}\n746 | \t_, targetUser, callerMembership, targetMembership, err := s.resolveSpaceMemberResource(ctx, request.Name, currentUser)\n747 | \tif err != nil {\n748 | \t\treturn nil, err\n749 | \t}\n750 | \tisSelf := targetUser.ID == currentUser.ID\n751 | \tif !isSelf {\n752 | \t\tif err := requireSpaceAdministrator(callerMembership); err != nil {\n753 | \t\t\treturn nil, err\n754 | \t\t}\n755 | \t}\n756 | \tif err := s.Store.DeleteSpaceMember(ctx, &store.DeleteSpaceMember{\n757 | \t\tSpaceID: targetMembership.SpaceID,\n758 | \t\tUserID:  targetMembership.UserID,\n759 | \t}, currentUser.ID); err != nil {\n760 | \t\treturn nil, mapSpaceMutationError(err, \"failed to delete space member\")\n761 | \t}\n762 | \ts.SSEHub.publishSpaceChanged()\n763 | \treturn &emptypb.Empty{}, nil\n764 | }\n",
+      "bytes": 1069
+    }
+  ]
+}

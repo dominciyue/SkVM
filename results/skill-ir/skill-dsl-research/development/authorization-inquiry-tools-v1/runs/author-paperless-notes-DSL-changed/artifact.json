@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "authorization-inquiry/v1",
+  "mode": "conformance",
+  "questions": [
+    {
+      "id": "document-notes-get",
+      "request": "Check GET on the document notes operation against the current independently supplied policy for viewing notes on the addressed document. The addressed document's owner field is absent/null, and object grants are not given; retain relevant owner and permission branches rather than silently supplying those facts. Trace endpoint and object controls to the corresponding effects, explain policy compliance, and preserve exact gaps.",
+      "resource": "addressed document",
+      "operation": "GET on the document notes operation",
+      "entryHint": "Repository paperless-ngx/paperless-ngx at sourceRef 126ec414a8b65158368653a2604ae58415e43103; inspect only src/documents and src/paperless/urls.py.",
+      "premises": [
+        {
+          "text": "The addressed document's owner field is absent/null.",
+          "origin": "user"
+        },
+        {
+          "text": "Object grants are not given.",
+          "origin": "user"
+        },
+        {
+          "text": "Source context: {\"repository\":\"paperless-ngx/paperless-ngx\",\"sourceRef\":\"126ec414a8b65158368653a2604ae58415e43103\",\"allowedPaths\":[\"src/documents\",\"src/paperless/urls.py\"]}",
+          "origin": "user"
+        }
+      ]
+    },
+    {
+      "id": "document-notes-post",
+      "request": "Check POST on the document notes operation against the current independently supplied policy for creating a note on the addressed document. The addressed document's owner field is absent/null, and object grants are not given; retain relevant owner and permission branches rather than silently supplying those facts. Trace endpoint and object controls to the corresponding effects, explain policy compliance, and preserve exact gaps.",
+      "resource": "addressed document",
+      "operation": "POST on the document notes operation",
+      "entryHint": "Repository paperless-ngx/paperless-ngx at sourceRef 126ec414a8b65158368653a2604ae58415e43103; inspect only src/documents and src/paperless/urls.py.",
+      "premises": [
+        {
+          "text": "The addressed document's owner field is absent/null.",
+          "origin": "user"
+        },
+        {
+          "text": "Object grants are not given.",
+          "origin": "user"
+        },
+        {
+          "text": "Source context: {\"repository\":\"paperless-ngx/paperless-ngx\",\"sourceRef\":\"126ec414a8b65158368653a2604ae58415e43103\",\"allowedPaths\":[\"src/documents\",\"src/paperless/urls.py\"]}",
+          "origin": "user"
+        }
+      ]
+    }
+  ],
+  "policy": {
+    "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+    "origin": "user",
+    "location": "experimental-user-brief:paperless-note-policy/v1"
+  }
+}

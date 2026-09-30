@@ -1,0 +1,410 @@
+[
+  {
+    "sampleId": "sample-0a4f50be",
+    "packetSha256": "e7e80e1872d3d5833d4bfbbe13e46f62b69653f5c0d05be0bb4d172c068283ca",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "partial",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "undetermined-justified"
+    },
+    "issues": [
+      "The candidate correctly distinguishes non-self administrator authorization, self-removal, and last-active-administrator protection.",
+      "The unverified deployment/store-selection and unread helper details justify scoped uncertainty."
+    ],
+    "sourceSupport": [
+      {
+        "path": "public-source/memos/server/api/v1/space_service.go",
+        "line": 750,
+        "detail": "isSelf bypasses requireSpaceAdministrator; non-self requests require it."
+      },
+      {
+        "path": "public-source/memos/server/api/v1/space_service.go",
+        "line": 756,
+        "detail": "Resolved target SpaceID/UserID and currentUser.ID are passed to Store.DeleteSpaceMember."
+      },
+      {
+        "path": "public-source/memos/store/db/postgres/space.go",
+        "line": 457,
+        "detail": "Non-self deletion requires active ADMIN role."
+      },
+      {
+        "path": "public-source/memos/store/db/postgres/space.go",
+        "line": 474,
+        "detail": "Last active normal administrator is protected."
+      }
+    ],
+    "rationale": "Semantically accurate and appropriately scoped; evidence is partial only because the candidate itself notes unread helper/deployment details."
+  },
+  {
+    "sampleId": "sample-2460b0f7",
+    "packetSha256": "ed9832f652c3411778c925aca063e3dd39154f33b9630264d69b626d42364a92",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "correct"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "public-source/memos/server/api/v1/space_service.go",
+        "line": 750,
+        "detail": "Self/non-self branch is explicit."
+      },
+      {
+        "path": "public-source/memos/store/db/postgres/space.go",
+        "line": 457,
+        "detail": "Non-self actor must have ADMIN role."
+      },
+      {
+        "path": "public-source/memos/proto/api/v1/space_service.proto",
+        "line": 126,
+        "detail": "Contract documents self-removal."
+      }
+    ],
+    "rationale": "Correctly treats the supplied policy as satisfied while retaining backend and deployment conditions."
+  },
+  {
+    "sampleId": "sample-2b41d418",
+    "packetSha256": "a25fe00f64ea2e68386cda6ebefa96611e25287a75fd35f01509c4ac21466caf",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "correct"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "public-source/memos/server/api/v1/space_service.go",
+        "line": 750,
+        "detail": "Different-member requests require administrator; self requests bypass that check."
+      },
+      {
+        "path": "public-source/memos/store/db/sqlite/space.go",
+        "line": 424,
+        "detail": "Database independently requires ADMIN for non-self actor."
+      },
+      {
+        "path": "public-source/memos/store/space.go",
+        "line": 274,
+        "detail": "Store delegates the bound SpaceID/UserID and actorUserID."
+      }
+    ],
+    "rationale": "Correctly identifies violation of revised any-member policy and preserves separate self path and backend limits."
+  },
+  {
+    "sampleId": "sample-3c666dfa",
+    "packetSha256": "3e15ad9449054435ba53de75de93210b3e2f75bed16ca8fcacf643c2277f9f49",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "correct"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "public-source/memos/server/api/v1/space_service.go",
+        "line": 750,
+        "detail": "Self branch skips administrator check."
+      },
+      {
+        "path": "public-source/memos/server/api/v1/space_service.go",
+        "line": 756,
+        "detail": "Target membership IDs and caller ID bind resource, effect, and actor."
+      },
+      {
+        "path": "public-source/memos/store/db/postgres/space.go",
+        "line": 457,
+        "detail": "Non-self deletion requires ADMIN."
+      },
+      {
+        "path": "public-source/memos/store/db/postgres/space.go",
+        "line": 479,
+        "detail": "Last-admin deletion returns ErrLastSpaceAdmin."
+      }
+    ],
+    "rationale": "Complete, source-grounded conformance analysis with explicit unknowns."
+  },
+  {
+    "sampleId": "sample-48772644",
+    "packetSha256": "16904805bf2dba4ad817117a16ffb059f7f60f507c05653ef609224d7dc88b7d",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "correct"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "public-source/memos/server/api/v1/space_service.go",
+        "line": 750,
+        "detail": "isSelf controls administrator guard."
+      },
+      {
+        "path": "public-source/memos/store/db/mysql/space.go",
+        "line": 419,
+        "detail": "Non-self deletion checks active ADMIN role."
+      },
+      {
+        "path": "public-source/memos/store/db/mysql/space.go",
+        "line": 441,
+        "detail": "Last active administrator is protected."
+      }
+    ],
+    "rationale": "Correct revised-policy violation assessment and accurate actor/resource/effect binding."
+  },
+  {
+    "sampleId": "sample-74bc1952",
+    "packetSha256": "f019de3b0e1fec14774c809febef275dba6a2326475e9f99f2397ace2ad532a6",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "correct"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "public-source/memos/server/api/v1/space_service.go",
+        "line": 54,
+        "detail": "Candidate reports exact administrator helper semantics."
+      },
+      {
+        "path": "public-source/memos/server/api/v1/space_service.go",
+        "line": 750,
+        "detail": "Self/non-self authorization branch."
+      },
+      {
+        "path": "public-source/memos/store/db/postgres/space.go",
+        "line": 479,
+        "detail": "Last administrator safeguard."
+      }
+    ],
+    "rationale": "The prose review is semantically correct and cites decisive source locations; its high-confidence source claims are supported by supplied evidence."
+  },
+  {
+    "sampleId": "sample-7c4fbbb8",
+    "packetSha256": "272102889063168e9f68f280e65e9f78d81ac9754d463df9ffea27142099253e",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "correct"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "public-source/memos/server/api/v1/space_service.go",
+        "line": 750,
+        "detail": "Explicit self/non-self branch."
+      },
+      {
+        "path": "public-source/memos/server/api/v1/space_service.go",
+        "line": 54,
+        "detail": "Helper accepts administrator role only."
+      },
+      {
+        "path": "public-source/memos/store/db/postgres/space.go",
+        "line": 479,
+        "detail": "Last-admin safeguard."
+      }
+    ],
+    "rationale": "Correct compact conformance review; deployment identity limits are explicitly retained."
+  },
+  {
+    "sampleId": "sample-7d9d6a91",
+    "packetSha256": "68c2d2da554cd717024e6614650c3ed1bf852d4e0dc376adf2ebb5170b31a1df",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "not-needed",
+      "policy": "not-applicable"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "public-source/memos/server/api/v1/memo_service.go",
+        "line": 1,
+        "detail": "Candidate reports GetSharedMemo returns PermissionDenied before reading share token or store."
+      },
+      {
+        "path": "public-source/memos/server/api/v1/connect_services.go",
+        "line": 1,
+        "detail": "Connect wrapper propagates service failure."
+      }
+    ],
+    "rationale": "Correct short-circuit analysis: token validity, expiry, and memo binding are unreachable on the shown path."
+  },
+  {
+    "sampleId": "sample-36ed81c8",
+    "packetSha256": "1dde7a2c4593cff015c68a98d7878674a446b4e5803f9c1f21fdff75381dc1f0",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "partial",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "not-applicable"
+    },
+    "issues": [
+      "The central file-id ownership distinction and separate collection destination are correct.",
+      "The candidate leaves save_docs_to_vector_db and model/dependency behavior unread despite those being accessible decisive dependencies, so evidence support is incomplete."
+    ],
+    "sourceSupport": [
+      {
+        "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+        "line": 1559,
+        "detail": "Admin uses unrestricted file lookup; non-admin lookup is bound to user.id at line 1562."
+      },
+      {
+        "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+        "line": 1568,
+        "detail": "Destination defaults to file-{file.id}."
+      },
+      {
+        "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+        "line": 1547,
+        "detail": "process_file entry and verified-user dependency."
+      }
+    ],
+    "rationale": "Mostly correct bounded behavior, but dependency coverage is incomplete under the review contract."
+  },
+  {
+    "sampleId": "sample-48fd30e2",
+    "packetSha256": "eef7624a6bf46e7ef8b8bf3d1eb9f500baa4f940ab1eb4bfda5acdd631ccb775",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "not-applicable"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+        "line": 1560,
+        "detail": "Admin file lookup by file_id."
+      },
+      {
+        "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+        "line": 1562,
+        "detail": "Non-admin file lookup by file_id and user.id."
+      },
+      {
+        "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+        "line": 1781,
+        "detail": "The route's visible content path invokes _validate_collection_access for write."
+      },
+      {
+        "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+        "line": 1792,
+        "detail": "Vector save receives collection_name and user."
+      }
+    ],
+    "rationale": "Traces both input authorization and destination validation, correctly retaining unresolved backend/deployment facts."
+  },
+  {
+    "sampleId": "sample-81faed46",
+    "packetSha256": "d5cdb6b3a4d329987e08a6749f8226c3f20ff572a10823956c54f3bc588f7f3b",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "partial",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "not-applicable"
+    },
+    "issues": [
+      "The candidate correctly separates caller-owned input from cross-principal destination.",
+      "Its statement that the route permits the request to reach the destination write path is conditional on the exact process_file branch; visible content processing invokes collection validation in this revision, so the unconditional wording is too broad."
+    ],
+    "sourceSupport": [
+      {
+        "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+        "line": 1562,
+        "detail": "Non-admin input lookup is owner-bound."
+      },
+      {
+        "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+        "line": 1781,
+        "detail": "Content processing validates destination collection write access."
+      },
+      {
+        "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+        "line": 1792,
+        "detail": "Validated collection is passed to vector save."
+      }
+    ],
+    "rationale": "Core binding is right, but destination authorization differs by visible branch and the candidate overgeneralizes reachability."
+  },
+  {
+    "sampleId": "sample-8a82c010",
+    "packetSha256": "005feb1b4beff19c6982e2d0af42aec8041f7e64ecffe51aaddc052a81679207",
+    "reviewer": "development-agent",
+    "criteria": {
+      "behavior": "correct",
+      "scenarios": "complete",
+      "evidence": "supported",
+      "bindings": "correct",
+      "unknowns": "appropriate",
+      "policy": "not-applicable"
+    },
+    "issues": [],
+    "sourceSupport": [
+      {
+        "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+        "line": 1559,
+        "detail": "Role selects unrestricted admin lookup versus owner-bound non-admin lookup."
+      },
+      {
+        "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+        "line": 1568,
+        "detail": "Default destination derives from accepted file ID."
+      },
+      {
+        "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+        "line": 1781,
+        "detail": "Visible collection write-access validation."
+      },
+      {
+        "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+        "line": 1792,
+        "detail": "Vector writer receives the selected collection."
+      }
+    ],
+    "rationale": "Accurately distinguishes file authorization, explicit/default destinations, and operational unknowns."
+  }
+]

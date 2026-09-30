@@ -54,7 +54,7 @@ export function plannedRows(): Row[] {
   for (const sourceSkill of ["cloudflare-security-audit", "github-security-review"]) for (const task of ["memos-remove", "paperless-notes"]) for (const domainTools of [false, true]) rows.push({ id: `skill-${sourceSkill}-${task}-${domainTools ? "domain" : "original"}`, kind: "skill", task, sourceSkill, domainTools })
   return rows
 }
-function authorTask(row: Row): Task {
+export function authorTask(row: Row): Task {
   const base = tasks.find(t => t.id === row.task)!
   if (row.version !== "changed") return base
   return row.task === "memos-remove" ? { ...changedTasks[0]!, id: "memos-remove" } : { ...base, brief: base.brief + " Revised current premise: the addressed document's owner field is absent/null. Keep all other current requirements, including GET versus POST, unchanged." }

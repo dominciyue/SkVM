@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "authorization-inquiry/v1",
+  "mode": "conformance",
+  "questions": [
+    {
+      "id": "ordinary-member-removal",
+      "request": "Check DeleteSpaceMember in this Memos revision against the independently supplied revised current policy. Determine whether an ordinary space member may remove a different member. Explain the actual behavior, compare it with the policy, cite the controlling source, and preserve every decisive missing fact. Do not assume deployment middleware or undocumented role grants.",
+      "principal": "ordinary space member",
+      "resource": "different member of the same space",
+      "operation": "remove",
+      "entryHint": "DeleteSpaceMember",
+      "premises": [
+        {
+          "text": "The repository is usememos/memos.",
+          "origin": "user"
+        },
+        {
+          "text": "The source revision is cb42e326ba9cc266a6a9570c53e0fe04c62793f4.",
+          "origin": "user"
+        },
+        {
+          "text": "The allowed source paths are server/api/v1, core/access, store, proto/api/v1, and internal/ratelimit.",
+          "origin": "user"
+        }
+      ]
+    },
+    {
+      "id": "admin-and-self-removal-paths",
+      "request": "For DeleteSpaceMember in this Memos revision, determine whether the visible administrator-removal path and the visible self-removal path differ. Explain the actual behavior, compare each path with the independently supplied revised current policy, cite the controlling source, and preserve every decisive missing fact. Do not assume deployment middleware or undocumented role grants.",
+      "entryHint": "DeleteSpaceMember",
+      "premises": [
+        {
+          "text": "The repository is usememos/memos.",
+          "origin": "user"
+        },
+        {
+          "text": "The source revision is cb42e326ba9cc266a6a9570c53e0fe04c62793f4.",
+          "origin": "user"
+        },
+        {
+          "text": "The allowed source paths are server/api/v1, core/access, store, proto/api/v1, and internal/ratelimit.",
+          "origin": "user"
+        }
+      ]
+    }
+  ],
+  "policy": {
+    "text": "Any current member of a space may remove a different member from that space; self-removal is also allowed.",
+    "origin": "user",
+    "location": "experimental-user-brief:memos-member-policy/v2"
+  }
+}

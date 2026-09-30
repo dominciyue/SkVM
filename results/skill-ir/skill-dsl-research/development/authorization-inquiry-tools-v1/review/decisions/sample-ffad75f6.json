@@ -1,0 +1,27 @@
+{
+  "sampleId": "sample-ffad75f6",
+  "packetSha256": "b0f9b6d4ce551167e71faa80d67ab4b7f93d424c3fa88c90941682c69f40c9a0",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "correct",
+    "unknowns": "appropriate",
+    "policy": "not-applicable"
+  },
+  "issues": [],
+  "sourceSupport": [
+    {
+      "path": "server/api/v1/memo_share_service.go",
+      "line": 173,
+      "detail": "Synthetic variant unconditionally returns PermissionDenied before reading token or fetching memo."
+    },
+    {
+      "path": "server/api/v1/connect_services.go",
+      "line": 650,
+      "detail": "Connect handler only delegates to APIV1Service.GetSharedMemo."
+    }
+  ],
+  "rationale": "The candidate correctly short-circuits all token branches, distinguishes unreachable dead-code controls from current behavior, and appropriately marks deployment and dead-helper limits."
+}

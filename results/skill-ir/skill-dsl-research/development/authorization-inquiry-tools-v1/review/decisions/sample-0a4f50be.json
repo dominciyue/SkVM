@@ -1,0 +1,37 @@
+{
+  "sampleId": "sample-0a4f50be",
+  "packetSha256": "79bb44b5eac5aea3e651f505f8f99accdc637ab6c0277352fae49d8e9430077a",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "partial",
+    "bindings": "correct",
+    "unknowns": "appropriate",
+    "policy": "undetermined-justified"
+  },
+  "issues": [],
+  "sourceSupport": [
+    {
+      "path": "public-source/memos/server/api/v1/space_service.go",
+      "line": 750,
+      "detail": "isSelf bypasses requireSpaceAdministrator; non-self requests require it."
+    },
+    {
+      "path": "public-source/memos/server/api/v1/space_service.go",
+      "line": 756,
+      "detail": "Resolved target SpaceID/UserID and currentUser.ID are passed to Store.DeleteSpaceMember."
+    },
+    {
+      "path": "public-source/memos/store/db/postgres/space.go",
+      "line": 457,
+      "detail": "Non-self deletion requires active ADMIN role."
+    },
+    {
+      "path": "public-source/memos/store/db/postgres/space.go",
+      "line": 474,
+      "detail": "Last active normal administrator is protected."
+    }
+  ],
+  "rationale": "Semantically accurate and appropriately scoped; evidence is partial only because the candidate itself notes unread helper/deployment details. Main-agent adjudication: Both issue strings are positive reviewer comments. Evidence remains partial; no promotion to full quality."
+}

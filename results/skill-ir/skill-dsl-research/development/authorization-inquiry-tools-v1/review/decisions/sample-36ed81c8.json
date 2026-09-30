@@ -1,0 +1,37 @@
+{
+  "sampleId": "sample-36ed81c8",
+  "packetSha256": "8dbe6188f2395ea0174ecddf6ac0ea2ac3f4c54c9ebe9163a79f6d57047cd97b",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "partial",
+    "bindings": "correct",
+    "unknowns": "appropriate",
+    "policy": "not-applicable"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "The candidate leaves save_docs_to_vector_db and model/dependency behavior unread despite those being accessible decisive dependencies, so evidence support is incomplete."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+      "line": 1559,
+      "detail": "Admin uses unrestricted file lookup; non-admin lookup is bound to user.id at line 1562."
+    },
+    {
+      "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+      "line": 1568,
+      "detail": "Destination defaults to file-{file.id}."
+    },
+    {
+      "path": "public-source/owui/backend/open_webui/routers/retrieval.py",
+      "line": 1547,
+      "detail": "process_file entry and verified-user dependency."
+    }
+  ],
+  "rationale": "Mostly correct bounded behavior, but dependency coverage is incomplete under the review contract. Main-agent adjudication: The first issue is a positive comment. The available unread vector-writing dependency remains a quality gap."
+}

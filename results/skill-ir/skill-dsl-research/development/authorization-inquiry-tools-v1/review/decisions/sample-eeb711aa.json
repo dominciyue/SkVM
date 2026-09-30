@@ -1,0 +1,55 @@
+{
+  "sampleId": "sample-eeb711aa",
+  "packetSha256": "d68a2ecf904cfe98ccca81363e0e8b93f89956952a32677cf329c956b45ae984",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "partial",
+    "scenarios": "complete",
+    "evidence": "partial",
+    "bindings": "partial",
+    "unknowns": "missing",
+    "policy": "undetermined-justified"
+  },
+  "issues": [
+    {
+      "kind": "other",
+      "detail": "The explanation correctly identifies reader-only route admission and unconditional service invocation in the shown handler."
+    },
+    {
+      "kind": "other",
+      "detail": "The reader-only branch is labeled deny even though the explanation says creation proceeds; this is an internal contradiction."
+    },
+    {
+      "kind": "other",
+      "detail": "models/issues.NewIssue is unexamined, so the violated policy conclusion is premature."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "routers/api/v1/api.go",
+      "line": 1649,
+      "detail": "POST route admits reqRepoReader(unit.TypeIssues)."
+    },
+    {
+      "path": "routers/api/v1/api.go",
+      "line": 474,
+      "detail": "reqRepoReader uses CanRead, not CanWrite."
+    },
+    {
+      "path": "routers/api/v1/repo/issue.go",
+      "line": 572,
+      "detail": "CanWrite gates optional deadline handling."
+    },
+    {
+      "path": "routers/api/v1/repo/issue.go",
+      "line": 624,
+      "detail": "Handler invokes issue_service.NewIssue."
+    },
+    {
+      "path": "services/issue/issue.go",
+      "line": 25,
+      "detail": "Service delegates to issue model creation, but model body was not read."
+    }
+  ],
+  "rationale": "The main route finding is plausible, but branch disposition contradicts its explanation and downstream authorization remains unresolved."
+}

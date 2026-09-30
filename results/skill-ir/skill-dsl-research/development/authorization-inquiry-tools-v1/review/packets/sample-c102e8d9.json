@@ -1,0 +1,1944 @@
+{
+  "sampleId": "sample-c102e8d9",
+  "kind": "analysis",
+  "brief": "Check creating a share through ShareLinkViewSet against the current independently supplied policy. A principal asks to share an existing document; determine which endpoint and object controls apply to that exact document before the share is created. Include relevant inherited permission and serializer paths. Do not assume that document existence or a global model permission grants access to this document. Explain source behavior, policy compliance and specific missing facts.",
+  "mode": "conformance",
+  "policy": {
+    "text": "A caller creating a document share must have view_document permission for the exact shared document. A global add_sharelink permission or knowing a document ID alone is insufficient.",
+    "origin": "user",
+    "location": "experimental-user-brief:paperless-share-policy/v1"
+  },
+  "context": {
+    "repository": "paperless-ngx/paperless-ngx",
+    "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+    "sourceRoot": "public-source/paperless",
+    "allowedPaths": [
+      "src/documents",
+      "src/paperless/urls.py"
+    ]
+  },
+  "candidate": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "sharelink-create-conformance",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The source behavior is conditional: the endpoint is authenticated/object-permission protected, and the serializer specifically requires both global documents.view_document and an owner-aware view_document check on the exact submitted document before creating the ShareLink. Thus the request is allowed only if those source conditions pass; otherwise validate_document raises PermissionDenied before the share effect."
+        },
+        "branches": [
+          {
+            "id": "allowed-if-exact-check-passes",
+            "condition": "The caller is authenticated, any applicable viewset object-permission checks pass, self.user is the intended caller, and self.user has global documents.view_document plus owner-aware view_document on the exact submitted document.",
+            "disposition": "allow",
+            "explanation": "The serializer returns the document, then create generates a slug and delegates to superclass creation.",
+            "evidenceIds": [
+              "ev-a5d0870d28f9558f5fe9",
+              "ev-2a78402be3ddfe021e24"
+            ]
+          },
+          {
+            "id": "denied-if-exact-check-fails",
+            "condition": "The caller lacks global documents.view_document, or lacks owner-aware view_document on the exact submitted document, or self.user is unavailable.",
+            "disposition": "deny",
+            "explanation": "validate_document raises PermissionDenied(\"Insufficient permissions.\") and the downstream create effect is not reached.",
+            "evidenceIds": [
+              "ev-2a78402be3ddfe021e24"
+            ]
+          },
+          {
+            "id": "unresolved-upstream-permission-branch",
+            "condition": "The request reaches ShareLinkViewSet but the action-specific behavior of PaperlessObjectPermissions, PassUserMixin identity binding, and inherited OwnedObjectSerializer behavior is needed to determine whether an additional upstream check rejects or changes the path.",
+            "disposition": "unknown",
+            "explanation": "Those implementations were not established by the readable evidence; configured class names alone do not prove their detailed semantics.",
+            "evidenceIds": [
+              "ev-a5d0870d28f9558f5fe9",
+              "ev-2a78402be3ddfe021e24"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-04e9a1f74e3e05b3fb0c",
+          "ev-a5d0870d28f9558f5fe9",
+          "ev-2a78402be3ddfe021e24"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "Read the implementations of PaperlessObjectPermissions, PassUserMixin, OwnedObjectSerializer, and has_perms_owner_aware (and any action-to-permission mapping) to resolve inherited upstream protections, identity binding, and exception semantics.",
+            "nextRead": "Search/read the definitions of PaperlessObjectPermissions, PassUserMixin, OwnedObjectSerializer, and has_perms_owner_aware in the repository; they are outside the currently readable source evidence or were rejected as out of scope."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The actual authenticated principal, whether self.user is non-null and equals that principal, the exact document object/ID submitted, and the principal's global and object-level view_document grants are not supplied.",
+            "nextRead": "Obtain the request authentication context and authorization state for the exact document."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "The deployed route configuration, runtime permission backend configuration, and database permission assignments are not verified by static source inspection.",
+            "nextRead": "Verify the deployed revision and runtime authorization configuration."
+          }
+        ],
+        "policyAssessment": {
+          "status": "satisfied",
+          "explanation": "The decisive serializer guard conforms to the supplied policy's core requirement by checking view_document against the exact shared document and does not treat document existence or a share-link global permission alone as sufficient. However, the implementation is stricter than the policy as stated because it additionally requires the global documents.view_document permission. The policy's explicitly prohibited substitutes—global add_sharelink permission and knowing a document ID alone—are not used by this shown serializer guard."
+        }
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "sharelink-create-conformance",
+        "kind": "entry",
+        "subject": "ShareLinkViewSet is registered at the share_links API route and supports create through CreateModelMixin.",
+        "object": "ShareLinkViewSet / share_links route",
+        "claim": "The route registration binds the share_links endpoint to ShareLinkViewSet, whose inheritance includes CreateModelMixin.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-04e9a1f74e3e05b3fb0c",
+          "ev-a5d0870d28f9558f5fe9"
+        ]
+      },
+      {
+        "questionId": "sharelink-create-conformance",
+        "kind": "guard",
+        "subject": "ShareLinkViewSet upstream permissions",
+        "object": "ShareLinkViewSet",
+        "claim": "The viewset declares IsAuthenticated and PaperlessObjectPermissions, and uses PermittedObjectsFilter among its filter backends. The supplied source establishes these configured controls, but the implementations and action-to-permission mapping are not available in the allowed/readable evidence.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-a5d0870d28f9558f5fe9"
+        ]
+      },
+      {
+        "questionId": "sharelink-create-conformance",
+        "kind": "principal-binding",
+        "subject": "caller identity",
+        "object": "ShareLinkSerializer.validate_document",
+        "claim": "The serializer's document guard evaluates self.user; the available source does not establish how PassUserMixin populates self.user or whether it is exactly the authenticated request principal.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-2a78402be3ddfe021e24"
+        ]
+      },
+      {
+        "questionId": "sharelink-create-conformance",
+        "kind": "resource-binding",
+        "subject": "shared document",
+        "object": "ShareLinkSerializer.document",
+        "claim": "The submitted document is bound as the document argument to validate_document, and the owner-aware permission check is performed against that exact document object rather than merely against a document ID or the new share object.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-2a78402be3ddfe021e24"
+        ]
+      },
+      {
+        "questionId": "sharelink-create-conformance",
+        "kind": "guard",
+        "subject": "serializer document authorization",
+        "object": "ShareLinkSerializer.validate_document",
+        "claim": "Creation is rejected with PermissionDenied unless self.user is non-null, has the global documents.view_document permission, and passes has_perms_owner_aware(self.user, \"view_document\", document).",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-2a78402be3ddfe021e24"
+        ]
+      },
+      {
+        "questionId": "sharelink-create-conformance",
+        "kind": "effect",
+        "subject": "share creation",
+        "object": "ShareLink",
+        "claim": "After serializer validation, ShareLinkSerializer.create adds a generated slug and delegates to the superclass create, producing the ShareLink effect with the validated document association. The effect is therefore downstream of the exact-document serializer guard.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-2a78402be3ddfe021e24"
+        ]
+      },
+      {
+        "questionId": "sharelink-create-conformance",
+        "kind": "exception",
+        "subject": "permission exceptions and inherited behavior",
+        "object": "ShareLinkViewSet / OwnedObjectSerializer / PaperlessObjectPermissions / PassUserMixin",
+        "claim": "No source-grounded exception, role bypass, or alternate relation was established. The inherited classes and owner-aware helper semantics were not readable within the supplied allowed/source-visible evidence, so their detailed exceptions remain unresolved.",
+        "state": "unresolved",
+        "evidenceIds": [
+          "ev-a5d0870d28f9558f5fe9",
+          "ev-2a78402be3ddfe021e24"
+        ]
+      }
+    ],
+    "scope": "paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103; allowed source scope src/documents and src/paperless/urls.py; analyzed ShareLinkViewSet create path and ShareLinkSerializer, not all-repository coverage"
+  },
+  "evidence": [
+    {
+      "id": "ev-13a3395da58caf1e14c8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4696,
+      "endLine": 4696,
+      "text": "4696 | class ShareLinkViewSet(\n",
+      "bytes": 31
+    },
+    {
+      "id": "ev-2d8f350887a7b7f1ebc0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 43,
+      "endLine": 43,
+      "text": "43 | from documents.views import ShareLinkViewSet\n",
+      "bytes": 50
+    },
+    {
+      "id": "ev-04e9a1f74e3e05b3fb0c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 88,
+      "endLine": 88,
+      "text": "88 | api_router.register(r\"share_links\", ShareLinkViewSet)\n",
+      "bytes": 59
+    },
+    {
+      "id": "ev-130cae1b8d9db6c8a05c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2851,
+      "endLine": 2851,
+      "text": "2851 | class ShareLinkSerializer(OwnedObjectSerializer):\n",
+      "bytes": 57
+    },
+    {
+      "id": "ev-7a3885c296ba7e4cc8ed",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 215,
+      "endLine": 215,
+      "text": "215 | from documents.serialisers import ShareLinkSerializer\n",
+      "bytes": 60
+    },
+    {
+      "id": "ev-aba2eeb35128640e2066",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1996,
+      "endLine": 1996,
+      "text": "1996 |             serializer = ShareLinkSerializer(links, many=True)\n",
+      "bytes": 70
+    },
+    {
+      "id": "ev-e2dbf6aad22c9e846759",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4708,
+      "endLine": 4708,
+      "text": "4708 |     serializer_class = ShareLinkSerializer\n",
+      "bytes": 50
+    },
+    {
+      "id": "ev-a5d0870d28f9558f5fe9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4688,
+      "endLine": 4725,
+      "text": "4688 |             return Response({\"task_id\": async_result.id})\n4689 |         except Exception as e:\n4690 |             logger.warning(f\"Error running task: {e!s}\")\n4691 |             return HttpResponseServerError(\n4692 |                 \"Error running task, check logs for more detail.\",\n4693 |             )\n4694 | \n4695 | \n4696 | class ShareLinkViewSet(\n4697 |     PassUserMixin,\n4698 |     CreateModelMixin,\n4699 |     RetrieveModelMixin,\n4700 |     DestroyModelMixin,\n4701 |     ListModelMixin,\n4702 |     GenericViewSet,\n4703 | ):\n4704 |     model = ShareLink\n4705 | \n4706 |     queryset = ShareLink.objects.select_related(\"document\")\n4707 | \n4708 |     serializer_class = ShareLinkSerializer\n4709 |     pagination_class = StandardPagination\n4710 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n4711 |     filter_backends = (\n4712 |         DjangoFilterBackend,\n4713 |         OrderingFilter,\n4714 |         PermittedObjectsFilter,\n4715 |     )\n4716 |     filterset_class = ShareLinkFilterSet\n4717 |     ordering_fields = (\"created\", \"expiration\", \"document__title\")\n4718 | \n4719 | \n4720 | @extend_schema_view(\n4721 |     rebuild=extend_schema(\n4722 |         operation_id=\"share_link_bundles_rebuild\",\n4723 |         description=\"Reset and re-queue a share link bundle for processing.\",\n4724 |         responses={\n4725 |             HTTPStatus.OK: ShareLinkBundleSerializer,\n",
+      "bytes": 1410
+    },
+    {
+      "id": "ev-2a78402be3ddfe021e24",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2835,
+      "endLine": 2905,
+      "text": "2835 |     def validate(self, attrs):\n2836 |         acknowledge_all = attrs.get(\"all\", False)\n2837 |         task_ids = attrs.get(\"tasks\")\n2838 | \n2839 |         if acknowledge_all and task_ids is not None:\n2840 |             raise serializers.ValidationError(\n2841 |                 \"Set either all or tasks, not both.\",\n2842 |             )\n2843 |         if not acknowledge_all and task_ids is None:\n2844 |             raise serializers.ValidationError(\n2845 |                 \"Either all must be true or tasks must be provided.\",\n2846 |             )\n2847 | \n2848 |         return attrs\n2849 | \n2850 | \n2851 | class ShareLinkSerializer(OwnedObjectSerializer):\n2852 |     document_title = serializers.CharField(\n2853 |         source=\"document.title\",\n2854 |         read_only=True,\n2855 |     )\n2856 | \n2857 |     class Meta:\n2858 |         model = ShareLink\n2859 |         fields = (\n2860 |             \"id\",\n2861 |             \"created\",\n2862 |             \"expiration\",\n2863 |             \"slug\",\n2864 |             \"document\",\n2865 |             \"document_title\",\n2866 |             \"file_version\",\n2867 |         )\n2868 | \n2869 |     def create(self, validated_data):\n2870 |         validated_data[\"slug\"] = get_random_string(50)\n2871 |         return super().create(validated_data)\n2872 | \n2873 |     def validate_document(self, document):\n2874 |         if (\n2875 |             self.user is not None\n2876 |             and self.user.has_perm(\"documents.view_document\")\n2877 |             and has_perms_owner_aware(\n2878 |                 self.user,\n2879 |                 \"view_document\",\n2880 |                 document,\n2881 |             )\n2882 |         ):\n2883 |             return document\n2884 |         raise PermissionDenied(\n2885 |             _(\"Insufficient permissions.\"),\n2886 |         )\n2887 | \n2888 | \n2889 | class ShareLinkBundleSerializer(OwnedObjectSerializer):\n2890 |     document_ids = serializers.ListField(\n2891 |         child=serializers.IntegerField(min_value=1),\n2892 |         allow_empty=False,\n2893 |         write_only=True,\n2894 |     )\n2895 |     expiration_days = serializers.IntegerField(\n2896 |         required=False,\n2897 |         allow_null=True,\n2898 |         min_value=1,\n2899 |         write_only=True,\n2900 |     )\n2901 |     documents = serializers.PrimaryKeyRelatedField(\n2902 |         many=True,\n2903 |         read_only=True,\n2904 |     )\n2905 |     document_count = SerializerMethodField()\n",
+      "bytes": 2454
+    },
+    {
+      "id": "ev-5360e2715d0ae0535db5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 591,
+      "endLine": 591,
+      "text": "591 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n",
+      "bytes": 77
+    },
+    {
+      "id": "ev-04b84023675462a3fef3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 638,
+      "endLine": 638,
+      "text": "638 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n",
+      "bytes": 77
+    },
+    {
+      "id": "ev-683b52ff0f7cae1e65eb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 718,
+      "endLine": 718,
+      "text": "718 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n",
+      "bytes": 77
+    },
+    {
+      "id": "ev-21b5572da99e58424afa",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1021,
+      "endLine": 1021,
+      "text": "1021 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-61afda06a4eb27c6d63b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1844,
+      "endLine": 1844,
+      "text": "1844 |         permission_classes=[PaperlessNotePermissions],\n",
+      "bytes": 62
+    },
+    {
+      "id": "ev-4c6d8551a6a5a344fdfb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2068,
+      "endLine": 2068,
+      "text": "2068 |         permission_classes=[IsAuthenticated, ViewDocumentsPermissions],\n",
+      "bytes": 79
+    },
+    {
+      "id": "ev-96fa05369c4fbb82e742",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2081,
+      "endLine": 2081,
+      "text": "2081 |         permission_classes=[IsAuthenticated, ViewDocumentsPermissions],\n",
+      "bytes": 79
+    },
+    {
+      "id": "ev-e9a579f0a6d2bb40cbd0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2410,
+      "endLine": 2410,
+      "text": "2410 |     permission_classes = (IsAuthenticated, ViewDocumentsPermissions)\n",
+      "bytes": 76
+    },
+    {
+      "id": "ev-3a93d9f206e83c74580d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2779,
+      "endLine": 2779,
+      "text": "2779 |     permission_classes = (IsAuthenticated, PaperlessAdminPermissions)\n",
+      "bytes": 77
+    },
+    {
+      "id": "ev-7efcf2828e81d9d80a73",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2837,
+      "endLine": 2837,
+      "text": "2837 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-5169a4d763685ce4e4cb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2943,
+      "endLine": 2943,
+      "text": "2943 |     permission_classes = (IsAuthenticated,)\n",
+      "bytes": 51
+    },
+    {
+      "id": "ev-7c43148b25c9a372e361",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3461,
+      "endLine": 3461,
+      "text": "3461 |     permission_classes = (IsAuthenticated,)\n",
+      "bytes": 51
+    },
+    {
+      "id": "ev-6d30ce281d473d9c232b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3589,
+      "endLine": 3589,
+      "text": "3589 |     permission_classes = (IsAuthenticated, ViewDocumentsPermissions)\n",
+      "bytes": 76
+    },
+    {
+      "id": "ev-c1533839034513b00ef0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3694,
+      "endLine": 3694,
+      "text": "3694 |     permission_classes = (IsAuthenticated, ViewDocumentsPermissions)\n",
+      "bytes": 76
+    },
+    {
+      "id": "ev-fdab3c65bbbbbfbb08fc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3756,
+      "endLine": 3756,
+      "text": "3756 |     permission_classes = (IsAuthenticated,)\n",
+      "bytes": 51
+    },
+    {
+      "id": "ev-044d946f14096cb2e7aa",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3979,
+      "endLine": 3979,
+      "text": "3979 |     permission_classes = (IsAuthenticated,)\n",
+      "bytes": 51
+    },
+    {
+      "id": "ev-270e94400622ea0fcddd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4087,
+      "endLine": 4087,
+      "text": "4087 |     permission_classes = (IsAuthenticated, ViewDocumentsPermissions)\n",
+      "bytes": 76
+    },
+    {
+      "id": "ev-12a93b6b4fce2f016fc9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4174,
+      "endLine": 4174,
+      "text": "4174 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-210ac591ad63eb747158",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4186,
+      "endLine": 4186,
+      "text": "4186 |             self.permission_classes = (IsAuthenticated, ViewDocumentsPermissions)\n",
+      "bytes": 89
+    },
+    {
+      "id": "ev-93dc61bfbf77e27180c3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4234,
+      "endLine": 4234,
+      "text": "4234 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-f775af390e5f6d413ad2",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4455,
+      "endLine": 4455,
+      "text": "4455 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-83ffc7ef0e2236830b69",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4560,
+      "endLine": 4560,
+      "text": "4560 |         permission_classes=[IsAuthenticated, AcknowledgeTasksPermissions],\n",
+      "bytes": 82
+    },
+    {
+      "id": "ev-c9e4fd8bcea18c1cd841",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4710,
+      "endLine": 4710,
+      "text": "4710 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-d0466b7f78800bc69f10",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4744,
+      "endLine": 4744,
+      "text": "4744 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-bdd73c0aa39a27747c10",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4870,
+      "endLine": 4870,
+      "text": "4870 |     permission_classes = []\n",
+      "bytes": 35
+    },
+    {
+      "id": "ev-2d4194c9db6cac922872",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5017,
+      "endLine": 5017,
+      "text": "5017 |     permission_classes = (IsAuthenticated,)\n",
+      "bytes": 51
+    },
+    {
+      "id": "ev-bcb21e798a67c8f1b262",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5123,
+      "endLine": 5123,
+      "text": "5123 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-874864faf011c0f44089",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5141,
+      "endLine": 5141,
+      "text": "5141 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-a2f80bd597816dc1986d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5166,
+      "endLine": 5166,
+      "text": "5166 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-de33f5f92c5c3d003b15",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5220,
+      "endLine": 5220,
+      "text": "5220 |     permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n",
+      "bytes": 78
+    },
+    {
+      "id": "ev-d463ee9ec0c5a0a7aca3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5321,
+      "endLine": 5321,
+      "text": "5321 |     permission_classes = (IsAuthenticated,)\n",
+      "bytes": 51
+    },
+    {
+      "id": "ev-ac0aa1e1d499cc5588e6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5577,
+      "endLine": 5577,
+      "text": "5577 |     permission_classes = (IsAuthenticated, TrashPermissions)\n",
+      "bytes": 68
+    },
+    {
+      "id": "ev-e6145488d36061fc258a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 56,
+      "endLine": 56,
+      "text": "56 | from documents import bulk_edit\n",
+      "bytes": 37
+    },
+    {
+      "id": "ev-6b362d0dd5af00686c46",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 57,
+      "endLine": 57,
+      "text": "57 | from documents.data_models import DocumentSource\n",
+      "bytes": 54
+    },
+    {
+      "id": "ev-86ff62bd4b1e744682d1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 58,
+      "endLine": 58,
+      "text": "58 | from documents.filters import CustomFieldQueryParser\n",
+      "bytes": 58
+    },
+    {
+      "id": "ev-76a0042b72dc3045b7a8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 59,
+      "endLine": 59,
+      "text": "59 | from documents.models import Correspondent\n",
+      "bytes": 48
+    },
+    {
+      "id": "ev-c3ff1364cafc3289e71c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 60,
+      "endLine": 60,
+      "text": "60 | from documents.models import CustomField\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-2ca39c077cfdd34deba6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 61,
+      "endLine": 61,
+      "text": "61 | from documents.models import CustomFieldInstance\n",
+      "bytes": 54
+    },
+    {
+      "id": "ev-d7914daf84d88bf01e8f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 62,
+      "endLine": 62,
+      "text": "62 | from documents.models import Document\n",
+      "bytes": 43
+    },
+    {
+      "id": "ev-e7da4a6f473a38b29d5e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 63,
+      "endLine": 63,
+      "text": "63 | from documents.models import DocumentType\n",
+      "bytes": 47
+    },
+    {
+      "id": "ev-a1b21f494edfef309a05",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 64,
+      "endLine": 64,
+      "text": "64 | from documents.models import MatchingModel\n",
+      "bytes": 48
+    },
+    {
+      "id": "ev-8529332442786e032096",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 65,
+      "endLine": 65,
+      "text": "65 | from documents.models import Note\n",
+      "bytes": 39
+    },
+    {
+      "id": "ev-892c259ce824e1f16108",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 66,
+      "endLine": 66,
+      "text": "66 | from documents.models import PaperlessTask\n",
+      "bytes": 48
+    },
+    {
+      "id": "ev-cbb317be8a00855848d6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 67,
+      "endLine": 67,
+      "text": "67 | from documents.models import SavedView\n",
+      "bytes": 44
+    },
+    {
+      "id": "ev-1b360c01a482ded86ee1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 68,
+      "endLine": 68,
+      "text": "68 | from documents.models import SavedViewFilterRule\n",
+      "bytes": 54
+    },
+    {
+      "id": "ev-f2aae09d6114bcedbe33",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 69,
+      "endLine": 69,
+      "text": "69 | from documents.models import ShareLink\n",
+      "bytes": 44
+    },
+    {
+      "id": "ev-c1e291d71e1758ee3723",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 70,
+      "endLine": 70,
+      "text": "70 | from documents.models import ShareLinkBundle\n",
+      "bytes": 50
+    },
+    {
+      "id": "ev-ab4fb3dced2c722f0b34",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 71,
+      "endLine": 71,
+      "text": "71 | from documents.models import StoragePath\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-64cf31799e068eef01e8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 72,
+      "endLine": 72,
+      "text": "72 | from documents.models import Tag\n",
+      "bytes": 38
+    },
+    {
+      "id": "ev-fb070fe6fd64585ca7e5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 73,
+      "endLine": 73,
+      "text": "73 | from documents.models import UiSettings\n",
+      "bytes": 45
+    },
+    {
+      "id": "ev-e03d45b30f176ba67ee7",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 74,
+      "endLine": 74,
+      "text": "74 | from documents.models import Workflow\n",
+      "bytes": 43
+    },
+    {
+      "id": "ev-0b8789267b41957bfc15",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 75,
+      "endLine": 75,
+      "text": "75 | from documents.models import WorkflowAction\n",
+      "bytes": 49
+    },
+    {
+      "id": "ev-4986e7356b7a8c321226",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 76,
+      "endLine": 76,
+      "text": "76 | from documents.models import WorkflowActionEmail\n",
+      "bytes": 54
+    },
+    {
+      "id": "ev-efa632560dade8241f78",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 77,
+      "endLine": 77,
+      "text": "77 | from documents.models import WorkflowActionWebhook\n",
+      "bytes": 56
+    },
+    {
+      "id": "ev-e2cbc66571c02a80691f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 78,
+      "endLine": 78,
+      "text": "78 | from documents.models import WorkflowTrigger\n",
+      "bytes": 50
+    },
+    {
+      "id": "ev-04eddfa64303ef6873ea",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 79,
+      "endLine": 79,
+      "text": "79 | from documents.parsers import is_mime_type_supported\n",
+      "bytes": 58
+    },
+    {
+      "id": "ev-9d1c4a166c7446c430a3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 80,
+      "endLine": 80,
+      "text": "80 | from documents.permissions import get_document_count_filter_for_user\n",
+      "bytes": 74
+    },
+    {
+      "id": "ev-edda460d91953b13ad51",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 81,
+      "endLine": 81,
+      "text": "81 | from documents.permissions import get_groups_with_only_permission\n",
+      "bytes": 71
+    },
+    {
+      "id": "ev-97a50a79c6170f128cdc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 82,
+      "endLine": 82,
+      "text": "82 | from documents.permissions import has_perms_owner_aware\n",
+      "bytes": 61
+    },
+    {
+      "id": "ev-081c956124efdd4627ab",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 83,
+      "endLine": 83,
+      "text": "83 | from documents.permissions import permitted_document_ids\n",
+      "bytes": 62
+    },
+    {
+      "id": "ev-49e1bf8ab0398bf157bf",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 84,
+      "endLine": 84,
+      "text": "84 | from documents.permissions import restrict_queryset_to_visible\n",
+      "bytes": 68
+    },
+    {
+      "id": "ev-3acaf2447ab3da555bf8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 85,
+      "endLine": 85,
+      "text": "85 | from documents.permissions import set_permissions_for_object\n",
+      "bytes": 66
+    },
+    {
+      "id": "ev-56380e66f4858f15c35c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 86,
+      "endLine": 86,
+      "text": "86 | from documents.regex import validate_regex_pattern\n",
+      "bytes": 56
+    },
+    {
+      "id": "ev-e2066ced811324dd16ad",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 87,
+      "endLine": 87,
+      "text": "87 | from documents.templating.filepath import validate_filepath_template_and_render\n",
+      "bytes": 85
+    },
+    {
+      "id": "ev-cb4409728912d30fef91",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 88,
+      "endLine": 88,
+      "text": "88 | from documents.templating.utils import convert_format_str_to_template_format\n",
+      "bytes": 82
+    },
+    {
+      "id": "ev-95380b0bb8c6dd180bdf",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 89,
+      "endLine": 89,
+      "text": "89 | from documents.templating.workflows import validate_workflow_template\n",
+      "bytes": 75
+    },
+    {
+      "id": "ev-aec4ba3c02af51a3251c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 90,
+      "endLine": 90,
+      "text": "90 | from documents.validators import uri_validator\n",
+      "bytes": 52
+    },
+    {
+      "id": "ev-e375252199aa19fc8802",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 91,
+      "endLine": 91,
+      "text": "91 | from documents.validators import url_validator\n",
+      "bytes": 52
+    },
+    {
+      "id": "ev-3352f4d938fefb27b7e4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 92,
+      "endLine": 92,
+      "text": "92 | from documents.versioning import has_prefetched_effective_content\n",
+      "bytes": 71
+    },
+    {
+      "id": "ev-02c28c1f52568bd55d96",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 93,
+      "endLine": 93,
+      "text": "93 | from documents.versioning import sort_versions_newest_first\n",
+      "bytes": 65
+    },
+    {
+      "id": "ev-485c4609d039964feb67",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 168,
+      "endLine": 168,
+      "text": "168 |     document_count = serializers.IntegerField(read_only=True)\n",
+      "bytes": 68
+    },
+    {
+      "id": "ev-30cae9d904e5563a0852",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 524,
+      "endLine": 524,
+      "text": "524 |     def to_representation(self, documents):\n",
+      "bytes": 50
+    },
+    {
+      "id": "ev-166d3874274a897777e2",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 526,
+      "endLine": 526,
+      "text": "526 |             documents,\n",
+      "bytes": 29
+    },
+    {
+      "id": "ev-ff797017af86acb2dc7d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 528,
+      "endLine": 528,
+      "text": "528 |         return super().to_representation(documents)\n",
+      "bytes": 58
+    },
+    {
+      "id": "ev-73f24593c6c656cc9cff",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 543,
+      "endLine": 543,
+      "text": "543 |             \"document_count\",\n",
+      "bytes": 36
+    },
+    {
+      "id": "ev-fe88d25af07631d25eeb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 562,
+      "endLine": 562,
+      "text": "562 |             \"document_count\",\n",
+      "bytes": 36
+    },
+    {
+      "id": "ev-6e50c90db28d253a2409",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 643,
+      "endLine": 643,
+      "text": "643 |             filter_q = self.context.get(\"document_count_filter\")\n",
+      "bytes": 71
+    },
+    {
+      "id": "ev-2dae476b5443e79b6078",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 647,
+      "endLine": 647,
+      "text": "647 |                 filter_q = get_document_count_filter_for_user(user)\n",
+      "bytes": 74
+    },
+    {
+      "id": "ev-300adae976513add2622",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 648,
+      "endLine": 648,
+      "text": "648 |                 self.context[\"document_count_filter\"] = filter_q\n",
+      "bytes": 71
+    },
+    {
+      "id": "ev-06c469d6da3544a8fe8d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 653,
+      "endLine": 653,
+      "text": "653 |                 .annotate(document_count=Count(\"documents\", filter=filter_q))\n",
+      "bytes": 84
+    },
+    {
+      "id": "ev-152ec5452f32e43116d0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 695,
+      "endLine": 695,
+      "text": "695 |             \"document_count\",\n",
+      "bytes": 36
+    },
+    {
+      "id": "ev-de96d4eeebd738cc4b7c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 767,
+      "endLine": 767,
+      "text": "767 |     document_count = serializers.IntegerField(read_only=True)\n",
+      "bytes": 68
+    },
+    {
+      "id": "ev-ef5d95cfda9c54b91561",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 776,
+      "endLine": 776,
+      "text": "776 |             \"document_count\",\n",
+      "bytes": 36
+    },
+    {
+      "id": "ev-1f067a2dd5111c52ee19",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 856,
+      "endLine": 856,
+      "text": "856 | def validate_documentlink_targets(user, doc_ids):\n",
+      "bytes": 56
+    },
+    {
+      "id": "ev-1a4a117d8794a1c0e6b8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 859,
+      "endLine": 859,
+      "text": "859 |             \"Some documents in value don't exist or were specified twice.\",\n",
+      "bytes": 82
+    },
+    {
+      "id": "ev-0c66748fef99215af783",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 867,
+      "endLine": 867,
+      "text": "867 |         .exclude(id__in=permitted_document_ids(user, perm=\"change_document\"))\n",
+      "bytes": 84
+    },
+    {
+      "id": "ev-30e806e078ed51369afa",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 880,
+      "endLine": 880,
+      "text": "880 |         # An instance is attached to a document\n",
+      "bytes": 54
+    },
+    {
+      "id": "ev-76fc6d94fdfa203cd539",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 881,
+      "endLine": 881,
+      "text": "881 |         document: Document = validated_data[\"document\"]\n",
+      "bytes": 62
+    },
+    {
+      "id": "ev-135e466985286a388352",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 891,
+      "endLine": 891,
+      "text": "891 |             bulk_edit.reflect_doclinks(document, custom_field, validated_data[\"value\"])\n",
+      "bytes": 94
+    },
+    {
+      "id": "ev-53d5aa0eb89732141d44",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 896,
+      "endLine": 896,
+      "text": "896 |             document=document,\n",
+      "bytes": 37
+    },
+    {
+      "id": "ev-5cab04f1377099b84c69",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 966,
+      "endLine": 966,
+      "text": "966 |                 validate_documentlink_targets(\n",
+      "bytes": 53
+    },
+    {
+      "id": "ev-cddaed17d568c4a835de",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1000,
+      "endLine": 1000,
+      "text": "1000 |     document: Document,\n",
+      "bytes": 31
+    },
+    {
+      "id": "ev-83024663f60b544f16cb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1003,
+      "endLine": 1003,
+      "text": "1003 |     checksums = {document.checksum}\n",
+      "bytes": 43
+    },
+    {
+      "id": "ev-0e99610716e45b95003f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1004,
+      "endLine": 1004,
+      "text": "1004 |     if document.archive_checksum:\n",
+      "bytes": 41
+    },
+    {
+      "id": "ev-2bf7c49aa34e40b2d735",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1005,
+      "endLine": 1005,
+      "text": "1005 |         checksums.add(document.archive_checksum)\n",
+      "bytes": 56
+    },
+    {
+      "id": "ev-6d510292aeb5644cc5ee",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1008,
+      "endLine": 1008,
+      "text": "1008 |     ).exclude(pk=document.pk)\n",
+      "bytes": 37
+    },
+    {
+      "id": "ev-a35be5a337c8c3cb9ce0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1009,
+      "endLine": 1009,
+      "text": "1009 |     duplicates = duplicates.filter(root_document__isnull=True)\n",
+      "bytes": 70
+    },
+    {
+      "id": "ev-db3b7980b2680fca4a66",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1011,
+      "endLine": 1011,
+      "text": "1011 |     allowed_ids = permitted_document_ids(user, include_deleted=True)\n",
+      "bytes": 76
+    },
+    {
+      "id": "ev-75616bdf2f9a6be9a531",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1047,
+      "endLine": 1047,
+      "text": "1047 |     document_type = DocumentTypeField(allow_null=True)\n",
+      "bytes": 62
+    },
+    {
+      "id": "ev-f637af8ff3e65527cfc8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1054,
+      "endLine": 1054,
+      "text": "1054 |     duplicate_documents = SerializerMethodField()\n",
+      "bytes": 57
+    },
+    {
+      "id": "ev-10cdbff7d1eb883c8c54",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1057,
+      "endLine": 1057,
+      "text": "1057 |     root_document: RelatedField[Document, Document, Any] | ManyRelatedField = (\n",
+      "bytes": 87
+    },
+    {
+      "id": "ev-29426b9163ce71a002f5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1085,
+      "endLine": 1085,
+      "text": "1085 |     def get_duplicate_documents(self, obj):\n",
+      "bytes": 51
+    },
+    {
+      "id": "ev-e5f199a97afa0f561f04",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1096,
+      "endLine": 1096,
+      "text": "1096 |         root_doc = obj if obj.root_document_id is None else obj.root_document\n",
+      "bytes": 85
+    },
+    {
+      "id": "ev-2ce2b672728cf1d928b7",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1111,
+      "endLine": 1111,
+      "text": "1111 |             versions_qs = Document.objects.filter(root_document=root_doc).only(\n",
+      "bytes": 87
+    },
+    {
+      "id": "ev-fef90735efdaf8e32b5a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1116,
+      "endLine": 1116,
+      "text": "1116 |                 \"root_document_id\",\n",
+      "bytes": 43
+    },
+    {
+      "id": "ev-67258d3cc4f21929bb9c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1149,
+      "endLine": 1149,
+      "text": "1149 |             # which build their own querysets) gets the document's own,\n",
+      "bytes": 79
+    },
+    {
+      "id": "ev-572ad3519ef9cba54099",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1279,
+      "endLine": 1279,
+      "text": "1279 |         CustomFieldInstance.deleted_objects.filter(document=instance).delete()\n",
+      "bytes": 86
+    },
+    {
+      "id": "ev-22d93fa61c664e549d2c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1300,
+      "endLine": 1300,
+      "text": "1300 |             \"document_type\",\n",
+      "bytes": 36
+    },
+    {
+      "id": "ev-fb3dfc0fd326f9dbc038",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1313,
+      "endLine": 1313,
+      "text": "1313 |             \"duplicate_documents\",\n",
+      "bytes": 42
+    },
+    {
+      "id": "ev-13261084b11664338aae",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1324,
+      "endLine": 1324,
+      "text": "1324 |             \"root_document\",\n",
+      "bytes": 36
+    },
+    {
+      "id": "ev-85ace3bf2555ca598a84",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1333,
+      "endLine": 1333,
+      "text": "1333 |         document_ids = [hit[\"id\"] for hit in hits]\n",
+      "bytes": 58
+    },
+    {
+      "id": "ev-39883bf2bf385945289e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1335,
+      "endLine": 1335,
+      "text": "1335 |         documents = self.child.fetch_documents(document_ids)\n",
+      "bytes": 68
+    },
+    {
+      "id": "ev-4e4b369db7226a51cd79",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1336,
+      "endLine": 1336,
+      "text": "1336 |         self.child.context[\"documents\"] = documents\n",
+      "bytes": 59
+    },
+    {
+      "id": "ev-6159cd726080daab42bd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1339,
+      "endLine": 1339,
+      "text": "1339 |             documents.values(),\n",
+      "bytes": 39
+    },
+    {
+      "id": "ev-cd05ae3243ee05f26b60",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1347,
+      "endLine": 1347,
+      "text": "1347 |     def fetch_documents(ids):\n",
+      "bytes": 37
+    },
+    {
+      "id": "ev-46b8848523171a9c7301",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1349,
+      "endLine": 1349,
+      "text": "1349 |         Return a dict that maps given document IDs to Document objects.\n",
+      "bytes": 79
+    },
+    {
+      "id": "ev-ae23affd8dbb4f4859a6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1352,
+      "endLine": 1352,
+      "text": "1352 |             document.id: document\n",
+      "bytes": 41
+    },
+    {
+      "id": "ev-5a42d8d29c1b92bfc2d0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1353,
+      "endLine": 1353,
+      "text": "1353 |             for document in Document.objects.select_related(\n",
+      "bytes": 68
+    },
+    {
+      "id": "ev-f56cb3999702e2f71dac",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1356,
+      "endLine": 1356,
+      "text": "1356 |                 \"document_type\",\n",
+      "bytes": 40
+    },
+    {
+      "id": "ev-7a3b7045a2f6ad26144d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1364,
+      "endLine": 1364,
+      "text": "1364 |         # Again we first check if the parent has already fetched the documents.\n",
+      "bytes": 87
+    },
+    {
+      "id": "ev-5486188fa43bb137120b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1365,
+      "endLine": 1365,
+      "text": "1365 |         documents = self.context.get(\"documents\")\n",
+      "bytes": 57
+    },
+    {
+      "id": "ev-77c13fccd9e46f1f76b4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1366,
+      "endLine": 1366,
+      "text": "1366 |         # Otherwise we fetch this document.\n",
+      "bytes": 51
+    },
+    {
+      "id": "ev-262b909adbc9bf6bf9b2",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1367,
+      "endLine": 1367,
+      "text": "1367 |         if documents is None:  # pragma: no cover\n",
+      "bytes": 57
+    },
+    {
+      "id": "ev-1be8ccfa2b285526dc31",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1370,
+      "endLine": 1370,
+      "text": "1370 |             documents = self.fetch_documents([hit[\"id\"]])\n",
+      "bytes": 65
+    },
+    {
+      "id": "ev-2808f7f0b449e4d5f72f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1371,
+      "endLine": 1371,
+      "text": "1371 |         document = documents[hit[\"id\"]]\n",
+      "bytes": 47
+    },
+    {
+      "id": "ev-3f494a17908ae60d0887",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1374,
+      "endLine": 1374,
+      "text": "1374 |         r = super().to_representation(document)\n",
+      "bytes": 55
+    },
+    {
+      "id": "ev-56ef1441e773be6f5336",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1607,
+      "endLine": 1607,
+      "text": "1607 |     documents = serializers.ListField(\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-02886e9f67fb8a893d64",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1614,
+      "endLine": 1614,
+      "text": "1614 |     def _validate_document_id_list(self, documents, name=\"documents\") -> None:\n",
+      "bytes": 86
+    },
+    {
+      "id": "ev-297f0451d656ba2ceac0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1615,
+      "endLine": 1615,
+      "text": "1615 |         if not isinstance(documents, list):\n",
+      "bytes": 51
+    },
+    {
+      "id": "ev-07a46afd50eb9bc090c1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1617,
+      "endLine": 1617,
+      "text": "1617 |         if not all(isinstance(i, int) for i in documents):\n",
+      "bytes": 66
+    },
+    {
+      "id": "ev-59726aaaf81033aed290",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1619,
+      "endLine": 1619,
+      "text": "1619 |         count = Document.objects.filter(id__in=documents).count()\n",
+      "bytes": 73
+    },
+    {
+      "id": "ev-653417077d1fa7146fcd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1620,
+      "endLine": 1620,
+      "text": "1620 |         if not count == len(documents):\n",
+      "bytes": 47
+    },
+    {
+      "id": "ev-ba7ab3ba2b26e6db4f8d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 75,
+      "endLine": 75,
+      "text": "75 | api_router.register(r\"correspondents\", CorrespondentViewSet)\n",
+      "bytes": 66
+    },
+    {
+      "id": "ev-826143609cd7fb52e624",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 76,
+      "endLine": 76,
+      "text": "76 | api_router.register(r\"document_types\", DocumentTypeViewSet)\n",
+      "bytes": 65
+    },
+    {
+      "id": "ev-b9070c210e53d01f9419",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 77,
+      "endLine": 77,
+      "text": "77 | api_router.register(r\"documents\", UnifiedSearchViewSet)\n",
+      "bytes": 61
+    },
+    {
+      "id": "ev-8bab46ff6d8daff65de4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 78,
+      "endLine": 78,
+      "text": "78 | api_router.register(r\"logs\", LogViewSet, basename=\"logs\")\n",
+      "bytes": 63
+    },
+    {
+      "id": "ev-47827e4150370d87ea0f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 79,
+      "endLine": 79,
+      "text": "79 | api_router.register(r\"tags\", TagViewSet)\n",
+      "bytes": 46
+    },
+    {
+      "id": "ev-8b6598298ec40c7a6c31",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 80,
+      "endLine": 80,
+      "text": "80 | api_router.register(r\"saved_views\", SavedViewViewSet)\n",
+      "bytes": 59
+    },
+    {
+      "id": "ev-c98a1d6c6a61cc1b81d1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 81,
+      "endLine": 81,
+      "text": "81 | api_router.register(r\"storage_paths\", StoragePathViewSet)\n",
+      "bytes": 63
+    },
+    {
+      "id": "ev-2cdb881931558629ab60",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 82,
+      "endLine": 82,
+      "text": "82 | api_router.register(r\"tasks\", TasksViewSet, basename=\"tasks\")\n",
+      "bytes": 67
+    },
+    {
+      "id": "ev-810f5fa43ffa84c61c24",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 83,
+      "endLine": 83,
+      "text": "83 | api_router.register(r\"users\", UserViewSet, basename=\"users\")\n",
+      "bytes": 66
+    },
+    {
+      "id": "ev-39b878efeba1b4fcc0cd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 84,
+      "endLine": 84,
+      "text": "84 | api_router.register(r\"groups\", GroupViewSet, basename=\"groups\")\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-01509d16f3891b40fcc8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 85,
+      "endLine": 85,
+      "text": "85 | api_router.register(r\"mail_accounts\", MailAccountViewSet)\n",
+      "bytes": 63
+    },
+    {
+      "id": "ev-87794d9231f07e3f3389",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 86,
+      "endLine": 86,
+      "text": "86 | api_router.register(r\"mail_rules\", MailRuleViewSet)\n",
+      "bytes": 57
+    },
+    {
+      "id": "ev-41e917e3602d8889a84f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 87,
+      "endLine": 87,
+      "text": "87 | api_router.register(r\"share_link_bundles\", ShareLinkBundleViewSet)\n",
+      "bytes": 72
+    },
+    {
+      "id": "ev-bedb9e39403644e2f147",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 89,
+      "endLine": 89,
+      "text": "89 | api_router.register(r\"workflow_triggers\", WorkflowTriggerViewSet)\n",
+      "bytes": 71
+    },
+    {
+      "id": "ev-cf8e20de23b73a2028f5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 90,
+      "endLine": 90,
+      "text": "90 | api_router.register(r\"workflow_actions\", WorkflowActionViewSet)\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-14080a42680b23ee2e86",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 91,
+      "endLine": 91,
+      "text": "91 | api_router.register(r\"workflows\", WorkflowViewSet)\n",
+      "bytes": 56
+    },
+    {
+      "id": "ev-eec8971fc0b5faca1992",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 92,
+      "endLine": 92,
+      "text": "92 | api_router.register(r\"custom_fields\", CustomFieldViewSet)\n",
+      "bytes": 63
+    },
+    {
+      "id": "ev-fbebcbfef1f5575d602f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 93,
+      "endLine": 93,
+      "text": "93 | api_router.register(r\"config\", ApplicationConfigurationViewSet)\n",
+      "bytes": 69
+    },
+    {
+      "id": "ev-667b07f28145dd79ea44",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 94,
+      "endLine": 94,
+      "text": "94 | api_router.register(r\"processed_mail\", ProcessedMailViewSet)\n",
+      "bytes": 66
+    },
+    {
+      "id": "ev-58f552dc1c9808782986",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 74,
+      "endLine": 74,
+      "text": "74 | api_router = DefaultRouter()\n",
+      "bytes": 34
+    }
+  ]
+}

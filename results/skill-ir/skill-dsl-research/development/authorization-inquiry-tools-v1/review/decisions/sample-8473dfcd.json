@@ -1,0 +1,32 @@
+{
+  "sampleId": "sample-8473dfcd",
+  "packetSha256": "3755eb3f93e67c5a9ff3d7ba5e6ddbbd12fb9c553430c6ea7344daf3e14ad062",
+  "reviewer": "development-agent",
+  "criteria": {
+    "behavior": "correct",
+    "scenarios": "complete",
+    "evidence": "supported",
+    "bindings": "partial",
+    "unknowns": "overstated",
+    "policy": "correct"
+  },
+  "issues": [
+    {
+      "kind": "avoidable-unknown",
+      "detail": "Candidate leaves the notes route inheritance unresolved; UnifiedSearchViewSet(DocumentViewSet) is available at views.py:2503."
+    }
+  ],
+  "sourceSupport": [
+    {
+      "path": "src/documents/views.py",
+      "line": 1848,
+      "detail": "notes action loads addressed document and handles GET/POST."
+    },
+    {
+      "path": "src/documents/permissions.py",
+      "line": 30,
+      "detail": "Owner/object-permission based implementation."
+    }
+  ],
+  "rationale": "GET and POST are traced to the same document; required grants, owner/unowned bypass, and route-binding gap are correctly distinguished. Main-agent adjudication: Apply the same inheritance gap criterion as sample-4db2ddec. Source-visible policy/owner branches remain correct."
+}
