@@ -1,12 +1,12 @@
 # Skill 分类与领域 DSL 研究总文档
 
-更新于 2026-09-29。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并 S0–S11、D0–D11 及后续研究，并记录 DSL 实现中发现和解决的问题。实时执行状态仍由 [current-status](current-status.md) 维护，待办见[当前计划](skill-ir-aot-optimization-plan.md)。
+更新于 2026-09-30。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并 S0–S11、D0–D11 及后续研究，并记录 DSL 实现中发现和解决的问题。实时执行状态仍由 [current-status](current-status.md) 维护，待办见[当前计划](skill-ir-aot-optimization-plan.md)。
 
 ## 1. 当前结论
 
 **AH已完成44条四臂公开development评价，新增局部问题支架未建立稳定质量收益。** 同一11个任务出现次数下，Markdown标准/新支架均8/11 full，DSL标准5/11、新支架7/11；新支架修正了DSL若干标签错误，也新增一条superuser过度弃答，且同支架Markdown仍8/11、高于DSL的7/11。完整prompt+output为34,264/41,402/45,237/50,905 tokens（依次为Markdown标准/新支架、DSL标准/新支架），44次业务模型调用的实际美元费用均未知。独立模型辅助作者完成两包原/变任务，工作区继承显示公共政策变更，但有一处旧taskId来源说明未同步；真人时间与作者token未知，不能推算节省。可选策略和只读变更反馈保留为工程能力，普通默认不变。详细分母、错误和取舍见§7.27；AB两项目16条评价（Markdown 8/8、DSL 6/8）及AE四组各6/6的旧结论仍见§7.25–7.26，AC/AD和AF/AG工程工具不增加AH分母。
 
-**当前授权阶段：** AK0–AK16工程、真实使用、有限验证及用户origin发布完成，首次发布头`a9aa3d9e`已核对一致。40质量单元中36完成、4准备阻塞，最终36/40 full含12项合理unknown；8作者消费/16义务完成，按冻结前提12/16 full。同材料M/D最终打平，自动定位降低材料字节却增加未解决问题。当前取舍、额外作者纠正和语义裁定统一见§7.30，旧结果原样保留。
+**当前授权阶段：** AN0–AN16已发布`0decb0ef`，当前任务前端编译与普通消费已接通。固定材料16项质量任务终答均有据且解决，新旧合同各8/8；原协议接受5/12计划作者稿、新前端4/4。交付后复核确认Markdown的大小写/标点误拒、旧v2变更接口缺少评价要求的request修改操作，以及新前端两份原稿直接复制已提供的完整声明。这些发现影响作者路线的比较结论：保留原协议计数和真实消费结果，先校准评价与输入职责，再检验自然任务到领域声明的编写。详情见§7.33；旧阶段结果继续保留。
 
 已经站得住的判断：
 
@@ -1142,7 +1142,7 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **AN9固定材料质量。** 生成前[冻结](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/generation-freeze.json)绑定63项输入和实现文件，16项质量fresh session全部真实完成，21次分析调用含5次原有单次修复。生成关闭之后才读取评价oracle；[逐行评分与摘要](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/evaluation-summary.json)同时保留首答和终答：首答11/16有效交付且源码支持，终答16/16有据且解决，其中12项确定、4项条件完整。compatibility与current-v1各8/8终答支持，八组配对均无终答质量升降；首答分别5/8与6/8，不能据此声称新合同稳定提高质量。五份初答因wire决策类型或引用范围无效而未交付，即使其中原始叙述与源码相符，也按冻结口径记blocked，修复后才计终答。原AM的三份矛盾解释仍保留为历史；AN的新结果不能追认提示冲突是其唯一因果原因。
 
-**AN10–AN11编写与消费。** 两包三路线原/变共12计划作者稿，原稿失败使3份变稿依赖阻塞；实际9稿派发、12次作者调用含3次诊断修订。结构与公开事实及语义均有效的终稿为5/12：Markdown 0/4、完整v2 DSL 1/4、新前端4/4。新前端只机械展开已声明的入口/前提/条件、ID和引用；政策、期待、owner存在性仍由作者提供。Markdown稿遗漏公开事实，Memos DSL原稿没有有效版本，Paperless DSL变稿改动了受约束政策/请求；这些失败没有由主代理补写后计成功。有效稿经普通check、同源准备复用和fresh run完成5/12消费session，另7项作者依赖阻塞；24计划义务中10项实际交付、14项阻塞。5次最终消费均有据且解决（3确定、2条件完整），首答仅3次有效交付；两组具名变化仍需复查旧答案。新前端的4/4作者稿和4/4消费与这两包公开development任务相符，不能推广为一般作者可靠性或真人省时，更不能把宿主编译通过当作消费成功。
+**AN10–AN11编写与消费。** 两包三路线原/变共12计划作者稿，原稿未获原协议接受使3份变稿依赖阻塞；实际9稿派发、12次作者调用含3次诊断修订。原协议接受的终稿为5/12：Markdown 0/4、完整v2 DSL 1/4、新前端4/4。新前端机械展开已声明的入口/前提/条件、ID和引用；政策、期待、owner存在性由输入提供。Memos DSL原稿返回context/draft包装，未满足所需根结构。Markdown字面匹配拒绝与Paperless DSL变更失败的原因已在下方交付后复核更正，不能统称为领域事实遗漏或政策改错。原协议接受稿经普通check、同源准备复用和fresh run完成5/12消费session，另7项作者依赖阻塞；24计划义务中10项实际交付、14项阻塞。5次最终消费均有据且解决（3确定、2条件完整），首答仅3次有效交付；两组具名变化仍需复查旧答案。新前端的4/4稿和4/4消费保留为这两包已给定结构化任务的工程使用证据，作者路线优劣需结合下方评价及输入职责问题解释。
 
 **AN12有界修订与普通使用。** 消费开始前发现研究runner以对象键顺序比较复用报告，使已`claim`但未派发模型的消费行被拒；先红绿改为结构比较并分开付费前/后恢复，随后又修正离线准备归档重入时的独占保存。原冻结及AN9/AN10字节不改，两份[消费专用修订身份](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/generation-revision-2.json)逐次登记，最终只继续5份有效稿，不重抽低分或无效作者稿。普通[当前任务示例](../../examples/authorization-assessment/task-semantics/README.md#start-from-a-scoped-current-task)展示当前task→init/check/prepare→fresh run→具名变更→reuse/check/compare→fresh run；`init/check/prepare/reuse/compare`不调用模型，两次`run`需要用户配置模型并付费。一次仓外复制离线核验14文件摘要、原/变同源和同pending gaps、变化任务与材料摘要差异、两份有效current-v1检查；provider与目标执行均为0，见[portable-verification](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/portable-verification.json)。
 
@@ -1151,6 +1151,14 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 **AN15独立核验与有限修正。** 两项只读复核分别抽查生产接口和生成/评分归档：当前/未来政策隔离、缺政策不推断、定向修订白名单、实际prompt合同、模型原解释保留、冻结分母、首答与终答区分及40次用量均有对应源码和档案。发现直接调用renderer可把current-v1与旧wire组合，以及评分replay只核评分包、不重核raw report/run原件；各先写失败测试，再分别拒绝非v6的直接组合、以原件摘要核对28个评分包。生产有效v6提示及已生成答案不变，原生成freeze不改，没有追加provider请求。相关回归480 pass/1平台skip、3146断言/67文件，主/研究类型、12文档测试、链接/实验目录和四项零provider重放均通过；实际USD/真人分钟及未见任务可靠性仍未知。归档提示未直接保存单独的“无oracle”证明，隔离依赖生成前冻结、生成关闭后才读取oracle及现有prompt档案；此限制不升级为污染事实。
 
 **AN16发布。** 工程、原始调用/评分档案和文档按职责提交；首次完整头`d028fe97a0485bb753de8b6dc1b50acd0cde4ff8`已推到用户`origin/skill-ir-aot`并逐SHA核对，当时工作区干净。最后状态记录单独提交和同步；不扩样、重发失败行或读取保护集。普通入口见[task-semantics示例](../../examples/authorization-assessment/task-semantics/README.md#start-from-a-scoped-current-task)，逐案评级、费用未知项和零provider重放见[评价摘要](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/evaluation-summary.json)及[验证记录](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/verification.json)。
+
+**2026-09-30交付后复核：评价与编写职责更正。** 父任务在`0decb0ef`上复跑480 pass/1平台skip、3146断言，主/研究类型检查及evaluation replay通过；本次模型和目标调用均为0。三项只读独立核验后，主任务直接检查原始响应、生产接口并运行内存反例，确认：
+
+- [作者检查器](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/author-protocol.ts)第93–100行用区分大小写的子串匹配检查Markdown。Memos修订稿明确写`Expected policy result: Deny`，只因缺小写`deny`被拒；内存中仅把该词改为小写即通过。Paperless修订稿的两条完整前提保留了相同授权事实，逗号差异导致整句匹配失败。这是原协议误拒，不是已证实的语义遗漏；派生变稿及消费仍未执行，不补算其成功。
+- Paperless v2变更稿正确提交两条premise修改，普通local-edit返回ready且policy保持原样。原协议还要求request换为新问题，但[local-edit](../../src/benchmarks/authorization-dsl/authoring-workspace/local-edit.ts)的操作集合没有request修改；给作者的known context/draft仍带旧request。该行暴露接口与评价要求不一致，原有“改动了受约束政策/请求”的描述已更正。
+- 两份新前端原稿与各自prompt中完整的`currentTask`按解析后JSON逐字段相同。它们验证了已给定领域声明的复制、编译及消费，尚未测到由自然任务提取这些领域字段的能力。新前端减少引用负担的实现确实存在；4/4相对另外两条路线的研究解释需要公平的事实输入和语义验收。
+
+原始freeze、响应、评分和计费文件保持原字节，5/12、10/24仍是原协议的实际执行结果。本次未重评全部作者或补跑被阻塞行。后续讨论优先级为：语义验收校准与接口可表达性、自然任务到当前领域声明的实际编写、以及能暴露遗漏/矛盾的同类变化任务。新一轮任务书和执行尚未启动。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
