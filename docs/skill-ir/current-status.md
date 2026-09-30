@@ -6,9 +6,11 @@
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
-**当前用户要求（2026-09-30）：** 质量约60%、编写复用约40%只表示开发精力分配，项目要求与评价不按该比例划分。后续保留真实任务难度，明确规范要求与待查源码行为，禁止预供答案；DSL语义、编译器、脚手架及工具支持允许按共性缺口继续完善。当前仍在讨论下一轮方案。
+**当前队列（2026-09-30）：** 用户已授权[AO0–AO16 真实授权任务、领域 DSL 与有界取证工具](../superpowers/plans/2026-09-30-authorization-inquiry-and-evidence-tools.md)，开发线程配置为`gpt-6.1-sol / max`，规划状态`planned-not-started`，基线`cdcbb744`。在同一`skill-ir-aot`连续完成评价校准、行为调查/政策检查区分、分析中只读补证、自然作者和两个源skill实际接入；AO0建立执行状态。研究与设计见[§7.34](skill-dsl-research.md#734-ao-真实授权任务与领域取证工具)。
 
-**2026-09-30 AN交付后复核：** `0decb0ef`与origin一致，复跑480 pass/1平台skip、主/研究类型及零调用评价重放通过。作者原协议存在Markdown大小写/标点误拒、旧v2变更接口无法修改评价所要求的request；新前端两份原稿直接复制已给定的完整声明。原5/12、10/24和全部归档保持，作者路线优势及失败归因按[研究§7.33](skill-dsl-research.md#733-an-当前任务合同与领域声明展开)更正。正在讨论评价校准、实际领域编写与变化任务验证；未启动新一轮开发。
+**当前用户要求（2026-09-30）：** 质量约60%、编写复用约40%只表示开发精力分配，项目要求与评价不按该比例划分。保留真实任务难度，明确规范要求与待查源码行为，禁止预供答案；DSL语义、编译器、脚手架及工具支持按共性缺口继续完善。新分析循环显式启用，旧fixed-context路径保持。
+
+**2026-09-30 AN交付后复核：** `0decb0ef`与origin一致，复跑480 pass/1平台skip、主/研究类型及零调用评价重放通过。作者原协议存在Markdown大小写/标点误拒、旧v2变更接口无法修改评价所要求的request；新前端两份原稿直接复制已给定的完整声明。原5/12、10/24和全部归档保持，作者路线优势及失败归因按[研究§7.33](skill-dsl-research.md#733-an-当前任务合同与领域声明展开)更正。后续实现与真实验证由AO承接，旧AN身份关闭。
 
 **AN0–AN16已完成并发布：** [当前任务合同、领域声明展开与一致回答](../superpowers/plans/2026-09-30-authorization-task-contract-and-authoring.md)，启动HEAD`3251ff0c`，[机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/status.json)与[评价摘要](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/evaluation-summary.json)保存逐行结果。可选当前任务前端编译到既有v2，具名变更/定向修订接入普通入口；可选current-v1在v6实际prompt迁移确切旧返回要求，政策摘要和原模型解释分别保留。16/16质量fresh session终答均有据且解决（12确定、4条件完整），compatibility/current-v1各8/8、配对无终答质量增益；首答11/16有效交付。12计划作者稿终稿5有效（Markdown 0/4、完整v2 1/4、新前端4/4），5/12消费完成且终答均有据，24计划义务10交付、14因作者无效阻塞。两次研究runner消费前恢复修订单列，原质量/作者冻结不改。40次真实provider请求、完整prompt195,420/output48,813 tokens，actualUSD/真人分钟未知，目标执行0。独立只读复核和两项定向修正后，相关回归480 pass/1平台skip、3146断言/67文件，主/研究类型、四项零provider重放、文档及实验目录检查通过。普通仓外复制的当前任务→编译→准备/复用→变更检查零provider通过。首次完整发布头`d028fe97a0485bb753de8b6dc1b50acd0cde4ff8`与用户origin一致、当时工作区干净；最终状态记录另行同步。新选项保持opt-in，固定AM材料、历史证据和默认不改；方法、成本和限制见[研究§7.33](skill-dsl-research.md#733-an-当前任务合同与领域声明展开)。
 
