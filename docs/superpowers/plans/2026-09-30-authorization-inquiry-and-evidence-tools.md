@@ -12,7 +12,7 @@
 
 ## 1. 授权、范围与交接
 
-- 日期：2026-09-30；2026-10-01状态：`verification-and-publication`。规划基线 `cdcbb7446524fc2cc32739b8d9d62d672ae4792f`；实际从干净`aea87139`启动，工程绑定`218f5bbf`，56行/319调用已关闭且不再采样。
+- 日期：2026-09-30；2026-10-01状态：`completed-and-published`。规划基线 `cdcbb7446524fc2cc32739b8d9d62d672ae4792f`；实际从干净`aea87139`启动，工程绑定`218f5bbf`，56行/319调用已关闭且不再采样。首次完整发布`47942ac33f1eda0f9140d449e496fc2230aff4f3`与用户origin一致、工作区干净；完成记录另随本书同步。
 - 开发线程：`gpt-6.1-sol / max`。被测 provider 保持 `xty/gpt-5.6-sol`，逐请求保存实际配置；开发模型和被测模型分账。
 - 在 `D:\skill优化\SkVM` 的 `skill-ir-aot` 开发，仅推送用户 `origin/skill-ir-aot`，不开新分支、不写 upstream。无关修改及历史本地材料保留。
 - 结果根：`results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/`。AO0才创建 `status.json`、`journal.jsonl`；原AN及更早身份不改。
@@ -357,9 +357,11 @@ git diff --check
 
 ### AO16 发布与关闭
 
-- [ ] 按实现、真实证据、文档进行归属明确的提交，推送用户origin/skill-ir-aot，核对远端SHA及工作区。
-- [ ] 给出普通使用命令、实际完成/失败分母、DSL领域与工具能力、质量及成本取舍、明确剩余问题。
-- [ ] 状态区分工程交付与方法收益；必需工程有缺项则记录incomplete/blocked原因，不能用“适用任务均完成”隐藏遗漏。全部适用交付终结后停止本队列。
+- [x] 按实现、真实证据、文档进行归属明确的提交，推送用户origin/skill-ir-aot，核对远端SHA及工作区。
+- [x] 给出普通使用命令、实际完成/失败分母、DSL领域与工具能力、质量及成本取舍、明确剩余问题。
+- [x] 状态区分工程交付与方法收益；必需工程有缺项则记录incomplete/blocked原因，不能用“适用任务均完成”隐藏遗漏。全部适用交付终结后停止本队列。
+
+AO16发布证据保存在结果根`publication.json`。原SSH连接关闭后，使用已有GitHub登录按次切换HTTPS推送同一用户origin；未修改持久remote配置。普通步骤见reusable-skill/SKILL.md，严格分母、失败、未知费用及剩余source-skill职责见研究§7.34与机器摘要。后续只同步完成状态，不追加paid单元。
 
 ## 7. 连续执行与自主修改
 
