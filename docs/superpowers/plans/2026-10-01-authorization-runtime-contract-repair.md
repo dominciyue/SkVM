@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 provider mock、authorization inquiry、已有 telemetry。
 
-状态：planned-dispatched。基线：`256db3c12bfbea3b1ba01d324da41d51b8167411`。工作目录 `D:\skill优化\SkVM`，分支 `skill-ir-aot`。开发模型请求 `gpt-6.1-sol / max / Flash`；派发接口支持 model/effort，未提供速度参数，不能将请求的 Flash 写成实际已启用。不得修改全局模型/速度配置。
+状态：AP0–AP3完成，AP4验证通过、待发布核对。实际起点HEAD `df18fece`、工作区干净，含尚未推送的任务书提交；工程基线：`256db3c12bfbea3b1ba01d324da41d51b8167411`。工作目录 `D:\skill优化\SkVM`，分支 `skill-ir-aot`。开发模型请求 `gpt-6.1-sol / max / Flash`；派发接口支持 model/effort，未提供速度参数，不能将请求的 Flash 写成实际已启用。不得修改全局模型/速度配置。
 
 ## 范围与协作
 
@@ -42,18 +42,18 @@
 
 **Files:** 本任务书；上述源代码与测试；新增紧凑记录 `results/skill-ir/authorization-runtime-contract-repair-20261001/verification.json`（交付时创建）。
 
-- [ ] 查看当前分支、工作区与最近提交，记录本任务起点。无需重新验证已冻结的全部历史阶段。
-- [ ] 从两个消费行仅提取动作数量、错误、已发送 schema 的数组字段，证明缺的是 `minItems/maxItems`。不能将真实源码或整份原始提示复制成庞大新 fixture。
-- [ ] 用通用临时源码和 mock provider 重现同一问题。测试中使用中性的 task/repo 名，避免依赖 Memos/Paperless 名称。
+- [x] 查看当前分支、工作区与最近提交，记录本任务起点。无需重新验证已冻结的全部历史阶段。
+- [x] 从两个消费行仅提取动作数量、错误、已发送 schema 的数组字段，证明缺的是 `minItems/maxItems`。不能将真实源码或整份原始提示复制成庞大新 fixture。
+- [x] 用通用临时源码和 mock provider 重现同一问题。测试中使用中性的 task/repo 名，避免依赖 Memos/Paperless 名称。
 
 ## AP1：生产合同与模型 Schema 同步
 
 **Modify:** `src/providers/structured.ts`。
 **Test:** `src/providers/structured.test.ts`。
 
-- [ ] 先写失败测试：捕获 provider 收到的 tool schema；对嵌套 `z.array(...).min(1).max(8)` 断言包含 `minItems: 1, maxItems: 8`，并覆盖 `.length(2)`、optional、union 内的数组以及无约束数组。
-- [ ] 测试 prompt+parse schema 也携带相同界限，验证两种传输共用同一转换结果。
-- [ ] 在 `ZodArray` 分支保留 items，并按照实际 Zod 定义映射数组长度界限：
+- [x] 先写失败测试：捕获 provider 收到的 tool schema；对嵌套 `z.array(...).min(1).max(8)` 断言包含 `minItems: 1, maxItems: 8`，并覆盖 `.length(2)`、optional、union 内的数组以及无约束数组。
+- [x] 测试 prompt+parse schema 也携带相同界限，验证两种传输共用同一转换结果。
+- [x] 在 `ZodArray` 分支保留 items，并按照实际 Zod 定义映射数组长度界限：
 
 ```ts
 return {
@@ -68,37 +68,41 @@ return {
 }
 ```
 
-- [ ] 测试成功后再进行下一步。不要顺带替换整个 schema 库或扩大到全部 Zod 特性的重构。
+- [x] 测试成功后再进行下一步。不要顺带替换整个 schema 库或扩大到全部 Zod 特性的重构。
 
 ## AP2：将明确的协议诊断用于既有恢复机会
 
 **Modify:** `src/providers/structured.ts`；必要时 `src/benchmarks/authorization-dsl/inquiry-run.ts` 的错误说明。
 **Test:** `src/providers/structured.test.ts`、`src/benchmarks/authorization-dsl/inquiry-run.test.ts`。
 
-- [ ] 先写失败测试：第一次返回9或10个动作，下一次 mock 根据明确诊断返回合法8个动作；断言 fallback 请求包含 `calls`、允许上限和首次错误类别，原失败与调用计量仍保留。
-- [ ] 在既有 tool-use→prompt+parse fallback 中传入有界结构诊断，例如字段路径、错误码、界限和实际数量。把诊断作为数据，不能将模型原文或源码中的指令提升为系统指令。
-- [ ] 不增加既有调用次数上限，不对 provider 网络错误、超时或未知完成自动重发。现有 fallback 的一次请求应能获取可行动反馈。
-- [ ] 不静默截取前8项，不把剩余合法动作丢弃，不把未知工具转换为允许工具。模型可分两轮请求，宿主按原总预算计量。
-- [ ] 第二次仍违反合同则保留具体失败诊断和原始响应；不得标成成功。至少覆盖“超限→合法”“超限→仍超限”“provider错误不fallback”“预算已耗尽不额外派发”四种情况。
-- [ ] 说明本修复确保规则可见且恢复有依据，不声称所有真实模型都必然服从。
+- [x] 先写失败测试：第一次返回9或10个动作，下一次 mock 根据明确诊断返回合法8个动作；断言 fallback 请求包含 `calls`、允许上限和首次错误类别，原失败与调用计量仍保留。
+- [x] 在既有 tool-use→prompt+parse fallback 中传入有界结构诊断，例如字段路径、错误码、界限和实际数量。把诊断作为数据，不能将模型原文或源码中的指令提升为系统指令。
+- [x] 不增加既有调用次数上限，不对 provider 网络错误、超时或未知完成自动重发。现有 fallback 的一次请求应能获取可行动反馈。
+- [x] 不静默截取前8项，不把剩余合法动作丢弃，不把未知工具转换为允许工具。模型可分两轮请求，宿主按原总预算计量。
+- [x] 第二次仍违反合同则保留具体失败诊断和原始响应；不得标成成功。至少覆盖“超限→合法”“超限→仍超限”“provider错误不fallback”“预算已耗尽不额外派发”四种情况。
+- [x] 说明本修复确保规则可见且恢复有依据，不声称所有真实模型都必然服从。
 
 ## AP3：为最终机械检查保留预算
 
 **Modify:** `src/benchmarks/authorization-dsl/inquiry-native.ts`。
 **Test:** `src/benchmarks/authorization-dsl/inquiry-native.test.ts`，按需 `src/adapters/bare-authorization.test.ts`。
 
-- [ ] 先写失败测试：启用domain工具，总预算24；普通源码/reference/compile/observe消耗到22后，新的探索动作被拒绝，但一次 `authorization_check_result` 及其一次诊断修复仍可执行，总实际执行次数不超过24。
-- [ ] 默认在domain模式内保留2个检查位置（第一次和一次修复）；非domain路径保持原预算。对显式极小预算，采用与现有检查一致的具名诊断，不允许负数或隐藏增加预算。
-- [ ] 预算判断区分 exploration 与 final check，并让模型可见各自剩余额度。保持现有源码大小、调用数、超时和两次check上限；拒绝的动作与实际执行的动作分别记录。
-- [ ] 在“没有编译”“检查2次均失败”“连续拒绝后重试”“源码/引用仍需隔离”等情况下，结果不能被误标有效。
-- [ ] 未启用domain工具的既有测试继续通过。不得通过把全部工具上限调大来掩盖该问题。
+- [x] 先写失败测试：启用domain工具，总预算24；普通源码/reference/compile/observe消耗到22后，新的探索动作被拒绝，但一次 `authorization_check_result` 及其一次诊断修复仍可执行，总实际执行次数不超过24。
+- [x] 默认在domain模式内保留2个检查位置（第一次和一次修复）；非domain路径保持原预算。对显式极小预算，采用与现有检查一致的具名诊断，不允许负数或隐藏增加预算。
+- [x] 预算判断区分 exploration 与 final check，并让模型可见各自剩余额度。保持现有源码大小、调用数、超时和两次check上限；拒绝的动作与实际执行的动作分别记录。
+- [x] 在“没有编译”“检查2次均失败”“连续拒绝后重试”“源码/引用仍需隔离”等情况下，结果不能被误标有效。
+- [x] 未启用domain工具的既有测试继续通过。不得通过把全部工具上限调大来掩盖该问题。
+
+AP3实现细节：domain总预算至少3（一次compile加两次check），显式1/2在创建时返回具名`tool-budget`错误，非domain仍接受原有正整数预算。探索上限固定为总上限减2；工具返回与报告暴露探索/check/总额剩余，并以executed区分实际执行和预算拒绝。此细节不增加总预算、不影响源码和引用隔离。
+
+AP3另一个红灯反例：首次check有效、第二次无效时，旧实现仍暴露首次result；现已按最后一次实际check清除旧有效result。三次预算拒绝不能挤占或刷新check位，两次无效后第三次提交保留拒绝。
 
 ## AP4：验证、说明及交付
 
 **Docs:** 本任务书、`docs/skill-ir/current-status.md`、`docs/skill-ir/skill-dsl-research.md`（在 AO 附近追加短修复说明）、相关 spec/使用说明仅更新受影响的合同。
 
-- [ ] 运行相关 provider、inquiry、native、adapter 和CLI测试；主typecheck。测试选择一次确定，不重复全仓历史审计。
-- [ ] 在仓库内执行：
+- [x] 运行相关 provider、inquiry、native、adapter 和CLI测试；主typecheck。测试选择一次确定，不重复全仓历史审计。
+- [x] 在仓库内执行：
 
 ```powershell
 bun test ./src/providers/structured.test.ts ./src/benchmarks/authorization-dsl/inquiry-run.test.ts ./src/benchmarks/authorization-dsl/inquiry-native.test.ts ./src/adapters/bare-authorization.test.ts ./src/cli/authorization-ao.test.ts
@@ -110,10 +114,12 @@ git diff --check
 若当前PATH无Bun，使用既有 `C:/Users/14182/AppData/Roaming/npm/node_modules/bun/bin/bun.exe`，不安装第二运行时。
 
 - [ ] AO replay只核对保留结果未变；新增mock恢复结果单列。新记录仅保存测试命令、结果、修复前后行为、相关提交与项目调用0；实际USD/真人收益不作新增结论。
-- [ ] 更新已有文档中受影响的参数/行为，运行现有文档单测，不新建长期组件文档。
-- [ ] 向 `D:\skill优化\conversation_log.md` 追加简短阶段记录。
+- [x] 更新已有文档中受影响的参数/行为，运行现有文档单测，不新建长期组件文档。
+- [x] 向 `D:\skill优化\conversation_log.md` 追加简短阶段记录。
 - [ ] 仅提交本任务文件，推送用户 `origin/skill-ir-aot`，核对远端。SSH不可用可用既有gh认证的HTTPS方式，不修改持久远端配置或打印凭据。
 - [ ] 最终报告列出：修了什么、反例如何恢复、验证结果、是否仍有工程阻塞、SHA及工作区状态。完成后停止，不启动新研究任务。
+
+AP4有限验证：指定五文件加原provider两个回归及inquiry-tools，共44 pass/0 fail、201断言/8文件；主typecheck exit0，AO evaluate replay重现56行/104映射且provider0；现有文档单测12/12，diff --check通过。AO结果目录git diff为空；独立default只读探子按具体函数/行号核验无阻塞。未扩展历史审计或付费实验。
 
 ## 验收清单
 

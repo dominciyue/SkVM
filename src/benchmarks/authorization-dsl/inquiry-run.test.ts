@@ -79,3 +79,42 @@ test("first delivery validation stays separate when one diagnosed repair succeed
   expect(run.validation?.valid).toBe(true)
   expect(mock.count()).toBe(3)
 })
+
+for (const count of [9, 10]) test(`an over-limit ${count}-action proposal recovers through one diagnosed fallback without truncation`, async () => {
+  const input = await setup(), calls = Array.from({ length: count }, () => ({ name: "source_list", arguments: {} }))
+  let dispatches = 0
+  const provider: LLMProvider = {
+    name: "action-bound-mock",
+    async complete(params) {
+      const n = dispatches++, prompt = params.messages[0]!.content
+      let value: unknown
+      if (n === 0) value = { kind: "tool", calls }
+      else if (n === 1) {
+        const diagnosed = prompt.includes('"path":"calls"') && prompt.includes('"code":"too_big"') && prompt.includes('"maximum":8') && prompt.includes(`"actualItems":${count}`)
+        value = { kind: "tool", calls: diagnosed ? calls.slice(0, 8) : calls }
+      } else if (n === 2) value = { kind: "tool", calls: calls.slice(8) }
+      else value = { kind: "final", result: { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "unknown", explanation: "Only the allowed source index was inspected." }, evidenceIds: [], branches: [], missing: [{ kind: "source-gap", detail: "Entry and guard bodies remain unread", nextRead: "Read the selected entry" }] }], observations: [], scope: "Source index only" } }
+      return { text: params.tools ? "" : JSON.stringify(value), toolCalls: params.tools ? [{ id: `c${n}`, name: params.tools[0]!.name, arguments: value as Record<string, unknown> }] : [], tokens: { input: 2, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 0, stopReason: "end_turn" }
+    },
+    async completeWithToolResults() { throw new Error("Use structured inquiry actions") },
+  }
+  const run = await runAuthorizationInquiry({ ...input, method: "M", provider })
+  expect(run.status).toBe("completed")
+  expect(dispatches).toBe(4)
+  expect(run.toolHistory).toHaveLength(count)
+  expect(run.attempts[0]!.response!.toolCalls[0]!.arguments.calls).toHaveLength(count)
+  expect(run.attempts[1]!.transport).toBe("prompt-parse")
+  expect(run.telemetry.knownTokens.input).toBe(8)
+  expect(run.result?.questions[0]?.behavior.disposition).toBe("unknown")
+})
+
+test("an over-limit proposal cannot use fallback after the actual dispatch budget is exhausted", async () => {
+  const input = await setup(), mock = scripted(() => ({ kind: "tool", calls: Array.from({ length: 9 }, () => ({ name: "source_list", arguments: {} })) }))
+  const run = await runAuthorizationInquiry({ ...input, method: "M", provider: mock.provider, maxDispatches: 1 })
+  expect(mock.count()).toBe(1)
+  expect(run.status).toBe("budget-exhausted")
+  expect(run.result).toBeUndefined()
+  expect(run.toolHistory).toHaveLength(0)
+  expect(run.attempts[0]!.response!.toolCalls[0]!.arguments.calls).toHaveLength(9)
+  expect(run.events.some(event => event.kind === "dispatch-rejected")).toBe(true)
+})
