@@ -4,6 +4,8 @@
 
 ## 当前方向与任务
 
+**AQ0–AQ16已授权、待执行线程启动（2026-10-01）：** [授权领域执行任务书](../superpowers/plans/2026-10-01-authorization-domain-execution.md)以已复核的`2c7dd073`为工程基线，接续AP完成后的领域方法开发。新增可选`domain-evidence-v1`：模型提取带出处的局部控制规则，宿主实际调度依赖读取、部分求值条件分支、核对行为/政策与对象绑定。普通inquiry/native共用核心，旧默认保持；用户只需自然任务、允许源码和必要的独立政策。计划40个四臂质量session、4个消融和4个原skill普通消费，全部使用已暴露development材料与AP后同一运行器，提取/作者/检查成本完整计入；本轮尚未开始实现或模型实验。开发配置请求`gpt-6.1-sol / max / Flash`，派发接口未提供速度参数，Flash暂未确认。设计见[研究§7.35](skill-dsl-research.md#735-aq-授权领域执行设计)。
+
 **AP0–AP4共享运行器修复已完成（2026-10-01）：** [任务书](../superpowers/plans/2026-10-01-authorization-runtime-contract-repair.md)交付数组Schema界限同步、带字段诊断的既有fallback和native总24内的22探索/2最终check预算；无效第二次check会清除旧有效结果。工程提交`ef9f1e57`已推送并与用户origin核对，当时工作区干净；本页和[紧凑验证记录](../../results/skill-ir/authorization-runtime-contract-repair-20261001/verification.json)同步收尾。44 pass/0 fail、201断言/8文件，主typecheck、AO 56行/104映射零调用重放、文档12测试及diff检查通过；独立只读核验无阻塞。旧AO 32质量/8作者/8消费/8源skill、原请求/响应及统计保持，项目model/API/paid调用0。仅确定性工程结果，不声称真实模型必然服从或语义质量收益；领域取证调度、分支处理与结论检查由父线程另行讨论，本小任务停止。
 
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。

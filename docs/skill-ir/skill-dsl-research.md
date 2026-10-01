@@ -1210,6 +1210,20 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **AP运行合同修复（2026-10-01）。** AO关闭后复核确认：两条消费的模型Schema未暴露本地1–8数组界限、既有fallback未提供首次具体字段诊断，native共用24动作可在最终check前耗尽。[AP0–AP4](../superpowers/plans/2026-10-01-authorization-runtime-contract-repair.md)用通用临时源码/mock先红后绿修复三处共性合同：两通道保留min/max/exact长度；一次既有fallback收到有界path/code/界限/实际数量数据，9/10动作可按8加剩余动作分轮请求，不截断；native在总24内保留22探索+2最终check，拒绝与执行分账，无效第二次check清除旧result。工程`ef9f1e57`已与用户origin核对；44测试/201断言、主类型、文档12测试及AO 56行/104映射离线重放通过，独立只读核验无阻塞。[验证记录](../../results/skill-ir/authorization-runtime-contract-repair-20261001/verification.json)单列mock恢复。原AO全部证据、分母与质量/费用统计不变，项目model/API/paid调用0；没有新增真实质量或人工收益证据，也不保证模型取证和结论必然完整。
 
+### 7.35 AQ 授权领域执行设计
+
+2026-10-01，AP代码、44项测试/201断言、主类型与AO离线重放已复核通过，用户授权[下一轮AQ0–AQ16](../superpowers/plans/2026-10-01-authorization-domain-execution.md)，由`gpt-6.1-sol / max`执行，Flash请求未由派发接口确认。本节当前是开发设计，真实结果由执行线程随后追加。
+
+**根因和取舍。** 现有`compileAuthorizationInquiry`只展开六类pending问题；`inquiry-run`把它们放入提示，源码动作仍由模型选。`conditions`与`assessment-program`已有请求/覆盖合同，但没有条件真值求值器；`inquiry-result`核对结构、问题和已展示引用。这解释了为什么字段已经丰富，允许范围内的helper仍可能漏读、明确null-owner仍保留不适用分支、源码allow仍可能与规范deny混写。继续加提示改动小但缺执行约束，完整静态分析平台范围过大；本轮选择局部规则提取与宿主领域执行。
+
+**方法。** 运行期控制slice区分主体、资源、guard、effect与路径依赖，所有规则记录证据与来源。模型从原始材料提议规则和依赖，宿主在共同预算内实际执行唯一可定位的补读；歧义、范围外与部署未知各自保留。有限条件代数支持相等/空值、all/any/not及已知前提代入，未知保留residual，早拒绝和明确前提可以排除无关路径。结论检查核对控制对象与效果对象、分支适用性、冲突及行为/政策对照。形式一致性和源码提取正确性分列，避免将带引用的错误规则固化成错误结论。
+
+**研究依据。** [RepoAudit](https://arxiv.org/html/2501.18160v1)支持按需局部分析、跨函数记忆和多层核验的组织思路；[IRIS](https://arxiv.org/html/2405.17238v3)提供模型语义提取与程序分析协作的参考，提取质量仍需单独评价；[OPA的partial evaluation](https://www.openpolicyagent.org/docs/filtering/fragment)说明已知值代入、未知量保留条件的语义。这里采纳方法分工，不搬用论文效果数字，也不引入完整CodeQL/OPA运行平台。
+
+**开发与检验。** 沿用inquiry/native两个入口和旧默认，新增可选`domain-evidence-v1`；同一核心在普通包中运行。AO八任务的M/D1与新旧策略四臂32session，加两个预选任务的四臂重复8session；另4个关闭机制消融和4次原skill普通消费，均为已暴露development。全部使用AP后共享运行器、原始源码和独立政策，没有预写控制路径。作者、提取、fallback和修复全部计费留账，不重复AO已完成的8稿作者面板。评阅分别检查提取、执行和最终回答；研究收益依据真实数据报告。
+
+**当前状态。** 任务书已写入并同步current-status、spec和plan；尚未修改生产代码或启动本轮真实模型实验。执行者在此继续记录问题、修正、验证及方法结论，原始数据进入`development/authorization-domain-execution-v1/`，不另建逐轮长研究正文。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
