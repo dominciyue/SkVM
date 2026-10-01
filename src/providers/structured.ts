@@ -280,6 +280,20 @@ function zodDefToJsonSchema(def: any): Record<string, unknown> {
     case "ZodBoolean":
       return { type: "boolean" }
 
+    case "ZodNull":
+      return { type: "null" }
+
+    case "ZodUnknown":
+    case "ZodAny":
+      return {}
+
+    case "ZodEffects":
+      // Describe the input type; refinements/transforms still run in schema.parse.
+      return zodToJsonSchema(def.schema as ZodTypeAny)
+
+    case "ZodNullable":
+      return { anyOf: [zodToJsonSchema(def.innerType as ZodTypeAny), { type: "null" }] }
+
     case "ZodArray":
       return {
         type: "array",
@@ -296,7 +310,7 @@ function zodDefToJsonSchema(def: any): Record<string, unknown> {
       return { type: "string", enum: def.values }
 
     case "ZodLiteral":
-      return { type: typeof def.value, const: def.value }
+      return { type: def.value === null ? "null" : typeof def.value, const: def.value }
 
     case "ZodOptional":
       return zodDefToJsonSchema(def.innerType._def)

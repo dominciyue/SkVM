@@ -16,7 +16,7 @@ const prior = path.join(path.dirname(root), "authorization-inquiry-tools-v1")
 export const budgets = { perCallTimeoutMs: 300000, sessionTimeoutMs: 1200000, maxDispatches: 12, maxToolCalls: 24, maxDisplayBytes: 262144, maxFiles: 512, maxReadBytes: 8388608, maxTokens: 6000, maxConcurrency: 2, deliveryRepairs: 1, nativeExploration: 22, nativeChecks: 2 }
 export const taskIds = ["memos-share", "paperless-download", "owui-ingestion", "gitea-self-query", "memos-remove", "paperless-notes", "paperless-share-create", "gitea-create-issue"]
 type Arm = "M-L" | "D-L" | "M-E" | "D-E"
-export type Row = { id: string; kind: "quality" | "ablation" | "native"; task: string; arm?: Arm; method: "M" | "D1"; strategy: "legacy" | "domain-evidence-v1"; repeat?: boolean; ablation?: "scheduler-off" | "checks-off"; sourceSkill?: string; version?: "original" | "changed" }
+export type Row = { id: string; kind: "quality" | "ablation" | "native" | "revision"; task: string; arm?: Arm; method: "M" | "D1"; strategy: "legacy" | "domain-evidence-v1"; repeat?: boolean; ablation?: "scheduler-off" | "checks-off"; sourceSkill?: string; version?: "original" | "changed"; basedOn?: string }
 export const json = async (file: string): Promise<any> => JSON.parse(await readFile(file, "utf8"))
 export const exists = (file: string) => stat(file).then(() => true, () => false)
 export const save = async (file: string, value: unknown, exclusive = true) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, JSON.stringify(value, null, 2) + "\n", { encoding: "utf8", flag: exclusive ? "wx" : "w" }) }
@@ -29,6 +29,29 @@ export function plannedRows(): Row[] {
   for (const task of ["owui-ingestion", "paperless-notes"]) for (const ablation of ["scheduler-off", "checks-off"] as const) rows.push({ id: `ablation-${task}-${ablation}`, kind: "ablation", task, arm: "D-E", method: "D1", strategy: "domain-evidence-v1", ablation })
   for (const [sourceSkill, task, changed] of [["cloudflare-security-audit", "paperless-notes", "paperless-notes-owner-null"], ["github-security-review", "memos-remove", "memos-remove-policy-change"]]) for (const version of ["original", "changed"] as const) rows.push({ id: `native-${sourceSkill}-${version}`, kind: "native", task: version === "original" ? task! : changed!, sourceSkill, version, method: "D1", strategy: "domain-evidence-v1" })
   return rows
+}
+export function registeredStudyRows(manifest: any): Row[] {
+  if (JSON.stringify(manifest.rows) !== JSON.stringify(plannedRows())) throw new Error("Primary denominator/order changed")
+  const revisions = manifest.revisions ?? []
+  if (revisions.length > 1) throw new Error("One shared revision is permitted")
+  const rows: Row[] = [...manifest.rows]
+  for (const revision of revisions) {
+    if (revision.maximumSessions !== 8 || revision.rows.length > 8) throw new Error("Revision is limited to eight sessions")
+    for (const row of revision.rows) {
+      const base = manifest.rows.find((r: Row) => r.id === row.basedOn)
+      if (row.kind !== "revision" || !base || base.kind !== "quality" || base.repeat || base.strategy !== "domain-evidence-v1" || ["task", "arm", "method", "strategy"].some(k => row[k] !== base[k])) throw new Error(`Unregistered revision condition: ${row.id}`)
+      rows.push(row)
+    }
+  }
+  if (new Set(rows.map(r => r.id)).size !== rows.length) throw new Error("Duplicate registered row")
+  return rows
+}
+export function registeredRunIdentity(manifest: any, id: string) {
+  const row = registeredStudyRows(manifest).find(r => r.id === id)
+  if (!row) throw new Error(`Unregistered row: ${id}`)
+  const implementationCommit = row.kind === "revision" ? manifest.revisions.find((r: any) => r.rows.some((candidate: Row) => candidate.id === id))?.implementationCommit : manifest.implementationCommit
+  if (!implementationCommit) throw new Error(`Row implementation is unbound: ${id}`)
+  return { row, implementationCommit }
 }
 export function rowDisposition(report: any, claimed: boolean) { return { state: report?.status ?? (claimed ? "completion-unknown" : "undispatched"), terminal: !!report, canDispatch: !report && !claimed } }
 export function isInfrastructureFailure(report: any): boolean {
@@ -100,11 +123,11 @@ export async function retainedDispatches(dir: string): Promise<number> {
   return count
 }
 async function executeRow(id: string) {
-  const manifest = await json(path.join(root, "manifest.json")), row: Row = manifest.rows.find((r: Row) => r.id === id)
-  if (!row || !manifest.implementationCommit) throw new Error("Unregistered/unbound row")
+  const manifest = await json(path.join(root, "manifest.json")), { row, implementationCommit } = registeredRunIdentity(manifest, id)
+  if (row.kind === "revision" && !(await exists(path.join(root, "generation-closed.json")))) throw new Error("Primary must close before revision dispatch")
   const output = path.join(root, "runs", id); await mkdir(output, { recursive: true })
   if (await exists(path.join(output, "report.json"))) return
-  await save(path.join(output, "claim.json"), { row, model, implementationCommit: manifest.implementationCommit, startedAt: new Date().toISOString(), noAutomaticResend: true })
+  await save(path.join(output, "claim.json"), { row, model, implementationCommit, startedAt: new Date().toISOString(), noAutomaticResend: true })
   const started = Date.now(); let result: any
   try {
     const inputFile = path.join(root, "model/inputs", `${row.task}.json`)
@@ -126,16 +149,22 @@ async function executeRow(id: string) {
   await appendFile(path.join(root, "journal.jsonl"), JSON.stringify({ at: new Date().toISOString(), row: id, status: result.status, providerCalls: result.telemetry?.providerCalls ?? result.providerDispatches ?? null }) + "\n")
   console.log(`${id}: ${result.status}; calls=${result.telemetry?.providerCalls ?? result.providerDispatches ?? "unknown"}`)
 }
-export async function status() {
+export async function status(revision = false) {
   const manifest = await json(path.join(root, "manifest.json")), rows: any[] = []
-  for (const row of manifest.rows) { const dir = path.join(root, "runs", row.id), report = await exists(path.join(dir, "report.json")) ? await json(path.join(dir, "report.json")) : undefined; rows.push({ ...row, ...rowDisposition(report, await exists(path.join(dir, "claim.json"))), providerCalls: report?.telemetry?.providerCalls ?? report?.providerDispatches ?? null }) }
+  for (const row of registeredStudyRows(manifest).filter(r => (r.kind === "revision") === revision)) { const dir = path.join(root, "runs", row.id), report = await exists(path.join(dir, "report.json")) ? await json(path.join(dir, "report.json")) : undefined; rows.push({ ...row, ...rowDisposition(report, await exists(path.join(dir, "claim.json"))), providerCalls: report?.telemetry?.providerCalls ?? report?.providerDispatches ?? null }) }
   return { planned: rows.length, terminal: rows.filter(r => r.terminal).length, rows }
 }
-async function run() {
+async function run(revision = false) {
   const manifest = await json(path.join(root, "manifest.json")); if (!manifest.implementationCommit) throw new Error("Bind verified implementation commit before paid generation")
+  const closureFile = path.join(root, revision ? "revision-generation-closed.json" : "generation-closed.json")
+  if (await exists(closureFile)) { console.log("Generation already closed; no provider dispatch"); return }
+  if (revision && !(await exists(path.join(root, "generation-closed.json")))) throw new Error("Primary must close before revision generation")
+  const rows = registeredStudyRows(manifest).filter(r => (r.kind === "revision") === revision)
+  if (!rows.length) throw new Error("No registered generation rows")
+  for (const row of rows) registeredRunIdentity(manifest, row.id)
   let cursor = 0, streak = 0, paused = false
-  await Promise.all(Array.from({ length: budgets.maxConcurrency }, async () => { while (!paused && cursor < manifest.rows.length) {
-    const row: Row = manifest.rows[cursor++]!, dir = path.join(root, "runs", row.id)
+  await Promise.all(Array.from({ length: budgets.maxConcurrency }, async () => { while (!paused && cursor < rows.length) {
+    const row = rows[cursor++]!, dir = path.join(root, "runs", row.id)
     if (await exists(path.join(dir, "claim.json"))) { console.log(`${row.id}: claimed; no resend`); continue }
     console.log(`Starting ${row.id}`)
     const child = Bun.spawn([process.execPath, path.join(root, "study.ts"), "worker", row.id], { cwd: repo, stdout: "inherit", stderr: "inherit" })
@@ -144,24 +173,34 @@ async function run() {
     const report = await json(path.join(dir, "report.json")); streak = isInfrastructureFailure(report) ? streak + 1 : 0
     if (streak >= 2) paused = true
   } }))
-  const summary = await status()
-  if (paused) { await save(path.join(root, "infrastructure-pause.json"), { at: new Date().toISOString(), streak, ...summary }, false); throw new Error("Two consecutive infrastructure failures; no new paid dispatch") }
+  const summary = await status(revision)
+  if (paused) { await save(path.join(root, revision ? "revision-infrastructure-pause.json" : "infrastructure-pause.json"), { at: new Date().toISOString(), streak, ...summary }, false); throw new Error("Two consecutive infrastructure failures; no new paid dispatch") }
   if (summary.rows.some(r => !r.terminal)) throw new Error("Unsettled claims or undispatched rows remain")
-  await save(path.join(root, "generation-closed.json"), { closedAt: new Date().toISOString(), ...summary, noScoreResampling: true, revisionSessions: 0 })
+  await save(closureFile, { closedAt: new Date().toISOString(), ...summary, noScoreResampling: true, revisionSessions: revision ? summary.planned : 0 })
   console.log(`Generation closed: ${summary.terminal}/${summary.planned}`)
 }
 async function replay() {
-  const manifest = await json(path.join(root, "manifest.json")), summary = await status()
-  if (JSON.stringify(manifest.rows) !== JSON.stringify(plannedRows())) throw new Error("Registered denominator/order changed")
-  for (const row of summary.rows.filter(r => r.terminal)) {
+  const manifest = await json(path.join(root, "manifest.json")), primary = await status(), revision = await status(true)
+  for (const row of [...primary.rows, ...revision.rows].filter(r => r.terminal)) {
     const dir = path.join(root, "runs", row.id), report = await json(path.join(dir, "report.json")), claim = await json(path.join(dir, "claim.json"))
-    if (JSON.stringify(report.row) !== JSON.stringify(claim.row) || claim.implementationCommit !== manifest.implementationCommit) throw new Error(`Identity mismatch ${row.id}`)
+    const expected = registeredRunIdentity(manifest, row.id)
+    if (JSON.stringify(report.row) !== JSON.stringify(expected.row) || JSON.stringify(claim.row) !== JSON.stringify(expected.row) || claim.implementationCommit !== expected.implementationCommit) throw new Error(`Identity mismatch ${row.id}`)
     if (await exists(path.join(dir, "sessions.jsonl"))) await inspectLocalInquiry(dir)
     if ((report.telemetry?.providerCalls ?? report.providerDispatches ?? 0) > budgets.maxDispatches) throw new Error("Dispatch budget exceeded")
     const native = report.native
     if (native && (native.toolBudget.totalUsed > 24 || native.toolBudget.explorationUsed > 22 || native.toolBudget.checksUsed > 2)) throw new Error("Native budget exceeded")
   }
-  console.log(JSON.stringify({ ...summary, providerCallsDuringReplay: 0 }))
+  console.log(JSON.stringify({ primary: { planned: primary.planned, terminal: primary.terminal }, revision: { planned: revision.planned, terminal: revision.terminal }, providerCallsDuringReplay: 0 }))
+}
+async function bindRevision() {
+  if (!(await exists(path.join(root, "generation-closed.json")))) throw new Error("Primary must close before binding shared repair")
+  const manifest = await json(path.join(root, "manifest.json")); registeredStudyRows(manifest)
+  const revision = manifest.revisions[0], preregistered = await json(path.join(root, "shared-revision.json"))
+  if (!revision || revision.implementationCommit || JSON.stringify(revision) !== JSON.stringify(preregistered)) throw new Error("Revision is already bound or differs from pre-registration")
+  revision.implementationCommit = execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim()
+  await save(path.join(root, "shared-revision.json"), revision, false)
+  await save(path.join(root, "manifest.json"), manifest, false)
+  console.log(revision.implementationCommit)
 }
 if (import.meta.main) {
   const command = process.argv[2]
@@ -170,7 +209,10 @@ if (import.meta.main) {
   else if (command === "bind") { const manifest = await json(path.join(root, "manifest.json")); if (manifest.implementationCommit) throw new Error("Already bound"); manifest.implementationCommit = execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim(); await save(path.join(root, "manifest.json"), manifest, false); console.log(manifest.implementationCommit) }
   else if (command === "worker") await executeRow(process.argv[3]!)
   else if (command === "run") await run()
+  else if (command === "bind-revision") await bindRevision()
+  else if (command === "revision-run") await run(true)
+  else if (command === "revision-status") console.log(JSON.stringify(await status(true)))
   else if (command === "status") console.log(JSON.stringify(await status()))
   else if (command === "replay") await replay()
-  else throw new Error("Use register|check|bind|run|status|replay")
+  else throw new Error("Use register|check|bind|run|status|bind-revision|revision-run|revision-status|replay")
 }

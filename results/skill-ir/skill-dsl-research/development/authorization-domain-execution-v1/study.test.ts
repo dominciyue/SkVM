@@ -37,3 +37,39 @@ test("anonymous review packet hides arm/cost/oracle, preserves raw first/final a
   expect(text).not.toContain("totalActualUsd")
   expect(text).not.toContain("oracle")
 })
+
+test("evaluation keeps primary denominators and the one pre-registered revision separate", () => {
+  const primary = study.plannedRows(), selected = primary.filter((r: any) => r.kind === "quality" && !r.repeat && ["owui-ingestion", "gitea-self-query", "memos-remove", "paperless-notes"].includes(r.task) && r.strategy === "domain-evidence-v1")
+  const revision = { id: "shared-schema-contract-v1", maximumSessions: 8, rows: selected.map((r: any) => ({ ...r, id: `revision-${r.id}`, kind: "revision", basedOn: r.id })) }
+  expect(typeof evaluation.registeredEvaluationRows).toBe("function")
+  const rows = evaluation.registeredEvaluationRows({ rows: primary, revisions: [revision] })
+  expect(rows).toHaveLength(56)
+  expect(rows.filter((r: any) => r.kind === "quality")).toHaveLength(40)
+  expect(rows.filter((r: any) => r.kind === "revision")).toHaveLength(8)
+  expect(() => evaluation.registeredEvaluationRows({ rows: primary.slice(1), revisions: [revision] })).toThrow("Primary denominator")
+  expect(() => evaluation.registeredEvaluationRows({ rows: primary, revisions: [revision, revision] })).toThrow("One shared revision")
+  expect(() => evaluation.registeredEvaluationRows({ rows: primary, revisions: [{ ...revision, rows: [...revision.rows, revision.rows[0]] }] })).toThrow("eight")
+  expect(() => evaluation.assertGenerationClosed({ rows: primary, revisions: [revision] }, ["generation-closed.json"])).toThrow("revision")
+  expect(() => evaluation.assertGenerationClosed({ rows: primary, revisions: [revision] }, ["generation-closed.json", "revision-generation-closed.json"])).not.toThrow()
+})
+
+test("native prose is a semantic delivery even when host checking fails; packets use original-source range references", () => {
+  const packet = evaluation.makePacket("native-anonymous", { brief: "Natural question" }, { status: "completed", prose: "Original skill answer", native: { result: null, history: [] }, evidence: [{ id: "ev", path: "entry.ts", startLine: 2, endLine: 4, digest: "abc", text: "body from original", quote: "duplicate body" }] })
+  expect(packet.prose).toBe("Original skill answer")
+  expect(packet.initialProse).toBe("Original skill answer")
+  expect(packet.deliveryValid).toBe(false)
+  expect(packet.evidence[0]).toEqual({ id: "ev", path: "entry.ts", startLine: 2, endLine: 4, digest: "abc" })
+})
+
+test("a revision resolves its own bound implementation without changing or resending primary identities", () => {
+  const primary = study.plannedRows(), base = primary.find((r: any) => r.id === "quality-memos-remove-M-E")
+  const revised = { ...base, id: "revision-memos-remove-M-E", kind: "revision", basedOn: base.id }
+  const manifest = { rows: primary, implementationCommit: "primary-commit", revisions: [{ id: "shared-schema-contract-v1", implementationCommit: "repaired-commit", maximumSessions: 8, rows: [revised] }] }
+  expect(typeof study.registeredRunIdentity).toBe("function")
+  expect(study.registeredRunIdentity(manifest, base.id)).toEqual({ row: base, implementationCommit: "primary-commit" })
+  expect(study.registeredRunIdentity(manifest, revised.id)).toEqual({ row: revised, implementationCommit: "repaired-commit" })
+  expect(study.rowDisposition({ status: "transport-failed" }, true).canDispatch).toBe(false)
+  expect(manifest.rows).toEqual(primary)
+  expect(() => study.registeredRunIdentity({ ...manifest, revisions: [{ ...manifest.revisions[0], implementationCommit: null }] }, revised.id)).toThrow("unbound")
+  expect(() => study.registeredRunIdentity(manifest, "unregistered-new-row")).toThrow("Unregistered")
+})

@@ -1232,6 +1232,10 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 联合回归474 pass/1平台skip、3151断言；随后检查snapshot与作者伪造用户前提反例25 pass/166断言。主类型通过；研究脚本另有strict typecheck和3项分母/不重发/匿名隔离测试，24断言。40输入组合、两原skill普通loader及实际companion读取零paid预检通过，source工具不注册shell/写/网络，oracle canary拒绝，相对输入root正确。登记固定40质量+4消融+4native，臂顺序轮换、预选重复反序、最多两worker独立进程；生成关闭前禁止建立语义packet。此时真实provider调用0，规则提取和最终质量收益仍待实测。
 
+**AQ11共享合同缺陷与预登记修订。** 首轮真实请求暴露共享JSON Schema转换遗漏：ZodEffects包装的字符串identity被发成object，record(unknown)的谓词成员被发成object，显式null也被发成object。两种extraction transport使用同一错误转换；这属于共享实现缺陷，而非答案低分。真实请求字段与先红的schema-capture回归登记于AQ root的`shared-revision.json`。原48单元继续绑定`3d4ba681`，全部关闭后才修转换；在任何语义评分前登记OWUI ingestion、Gitea self-query、Memos remove、Paperless notes的M-E/D-E共8个修订单元，条件和预算不变，独立列账、不替换原分母。native使用手写工具合同，不因这处转换修复追加采样。匿名评价同时保留raw首答/终答与native文字交付，检查是否工具验证成功单列；只提供原源码范围索引，按原文件核验意义，不从字段数推断质量。当前生成未关闭，尚无语义效果结论。
+
+**AQ11恢复与共享修复。** 用户要求继续任务书后，确认原48行已封存（22 completed、20 transport-failed、2 budget-exhausted、1 timeout-unknown、2 completed-with-diagnostics、1 adapter-crashed），记录358次dispatch，未知完成不重发。两项既有红例新鲜复现后修复：共享转换器展开ZodEffects的输入schema，保留unknown/any的自由JSON值、显式null与nullable联合；本地Zod refinement与语义校验继续执行。研究driver为预登记revision绑定独立实现、沿用原任务/预算与独占claim，原48行不变。12项聚焦回归81断言通过；相关联合481 pass/1平台skip、3208断言，主/研究类型通过，原48行身份与预算零provider重放通过。修订八行只用于此具名实现缺陷，不按答案质量重抽；尚未建立语义评分或效果结论。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

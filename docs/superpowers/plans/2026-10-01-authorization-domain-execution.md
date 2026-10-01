@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 authorization/inquiry/native 实现与源码位置索引。沿用现有 CLI，不建设新平台或统一 IR。
 
-状态：`AQ0-AQ9-implemented / AQ10-registered / engineering-review`。规划基线为 `2c7dd07380999ca8df971a7cdc64d5e7ed1733c5`；实际干净启动头为 `c0cd32d2ff0a1824d84025bced4f1de5dfcbcabf`。目录 `D:\skill优化\SkVM`；分支 `skill-ir-aot`；唯一发布目标为用户 `origin/skill-ir-aot`。40输入及两原skill loader/reference零paid预检通过；真实调用尚为0。
+状态：`active / AQ11-primary-48-closed / shared-schema-repair-verified / eight-revisions-ready / semantic-review-pending`。规划基线为 `2c7dd07380999ca8df971a7cdc64d5e7ed1733c5`；实际干净启动头为 `c0cd32d2ff0a1824d84025bced4f1de5dfcbcabf`。目录 `D:\skill优化\SkVM`；分支 `skill-ir-aot`；唯一发布目标为用户 `origin/skill-ir-aot`。40输入及两原skill loader/reference零paid预检通过；48个首轮真实会话已终态关闭，记录358次provider调用（22 completed、20 transport-failed、2 budget-exhausted、1 timeout-unknown、2 completed-with-diagnostics、1 adapter-crashed）。用户中断当前操作后恢复检查未发现仍运行的所属generator/worker，新增模型调用0。用户已要求恢复直至完成。共享schema转换缺陷及修订身份接线的两项红例新鲜复现后已修复；481 pass/1 skip、3208断言、主/研究类型及原48行零调用重放通过。准备绑定一次共享修订的8行独立实现；独立语义評閱与发布尚未执行。
 
 开发任务请求 `gpt-6.1-sol / max / Flash`。派发工具支持 model/effort，当前没有速度参数；记录实际可确认设置，Flash 未确认时如实说明，不修改全局配置。被测模型继续使用已配置的 `xty/gpt-5.6-sol`，与开发模型分账。
 
